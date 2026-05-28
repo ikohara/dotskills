@@ -5,14 +5,12 @@ repos:
       - id: biome-check
         additional_dependencies: ["@biomejs/biome@2.4.13"]
         files: '\.(jsx?|tsx?|c(js|ts)|m(js|ts)|d\.(ts|cts|mts)|jsonc?|css)$'
-        exclude: '^tests/fixtures/biome/'
 
   - repo: https://github.com/DavidAnson/markdownlint-cli2
     rev: v0.22.1
     hooks:
       - id: markdownlint-cli2
         args: [--fix]
-        exclude: '^tests/fixtures/markdownlint-cli2/'
 
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.13.1-1
@@ -36,7 +34,6 @@ repos:
     rev: v1.38.0
     hooks:
       - id: yamllint
-        exclude: '^tests/fixtures/yamllint/'
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
