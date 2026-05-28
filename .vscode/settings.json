@@ -28,7 +28,7 @@
     }
   },
   "powershell.scriptAnalysis.enable": true,
-  "powershell.scriptAnalysis.settingsPath": "PSScriptAnalyzerSettings.psd1",
+  "powershell.scriptAnalysis.settingsPath": "scripts/PSScriptAnalyzerSettings.psd1",
   "powershell.codeFormatting.preset": "Custom",
   "powershell.codeFormatting.autoCorrectAliases": true,
   "powershell.codeFormatting.useCorrectCasing": true,
