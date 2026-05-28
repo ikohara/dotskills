@@ -9,12 +9,6 @@ See [README.md](README.md) for what this project is and how to use it.
 
 For variations, refer to the usage of the commands the script invokes.
 
-## Tech stack
-
-TypeScript / JavaScript (Biome), PowerShell (PSScriptAnalyzer),
-Bash (shellcheck / shfmt), Markdown (markdownlint-cli2), YAML (yamllint),
-orchestrated through `pre-commit`.
-
 ## Project structure
 
 - [`docs/requirements/`](docs/requirements/) — what we're building
@@ -39,7 +33,7 @@ Refer to them as `<type>-<id>` in commits, code comments, and prose:
 
 ## Code style
 
-- TypeScript / JavaScript: see [`biome.json`](biome.json).
-- PowerShell: see [`scripts/PSScriptAnalyzerSettings.psd1`](scripts/PSScriptAnalyzerSettings.psd1).
 - Markdown: see [`.markdownlint-cli2.yaml`](.markdownlint-cli2.yaml).
+- PowerShell: see [`scripts/PSScriptAnalyzerSettings.psd1`](scripts/PSScriptAnalyzerSettings.psd1).
 - YAML: see [`.yamllint`](.yamllint).
+- JSON: see [`biome.json`](biome.json).
