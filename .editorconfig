@@ -1,0 +1,27 @@
+root = true
+
+[*.{json,jsonc}]
+indent_size = 2
+indent_style = space
+max_line_length = 120
+
+[*.md]
+indent_size = 2
+indent_style = space
+
+[*.{ps1,psd1,psm1}]
+indent_size = 4
+indent_style = space
+
+[*.sh]
+binary_next_line = true
+indent_size = 4
+indent_style = space
+shell_variant = bash
+simplify = true
+switch_case_indent = true
+
+[*.{yaml,yml}]
+indent_size = 2
+indent_style = space
+max_line_length = 120
