@@ -25,18 +25,25 @@ Describe 'Get-ChangelogVersion' {
     }
 }
 Describe 'Set-ReadmeVersion' {
-    It 'replaces the version in the install line and returns $true' {
+    It 'replaces the version in the install line and returns "updated"' {
         $tmp = New-TemporaryFile
         Set-Content $tmp "# Readme`n`napm install TDL-XR-dev/dotskills#v0.3.1`n" -NoNewline
-        Set-ReadmeVersion -Path $tmp -Version '0.3.2' | Should -Be $true
+        Set-ReadmeVersion -Path $tmp -Version '0.3.2' | Should -Be 'updated'
         Get-Content $tmp -Raw | Should -Match 'dotskills#v0\.3\.2'
         Remove-Item $tmp
     }
 
-    It 'returns $false when the install line is not found' {
+    It 'returns "already" when the install line already matches the target version' {
+        $tmp = New-TemporaryFile
+        Set-Content $tmp "# Readme`n`napm install TDL-XR-dev/dotskills#v0.3.2`n" -NoNewline
+        Set-ReadmeVersion -Path $tmp -Version '0.3.2' | Should -Be 'already'
+        Remove-Item $tmp
+    }
+
+    It 'returns "not-found" when the install line is not found' {
         $tmp = New-TemporaryFile
         Set-Content $tmp '# Readme with no install line' -NoNewline
-        Set-ReadmeVersion -Path $tmp -Version '0.3.2' | Should -Be $false
+        Set-ReadmeVersion -Path $tmp -Version '0.3.2' | Should -Be 'not-found'
         Remove-Item $tmp
     }
 

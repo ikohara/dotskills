@@ -1,3 +1,8 @@
+[CmdletBinding()]
+param(
+    [switch]$Force
+)
+
 function Get-ChangelogVersion {
     param([string]$Path = 'CHANGELOG.md')
     $content = Get-Content $Path -Raw
@@ -9,22 +14,26 @@ function Get-ChangelogVersion {
 
 function Set-ReadmeVersion {
     [CmdletBinding(SupportsShouldProcess)]
-    [OutputType([bool])]
+    [OutputType([string])]
     param([string]$Path = 'README.md', [string]$Version)
     $content = Get-Content $Path -Raw
+    if ($content -notmatch 'dotskills#v[\d.]+') {
+        return 'not-found'
+    }
     $updated = $content -replace 'dotskills#v[\d.]+', "dotskills#v$Version"
     if ($updated -eq $content) {
-        return $false
+        return 'already'
     }
     if ($PSCmdlet.ShouldProcess($Path, "Set version to $Version")) {
         Set-Content $Path $updated -NoNewline
     }
-    return $true
+    return 'updated'
 }
 
 function Invoke-Release {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '')]
-    param()
+    [CmdletBinding()]
+    param([switch]$Force)
 
     $ErrorActionPreference = 'Stop'  # covers PS cmdlets only; native commands need $LASTEXITCODE checks
 
@@ -50,10 +59,15 @@ function Invoke-Release {
     }
 
     # 4. Bump README
-    $bumped = Set-ReadmeVersion -Version $version
-    if (-not $bumped) {
-        Write-Error 'Install line (dotskills#vX.Y.Z) not found in README.md'
-        exit 1
+    $bumpResult = Set-ReadmeVersion -Version $version
+    switch ($bumpResult) {
+        'not-found' {
+            Write-Error 'Install line (dotskills#vX.Y.Z) not found in README.md'
+            exit 1
+        }
+        'already' {
+            Write-Host "README.md already at v$version -- skipping bump."
+        }
     }
 
     # 5. Confirm -- intentionally before commit/tag so an abort leaves git history clean
@@ -62,17 +76,27 @@ function Invoke-Release {
     Write-Host "  Tag     : v$version"
     Write-Host "  Push    : origin main + v$version"
     Write-Host ''
-    $confirm = Read-Host 'Proceed? [y/N]'
 
-    if ($confirm -ine 'y') {
-        Write-Host 'Aborted. README.md was updated but not committed -- restore it with: git restore README.md'
-        exit 0
+    if ($Force) {
+        Write-Host 'Proceeding (-Force).'
+    } else {
+        $confirm = Read-Host 'Proceed? [y/N]'
+        if ($confirm -ine 'y') {
+            if ($bumpResult -eq 'updated') {
+                Write-Host 'Aborted. README.md was updated but not committed -- restore it with: git restore README.md'
+            } else {
+                Write-Host 'Aborted.'
+            }
+            exit 0
+        }
     }
 
     # 6. Commit + tag
-    git add README.md
-    git commit -m "docs: release prep for v$version"
-    if ($LASTEXITCODE -ne 0) { Write-Error 'git commit failed'; exit 1 }
+    if ($bumpResult -eq 'updated') {
+        git add README.md
+        git commit -m "docs: release prep for v$version"
+        if ($LASTEXITCODE -ne 0) { Write-Error 'git commit failed'; exit 1 }
+    }
     git tag "v$version"
     if ($LASTEXITCODE -ne 0) { Write-Error "git tag failed -- commit exists but tag was not created. Fix manually: git tag v$version && git push origin main v$version"; exit 1 }
 
@@ -86,5 +110,5 @@ function Invoke-Release {
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
-    Invoke-Release
+    Invoke-Release -Force:$Force
 }
