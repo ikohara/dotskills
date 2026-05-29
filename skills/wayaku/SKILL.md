@@ -120,6 +120,10 @@ Outside the translatable areas defined in Step 3 (code, tags, non-text-bearing a
 literals, keys/values, indentation, line breaks), the output is preserved verbatim. Within those areas,
 follow Step 4.
 
+Always end the output file with exactly one trailing newline character, regardless of whether the source
+has one, so it passes linters such as markdownlint MD047 ("Files should end with a single newline
+character").
+
 ### Step 6: Report
 
 Report each target with one of:
