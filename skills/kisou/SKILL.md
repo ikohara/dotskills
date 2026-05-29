@@ -1,6 +1,6 @@
 ---
 name: kisou
-description: Use when the user explicitly invokes project drafting with `起草して` or `kisouして` (optionally followed by a `scaffold` or `migrate` mode word) — stands up or retrofits a project's standard structure: README / CONTRIBUTING / CLAUDE / a slim AGENTS.md, the docs/ document-management system, and optional empty script files; project names follow the chosen `case` convention (`snake_case` or `PascalCase`, with `docs → Documents` / `src → Source` etc. for the latter). `scaffold` / `migrate` are mode arguments that only apply AFTER a `起草`/`kisou` invocation — do NOT trigger on the bare English words "scaffold" or "migrate" (e.g. scaffolding a test harness, migrating a database or code). Never touches src/ or tests/.
+description: Use when the user explicitly invokes project drafting with `起草して` or `kisouして` (optionally followed by a `scaffold` or `migrate` mode word) — stands up or retrofits a project's standard structure (README / CONTRIBUTING / CLAUDE / a slim AGENTS.md, the docs/ document-management system, and optional empty script files); project names follow the chosen `case` convention (`snake_case` or `PascalCase`, with `docs → Documents` / `src → Source` etc. for the latter). `scaffold` / `migrate` are mode arguments that only apply AFTER a `起草`/`kisou` invocation — do NOT trigger on the bare English words "scaffold" or "migrate" (e.g. scaffolding a test harness, migrating a database or code). Never touches src/ or tests/.
 ---
 
 # kisou
