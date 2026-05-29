@@ -81,11 +81,13 @@ built-in `case`-aware mapping:
 3. Write the doc-system using **case-correct directory names**: under the
    cased docs root (`docs/` or `Documents/`), create
    `{requirements,design,decisions}/` (each title-cased for `PascalCase`)
-   and `issues/{open,deferred,resolved}/` (the issues parent is cased; the
-   `open`/`deferred`/`resolved` status subdirs stay lowercase). Copy the
-   bundled `templates/docs/AGENTS.md` and `templates/docs/<type>/AGENTS.md`
-   to the cased destinations, expanding any `{{name}}` placeholders inside
-   them as in step **(a)**. Add `.gitkeep` where a dir would be empty.
+   and the `issues/` parent (cased). Copy the bundled
+   `templates/docs/AGENTS.md` and `templates/docs/<type>/AGENTS.md` to the
+   cased destinations, expanding any `{{name}}` placeholders inside them as
+   in step **(a)**. Do **not** create the `open`/`deferred`/`resolved`
+   status subdirs and do **not** add `.gitkeep`: git does not track empty
+   directories, so a writer creates a status subdir on demand when the
+   first issue lands there (those names stay lowercase).
 4. Create the requested scripts as **empty files** (`.bat` + `.sh`).
 5. Present a numbered plan of files to create, end with `Direction?`, wait,
    apply the accepted subset, make **one** git commit, report files changed +
