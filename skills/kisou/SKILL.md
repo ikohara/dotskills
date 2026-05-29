@@ -128,9 +128,15 @@ Pick a **scope**: full (layer B + doc-system) or **docs-only** (the case
 `shoroku` delegates here). Then, per artifact:
 
 - **Absent** → create (filled), as in scaffold.
-- **Present** (`README` / `AGENTS.md` / `CLAUDE.md`) → section/block merge: show
-  the diff, get explicit approval, insert only what is missing (e.g., the
-  `docs/AGENTS.md` pointer, a missing convention section).
+- **Present** (`README` / `AGENTS.md` / `CLAUDE.md`) → branch on the file's shape:
+  - **Stub-shaped** (heading set matches the template, or `<...>` placeholders
+    still remain) → section/block merge: show the diff, get explicit approval,
+    insert only what is missing (e.g., the `docs/AGENTS.md` pointer, a missing
+    convention section).
+  - **Real content** (custom headings / prose, no `<...>` placeholders to fill)
+    → do not attempt a merge. With approval, rename the original to `<file>.bak`
+    and write a fresh template-filled file, then tell the author to graft the
+    wanted sections back by hand. The `.bak` keeps this non-destructive.
 - **`scripts/`** → add only the missing requested scripts as empty files; never
   overwrite an existing script.
 - **`docs/` doc-system** → write the bundle if absent; if already present, leave

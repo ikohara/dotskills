@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-05-29
 ---
 
 `kisou` migrate's per-artifact rule for layer-B files says:
@@ -42,3 +42,11 @@ Decide an explicit policy. Options:
 
 (a) is the most predictable; (b) is the most user-friendly; (c) keeps kisou
 purely additive. Pick one and add to the spec.
+
+## Resolution
+
+Chose **(a)**, scoped by a stub-vs-real-content branch. The `Present` rule in
+`SKILL.md` now keeps section/block merge for stub-shaped files (template heading
+set or remaining `<...>` placeholders) and, for real project content, renames
+the original to `.bak` and writes a fresh template-filled file with approval —
+matching the workflow actually used on `dotskills`.

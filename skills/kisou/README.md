@@ -10,7 +10,10 @@ structure, or retrofits it onto an existing repository.
   (`scripts/bootstrap` is always created; `setup` / `run` / `build` / `test` /
   `lint` are opt-in).
 - **migrate** an existing repo: detects what's already there and drops in
-  what's missing without clobbering, with a full or docs-only scope.
+  what's missing without clobbering, with a full or docs-only scope. When an
+  existing `README` / `AGENTS` / `CLAUDE` holds real project content rather than
+  a fillable stub, it backs the file up to `.bak` and writes a fresh one (with
+  approval) instead of forcing a merge.
 - Never touches `src/` or `tests/`; never runs `git init`; never auto-generates
   script content.
 
