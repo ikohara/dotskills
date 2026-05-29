@@ -23,6 +23,12 @@ TEMPLATE FILL (delete this block after filling):
 
 See [README.md](README.md) for what this project is and how to use it.
 
+## Prerequisites
+
+- Everything in the Prerequisites section of [README.md](README.md)
+- [uv](https://docs.astral.sh/uv/)
+- <anything else needed for development>
+
 ## Development setup
 
 <!-- OPTIONAL os.mode=both -->

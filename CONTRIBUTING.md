@@ -2,6 +2,11 @@
 
 See [README.md](README.md) for what this project is and how to use it.
 
+## Prerequisites
+
+- Everything in the Prerequisites section of [README.md](README.md)
+- [uv](https://docs.astral.sh/uv/)
+
 ## Development setup
 
 - Windows: `scripts\bootstrap.bat`
