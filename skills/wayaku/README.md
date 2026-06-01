@@ -28,7 +28,9 @@ The agent will invoke this skill when you say things like:
 
 None required. On first invocation in a git repo, the skill registers `.wayaku/` in your per-clone
 `<root>/.git/info/exclude` so the cache stays out of `git status` without modifying the shared
-`.gitignore`.
+`.gitignore`. It also drops `<root>/.wayaku/.markdownlint-cli2.yaml` (all rules off) so the
+translated artifacts never trip the project's Markdown linter — again without touching the shared
+lint config.
 
 ## See also
 

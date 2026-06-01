@@ -42,6 +42,35 @@ if ($exclude -and -not (Select-String -Path $exclude -Pattern '^\.wayaku/$' -Qui
 }
 ```
 
+### Step 0b: Ensure lint is muted under the cache
+
+Translations are derived artifacts, not authored content; they should never trip the project's
+Markdown (or other) linters. Drop a self-contained, all-rules-off **markdownlint-cli2** config at
+`<root>/.wayaku/.markdownlint-cli2.yaml`. markdownlint-cli2 applies a nested `.markdownlint-cli2.yaml`
+to every file in its subtree, so `config: default: false` disables all rules for the whole cache.
+
+This lives inside `.wayaku/` (already local-ignored via Step 0), so it keeps the shared repo config
+untouched — the same philosophy as Step 0. Note the legacy `.markdownlintignore` file does **not**
+work here: it is only read by markdownlint-cli v1, not by cli2.
+
+Create the file only if it is missing (its content is fixed, so never overwrite a user's edits):
+
+```bash
+# POSIX
+cfg="<root>/.wayaku/.markdownlint-cli2.yaml"
+mkdir -p "$(dirname "$cfg")"
+[ -f "$cfg" ] || printf 'config:\n  default: false\n' > "$cfg"
+```
+
+```powershell
+# PowerShell
+$cfg = "<root>/.wayaku/.markdownlint-cli2.yaml"
+New-Item -ItemType Directory -Force -Path (Split-Path $cfg) | Out-Null
+if (-not (Test-Path $cfg)) {
+    Set-Content -Path $cfg -Value "config:`n  default: false"
+}
+```
+
 ### Step 1: Identify target
 
 Determine the target file (one or more) in this order of precedence:
