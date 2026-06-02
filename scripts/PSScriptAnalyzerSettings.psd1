@@ -1,6 +1,11 @@
 @{
     IncludeDefaultRules = $true
-    Severity = @('Error', 'Warning')
+    Severity = @('Error', 'Warning', 'Information')
+    ExcludeRules = @(
+        'PSAvoidUsingPositionalParameters'
+        'PSProvideCommentHelp'
+        'PSUseOutputTypeCorrectly'
+    )
 
     Rules = @{
         PSUseConsistentIndentation = @{

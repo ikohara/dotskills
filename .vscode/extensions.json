@@ -3,7 +3,6 @@
     "davidanson.vscode-markdownlint",
     "editorconfig.editorconfig",
     "redhat.vscode-yaml",
-    "biomejs.biome",
     "ms-vscode.powershell",
     "foxundermoon.shell-format",
     "mads-hartmann.bash-ide-vscode",

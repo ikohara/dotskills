@@ -5,20 +5,12 @@
     }
   },
   "[json]": {
-    "editor.defaultFormatter": "biomejs.biome",
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-      "source.fixAll.biome": "explicit",
-      "source.organizeImports.biome": "explicit"
-    }
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.formatOnSave": true
   },
   "[jsonc]": {
-    "editor.defaultFormatter": "biomejs.biome",
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-      "source.fixAll.biome": "explicit",
-      "source.organizeImports.biome": "explicit"
-    }
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.formatOnSave": true
   },
   "[powershell]": {
     "editor.defaultFormatter": "ms-vscode.powershell",
@@ -30,6 +22,7 @@
   "powershell.scriptAnalysis.enable": true,
   "powershell.scriptAnalysis.settingsPath": "scripts/PSScriptAnalyzerSettings.psd1",
   "powershell.codeFormatting.preset": "Custom",
+  "powershell.codeFormatting.alignPropertyValuePairs": false,
   "powershell.codeFormatting.autoCorrectAliases": true,
   "powershell.codeFormatting.useCorrectCasing": true,
   "powershell.codeFormatting.trimWhitespaceAroundPipe": true,
