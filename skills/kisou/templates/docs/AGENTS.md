@@ -20,7 +20,11 @@ Per-type rules (frontmatter, body, lifecycle) live in each
 
 **New subdirectories under `{{docs}}/`.** The four above are the standing
 schema. If you add another subdirectory, also add its path to the Markdown
-linter's ignore list — or propose the addition before populating.
+linter's ignore list — or propose the addition before populating. Files in
+such subdirectories (e.g. ones created by other tools or skills) follow
+those tools' conventions, not the rules below.
+
+For the four type directories only:
 
 - **No index files.** A directory listing plus each file's frontmatter
   `title:` is the index.

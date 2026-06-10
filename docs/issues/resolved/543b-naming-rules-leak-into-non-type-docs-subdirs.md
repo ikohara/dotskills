@@ -36,3 +36,9 @@ subdirectories under `docs/` (created by other tools or skills) keep their
 own conventions" — and mirror the change in this repo's `docs/AGENTS.md`.
 Already-generated projects need the same edit applied manually or via a
 kisou `migrate` pass.
+
+Resolution: applied to both files. The "New subdirectories" paragraph now
+exempts non-type subdirectories from the rules, and the naming bullets are
+introduced with "For the four type directories only:". Already-generated
+projects still need the same edit applied manually or via a kisou `migrate`
+pass.
