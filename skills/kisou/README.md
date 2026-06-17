@@ -10,10 +10,14 @@ structure, or retrofits it onto an existing repository.
   (`scripts/bootstrap` is always created; `setup` / `run` / `build` / `test` /
   `lint` / `tidy` are opt-in; `tidy` is the clang-tidy step for clang + CMake
   projects).
-- **migrate** an existing repo: detects what's already there and drops in
-  what's missing without clobbering, with a full or docs-only scope. When an
-  existing `README` / `AGENTS` / `CLAUDE` holds real project content rather than
-  a fillable stub, it backs the file up to `.bak` and writes a fresh one (with
+- **migrate** an existing repo: detects what's already there — down to a
+  partial doc-system — and drops in what's missing without clobbering, with a
+  full or docs-only scope; it also offers scripts the repo lacks. When a present
+  `README` / `AGENTS` / `CLAUDE` (or a doc-system `AGENTS.md`) is kisou-managed,
+  re-running migrate **refreshes it toward the current template** — adding
+  missing sections and updating diverged fixed-text ones, never touching author
+  free-text or removing author sections. When such a file instead holds real
+  project content, it backs the file up to `.bak` and writes a fresh one (with
   approval) instead of forcing a merge.
 - Never touches `src/` or `tests/`; never runs `git init`; never auto-generates
   script content.
