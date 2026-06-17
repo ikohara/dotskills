@@ -6,6 +6,8 @@ See [README.md](README.md) for what this project is and how to use it.
 
 - Everything in the Prerequisites section of [README.md](README.md)
 - [uv](https://docs.astral.sh/uv/)
+- [PowerShell 7](https://aka.ms/powershell) (`pwsh`) — the PowerShell pre-commit hook requires it; 5.1 is not sufficient.
+- [PSScriptAnalyzer](https://www.powershellgallery.com/packages/PSScriptAnalyzer) — `pwsh -Command "Install-Module -Scope CurrentUser PSScriptAnalyzer"`.
 
 ## Development setup
 
@@ -41,4 +43,3 @@ Refer to them as `<type>-<id>` in commits, code comments, and prose:
 - Markdown: see [`.markdownlint-cli2.yaml`](.markdownlint-cli2.yaml).
 - PowerShell: see [`scripts/PSScriptAnalyzerSettings.psd1`](scripts/PSScriptAnalyzerSettings.psd1).
 - YAML: see [`.yamllint`](.yamllint).
-- JSON: see [`biome.json`](biome.json).
