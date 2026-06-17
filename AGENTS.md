@@ -26,6 +26,7 @@ adding or editing files under any `docs/<type>/`.
 - When running `git rebase -i`, pass `-c core.hooksPath=/dev/null` to bypass
   pre-commit hooks during the rebase
   (e.g., `git -c core.hooksPath=/dev/null rebase -i ...`).
+- Run `./scripts/lint.{bat,sh}` before committing.
 
 ## Never do
 
