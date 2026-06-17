@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-06-17
 ---
 
 The kisou design spec listed merge-granularity tuning under "Open
@@ -33,3 +33,11 @@ Deferred because:
 
 Action item: settle once we have 2-3 real migrate runs on existing
 repos where the present file is template-shaped (not real content).
+
+## Resolution
+
+Settled by design rather than by accumulated runs: the kisou-managed Present
+branch refreshes at **section / block** granularity, always via numbered
+partial-accept (no silent auto-merge). The fixed-text-vs-free-text line decides
+what is proposed — fixed-text sections may be updated, free-text and
+author-added sections are never touched. See `decision-281f` and `SKILL.md`.

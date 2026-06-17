@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-06-17
 ---
 
 The migrate-mode pre-flight detection rule for `scripts`:
@@ -48,3 +48,10 @@ prompt, treating absence as "decline."
 
 `dirs` keeps its current behavior (an existence-based fact, not
 intent).
+
+## Resolution
+
+migrate's scripts question is now two-part: confirm the detected scripts, then
+explicitly ask about the not-yet-present slots so a user can opt into a script
+the repo lacks. `dirs` keeps its existence-based behavior (a fact, not an
+intent). See `SKILL.md` Step 3 (migrate).

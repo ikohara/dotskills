@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-06-17
 ---
 
 kisou's migrate pre-flight detection treats the doc-system as binary:
@@ -47,3 +47,10 @@ the user to keep / move / drop.
 Adjacent to `5e7f-kisou-template-upgrade-path` but distinct: that one
 is about evolving the template after a scaffold; this one is about
 detecting incomplete initial installs.
+
+## Resolution
+
+Doc-system detection in migrate is now three-state (`none` / `partial` /
+`full`). On `partial`, kisou lists present vs. missing artifacts and adds only
+what is missing, and surfaces non-standard subdirs as kept + naming-exempt (per
+issue `543b`). See `SKILL.md` Step 3 (migrate).

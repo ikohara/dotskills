@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-06-17
 ---
 
 `kisou` migrate mode is specified as "retrofit the structure onto an
@@ -42,3 +42,12 @@ scaffold-time template version.
   scaffolded projects up to date.
 
 Cheapest is (c) for now; (b) is most useful long-term.
+
+## Resolution
+
+Adopted option (b), stateless: migrate now recognizes kisou-managed files by a
+template fingerprint and refreshes them toward the current template (add missing
+sections, update diverged fixed-text sections; free-text and author-added
+sections untouched). No version stamp (option (a) rejected). Re-running
+`kisou migrate` is the upgrade path. See `decision-281f` and `SKILL.md` Step 3
+(migrate) Present branch.
