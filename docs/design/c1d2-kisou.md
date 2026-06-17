@@ -2,7 +2,7 @@
 id: "c1d2"
 title: kisou skill — modes, template syntax, case mapping, migrate detection
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-06-17
 ---
 
 ## Shape
@@ -34,7 +34,9 @@ never runs `git init`; never auto-generates script content.
    `CONTRIBUTING.md` workflow table is too dense for inline markers;
    kisou prunes rows for declined scripts and the column for an
    unselected OS, and drops the whole `## Development workflow` section
-   if all of `build` / `test` / `lint` are declined.
+   if all of `build` / `test` / `lint` / `tidy` are declined. The lint
+   row is labeled **Format & Lint** (one script covers both; still backed
+   by the `lint` script).
 
 Then **all TEMPLATE FILL blocks are deleted** before writing.
 
@@ -42,8 +44,10 @@ Then **all TEMPLATE FILL blocks are deleted** before writing.
 
 - `os` — `windows` / `unix` (asked, multi-select).
 - `os.mode` — `both` / `single` (derived from `os`).
-- `scripts` — `setup` / `run` / `build` / `test` / `lint` (asked,
-  multi-select; `bootstrap` always created per decision `2a5e`).
+- `scripts` — `setup` / `run` / `build` / `test` / `lint` / `tidy`
+  (asked, multi-select; `bootstrap` always created per decision `2a5e`;
+  `tidy` is the clang-tidy step, offered mainly for clang + CMake
+  projects).
 - `dirs` — `src` / `tests` (asked, multi-select; see decision `4f5a`).
 - `case` — `snake_case` (default) / `PascalCase` (asked; drives
   `{{name}}` expansion via the mapping in decision `8b1f`).
