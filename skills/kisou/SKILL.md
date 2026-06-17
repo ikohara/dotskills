@@ -123,9 +123,21 @@ opposite case and mis-set `case`, which then cascades through every
 - **Existing OS support** → set `os`: presence of `.bat` files ⇒ `os`
   includes `windows`; presence of `.sh` files ⇒ includes `unix`; derive
   `os.mode` from the union.
-- **Existing doc-system** → `{docs,Documents}/AGENTS.md` and per-type files
-  present ⇒ doc-system installed; treat the migrate scope as **layer-B
-  only** unless the user explicitly asks otherwise.
+- **Existing doc-system** → classify as `none` / `partial` / `full` by
+  enumerating each artifact: `{docs,Documents}/AGENTS.md` and each
+  `{docs,Documents}/<type>/AGENTS.md` (requirements / design / decisions /
+  issues).
+  - **none** (no doc-system artifacts) → install the full doc-system.
+  - **full** (root `AGENTS.md` + all four per-type files present) → leave
+    intact; treat the migrate scope as **layer-B only** unless the user asks
+    otherwise. It is still a refresh target (see the Present branch below).
+  - **partial** (some artifacts present, others missing) → list what is present
+    vs. missing and propose adding **only the missing** pieces. Surface any
+    non-standard subdirectory under `{docs,Documents}/` (e.g. `superpowers/`, a
+    non-standard issue-status dir) as **kept by default**, and note it is
+    **exempt from the `<id>-<slug>` naming rules** — its own tool's convention
+    wins. The `open`/`deferred`/`resolved` status subdirs are created on demand
+    and are not part of the present/missing tally.
 
 Pick a **scope**: full (layer B + doc-system) or **docs-only** (the case
 `shoroku` delegates here). Then, per artifact:
