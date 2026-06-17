@@ -150,15 +150,37 @@ Pick a **scope**: full (layer B + doc-system) or **docs-only** (the case
 `shoroku` delegates here). Then, per artifact:
 
 - **Absent** → create (filled), as in scaffold.
-- **Present** (`README` / `AGENTS.md` / `CLAUDE.md`) → branch on the file's shape:
-  - **Stub-shaped** (heading set matches the template, or `<...>` placeholders
-    still remain) → section/block merge: show the diff, get explicit approval,
-    insert only what is missing (e.g., the `docs/AGENTS.md` pointer, a missing
-    convention section).
-  - **Real content** (custom headings / prose, no `<...>` placeholders to fill)
-    → do not attempt a merge. With approval, rename the original to `<file>.bak`
-    and write a fresh template-filled file, then tell the author to graft the
-    wanted sections back by hand. The `.bak` keeps this non-destructive.
+- **Present** (`README` / `AGENTS.md` / `CLAUDE.md`, or a doc-system
+  `AGENTS.md`) → branch on whether the file is **kisou-managed**, i.e. carries a
+  template fingerprint:
+  - `CLAUDE.md` — the `@AGENTS.md` pointer plus the "All project instructions
+    live in `AGENTS.md`" body.
+  - `AGENTS.md` — the `@CONTRIBUTING.md or read …` pointer line.
+  - `{docs,Documents}/AGENTS.md` — the four-type path table plus the "Document
+    management" heading.
+  - any layer-B file whose heading set substantially matches the template (the
+    prior "stub-shaped" test), or that still has `<...>` placeholders.
+
+  **Kisou-managed** → **refresh toward the current template**. This is the
+  upgrade path for a repo scaffolded by an older kisou: re-running migrate picks
+  up template changes — no separate mode or trigger. Compare the file's
+  structure against what the current template would produce for the detected
+  inputs, and propose (always as numbered items, never a silent auto-merge):
+  - a **missing** fixed section / block → add it, template-filled;
+  - a **diverged fixed-text section** — one whose template body has **no
+      `<...>` free-text** (e.g. AGENTS `## Language`, the `docs/AGENTS.md`
+      document-management rules) → show the diff and propose replacing the stale
+      body.
+
+  Never flag a **free-text section** (template body carrying `<...>` for the
+  author to fill, e.g. README `## Tech stack`) — the author owns it and
+  staleness cannot be told from an intentional edit. Never propose **deleting**
+  an author-added section. Refresh is additive / updating only.
+
+  **Not kisou-managed** (real project content: custom headings / prose, no
+  fingerprint) → do not attempt a merge. With approval, rename the original to
+  `<file>.bak` and write a fresh template-filled file, then tell the author to
+  graft the wanted sections back by hand. The `.bak` keeps this non-destructive.
 - **`scripts/`** → add only the missing requested scripts as empty files; never
   overwrite an existing script.
 - **`docs/` doc-system** → write the bundle if absent; if already present, leave
