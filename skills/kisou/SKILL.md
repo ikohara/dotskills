@@ -168,9 +168,9 @@ Pick a **scope**: full (layer B + doc-system) or **docs-only** (the case
   inputs, and propose (always as numbered items, never a silent auto-merge):
   - a **missing** fixed section / block → add it, template-filled;
   - a **diverged fixed-text section** — one whose template body has **no
-      `<...>` free-text** (e.g. AGENTS `## Language`, the `docs/AGENTS.md`
-      document-management rules) → show the diff and propose replacing the stale
-      body.
+    `<...>` free-text** (e.g. AGENTS `## Language`, the `docs/AGENTS.md`
+    document-management rules) → show the diff and propose replacing the stale
+    body.
 
   Never flag a **free-text section** (template body carrying `<...>` for the
   author to fill, e.g. README `## Tech stack`) — the author owns it and
