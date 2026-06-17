@@ -60,13 +60,18 @@ Then **all TEMPLATE FILL blocks are deleted** before writing.
 - **migrate** — existing repository. **Pre-flight detection** scans the
   target for existing dirs, case-flavored names, scripts, OS-script
   presence, and doc-system files, and pre-populates the inputs above.
-  Only undetermined inputs are asked; detected values are surfaced for
-  confirmation. Scope is **full** (層B + doc-system) or **docs-only**
-  (installing only the doc-system into an existing repo). Per artifact: absent →
-  create; present README/AGENTS/CLAUDE → section / block merge with
-  shown diff + explicit approval; `scripts/` → add missing requested
-  scripts as empty files, never overwrite; existing doc-system → leave
-  intact, add only around it.
+  Doc-system detection is **three-state** (`none` / `partial` / `full`); on
+  `partial`, only the missing artifacts are added and non-standard subdirs are
+  kept (naming-exempt). Detected values are surfaced for confirmation; beyond
+  them, migrate also **asks once about scripts the repo lacks** (`dirs` stays
+  existence-only). Scope is **full** (層B + doc-system) or **docs-only**. Per
+  artifact: absent → create; a present **kisou-managed** README/AGENTS/CLAUDE
+  (or doc-system `AGENTS.md`) → **refresh toward the current template** — add
+  missing sections and update diverged fixed-text ones via shown diff + explicit
+  approval, never touching free-text or removing author sections (the upgrade
+  path for older scaffolds); a present **real-content** file → `.bak` + fresh
+  write; `scripts/` → add missing requested scripts, never overwrite; existing
+  doc-system → leave intact, add only around it.
 
 ## File output paths
 
@@ -84,3 +89,4 @@ resolved}/`, etc.). The bundle inside this repo is authored in canonical
 - `decision-2a5e` — bootstrap is mandatory.
 - `decision-6d7e` — OPTIONAL syntax three granularities.
 - `decision-4f5a` — `dirs` key + migrate auto-detection.
+- `decision-281f` — stateless structural refresh in migrate.
