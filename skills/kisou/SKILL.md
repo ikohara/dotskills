@@ -139,6 +139,13 @@ opposite case and mis-set `case`, which then cascades through every
     wins. The `open`/`deferred`/`resolved` status subdirs are created on demand
     and are not part of the present/missing tally.
 
+After surfacing the detected values for confirmation, **also ask once about
+scripts the repo lacks**: list the not-yet-present slots (`setup` / `run` /
+`build` / `test` / `lint` / `tidy`) and let the user opt into any. A script
+expresses **intent** ("the project should have this"), so absence is a prompt,
+not a silent decline. `dirs`, by contrast, is a **fact** (an absent `src/`
+means there is no source dir), so its absence is never prompted.
+
 Pick a **scope**: full (layer B + doc-system) or **docs-only** (the case
 `shoroku` delegates here). Then, per artifact:
 
