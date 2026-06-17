@@ -2,7 +2,7 @@
 TEMPLATE FILL (delete this block after filling):
 - Replace <...> with content.
 - `{{name}}` placeholders below — scripts (`{{bootstrap}}`, `{{build}}`,
-  `{{test}}`, `{{lint}}`) and dirs (`{{docs}}`, `{{src}}`, `{{tests}}`,
+  `{{test}}`, `{{lint}}`, `{{tidy}}`) and dirs (`{{docs}}`, `{{src}}`, `{{tests}}`,
   `{{scripts}}`, `{{requirements}}`, `{{design}}`, `{{decisions}}`,
   `{{issues}}`) — are expanded by kisou per the chosen case convention
   (snake_case as written; PascalCase title-cased, with abbreviations
@@ -10,12 +10,14 @@ TEMPLATE FILL (delete this block after filling):
 - Author-omittable sections and kisou-pruned (key=value) sections / blocks /
   lines are marked with an OPTIONAL comment marker. Keys used in this file:
   os (windows / unix), os.mode (both / single, derived from os), scripts
-  (build / test / lint -- bootstrap is always created), dirs (src / tests --
+  (build / test / lint / tidy -- bootstrap is always created), dirs (src / tests --
   the optional structural dirs kisou itself never creates). See the kisou
   spec for the full grammar.
 - In the Development workflow table, kisou removes rows for declined scripts
-  and removes the column for an unselected OS. If all of build, test, and
-  lint are declined, kisou drops the whole Development workflow section.
+  and removes the column for an unselected OS. If all of build, test, lint,
+  and tidy are declined, kisou drops the whole Development workflow section.
+  The Tidy row is the clang-tidy step, offered mainly for clang + CMake
+  projects.
 - Delete this block before committing.
 -->
 
@@ -77,11 +79,12 @@ Refer to them as `<type>-<id>` in commits, code comments, and prose:
 
 ## Development workflow
 
-| Task  | Windows                     | macOS, Linux                 |
-|-------|-----------------------------|------------------------------|
-| Build | `{{scripts}}\{{build}}.bat` | `./{{scripts}}/{{build}}.sh` |
-| Test  | `{{scripts}}\{{test}}.bat`  | `./{{scripts}}/{{test}}.sh`  |
-| Lint  | `{{scripts}}\{{lint}}.bat`  | `./{{scripts}}/{{lint}}.sh`  |
+| Task          | Windows                     | macOS, Linux                 |
+|---------------|-----------------------------|------------------------------|
+| Build         | `{{scripts}}\{{build}}.bat` | `./{{scripts}}/{{build}}.sh` |
+| Test          | `{{scripts}}\{{test}}.bat`  | `./{{scripts}}/{{test}}.sh`  |
+| Format & Lint | `{{scripts}}\{{lint}}.bat`  | `./{{scripts}}/{{lint}}.sh`  |
+| Tidy          | `{{scripts}}\{{tidy}}.bat`  | `./{{scripts}}/{{tidy}}.sh`  |
 
 For variations, refer to the usage of the commands the scripts invoke.
 

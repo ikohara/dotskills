@@ -8,7 +8,8 @@ structure, or retrofits it onto an existing repository.
 - **scaffold** a new project: `README` / `CONTRIBUTING` / `CLAUDE.md` / a slim
   `AGENTS.md`, the `docs/` document-management system, and empty script files
   (`scripts/bootstrap` is always created; `setup` / `run` / `build` / `test` /
-  `lint` are opt-in).
+  `lint` / `tidy` are opt-in; `tidy` is the clang-tidy step for clang + CMake
+  projects).
 - **migrate** an existing repo: detects what's already there and drops in
   what's missing without clobbering, with a full or docs-only scope. When an
   existing `README` / `AGENTS` / `CLAUDE` holds real project content rather than

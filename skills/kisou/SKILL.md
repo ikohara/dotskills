@@ -33,8 +33,9 @@ copy from the bundle.
 
 In a single pass, collect all template placeholders (`<project-name>`,
 `<overview>`, tech stack, etc.), the **script selection** (which of `setup`,
-`run`, `scripts/build`, `scripts/test`, `scripts/lint` the project needs;
-`scripts/bootstrap` is always created), the **`dirs` selection** (which
+`run`, `scripts/build`, `scripts/test`, `scripts/lint`, and `scripts/tidy` the
+project needs — offer `scripts/tidy` (clang-tidy) only for clang + CMake
+projects; `scripts/bootstrap` is always created), the **`dirs` selection** (which
 optional structural dirs the project has — `src` and/or `tests`; kisou
 itself never creates these but the templates reference them), the **target
 OS(es)** (`windows` and/or `unix` — pick one or both), and the **`case`
@@ -52,7 +53,7 @@ labeled bullet list (`os.mode=both`) and an unlabeled `console` block
 built-in `case`-aware mapping:
 
 - **Script names:** `{{setup}}`, `{{run}}`, `{{bootstrap}}`, `{{build}}`,
-  `{{test}}`, `{{lint}}` — just title-cased for `PascalCase`.
+  `{{test}}`, `{{lint}}`, `{{tidy}}` — just title-cased for `PascalCase`.
 - **Dir names:** `{{docs}}`, `{{src}}`, `{{tests}}`, `{{scripts}}`,
   `{{requirements}}`, `{{design}}`, `{{decisions}}`, `{{issues}}` —
   abbreviations expand for `PascalCase` (`docs → Documents`,
@@ -75,7 +76,7 @@ built-in `case`-aware mapping:
    non-blank block, an end-of-line marker gates that line); **(c)** for the
    `CONTRIBUTING.md` workflow table, prune rows for declined scripts, remove
    the column for an unselected OS, and **drop the whole `## Development
-   workflow` section if all of `build`, `test`, and `lint` were declined**,
+   workflow` section if all of `build`, `test`, `lint`, and `tidy` were declined**,
    per that file's TEMPLATE FILL instructions; **(d) delete every
    `<!-- TEMPLATE FILL ... -->` block**.
 3. Write the doc-system using **case-correct directory names**: under the
@@ -115,7 +116,7 @@ opposite case and mis-set `case`, which then cascades through every
   `snake_case`.
 - **Existing scripts** → set `scripts`: top-level `{setup,Setup}.{bat,sh}`
   or `{run,Run}.{bat,sh}`, and `{scripts,Scripts}/{build,Build,test,Test,
-  lint,Lint}.{bat,sh}` each imply the matching `scripts=name` value.
+  lint,Lint,tidy,Tidy}.{bat,sh}` each imply the matching `scripts=name` value.
   `bootstrap` is always created so it is not a `scripts=` value, but a
   present `{scripts,Scripts}/{bootstrap,Bootstrap}.{bat,sh}` is left
   untouched.
