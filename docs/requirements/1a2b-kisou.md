@@ -2,7 +2,7 @@
 id: "1a2b"
 title: kisou — scaffold and migrate a project's standard structure
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-06-17
 ---
 
 ## Purpose
@@ -25,6 +25,10 @@ script files — without re-deriving conventions per project.
 - Migrate auto-detects existing project state (dirs, case, scripts, OS
   support, doc-system presence) and only asks the user about inputs it
   cannot determine.
+- Re-running migrate on a project kisou previously set up refreshes it
+  toward the current template — picking up template improvements made
+  since it was first scaffolded — so kisou-using projects do not freeze at
+  their scaffold-time template version (see decision `281f`).
 - Project naming follows a configurable `case` convention (`snake_case`
   default, `PascalCase` opt-in with abbreviation expansion — see
   decision `8b1f`).
