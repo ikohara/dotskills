@@ -90,8 +90,7 @@ For variations, refer to the usage of the commands the scripts invoke.
 
 ## Code style
 
-- <language>: see <config files>
-- <language>: see <config files>
+- <language>: `<config files>`
 
 <!-- OPTIONAL dirs=tests -->
 ## Testing

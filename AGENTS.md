@@ -23,10 +23,7 @@ adding or editing files under any `docs/<type>/`.
 - End commit messages with a `Co-Authored-By:` trailer identifying the AI agent
   (e.g., `Co-Authored-By: Claude <noreply@anthropic.com>`).
 - After editing a skill's `SKILL.md`, review its sibling `README.md` for drift.
-- When running `git rebase -i`, pass `-c core.hooksPath=/dev/null` to bypass
-  pre-commit hooks during the rebase
-  (e.g., `git -c core.hooksPath=/dev/null rebase -i ...`).
-- Run `./scripts/lint.{bat,sh}` before committing.
+- Run `./scripts/lint.{bat,sh}` on the changed paths before committing.
 
 ## Never do
 

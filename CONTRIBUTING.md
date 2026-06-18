@@ -43,3 +43,18 @@ Refer to them as `<type>-<id>` in commits, code comments, and prose:
 - Markdown: see [`.markdownlint-cli2.yaml`](.markdownlint-cli2.yaml).
 - PowerShell: see [`scripts/PSScriptAnalyzerSettings.psd1`](scripts/PSScriptAnalyzerSettings.psd1).
 - YAML: see [`.yamllint`](.yamllint).
+
+### Pre-commit
+
+Formatting and linting run through [pre-commit](https://pre-commit.com/):
+`bootstrap` installs it as a commit hook, and `lint` runs the same checks on
+demand. The first run downloads the hooks from GitHub — slow once, then cached.
+
+> [!WARNING]
+> Several hooks auto-fix files (e.g., markdownlint `--fix`). A fix also fails
+> the commit with the change left unstaged — re-stage and retry. During a
+> rebase it aborts mid-way, so run the rebase with hooks off:
+>
+> ```console
+> git -c core.hooksPath=/dev/null rebase -i <base>
+> ```
