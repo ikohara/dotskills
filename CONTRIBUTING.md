@@ -43,6 +43,7 @@ Refer to them as `<type>-<id>` in commits, code comments, and prose:
 - Markdown: see [`.markdownlint-cli2.yaml`](.markdownlint-cli2.yaml).
 - PowerShell: see [`scripts/PSScriptAnalyzerSettings.psd1`](scripts/PSScriptAnalyzerSettings.psd1).
 - YAML: see [`.yamllint`](.yamllint).
+- All files: see [`.editorconfig`](.editorconfig).
 
 ### Pre-commit
 
