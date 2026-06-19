@@ -2,7 +2,7 @@
 id: "c1d2"
 title: kisou skill — modes, template syntax, case mapping, migrate detection
 created: 2026-05-28
-updated: 2026-06-17
+updated: 2026-06-19
 ---
 
 ## Shape
@@ -19,6 +19,12 @@ skeleton), and `scripts/bootstrap.{bat,sh}`. Optional, on user request:
 `setup.{bat,sh}`, `run.{bat,sh}`, and the other `scripts/*.{bat,sh}`.
 Never produces `src/` or `tests/` (neither content nor empty dirs);
 never runs `git init`; never auto-generates script content.
+
+The bundled top-level `AGENTS.md` tells agents to run `lint` *on the changed
+paths* before committing — this assumes the project's `lint` script accepts
+file-path arguments (lint only those). Because kisou ships `lint` as an empty
+stub (never auto-generates script content), this is a contract the
+author-filled script must satisfy, not something kisou enforces.
 
 ## Template syntax (three categories, processed in order)
 
