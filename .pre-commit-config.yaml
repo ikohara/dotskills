@@ -35,4 +35,22 @@ repos:
       - id: check-yaml
       - id: detect-private-key
       - id: trailing-whitespace
+        exclude: &generated-files |
+          (?x)(
+            (^|/)package-lock\.json$|
+            (^|/)pnpm-lock\.yaml$|
+            (^|/)bun\.lock$|
+            (^|/)Pipfile\.lock$|
+            (^|/)Chart\.lock$|
+            (^|/)\.rubocop_todo\.yml$|
+            (^|/)apm\.lock\.yaml$|
+            (^|/)compile_commands\.json$|
+            \.tsbuildinfo$|
+            \.snap$|
+            \.(js|css)\.map$
+          )
       - id: end-of-file-fixer
+        exclude: *generated-files
+      - id: mixed-line-ending
+        args: [--fix=auto]
+        exclude: *generated-files
