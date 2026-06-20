@@ -29,7 +29,7 @@ before adding or editing files under any `{{docs}}/<type>/`.
 ## Always do
 
 - Run `./{{scripts}}/{{lint}}.{bat,sh}` on the changed paths (relative to the repo root) and fix issues before committing. <!-- OPTIONAL scripts=lint -->
-- Run `./{{scripts}}/{{tidy}}.{bat,sh}` on the changed C/C++ files (paths relative to the repo root) and fix issues before committing. <!-- OPTIONAL scripts=tidy -->
+- Run `./{{scripts}}/{{tidy}}.{bat,sh}` on the changed C/C++ source files (paths relative to the repo root) and fix issues before committing. <!-- OPTIONAL scripts=tidy -->
 - End commit messages with a `Co-Authored-By:` trailer identifying the AI agent
   (e.g., `Co-Authored-By: Claude <noreply@anthropic.com>`).
 - <e.g., "Regenerate `{{src}}/api/spec.json` after touching API handlers">
