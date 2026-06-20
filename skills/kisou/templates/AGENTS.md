@@ -28,10 +28,10 @@ before adding or editing files under any `{{docs}}/<type>/`.
 
 ## Always do
 
+- Run `./{{scripts}}/{{lint}}.{bat,sh}` on the changed paths (relative to the repo root) and fix issues before committing. <!-- OPTIONAL scripts=lint -->
+- Run `./{{scripts}}/{{tidy}}.{bat,sh}` on the changed C/C++ files (paths relative to the repo root) and fix issues before committing. <!-- OPTIONAL scripts=tidy -->
 - End commit messages with a `Co-Authored-By:` trailer identifying the AI agent
   (e.g., `Co-Authored-By: Claude <noreply@anthropic.com>`).
-- Run `./{{scripts}}/{{lint}}.{bat,sh}` on the changed paths before committing.  <!-- OPTIONAL scripts=lint -->
-- <e.g., "Run `./{{scripts}}/{{tidy}}.{bat,sh}` before opening a PR">  <!-- OPTIONAL scripts=tidy -->
 - <e.g., "Regenerate `{{src}}/api/spec.json` after touching API handlers">
 - <e.g., "Run `./{{scripts}}/migrate.{bat,sh}` after adding a file to `{{src}}/db/migrations/`">
 
@@ -39,6 +39,7 @@ before adding or editing files under any `{{docs}}/<type>/`.
 
 - Edit any `AGENTS.md` / `CLAUDE.md` without explicit approval.
 - Edit root Markdown files (`README.md` / `CONTRIBUTING.md`) without explicit approval.
+- Edit linter or formatter config without explicit approval.
 - Commit secrets, local-only configuration, or user-specific paths.
 - Amend a published commit.
 - Push to `origin/main` without explicit instruction.

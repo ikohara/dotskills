@@ -20,15 +20,16 @@ adding or editing files under any `docs/<type>/`.
 
 ## Always do
 
+- Run `./scripts/lint.{bat,sh}` on the changed paths (relative to the repo root) and fix issues before committing.
 - End commit messages with a `Co-Authored-By:` trailer identifying the AI agent
   (e.g., `Co-Authored-By: Claude <noreply@anthropic.com>`).
 - After editing a skill's `SKILL.md`, review its sibling `README.md` for drift.
-- Run `./scripts/lint.{bat,sh}` on the changed paths before committing.
 
 ## Never do
 
 - Edit any `AGENTS.md` / `CLAUDE.md` without explicit approval.
 - Edit root Markdown files (`README.md` / `CONTRIBUTING.md`) without explicit approval.
+- Edit linter or formatter config without explicit approval.
 - Commit secrets, local-only configuration, or user-specific paths.
 - Amend a published commit.
 - Push to `origin/main` without explicit instruction.
