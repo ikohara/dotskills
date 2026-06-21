@@ -21,13 +21,15 @@ adding or editing files under any `docs/<type>/`.
 ## Always do
 
 - Run `./scripts/lint.{bat,sh}` on the changed paths (relative to the repo root) and fix issues before committing.
+- Commit by explicit path with `git commit --only <paths>` — the index is shared. New files need `git add <paths>` first (`--only` can't pick up untracked files).
 - End commit messages with a `Co-Authored-By:` trailer identifying the AI agent
   (e.g., `Co-Authored-By: Claude <noreply@anthropic.com>`).
 - After editing a skill's `SKILL.md`, review its sibling `README.md` for drift.
 
 ## Never do
 
-- Edit agent instruction files, repo-root Markdown, or linter/formatter config without explicit approval.
+- Edit agent instruction files, repo-root Markdown, or linter/formatter config without explicit human approval.
 - Commit secrets, local-only configuration, or user-specific paths.
+- Stage or commit beyond explicitly named paths — `git add -A` / `.` / `-u`, bare `git commit`, or `git commit -a` — without explicit human approval.
 - Amend a published commit.
-- Push to `origin/main` without explicit instruction.
+- Push to `origin/main` without explicit human approval.
