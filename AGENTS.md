@@ -27,9 +27,7 @@ adding or editing files under any `docs/<type>/`.
 
 ## Never do
 
-- Edit any `AGENTS.md` / `CLAUDE.md` without explicit approval.
-- Edit root Markdown files (`README.md` / `CONTRIBUTING.md`) without explicit approval.
-- Edit linter or formatter config without explicit approval.
+- Edit agent instruction files, repo-root Markdown, or linter/formatter config without explicit approval.
 - Commit secrets, local-only configuration, or user-specific paths.
 - Amend a published commit.
 - Push to `origin/main` without explicit instruction.
