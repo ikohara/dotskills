@@ -36,7 +36,7 @@ Refer to them as `<type>-<id>` in commits, code comments, and prose:
 - `decision-a3f7`
 - `issue-b9c2`
 - `req-d4e5`
-- `design-f6g7`
+- `design-f607`
 
 ## Code style
 
