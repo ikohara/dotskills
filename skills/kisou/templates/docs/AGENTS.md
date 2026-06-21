@@ -19,10 +19,9 @@ Per-type rules (frontmatter, body, lifecycle) live in each
 `{{docs}}/<type>/AGENTS.md`. Read the one for the type you are touching.
 
 **New subdirectories under `{{docs}}/`.** The four above are the standing
-schema. If you add another subdirectory, also add its path to the Markdown
-linter's ignore list — or propose the addition before populating. Files in
-such subdirectories (e.g. ones created by other tools or skills) follow
-those tools' conventions, not the rules below.
+schema. If you add another subdirectory, propose adding its path to the
+Markdown linter's ignore list before populating it — or leave it linted
+like the rest of `{{docs}}/`.
 
 For the four type directories only:
 
