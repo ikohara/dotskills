@@ -13,6 +13,13 @@ wrong or missing, but is not being fixed right now. Status is encoded by
 There is no `in-progress` directory: an `open` issue with `claimed_by:` set is
 in progress. Change status with `git mv` (preserves history); bump `updated:`.
 
+Because status is a directory, a status change **moves the issue's path**. After
+a `git mv` the issue's `<type>-<id>` references stay valid, but any inbound
+**path link** is now dead. Fix the inbound path links in **living** documents as
+part of the move; references from immutable / frozen documents are already
+`<type>-<id>` only (see Cross-references in `docs/AGENTS.md`), so they need
+nothing.
+
 A status directory exists only while it holds at least one issue. When the last
 issue leaves, the now-empty directory simply disappears (git does not track
 empty directories) — do **not** add `.gitkeep` or any placeholder. A writer

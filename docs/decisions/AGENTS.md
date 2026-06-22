@@ -6,6 +6,10 @@ decision, and the consequences accepted. ADRs are **append-only and immutable**
 once accepted; you never rewrite the body. To reverse a decision, write a new
 ADR that supersedes the old one.
 
+Because the body is immutable, reference other entries by `<type>-<id>` only —
+never a path link, which you could never repair when its target moves (see
+Cross-references in `docs/AGENTS.md`).
+
 ## When to write an ADR
 
 Record an ADR only when **both** hold:

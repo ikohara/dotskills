@@ -51,7 +51,22 @@ Refer to an entry as `<type>-<id>` in prose, commits, and code comments:
 
 - `req-d4e5` · `design-f6a1` · `decision-a3f7` · `issue-b9c2`
 
-In prose docs you may add a Markdown link to the file for clickability.
+The `<type>-<id>` reference is the **durable** pointer: it survives slug renames
+and — for issues — status moves. A Markdown link to the file is an **optional
+convenience for clickability** and is **fragile** — it breaks whenever the
+target's path changes.
+
+- **Prefer `<type>-<id>` everywhere.** A path link is an extra on top of it,
+  never a replacement.
+- **From an immutable or frozen document, use `<type>-<id>` only — never a path
+  link.** Such documents — ADRs in `{{decisions}}/`, and any dated
+  point-in-time record a project keeps (reports, dated plans) — are not edited
+  after they are written, so a path link in them can never be repaired and rots
+  permanently once the target moves.
+- **From a living document** (`{{requirements}}/`, `{{design}}/`, an open issue)
+  a path link is allowed, but whoever moves the target owns updating the inbound
+  links — see `{{issues}}/AGENTS.md` for the issue-status case.
+
 Structured (frontmatter) links are limited to ADR `supersedes` /
 `superseded_by` and issue `depends_on` / `blocks`.
 

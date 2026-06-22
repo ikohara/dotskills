@@ -90,5 +90,7 @@ for the rest of the session. Never start a run without explicit confirmation.
 - Do NOT write outside `docs/`. `shoroku` no longer installs or edits
   `AGENTS.md`; setting up the system is `kisou`'s job.
 - Do NOT rewrite an `accepted` ADR body — only its `status` / supersede links.
+- When cross-linking entries, follow `docs/AGENTS.md` Cross-references — never
+  add a path link from an ADR or other immutable/frozen entry (doc-id only).
 - Do NOT delete or modify memory.
 - Do NOT auto-push, auto-clean issue metadata, or sync with external trackers.
