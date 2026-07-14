@@ -43,5 +43,6 @@ before adding or editing files under any `{{docs}}/<type>/`.
 - Stage or commit beyond explicitly named paths — `git add -A` / `.` / `-u`, bare `git commit`, or `git commit -a` — without explicit human approval.
 - Amend a published commit.
 - Push to `origin/main` without explicit human approval.
+- Bypass commit or push verification hooks (`git commit --no-verify` / `-n`, `git push --no-verify`, or a `core.hooksPath` override) without explicit human approval.
 - <e.g., "Edit files under `{{src}}/legacy/` without explicit approval — owner is migrating it">
 - <e.g., "Modify auto-generated files (anything matching `{{src}}/**/*_pb.go`)">
