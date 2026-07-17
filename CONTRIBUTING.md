@@ -22,6 +22,8 @@ For variations, refer to the usage of the commands the script invokes.
 - [`docs/design/`](docs/design/) — how the system is built
 - [`docs/decisions/`](docs/decisions/) — Architecture Decision Records
 - [`docs/issues/`](docs/issues/) — known issues and TODOs
+- [`docs/notes/`](docs/notes/) — maintained single-concern references
+- [`docs/reports/`](docs/reports/) — dated, frozen investigations
 - `scripts/` — dev tooling scripts
 - `skills/` — Agent Skills shipped by this repo
 

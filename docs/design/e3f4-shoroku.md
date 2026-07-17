@@ -2,14 +2,14 @@
 id: "e3f4"
 title: shoroku skill — excerpting modes, classification, partial-accept flow
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-07-17
 ---
 
 ## Shape
 
 A thin **behavioral** shell with no bundled assets (the doc-system
 lives with kisou — see decision `9f4b`). shoroku reads transient
-context, classifies into the four-type doc system, and stages additions
+context, classifies into the doc system's types, and stages additions
 in `docs/` as a single git commit per run. It never installs anything;
 in an unprepared repo it stops and points the user at `kisou`.
 
