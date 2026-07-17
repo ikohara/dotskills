@@ -55,8 +55,8 @@ built-in `case`-aware mapping:
 - **Script names:** `{{setup}}`, `{{run}}`, `{{bootstrap}}`, `{{build}}`,
   `{{test}}`, `{{lint}}`, `{{tidy}}` — just title-cased for `PascalCase`.
 - **Dir names:** `{{docs}}`, `{{src}}`, `{{tests}}`, `{{scripts}}`,
-  `{{requirements}}`, `{{design}}`, `{{decisions}}`, `{{issues}}` —
-  abbreviations expand for `PascalCase` (`docs → Documents`,
+  `{{requirements}}`, `{{design}}`, `{{decisions}}`, `{{issues}}`, `{{notes}}`,
+  `{{reports}}` — abbreviations expand for `PascalCase` (`docs → Documents`,
   `src → Source`); the rest just title-case.
 - **Issue status dirs** (`open` / `deferred` / `resolved`) are NOT cased
   (they are status labels, lowercase by convention).
@@ -81,8 +81,8 @@ built-in `case`-aware mapping:
    `<!-- TEMPLATE FILL ... -->` block**.
 3. Write the doc-system using **case-correct directory names**: under the
    cased docs root (`docs/` or `Documents/`), create
-   `{requirements,design,decisions}/` (each title-cased for `PascalCase`)
-   and the `issues/` parent (cased). Copy the bundled
+   `{requirements,design,decisions,notes,reports}/` (each title-cased for
+   `PascalCase`) and the `issues/` parent (cased). Copy the bundled
    `templates/docs/AGENTS.md` and `templates/docs/<type>/AGENTS.md` to the
    cased destinations, expanding any `{{name}}` placeholders inside them as
    in step **(a)**. Do **not** create the `open`/`deferred`/`resolved`
@@ -138,6 +138,12 @@ opposite case and mis-set `case`, which then cascades through every
     **exempt from the `<id>-<slug>` naming rules** — its own tool's convention
     wins. The `open`/`deferred`/`resolved` status subdirs are created on demand
     and are not part of the present/missing tally.
+  - **`notes/` and `reports/`** are standard flat types but sit **outside** the
+    none/partial/full tally (which covers the root `AGENTS.md` + the four
+    managed per-type files). On any migrate, enumerate
+    `{docs,Documents}/{notes,reports}/AGENTS.md` too and offer each **absent**
+    one as a create — a refresh addition — so a repo already `full` on the
+    managed four is not reclassified `partial` for lacking them.
 
 After surfacing the detected values for confirmation, **also ask once about
 scripts the repo lacks**: list the not-yet-present slots (`setup` / `run` /
@@ -156,7 +162,7 @@ Pick a **scope**: full (layer B + doc-system) or **docs-only** (the case
   - `CLAUDE.md` — the `@AGENTS.md` pointer plus the "All project instructions
     live in `AGENTS.md`" body.
   - `AGENTS.md` — the `@CONTRIBUTING.md or read …` pointer line.
-  - `{docs,Documents}/AGENTS.md` — the four-type path table plus the "Document
+  - `{docs,Documents}/AGENTS.md` — the type path table plus the "Document
     management" heading.
   - any layer-B file whose heading set substantially matches the template (the
     prior "stub-shaped" test), or that still has `<...>` placeholders.

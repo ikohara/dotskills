@@ -4,9 +4,9 @@ TEMPLATE FILL (delete this block after filling):
 - `{{name}}` placeholders below — scripts (`{{bootstrap}}`, `{{build}}`,
   `{{test}}`, `{{lint}}`, `{{tidy}}`) and dirs (`{{docs}}`, `{{src}}`, `{{tests}}`,
   `{{scripts}}`, `{{requirements}}`, `{{design}}`, `{{decisions}}`,
-  `{{issues}}`) — are expanded by kisou per the chosen case convention
-  (snake_case as written; PascalCase title-cased, with abbreviations
-  expanded: docs -> Documents, src -> Source).
+  `{{issues}}`, `{{notes}}`, `{{reports}}`) — are expanded by kisou per the
+  chosen case convention (snake_case as written; PascalCase title-cased, with
+  abbreviations expanded: docs -> Documents, src -> Source).
 - Author-omittable sections and kisou-pruned (key=value) sections / blocks /
   lines are marked with an OPTIONAL comment marker. Keys used in this file:
   os (windows / unix), os.mode (both / single, derived from os), scripts
