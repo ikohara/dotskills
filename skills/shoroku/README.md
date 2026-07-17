@@ -6,9 +6,10 @@ maintains the agent-agnostic document-management system that governs them.
 
 ## What it does
 
-- Maintains four document types under `docs/`: **requirements**, **design**,
-  **decisions** (ADRs), and **issues** — one file per entry,
-  `docs/<type>/<id>-<slug>.md`, no index.
+- Maintains the six document types under `docs/`: the four managed —
+  **requirements**, **design**, **decisions** (ADRs), **issues**
+  (`docs/<type>/<id>-<slug>.md`, no index) — plus two flat types,
+  **notes** (living references) and **reports** (dated investigations).
 - The format and standing rules live in committed `docs/AGENTS.md`
   (+ each `docs/<type>/AGENTS.md`), so **any** agent follows the system,
   with or without this skill.

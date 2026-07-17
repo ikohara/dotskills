@@ -45,7 +45,9 @@ shorthand — substitute whichever names the project uses.
 ## Step 3: Shoroku
 
 Run the shoroku workflow defined in the repo's `docs/AGENTS.md`: read source →
-classify each candidate 4-way (requirement / design / decision / issue) → emit
+classify each candidate into the six types — fragments into the four managed
+(requirement / design / decision / issue), whole files into the two flat
+(notes / reports) — per `docs/AGENTS.md` → emit
 a single numbered proposal grouped by destination file, ending with
 `Direction?` → wait → apply the accepted subset per the per-type `AGENTS.md` →
 **one** git commit (no auto-push) → report files changed + commit hash.
