@@ -1,6 +1,6 @@
 ---
 name: shoroku
-description: Shoroku (抄録 — excerpt and record) the working session, accumulated memory, or named Markdown files into a project's living docs (requirements / design / decisions / issues) under `docs/`, following the in-repo AGENTS.md document-management system. Triggers on `抄録して`, `shorokuして`, `セッション抄録`; memory mode on `memory から抄録`, `shoroku from memory`; file mode on `<path> を抄録`, `shoroku from <path>`.
+description: Shoroku (抄録 — excerpt and record) the working session, accumulated memory, or named Markdown files into a project's docs (requirements / design / decisions / issues / notes / reports) under `docs/`, following the in-repo AGENTS.md document-management system. Triggers on `抄録して`, `shorokuして`, `セッション抄録`; memory mode on `memory から抄録`, `shoroku from memory`; file mode on `<path> を抄録`, `shoroku from <path>`.
 ---
 
 # shoroku
@@ -59,7 +59,7 @@ named; `3 はやめて` reject named; `5 の severity は high で` accept with 
 ### Memory source specifics
 
 Memory is **read-only**: never delete or modify it. Classify memory entries the
-same 4 ways, but route only **project-relevant** facts into `docs/`; leave
+same way, but route only **project-relevant** facts into `docs/`; leave
 `user` / `feedback` entries in memory (they are not project state). Everything
 else — proposal, partial-accept, single commit — is identical to session mode.
 

@@ -29,9 +29,10 @@ in an unprepared repo it stops and points the user at `kisou`.
 ## Workflow (shared across modes)
 
 1. **Read** the source.
-2. **Classify** each candidate as exactly one of `requirement` /
-   `design` / `decision` / `issue` per the per-type rules in
-   `docs/<type>/AGENTS.md`.
+2. **Classify** each fragment as one of `requirement` / `design` /
+   `decision` / `issue`; whole-file material (an investigation, a
+   reference) goes to the flat `notes` / `reports`, per the per-type
+   rules in `docs/<type>/AGENTS.md`.
 3. **Propose** a single numbered list grouped by destination file —
    only entries that would actually change project state. End with
    `Direction?` and wait.
