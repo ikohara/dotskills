@@ -1,27 +1,35 @@
 # AGENTS.md
 
-This project keeps its state as a set of small Markdown documents under
-`{{docs}}/`, in four types. The rules here are agent-agnostic: any agent that
-adds or edits these docs — with or without the `shoroku` skill — follows them.
+This project keeps its state as a set of small documents under `{{docs}}/`. The
+rules are agent-agnostic: any agent editing these docs follows them, with or
+without the `shoroku` skill.
 
 ## Document management
 
-Project state lives in four types, one file per entry:
+Project state lives in six types, one file per entry — four **managed**
+(frontmatter with a hash `<id>`) and two **flat** (no `<id>`, no frontmatter;
+slug or date is the identity):
 
 ```text
 {{docs}}/{{requirements}}/<id>-<slug>.md    — what the project must do for users, and why
 {{docs}}/{{design}}/<id>-<slug>.md          — how it is built now, and why this shape
 {{docs}}/{{decisions}}/<id>-<slug>.md       — ADRs: why a choice was made (immutable record)
 {{docs}}/{{issues}}/<status>/<id>-<slug>.md — known problems / deferred decisions
+{{docs}}/{{notes}}/<slug>.<ext>             — maintained single-concern references (living)
+{{docs}}/{{reports}}/<YYYY-MM-DD>-<slug>.md — dated, frozen investigations
 ```
 
 Per-type rules (frontmatter, body, lifecycle) live in each
 `{{docs}}/<type>/AGENTS.md`. Read the one for the type you are touching.
 
-**New subdirectories under `{{docs}}/`.** The four above are the standing
-schema. If you add another subdirectory, propose adding its path to the
-Markdown linter's ignore list before populating it — or leave it linted
-like the rest of `{{docs}}/`.
+**New subdirectories under `{{docs}}/`.** The six above are the standing schema.
+Add another only after proposing its path for the linter's ignore list — or
+leave it linted like the rest.
+
+**Not a scratch space.** These six types are curated project state. A tool or
+skill's own working artifacts (plans, specs, scratch, session logs) go under its
+**own** `{{docs}}/` subdirectory (e.g. `{{docs}}/superpowers/`), exempt from
+these rules — never into `{{notes}}/` or any of the six types.
 
 For the four type directories only:
 
@@ -77,7 +85,7 @@ run this; it needs no skill.
 
 1. **Read** the session: the conversation, plus any Markdown written or edited
    during it, plus the existing `{{docs}}/` as baseline.
-2. **Classify** each candidate as exactly one of requirement / design /
+2. **Classify** each fragment as exactly one of requirement / design /
    decision / issue (see "design vs decisions" in the type files for the
    design/decision split).
 3. **Propose** a single numbered list, grouped by destination file, of only the
@@ -86,6 +94,13 @@ run this; it needs no skill.
    commit as **one** git commit naming the session's topic. No auto-push.
 5. **Report** the files changed and the commit hash. If nothing substantive,
    say so and write nothing — never invent content.
+
+shoroku targets all six types. Fragments fold into the four **managed** types;
+the two **flat** types take whole files — propose a new `{{reports}}/` entry when
+the session is essentially an investigation worth freezing, or a `{{notes}}/`
+create/append when it built durable reference material. Don't cram an
+investigation record into `{{design}}/`/`{{decisions}}/` when it is really a
+report.
 
 (With the `shoroku` skill, the same flow is available on a trigger, and can also
 draw from accumulated memory or named Markdown files instead of the session.)
