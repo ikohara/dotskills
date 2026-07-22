@@ -1,16 +1,17 @@
 ---
 id: "3c4d"
-title: shoroku — excerpt sessions, memory, or files into a project's living docs
+title: shoroku — excerpt sessions, memory, or files into a project's docs
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-07-22
 ---
 
 ## Purpose
 
 A Claude Agent Skill that folds transient context — the working
 conversation, accumulated memory, or named Markdown files — into a
-project's living `docs/` (requirements / design / decisions / issues)
-without ever inventing content. Output follows the agent-agnostic
+project's `docs/` — the managed four (requirements / design / decisions /
+issues) plus the flat two (notes / reports) — without ever inventing
+content. Output follows the agent-agnostic
 document-management system described in committed `docs/AGENTS.md` so
 that any agent (skill-less, non-Claude) maintains the same shape over
 time.
@@ -20,9 +21,11 @@ time.
 - Three source modes: **session** (default — the current chat + edited
   Markdown), **memory** (the accumulated cross-conversation memory
   store), and **file** (one or more named Markdown sources).
-- For each source, classify every candidate as **exactly one** of
-  `requirement` / `design` / `decision` / `issue`. Skip anything that
-  does not change project state.
+- For each source, classify fragments as **exactly one** of the four
+  managed types (`requirement` / `design` / `decision` / `issue`);
+  whole-file material — an investigation worth freezing, durable
+  reference material — goes to the flat `notes` / `reports`
+  (decision `3544`). Skip anything that does not change project state.
 - Present a single numbered proposal grouped by destination file. End
   with `Direction?` and wait for partial-accept input (`OK` / `2 と 5
   だけ` / `3 はやめて` / `全部やめ` etc.).

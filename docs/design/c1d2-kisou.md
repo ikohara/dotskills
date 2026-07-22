@@ -2,7 +2,7 @@
 id: "c1d2"
 title: kisou skill — modes, template syntax, case mapping, migrate detection
 created: 2026-05-28
-updated: 2026-06-19
+updated: 2026-07-22
 ---
 
 ## Shape
@@ -19,6 +19,12 @@ skeleton), and `scripts/bootstrap.{bat,sh}`. Optional, on user request:
 `setup.{bat,sh}`, `run.{bat,sh}`, and the other `scripts/*.{bat,sh}`.
 Never produces `src/` or `tests/` (neither content nor empty dirs);
 never runs `git init`; never auto-generates script content.
+
+The doc-system spans six types — four managed (`requirements` / `design` /
+`decisions` / `issues`) plus two flat (`notes` / `reports`; decision `3544`).
+Both flat dirs are stamped on scaffold, and `{{notes}}` / `{{reports}}`
+participate in the `case` mapping (plain title-case, no abbreviation
+expansion).
 
 The bundled top-level `AGENTS.md` tells agents to run `lint` *on the changed
 paths* before committing — this assumes the project's `lint` script accepts
@@ -68,7 +74,8 @@ Then **all TEMPLATE FILL blocks are deleted** before writing.
   presence, and doc-system files, and pre-populates the inputs above.
   Doc-system detection is **three-state** (`none` / `partial` / `full`); on
   `partial`, only the missing artifacts are added and non-standard subdirs are
-  kept (naming-exempt). Detected values are surfaced for confirmation; beyond
+  kept (naming-exempt). The flat `notes` / `reports` `AGENTS.md` sit outside
+  the tally; on any migrate, an absent one is offered as a refresh addition. Detected values are surfaced for confirmation; beyond
   them, migrate also **asks once about scripts the repo lacks** (`dirs` stays
   existence-only). Scope is **full** (層B + doc-system) or **docs-only**. Per
   artifact: absent → create; a present **kisou-managed** README/AGENTS/CLAUDE
@@ -96,3 +103,4 @@ resolved}/`, etc.). The bundle inside this repo is authored in canonical
 - `decision-6d7e` — OPTIONAL syntax three granularities.
 - `decision-4f5a` — `dirs` key + migrate auto-detection.
 - `decision-281f` — stateless structural refresh in migrate.
+- `decision-3544` — notes/reports adopted as flat types.
