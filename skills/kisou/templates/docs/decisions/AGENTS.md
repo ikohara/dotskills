@@ -6,9 +6,11 @@ decision, and the consequences accepted. ADRs are **append-only and immutable**
 once accepted; you never rewrite the body. To reverse a decision, write a new
 ADR that supersedes the old one.
 
-Because the body is immutable, reference other entries by `<type>-<id>` only —
-never a path link, which you could never repair when its target moves (see
-Cross-references in `{{docs}}/AGENTS.md`).
+Because the body is immutable, reference managed entries by `<type>-<id>` only
+— never a path link, which rots when its target's status moves. The flat
+`{{notes}}/` / `{{reports}}/` have no `<id>` and are cited by path; when such
+a file is renamed, the renamer's mechanical link repair is allowed even in an
+ADR body (see Cross-references in `{{docs}}/AGENTS.md`).
 
 ## When to write an ADR
 
@@ -64,4 +66,5 @@ To reverse or replace a decision:
 2. On the **old** ADR, set `status: superseded`, `superseded_by: <new-id>`, and
    bump `updated:`. Do **not** change its body.
 
-Status and supersede links are the only mutable parts of an accepted ADR.
+Status, supersede links, and mechanical repair of a renamed flat-type path
+link are the only mutable parts of an accepted ADR.

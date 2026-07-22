@@ -75,6 +75,13 @@ target's path changes.
   a path link is allowed, but whoever moves the target owns updating the inbound
   links — see `{{issues}}/AGENTS.md` for the issue-status case.
 
+**The flat types are the exception.** `{{notes}}/` and `{{reports}}/` have no
+`<id>`, so they are cited by **path** from any document, frozen ones included.
+They have no status directories — a flat path changes only on a deliberate
+rename — and whoever renames a note or report owns updating its inbound links
+repo-wide. That mechanical link repair is allowed even in a frozen document's
+body: it does not alter what was recorded.
+
 Structured (frontmatter) links are limited to ADR `supersedes` /
 `superseded_by` and issue `depends_on` / `blocks`.
 
