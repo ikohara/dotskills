@@ -25,6 +25,11 @@ both an ADR (the record) and a `design/` update (the new current state) — not 
 duplication: `design/` holds the operational truth, the ADR holds the reasoning
 and the roads not taken.
 
+Two litmus tests. If you cannot write an honest, non-empty Options section,
+there is nothing for an ADR to hold — fold the change into `design/`. And
+superseding adds a file, never removes one: if reversing the choice would not
+merit a superseding ADR, the original does not merit an ADR either.
+
 ## File
 
 - Path: `docs/decisions/<id>-<slug>.md`. Reference prefix: `decision`.
