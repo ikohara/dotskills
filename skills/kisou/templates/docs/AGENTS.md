@@ -82,8 +82,15 @@ rename — and whoever renames a note or report owns updating its inbound links
 repo-wide. That mechanical link repair is allowed even in a frozen document's
 body: it does not alter what was recorded.
 
+**Documents outside the six types are not path-linked from frozen documents.**
+A tool's own `{{docs}}/` subdirectory (e.g. `{{docs}}/superpowers/specs/`) has
+neither an `<id>` nor a renamer who owns inbound links, so a path to it from an
+ADR or report can neither survive nor be repaired. Refer to such a file by name
+— its title and date — and, if it must stay durably citable, freeze the material
+as a `{{reports}}/` entry and cite that path instead.
+
 Structured (frontmatter) links are limited to ADR `supersedes` /
-`superseded_by` and issue `depends_on` / `blocks`.
+`superseded_by` / `amends` / `amended_by` and issue `depends_on` / `blocks`.
 
 ## Session shoroku (excerpting)
 

@@ -61,8 +61,8 @@ running `kisou` (docs-only migrate scope) to install them.
 - Editing `AGENTS.md` / `CLAUDE.md` (kisou's job).
 - Auto-pushing.
 - Modifying memory in any way.
-- Rewriting the body of an `accepted` ADR (only `status` /
-  `supersedes` / `superseded_by` are mutable on a status flip).
+- Rewriting the body of an `accepted` ADR (only `status` and the
+  `supersedes` / `superseded_by` / `amends` / `amended_by` links are mutable).
 - Auto-cleaning stale issue metadata or syncing with external trackers.
 
 ## Related
