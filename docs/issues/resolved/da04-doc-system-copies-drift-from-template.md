@@ -32,3 +32,14 @@ This repo dogfoods the doc system kisou ships, so `docs/AGENTS.md` and each
    hand-edit the copies.
 3. Both steps edit agent instruction files and need explicit human approval per
    the root `AGENTS.md`.
+
+## Resolution
+
+Resolved 2026-09-03. The litmus paragraph was ported to the template verbatim
+(`design/` as `{{design}}/`): it sits inside the fixed "When to write an ADR"
+section, so a local-only copy would be flagged on every migrate, and its content
+is not repo-specific. `kisou migrate` (docs-only) then refreshed `docs/AGENTS.md`
+and `docs/decisions/AGENTS.md` as diverged fixed-text replacements, exactly as
+design-c1d2 predicts — no section was added or removed. The same repo-ahead
+drift turned up in `docs/issues/AGENTS.md` (the no-`.gitkeep` paragraph under
+Lifecycle); it was declined here and is left for a separate decision.
