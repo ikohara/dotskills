@@ -2,7 +2,7 @@
 id: "c1d2"
 title: kisou skill — modes, template syntax, case mapping, migrate detection
 created: 2026-05-28
-updated: 2026-07-22
+updated: 2026-09-03
 ---
 
 ## Shape
@@ -86,6 +86,15 @@ Then **all TEMPLATE FILL blocks are deleted** before writing.
   write; `scripts/` → add missing requested scripts, never overwrite; existing
   doc-system → leave intact, add only around it.
 
+Because refresh keys on **section identity (the heading)** and never removes an
+author section, fixed-section headings in `skills/kisou/templates/**` are
+stable identifiers: a template change goes inside the existing section's body,
+never into a renamed heading. A renamed heading lands downstream as a duplicate
+(the old section kept, the new one added); rename detection is deferred
+(issue-9ab0). The ADR template's `## Superseding (the only edit to an accepted
+ADR)` heading was kept verbatim for this reason when partial supersession was
+added (decision-89da).
+
 ## File output paths
 
 Destination directory names are **case-correct** per `case` (a
@@ -103,4 +112,6 @@ resolved}/`, etc.). The bundle inside this repo is authored in canonical
 - `decision-6d7e` — OPTIONAL syntax three granularities.
 - `decision-4f5a` — `dirs` key + migrate auto-detection.
 - `decision-281f` — stateless structural refresh in migrate.
+- `decision-89da` — partial supersession links; why fixed-section headings in
+  the template stay stable.
 - `decision-3544` — notes/reports adopted as flat types.
