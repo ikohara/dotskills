@@ -20,6 +20,11 @@ part of the move; references from immutable / frozen documents are already
 `<type>-<id>` only (see Cross-references in `{{docs}}/AGENTS.md`), so they need
 nothing.
 
+A status directory exists only while it holds at least one issue. When the last
+issue leaves, the now-empty directory simply disappears (git does not track
+empty directories) — do **not** add `.gitkeep` or any placeholder. A writer
+recreates the directory on demand when the next issue lands there.
+
 ## File
 
 - Path: `{{docs}}/{{issues}}/<status>/<id>-<slug>.md`. Reference prefix: `issue`.
