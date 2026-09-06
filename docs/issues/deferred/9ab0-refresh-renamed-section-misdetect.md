@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-06-17
-updated: 2026-06-17
+updated: 2026-09-06
 ---
 
 The migrate-mode refresh introduced for kisou-managed files (decision `281f`,
@@ -47,3 +47,10 @@ user clicking through `OK` would accept it.
 
 Lowest-cost is defer; the fuzzy-heading match is the most useful if the
 false-add proves common in practice.
+
+## Observed runs
+
+2026-09-03 — the first real refresh on this repo (issue-da04: docs-only migrate
+over all seven doc-system `AGENTS.md`) proposed only diverged fixed-text
+replacements. No missing-heading or duplicate-section proposal appeared, so the
+deferral stands unchanged.
