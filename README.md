@@ -57,6 +57,13 @@ or `.claude/skills/`.
   (`README` / `CONTRIBUTING` / `CLAUDE` / `AGENTS` + the `docs/` system), or
   retrofit it onto an existing repo; installs the doc-management system that
   `shoroku` fills.
+- **[tanto](./skills/tanto/)** (担当) — multi-session orchestration of one
+  implementation plan across separate Claude Code sessions (Kanri, Sekkei,
+  Jisso, Kaiseki) that message each other and hand work over as files.
+
+Every skill above is host-agnostic except **tanto**, which is Claude Code only
+— it needs the `ListAgents` and `SendMessage` tools that no other Agent Skills
+host provides.
 
 ## Versioning
 
