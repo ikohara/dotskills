@@ -163,13 +163,13 @@ error and ask for the ref, which is the refusal we want.
 | `.superpowers/sdd/roster.md` | Kanri | all roles | one row per role |
 | `.superpowers/sdd/<topic>/kanri.md`, then `.superpowers/sdd/<plan-basename>/kanri.md` | Kanri | Sekkei, Jisso, Kaiseki | the conductor ledger |
 | `.superpowers/sdd/<topic>/spec-inputs.md` (optional) | Kanri | Sekkei | scope inputs the human gave Kanri during spec work, numbered `I-n`, each with Kanri's advisory notes |
-| `.superpowers/sdd/<plan>/batch-<X>-prompt.md` | Kanri | Jisso, human | the same text as the `SendMessage`, so the human can paste it if the message did not arrive |
-| `.superpowers/sdd/<plan>/batch-<X>-report.md` | Jisso | Kanri | fixed skeleton |
-| `.superpowers/sdd/<plan>/kaiseki-<n>-brief.md` | Kanri | Kaiseki | fixed skeleton |
-| `.superpowers/sdd/<plan>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
-| `.superpowers/sdd/<plan>/shoroku-proposal.md` | Jisso | Kanri | the T2 proposal, written to a file instead of printed |
-| `.superpowers/sdd/<plan>/shoroku-direction.md` | Kanri | Jisso | Kanri's answer to that proposal, item by item |
-| `.superpowers/sdd/<plan>/progress.md` | Jisso, through the SDD skill | Kanri | the SDD ledger; Kanri reads it and never writes it |
+| `.superpowers/sdd/<plan-basename>/batch-<X>-prompt.md` | Kanri | Jisso, human | the same text as the `SendMessage`, so the human can paste it if the message did not arrive |
+| `.superpowers/sdd/<plan-basename>/batch-<X>-report.md` | Jisso | Kanri | fixed skeleton |
+| `.superpowers/sdd/<plan-basename>/kaiseki-<n>-brief.md` | Kanri | Kaiseki | fixed skeleton |
+| `.superpowers/sdd/<plan-basename>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
+| `.superpowers/sdd/<plan-basename>/shoroku-proposal.md` | Jisso | Kanri | the T2 proposal, written to a file instead of printed |
+| `.superpowers/sdd/<plan-basename>/shoroku-direction.md` | Kanri | Jisso | Kanri's answer to that proposal, item by item |
+| `.superpowers/sdd/<plan-basename>/progress.md` | Jisso, through the SDD skill | Kanri | the SDD ledger; Kanri reads it and never writes it |
 | `.superpowers/sdd/.gitignore` holding `*` | the SDD skill's `sdd-workspace` script, or Kanri at start when it runs first | git | keeps everything above untracked, so nothing is ever staged |
 | `$CLAUDE_CONFIG_DIR/tanto.json` | the user | every role at start, Kanri at each handshake | the personal expected-model config |
 
@@ -194,9 +194,10 @@ ledger moves; the topic directory stays as the spec-phase record.
    memory, and permissions all come from it.
 5. Kanri does not edit tracked files while a batch runs, and writes under
    `docs/` only while Jisso is idle or absent. Sekkei writes only under
-   `docs/superpowers/` and `.superpowers/sdd/`, at any time, and commits only
-   at a batch boundary Kanri has verified. Kaiseki edits only to instrument and
-   leaves the tree clean.
+   `docs/superpowers/` and `.superpowers/sdd/`, at any time, and, while a batch
+   is in flight, commits only at a batch boundary Kanri has verified; while no
+   batch is in flight it commits whenever its work is ready. Kaiseki edits only
+   to instrument and leaves the tree clean.
 6. Every subagent dispatch names a `model` from `tanto.json`; none omits it.
 7. Small batches of three or four tasks. Each boundary is a ruling checkpoint
    and a lifecycle checkpoint.
@@ -204,6 +205,17 @@ ledger moves; the topic directory stays as the spec-phase record.
    before more fixing.
 9. At most two strong-model sessions active at once: Sekkei pauses while
    Kaiseki is active.
+
+## The four SDD stop classes
+
+subagent-driven-development names four things that stop an executor, and only
+these: an irreversible or destructive operation; a security-sensitive action; a
+side effect outside this worktree that norms say you ask about first (a merge, a
+push to a shared branch, a publish); and a plan so broken that every path
+forward is a guess. Under `tanto` those four plus a scope or spec change
+are the only items that reach the human, and they reach the human through
+Kanri. `roles/jisso.md` quotes the source text verbatim; this restatement is
+for the roles that route on it.
 
 ## Workspace
 

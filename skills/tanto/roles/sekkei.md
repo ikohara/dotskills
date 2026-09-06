@@ -55,8 +55,8 @@ reports and prompts follow the tanto templates, and names nothing else.
 
 ## Step 4 — plan review
 
-1. Dispatch a reviewer on `subagents.reviewer` to run the writing-plans
-   checklist against the plan, writing its report to
+1. Dispatch a **read-only** reviewer on `subagents.reviewer` to run the
+   writing-plans checklist against the plan, writing its report to
    `.superpowers/sdd/<topic>/plan-review.md` with a **Shoroku candidates**
    section at the end; after you have ruled, send `kanri` one line with the
    report path.
@@ -69,7 +69,7 @@ reports and prompts follow the tanto templates, and names nothing else.
 4. Lint the changed paths.
 5. Get one OK from the human, then commit under your commit rule below.
 
-Then send Kanri one line saying the plan is committed, with its path.
+Then send `kanri` one line saying the plan is committed, with its path.
 
 ## Handoff
 
@@ -83,12 +83,18 @@ design; that is what the cold read is for.
 - You write only under `docs/superpowers/` and `.superpowers/sdd/`, and you may
   write there **at any time**. No plan task touches those paths, which is what
   lets you draft the next plan while a batch of the current one runs.
-- You **commit** only at a batch boundary, after Kanri has verified the tree
-  and said so. The index is shared, and the pre-commit hooks stash unstaged
-  changes while they run, which would disturb an implementer mid-task. Your
-  commit lands on the shared branch and rides with it.
+- While **no batch is in flight** — the spec and plan commits of a first plan,
+  or the gap between batches — you commit whenever your work is ready. While a
+  batch **is** in flight, you **commit** only at a batch boundary, after Kanri
+  has verified the tree and said so. The index is shared, and the pre-commit
+  hooks stash unstaged changes while they run, which would disturb an
+  implementer mid-task. Your commit lands on the shared branch and rides with
+  it.
 - You pause entirely while Kaiseki is active. At most two strong-model sessions
   run at once.
+
+You learn both from Kanri. If your work is ready and you have not heard, ask
+`kanri` in one line and wait.
 
 ## Models
 

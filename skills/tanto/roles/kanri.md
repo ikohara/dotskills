@@ -52,6 +52,27 @@ to `.superpowers/sdd/<topic>/spec-inputs.md`, then send Sekkei one line with
 that path. That file stays in the topic directory as the spec-phase record even
 after the ledger moves.
 
+## When the plan lands
+
+Sekkei sends you one line saying the plan is committed, with its path. Then, in
+this order.
+
+1. Cold-read the committed plan and the spec, and send Sekkei one line per open
+   question. Wait for its pointer: it answers by editing the plan or the spec,
+   never by explaining in a message.
+2. Move the ledger from `.superpowers/sdd/<topic>/` to
+   `.superpowers/sdd/<plan-basename>/kanri.md`, note the move in the roster's
+   Events list, and name the topic directory in the moved ledger's Plan
+   section. Only the ledger moves.
+3. Do the T1 write-out — see "Shoroku" below.
+4. Ask the human to create Jisso, as the Create table below prescribes.
+5. On Jisso's handshake, reply with the orders line. Then write batch A's
+   prompt from `templates/batch-prompt.md`, with
+   `First batch, no previous verdict.` in its previous-batch-verdict section,
+   save it as `.superpowers/sdd/<plan-basename>/batch-A-prompt.md`, and send
+   the same text with `notify_when_idle: true`.
+6. Enter the batch loop below at step 1.
+
 ## The batch loop
 
 Per batch, in this order.
@@ -72,20 +93,19 @@ Per batch, in this order.
    stop classes and for scope changes.
 5. Write the next batch prompt from `templates/batch-prompt.md`, carrying the
    rulings the next tasks inherit and the concrete model families from
-   `tanto.json`. Save it as `.superpowers/sdd/<plan>/batch-<X>-prompt.md` and
-   send the same text with `notify_when_idle: true`.
+   `tanto.json`. Save it as
+   `.superpowers/sdd/<plan-basename>/batch-<X>-prompt.md` and send the same
+   text with `notify_when_idle: true`.
 6. Check the lifecycle tables below — is a create, replace, or delete request
    due?
+7. If Sekkei is live, send it one line when you have verified this boundary,
+   and one line whenever Kaiseki is created or deleted; its commit rule and its
+   pause depend on both.
 
 A report that conflicts with the plan or the spec is a cold-read question to
 Sekkei, sent as one line; Sekkei answers by editing the plan or the spec and
 sending back a pointer. If the spec itself moves, that is a numbered question
 to the human.
-
-When the plan is committed, move the ledger from `.superpowers/sdd/<topic>/`
-to `.superpowers/sdd/<plan-basename>/kanri.md`, note the move in the roster's
-Events list, and name the topic directory in the moved ledger's Plan section.
-Only the ledger moves.
 
 ## The final batch
 
@@ -98,11 +118,14 @@ After the last implementation batch is accepted:
    ledger's parked and deferred-minor lines, and ask for a **Shoroku
    candidates** section at the end of its report; adopt from it into the
    `S-n` table. You dispatch it, not Jisso, so the executor never
-   commissions its own final review.
+   commissions its own final review. Anything else you dispatch takes
+   `subagents.default`.
 2. Turn its findings into one more batch prompt — the final batch — and send it
    to Jisso. There is no second fix wave.
-3. When the final batch is accepted, send the T2 prompt below, verify the
-   write-out as you verify any batch, and put the merge decision to the human.
+3. When the final batch is accepted, send Jisso one line —
+   `T2: propose the shoroku write-out; write it to .superpowers/sdd/<plan-basename>/shoroku-proposal.md`
+   — then verify the write-out as you verify any batch, and put the merge
+   decision to the human.
    Residual load-bearing findings reach the human in that merge question.
 
 ## The Kaiseki branch
@@ -115,7 +138,7 @@ is the classification rule.
    committed as a WIP commit.
 2. Classify. Known cause — rule and send Jisso back to work. Unknown — ask the
    human to create Kaiseki; after its handshake, write
-   `.superpowers/sdd/<plan>/kaiseki-<n>-brief.md` from
+   `.superpowers/sdd/<plan-basename>/kaiseki-<n>-brief.md` from
    `templates/kaiseki-brief.md` and send its path with
    `notify_when_idle: true`. If the human declines to create Kaiseki, rule
    `continue the SDD rounds`: Jisso resumes at round 3 with the resumed
@@ -179,13 +202,14 @@ not yet created.
 T2 is split because Jisso holds the context the write-out needs and cannot talk
 to the human.
 
-1. **Jisso proposes.** You send the T2 prompt; Jisso writes the numbered list
-   to `.superpowers/sdd/<plan>/shoroku-proposal.md` and sends you one line.
+1. **Jisso proposes.** You send that line; Jisso writes the numbered list to
+   `.superpowers/sdd/<plan-basename>/shoroku-proposal.md` and sends you one
+   line.
 2. **You direct.** Rule on every item per the adoption rule, record the rulings
    in the `S-n` table, ask the human the escalated items, and write the answer
    **item by item** — accept, reject, or accept with an edit — to
-   `.superpowers/sdd/<plan>/shoroku-direction.md`. Then send Jisso one line
-   with that path.
+   `.superpowers/sdd/<plan-basename>/shoroku-direction.md`. Then send Jisso one
+   line with that path.
 3. **Jisso applies.** It writes the accepted subset, lints, commits once, and
    reports. Verify the diff and the commit as you do for any batch. The human
    sees the result at the merge decision.

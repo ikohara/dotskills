@@ -64,8 +64,10 @@ Kanri's bare name as the address, exactly as Kanri's request prints it:
 `/tanto kaiseki` with no address is standalone Kaiseki — the strong model leads
 one debugging session, with no roster and no batch loop.
 
-Each session then checks its model, asks the human to run `/rename <role>`, and
-sends Kanri one handshake line. Kanri replies with that role's standing orders.
+Every attached role then checks its model, asks the human to run
+`/rename <role>`, and sends Kanri one handshake line; Kanri checks its model and
+asks for the rename too, but it receives handshakes rather than sending one, and
+standalone Kaiseki sends none. Kanri replies with that role's standing orders.
 
 ## Layout
 

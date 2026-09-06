@@ -79,7 +79,7 @@ omitted model inherits your session's.
 | The skill says | tanto key |
 | --- | --- |
 | implementer, cheap or standard model, fix rounds 1-3 | `subagents.implementer` |
-| task reviewer, scoped re-review, final whole-branch review on the most capable available model | `subagents.reviewer` |
+| task reviewer, scoped re-review, final whole-branch review on the most capable available model | `subagents.reviewer`, and the whole-branch review is Kanri's dispatch and not yours |
 | fix rounds 4-5, one tier above the implementer that got stuck | `subagents.escalation` |
 | the plan drafter | `subagents.drafter`, which is Sekkei's dispatch and not yours |
 | the spec reviewer, the plan reviewer | `subagents.reviewer`, also Sekkei's |
@@ -139,7 +139,7 @@ text, these win.
 | SDD Finish — delete the workspace once the final review is clean | never delete it | it holds the conductor ledger, the reports, and the T2 source; Kanri asks the human about it after T2 and the merge decision |
 | SDD Finish — collect "Rulings I made" into the final message, then run finishing-a-development-branch | put every ruling in each batch report's Rulings section, and never run finishing-a-development-branch | you talk to Kanri only, reports are read from files, and the merge decision is the human's, put by Kanri |
 | SDD Model Selection — scale the tier per dispatch, final review on the most capable model | use the `tanto.json` kinds, with one `reviewer` key for every review and never the top family | the personal file sets the tiers, and a top-family subagent is what rate-limited a real run |
-| SDD fix loop — five rounds, then the breaker | unchanged, plus the Kaiseki trigger at round 2 with an unknown cause | root cause before more fixing |
+| SDD fix loop — five rounds, then the breaker | unchanged, plus the Kaiseki trigger at round 2 with an unknown cause, and again whenever an implementer returns blocked with an unknown cause at any round | root cause before more fixing |
 | `shoroku` — propose in chat, wait for the human's `Direction?`, never start without their explicit confirmation | propose and receive direction as files, with Kanri answering as the human's delegate | you cannot talk to the human, and adoption is a Kanri ruling by design |
 
 ## The final batch

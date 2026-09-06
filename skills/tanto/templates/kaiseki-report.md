@@ -39,6 +39,10 @@ and passes after. Jisso writes it.>
 - <the defect, one line> — blocks this task: yes
 - <the defect, one line> — blocks this task: no
 
+<Keep one bullet per defect, carrying the tag that applies, and delete the
+example bullets that do not. An empty list is fine. Never leave an example
+bullet standing.>
+
 ## Uncertainties
 
 - <What is still unproven, and what would prove it.>

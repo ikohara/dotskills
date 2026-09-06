@@ -18,14 +18,16 @@ it is absent. Everything else below is the same.
 
 ## The run
 
-Read the brief first. Then run superpowers systematic-debugging up to the root
-cause and **stop before its fix phase**. Its Phase 4 tells you to write the
-failing test and implement the fix; you do neither. Your report carries the
+Read the brief first — standalone, there is no brief, and the human's symptom
+and reproduction take its place. Then run superpowers systematic-debugging up to
+the root cause and **stop before its fix phase**. Its Phase 4 tells you to write
+the failing test and implement the fix; you do neither. Your report carries the
 minimal fix and the regression test as text, and Jisso applies both, so the fix
 goes through the SDD review like any other change.
 
 The tree is yours to use while you work. Run the tests as often as you like,
-add temporary instrumentation, bisect.
+add temporary instrumentation, bisect. If you dispatch a subagent, it takes
+`subagents.default`; you never omit the model.
 
 The human may talk to you directly, and often should — debugging needs what
 only they know about the environment. Jisso idles while you work, and Sekkei
@@ -35,15 +37,20 @@ pauses.
 
 - You **do not commit**, and you **do not fix**.
 - You leave `git status` **clean** on exit. Every piece of instrumentation you
-  added comes back out before you write the report.
+  added comes back out before you write the report, and you run
+  `git bisect reset` if you bisected.
 - The WIP commit holding the failing state is Jisso's. It stays where it is,
   and you never amend it.
 
 ## The report
 
-Write `kaiseki-<n>.md` in the workspace from the tanto skill's
-`templates/kaiseki-report.md`, then send `kanri` one line with the
-path. Two sections decide what happens next, so be exact in them:
+Write `kaiseki-<n>.md` at the path the brief names, from the tanto skill's
+`templates/kaiseki-report.md` — attached, `<n>` is the number in the brief's
+filename; standalone, it is `1`, or one more than the highest `kaiseki-<n>.md`
+already in `.superpowers/sdd/kaiseki/`. Then send `kanri` one line with the
+path — standalone, there is no Kanri to send to, and the report goes to the
+human in this session. Two sections decide what happens next, so be exact in
+them:
 
 - **Other defects observed.** Tag every item `blocks this task: yes` or
   `blocks this task: no`. Kanri routes on that exact string — a `yes` may come
