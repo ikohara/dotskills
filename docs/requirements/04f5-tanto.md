@@ -2,7 +2,7 @@
 id: "04f5"
 title: tanto — multi-session orchestration of one implementation plan in Claude Code
 created: 2026-09-06
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 ## Purpose
@@ -53,6 +53,11 @@ artifacts.
 - **Docs are kept current as part of the flow.** Excerpting into the project's
   `docs/` happens at staged points of the run, not as an afterthought, and the
   human sees only the items that change what the project must do or why.
+  Every planned exit of a session, in any role, carries its own shoroku
+  before the human closes it: the session lists its candidates, Kanri rules
+  on them and escalates what the human owns, and the session that raised
+  them writes out the accepted ones. An exit forced by a failure is the
+  exception, and the record says what was lost.
 - **Composes without modifying.** superpowers, the `kisou` document system, and
   `shoroku` are used as they are; every override tanto needs is written into
   tanto's own files.
