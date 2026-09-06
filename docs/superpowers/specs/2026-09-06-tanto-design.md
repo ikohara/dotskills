@@ -845,9 +845,6 @@ For Kanri's `S-n` table:
   maps, built-in defaults with per-key overlay, the no-config line, the
   deployment recommendation), written by Kanri at T1; nothing in
   decision-08bc is amended.
-- issue: a translation before a human review (the `wayaku` skill on the
-  spec and the plan) was asked for and then taken out of `tanto`; it is an
-  independent mechanism, to be designed on its own.
 - design: the adoption rule and the split T2 (Jisso proposes and writes,
   Kanri directs through a file, the human gets only requirement and ADR
   items and the unsure ones); the final batch (whole-branch review, one
