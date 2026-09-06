@@ -24,6 +24,13 @@ artifacts.
   session on the same repository and branch. The human creates and deletes
   sessions; Kanri is the only role that asks, and every request is a numbered
   list of commands the human can paste as they are.
+- **Kanri is resident and hands over before it decays.** Kanri stays in its
+  session across plans for as long as the session lasts; a plan ending does
+  not end Kanri. When its context has grown long, ideally by its own
+  detection and always at a boundary with no batch in flight, it writes a
+  handover for its successor and asks the human to create the new Kanri and
+  retire the old one, so that a replacement is a planned step and never a
+  mid-batch loss.
 - **The human is interrupted only at defined checkpoints.** The spec dialogue;
   one OK before the plan is committed; batch boundaries, and there only for the
   stop classes of subagent-driven development, a scope or spec change, and a
