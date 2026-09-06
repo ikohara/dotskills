@@ -1,6 +1,6 @@
 ---
 id: "4f5a"
-title: `dirs` OPTIONAL key + migrate-mode auto-detection of existing state
+title: "`dirs` OPTIONAL key + migrate-mode auto-detection of existing state"
 status: accepted
 supersedes: []
 superseded_by: null

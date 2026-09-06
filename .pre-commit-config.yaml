@@ -5,6 +5,14 @@ repos:
       - id: markdownlint-cli2
         args: [--fix]
 
+  - repo: local
+    hooks:
+      - id: check-md-frontmatter
+        name: check Markdown frontmatter
+        language: system
+        types: [markdown]
+        entry: uv run --no-project --with pyyaml python scripts/check_md_frontmatter.py
+
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.13.1-1
     hooks:

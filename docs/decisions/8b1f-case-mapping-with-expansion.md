@@ -1,6 +1,6 @@
 ---
 id: "8b1f"
-title: `case` applies to script and dir names via a built-in mapping with abbreviation expansion
+title: "`case` applies to script and dir names via a built-in mapping with abbreviation expansion"
 status: accepted
 supersedes: []
 superseded_by: null

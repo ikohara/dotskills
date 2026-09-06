@@ -43,6 +43,7 @@ Refer to them as `<type>-<id>` in commits, code comments, and prose:
 ## Code style
 
 - Markdown: see [`.markdownlint-cli2.yaml`](.markdownlint-cli2.yaml).
+- Markdown frontmatter: checked by the `check-md-frontmatter` pre-commit hook ([`scripts/check_md_frontmatter.py`](scripts/check_md_frontmatter.py)).
 - PowerShell: see [`scripts/PSScriptAnalyzerSettings.psd1`](scripts/PSScriptAnalyzerSettings.psd1).
 - YAML: see [`.yamllint`](.yamllint).
 - All files: see [`.editorconfig`](.editorconfig).
