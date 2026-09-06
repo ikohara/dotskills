@@ -35,7 +35,18 @@ artifacts.
   one OK before the plan is committed; batch boundaries, and there only for the
   stop classes of subagent-driven development, a scope or spec change, and a
   shoroku item that adds to or changes a requirement or a decision; and the
-  merge decision. Everything else is a ruling a role records in a file.
+  merge decision. Beyond those, the human is asked only for what only the
+  human can do: create or retire a session when Kanri requests it, and settle
+  a triage or handover question Kanri cannot decide alone. Everything else is
+  a ruling a role records in a file.
+- **Trouble reports reach the repository's Kanri, and Kanri answers them.**
+  What a human notices while using a skill, and what another repository's
+  run suspects is a defect in a skill this repository ships, has one intake:
+  the resident Kanri. Kanri classifies each report and files it, fixes it
+  when the fix is small and no batch is in flight, sends it where it belongs
+  when it is not this repository's, or asks for a root-cause pass when the
+  cause is unknown. The reporter learns the outcome in one line, and no
+  report waits for the next plan to be heard.
 - **Model discipline.** Every role runs on an expected model, and a mismatch is
   reported to the human and never switched silently (decision-08bc). Every
   subagent a role dispatches gets an explicit model from a personal config that
