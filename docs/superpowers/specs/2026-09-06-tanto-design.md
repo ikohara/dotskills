@@ -41,9 +41,9 @@ Decided before this spec, not reopened:
 
 | Role | Count per repo | Owns | Talks to |
 | --- | --- | --- | --- |
-| Kanri | exactly 1 | roster, conductor ledger, batch prompts, rulings, shoroku adoption and write-out, lifecycle requests | human, Sekkei, Jisso, Kaiseki |
+| Kanri | exactly 1 | roster, conductor ledger, batch prompts, rulings, shoroku adoption (and the T0 and T1 write-outs), lifecycle requests | human, Sekkei, Jisso, Kaiseki |
 | Sekkei | 0 or 1 | spec, plan (with its Batches section), spec and plan review | human, Kanri |
-| Jisso | 0 or 1 | the SDD run, batch reports, commits | Kanri only |
+| Jisso | 0 or 1 | the SDD run, batch reports, commits, the T2 shoroku proposal and write-out | Kanri only |
 | Kaiseki | 0 or 1, on demand | root-cause reports; never a fix, never a commit | human, Kanri |
 
 Why Kanri and Sekkei are separate: a spec dialogue and batch conducting have
@@ -92,6 +92,17 @@ Rejected: one `SKILL.md` with four role sections (every session reads three
 roles it never plays, and the file passes 400 lines); a single `protocol.md`
 with the skeletons inline (skeletons stop being copyable and the file is
 linted).
+
+The skill's own wording (`description`, the `SKILL.md` opening, the README)
+says **multi-session orchestration**; "four" appears only where the current
+role set is listed, so the wording survives a role being added or dropped.
+This spec keeps its title.
+
+Repo-root touch points, approved by the human on 2026-09-06: `README.md`
+gets one line for `tanto` in its Skills list and one sentence saying
+`tanto` is Claude Code only (the README advertises other Agent Skills
+hosts, and `copy-project` copies every skill). `CHANGELOG.md` is left to
+the release procedure. No other repo-root Markdown is touched.
 
 ## Invocation
 
@@ -169,11 +180,11 @@ Three maps. The first two are two mechanisms:
   - `escalation`: SDD's fix rounds 4-5, "a model at least one tier above".
   - a skill name (`wayaku` is the one in use): **(new)** when present, a
     role runs that skill in a subagent on that model instead of inline;
-    when absent, the skill runs inline on the session's model. Only a skill
-    with no human gate qualifies: `shoroku` and `kisou` stop at
-    `Direction?` and wait for the human, which a subagent cannot do, so
-    they never run in a subagent. Skill-name keys are not in the built-in
-    defaults; they are personal additions.
+    when absent, the skill runs inline on the session's model. `shoroku`
+    is not a candidate: under `tanto` Jisso runs it inline because Jisso's
+    context is the point of the T2 write-out, and its `Direction?` is
+    answered by Kanri through a file, not by a chat wait. Skill-name keys
+    are not in the built-in defaults; they are personal additions.
   - `default`: the fallback for any kind not in the map (an ad-hoc Explore,
     a one-off search). A dispatch **never omits `model`**: an omitted model
     inherits the session's, which on a Kanri, Sekkei, or Kaiseki session is
@@ -367,6 +378,8 @@ document, named from the README, not restated.
 | `.superpowers/sdd/<plan>/batch-<X>-report.md` | Jisso | Kanri | fixed skeleton |
 | `.superpowers/sdd/<plan>/kaiseki-<n>-brief.md` | Kanri | Kaiseki | fixed skeleton |
 | `.superpowers/sdd/<plan>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
+| `.superpowers/sdd/<plan>/shoroku-proposal.md` **(new)** | Jisso | Kanri | the T2 shoroku proposal: the numbered list `shoroku` would print, written to a file instead |
+| `.superpowers/sdd/<plan>/shoroku-direction.md` **(new)** | Kanri | Jisso | Kanri's answer to that proposal, item by item: accept, reject, or accept with an edit |
 | `.superpowers/sdd/<plan>/progress.md` | Jisso (the SDD skill) | Kanri | the SDD ledger; Kanri reads it and never writes it |
 | `.superpowers/sdd/.gitignore` (`*`) | the SDD skill's `sdd-workspace` script, or Kanri at start when it runs first | git | keeps everything above untracked, so nothing is ever staged |
 | `$CLAUDE_CONFIG_DIR/tanto.json` | `dotagents` | every role at start, Kanri at each handshake | the personal expected-model config |
@@ -465,8 +478,8 @@ item 2).
 | 5a | Hard bug | Kaiseki finds the root cause; Jisso applies the fix | may join the debugging conversation |
 | 6 | Development review | per task: `subagents.reviewer` under Jisso; whole branch: a `subagents.reviewer` that **Kanri** dispatches after the last implementation batch, so the executor does not commission its own final review; its findings go to Jisso as the final batch (below) | merge decision |
 | 7 | Shoroku candidates | every report in steps 2, 4, 5, 5a, and 6 has a mandatory Shoroku candidates section | none |
-| 8 | Shoroku adoption | Kanri, at each batch boundary, in the ledger's `S-n` table | veto |
-| 9 | Shoroku write-out | staged T0 / T1 / T2, all run by Kanri, see "Shoroku flow" | `Direction?`, then the diff before commit |
+| 8 | Shoroku adoption | Kanri, at each batch boundary, in the ledger's `S-n` table; a ruling, escalated only per the adoption rule | the escalated items |
+| 9 | Shoroku write-out | staged: T0 and T1 by Kanri; T2 proposed and written by Jisso with Kanri answering `Direction?`, see "Shoroku flow" | the escalated items; the diff at the merge decision |
 
 Two cold reads of the plan, by Kanri and then by Jisso, test that the plan
 is self-contained. What Sekkei knew and did not write down is lost by
@@ -484,15 +497,16 @@ become one more batch prompt, the final batch: Jisso dispatches one fix
 subagent with the complete findings list, runs exactly one scoped
 re-review of the fix wave, adjudicates residuals in the SDD ledger, and
 reports. There is no second fix wave; residual load-bearing findings reach
-the human through Kanri's merge question. Then, with Jisso idle, Kanri
-runs T2 and puts the merge decision to the human.
+the human through Kanri's merge question. Then Kanri sends the T2 prompt
+(see "Shoroku flow"), verifies the write-out, and puts the merge decision
+to the human.
 
 ### Deviations from the composed skills **(new)**
 
-`tanto` composes the superpowers skills without editing them. Every
-mandate it overrides is named here with the reason and the place the
-override is restated at runtime; `roles/jisso.md` and `roles/kaiseki.md`
-are written from this table, and Verification item 4 checks it against
+`tanto` composes the superpowers skills and `shoroku` without editing
+them. Every mandate it overrides is named here with the reason and the
+place the override is restated at runtime; the role files are written from
+this table, and Verification item 4 checks the superpowers rows against
 the 6.3.0 text.
 
 | superpowers mandate | tanto | Why | Restated in |
@@ -504,6 +518,7 @@ the 6.3.0 text.
 | SDD Model Selection: tiers scaled per dispatch, the final review on the most capable model | `tanto.json` kinds; one `reviewer` key for every review, never the top family | M1's 429 on a top-family subagent; the personal file sets the tiers | `roles/jisso.md`, every batch prompt |
 | SDD fix loop: five rounds, then the breaker | unchanged, plus the Kaiseki trigger at round 2 with an unknown cause | root cause before more fixing | `roles/jisso.md` |
 | systematic-debugging Phase 4: write the failing test, implement the fix, verify | Kaiseki stops before Phase 4: the report carries the minimal fix and the regression test as text; Jisso applies both | Kaiseki never commits or fixes; the fix goes through SDD review | `roles/kaiseki.md` |
+| `shoroku`: propose in chat, wait for the human's `Direction?`, never start without the human's explicit confirmation | under `tanto` the proposal and the direction are files, Kanri answers `Direction?` as the human's delegate per the adoption rule, and the human's confirmation is the plan's OK plus the escalated items | Jisso cannot talk to the human, and adoption is a Kanri ruling by design | `roles/kanri.md`, `roles/jisso.md`, the T2 prompt |
 
 ### What the plan must contain
 
@@ -573,7 +588,8 @@ Implementers never dispatch subagents (an SDD rule).
    (processes, temp directories), a spot check of the claimed tests.
 3. Read the report. For each "Rulings needed" item: known cause, rule;
    unknown cause, open the Kaiseki branch; scope, escalate to the human.
-   Adopt or reject each shoroku candidate. Update the conductor ledger.
+   Adopt or reject each shoroku candidate per the adoption rule. Update the
+   conductor ledger.
 4. Report one line to the human. Ask numbered questions only for the SDD
    stop classes and scope changes.
 5. Write the next batch prompt from the template with the rulings the next
@@ -688,23 +704,54 @@ bug is open, Sekkei only if a spec or plan is in progress.
 
 Every report has a mandatory Shoroku candidates section (step 7). Kanri
 adopts or rejects each candidate at the batch boundary in the ledger's
-`S-n` table (step 8), and the human may veto. The write-out (step 9) is
-staged **(new)**, generalizing what Kanri did on this very plan:
+`S-n` table (step 8). The write-out (step 9) is staged **(new)**,
+generalizing what Kanri did on this very plan:
 
 | Stage | When | Who | What |
 | --- | --- | --- | --- |
 | T0 | before Sekkei is created | Kanri | the decided items of the input document become ADRs, on `main`, before the branch is cut |
 | T1 | after the plan commit, before Jisso is created | Kanri | requirements and issues from the spec; the spec's deferred items become issues one to one |
-| T2 | after the final batch, with Jisso idle | Kanri | design, rulings, and the dogfood report from the conductor ledger: `shoroku from <ledger>` (file mode), inline in Kanri's session |
+| T2 | after the final batch | Jisso proposes and writes, Kanri directs | design, rulings, and the dogfood report from the conductor ledger and Jisso's own context |
 
-Every stage is a full `shoroku` run as req-3c4d and the skill define it:
-the numbered proposal ending in `Direction?`, the wait for the human's
-partial accept, one commit, no auto-push. Only Kanri can run it, because
-only Kanri talks to the human; Jisso never runs `shoroku` (a change from
-the handover, which had Jisso run T2). The `S-n` table seeds the proposal
-and does not replace the gate. Rule 5 holds at every stage: at T0 Jisso
-does not exist, at T1 it is not yet created, at T2 it is idle after the
-final batch. Kaiseki reports feed the table like any other report.
+### The adoption rule **(new)**
+
+Adoption is a Kanri ruling at every stage. Kanri escalates to the human,
+as one numbered list, only two kinds of item: one that adds to or changes
+a requirement or an ADR (what the project must do, and why a choice was
+made, stay the human's), and one Kanri cannot classify or is unsure about.
+Everything else (design, issues, notes, reports) Kanri decides and records
+in the `S-n` table, and the human sees the result in the commit.
+
+### T2 in three steps **(new)**
+
+Jisso holds the context the T2 write-out needs (the SDD ledger's rulings,
+parked findings, and deferred minors, plus everything the batch reports
+compressed), and Jisso cannot talk to the human. So the `shoroku` run is
+split, with its `Direction?` answered by Kanri through a file:
+
+1. **Propose (Jisso).** Kanri sends the T2 prompt. Jisso runs
+   `shoroku from <ledger>` (file mode) up to the proposal and writes the
+   numbered list to `<workspace>/shoroku-proposal.md` instead of printing
+   it, seeded by the `S-n` table's adopted rows and extended from its own
+   context; then one line to Kanri.
+2. **Direct (Kanri).** Kanri rules on every item per the adoption rule,
+   records the rulings in the `S-n` table, asks the human the escalated
+   items, and writes the answer, item by item, to
+   `<workspace>/shoroku-direction.md`; then one line to Jisso.
+3. **Apply (Jisso).** Jisso applies the accepted subset per
+   `docs/AGENTS.md` and the per-type files, lints, makes one commit, and
+   reports. Kanri verifies the diff and the commit as it does for any
+   batch; the human sees the result at the merge decision.
+
+T0 and T1 are the same run collapsed into one session: Kanri proposes to
+itself, applies the adoption rule, asks the human the escalated items, and
+commits. Rule 5 holds at every stage: at T0 Jisso does not exist, at T1 it
+is not yet created, at T2 it is the writer while Kanri stays out of `docs/`.
+This changes the handover's step 9 (Jisso runs `shoroku`, the human sees
+the diff before the commit) only in who answers `Direction?`; the
+deviation from the `shoroku` skill is named in "Deviations from the
+composed skills". Kaiseki reports feed the `S-n` table like any other
+report.
 
 ## Rules
 
@@ -812,8 +859,9 @@ For Kanri's `S-n` table:
   maps, built-in defaults with per-key overlay, the no-config line, the
   deployment recommendation), written by Kanri at T1; nothing in
   decision-08bc is amended.
-- design: T2 runs in Kanri, not Jisso, because only Kanri can answer
-  `Direction?` with the human; the final batch (whole-branch review, one
+- design: the adoption rule and the split T2 (Jisso proposes and writes,
+  Kanri directs through a file, the human gets only requirement and ADR
+  items and the unsure ones); the final batch (whole-branch review, one
   fix wave, one re-review) precedes it.
 - design or report: the manual bootstrap of this plan deviated from the
   handshake (an orders file plus a pasted line, no `/tanto`); the skill's
