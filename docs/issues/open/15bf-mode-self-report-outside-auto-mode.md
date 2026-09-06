@@ -15,13 +15,22 @@ when its system prompt says auto mode is active and `unknown` otherwise.
 Whether a session in the default or another permission mode can report
 anything better than `unknown` is not known.
 
-Observed 2026-09-06: the envelope of a cross-session message carries a
-`from-mode` attribute (`prompting` for a session in default mode), so the
-receiver may already know more about the sender's mode than the sender can
-state about itself.
+Measured 2026-09-06, at the first Jisso handshake under a real plan: the
+envelope's `from-mode` attribute is **not** the sender's permission mode. Jisso
+reported `mode=auto` in its handshake while the envelope of the same message
+carried `from-mode="prompting"` — and `prompting` was the value on every Sekkei
+message too, in both directions, with no permission prompt observed anywhere in
+the run. The attribute most likely means "the sender is mid-turn", not "the
+sender is in the default permission mode". Only the `mode=` self-report carries
+the permission mode, so the envelope cannot replace it.
 
-To do: at the first Jisso handshake under a real plan, compare what Jisso
-reports in `mode=` with the envelope's `from-mode`. If the envelope is
-reliable, Kanri's not-`auto` warning for Jisso can key on the envelope and
-`mode=` can be dropped from the line; that is a design update to the
-handshake.
+This closes the comparison the issue was opened to make, and it removes the
+option of keying Kanri's not-`auto` warning on the envelope: there is nothing
+there to key on.
+
+To do: the original question stands and is now the only one left — can a session
+outside auto mode report anything better than `unknown` about its own permission
+mode? If it can, `mode=` becomes informative in every direction rather than only
+when the answer is `auto`. If it cannot, the field stays a one-bit signal and
+Kanri's warning stays keyed on the absence of `auto`. Measure it the next time a
+role is started outside auto mode.

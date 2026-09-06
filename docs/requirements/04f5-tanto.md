@@ -14,8 +14,9 @@ Kaiseki (解析) finds root causes. The split exists so that judgment stays on
 the strongest model, long output goes to a cheaper one, and scope stays with
 the human, without any one session's context having to hold the whole run.
 It formalizes a practice that worked by hand (kuchidome M1 and M2, 2026-09-05
-and 2026-09-06). The current design is the tanto design of 2026-09-06 under
-`docs/superpowers/specs/`.
+and 2026-09-06). How it is built now is design-4807; that entry originates in
+the tanto design of 2026-09-06, kept with the project's superpowers working
+artifacts.
 
 ## Required behavior
 
