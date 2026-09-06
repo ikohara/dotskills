@@ -1,0 +1,15 @@
+{
+  "sessions": {
+    "kanri": "fable",
+    "sekkei": "fable",
+    "jisso": "opus",
+    "kaiseki": "fable"
+  },
+  "subagents": {
+    "implementer": "sonnet",
+    "reviewer": "opus",
+    "drafter": "opus",
+    "escalation": "opus",
+    "default": "sonnet"
+  }
+}
