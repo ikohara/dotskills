@@ -29,8 +29,9 @@ Decided before this spec, not reopened:
   system that the write-out fills), superpowers (brainstorming,
   writing-plans, subagent-driven development, systematic-debugging, whose
   `sdd-workspace` script owns `.superpowers/sdd/`), and `shoroku` (the
-  write-out); it sits in the same layer and depends on nothing personal. What stays personal lives in
-  `dotagents`: the expected-model config and the permission setup.
+  write-out); it sits in the same layer and depends on nothing personal. What stays
+  personal, the expected-model config and the permission setup, lives
+  outside this repo.
 - **Kaiseki is a session, not a subagent.** The strong model leads hard
   debugging interactively; a strong-model subagent is what died on a 429 in
   M1. It is on demand, so it costs nothing while no bug is open.
@@ -235,11 +236,10 @@ edited.
 
 ### Deployment and the ADR
 
-The personal file is deployed by `dotagents`. This spec recommends a
-whole-file copy (few keys, one owner; per-key merge is for files with many
-contributors), but the skill only reads the file and does not depend on how
-it got there. "Do not map any kind to `fable`" is a note in the personal
-file's source, not a rule in the shared skill.
+The personal file is the user's own. How it reaches `$CLAUDE_CONFIG_DIR`
+is outside this spec: the skill only reads the file and does not depend on
+how it got there. "Do not map any kind to `fable`" is a note in the
+personal file, not a rule in the shared skill.
 
 decision-08bc fixed the check and left the file's name and format, the
 deployment, and the no-config behavior to this spec. Those, the two maps,
@@ -332,9 +332,8 @@ The skill cannot set a mode and does not try. Measured: a session in
 default (prompting) mode and one in auto mode both received peer messages
 without a click, so the mode does not gate messaging. The only role that
 needs a permissive mode is Jisso, whose batch would stall on per-command
-prompts; the `mode=` field catches the obvious case. The author's actual
-setup (acceptEdits, Bash allowed, an explicit deny list) is a `dotagents`
-document, named from the README, not restated.
+prompts; the `mode=` field catches the obvious case. A permissive setup
+is the user's own and is not restated here.
 
 ## Messages
 
@@ -370,7 +369,7 @@ document, named from the README, not restated.
 | `.superpowers/sdd/<plan>/shoroku-direction.md` **(new)** | Kanri | Jisso | Kanri's answer to that proposal, item by item: accept, reject, or accept with an edit |
 | `.superpowers/sdd/<plan>/progress.md` | Jisso (the SDD skill) | Kanri | the SDD ledger; Kanri reads it and never writes it |
 | `.superpowers/sdd/.gitignore` (`*`) | the SDD skill's `sdd-workspace` script, or Kanri at start when it runs first | git | keeps everything above untracked, so nothing is ever staged |
-| `$CLAUDE_CONFIG_DIR/tanto.json` | `dotagents` | every role at start, Kanri at each handshake | the personal expected-model config |
+| `$CLAUDE_CONFIG_DIR/tanto.json` | the user | every role at start, Kanri at each handshake | the personal expected-model config |
 
 **Pre-plan ledger location (new).** No `<plan-basename>` exists before the
 plan is committed, so the ledger starts under `.superpowers/sdd/<topic>/`
@@ -797,8 +796,8 @@ and its conductor ledger is the record (deferred item 7).
 
 ## Out of scope
 
-Changes to the superpowers skills; the `dotagents` deployment of
-`tanto.json`; custom `.claude/agents` definitions; a cross-repo progress
+Changes to the superpowers skills; how the personal `tanto.json` is
+deployed; custom `.claude/agents` definitions; a cross-repo progress
 view.
 
 ## Open items from the handover
@@ -812,7 +811,7 @@ view.
 | Subagent layer under Jisso | Resolved: the built-in Agent tool with `tanto.json` models, no custom agents. |
 | Pin the SDD stop classes by name | Resolved: quoted in `roles/jisso.md`; the human-question set is the four classes plus scope. |
 | Fix-round cap and the WIP commit | Resolved: SDD's five rounds stay; the Kaiseki trigger is round 2 plus an unknown cause; the WIP is a normal commit, folded by follow-up commits and squashed at finishing. |
-| `tanto.json` format and deployment | Resolved: JSON at `$CLAUDE_CONFIG_DIR/tanto.json`; built-in defaults with a per-key overlay; deployment by copy is a recommendation to `dotagents`, deferred 5. |
+| `tanto.json` format and deployment | Resolved: JSON at `$CLAUDE_CONFIG_DIR/tanto.json`; built-in defaults with a per-key overlay; deployment is the user's own, deferred 5. |
 | Plan author | Resolved: `subagents.drafter` under Sekkei; Sekkei adds the Batches section. |
 | Cross-repo progress view | Out of scope, deferred 6. |
 | Report and prompt skeletons | Resolved: `templates/` in the skill; the plan references them. |
@@ -831,8 +830,9 @@ Each becomes an issue at T1.
 4. **`mode=` self-report outside auto mode.** Whether a session in another
    mode reports anything better than `unknown`; measure at the first Jisso
    handshake.
-5. **`tanto.json` deployment from `dotagents`.** Outside this repo; the
-   recommendation is a whole-file copy.
+5. **`tanto.json` deployment.** How the personal file reaches
+   `$CLAUDE_CONFIG_DIR` is the user's own tooling; the skill only reads
+   it.
 6. **Cross-repo progress view.** Out of scope; if wanted, a reader of the
    per-repo ledgers, never a Kanri that spans repos.
 7. **Dogfood.** Full verification is the next real plan under `/tanto`.
