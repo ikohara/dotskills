@@ -1,0 +1,34 @@
+# Kaiseki brief <n> — task <N>
+
+Written by Kanri at `.superpowers/sdd/<plan-basename>/kaiseki-<n>-brief.md`.
+Read it first, then start.
+
+## Symptom
+
+<What is wrong, in one or two lines — what was expected, and what happened.>
+
+## Reproduction
+
+```console
+<the exact command, copy-pasteable, run from the repo root>
+```
+
+<What that command prints when it fails.>
+
+## Task
+
+- Task number — <N>
+- Batch report — <.superpowers/sdd/<plan-basename>/batch-<X>-report.md>
+- SDD ledger — <.superpowers/sdd/<plan-basename>/progress.md>
+- WIP commit — <the subject of the commit holding the failing state>
+- Branch — <branch>
+
+## What the fix rounds tried
+
+1. Round <r> — <what was changed> — <what the re-review still found open>
+
+## Report
+
+Write `.superpowers/sdd/<plan-basename>/kaiseki-<n>.md` from the tanto
+skill's `templates/kaiseki-report.md`, then send `kanri` one line with its
+path.
