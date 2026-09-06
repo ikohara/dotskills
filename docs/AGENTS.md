@@ -73,7 +73,7 @@ target's path changes.
   permanently once the target moves.
 - **From a living document** (`requirements/`, `design/`, an open issue)
   a path link is allowed, but whoever moves the target owns updating the inbound
-  links — see `issues/AGENTS.md` for the issue-status case.
+  links — see `docs/issues/AGENTS.md` for the issue-status case.
 
 **The flat types are the exception.** `notes/` and `reports/` have no
 `<id>`, so they are cited by **path** from any document, frozen ones included.
