@@ -28,9 +28,8 @@ Decided before this spec, not reopened:
   `README.md`. `tanto` composes `kisou` (the `docs/` document-management
   system that the write-out fills), superpowers (brainstorming,
   writing-plans, subagent-driven development, systematic-debugging, whose
-  `sdd-workspace` script owns `.superpowers/sdd/`), `shoroku` (the
-  write-out), and `wayaku` (the translation before a human review); it sits
-  in the same layer and depends on nothing personal. What stays personal lives in
+  `sdd-workspace` script owns `.superpowers/sdd/`), and `shoroku` (the
+  write-out); it sits in the same layer and depends on nothing personal. What stays personal lives in
   `dotagents`: the expected-model config and the permission setup.
 - **Kaiseki is a session, not a subagent.** The strong model leads hard
   debugging interactively; a strong-model subagent is what died on a 429 in
@@ -156,14 +155,12 @@ The author's personal file, as an example of every kind of key:
     "reviewer": "opus",
     "drafter": "opus",
     "escalation": "opus",
-    "wayaku": "sonnet",
     "default": "sonnet"
-  },
-  "human": { "wayaku": true }
+  }
 }
 ```
 
-Three maps. The first two are two mechanisms:
+Two maps, two mechanisms:
 
 - `sessions` is **advisory**: a value matches when it is a substring of the
   session's model id (the system prompt states it). Checked at
@@ -178,25 +175,17 @@ Three maps. The first two are two mechanisms:
     whole-branch.
   - `drafter`: the plan drafter under Sekkei.
   - `escalation`: SDD's fix rounds 4-5, "a model at least one tier above".
-  - a skill name (`wayaku` is the one in use): **(new)** when present, a
-    role runs that skill in a subagent on that model instead of inline;
-    when absent, the skill runs inline on the session's model. `shoroku`
-    is not a candidate: under `tanto` Jisso runs it inline because Jisso's
-    context is the point of the T2 write-out, and its `Direction?` is
-    answered by Kanri through a file, not by a chat wait. Skill-name keys
-    are not in the built-in defaults; they are personal additions.
+  - a skill name: **(new)** when present, a role that runs that skill
+    runs it in a subagent on that model instead of inline; when absent,
+    the skill runs inline on the session's model. No skill uses this today:
+    `shoroku` is not a candidate, because under `tanto` Jisso runs it
+    inline (Jisso's context is the point of the T2 write-out, and its
+    `Direction?` is answered by Kanri through a file). Skill-name keys are
+    not in the built-in defaults; they are personal additions.
   - `default`: the fallback for any kind not in the map (an ad-hoc Explore,
     a one-off search). A dispatch **never omits `model`**: an omitted model
     inherits the session's, which on a Kanri, Sekkei, or Kaiseki session is
     the strongest family, the exact failure mode of M1.
-- `human` **(new)** holds the human's reading preferences. `wayaku: true`
-  makes a role run the `wayaku` skill on a file before asking the human to
-  review it, and hand over both paths (the source and
-  `.wayaku/<same relative path>`, which `wayaku` keeps out of the shared
-  repo through `.git/info/exclude`). In this flow that is the spec and the
-  plan at their review gates, and a Kaiseki report the human is asked to
-  read. Default `false`; a personal file turns it on.
-
 A per-role override inside `subagents` is not designed; add it when a real
 case appears (deferred item 3).
 
@@ -206,9 +195,8 @@ The skill ships `templates/tanto.json` with a value for every fixed key: the
 **built-in defaults**, derived from the ladder `SKILL.md` states in one line,
 `fable > opus > sonnet > haiku` (as of 2026-09): the top family for Kanri,
 Sekkei, and Kaiseki; the second for Jisso, `reviewer`, `drafter`, and
-`escalation`; the third for `implementer` and `default`; `human.wayaku`
-false. When a family ships or retires, the ladder line and the template
-change together. After the overlay, the role checks that `escalation` sits
+`escalation`; the third for `implementer` and `default`. When a family
+ships or retires, the ladder line and the template change together. After the overlay, the role checks that `escalation` sits
 above `implementer` on the ladder and says so in its start line if not:
 SDD's rounds 4-5 are an escalation only if it does.
 
@@ -254,7 +242,7 @@ it got there. "Do not map any kind to `fable`" is a note in the personal
 file's source, not a rule in the shared skill.
 
 decision-08bc fixed the check and left the file's name and format, the
-deployment, and the no-config behavior to this spec. Those, the three maps,
+deployment, and the no-config behavior to this spec. Those, the two maps,
 the built-in defaults with the overlay, and the skill-name keys are choices
 among real alternatives with lasting consequences, so Kanri records them as
 one new standalone ADR at T1. Nothing in decision-08bc is retired, so there
@@ -483,9 +471,7 @@ item 2).
 
 Two cold reads of the plan, by Kanri and then by Jisso, test that the plan
 is self-contained. What Sekkei knew and did not write down is lost by
-design. When `human.wayaku` is on, Sekkei runs `wayaku` on the spec before
-step 1's review gate and on the plan before step 4's OK, and names both
-paths in the request.
+design.
 
 ### The final batch **(new)**
 
@@ -855,10 +841,13 @@ Each becomes an issue at T1.
 
 For Kanri's `S-n` table:
 
-- decision: a standalone ADR for `tanto.json` (name, format, the three
+- decision: a standalone ADR for `tanto.json` (name, format, the two
   maps, built-in defaults with per-key overlay, the no-config line, the
   deployment recommendation), written by Kanri at T1; nothing in
   decision-08bc is amended.
+- issue: a translation before a human review (the `wayaku` skill on the
+  spec and the plan) was asked for and then taken out of `tanto`; it is an
+  independent mechanism, to be designed on its own.
 - design: the adoption rule and the split T2 (Jisso proposes and writes,
   Kanri directs through a file, the human gets only requirement and ADR
   items and the unsure ones); the final batch (whole-branch review, one
