@@ -25,10 +25,12 @@ Decided before this spec, not reopened:
   as `shoroku` does. In prose: Kanri, Sekkei, Jisso, Kaiseki, kanji at first
   mention, no honorific suffix.
 - **Home.** `skills/tanto/` in dotskills, with `SKILL.md` and the sibling
-  `README.md`. `tanto` composes `kisou` (the `.superpowers/sdd/` workspace),
-  superpowers (brainstorming, writing-plans, subagent-driven development,
-  systematic-debugging), and `shoroku` (the write-out); it sits in the same
-  layer and depends on nothing personal. What stays personal lives in
+  `README.md`. `tanto` composes `kisou` (the `docs/` document-management
+  system that the write-out fills), superpowers (brainstorming,
+  writing-plans, subagent-driven development, systematic-debugging, whose
+  `sdd-workspace` script owns `.superpowers/sdd/`), `shoroku` (the
+  write-out), and `wayaku` (the translation before a human review); it sits
+  in the same layer and depends on nothing personal. What stays personal lives in
   `dotagents`: the expected-model config and the permission setup.
 - **Kaiseki is a session, not a subagent.** The strong model leads hard
   debugging interactively; a strong-model subagent is what died on a 429 in
@@ -39,9 +41,9 @@ Decided before this spec, not reopened:
 
 | Role | Count per repo | Owns | Talks to |
 | --- | --- | --- | --- |
-| Kanri | exactly 1 | roster, conductor ledger, batch prompts, rulings, shoroku adoption, lifecycle requests | human, Sekkei, Jisso, Kaiseki |
+| Kanri | exactly 1 | roster, conductor ledger, batch prompts, rulings, shoroku adoption and write-out, lifecycle requests | human, Sekkei, Jisso, Kaiseki |
 | Sekkei | 0 or 1 | spec, plan (with its Batches section), spec and plan review | human, Kanri |
-| Jisso | 0 or 1 | the SDD run, batch reports, commits, the T2 shoroku write-out | Kanri only |
+| Jisso | 0 or 1 | the SDD run, batch reports, commits | Kanri only |
 | Kaiseki | 0 or 1, on demand | root-cause reports; never a fix, never a commit | human, Kanri |
 
 Why Kanri and Sekkei are separate: a spec dialogue and batch conducting have
@@ -83,8 +85,8 @@ skills/tanto/
   needs.
 - `templates/` are copied and filled, never restated in prose. markdownlint
   ignores `skills/**/templates/**` (the kisou precedent), so skeletons carry
-  `<...>` blanks; the other pre-commit hooks (whitespace, EOF, JSON) still
-  apply.
+  `<...>` blanks; the other pre-commit hooks (trailing whitespace, end of
+  file, line endings) still apply. There is no JSON hook.
 
 Rejected: one `SKILL.md` with four role sections (every session reads three
 roles it never plays, and the file passes 400 lines); a single `protocol.md`
@@ -143,13 +145,14 @@ The author's personal file, as an example of every kind of key:
     "reviewer": "opus",
     "drafter": "opus",
     "escalation": "opus",
-    "shoroku": "opus",
+    "wayaku": "sonnet",
     "default": "sonnet"
-  }
+  },
+  "human": { "wayaku": true }
 }
 ```
 
-Two maps, two mechanisms:
+Three maps. The first two are two mechanisms:
 
 - `sessions` is **advisory**: a value matches when it is a substring of the
   session's model id (the system prompt states it). Checked at
@@ -164,15 +167,24 @@ Two maps, two mechanisms:
     whole-branch.
   - `drafter`: the plan drafter under Sekkei.
   - `escalation`: SDD's fix rounds 4-5, "a model at least one tier above".
-  - a skill name (`shoroku`, `seisho`, ...): **(new)** when present, that
-    skill is run in a subagent on that model instead of inline in the
-    session; when absent, the skill runs inline on the session's model.
-    Skill-name keys are not in the built-in defaults; they are personal
-    additions.
+  - a skill name (`wayaku` is the one in use): **(new)** when present, a
+    role runs that skill in a subagent on that model instead of inline;
+    when absent, the skill runs inline on the session's model. Only a skill
+    with no human gate qualifies: `shoroku` and `kisou` stop at
+    `Direction?` and wait for the human, which a subagent cannot do, so
+    they never run in a subagent. Skill-name keys are not in the built-in
+    defaults; they are personal additions.
   - `default`: the fallback for any kind not in the map (an ad-hoc Explore,
     a one-off search). A dispatch **never omits `model`**: an omitted model
     inherits the session's, which on a Kanri, Sekkei, or Kaiseki session is
     the strongest family, the exact failure mode of M1.
+- `human` **(new)** holds the human's reading preferences. `wayaku: true`
+  makes a role run the `wayaku` skill on a file before asking the human to
+  review it, and hand over both paths (the source and
+  `.wayaku/<same relative path>`, which `wayaku` keeps out of the shared
+  repo through `.git/info/exclude`). In this flow that is the spec and the
+  plan at their review gates, and a Kaiseki report the human is asked to
+  read. Default `false`; a personal file turns it on.
 
 A per-role override inside `subagents` is not designed; add it when a real
 case appears (deferred item 3).
@@ -183,8 +195,11 @@ The skill ships `templates/tanto.json` with a value for every fixed key: the
 **built-in defaults**, derived from the ladder `SKILL.md` states in one line,
 `fable > opus > sonnet > haiku` (as of 2026-09): the top family for Kanri,
 Sekkei, and Kaiseki; the second for Jisso, `reviewer`, `drafter`, and
-`escalation`; the third for `implementer` and `default`. When a family ships
-or retires, the ladder line and the template change together.
+`escalation`; the third for `implementer` and `default`; `human.wayaku`
+false. When a family ships or retires, the ladder line and the template
+change together. After the overlay, the role checks that `escalation` sits
+above `implementer` on the ladder and says so in its start line if not:
+SDD's rounds 4-5 are an escalation only if it does.
 
 Reading the config overlays the personal file on the built-in defaults key
 by key, at the granularity `sessions.<role>` / `subagents.<kind>`. A
@@ -210,6 +225,11 @@ opus"):
 | the plan drafter | `subagents.drafter` |
 | the spec reviewer, the plan reviewer | `subagents.reviewer` |
 
+One key for every review is a deliberate deviation: SDD scales the review
+model to the diff and wants the final whole-branch review on the most
+capable model, but no `tanto` subagent runs on the top family (see
+"Deviations from the composed skills").
+
 The config binds only sessions started through `/tanto`. A session that
 uses superpowers on its own is untouched, and the superpowers skills are not
 edited.
@@ -222,25 +242,33 @@ contributors), but the skill only reads the file and does not depend on how
 it got there. "Do not map any kind to `fable`" is a note in the personal
 file's source, not a rule in the shared skill.
 
-The two-map schema partially replaces decision-08bc's "role id to model
-family" config. Kanri writes the amending ADR at T1 (`amends: ["08bc"]`).
+decision-08bc fixed the check and left the file's name and format, the
+deployment, and the no-config behavior to this spec. Those, the three maps,
+the built-in defaults with the overlay, and the skill-name keys are choices
+among real alternatives with lasting consequences, so Kanri records them as
+one new standalone ADR at T1. Nothing in decision-08bc is retired, so there
+is no `amends` link.
 
 ## Handshake and roster
 
 ### Kanri's start
 
 `/tanto kanri`, then the model check and the rename. Then Kanri reads
-`tanto.json`, creates `.superpowers/sdd/.gitignore` (`*`) if absent, creates
-`.superpowers/sdd/roster.md` from the template with its own row if absent,
-and creates the conductor ledger under `.superpowers/sdd/<topic>/` once the
-topic is known. It then waits for handshakes and for the human.
+`tanto.json`, makes sure `.superpowers/sdd/.gitignore` holds `*` (the SDD
+skill's `sdd-workspace` script writes the same line on every run; Kanri
+only runs first), creates `.superpowers/sdd/roster.md` from the template
+with its own row if absent, and creates the conductor ledger under
+`.superpowers/sdd/<topic>/` once the topic is known. It then waits for
+handshakes and for the human.
 
 ### The session's side
 
 After the model check and the rename:
 
-1. If no address was given, read the first data row of
-   `.superpowers/sdd/roster.md` (Kanri's own row) for it.
+1. Sekkei and Jisso: if no address was given, read the first data row of
+   `.superpowers/sdd/roster.md` (Kanri's own row) for it. Kaiseki: no
+   address means standalone (see "Standalone Kaiseki"); an attached
+   Kaiseki always gets the address on the command line.
 2. Send Kanri exactly one message:
 
    ```text
@@ -340,7 +368,7 @@ document, named from the README, not restated.
 | `.superpowers/sdd/<plan>/kaiseki-<n>-brief.md` | Kanri | Kaiseki | fixed skeleton |
 | `.superpowers/sdd/<plan>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
 | `.superpowers/sdd/<plan>/progress.md` | Jisso (the SDD skill) | Kanri | the SDD ledger; Kanri reads it and never writes it |
-| `.superpowers/sdd/.gitignore` (`*`) | `kisou` | git | Kanri creates it at start if absent, so nothing above is ever staged |
+| `.superpowers/sdd/.gitignore` (`*`) | the SDD skill's `sdd-workspace` script, or Kanri at start when it runs first | git | keeps everything above untracked, so nothing is ever staged |
 | `$CLAUDE_CONFIG_DIR/tanto.json` | `dotagents` | every role at start, Kanri at each handshake | the personal expected-model config |
 
 **Pre-plan ledger location (new).** No `<plan-basename>` exists before the
@@ -348,12 +376,19 @@ plan is committed, so the ledger starts under `.superpowers/sdd/<topic>/`
 (the topic word Sekkei's spec will use) and Kanri moves it to
 `.superpowers/sdd/<plan-basename>/kanri.md` when the plan lands, noting the
 move in the roster's Events. Jisso then finds it next to its own
-`progress.md`.
+`progress.md`. Only the ledger moves: `spec-inputs.md` and the rest of the
+topic directory stay as the spec-phase record, and the moved ledger's Plan
+section names the topic directory.
 
 ### Templates
 
 Each template is the skeleton copied into the artifact of the same name.
 The section lists below are normative; the plan carries the full text.
+Their source is the kuchidome M2 SDD workspace of 2026-09-05 (its batch
+prompts, batch reports, global constraints, and SDD ledger), outside this
+repo and named here only; the plan drafter reads it where it is available
+and generalizes, and the section lists are what the templates must satisfy
+either way.
 
 - **`roster.md`**: title, the keeping rule (one row per role, one session
   per role, Kanri first, the row rewritten on every handshake), the table
@@ -397,9 +432,21 @@ worktree, Kanri directive, human-approved"), as M2 did. The price:
 
 - Kanri edits no tracked file while a batch runs, and writes under `docs/`
   only while Jisso is idle or absent.
-- Sekkei writes only under `docs/superpowers/` and `.superpowers/sdd/`.
+- Sekkei writes only under `docs/superpowers/` and `.superpowers/sdd/`,
+  and may write there at any time: no plan task touches those paths, which
+  is what lets Sekkei draft plan n+1 while a batch of plan n runs. Sekkei
+  **commits** only at a batch boundary, after Kanri has verified the tree
+  and said so: the index is shared, and the pre-commit hooks stash
+  unstaged changes while they run, which would disturb an implementer
+  mid-task. The commit lands on the shared branch and rides with it.
 - Kaiseki edits only to instrument and leaves `git status` clean.
 - Jisso idles while Kaiseki works on the same tree.
+
+The workspace `.superpowers/sdd/<plan-basename>/` outlives the SDD run:
+Jisso never deletes it (a deviation from SDD's Finish step, see
+"Deviations from the composed skills"). After T2 and the merge decision,
+Kanri asks the human whether to delete it; the T2 write-out is the durable
+record, and the roster stays.
 
 A worktree for Kaiseki, so that Jisso can continue, remains Kanri's option
 when the environment is cheap to duplicate; the default is idle (deferred
@@ -416,14 +463,47 @@ item 2).
 | — | Handoff | Kanri cold-reads the committed plan; questions go to Sekkei by message, answered by editing the plan or spec and sending a pointer | none |
 | 5 | Development | Jisso runs subagent-driven development batch by batch; Kanri verifies the tree and rules at each boundary | SDD stop classes and scope changes |
 | 5a | Hard bug | Kaiseki finds the root cause; Jisso applies the fix | may join the debugging conversation |
-| 6 | Development review | per task: `subagents.reviewer` under Jisso; whole branch: a `subagents.reviewer` that **Kanri** dispatches after the last batch, so the executor does not commission its own final review; findings go back to Jisso as one fix dispatch in the next batch prompt | merge decision |
+| 6 | Development review | per task: `subagents.reviewer` under Jisso; whole branch: a `subagents.reviewer` that **Kanri** dispatches after the last implementation batch, so the executor does not commission its own final review; its findings go to Jisso as the final batch (below) | merge decision |
 | 7 | Shoroku candidates | every report in steps 2, 4, 5, 5a, and 6 has a mandatory Shoroku candidates section | none |
 | 8 | Shoroku adoption | Kanri, at each batch boundary, in the ledger's `S-n` table | veto |
-| 9 | Shoroku write-out | staged T0 / T1 / T2, see "Shoroku flow" | diff before commit |
+| 9 | Shoroku write-out | staged T0 / T1 / T2, all run by Kanri, see "Shoroku flow" | `Direction?`, then the diff before commit |
 
 Two cold reads of the plan, by Kanri and then by Jisso, test that the plan
 is self-contained. What Sekkei knew and did not write down is lost by
-design.
+design. When `human.wayaku` is on, Sekkei runs `wayaku` on the spec before
+step 1's review gate and on the plan before step 4's OK, and names both
+paths in the request.
+
+### The final batch **(new)**
+
+After the last implementation batch is accepted, Kanri dispatches the
+whole-branch review (`subagents.reviewer`, superpowers'
+requesting-code-review prompt, the review package over the merge base,
+pointed at the SDD ledger's parked and deferred-minor lines). Its findings
+become one more batch prompt, the final batch: Jisso dispatches one fix
+subagent with the complete findings list, runs exactly one scoped
+re-review of the fix wave, adjudicates residuals in the SDD ledger, and
+reports. There is no second fix wave; residual load-bearing findings reach
+the human through Kanri's merge question. Then, with Jisso idle, Kanri
+runs T2 and puts the merge decision to the human.
+
+### Deviations from the composed skills **(new)**
+
+`tanto` composes the superpowers skills without editing them. Every
+mandate it overrides is named here with the reason and the place the
+override is restated at runtime; `roles/jisso.md` and `roles/kaiseki.md`
+are written from this table, and Verification item 4 checks it against
+the 6.3.0 text.
+
+| superpowers mandate | tanto | Why | Restated in |
+| --- | --- | --- | --- |
+| SDD Setup: work in a worktree | same tree, shared branch | Kanri verifies in place; the human watches | every batch prompt |
+| SDD: continuous execution, stop only for the four classes | stop at each batch boundary and idle | the boundary is Kanri's ruling and lifecycle checkpoint | every batch prompt |
+| SDD Finish: delete the workspace when the final review is clean | never; Kanri asks the human after T2 and the merge decision | the workspace holds the conductor ledger, the reports, and the T2 source | `roles/jisso.md` |
+| SDD Finish: "Rulings I made" in the final message, then finishing-a-development-branch | rulings go into every batch report's Rulings section; the merge decision is the human's, put by Kanri; Jisso never runs finishing-a-development-branch | Jisso talks to Kanri only; reports are read from files | `roles/jisso.md`, `templates/batch-report.md` |
+| SDD Model Selection: tiers scaled per dispatch, the final review on the most capable model | `tanto.json` kinds; one `reviewer` key for every review, never the top family | M1's 429 on a top-family subagent; the personal file sets the tiers | `roles/jisso.md`, every batch prompt |
+| SDD fix loop: five rounds, then the breaker | unchanged, plus the Kaiseki trigger at round 2 with an unknown cause | root cause before more fixing | `roles/jisso.md` |
+| systematic-debugging Phase 4: write the failing test, implement the fix, verify | Kaiseki stops before Phase 4: the report carries the minimal fix and the regression test as text; Jisso applies both | Kaiseki never commits or fixes; the fix goes through SDD review | `roles/kaiseki.md` |
 
 ### What the plan must contain
 
@@ -473,9 +553,11 @@ A known cause continues the SDD rounds. A clean `git status` is the handoff
 invariant, so the failing state is committed rather than left in the tree.
 The WIP commit is an ordinary commit inside the task's range: the SDD
 completion line still cites `base..head`, the fix and its regression test
-land as follow-up commits, and `seisho` squashes them at finishing. Nothing
-is amended. If the human declines to create Kaiseki, Kanri rules "continue
-the SDD rounds", the M2 fallback (`subagents.escalation` at rounds 4-5).
+land as follow-up commits, and finishing squashes them (an interactive
+rebase, or a skill such as `seisho`). Nothing is amended. If the human
+declines to create Kaiseki, Kanri rules "continue the SDD rounds": the
+loop resumes at round 3 with the resumed implementer, and rounds 4-5 go to
+`subagents.escalation`, the M2 fallback.
 
 ### Jisso's subagent layer
 
@@ -509,9 +591,11 @@ is the classification rule.
    human to create Kaiseki; after the handshake, write
    `kaiseki-<n>-brief.md` from the template and send its path with
    `notify_when_idle: true`.
-3. Kaiseki runs superpowers systematic-debugging. It may use the tree
-   freely: run tests, add temporary instrumentation, bisect. It does not
-   commit, does not fix, and leaves `git status` clean on exit. The human
+3. Kaiseki runs superpowers systematic-debugging up to the root cause and
+   stops before its fix phase (see "Deviations from the composed skills").
+   It may use the tree freely: run tests, add temporary instrumentation,
+   bisect. It does not commit, does not fix, and leaves `git status` clean
+   on exit. The human
    may talk to Kaiseki directly; debugging often needs what only the human
    knows about the environment.
 4. Kaiseki writes `kaiseki-<n>.md` from the template and sends Kanri one
@@ -584,7 +668,7 @@ session is dead first: uncommitted work may be in the tree.
 | --- | --- |
 | the plan is committed, the cold-read questions are answered, and the human does not want a next spec now | Sekkei is done; delete it, or keep it for the next spec |
 | Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; delete it, or keep it if more of the same bug is expected |
-| the last batch is accepted: whole-branch review findings fixed, T2 shoroku written, leftovers clean, merge decision executed by the human | Jisso is done; delete it |
+| the final batch is accepted, T2 is written, leftovers are clean, and the human has executed the merge decision | Jisso is done; delete it |
 | Jisso is deleted and the ledger's progress line says closed | this plan is closed; **(new)** delete Kanri, or keep it for the next plan. A kept Kanri starts the next plan with a new topic directory and a new ledger, keeps the roster, and re-reads both as if fresh |
 
 Kanri's default lifetime is one plan: a plan's reports and rulings fill one
@@ -611,14 +695,16 @@ staged **(new)**, generalizing what Kanri did on this very plan:
 | --- | --- | --- | --- |
 | T0 | before Sekkei is created | Kanri | the decided items of the input document become ADRs, on `main`, before the branch is cut |
 | T1 | after the plan commit, before Jisso is created | Kanri | requirements and issues from the spec; the spec's deferred items become issues one to one |
-| T2 | after the last batch | Jisso's last task, or a subagent when `subagents.shoroku` is set | design, rulings, and the dogfood report from the conductor ledger: `shoroku from <ledger>` (file mode); Kanri reviews the diff; the human sees it before the commit |
+| T2 | after the final batch, with Jisso idle | Kanri | design, rulings, and the dogfood report from the conductor ledger: `shoroku from <ledger>` (file mode), inline in Kanri's session |
 
-This respects rule 5: at T0 Jisso does not exist, at T1 it is not yet
-created, at T2 it is the writer. At T2 the adoption has already happened in
-the `S-n` table, so the write-out is mechanical, which is what lets it run
-in a subagent: the brief says "apply the adopted rows per `docs/AGENTS.md`,
-do not commit", and the human's approval is the diff review before the
-commit. Kaiseki reports feed the table like any other report.
+Every stage is a full `shoroku` run as req-3c4d and the skill define it:
+the numbered proposal ending in `Direction?`, the wait for the human's
+partial accept, one commit, no auto-push. Only Kanri can run it, because
+only Kanri talks to the human; Jisso never runs `shoroku` (a change from
+the handover, which had Jisso run T2). The `S-n` table seeds the proposal
+and does not replace the gate. Rule 5 holds at every stage: at T0 Jisso
+does not exist, at T1 it is not yet created, at T2 it is idle after the
+final batch. Kaiseki reports feed the table like any other report.
 
 ## Rules
 
@@ -631,11 +717,11 @@ commit. Kaiseki reports feed the table like any other report.
 4. One set of roles per repo. A session is bound to its cwd: CLAUDE.md,
    memory, and permissions all come from it. A Kanri that spans repos gets
    a prompt on every foreign operation.
-5. Kanri does not edit tracked files while a batch runs. Sekkei writes only
-   under `docs/superpowers/` and `.superpowers/sdd/`. Kaiseki edits only to
-   instrument and leaves the tree clean. Kanri and Sekkei write under
-   `.superpowers/sdd/` freely and under `docs/` only while Jisso is idle or
-   absent.
+5. Kanri does not edit tracked files while a batch runs, and writes under
+   `docs/` only while Jisso is idle or absent. Sekkei writes only under
+   `docs/superpowers/` and `.superpowers/sdd/`, at any time, and commits
+   only at a batch boundary Kanri has verified. Kaiseki edits only to
+   instrument and leaves the tree clean.
 6. Every subagent dispatch names a `model` from `tanto.json`; none omits it.
 7. Small batches: three or four tasks. Each boundary is a ruling checkpoint
    and a lifecycle checkpoint.
@@ -649,7 +735,9 @@ commit. Kaiseki reports feed the table like any other report.
 For a Markdown-only skill, a batch is verified by:
 
 1. `./scripts/lint.{bat,sh}` on the changed paths, every hook `Passed` or
-   `Skipped`.
+   `Skipped`. There is no JSON hook, so the task that writes
+   `templates/tanto.json` also parses it (a one-line `json.load` in Python
+   or `ConvertFrom-Json` in PowerShell) and records the result.
 2. The `superpowers:writing-skills` checks: the frontmatter parses through
    a real YAML load (no colon-space in `description`), the description
    states the triggers, and the skill reads as instructions an agent can
@@ -658,8 +746,11 @@ For a Markdown-only skill, a batch is verified by:
    same task (the repo's `AGENTS.md` rule).
 4. A consistency pass in the last batch: every path `SKILL.md` and
    `roles/*.md` name exists; every template is referenced from the role
-   that copies it; the four stop classes quoted in `roles/jisso.md` match
-   the superpowers 6.3.0 text (a grep).
+   that copies it; the four stop classes quoted in `roles/jisso.md` and the
+   mandates in the deviations table match the superpowers 6.3.0 text. The
+   grep runs against the plugin cache on the machine that executes the
+   plan (the plan names the path as an input); where the cache is absent,
+   the check is manual and the version stamp is the record.
 5. A handshake smoke test as the last batch's stop condition, run by the
    human: link `tanto` into the user-level skills directory
    (`link-user`), open a new session, run `/tanto kaiseki kanri`. Pass: the
@@ -687,7 +778,7 @@ view.
 | Permission mode per role; inbound messages held for approval | Resolved, measured: neither default nor auto mode holds peer messages; `mode=` in the handshake; the setup itself is personal. "Permission modes". |
 | Subagent layer under Jisso | Resolved: the built-in Agent tool with `tanto.json` models, no custom agents. |
 | Pin the SDD stop classes by name | Resolved: quoted in `roles/jisso.md`; the human-question set is the four classes plus scope. |
-| Fix-round cap and the WIP commit | Resolved: SDD's five rounds stay; the Kaiseki trigger is round 2 plus an unknown cause; the WIP is a normal commit, folded by follow-up commits and squashed by `seisho`. |
+| Fix-round cap and the WIP commit | Resolved: SDD's five rounds stay; the Kaiseki trigger is round 2 plus an unknown cause; the WIP is a normal commit, folded by follow-up commits and squashed at finishing. |
 | `tanto.json` format and deployment | Resolved: JSON at `$CLAUDE_CONFIG_DIR/tanto.json`; built-in defaults with a per-key overlay; deployment by copy is a recommendation to `dotagents`, deferred 5. |
 | Plan author | Resolved: `subagents.drafter` under Sekkei; Sekkei adds the Batches section. |
 | Cross-repo progress view | Out of scope, deferred 6. |
@@ -717,8 +808,13 @@ Each becomes an issue at T1.
 
 For Kanri's `S-n` table:
 
-- decision: the two-map `tanto.json` schema amends decision-08bc
-  (`amends: ["08bc"]`), written by Kanri at T1.
+- decision: a standalone ADR for `tanto.json` (name, format, the three
+  maps, built-in defaults with per-key overlay, the no-config line, the
+  deployment recommendation), written by Kanri at T1; nothing in
+  decision-08bc is amended.
+- design: T2 runs in Kanri, not Jisso, because only Kanri can answer
+  `Direction?` with the human; the final batch (whole-branch review, one
+  fix wave, one re-review) precedes it.
 - design or report: the manual bootstrap of this plan deviated from the
   handshake (an orders file plus a pasted line, no `/tanto`); the skill's
   bootstrap row covers the "no skill yet" case only through this record.
