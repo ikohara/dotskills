@@ -87,6 +87,12 @@ skills/tanto/
   ignores `skills/**/templates/**` (the kisou precedent), so skeletons carry
   `<...>` blanks; the other pre-commit hooks (trailing whitespace, end of
   file, line endings) still apply. There is no JSON hook.
+- Paths inside the skill (`roles/<role>.md`, `templates/<name>`) are
+  relative to the skill directory, the base directory Claude Code reports
+  when `/tanto` loads. The skill's runtime text never names `skills/tanto/`:
+  that is only where dotskills keeps the source, and the skill runs in any
+  repo from wherever that repo's Claude Code finds it (a user-level link or
+  a project `.claude/skills/`).
 
 Rejected: one `SKILL.md` with four role sections (every session reads three
 roles it never plays, and the file passes 400 lines); a single `protocol.md`
@@ -293,7 +299,7 @@ On a handshake, Kanri:
 4. replies with the role's standing orders as one line carrying the
    variables, no orders file. Sekkei gets the topic and the spec and plan
    locations. Jisso gets
-   `orders: plan=<path> ledger=<path> branch=<b>; read skills/tanto/roles/jisso.md`.
+   `orders: plan=<path> ledger=<path> branch=<b>; read roles/jisso.md in the tanto skill directory`.
    Kaiseki gets the brief path, or "no brief, stop" in a smoke test.
 
 A second handshake for a role with a live row, or a model mismatch, gets no
