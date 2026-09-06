@@ -440,11 +440,14 @@ worktree, Kanri directive, human-approved"), as M2 did. The price:
   only while Jisso is idle or absent.
 - Sekkei writes only under `docs/superpowers/` and `.superpowers/sdd/`,
   and may write there at any time: no plan task touches those paths, which
-  is what lets Sekkei draft plan n+1 while a batch of plan n runs. Sekkei
-  **commits** only at a batch boundary, after Kanri has verified the tree
-  and said so: the index is shared, and the pre-commit hooks stash
-  unstaged changes while they run, which would disturb an implementer
-  mid-task. The commit lands on the shared branch and rides with it.
+  is what lets Sekkei draft plan n+1 while a batch of plan n runs. While no
+  batch is in flight (the spec and plan commits of a first plan, or the gap
+  between batches), Sekkei commits whenever its work is ready. While a batch
+  is in flight, Sekkei **commits** only at a batch boundary, after Kanri has
+  verified the tree and said so: the index is shared, and the pre-commit
+  hooks stash unstaged changes while they run, which would disturb an
+  implementer mid-task. The commit lands on the shared branch and rides
+  with it.
 - Kaiseki edits only to instrument and leaves `git status` clean.
 - Jisso idles while Kaiseki works on the same tree.
 
@@ -757,9 +760,9 @@ report.
    a prompt on every foreign operation.
 5. Kanri does not edit tracked files while a batch runs, and writes under
    `docs/` only while Jisso is idle or absent. Sekkei writes only under
-   `docs/superpowers/` and `.superpowers/sdd/`, at any time, and commits
-   only at a batch boundary Kanri has verified. Kaiseki edits only to
-   instrument and leaves the tree clean.
+   `docs/superpowers/` and `.superpowers/sdd/`, at any time, and, while a
+   batch is in flight, commits only at a batch boundary Kanri has verified.
+   Kaiseki edits only to instrument and leaves the tree clean.
 6. Every subagent dispatch names a `model` from `tanto.json`; none omits it.
 7. Small batches: three or four tasks. Each boundary is a ruling checkpoint
    and a lifecycle checkpoint.
