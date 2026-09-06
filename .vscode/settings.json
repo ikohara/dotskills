@@ -1,4 +1,5 @@
 {
+  "files.insertFinalNewline": true,
   "[markdown]": {
     "editor.codeActionsOnSave": {
       "source.fixAll.markdownlint": "explicit"
