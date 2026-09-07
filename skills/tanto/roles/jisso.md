@@ -172,6 +172,7 @@ text, these win.
 | SDD Model Selection — scale the tier per dispatch, final review on the most capable model | use the `tanto.json` kinds, with one `reviewer` key for every review and never the top family | the personal file sets the tiers, and a top-family subagent is what rate-limited a real run |
 | SDD fix loop — five rounds, then the breaker | unchanged, plus the Kaiseki trigger at round 2 with an unknown cause, and again whenever an implementer returns blocked with an unknown cause at any round | root cause before more fixing |
 | `shoroku` — propose in chat, wait for the human's `Direction?`, never start without their explicit confirmation | propose and receive direction as files, with Kanri answering as the human's delegate | you do not talk to the human unless Kanri grants it, and adoption is a Kanri ruling by design |
+| SDD task reviewer prompt — "Do not re-run the suite to confirm their report" | for a verification-only task, tell the reviewer to re-run the checks | the recorded output is the deliverable, so a reviewer that trusts the report verifies nothing |
 
 ## The final batch
 

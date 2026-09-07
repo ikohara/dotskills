@@ -5,11 +5,14 @@ edits `skills/tanto/` runs the whole set as one task instead of restating the
 commands. Run them from the repository root, in the order below, and record
 each command's output: the output is the deliverable of a consistency pass.
 
-Three uses run the same extraction method — every fenced block of the plan
-pulled into a scratch tree, diffed against `HEAD`, and these commands run
-there: Sekkei's plan review before the plan is committed, Jisso's pre-flight
-before its first task, and the conductor's pre-flight at each boundary before
-a batch is accepted.
+Three moments in a `tanto` plan call for the same extraction method —
+every fenced block of the plan pulled into a scratch tree, diffed
+against `HEAD`, and these commands run there: Sekkei's plan review
+before the plan is committed, Jisso's pre-flight before its first task,
+and the conductor's pre-flight at each boundary before a batch is
+accepted. No role file schedules them on its own; a plan that edits
+`skills/tanto/` schedules them by naming this note in its verification
+section.
 
 On this working tree files may be checked out with CRLF, so every command
 below that flattens a file strips CR first (`tr -d '\r'`); the counts do not
@@ -48,7 +51,7 @@ ls skills/tanto/SKILL.md skills/tanto/README.md \
   skills/tanto/templates/batch-report.md \
   skills/tanto/templates/kaiseki-brief.md \
   skills/tanto/templates/kaiseki-report.md \
-  skills/tanto/templates/tanto.json
+  skills/tanto/templates/tanto.json 2>&1
 ```
 
 Expected: all fifteen paths listed, no `No such file or directory`.
@@ -76,7 +79,7 @@ a typo in the reference or a file the plan forgot.
 
 ```bash
 while read -r tpl reader; do
-  if grep -q "$tpl" "$reader"; then echo "ok       $tpl <- $reader"; else echo "UNCITED  $tpl <- $reader"; fi
+  if grep -qF "$tpl" "$reader"; then echo "ok       $tpl <- $reader"; else echo "UNCITED  $tpl <- $reader"; fi
 done <<'MAP'
 templates/roster.md skills/tanto/roles/kanri.md
 templates/kanri.md skills/tanto/roles/kanri.md
@@ -108,6 +111,7 @@ grep -cF "delete this plan's workspace" "$SP/subagent-driven-development/SKILL.m
 grep -cF 'under "Rulings I made"' "$SP/subagent-driven-development/SKILL.md"
 grep -cF 'Always specify the model explicitly when dispatching a subagent' "$SP/subagent-driven-development/SKILL.md"
 grep -cF 'Five rounds maximum per task' "$SP/subagent-driven-development/SKILL.md"
+grep -cF 'Do not re-run the suite to confirm their report' "$SP/subagent-driven-development/task-reviewer-prompt.md"
 grep -cF 'Fix the root cause, not the symptom' "$SP/systematic-debugging/SKILL.md"
 test -f "$SP/requesting-code-review/code-reviewer.md" && echo code-reviewer-present
 grep -cF 'Direction?' skills/shoroku/SKILL.md
@@ -181,6 +185,8 @@ for s in 'triage: issue-<id>' 'triage: redirect — <one line>' 'triage: kaiseki
 done
 ```
 
+Expected: five lines, each ending `-> 1`.
+
 The human-access request line, byte-identical in the contract and the four
 role files:
 
@@ -212,22 +218,23 @@ grep -rn -i 'four-session' skills/tanto/
 grep -rn '<plan>' skills/tanto/
 grep -n 'a rename observed' skills/tanto/templates/roster.md
 grep -n 'uniqueness check, not an address book' skills/tanto/templates/roster.md
-tr -d '\r' < skills/tanto/roles/kaiseki.md | tr '\n' ' ' | tr -s ' ' | sed 's/\*\*//g' | grep -n 'You do not commit'
-tr -d '\r' < skills/tanto/roles/kaiseki.md | tr '\n' ' ' | tr -s ' ' | grep -n 'never write under `docs/` yourself'
+tr -d '\r' < skills/tanto/roles/kaiseki.md | tr '\n' ' ' | tr -s ' ' | sed 's/\*\*//g' | grep -o 'You do not commit'
+tr -d '\r' < skills/tanto/roles/kaiseki.md | tr '\n' ' ' | tr -s ' ' | sed 's/\*\*//g' | grep -o 'never write under `docs/` yourself'
 grep -nF 'Kaiseki itself never writes under' skills/tanto/roles/kanri.md
 grep -rn 'skills/tanto/' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
 grep -rnE '\b[0-9a-f]{7,40}\b' skills/tanto/
 ```
 
-Expected: no output from the first nine (each exits 1). The sixth and seventh
-flatten the file first, because their pre-images — `You **do not commit**` with
-its bold markers, and `never write under`docs/`yourself` across a line
-break — would never have matched a raw line; the sixth also strips `**`. The
-tenth is read, not counted: no line may be an actual commit hash. Tracked content carries commit
-subjects, never hashes, and `<sha7>` inside a template blank is a placeholder,
-not a hash. `<plan>` is checked because `<plan-basename>` is the only correct
-form; runtime text is skill-relative, so only the skill's `README.md` and this
-note may name `skills/tanto/`.
+Expected: no output from the first nine (each exits 1). The sixth and
+seventh flatten the file first and strip `**`, because their pre-images
+— `You **do not commit**` with its bold markers, and
+``never write under `docs/` yourself`` across a line break — would never
+have matched a raw line. The tenth is read, not counted: no line may be
+an actual commit hash. Tracked content carries commit subjects, never
+hashes, and `<sha7>` inside a template blank is a placeholder, not a
+hash. `<plan>` is checked because `<plan-basename>` is the only correct
+form; runtime text is skill-relative, so only the skill's `README.md`
+and this note may name `skills/tanto/`.
 
 The one wording invariant that must be **present**:
 

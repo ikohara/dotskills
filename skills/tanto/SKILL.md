@@ -99,7 +99,7 @@ family — the exact failure this rule prevents.
 
 Sekkei and Jisso started with no address on the command line read the first
 data row of `.superpowers/sdd/roster.md`, which is Kanri's own row, for it.
-Kaiseki with no address is standalone and does not hand shake; an attached
+Kaiseki with no address is standalone and does not shake hands; an attached
 Kaiseki always receives the address on the command line.
 
 Send Kanri exactly one message:
@@ -177,7 +177,7 @@ A defect noticed in a skill goes to the Kanri of the repository that ships that
 skill, as a **bug report**: a file written from `templates/bug-report.md` and
 one line, `bug-report: <absolute path>`. Kanri is the intake, and the human
 supplies the intake's address. A defect that surfaces in a spec dialogue
-reaches Kanri as an `I-n` relay through Sekkei, not as a bug report.
+reaches Kanri as an `I-n` in `spec-inputs.md`, not as a bug report.
 
 Kanri answers a bug report with one line, in one of five forms:
 `triage: issue-<id>`, `triage: redirect — <one line>`,
@@ -218,7 +218,12 @@ beyond the exchange.
 ## Session exit
 
 Before the human deletes a session in the normal flow, the session's **exit
-shoroku** runs. It is the T2 split applied to that session: the session writes
+shoroku** runs. The shoroku stages are T0 (decisions, on `main` before Sekkei
+exists), T1 (requirements and issues, after the plan commit), and T2
+(everything else, after the final batch); `R-n` numbers Kanri's rulings and
+`S-n` its shoroku candidates, both in the conductor ledger; the adoption rule
+is that requirement and ADR items go to the human and Kanri decides the rest.
+It is the T2 split applied to that session: the session writes
 its candidates as a numbered list to `exit-<role>[-<suffix>]-proposal.md`;
 Kanri rules per the adoption rule, escalates requirement and ADR items to the
 human, and answers item by item in `exit-<role>[-<suffix>]-direction.md`; the
@@ -274,7 +279,7 @@ review package excludes.
 | `.superpowers/sdd/<plan-basename>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
 | `.superpowers/sdd/<plan-basename>/shoroku-proposal.md` | Jisso | Kanri | the T2 proposal, written to a file instead of printed |
 | `.superpowers/sdd/<plan-basename>/shoroku-direction.md` | Kanri | Jisso | Kanri's answer to that proposal, item by item |
-| `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-proposal.md`, or the topic directory for Sekkei, or `.superpowers/sdd/exit-kanri-<date>-proposal.md` | the exiting session | Kanri | the exit shoroku proposal |
+| `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-proposal.md`, or the topic directory for Sekkei, or `.superpowers/sdd/exit-kanri-<YYYY-MM-DD>-proposal.md` | the exiting session | Kanri | the exit shoroku proposal |
 | `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-direction.md`, or the topic directory for Sekkei | Kanri | the exiting session | Kanri's answer, item by item |
 | `.superpowers/sdd/<plan-basename>/progress.md` | Jisso, through the SDD skill | Kanri | the SDD ledger; Kanri reads it and never writes it |
 | `.superpowers/sdd/.gitignore` holding `*` | the SDD skill's `sdd-workspace` script, or Kanri at start when it runs first | git | keeps everything above untracked, so nothing is ever staged |
@@ -305,8 +310,8 @@ ledger moves; the topic directory stays as the spec-phase record.
    `docs/superpowers/` and `.superpowers/sdd/`, at any time, and, while a batch
    is in flight, commits only at a batch boundary Kanri has verified; while no
    batch is in flight it commits whenever its work is ready. Kaiseki edits only
-   to instrument and leaves the tree clean. Neither writes under `docs/`,
-   except the accepted subset of its own exit shoroku, at its exit.
+   to instrument and leaves the tree clean. Neither writes under the `docs/`
+   document-management tree outside `docs/superpowers/`, except the accepted subset of its own exit shoroku, at its exit.
 6. Every subagent dispatch names a `model` from `tanto.json`; none omits it.
 7. Small batches of three or four tasks. Each boundary is a ruling checkpoint
    and a lifecycle checkpoint.

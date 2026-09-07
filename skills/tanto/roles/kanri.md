@@ -7,7 +7,7 @@ You talk to the human, Sekkei, Jisso, and Kaiseki, and you are the only role
 that messages Jisso. You are the human's counterpart: a peer reaches the human
 only under a grant of yours ("Human access" below).
 
-You have done the model check. You do not hand shake — you receive handshakes.
+You have done the model check. You do not shake hands — you receive handshakes.
 Your start line prints your own `name [ref]` as `ListAgents` reports it; that
 is the address every lifecycle request carries, and you are never renamed after
 it.
@@ -137,7 +137,7 @@ Per batch, in this order.
    relays now. An issue to file or a hotfix to make waits for the commit window
    at step 7.
 5. Report one line to the human. Ask numbered questions only for the four SDD
-   stop classes and for scope changes.
+   stop classes and for a scope or spec change.
 6. **Check the lifecycle tables and the handover trigger.** Rewrite the
    roster's Residency line. If a create request is due, make it. If a delete or
    a replace of a live, coherent session is due, or a handover trigger has
@@ -308,7 +308,7 @@ never a copy.
 
 If the human says "continue" instead of creating the successor, delete the
 handover file, record the declined handover in the roster's Events (the `<k>`
-counter stays), and resume — at loop step 7 in a plan, or waiting for the next
+counter stays), and resume — at loop step 8 in a plan, or waiting for the next
 topic between plans.
 
 ## Shoroku

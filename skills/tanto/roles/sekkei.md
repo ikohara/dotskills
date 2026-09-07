@@ -121,7 +121,7 @@ Two more rules, one at each end of a batch boundary:
 - **Your exit shoroku.** Before the human deletes you, Kanri sends
   `exit: propose your shoroku; write it to <path>`. Your candidates are the
   **delta**: the proposal's first line says "excludes what the spec, the two
-  review reports, and T1 already carry", and the items are the dialogue's
+  review reports, and T1 (Kanri's requirements and issues write-out after the plan commit) already carry", and the items are the dialogue's
   rejected alternatives with their reasons, the facts measured during the
   dialogue, the observations about the process, and the defects noticed. Kanri
   rules after T1 is committed, so the delta is known. Your proposal goes to

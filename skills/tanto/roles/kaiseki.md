@@ -24,7 +24,9 @@ carries the brief path, or `no brief, stop`.
 **Standalone.** `/tanto kaiseki` with no address — no roster, no handshake, no
 batch loop. Ask the human for the symptom and the reproduction, and write your
 report to `.superpowers/sdd/kaiseki/kaiseki-<n>.md`, creating that directory if
-it is absent. Everything else below is the same, with two additions. Before the
+it is absent, and `.superpowers/sdd/.gitignore` holding `*` if that is absent
+too, so the report stays untracked. Everything else below is the same, with two
+additions. Before the
 human closes the session, run `shoroku` in its ordinary session mode, with the
 human answering `Direction?`, and commit once — there is no Kanri to rule for
 you. And when the human asks for a defect to be reported to another repository,

@@ -2,7 +2,8 @@
 
 Written from the tanto skill's `templates/bug-report.md` by whoever noticed the
 defect, saved anywhere untracked under the reporter's own repository's
-`.superpowers/sdd/`, and sent to the intake as one line,
+`.superpowers/sdd/` (whose `.gitignore` holds `*`; create it if absent), and
+sent to the intake as one line,
 `bug-report: <absolute path>`. The intake Kanri copies it to
 `.superpowers/sdd/inbox/<YYYY-MM-DD>-<slug>.md` and fills Triage in the copy.
 
