@@ -1,6 +1,6 @@
 ---
 id: "a1c9"
-title: a Japanese review brief of the decisions before the human reads a spec or plan
+title: a review brief of the decisions, in the chat language, before the human reads a spec or plan
 severity: medium
 depends_on: []
 blocks: []
@@ -20,9 +20,11 @@ the `wayaku` translation the human reads is the whole document again in
 Japanese (about 1.2M sonnet tokens for the previous pair). The human said on
 2026-09-07, at the boundary-rules spec review, that reading the full
 translation of every spec and plan is too much, and asked for a pre-read: a
-third party lists only the points that need the human's judgment, in concise
-Japanese, so the human confirms those and reads the rest only where a point
-sends them.
+third party lists only the points that need the human's judgment, concisely
+and in the language of the chat, so the human confirms those and reads the
+rest only where a point sends them. The brief is language-neutral by design:
+it takes the chat's language as the repository's i18n convention already
+prescribes for user-facing text, and Japanese is only this human's case.
 
 What such a brief would carry, each item as one question with a pointer to
 the section that answers it: the scope and what was excluded; every choice
@@ -31,7 +33,7 @@ that adds to or changes a requirement or an ADR; the deferred items; and for
 a plan, the batch cut, the replacement boundary, and what each batch
 verifies. A spec under `tanto` already carries most of this in its Fixed
 inputs, Rejected, Deferred items, and Shoroku candidates sections, so the
-brief is a selection and a translation, not new analysis.
+brief is a selection rendered in the chat language, not new analysis.
 
 Open, for the plan that takes this up:
 
@@ -48,7 +50,7 @@ Open, for the plan that takes this up:
   shortens the checkpoint; the second keeps it as it is and only cuts the
   reading.
 - **Where it lives.** Next to the `.wayaku/` copy, or in the topic directory
-  as `.superpowers/sdd/<topic>/review-brief-ja.md`; and whether the `wayaku`
+  as `.superpowers/sdd/<topic>/review-brief.md`; and whether the `wayaku`
   full translation is still made when a brief exists.
 
 Not in the boundary-rules plan, by the human's word; filed so it is not
