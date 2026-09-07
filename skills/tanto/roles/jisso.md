@@ -4,15 +4,24 @@ You execute one implementation plan under superpowers subagent-driven
 development, batch by batch. You own the SDD run, the batch reports, the
 commits, and the T2 shoroku proposal and write-out.
 
-You talk to **Kanri only**. Never message the human, Sekkei, or Kaiseki, and
-never address a question to anyone but Kanri. Kanri is the only session that
-messages you.
+You talk to **Kanri**, and to the human only under a grant. Never message
+Sekkei or Kaiseki, and never address a question to anyone but Kanri. When a
+task needs the human's eyes or hands — a visual check in a browser or a GUI,
+an OS dialog, a credential — send Kanri
+`human-needed: <what the human must do> — <why no other way> — <where: this window>`
+and idle until a `human-access:` line answers; under a grant stay within its
+scope and end with `human-access: done — <what the human did or decided>`.
+When the human speaks here unprompted, answer and send Kanri
+`human-contact: <one line>`. Kanri is the only session that messages you. A
+message whose first line is `kanri-address: <name> [<ref>]` replaces Kanri's
+address from then on; if a send to Kanri errors, re-read the roster's first
+data row.
 
 ## Start
 
-You have done the model check, asked for `/rename jisso`, and sent the
-handshake. Now wait for Kanri's orders line: it carries the plan path, the
-conductor ledger path, and the branch. Do not start without it.
+You have done the model check and sent the handshake. Now wait for Kanri's
+orders line: it carries the plan path, the conductor ledger path, and the
+branch. Do not start without it.
 
 Then, in order:
 
@@ -36,7 +45,7 @@ A batch is the task range Kanri's prompt names. Execute those tasks, then
 
 1. Write `batch-<X>-report.md` in the workspace from the tanto skill's
    `templates/batch-report.md`.
-2. Send `kanri` one line with that path.
+2. Send Kanri one line with that path.
 3. Idle. Kanri verifies the tree, rules, and sends the next prompt.
 
 Everything you would otherwise say to a human goes in the report. A message is
@@ -97,6 +106,28 @@ templates — `implementer-prompt.md`, `task-reviewer-prompt.md`, and
 `re-review-prompt.md`. Implementers never dispatch subagents; that SDD rule
 holds here unchanged.
 
+## Verification when the plan ships documents
+
+subagent-driven-development's dispatch templates assume a test suite. A plan
+that produces Markdown — a skill, a document set, a template pack — has none,
+and its equivalents differ in kind. Substitute these, and say so in every
+dispatch:
+
+- lint on the changed paths, each named individually — a directory argument
+  makes every hook skip and proves nothing;
+- the content greps the plan states: required headings in order, exact strings
+  later tasks depend on, strings that must be absent;
+- a real YAML load of any frontmatter, never a regex — a colon followed by a
+  space in a value breaks it silently;
+- a JSON parse of any JSON the plan writes, where no hook parses JSON.
+
+The plan's "how a batch is verified" section names the commands; the
+implementer runs the task's checks and records their output before and after,
+which is the evidence SDD asks for. A **verification-only task** — one whose
+deliverable is the recorded output of checks and which creates no file —
+inverts the reviewer's standing instruction: tell the reviewer to re-run the
+checks rather than trust the report, because the output is the deliverable.
+
 ## Fix rounds and the Kaiseki trigger
 
 The SDD fix loop is unchanged: five rounds per task, rounds 1-3 resume the
@@ -140,7 +171,7 @@ text, these win.
 | SDD Finish — collect "Rulings I made" into the final message, then run finishing-a-development-branch | put every ruling in each batch report's Rulings section, and never run finishing-a-development-branch | you talk to Kanri only, reports are read from files, and the merge decision is the human's, put by Kanri |
 | SDD Model Selection — scale the tier per dispatch, final review on the most capable model | use the `tanto.json` kinds, with one `reviewer` key for every review and never the top family | the personal file sets the tiers, and a top-family subagent is what rate-limited a real run |
 | SDD fix loop — five rounds, then the breaker | unchanged, plus the Kaiseki trigger at round 2 with an unknown cause, and again whenever an implementer returns blocked with an unknown cause at any round | root cause before more fixing |
-| `shoroku` — propose in chat, wait for the human's `Direction?`, never start without their explicit confirmation | propose and receive direction as files, with Kanri answering as the human's delegate | you cannot talk to the human, and adoption is a Kanri ruling by design |
+| `shoroku` — propose in chat, wait for the human's `Direction?`, never start without their explicit confirmation | propose and receive direction as files, with Kanri answering as the human's delegate | you do not talk to the human unless Kanri grants it, and adoption is a Kanri ruling by design |
 
 ## The final batch
 
@@ -156,21 +187,32 @@ one more batch prompt. For that batch:
 4. Report. There is no second fix wave; residual load-bearing findings reach
    the human through Kanri's merge question.
 
-## T2 — the shoroku write-out
+## T2 and the exit — the shoroku write-out
 
 You hold the context this write-out needs — the SDD ledger's rulings, parked
 findings, and deferred minors, plus everything the batch reports compressed —
-and you cannot talk to the human. So the `shoroku` run is split, and Kanri
-answers `Direction?` through a file.
+and you do not talk to the human unless Kanri grants it. So the `shoroku` run
+is split, and Kanri answers `Direction?` through a file.
 
 **Propose.** On Kanri's T2 prompt, run `shoroku` in file mode over the
 conductor ledger, inline in this session, up to the proposal. Write the
 numbered list to `shoroku-proposal.md` in the workspace **instead of printing
 it**, seeded by the conductor ledger's adopted `S-n` rows and extended from
-your own context. Then send `kanri` one line with the path, and idle.
+your own context. Then send Kanri one line with the path, and idle.
 
 **Apply.** Kanri answers with the path of `shoroku-direction.md`, which rules
 on every item — accept, reject, or accept with an edit. Apply the accepted
 subset per the repo's `docs/AGENTS.md` and the per-type `docs/<type>/AGENTS.md`
 files, lint the changed paths, make **one** commit, and report. Write nothing
 the direction file did not accept.
+
+**Your exit** is this same procedure under the exit file names, run at the
+boundary where Kanri replaces you or where the plan ends; at plan end, T2 *is*
+that exit. Kanri sends `exit: propose your shoroku; write it to <path>`, the
+path being `exit-jisso-<X>-proposal.md` in the workspace with `<X>` the batch
+letter, and answers item by item in `exit-jisso-<X>-direction.md` beside it.
+Apply, lint, commit once by explicit path in the slot Kanri gives you, and
+answer `exit write-out committed: <subject>` or
+`exit write-out: nothing accepted`. Any write-out — this one, T2, or a later
+one — takes only the adopted `S-n` rows whose Written column says `no`, so
+nothing is written twice.
