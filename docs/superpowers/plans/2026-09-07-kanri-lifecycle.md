@@ -2812,6 +2812,13 @@ Expected: `1`
 - No user-specific path is written: the plugin cache is named `$HOME`-relative
   and its Windows form uses a `<user>` placeholder inside a code span.
 
+This task ran at batch C. The note it committed carries the linter's version of
+one code span: markdownlint's MD038 fix stripped the inner spaces of the nested
+span in check 7's prose, so the tree reads `` `never write under`docs/`yourself` ``
+where the block below reads ``never write under `docs/` yourself`` — the
+double-backtick form that survives the fix (R-16). The fix wave aligns the tree
+to the block.
+
 - [ ] **Step 1: Create `docs/notes/tanto-consistency-checks.md` with exactly this content**
 
 ````markdown
@@ -3038,7 +3045,7 @@ grep -rnE '\b[0-9a-f]{7,40}\b' skills/tanto/
 
 Expected: no output from the first nine (each exits 1). The sixth and seventh
 flatten the file first, because their pre-images — `You **do not commit**` with
-its bold markers, and `never write under `docs/` yourself` across a line
+its bold markers, and ``never write under `docs/` yourself`` across a line
 break — would never have matched a raw line; the sixth also strips `**`. The
 tenth is read, not counted: no line may be an actual commit hash. Tracked content carries commit
 subjects, never hashes, and `<sha7>` inside a template blank is a placeholder,
@@ -3293,6 +3300,13 @@ output. The reviewer of this task re-runs the note.
 - Bare `<...>` blanks are fine here for the same reason they are fine in a
   template: nothing lints this file.
 
+This task ran at batch C, and Jisso corrected the delivered file in place under
+its ruling (R-17) — an untracked file has no fix wave: the first bullet warns
+that the workspace deletion destroys the paper and the ledger, two checkboxes
+that would have misfired on a correct run are reworded, and the commit check
+reads `git log -3` for the subject and `-1` for the trailer. The block below is
+the delivered text.
+
 - [ ] **Step 1: Create `.superpowers/sdd/2026-09-07-kanri-lifecycle/handover-run.md` with exactly this content**
 
 ````markdown
@@ -3305,6 +3319,12 @@ go. The result goes into the roster's Events, which outlives the plan.
 
 ## Before you start
 
+- **This file, and the conductor ledger step 2 reads from, live inside**
+  `.superpowers/sdd/2026-09-07-kanri-lifecycle/` — the same directory Kanri
+  asks whether to delete right after T2 and the merge decision. Run this
+  handover before agreeing to that deletion, or copy this file somewhere
+  outside `.superpowers/sdd/` first; deleting the directory first destroys
+  both the paper and the ledger.
 - The plan `docs/superpowers/plans/2026-09-07-kanri-lifecycle.md` is finished,
   T2 is committed, and you have made the merge decision.
 - `.superpowers/sdd/roster.md` exists and its first data row is the resident
@@ -3322,7 +3342,11 @@ go. The result goes into the roster's Events, which outlives the plan.
 3. Kanri writes `.superpowers/sdd/kanri-handover.md` from the skill's
    `templates/kanri-handover.md` and stops, printing the line
    `Kanri hands over — <name> [<ref>] — ...` followed by two numbered commands.
-   It sends nothing to any peer.
+   It sends nothing to any peer. Before opening the new session, run
+   `grep -n '^## ' .superpowers/sdd/kanri-handover.md` and confirm all nine
+   sections are present — Why, In flight, Live peers, Open questions for the
+   human, Rulings the next batch inherits, Residency, Next step, Not
+   reconstructed, Commands for the human.
 4. Open a **new** Claude Code session in this repository and run:
 
    ```console
@@ -3339,14 +3363,15 @@ go. The result goes into the roster's Events, which outlives the plan.
 Tick all six. Anything unticked is a failure to report, not to work around.
 
 - [ ] **The exit shoroku commit exists with its trailer.** Run
-      `git log -3 --format='%s%n%b'` and confirm a commit whose subject begins
-      `docs: exit shoroku` and whose body ends
-      `Co-Authored-By: Claude <noreply@anthropic.com>`.
-- [ ] **The handover file was written from the template.** Before the
-      successor deletes it, or from the successor's own report of it, confirm
-      all nine sections are present — Why, In flight, Live peers, Open
-      questions for the human, Rulings the next batch inherits, Residency, Next
-      step, Not reconstructed, Commands for the human.
+      `git log -3 --format='--- %h %s%n%b'` and confirm a commit whose subject
+      begins `docs: exit shoroku`; then run
+      `git log -1 --format=%B | grep -c 'Co-Authored-By: Claude'` and confirm
+      it returns `1`.
+- [ ] **The handover file was written from the template.** Step 3's grep, run
+      before the successor deletes the file, listed all nine sections — Why,
+      In flight, Live peers, Open questions for the human, Rulings the next
+      batch inherits, Residency, Next step, Not reconstructed, Commands for
+      the human.
 - [ ] **The successor rewrote the roster.** Its own row is first with status
       `live`; the old Kanri's row says `replaced`; the Residency line names the
       successor with today's date and zero counts; one Events line reads
@@ -3355,12 +3380,18 @@ Tick all six. Anything unticked is a failure to report, not to work around.
       the roster corresponds to a session that got one message whose first line
       is `kanri-address: <name> [<ref>] — handover accepted; the roster's first
       row is rewritten`. Ask each live peer, or read the successor's report of
-      what it sent.
+      what it sent. If the roster has no live non-Kanri rows, there is nothing
+      to send and the box is satisfied vacuously — record that instead of a
+      list of peers. If a row still says `live` but you had already deleted
+      that session, the successor's send to it errors; that is the roster
+      being out of date, not a failed handover — note it and move on rather
+      than failing the box.
 - [ ] **The handover file is gone.** `ls .superpowers/sdd/kanri-handover.md`
       says no such file. A stale one would start a false handover at the next
       Kanri start.
 - [ ] **The successor states the next step.** It says, unprompted, what its
-      first act is, taken from the handover file's "Next step" section.
+      first act is, taken from the handover file's "Next step" section; if it
+      does not say so, ask it.
 
 ## Recording the result
 
