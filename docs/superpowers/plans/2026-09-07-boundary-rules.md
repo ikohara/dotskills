@@ -1047,7 +1047,10 @@ git ls-files --eol skills/tanto/SKILL.md skills/tanto/README.md
 ````
 
 Expected: one hunk in `SKILL.md`, purely added lines; `1`; one hunk in
-`README.md`, three lines out and four in; `1`; then
+`README.md`, two lines out and three in — the old and new passages share
+their unchanged first line, `The designs this skill implements are`, which
+git keeps as context rather than counting it out and in (Kanri's R-8 at the
+batch B boundary); `1`; then
 `i/lf    w/lf    attr/text=auto` for both files — the same `w/lf` as before,
 never `w/mixed`. The two hunk counts are task-time checks.
 
