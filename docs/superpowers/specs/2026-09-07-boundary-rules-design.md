@@ -61,7 +61,7 @@ Decided before or during the dialogue, not reopened here:
   several batches is the worse risk.
 - **Passage-level blocks, two batches, S-73 included.** The plan carries, for
   each edit, an anchor line, the old passage, and the new passage, verbatim —
-  not whole files, since the largest target is 580 lines and gains six
+  not whole files, since the largest target is 580 lines and gains seven
   passages. Batch A is issues f801 and c7e1 with S-73; batch B is issue-4ac3
   with the consistency pass. The S-73 sentence fits batch A without a third
   batch, so it is in.
@@ -622,7 +622,7 @@ basename unification (deferred item 1); a count threshold for the handover
 
 | Input | Answer |
 | --- | --- |
-| I-1 the scope, from the human's direction | Adopted, with one deviation from Kanri's note. The three issues in R-1's order; two batches (R-2); the boundary from which a replacement is safe is named and is the batch A boundary (R-3); the three issues resolve at T2; the optional S-73 sentence is in, since it fits batch A. The deviation: the note expected "the extraction-and-diff method plus check 9 apply as before"; this design replaces whole-file blocks with passages, the extracted tree with a per-file merge-base diff, and drops check 9's extracted-tree lint (see "The note"), so that a 580-line file is not transcribed for six passages. |
+| I-1 the scope, from the human's direction | Adopted, with one deviation from Kanri's note. The three issues in R-1's order; two batches (R-2); the boundary from which a replacement is safe is named and is the batch A boundary (R-3); the three issues resolve at T2; the optional S-73 sentence is in, since it fits batch A. The deviation: the note expected "the extraction-and-diff method plus check 9 apply as before"; this design replaces whole-file blocks with passages, the extracted tree with a per-file merge-base diff, and drops check 9's extracted-tree lint (see "The note"), so that a 580-line file is not transcribed for seven passages. |
 | I-2 Kanri's check of the draft passages | Adopted in full: "one to three words"; the conditional link premise and the corrected creation clause in rule 11; the final-boundary case in Sekkei's convention; the idle-subscription clause folded into the Timing paragraph without lengthening it. Every other passage as Kanri accepted it. |
 
 ## Deferred items
@@ -701,4 +701,4 @@ For Kanri's `S-n` table:
   or the deferred unification); the skill copy (no dogfood, a human re-link
   step, the rule suffices); a successor Kanri waiting for the safe boundary
   (a compacted Kanri held for batches); whole-file blocks (a 580-line
-  transcription for six passages).
+  transcription for seven passages).
