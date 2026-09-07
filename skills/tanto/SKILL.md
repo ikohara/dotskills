@@ -327,6 +327,24 @@ ledger moves; the topic directory stays as the spec-phase record.
     rename before `/tanto <role>` is the human's own choice: the skill neither
     asks for one nor forbids it, and the handshake carries whatever the name
     is.
+11. A plan that edits this skill's own files runs on the skill it is
+    editing: when the skill the sessions load is the working tree's own
+    copy — a link into it, as in the repository that ships this skill — a
+    session started mid-plan reads whatever is on disk at that moment.
+    While such a plan is in flight, the authority for the run's sessions is
+    the plan's Global Constraints, Kanri's orders line, and the batch
+    prompts, not the role text on disk; Kanri records that as a ruling when
+    the plan lands, so every batch prompt and a handover file carry it. The
+    plan names, in its Global Constraints and its Batches section, the
+    boundary from which a role may be started or replaced. Before that
+    boundary no role is replaced and no further role is created, with two
+    exceptions: Kanri's own handover proceeds when it is due, and its
+    successor takes the authority ruling from the handover file rather than
+    from the tree; and a further role needed before the boundary — Kaiseki
+    — is a Kanri ruling, recorded as `R-n`, made with the half-edited skill
+    in view. The roles that start the plan — Jisso at the plan's landing,
+    Sekkei before it — read the skill as it stands then, and the authority
+    sentence above is what covers them.
 
 ## The four SDD stop classes
 
