@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-06
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 subagent-driven development's dispatch templates assume a test suite. The
@@ -44,3 +44,19 @@ To do: add a short section to the executor's role file saying what verification
 means when the plan produces documents, and naming the verification-only case as
 the one where a reviewer re-runs rather than trusts. One place, once, instead of
 once per dispatch.
+
+Resolution (kanri-lifecycle, 2026-09-07): `skills/tanto/roles/jisso.md` gained a
+section, "Verification when the plan ships documents", naming what substitutes
+for a test suite — lint on the changed paths each named individually, the content
+greps the plan states, a real YAML load of any frontmatter, and a JSON parse of
+any JSON the plan writes — and requiring every dispatch to say so. Its
+counterpart, the obligation to *write* those commands, is a clause in
+`roles/sekkei.md` Step 3.
+
+The section also defines a **verification-only task**, one whose deliverable is
+the recorded output of checks and which creates no file, and inverts the
+reviewer's standing instruction for it: tell the reviewer to re-run the checks
+rather than trust the report, because a report of a check is not the check. That
+inversion is the eighth row of the overrides table in the same file, and the note
+`docs/notes/tanto-consistency-checks.md` pins the upstream sentence it overrides,
+so an upstream reword shows up as drift.

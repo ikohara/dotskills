@@ -78,3 +78,24 @@ prints was about 14.8M just before the compaction, so that figure is not the
 context window and cannot serve as the trigger. The noticed compaction fired
 the handover per the delivered role file; a background review agent was
 alive at the time, which is issue-f801.
+
+Resolution (kanri-lifecycle, 2026-09-07): Kanri is resident — decision-de63. A
+plan's end is a boundary like any other, the next topic opens under the same
+roster with a new ledger, and Kanri's only exit is a handover. Two signals fire
+one, checked at every boundary: the human's word, which always overrides, and a
+compaction the session notices about itself. The token figure the harness prints
+is deliberately not used, because its unit is not documented as the context
+window.
+
+The parts delivered: a Residency line in the roster counting batches, plans and
+compactions since this Kanri's start; `templates/kanri-handover.md` and the
+handover file it is copied to; the two residency lines the human reads; and the
+successor's Start, reordered so that its four cases run before it asks for
+anything, which is what stops a successor from creating a second ledger.
+
+The first handover ran on 2026-09-07, mid-plan rather than after a merge
+decision, on a compaction noticed on the session's second day; the successor's
+Handover case ran as specified and the human deleted the old session afterwards.
+`docs/reports/2026-09-07-kanri-lifecycle-dogfood.md` carries the numbers. A count
+threshold for the trigger stays open as issue-40ed, and what a handover must wait
+for before it is written is issue-f801.

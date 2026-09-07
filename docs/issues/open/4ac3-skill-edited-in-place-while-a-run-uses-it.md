@@ -26,3 +26,13 @@ replacement (decision-de63) has the same exposure, since the successor reads
 `roles/kanri.md` from disk.
 
 Related: issue-770d (the dogfood that surfaced it), decision-de63.
+
+One measured instance, from the kanri-lifecycle run of 2026-09-07: Task 6 of that
+plan rewrote `skills/tanto/roles/jisso.md` while the Jisso session was executing
+from it, and the harness reported the file changing on disk mid-run. Nothing
+broke, because a Kanri ruling had already put the authority in the batch prompts
+rather than in the file — the sessions of that run followed the constraints,
+their orders, and the prompts, not the role text on disk. That is one data point
+for the second shape above, the rule a skill-editing plan states: the mitigation
+that worked was not a copy of the skill but a declaration of where authority
+lives while the files are in motion.

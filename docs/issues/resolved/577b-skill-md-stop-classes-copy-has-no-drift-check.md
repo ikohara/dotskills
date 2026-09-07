@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-06
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 The four stop classes of subagent-driven development exist twice in
@@ -42,3 +42,16 @@ has to be on the load-bearing content — the count and the four class names —
 on the wording), or make the restatement a second verbatim quote with its own
 fixed-string search. Whichever is chosen, the check belongs wherever this skill's
 consistency pass lives next, not in the plan that has already run.
+
+Resolution (kanri-lifecycle, 2026-09-07): `skills/tanto/SKILL.md` now carries the
+four stop classes as the **same blockquote** `roles/jisso.md` carries, byte for
+byte including the line breaks, introduced by a sentence saying so. One
+fixed-string search therefore reaches both copies and the superpowers source, and
+the drift the second copy could hide is gone.
+
+The checks themselves moved out of the plan and into
+`docs/notes/tanto-consistency-checks.md`, a living note whose check 5 pins the
+line in all three files. That check's heading was corrected in the same plan's
+fix wave: it now says the pinned lines are present in every copy, rather than
+claiming byte identity, which a single-line grep of a five-line quote does not
+verify. The overclaim in its body is a pending between-plans hotfix.

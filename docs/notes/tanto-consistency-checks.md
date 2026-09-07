@@ -14,9 +14,14 @@ accepted. No role file schedules them on its own; a plan that edits
 `skills/tanto/` schedules them by naming this note in its verification
 section.
 
-On this working tree files may be checked out with CRLF, so every command
-below that flattens a file strips CR first (`tr -d '\r'`); the counts do not
-depend on the checkout.
+The index stores LF throughout, but the working tree is mixed file by file —
+some paths are checked out with CRLF and some with LF. So every command below
+that flattens a file strips CR first (`tr -d '\r'`), unconditionally: it is
+required for the CRLF files and a no-op for the rest, and a flatten that omits
+it returns a plausible `0` rather than an error. Never decide a line-ending
+question with a grep for a control character, which in this shell matches every
+line of an LF-only stream and so returns the line count; settle it with byte
+counts instead — `git cat-file -s` against the piped byte count, or `od -c`.
 
 They also earn a run after a superpowers upgrade, because checks 4 and 5
 compare text the skill quotes against the plugin's own source. A failure is one
@@ -213,6 +218,12 @@ done
 
 Expected: three lines, each ending `-> 1`.
 
+The rule behind the last two blocks, since both exist for the same reason: a
+line that must stay byte-identical across files is either kept on **one** line,
+where a plain `grep -cF` pins it, or its check flattens the file first. A
+wrapped line cannot be pinned by `grep -cF` at all — no raw line carries it, so
+the count is `0` in every copy and the check silently pins nothing.
+
 ## 7. The strings that must be absent
 
 ```bash
@@ -251,6 +262,13 @@ Expected, exactly:
 skills/tanto/SKILL.md:1
 skills/tanto/README.md:1
 ```
+
+Every `README.md` these checks name is the **skill's** own. The repository root
+`README.md` is deliberately out of scope: it is not part of the skill's
+delivered layout, no `tanto` plan may edit it, and nothing the skill does at
+runtime depends on it. It describes the repository's skills for a reader — which
+are host-agnostic and which are not — so it changes when the set of skills
+changes, not when `tanto` does.
 
 ## 8. The frontmatter and the JSON parse
 

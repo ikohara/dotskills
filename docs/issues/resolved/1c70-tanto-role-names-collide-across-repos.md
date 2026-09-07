@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-06
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 Found within minutes of the first real use after the skill landed
@@ -49,3 +49,24 @@ Kanri ignore same-named rows whose handshake cwd differs, leaves the
 
 Related: req-04f5 (one set of roles per repository), design-4807 (roster as a
 uniqueness check, bare-name addressing).
+
+Resolution (kanri-lifecycle, 2026-09-07): the skill stops using role names as
+addresses altogether — decision-73c3. A session is addressed by the name it was
+born with, no `tanto` session is renamed after it has started under the skill,
+and the roster becomes the **address book** rather than a uniqueness check. The
+three parts named above change with it: bare-name addressing now means the born
+name, which is unique on the machine without any convention; Kanri's handshake
+check "exactly one listing row with that name" — the check that misfired on
+another repository's role — is deleted and replaced by two that do not depend on
+machine-wide uniqueness; and the rename step, which produced the collision, is
+gone from the start sequence.
+
+The repository-prefixed workaround is no longer needed. A human may still rename
+a session **before** invoking the skill, and the handshake carries whatever the
+name is; the rule is only that nothing renames it afterwards.
+
+The proposed fix above — making `<dir>-<role>` the rule — was not taken. It keeps
+a rename in the start sequence, and the measurement that a rename invalidates
+every address a peer holds is what the chosen design avoids. design-4807's
+addressing section records both the shape and the one property the rejected
+alternative had.
