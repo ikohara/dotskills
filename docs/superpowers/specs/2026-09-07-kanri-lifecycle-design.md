@@ -787,8 +787,12 @@ boundary as the point where Kanri replaces it if it judges it long.
 
 - `SKILL.md` — the "Session exit" section, the lines, the file pattern, the
   commit subject convention; the boundary-reply pair under Messages, since
-  Sekkei sends it and Kanri routes on it; rule 5 gains "except the accepted
-  subset of its own exit shoroku, at its exit" for Sekkei and Kaiseki; the
+  Sekkei sends it and Kanri routes on it; rule 5 gains, for Sekkei and
+  Kaiseki, "Neither writes under the `docs/` document-management tree outside
+  `docs/superpowers/`, except the accepted subset of its own exit shoroku, at
+  its exit" — outside `docs/superpowers/`, because Sekkei's own files live
+  there (Kanri's R-8 at the batch A boundary; Task 1 had already run, so the
+  delta reaches the tree through the final fix wave); the
   roles table's Kaiseki cell becomes "never a fix; no commit but its exit
   shoroku"; Kanri's Owns cell gains the bug intake and the exit direction.
 - `roles/kanri.md` — sending the lines, ruling, directing, verifying, the
@@ -981,7 +985,7 @@ is Jisso's.
 | --- | --- | --- | --- |
 | `.superpowers/sdd/kanri-handover.md` | the outgoing Kanri | the successor Kanri | the handover; deleted by the successor once accepted |
 | `.superpowers/sdd/inbox/<date>-<slug>.md` | Kanri | Kanri | a bug report received, with its Triage section |
-| `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-proposal.md`, or the topic directory for Sekkei, or `.superpowers/sdd/exit-kanri-<date>-proposal.md` | the exiting session | Kanri | the exit shoroku proposal |
+| `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-proposal.md`, or the topic directory for Sekkei, or `.superpowers/sdd/exit-kanri-<YYYY-MM-DD>-proposal.md` | the exiting session | Kanri | the exit shoroku proposal |
 | `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-direction.md`, or the topic directory for Sekkei | Kanri | the exiting session | Kanri's answer, item by item |
 
 The Templates sentence below the table gains `templates/kanri-handover.md`

@@ -118,6 +118,14 @@ whose deliverable is the recorded output of every check in the note.
   markdownlint-ignored), so every `<placeholder>` outside a fenced block lives
   inside a code span.
 
+This task ran at batch A before two edits Kanri ruled at that boundary
+(R-8): rule 5's `docs/` clause now names the document-management tree outside
+`docs/superpowers/`, and the artifacts row spells Kanri's exit file
+`exit-kanri-<YYYY-MM-DD>`. The block below is the final content; the delta
+between it and the tree reaches the tree through the whole-branch review's
+single fix wave, the path the spec gives a fix to a file whose rewriting task
+has already run.
+
 - [ ] **Step 1: Replace `skills/tanto/SKILL.md` with exactly this content**
 
 ````markdown
@@ -397,7 +405,7 @@ review package excludes.
 | `.superpowers/sdd/<plan-basename>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
 | `.superpowers/sdd/<plan-basename>/shoroku-proposal.md` | Jisso | Kanri | the T2 proposal, written to a file instead of printed |
 | `.superpowers/sdd/<plan-basename>/shoroku-direction.md` | Kanri | Jisso | Kanri's answer to that proposal, item by item |
-| `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-proposal.md`, or the topic directory for Sekkei, or `.superpowers/sdd/exit-kanri-<date>-proposal.md` | the exiting session | Kanri | the exit shoroku proposal |
+| `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-proposal.md`, or the topic directory for Sekkei, or `.superpowers/sdd/exit-kanri-<YYYY-MM-DD>-proposal.md` | the exiting session | Kanri | the exit shoroku proposal |
 | `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-direction.md`, or the topic directory for Sekkei | Kanri | the exiting session | Kanri's answer, item by item |
 | `.superpowers/sdd/<plan-basename>/progress.md` | Jisso, through the SDD skill | Kanri | the SDD ledger; Kanri reads it and never writes it |
 | `.superpowers/sdd/.gitignore` holding `*` | the SDD skill's `sdd-workspace` script, or Kanri at start when it runs first | git | keeps everything above untracked, so nothing is ever staged |
@@ -428,8 +436,8 @@ ledger moves; the topic directory stays as the spec-phase record.
    `docs/superpowers/` and `.superpowers/sdd/`, at any time, and, while a batch
    is in flight, commits only at a batch boundary Kanri has verified; while no
    batch is in flight it commits whenever its work is ready. Kaiseki edits only
-   to instrument and leaves the tree clean. Neither writes under `docs/`,
-   except the accepted subset of its own exit shoroku, at its exit.
+   to instrument and leaves the tree clean. Neither writes under the `docs/`
+   document-management tree outside `docs/superpowers/`, except the accepted subset of its own exit shoroku, at its exit.
 6. Every subagent dispatch names a `model` from `tanto.json`; none omits it.
 7. Small batches of three or four tasks. Each boundary is a ruling checkpoint
    and a lifecycle checkpoint.
@@ -2807,6 +2815,12 @@ edits `skills/tanto/` runs the whole set as one task instead of restating the
 commands. Run them from the repository root, in the order below, and record
 each command's output: the output is the deliverable of a consistency pass.
 
+Three uses run the same extraction method — every fenced block of the plan
+pulled into a scratch tree, diffed against `HEAD`, and these commands run
+there: Sekkei's plan review before the plan is committed, Jisso's pre-flight
+before its first task, and the conductor's pre-flight at each boundary before
+a batch is accepted.
+
 They also earn a run after a superpowers upgrade, because checks 4 and 5
 compare text the skill quotes against the plugin's own source. A failure is one
 of three things — a typo in the skill, a file a plan forgot, or a change in
@@ -2948,10 +2962,20 @@ grep -cF 'nothing to commit' skills/tanto/roles/kanri.md
 grep -cF 'nothing to commit' skills/tanto/SKILL.md
 grep -cF 'human-needed:' skills/tanto/SKILL.md
 grep -cF 'the human by grant' skills/tanto/SKILL.md
+grep -cF 'Kanri <name> [<ref>] since <YYYY-MM-DD>:' skills/tanto/templates/roster.md
+grep -cF 'Kanri <name> [<ref>] since <YYYY-MM-DD>:' skills/tanto/templates/kanri-handover.md
+grep -cF '| S-n | Source | Candidate | Destination | Adopted | Stage | Written |' skills/tanto/templates/roster.md
+grep -cF '| S-n | Source | Candidate | Destination | Adopted | Stage | Written |' skills/tanto/templates/kanri.md
+grep -cF 'bug-report: <absolute path>' skills/tanto/SKILL.md
+grep -cF 'bug-report: <absolute path>' skills/tanto/templates/bug-report.md
 ```
 
 Expected, one number per line, in order: `2`, `1`, `1`, `2`, `1`, `1`, `1`,
-`1`, `5`, `3`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `3`. The `--` before the
+`1`, `5`, `3`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `3`, `1`,
+`1`, `1`, `1`, `1`, `1`. The six trailing `1`s pin the three cross-file pairs
+— the Residency line, the seven-column `S-n` header, and the bug-report line
+— each copy once, so that a change to one copy shows up as a mismatch. The
+`--` before the
 `- Kanri` pattern is required: without it `grep` reads the leading `-` as an
 option.
 
@@ -3155,8 +3179,9 @@ and `roles/jisso.md`.
 - [ ] **Step 6: Check 6 — the strings the roles route on**
 
 Run all three blocks under `## 6. The strings the roles route on`.
-Expected: the twenty-one numbers `2`, `1`, `1`, `2`, `1`, `1`, `1`, `1`, `5`,
-`3`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `3` in that order, then
+Expected: the twenty-seven numbers `2`, `1`, `1`, `2`, `1`, `1`, `1`, `1`,
+`5`, `3`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `3`, `1`, `1`, `1`,
+`1`, `1`, `1` in that order, then
 five lines each ending `-> 1` (the triage answers), then five more lines each
 ending `-> 1` (the request line in the contract and the four role files).
 
@@ -3540,11 +3565,11 @@ left for a later hand.
   `multi-session orchestration` is 1 in each of `SKILL.md` and `README.md`,
   because the body's "Multi-session orchestration" is capitalized and this grep
   is case-sensitive; `handover written` is 2 in `templates/kanri.md`. Task 7's
-  check 6 and Task 8 Step 6 carry the same eighteen numbers.
+  check 6 and Task 8 Step 6 carry the same twenty-seven numbers.
 - **Headings asserted twice.** Every task's heading grep lists the headings in
-  order; the counts are 12 and 3 for `SKILL.md`, 4 for `roster.md`, 6 for
-  `batch-prompt.md`, 5 for `kaiseki-brief.md`, 9 for `kanri-handover.md`, 8 for
-  `bug-report.md`, 8 for `kanri.md`, 10 and 18 for `roles/kanri.md`, 8 for
+  order; the counts are 13 and 3 for `SKILL.md`, 4 for `roster.md`, 6 for
+  `batch-prompt.md`, 6 for `kaiseki-brief.md`, 9 for `kanri-handover.md`, 8 for
+  `bug-report.md`, 8 for `kanri.md`, 11 and 18 for `roles/kanri.md`, 8 for
   `roles/sekkei.md`, 5 for `roles/kaiseki.md`, 11 for `roles/jisso.md`, 9 for
   the note, and 4 for `handover-run.md`.
 - **Corrected while reviewing.** Three expected counts were recomputed against
