@@ -14,6 +14,15 @@ accepted. No role file schedules them on its own; a plan that edits
 `skills/tanto/` schedules them by naming this note in its verification
 section.
 
+A plan that carries passages rather than whole files — an anchor line, the
+old passage, the new passage, for each edit — has no extracted tree. Its
+alignment check is the diff of each touched file against the merge base,
+whose hunks must be exactly the plan's passages, and its lint runs on the
+tree after each task, which is the file the hook will see. Checks 1 to 8 run
+on the tree as for any plan; of check 9, the extracted-tree lint does not
+apply to such a plan, and the trailing-whitespace and final-newline sweep
+runs as for any plan.
+
 The index stores LF throughout, but the working tree is mixed file by file —
 some paths are checked out with CRLF and some with LF. So every command below
 that flattens a file strips CR first (`tr -d '\r'`), unconditionally: it is
