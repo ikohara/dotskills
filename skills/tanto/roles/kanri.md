@@ -149,11 +149,12 @@ Per batch, in this order.
 5. Report one line to the human. Ask numbered questions only for the four SDD
    stop classes and for a scope or spec change.
 6. **Check the lifecycle tables and the handover trigger.** Rewrite the
-   roster's Residency line. If a create request is due, make it. If a delete or
-   a replace of a live, coherent session is due, or a handover trigger has
-   fired, run the proposal half of "Exit shoroku" now: send the `exit:` lines,
-   rule on the proposals, write the directions. Delete requests wait for
-   step 7.
+   roster's Residency line. If a create request is due, make it, unless a
+   handover trigger has fired, in which case the successor makes it from the
+   handover's Next step. If a delete or a replace of a live, coherent session
+   is due, or a handover trigger has fired, run the proposal half of "Exit
+   shoroku" now: send the `exit:` lines, rule on the proposals, write the
+   directions. Delete requests wait for step 7.
 7. **The commit window.** One committer at a time, in this order, Jisso idle
    throughout. (a) Each exiting session applies its direction and commits; you
    verify the diff and only then ask the human to delete that session. (b) Your
@@ -164,9 +165,10 @@ Per batch, in this order.
    reply — `committed <subject>` or `nothing to commit` — or for its idle
    notice, whichever comes first, and record in the ledger's Session events if
    the notice came without a reply; skip (c) when Sekkei is not live. If a
-   handover is due, the window ends with steps 2 to 4 of "The handover, in a
-   plan and between plans" — the exit shoroku was step 6's proposal and slot
-   (b)'s commit — and the loop stops here; the next prompt is the successor's.
+   handover is due, the window ends, after the wait Timing prescribes, with
+   steps 2 to 4 of "The handover, in a plan and between plans" — the exit
+   shoroku was step 6's proposal and slot (b)'s commit — and the loop stops
+   here; the next prompt is the successor's.
 8. Write the next batch prompt from `templates/batch-prompt.md`, carrying the
    rulings the next tasks inherit and the concrete model families from
    `tanto.json`. Save it as
@@ -197,7 +199,9 @@ After the last implementation batch is accepted:
    commissions its own final review. Anything else you dispatch takes
    `subagents.default`.
 2. Turn its findings into one more batch prompt — the final batch — and send it
-   to Jisso. There is no second fix wave.
+   to Jisso. A fix-wave list is drafted under the same conditions as a plan:
+   run each command it specifies once before dispatching it. There is no
+   second fix wave.
 3. When the final batch is accepted, send Jisso one line —
    `T2: propose the shoroku write-out; write it to .superpowers/sdd/<plan-basename>/shoroku-proposal.md`
    — then verify the write-out as you verify any batch, and put the merge
@@ -272,6 +276,24 @@ between plans. Never mid-batch — "never replace mid-batch on suspicion" names
 you too. Because the trigger is checked before the next prompt is written, a
 handover that is due stops the loop at that point, and the next prompt is the
 successor's to send.
+
+A due handover waits for what this session still owns. Write the handover
+file only after every background agent you dispatched has returned — a
+subagent belongs to its session and dies with it, and so does an idle
+subscription you hold; the successor inherits a report file, never a
+completion notice — and after every commit line you promised a peer at this
+boundary has been sent and its commit verified. Between the last of those
+and the handover file, dispatch nothing new: no batch prompt, no review, no
+create request — the commit window's own slots are not new dispatches, and
+a create request that fell due at this boundary is the successor's to make.
+The one override is the human's word; a handover written on it lists every
+agent still running under "In flight", so the successor knows it is lost
+rather than pending.
+
+A boundary that a plan editing this skill has not yet named safe for a
+replacement does not hold your handover: it proceeds when due, and the
+successor takes the authority ruling from the handover file's "Rulings the
+next batch inherits" rather than from the tree.
 
 ### The residency line
 
