@@ -23,6 +23,12 @@ Read it first, then start.
 - WIP commit — <the subject of the commit holding the failing state>
 - Branch — <branch>
 
+## Human access
+
+<granted — the debugging conversation in this window — until the report is
+written; or none, and why. Anything beyond it is a `human-needed:` line to
+Kanri first.>
+
 ## What the fix rounds tried
 
 1. Round <r> — <what was changed> — <what the re-review still found open>
@@ -30,5 +36,5 @@ Read it first, then start.
 ## Report
 
 Write `.superpowers/sdd/<plan-basename>/kaiseki-<n>.md` from the tanto
-skill's `templates/kaiseki-report.md`, then send `kanri` one line with its
-path.
+skill's `templates/kaiseki-report.md`, then send `<kanri-address>` one line
+with its path.
