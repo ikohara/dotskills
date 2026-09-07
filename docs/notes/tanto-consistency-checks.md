@@ -141,8 +141,9 @@ grep -cF 'Implementer subagents report one of four statuses. Handle each appropr
 ```
 
 Expected: `1` on all five lines. The stop-classes line lives in three files —
-the source, `roles/jisso.md`, and `SKILL.md`, whose copies are the same bytes
-including the line breaks — and the four-statuses line in two.
+the source, `roles/jisso.md`, and `SKILL.md` — and the four-statuses line in
+two. This check pins one line of each quote per copy; whole-quote byte
+identity is a plan's extraction-and-diff job, not this command's.
 
 ## 6. The strings the roles route on
 
