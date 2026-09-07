@@ -39,6 +39,12 @@ artifacts.
   human can do: create or retire a session when Kanri requests it, and settle
   a triage or handover question Kanri cannot decide alone. Everything else is
   a ruling a role records in a file.
+- **The human's counterpart is Kanri.** A role addresses the human directly
+  only for what needs the human's eyes or hands, such as a visual check in a
+  browser or a GUI, an OS dialog, or a credential, and only after Kanri has
+  judged it necessary and granted it for that scope; the harness's own
+  prompts are outside this rule. The human may still speak to any session,
+  and that session answers and tells Kanri in one line.
 - **Trouble reports reach the repository's Kanri, and Kanri answers them.**
   What a human notices while using a skill, and what another repository's
   run suspects is a defect in a skill this repository ships, has one intake:
