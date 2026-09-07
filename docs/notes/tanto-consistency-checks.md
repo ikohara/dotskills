@@ -101,7 +101,10 @@ Kanri copies six of the templates itself.
 Each line below is the distinctive sentence behind one row of
 `roles/jisso.md`'s "What tanto overrides" table, plus the two files the role
 files name by path. Shell state does not persist between tool calls, so set
-`SP` in the same call as the greps.
+`SP` in the same call as the greps. The task-reviewer-prompt line flattens the
+file first, because that phrase wraps across a line break in the source; every
+other line quotes text that already sits on one raw line, so a plain
+`grep -cF` finds it directly.
 
 ```bash
 SP="$HOME/.claude/plugins/cache/claude-plugins-official/superpowers/6.3.0/skills"
@@ -111,7 +114,7 @@ grep -cF "delete this plan's workspace" "$SP/subagent-driven-development/SKILL.m
 grep -cF 'under "Rulings I made"' "$SP/subagent-driven-development/SKILL.md"
 grep -cF 'Always specify the model explicitly when dispatching a subagent' "$SP/subagent-driven-development/SKILL.md"
 grep -cF 'Five rounds maximum per task' "$SP/subagent-driven-development/SKILL.md"
-grep -cF 'Do not re-run the suite to confirm their report' "$SP/subagent-driven-development/task-reviewer-prompt.md"
+tr -d '\r' < "$SP/subagent-driven-development/task-reviewer-prompt.md" | tr '\n' ' ' | tr -s ' ' | grep -cF 'Do not re-run the suite to confirm their report'
 grep -cF 'Fix the root cause, not the symptom' "$SP/systematic-debugging/SKILL.md"
 test -f "$SP/requesting-code-review/code-reviewer.md" && echo code-reviewer-present
 grep -cF 'Direction?' skills/shoroku/SKILL.md
@@ -121,7 +124,7 @@ Expected: a nonzero count on every `grep` line, and `code-reviewer-present`. A
 zero means superpowers or `shoroku` moved: do not silently rewrite the role
 file — report which line no longer matches.
 
-## 5. The two verbatim quotes are byte-identical in every copy
+## 5. The two verbatim quotes' pinned lines are present in every copy
 
 ```bash
 SP="$HOME/.claude/plugins/cache/claude-plugins-official/superpowers/6.3.0/skills"
