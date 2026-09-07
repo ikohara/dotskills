@@ -66,7 +66,7 @@ superpowers writing-plans. Then add, yourself:
   of any frontmatter, and a JSON parse of any JSON the plan writes;
 - when the plan edits this skill's own files, the **boundary from which a
   role may be started or replaced** — where one is *permitted*, as distinct
-  from the boundaries where the second bullet expects one — stated in Global
+  from the boundaries where the Batches bullet expects one — stated in Global
   Constraints and in the Batches section: the first boundary at which every
   file the plan touches agrees with every other, because a session started
   before it reads a half-edited skill — which may be the final boundary, in

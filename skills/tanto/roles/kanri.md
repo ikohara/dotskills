@@ -36,12 +36,12 @@ taking over mid-plan must not create a second ledger.
    `docs/superpowers/specs/*-<slug>-design.md`, and no branch `<slug>`
    exists (`ls -d`, the glob, and `git branch --list <slug>`), state the
    slug in your reply, and create `.superpowers/sdd/<topic>/kanri.md` from
-   `templates/kanri.md`. Never ask the human for the word; when the human
-   has not yet said what the next work is, wait for that (step 6). Until the
-   orders line has gone to Sekkei the human can override the slug and you
-   rename the directory; after it the word is fixed, because Sekkei's file
-   names carry it. When a plan is in flight, the ledger already exists and
-   is named by the handover or the roster's Events.
+   `templates/kanri.md`, where the `<topic>` is that slug. Never ask the
+   human for the word; when the human has not yet said what the next work is,
+   wait for that (step 6). Until the orders line has gone to Sekkei the human
+   can override the slug and you rename the directory; after it the word is
+   fixed, because Sekkei's file names carry it. When a plan is in flight, the
+   ledger already exists and is named by the handover or the roster's Events.
 6. Do the T0 write-out if an input document with decided items exists (see
    "Shoroku"). Then wait for the human and for handshakes.
 
@@ -114,7 +114,7 @@ this order.
    question. Wait for its pointer: it answers by editing the plan or the spec,
    never by explaining in a message. If the plan edits this skill's own files,
    record as `R-n`, before any batch prompt or subagent is dispatched, that
-   the run's sessions follow the constraints, your orders lines, and the
+   the run's sessions follow the constraints, your orders line, and the
    batch prompts rather than the role text on disk, and the boundary the plan
    names for a role start or replacement (contract rule 11); every batch
    prompt and a handover file then carry it.
@@ -205,8 +205,8 @@ After the last implementation batch is accepted:
    `subagents.default`.
 2. Turn its findings into one more batch prompt — the final batch — and send it
    to Jisso. A fix-wave list is drafted under the same conditions as a plan:
-   run each command it specifies once before dispatching it. There is no
-   second fix wave.
+   run each command it specifies once before dispatching it, and compare its
+   output with what the list expects. There is no second fix wave.
 3. When the final batch is accepted, send Jisso one line —
    `T2: propose the shoroku write-out; write it to .superpowers/sdd/<plan-basename>/shoroku-proposal.md`
    — then verify the write-out as you verify any batch, and put the merge

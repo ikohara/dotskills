@@ -15,7 +15,8 @@ to the roster and the ledgers, never a copy.
 - Ledger — <.superpowers/sdd/<plan-basename>/kanri.md, or "none">
 - Batch state — <"batch <X> accepted, batch <Y> prompt not sent", or "between
   plans, last plan closed <YYYY-MM-DD>">
-- Agents of this session still running — <label and what it was to deliver, one per line, or "none">; lost with this session
+- Agents of this session still running — <label and what it was to deliver,
+  one per line, or "none">; lost with this session
 
 ## Live peers
 
