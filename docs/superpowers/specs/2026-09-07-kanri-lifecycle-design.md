@@ -768,8 +768,11 @@ I-6's other half: the human asked that a Jisso session never grow too long,
 which makes a mid-plan replacement a planned event with an exit, not a
 failure. `roles/sekkei.md` Step 3 gains one clause under Batches: batches are
 sized so that one Jisso carries a batch without growing long, and the plan
-says at which boundaries a planned replacement is expected, if any. The
-Replace table's new Jisso row ("The tables") is the trigger. This plan
+says at which boundaries a planned replacement is expected, if any; and a
+stop condition worded as a property of the whole tree is backed by a command
+that sweeps the whole tree, not only the files the batch wrote (the general
+case of plan-review F-5, a Kanri suggestion at the cold read). The Replace
+table's new Jisso row ("The tables") is the trigger. This plan
 expects one Jisso for its three batches — nine tasks, against the fourteen
 one Jisso carried on 2026-09-06 without a compaction — and names the batch B
 boundary as the point where Kanri replaces it if it judges it long.
@@ -916,7 +919,7 @@ talks to.
 | `skills/tanto/templates/bug-report.md` | new, the report skeleton |
 | `skills/tanto/templates/kanri.md` | the Written column and the Stage values, with one sentence below the table that every write-out takes only the adopted rows marked `no` and fills the column with the commit subject; a "Hotfixes since the previous plan" line in Plan; Progress example gains "handover written"; Session events example gains a handover, a triage, and an exit shoroku |
 | `skills/tanto/roles/kanri.md` | as mapped above: opening paragraph; Start; handshake check; the loop; Handover; Bug intake; Exit shoroku; request lines with the real name; the Replace and Delete rows; the residency paragraph; the Kaiseki branch's step 5 |
-| `skills/tanto/roles/sekkei.md` | opening sentence; "send Kanri" three times and "ask Kanri" once; the `kanri-address:` obligation; the Step 3 verification and batch-sizing clauses; the exit candidates and apply step; the write-rule clause; the reply to the boundary line |
+| `skills/tanto/roles/sekkei.md` | opening sentence; "send Kanri" three times and "ask Kanri" once; the `kanri-address:` obligation; the Step 3 verification, batch-sizing, and whole-tree stop-condition clauses; the exit candidates and apply step; the write-rule clause; the reply to the boundary line |
 | `skills/tanto/roles/jisso.md` | opening sentence; "send Kanri" twice; the obligation; the verification section; the exit sentences in T2 |
 | `skills/tanto/roles/kaiseki.md` | opening sentence; "send Kanri" once; the obligation; the standalone clause; the standalone reporter sentence; the exit candidates; the two tree-discipline lines; the standalone exit sentence |
 | `docs/notes/tanto-consistency-checks.md` | new, the checks |

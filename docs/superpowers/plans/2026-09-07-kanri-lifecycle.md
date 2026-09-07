@@ -2054,7 +2054,9 @@ superpowers writing-plans. Then add, yourself:
 - the **Batches** section — batch id, three or four tasks each, what the batch
   delivers, and the stop conditions at its boundary. Size the batches so that
   one Jisso carries a batch without growing long, and say at which boundaries
-  a planned replacement is expected, if any;
+  a planned replacement is expected, if any. A stop condition worded as a
+  property of the whole tree is backed by a command that sweeps the whole
+  tree, not only the files the batch wrote;
 - **how a batch is verified**. For a plan that ships Markdown, that section
   names lint on the changed paths by name, the content greps, a real YAML load
   of any frontmatter, and a JSON parse of any JSON the plan writes.
@@ -2267,18 +2269,19 @@ boundary reply's `committed <subject>` matches once; the exit reply is spelled
 `exit write-out committed: <subject>`, with a colon, and is counted by its own
 grep.
 
-- [ ] **Step 5: Verify Step 3's two new clauses and the standalone clause**
+- [ ] **Step 5: Verify Step 3's three new clauses and the standalone clause**
 
 Run as one block:
 
 ```bash
 grep -cF 'one Jisso carries a batch without growing long' skills/tanto/roles/sekkei.md
+grep -cF 'not only the files the batch wrote' skills/tanto/roles/sekkei.md
 grep -cF 'a real YAML load' skills/tanto/roles/sekkei.md
 grep -cF 'a JSON parse of any JSON the plan writes' skills/tanto/roles/sekkei.md
 grep -cF 'standalone, there is no Kanri, and the human in the room decides' skills/tanto/roles/kaiseki.md
 ```
 
-Expected: `1`, `1`, `1`, `1`.
+Expected: `1`, `1`, `1`, `1`, `1`.
 
 - [ ] **Step 6: Verify the strings that must be absent**
 
