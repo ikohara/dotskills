@@ -7,8 +7,9 @@ owns (issue-f801); Kanri derives the topic word instead of asking the human
 for it (issue-c7e1); and a plan that edits this skill's own files states where
 authority lives while the files are in motion and names the boundary from
 which a role may be started or replaced (issue-4ac3). One sentence from the
-previous run's shoroku rides along (S-73 of the kanri-lifecycle ledger: a
-fix-wave list gets a plan's pre-flight). The skill's first two designs are the
+previous run's shoroku rides along: "a fix-wave list deserves a plan's
+pre-flight", candidate S-73 of a ledger since deleted with its plan, now in
+design-4807's plan conventions. The skill's first two designs are the
 tanto design of 2026-09-06 and the kanri-lifecycle design of 2026-09-07; its
 as-built record is design-4807. This document restates what it needs from
 them, so that Kanri and Jisso can read it cold.
@@ -16,9 +17,12 @@ them, so that Kanri and Jisso can read it cold.
 The inputs are `.superpowers/sdd/boundary-rules/spec-inputs.md` (I-1, I-2),
 the three issues, design-4807, decision-de63, req-04f5, and the dialogue's
 draft file `.superpowers/sdd/boundary-rules/sekkei-draft-passages.md`, whose
-revision 2 carries every passage below with Kanri's I-2 folded in. The human
-decided the forks in the spec dialogue on 2026-09-07; those decisions are
-fixed inputs below. Every `I-n` is answered in "Answers to the spec inputs".
+revision 2 carries the passages as the dialogue left them, and the spec
+review at `.superpowers/sdd/boundary-rules/spec-review.md`, whose twenty-two
+findings are folded in — the rulings are in `spec-review-rulings.md` beside
+it, and the passages below supersede the draft file. The human decided the
+forks in the spec dialogue on 2026-09-07; those decisions are fixed inputs
+below. Every `I-n` is answered in "Answers to the spec inputs".
 
 ## Fixed inputs
 
@@ -68,6 +72,12 @@ Decided before or during the dialogue, not reopened here:
   before the boundary, not creation as such; Sekkei's convention covers the
   plan whose only consistent boundary is its last; the Timing paragraph names
   the idle subscription that lapses with the session.
+- **The hotfix lane stays closed on the plan-listed files** for this run, as
+  decision-2f36 rules, although the reason that ADR gives — a later task
+  would overwrite the fix, because the plan carries the file's complete
+  content — assumes whole-file blocks and does not hold for a passage plan.
+  Whether a passage plan may reopen the lane for the passages it does not
+  touch is a shoroku candidate below, not a change here.
 - **The two design rules** from design-4807, applied again: an obligation
   lives in the file of the role that performs it; a term two or more roles
   route on lives in `SKILL.md`. Rule 11 is the term; Kanri's recording step
@@ -113,10 +123,37 @@ file only after every background agent you dispatched has returned — a
 subagent belongs to its session and dies with it, and so does an idle
 subscription you hold; the successor inherits a report file, never a
 completion notice — and after every commit line you promised a peer at this
-boundary has been sent and its commit verified. Dispatch nothing new in
-between: no prompt, no review, no create request. The one override is the
-human's word; a handover written on it lists every agent still running
-under "In flight", so the successor knows it is lost rather than pending.
+boundary has been sent and its commit verified. Between the last of those
+and the handover file, dispatch nothing new: no batch prompt, no review, no
+create request — the commit window's own slots are not new dispatches, and
+a create request that fell due at this boundary is the successor's to make.
+The one override is the human's word; a handover written on it lists every
+agent still running under "In flight", so the successor knows it is lost
+rather than pending.
+
+A boundary that a plan editing this skill has not yet named safe for a
+replacement does not hold your handover: it proceeds when due, and the
+successor takes the authority ruling from the handover file's "Rulings the
+next batch inherits" rather than from the tree (contract rule 11).
+```
+
+The first paragraph is the wait; the second is Kanri's own exception to rule
+11, which lives here because the obligation is Kanri's. "Between the last of
+those and the handover file" scopes the prohibition: the commit window's
+slot (c) line to Sekkei is an obligation the wait depends on, not a new
+dispatch, and a create request that step 6 found due is deferred to the
+successor rather than sent by a session about to end. Step 6's sentence gains
+that exception. Old:
+
+```markdown
+If a create request is due, make it.
+```
+
+New:
+
+```markdown
+If a create request is due, make it, unless a handover trigger has fired, in
+which case the successor makes it from the handover's Next step.
 ```
 
 The batch loop reaches the handover through step 7, whose last sentence does
@@ -187,9 +224,10 @@ and the human objected to inventing a word each time.
    plans, or a recovery whose last ledger says closed — open the topic. Take
    it from whatever the human said the next work is — an issue id, a
    sentence, a name — derive a kebab-case slug of one to three words, check
-   that no `.superpowers/sdd/<slug>/` and no
-   `docs/superpowers/specs/*-<slug>-design.md` exists, state the slug in
-   your reply, and create `.superpowers/sdd/<topic>/kanri.md` from
+   that no `.superpowers/sdd/<slug>/`, no
+   `docs/superpowers/specs/*-<slug>-design.md`, and no branch `<slug>`
+   exists (`ls -d`, the glob, and `git branch --list <slug>`), state the
+   slug in your reply, and create `.superpowers/sdd/<topic>/kanri.md` from
    `templates/kanri.md`. Never ask the human for the word; when the human
    has not yet said what the next work is, wait for that (step 6). Until the
    orders line has gone to Sekkei the human can override the slug and you
@@ -213,9 +251,11 @@ Three properties, each decided in the dialogue: the slug is derived and
 **stated**, never asked; a Kanri with nothing said yet **waits** rather than
 asks — step 6's "wait for the human" already covers it; and the override
 window closes at the orders line, because from then on Sekkei's file names
-carry the word. The uniqueness check is one `ls` against the two places a
-stale word would collide. The orders line to Sekkei is unchanged: it already
-carries the topic.
+carry the word. The uniqueness check is three commands against the three
+places a stale word would collide — the topic directory, the spec file name,
+and the branch, which Sekkei cuts from `main` under the slug and which an
+abandoned topic can leave behind. The orders line to Sekkei is unchanged: it
+already carries the topic.
 
 ### Rejected
 
@@ -233,7 +273,10 @@ the run uses it, the very hazard issue-4ac3 names.
 design-4807's "Kanri's loop, with its entry and its side channel" opens with
 "Kanri's start runs its branch before it asks for a topic"; at T2 that
 paragraph says Kanri derives the topic from what the human said the next work
-is, states it, and proceeds unless overridden.
+is, states it, and proceeds unless overridden, and records the five places
+the word reaches. issue-c7e1's body says "three places only"; the move to
+`docs/issues/resolved/` at T2 corrects that count in the body, so the
+resolved issue does not carry a wrong measurement.
 
 ## The rule for a skill edited in place (issue-4ac3)
 
@@ -268,23 +311,29 @@ lives, not a copy.
     While such a plan is in flight, the authority for the run's sessions is
     the plan's Global Constraints, Kanri's orders line, and the batch
     prompts, not the role text on disk; Kanri records that as a ruling when
-    the plan lands, so every batch prompt and a handover file carry it, and
-    a successor Kanri takes it from the handover file rather than waiting
-    for the tree. The plan names, in its Global Constraints and its Batches
-    section, the boundary from which a role may be started or replaced;
-    before that boundary no role is replaced and no further role is
-    created. The roles that start the plan — Jisso at the plan's landing,
+    the plan lands, so every batch prompt and a handover file carry it. The
+    plan names, in its Global Constraints and its Batches section, the
+    boundary from which a role may be started or replaced. Before that
+    boundary no role is replaced and no further role is created, with two
+    exceptions: Kanri's own handover proceeds when it is due, and its
+    successor takes the authority ruling from the handover file rather than
+    from the tree; and a further role needed before the boundary — Kaiseki
+    — is a Kanri ruling, recorded as `R-n`, made with the half-edited skill
+    in view. The roles that start the plan — Jisso at the plan's landing,
     Sekkei before it — read the skill as it stands then, and the authority
     sentence above is what covers them.
 ```
 
-Two clauses carry Kanri's I-2. The premise is conditional because `SKILL.md`
-is runtime text shipped to any host, and the link is this repository's setup.
-The creation clause forbids *further* creation, not creation: Jisso is always
-created after the plan lands and before any boundary, and it reads the skill
-as it stands then; Kaiseki is the "further role" — a Kaiseki needed before the
-boundary is a ruling Kanri makes with the half-edited skill in view, and the
-rule does not pretend otherwise.
+Two clauses carry Kanri's I-2, and two the spec review. The premise is
+conditional because `SKILL.md` is runtime text shipped to any host, and the
+link is this repository's setup. The creation clause forbids *further*
+creation, not creation: Jisso is always created after the plan lands and
+before any boundary, and it reads the skill as it stands then. The two
+exceptions are in the rule's own text, not in commentary a runtime reader
+never sees (spec review F-1, F-7): Kanri's handover is a replacement that
+must not be held, since req-04f5 makes it mandatory at a boundary; and a
+Kaiseki needed before the boundary is a ruling Kanri makes with the
+half-edited skill in view.
 
 ### The obligations, in the role files
 
@@ -295,26 +344,35 @@ sentence appended so that the step reads:
 1. Cold-read the committed plan and the spec, and send Sekkei one line per open
    question. Wait for its pointer: it answers by editing the plan or the spec,
    never by explaining in a message. If the plan edits this skill's own files,
-   record as `R-n`, before anything else is dispatched, that the run's sessions
-   follow the constraints, your orders lines, and the batch prompts rather
-   than the role text on disk, and the boundary the plan names for a role
-   start or replacement (contract rule 11); every batch prompt and a handover
-   file then carry it.
+   record as `R-n`, before any batch prompt or subagent is dispatched, that
+   the run's sessions follow the constraints, your orders lines, and the
+   batch prompts rather than the role text on disk, and the boundary the plan
+   names for a role start or replacement (contract rule 11); every batch
+   prompt and a handover file then carry it.
 ```
 
 Sekkei's, in `roles/sekkei.md`, Step 3, a fourth bullet after the "how a
-batch is verified" bullet:
+batch is verified" bullet. That third bullet ends the list with a period, so
+the passage replaces its last line, turning the period into the semicolon the
+first two bullets end with, and appends the new bullet:
 
 ```markdown
+  of any frontmatter, and a JSON parse of any JSON the plan writes;
 - when the plan edits this skill's own files, the **boundary from which a
-  role may be started or replaced**, stated in Global Constraints and in
-  the Batches section: the first boundary at which every file the plan
-  touches agrees with every other, because a session started before it
-  reads a half-edited skill — which may be the final boundary, in which
-  case a replacement waits for it and the plan says so; and the sentence
-  that until then the authority for the run's sessions is the constraints,
-  Kanri's orders line, and the batch prompts (contract rule 11).
+  role may be started or replaced** — where one is *permitted*, as distinct
+  from the boundaries where the second bullet expects one — stated in Global
+  Constraints and in the Batches section: the first boundary at which every
+  file the plan touches agrees with every other, because a session started
+  before it reads a half-edited skill — which may be the final boundary, in
+  which case a replacement waits for it and the plan says so; and the
+  sentence that until then the authority for the run's sessions is the
+  constraints, Kanri's orders line, and the batch prompts (contract rule
+  11).
 ```
+
+The "permitted, as distinct from expected" clause keeps the new bullet from
+being read as a restatement of the second, which asks the plan where a
+planned replacement is expected; the two have different force.
 
 The README's closing sentence names the designs the skill implements; it
 gains this one as a third path:
@@ -334,11 +392,13 @@ requires.
 ### The successor Kanri
 
 A handover is triggered by a compaction and can fall due before the boundary
-the plan names. It proceeds (fixed inputs). The handover file's "Rulings the
-next batch inherits" section copies rulings verbatim as compaction insurance,
-and the authority ruling is one of them, so the successor's cold read finds it
-before the successor reads anything else from the tree. No new mechanism is
-needed; rule 11's sentence about the successor states what already follows.
+the plan names. It proceeds (fixed inputs), and both files say so: rule 11
+carries the exception as the term, and the second paragraph added to Timing
+under issue-f801 carries it as Kanri's obligation. The handover file's
+"Rulings the next batch inherits" section copies rulings verbatim as
+compaction insurance, and the authority ruling is one of them, so the
+successor's cold read finds it before the successor reads anything else from
+the tree. No new mechanism is needed beyond those two sentences.
 
 ### Rejected
 
@@ -361,19 +421,24 @@ at the landing — read the skill as it stands then; R-3 covers them.
 
 ### At T2
 
-design-4807 changes in two places: the Skill layout paragraph that says the
+design-4807 changes in three places: the Skill layout paragraph that says the
 skill "runs unchanged from a user-level link" gains the consequence and the
-rule; "Plan conventions under tanto" gains the boundary convention. Its
-"Where the delivered skill differs from the design documents" gains a set for
-this design only if the whole-branch review's fix wave leaves the tree
-differing from the plan's blocks.
+rule, and the same section's enumeration of `SKILL.md`'s contents says
+"eleven rules" instead of ten; "Plan conventions under tanto" gains the
+boundary convention and, beside its whole-file-blocks paragraph, the
+passage-level alternative with its alignment check — the per-file diff
+against the merge base whose hunks are exactly the passages. Its "Where the
+delivered skill differs from the design documents" gains a set for this
+design only if the whole-branch review's fix wave leaves the tree differing
+from the plan's blocks.
 
 ## The fix-wave pre-flight sentence (S-73)
 
-S-73 of the kanri-lifecycle ledger ("a fix-wave list deserves a plan's
-pre-flight") landed in design-4807's plan conventions but not in the
-procedure that drafts the list. `roles/kanri.md`, section The final batch,
-step 2, becomes:
+The previous run's shoroku candidate "a fix-wave list deserves a plan's
+pre-flight" — S-73 in that run's ledger, which was deleted with its plan, so
+the sentence and not the number is the reference — landed in design-4807's
+plan conventions but not in the procedure that drafts the list.
+`roles/kanri.md`, section The final batch, step 2, becomes:
 
 ```markdown
 2. Turn its findings into one more batch prompt — the final batch — and send it
@@ -388,8 +453,10 @@ Nothing changes at T2: design-4807 already carries the convention.
 
 `docs/notes/tanto-consistency-checks.md` opens by saying that three moments
 in a `tanto` plan call for the extraction method — every fenced block pulled
-into a scratch tree, diffed against `HEAD`, the checks run there — and check 9
-lints that tree. A plan that carries passages has no extracted tree. The
+into a scratch tree, diffed against `HEAD`, the checks run there — and check
+9's first block lints that tree. A plan that carries passages has no
+extracted tree. Check 9's second block, the sweep for trailing whitespace and
+a missing final newline, runs on the real tree and applies to every plan. The
 note's opening gains one paragraph after the "Three moments" paragraph:
 
 ```markdown
@@ -398,25 +465,40 @@ old passage, the new passage, for each edit — has no extracted tree. Its
 alignment check is the diff of each touched file against the merge base,
 whose hunks must be exactly the plan's passages, and its lint runs on the
 tree after each task, which is the file the hook will see. Checks 1 to 8 run
-on the tree as for any plan; check 9 does not apply to such a plan.
+on the tree as for any plan; of check 9, the extracted-tree lint does not
+apply to such a plan, and the trailing-whitespace and final-newline sweep
+runs as for any plan.
 ```
 
 This keeps the note the single place a future plan's pass is described from.
 
 ## Where each change lives
 
-| File | Passages | Task |
-| --- | --- | --- |
-| `skills/tanto/roles/kanri.md` | Start step 5, replaced whole; the Kept Kanri case's last sentence | 1 |
-| `skills/tanto/roles/kanri.md` | Timing's second paragraph; the batch loop's step 7 last sentence; The final batch step 2 | 2 |
-| `skills/tanto/templates/kanri-handover.md` | In flight, a fourth line | 3 |
-| `skills/tanto/SKILL.md` | Rules item 11 | 4 |
-| `skills/tanto/README.md` | the closing sentence, three designs | 4 |
-| `skills/tanto/roles/kanri.md` | When the plan lands step 1, one sentence appended | 5 |
-| `skills/tanto/roles/sekkei.md` | Step 3, a fourth bullet | 5 |
-| `docs/notes/tanto-consistency-checks.md` | the opening, one paragraph on passage-level plans | 6 |
+Twelve passages, each with its shape. A **replacement** has an old passage
+that the new one supersedes; an **insertion** adds text next to an anchor
+that stays, and its "old passage" is that anchor. The distinction decides
+the verification below.
 
-Task 7 is the consistency pass and writes nothing unless a check fails.
+| File | Passage | Shape | Task |
+| --- | --- | --- | --- |
+| `skills/tanto/roles/kanri.md` | Start step 5, replaced whole | replacement | 1 |
+| `skills/tanto/roles/kanri.md` | the Kept Kanri case's last sentence | replacement | 1 |
+| `skills/tanto/roles/kanri.md` | Timing, two paragraphs after its first | insertion | 2 |
+| `skills/tanto/roles/kanri.md` | the batch loop's step 6, the create-request sentence | replacement | 2 |
+| `skills/tanto/roles/kanri.md` | the batch loop's step 7, its last sentence | replacement | 2 |
+| `skills/tanto/roles/kanri.md` | The final batch, step 2 | replacement | 2 |
+| `skills/tanto/templates/kanri-handover.md` | In flight, a fourth line after the Batch state line | insertion | 3 |
+| `skills/tanto/SKILL.md` | Rules, item 11 after item 10 | insertion | 4 |
+| `skills/tanto/README.md` | the closing sentence, three designs | replacement | 4 |
+| `skills/tanto/roles/kanri.md` | When the plan lands step 1, a sentence appended; the old step is a prefix of the new | insertion | 5 |
+| `skills/tanto/roles/sekkei.md` | Step 3, the third bullet's last line and a fourth bullet | replacement | 5 |
+| `docs/notes/tanto-consistency-checks.md` | the opening, one paragraph after "Three moments" | insertion | 6 |
+
+Task 7 is the consistency pass and writes nothing. A check that fails there
+is a Rulings-needed item in its report, never an edit, because a fix outside
+the passages would break the invariant that the diff is exactly the passages;
+Kanri rules on it, and the whole-branch review's fix wave is where a ruled
+correction lands.
 
 Unchanged: `roles/jisso.md`, `roles/kaiseki.md`, every template but
 `kanri-handover.md`, `templates/tanto.json`, the repo-root `README.md`,
@@ -432,11 +514,20 @@ conventions under tanto":
   carries three things in fenced blocks: the **anchor**, one line of the old
   passage that occurs exactly once in the file, for a `grep -nF` that locates
   it; the **old passage**, verbatim, so the executor replaces exactly that and
-  nothing else; and the **new passage**, verbatim, the text of this document's
-  blocks with the file's own indentation and wrapping. Each passage is written
-  once. A file may be touched in both batches (`roles/kanri.md` is, in Tasks
-  1, 2, and 5), and the invariant is per passage, not per file: the diff of a
-  file against the merge base is exactly the union of its passages so far.
+  nothing else — for an insertion, the anchor line itself; and the **new
+  passage**, verbatim, the text of this document's blocks with the file's own
+  indentation and wrapping. The plan drafter reads each old passage from the
+  tree at drafting time — this document quotes some and names the rest — and
+  the plan states each passage's shape from the table. Each passage is
+  written once. A file may be touched in both batches (`roles/kanri.md` is,
+  in Tasks 1, 2, and 5), and the invariant is per passage, not per file: the
+  diff of a file against the merge base, `git diff main...HEAD -- <file>`
+  with three dots, is exactly the union of its passages so far.
+- **Needles are never inlined in quotes.** Nearly every passage contains an
+  apostrophe or a backtick, which break a single-quoted `grep -cF '...'` and
+  command-substitute in a double-quoted one. Every anchor and passage check
+  sets its needle from a quoted heredoc — `needle=$(cat <<'EOF'` ... `EOF)` —
+  and passes it as `"$needle"`; Global Constraints says so once.
 - **Seven tasks in two batches.** A: Task 1 `roles/kanri.md` Start; Task 2
   `roles/kanri.md` Handover, the loop's step 7, The final batch; Task 3
   `templates/kanri-handover.md`. B: Task 4 `SKILL.md` and `README.md`, with
@@ -463,27 +554,43 @@ conventions under tanto":
   of colon-space; `docs/superpowers/**` and `skills/**/templates/**`
   markdownlint-ignored, `SKILL.md`, `README.md`, `roles/*.md`, and
   `docs/notes/**` not, so every `<placeholder>` outside a fenced block in
-  those files lives in a code span; line endings per file, never mixed;
-  runtime text never names `skills/tanto/`; no commit hashes and no
-  user-specific paths in tracked content; the passage rule above, stated as a
-  constraint: an edit replaces exactly the old passage with the new one and
-  the file's other bytes do not change.
+  those files lives in a code span; line endings per file, never mixed —
+  `roles/kanri.md`, `roles/sekkei.md`, and the note are checked out CRLF,
+  `SKILL.md`, `README.md`, and `templates/kanri-handover.md` LF (measured
+  2026-09-07 with `git ls-files --eol`), a passage is written with its
+  file's ending, and the deciding command is `git ls-files --eol <file>`
+  showing the same `w/crlf` or `w/lf` as before the edit and never
+  `w/mixed`; runtime text never names `skills/tanto/`; no commit hashes and
+  no user-specific paths in tracked content, decided by the note's check 7
+  (its commit-hash grep, read by eye, and its path greps); the passage rule
+  above, stated as a constraint: an edit replaces exactly the old passage
+  with the new one and the file's other bytes do not change; and the needle
+  rule above.
 - **How a batch is verified**, as below.
 - Reports and prompts follow the tanto templates; the plan names nothing
   else about their shape.
 
 ## Verification
 
-For each passage, in its task:
+For each passage, in its task, with every needle set from a quoted heredoc
+and passed as `"$needle"`:
 
-1. **Before the edit**, the anchor: `grep -cF '<anchor>' <file>` returns `1`.
-2. **After the edit**, the new passage is present once and the old passage is
-   gone, checked on the flattened file so that wrapping cannot hide a
-   mismatch: `tr -d '\r' < <file> | tr '\n' ' ' | tr -s ' ' | grep -cF '<new passage, flattened to single spaces>'`
-   returns `1`, and the same command with the old passage returns `0`.
-3. **The diff is exactly the passages**: `git diff main..HEAD -- <file>` shows
-   one hunk per passage written so far and nothing else; the task states the
-   hunk count it expects (`git diff main..HEAD -- <file> | grep -c '^@@'`).
+1. **Before the edit**, the anchor: `grep -cF -- "$needle" <file>` with the
+   anchor line returns `1`.
+2. **After the edit**, on the flattened file so that wrapping cannot hide a
+   mismatch — `tr -d '\r' < <file> | tr '\n' ' ' | tr -s ' ' | grep -cF -- "$needle"`
+   with the passage flattened to single spaces: for a **replacement**, the
+   new passage returns `1` and the old passage returns `0`; for an
+   **insertion**, the new passage returns `1` and the anchor still returns
+   `1`, and step 3 carries the "nothing else changed" burden, because the
+   old text is still there by design (for "When the plan lands" step 1 it is
+   a prefix of the new).
+3. **The diff is exactly the passages**: `git diff main...HEAD -- <file>`
+   (three dots, the merge base) shows the passages written so far and nothing
+   else. The hunk count `git diff main...HEAD -- <file> | grep -c '^@@'` is a
+   task-time check, not an invariant: two passages within three lines of
+   each other coalesce into one hunk, which none of this plan's do, so the
+   task states the count it expects and a reviewer reads the hunks.
 4. **Lint the changed paths by name**, every hook `Passed` or `Skipped`.
 5. **The frontmatter hook** passes on `SKILL.md` in Task 4, and its
    `description:` value contains no colon-space.
@@ -493,12 +600,15 @@ For each passage, in its task:
 
 At every boundary, re-run the whole set of task-time checks of the batch. In
 batch B, Task 7 runs checks 1 to 8 of `docs/notes/tanto-consistency-checks.md`
-as written and records the output; the expected outputs in the note are
-unchanged by this plan — no passage above adds or removes a string a check
-counts, which Sekkei verifies by running the checks at plan review — and
-check 9 is not run, for the reason Task 6 writes into the note. Task 7 also
-lints every path the plan touched, by name, and proves every commit on the
-branch carries the trailer.
+as written and records the output, and check 9's whitespace and final-newline
+sweep; the extracted-tree lint of check 9 is not run, for the reason Task 6
+writes into the note. The expected outputs in the note are unchanged by this
+plan — no passage above adds or removes a string a check counts, which the
+spec review confirmed string by string; Sekkei records the baseline by
+running the checks at plan review on the pre-edit tree, and Task 7's
+post-edit run is what shows the invariance. Task 7 also lints every path the
+plan touched, by name, and proves every commit on the branch carries the
+trailer.
 
 ## Out of scope
 
@@ -512,7 +622,7 @@ basename unification (deferred item 1); a count threshold for the handover
 
 | Input | Answer |
 | --- | --- |
-| I-1 the scope, from the human's direction | Adopted. The three issues in R-1's order; two batches (R-2); the boundary from which a replacement is safe is named and is the batch A boundary (R-3); the three issues resolve at T2; the optional S-73 sentence is in, since it fits batch A. |
+| I-1 the scope, from the human's direction | Adopted, with one deviation from Kanri's note. The three issues in R-1's order; two batches (R-2); the boundary from which a replacement is safe is named and is the batch A boundary (R-3); the three issues resolve at T2; the optional S-73 sentence is in, since it fits batch A. The deviation: the note expected "the extraction-and-diff method plus check 9 apply as before"; this design replaces whole-file blocks with passages, the extracted tree with a per-file merge-base diff, and drops check 9's extracted-tree lint (see "The note"), so that a 580-line file is not transcribed for six passages. |
 | I-2 Kanri's check of the draft passages | Adopted in full: "one to three words"; the conditional link premise and the corrected creation clause in rule 11; the final-boundary case in Sekkei's convention; the idle-subscription clause folded into the Timing paragraph without lengthening it. Every other passage as Kanri accepted it. |
 
 ## Deferred items
@@ -541,26 +651,51 @@ For Kanri's `S-n` table:
   issue-4ac3). decision-de63's consequence bullet anticipates it.
 - design-4807: the Handover section's wait, from a fact of one run to the
   rule; the "Kanri's loop" Start paragraph, from asking for a topic to
-  deriving it; the Skill layout paragraph on the link, with rule 11's
-  consequence; "Plan conventions under tanto", the boundary convention; a set
-  under "Where the delivered skill differs" for this design, only if the fix
-  wave leaves a difference.
-- issues: f801, c7e1, and 4ac3 move to `docs/issues/resolved/` at T2;
+  deriving it, with the five places the word reaches; the Skill layout
+  paragraph on the link, with rule 11's consequence, and its count "ten
+  rules" becoming eleven; "Plan conventions under tanto", the boundary
+  convention and the passage-level alternative with its alignment check; a
+  set under "Where the delivered skill differs" for this design, only if the
+  fix wave leaves a difference.
+- issues: f801, c7e1, and 4ac3 move to `docs/issues/resolved/` at T2, and
+  c7e1's body is corrected from "three places" to five at the move;
   deferred item 1 is filed at T1.
+- issue, from the spec review: `.superpowers/sdd/` holds an unrelated run's
+  litter at its root — a `progress.md` from a July run, a
+  `final-fixes-report.md`, five `review-*.diff` files, eight `task-N-*.md`
+  files — next to the roster, and no role's procedure sweeps the root; a
+  cold Kanri told the SDD ledger is `<plan-basename>/progress.md` can misread
+  the stale root-level one. Kanri classifies: an issue, or a between-plans
+  cleanup the human decides.
+- decision-2f36, from the spec review: the hotfix lane's exclusion of
+  plan-listed files is reasoned from whole-file blocks, and a passage plan
+  keeps the rule on a different reason (fixed inputs). Whether a passage plan
+  may reopen the lane for untouched passages is a question for a later ADR
+  or an amendment; Kanri classifies.
 - report: the run's record, from the conductor ledger, if Kanri judges a
   third dogfood report worth freezing; the previous two runs each had one.
-- facts from the dialogue, for the deferred issue's body: the topic word
+- facts, for the deferred issue's body and for the plan: the topic word
   reaches five places (the topic directory, the spec and plan names, the
-  plan basename and so the workspace, the branch, the roster's Events); the
-  topic directory and the workspace of the previous run differ only by the
-  date prefix and sit side by side under `.superpowers/sdd/`.
+  plan basename and so the workspace, the branch, the roster's Events); in
+  the previous run the topic directory and the workspace differed only by
+  the date prefix, and at plan close the workspace was deleted with the
+  moved ledger inside it while the topic directory stayed — an asymmetry
+  that argues for deferred item 1 more strongly than their coexistence did;
+  `roles/kanri.md`, `roles/sekkei.md`, and the consistency note are checked
+  out CRLF and `SKILL.md`, `README.md`, and the templates LF, a split nothing
+  under `docs/` records and every passage-level plan needs.
 - observation about the process: the human had Kanri read the passages that
   rewrite Kanri's own file before they went into the spec, through a draft
-  file and an `I-n`; the protocol has no such step, and it caught one
-  load-bearing error (the creation clause). A candidate convention for
-  `roles/sekkei.md`: a passage that rewrites another role's procedure goes to
-  that role's session for a check before the spec is committed, when that
-  session is live.
+  file and an `I-n`; the protocol has no such step. It caught one
+  load-bearing error (the creation clause) and missed two in the same
+  passage that the spec review then caught (rule 11 forbidding Kanri's own
+  handover, F-1; the Kaiseki clause stated absolutely, F-7): the role checked
+  the clause it was asked about and did not re-derive the rule against its
+  own lifecycle obligations. The candidate convention for `roles/sekkei.md`
+  is therefore narrower — a passage that rewrites another role's procedure
+  goes to that role's session, when live, with the question "which of your
+  obligations does this touch", before the spec review rather than instead
+  of it.
 - rejected alternatives with their reasons, each recorded above: a bounded
   wait (no signal bounds it); a date prefix on the topic word (double dates,
   or the deferred unification); the skill copy (no dogfood, a human re-link
