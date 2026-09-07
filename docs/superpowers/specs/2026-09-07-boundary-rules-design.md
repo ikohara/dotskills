@@ -134,11 +134,14 @@ rather than pending.
 A boundary that a plan editing this skill has not yet named safe for a
 replacement does not hold your handover: it proceeds when due, and the
 successor takes the authority ruling from the handover file's "Rulings the
-next batch inherits" rather than from the tree (contract rule 11).
+next batch inherits" rather than from the tree.
 ```
 
 The first paragraph is the wait; the second is Kanri's own exception to rule
-11, which lives here because the obligation is Kanri's. "Between the last of
+11, which lives here because the obligation is Kanri's, and which does not
+cite the rule by number: this passage lands in batch A and rule 11 in batch
+B, and a citation would be the one forward reference across the batch A
+boundary (plan review F-1). The sentence stands without it. "Between the last of
 those and the handover file" scopes the prohibition: the commit window's
 slot (c) line to Sekkei is an obligation the wait depends on, not a new
 dispatch, and a create request that step 6 found due is deferred to the
@@ -412,12 +415,19 @@ running session and the session followed its prompt.
 ### Applied to this plan
 
 Both boundaries leave the tree self-consistent. Batch A touches only Kanri's
-procedure and the handover template, and nothing in it references rule 11;
-batch B lands rule 11, both obligations, the README line, and the note's
-paragraph together. So the boundary from which a role may be started or
-replaced is the **batch A boundary**, and the plan's Global Constraints and
-Batches section say so. The roles that start this plan — Sekkei already, Jisso
-at the landing — read the skill as it stands then; R-3 covers them.
+procedure and the handover template, and nothing in it references rule 11 —
+a claim the plan backs with a command at each boundary, not an assertion: a
+per-file count of `contract rule 11` on the flattened text of `SKILL.md`,
+`roles/*.md`, and `templates/*.md` is zero everywhere at the batch A boundary
+and one each in `roles/kanri.md` (step 1) and `roles/sekkei.md` (the fourth
+bullet, whose citation wraps, which is why the count is on the flattened file)
+at the batch B boundary, and `grep -c '^11\. '` on `SKILL.md` returns `0` then
+`1`. Batch B lands rule 11, both obligations, the
+README line, and the note's paragraph together. So the boundary from which a
+role may be started or replaced is the **batch A boundary**, and the plan's
+Global Constraints and Batches section say so. The roles that start this plan
+— Sekkei already, Jisso at the landing — read the skill as it stands then;
+R-3 covers them.
 
 ### At T2
 
@@ -521,8 +531,12 @@ conventions under tanto":
   the plan states each passage's shape from the table. Each passage is
   written once. A file may be touched in both batches (`roles/kanri.md` is,
   in Tasks 1, 2, and 5), and the invariant is per passage, not per file: the
-  diff of a file against the merge base, `git diff main...HEAD -- <file>`
-  with three dots, is exactly the union of its passages so far.
+  diff of a file against the merge base,
+  `git diff "$(git merge-base main HEAD)" -- <file>`, is exactly the union of
+  its passages so far. That form compares the working tree with the merge
+  base, so it is right both before and after a task's commit;
+  `git diff main...HEAD` compares commits only and misses an uncommitted edit
+  (measured in the plan's dry run).
 - **Needles are never inlined in quotes.** Nearly every passage contains an
   apostrophe or a backtick, which break a single-quoted `grep -cF '...'` and
   command-substitute in a double-quoted one. Every anchor and passage check
@@ -585,12 +599,16 @@ and passed as `"$needle"`:
    `1`, and step 3 carries the "nothing else changed" burden, because the
    old text is still there by design (for "When the plan lands" step 1 it is
    a prefix of the new).
-3. **The diff is exactly the passages**: `git diff main...HEAD -- <file>`
-   (three dots, the merge base) shows the passages written so far and nothing
-   else. The hunk count `git diff main...HEAD -- <file> | grep -c '^@@'` is a
-   task-time check, not an invariant: two passages within three lines of
-   each other coalesce into one hunk, which none of this plan's do, so the
-   task states the count it expects and a reviewer reads the hunks.
+3. **The diff is exactly the passages**:
+   `git diff "$(git merge-base main HEAD)" -- <file>` (the working tree
+   against the merge base) shows the passages written so far and nothing
+   else. The hunk count
+   `git diff "$(git merge-base main HEAD)" -- <file> | grep -c '^@@'` is a
+   task-time check, not an invariant: two passages separated by six or fewer
+   unchanged lines coalesce into one hunk (three lines of context on each
+   side; measured, five and six give one hunk and seven give two), which
+   none of this plan's do, so the task states the count it expects and a
+   reviewer reads the hunks.
 4. **Lint the changed paths by name**, every hook `Passed` or `Skipped`.
 5. **The frontmatter hook** passes on `SKILL.md` in Task 4, and its
    `description:` value contains no colon-space.
