@@ -1,18 +1,19 @@
 # Design: `tanto` kanri-lifecycle — addressing without rename, a resident Kanri, a bug intake, session-exit shoroku, three small fixes
 
 This is the second design for the `tanto` skill, one plan under `/tanto`
-itself, and the dogfood issue-770d asks for. It changes the skill in five
+itself, and the dogfood issue-770d asks for. It changes the skill in six
 places: how sessions address each other (issue-1c70), how Kanri lives across
 plans and hands over (issue-77a1, req-04f5), how a defect noticed in a skill
 reaches the repository that ships it (spec input I-5), how a session's
 knowledge reaches `docs/` before the session is closed (spec input I-6,
-req-04f5), and three small fixes (issues 577b, 3990, 2f1b). The skill's first
+req-04f5), how a role reaches the human — only through Kanri's grant (spec
+input I-7, req-04f5) — and three small fixes (issues 577b, 3990, 2f1b). The skill's first
 design is the tanto design of 2026-09-06 and its as-built record is
 design-4807; this document restates what it needs from both, so that Kanri and
 Jisso can read it cold.
 
 The inputs are `.superpowers/sdd/kanri-lifecycle/spec-inputs.md` (I-1 to
-I-6), the five issues above, req-04f5, design-4807, the dogfood report of
+I-7), the five issues above, req-04f5, design-4807, the dogfood report of
 2026-09-06, and the spec review at
 `.superpowers/sdd/kanri-lifecycle/spec-review.md`, whose thirty findings are
 folded in. The human decided the forks in the spec dialogue on 2026-09-06 and
@@ -59,6 +60,11 @@ Decided before or during the dialogue, not reopened here:
   cannot decide alone). Committed on `kanri-lifecycle` on 2026-09-07. Kanri
   as the intake, the five outcomes, and the hotfix lane are this design's
   choices under that requirement.
+- **Human access by grant (I-7)**, accepted by the human after the plan was
+  committed and folded in before Jisso is created, because this plan rewrites
+  every file once: the human's counterpart is Kanri, and a role addresses the
+  human directly only for what needs the human's eyes or hands, after Kanri
+  grants it; req-04f5 carries the bullet "The human's counterpart is Kanri".
 - **Kanri's three rulings.** R-1 one plan for the whole bundle; R-2 this run
   is the dogfood and its ledger and roster are the record; R-3 the sessions of
   this run keep their `dotskills-<role>` names for the whole run, whatever the
@@ -795,6 +801,102 @@ boundary as the point where Kanri replaces it if it judges it long.
 - `templates/roster.md` — the Events examples and the between-plans Shoroku
   candidates section.
 
+## Human access
+
+Spec input I-7 and req-04f5's bullet "The human's counterpart is Kanri", as
+updated on 2026-09-07. The principle was already the skill's practice — the
+human's three windows were Sekkei for "what to build", Kanri for "how far
+along", Kaiseki for "what is going on", and Jisso was never addressed — and
+this section makes it the rule, with the exceptions as grants rather than as
+a list of windows.
+
+### The principle
+
+By default a role has no human access. Jisso and an attached Kaiseki never
+address the human unless granted. A role addresses the human directly only
+for what needs the human's eyes or hands — a visual check in a browser or a
+GUI, an OS dialog, a credential — and only after Kanri has judged it
+necessary and granted it for that scope. Whether it is truly needed is
+Kanri's judgment, not the role's.
+
+This is protocol, not enforcement. Every role has its own window, the human
+can type into any of them, and nothing in the harness routes one session's
+chat through another. Two things stay outside the rule, and the contract says
+so: the harness's own prompts (a permission dialog, the model-mismatch stop
+of the start sequence) reach the human in the role's window and cannot go
+through Kanri; and a human who speaks in a role's window unprompted gets an
+answer, because silence costs more than the exception — the role then sends
+Kanri one line, `human-contact: <one line on what was said>`, and treats
+nothing beyond that exchange as granted.
+
+### The lines
+
+- The request, one line to Kanri:
+  `human-needed: <what the human must do> — <why no other way> — <where: this window>`.
+  The role idles until the answer.
+- Kanri's ruling, one line back, recorded as `R-n`:
+  `human-access: granted — <scope> — <until>` or
+  `human-access: denied — <alternative>`.
+- On a grant Kanri tells the human, as a numbered list: 1. go to `<role>`'s
+  window, `<name> [<ref>]`; 2. do `<what>`; 3. come back. The role's direct
+  exchange stays within the scope and ends with one line to Kanri,
+  `human-access: done — <what the human did or decided>`, which Kanri notes
+  in the ledger's Session events.
+
+### The standing grants
+
+Two grants are given without a request, so that the two windows the human
+already uses survive as grants rather than as exceptions:
+
+- **Sekkei's spec and plan dialogue.** Given at Sekkei's creation in Kanri's
+  orders line at the handshake, as
+  `human-access: granted — the spec and plan dialogue — until the plan is committed and the cold read answered`,
+  and given again in the line that brings a kept Sekkei its next topic.
+- **An attached Kaiseki's debugging conversation.** Written by Kanri in the
+  brief's new **Human access** section — "the debugging conversation in this
+  window, until the report is written", or "none, and why" — because
+  debugging often needs what only the human knows about the environment.
+
+A standalone Kaiseki has no Kanri; the human in the room is its counterpart,
+and the term does not apply.
+
+### Interaction with the other sections
+
+Every escalation of an exit shoroku already goes to the human through Kanri;
+this principle makes that the rule rather than a justification per role, and
+the session-exit ADR candidate follows from it. The roles table's "Talks to"
+column reads `human, Sekkei, Jisso, Kaiseki` for Kanri and
+`Kanri; the human by grant` for the other three. The batch prompt restates
+the default to Jisso as one Rulings line, as it restates the other overrides.
+
+### Where it lives
+
+- `SKILL.md` — a new section "Human access" between Messages and Session
+  exit: the principle, the three lines, the two standing grants, the two
+  things outside the rule; the roles table's three "Talks to" cells.
+- `roles/kanri.md` — a new section "Human access" after Bug intake: the
+  ruling on a request, the numbered list to the human, the two standing
+  grants (the orders line at the handshake, the brief's section), the
+  `human-contact:` line as information; the opening paragraph says Kanri is
+  the human's counterpart; "On a handshake" step 4 carries Sekkei's grant in
+  the orders line; the Kaiseki branch's step 2 fills the brief's Human access
+  section.
+- `roles/sekkei.md`, `roles/jisso.md`, `roles/kaiseki.md` — in the paragraph
+  that names whom the role talks to: the grant it holds (Sekkei the dialogue,
+  Kaiseki the brief's section, Jisso none), the `human-needed:` request in
+  the contract's exact spelling and idling until the answer, conduct under a
+  grant and the `human-access: done` line, and the `human-contact:` sentence;
+  Kaiseki's standalone sentence names the human as its counterpart, and its
+  "The run" paragraph scopes the human's direct talk to the brief's grant;
+  Jisso's two "cannot talk to the human" clauses become "do not talk to the
+  human unless Kanri grants it". In `SKILL.md`, the Messages bullet on
+  permission boundaries routes blocked work to Kanri, and the stop-classes
+  closing sentence says "the only stops that reach the human".
+- `templates/batch-prompt.md` — one line under Rulings: "Human access: none
+  unless granted. What needs the human's eyes or hands goes to Kanri as
+  `human-needed:` first; idle until the answer."
+- `templates/kaiseki-brief.md` — a "Human access" section after Task.
+
 ## Three small fixes
 
 ### issue-577b — a verbatim second quote, and a home for the checks
@@ -895,7 +997,8 @@ handshake" into On a handshake; "The loop, reordered" into The batch loop;
 "The trigger", "The residency line", "The handover file", "Timing", and
 "The handover, in a plan and between plans" into a new section **Handover**
 placed after The Kaiseki branch; "The bug intake" into a new section **Bug
-intake** after Shoroku; "Session exit" into a new subsection of Shoroku,
+intake** after Shoroku; "Human access" into a new section **Human access**
+after Bug intake; "Session exit" into a new subsection of Shoroku,
 **Exit shoroku**, and into the lifecycle tables; "The default", "The
 tables", and the residency paragraph into Session lifecycle. For the three
 peer files: Sekkei's exit candidates, apply step, and boundary reply go into
@@ -910,18 +1013,18 @@ talks to.
 
 | File | Changes |
 | --- | --- |
-| `skills/tanto/SKILL.md` | start sequence of two steps, with the `name [ref]` sentence under the handshake form; "The address" as a subsection under Handshake and roster, and the `kanri-address:` term below it; rule 10; rule 5's exit clause; the roles table's Kaiseki and Kanri cells; under Messages, the boundary-reply bullet (`committed <subject>` or `nothing to commit`, the pair Sekkei sends and Kanri waits for — a term two roles route on) and the two bug-report paragraphs; the "Session exit" section; the artifacts rows above and the nine-template sentence; the stop classes as a verbatim quote |
+| `skills/tanto/SKILL.md` | start sequence of two steps, with the `name [ref]` sentence under the handshake form; "The address" as a subsection under Handshake and roster, and the `kanri-address:` term below it; rule 10; rule 5's exit clause; the roles table's Kaiseki and Kanri cells, and its three "Talks to" cells reading `Kanri; the human by grant`; under Messages, the boundary-reply bullet (`committed <subject>` or `nothing to commit`, the pair Sekkei sends and Kanri waits for — a term two roles route on), the two bug-report paragraphs, and "Blocked work goes to Kanri, which rules on human access"; the "Human access" section; the "Session exit" section; the artifacts rows above and the nine-template sentence; the stop classes as a verbatim quote, closing with "the only stops that reach the human" |
 | `skills/tanto/README.md` | Usage without rename and with `<kanri>` as the pasted name, the handshake paragraph kept and placed before the standalone-Kaiseki line; the intake bullet in What it does; the Relationship paragraph gains "and every session at its own exit"; Layout lists nine templates; the closing line names both designs |
 | `skills/tanto/templates/roster.md` | address-book paragraph; Residency section; the between-plans Shoroku candidates section; the Events examples as listed |
-| `skills/tanto/templates/batch-prompt.md` | `<kanri-address>` twice; the `Kanri — <name> [<ref>]` line in Setup on resume |
-| `skills/tanto/templates/kaiseki-brief.md` | `<kanri-address>` once |
+| `skills/tanto/templates/batch-prompt.md` | `<kanri-address>` twice; the `Kanri — <name> [<ref>]` line in Setup on resume; the human-access line under Rulings |
+| `skills/tanto/templates/kaiseki-brief.md` | `<kanri-address>` once; the "Human access" section after Task |
 | `skills/tanto/templates/kanri-handover.md` | new, the handover skeleton |
 | `skills/tanto/templates/bug-report.md` | new, the report skeleton |
-| `skills/tanto/templates/kanri.md` | the Written column and the Stage values, with one sentence below the table that every write-out takes only the adopted rows marked `no` and fills the column with the commit subject; a "Hotfixes since the previous plan" line in Plan; Progress example gains "handover written"; Session events example gains a handover, a triage, and an exit shoroku |
-| `skills/tanto/roles/kanri.md` | as mapped above: opening paragraph; Start; handshake check; the loop; Handover; Bug intake; Exit shoroku; request lines with the real name; the Replace and Delete rows; the residency paragraph; the Kaiseki branch's step 5 |
-| `skills/tanto/roles/sekkei.md` | opening sentence; "send Kanri" three times and "ask Kanri" once; the `kanri-address:` obligation; the Step 3 verification, batch-sizing, and whole-tree stop-condition clauses; the exit candidates and apply step; the write-rule clause; the reply to the boundary line |
-| `skills/tanto/roles/jisso.md` | opening sentence; "send Kanri" twice; the obligation; the verification section; the exit sentences in T2 |
-| `skills/tanto/roles/kaiseki.md` | opening sentence; "send Kanri" once; the obligation; the standalone clause; the standalone reporter sentence; the exit candidates; the two tree-discipline lines; the standalone exit sentence |
+| `skills/tanto/templates/kanri.md` | the Written column and the Stage values, with one sentence below the table that every write-out takes only the adopted rows marked `no` and fills the column with the commit subject; a "Hotfixes since the previous plan" line in Plan; Progress example gains "handover written"; Session events example gains a handover, a triage, an exit shoroku, a human access grant with its `done` line, and a `human-contact:` line |
+| `skills/tanto/roles/kanri.md` | as mapped above: opening paragraph, now naming Kanri as the human's counterpart; Start; handshake check, with Sekkei's standing grant in the orders line; the loop; Handover; Bug intake; Human access; Exit shoroku; request lines with the real name; the Replace and Delete rows; the residency paragraph; the Kaiseki branch's steps 2 (the brief's Human access section) and 5 |
+| `skills/tanto/roles/sekkei.md` | opening sentence, with the standing grant, the `human-needed:` request, conduct under a grant, and `human-contact:`; "send Kanri" three times and "ask Kanri" once; the `kanri-address:` obligation; the Step 3 verification, batch-sizing, and whole-tree stop-condition clauses; the exit candidates and apply step; the write-rule clause; the reply to the boundary line |
+| `skills/tanto/roles/jisso.md` | opening sentence, with the `human-needed:` request, conduct under a grant, and `human-contact:`; "send Kanri" twice; the obligation; the verification section; the exit sentences in T2; the two "unless Kanri grants it" clauses |
+| `skills/tanto/roles/kaiseki.md` | opening sentence, with the brief's grant, the `human-needed:` request, conduct under a grant, `human-contact:`, and the standalone counterpart sentence; "send Kanri" once; the obligation; "The run" scoped to the grant; the standalone clause; the standalone reporter sentence; the exit candidates; the two tree-discipline lines; the standalone exit sentence |
 | `docs/notes/tanto-consistency-checks.md` | new, the checks |
 | `.superpowers/sdd/<plan-basename>/handover-run.md` | new, untracked, T9's deliverable: the handover run's procedure and pass checklist for the human |
 
@@ -997,7 +1100,14 @@ For each batch, in the plan's "How a batch is verified":
    `## Residency` and `## Shoroku candidates` in `roster.md`, the `Kanri — `
    line in `batch-prompt.md`, `Written` in `templates/kanri.md`, the rule 5
    exit clause and "no commit but its exit shoroku" in `SKILL.md`,
-   `nothing to commit` in `SKILL.md`, `roles/sekkei.md`, and `roles/kanri.md`;
+   `nothing to commit` in `SKILL.md`, `roles/sekkei.md`, and `roles/kanri.md`,
+   `human-needed:` in `SKILL.md`, the four role files, and `batch-prompt.md`,
+   with the full request line byte-identical in `SKILL.md` and the four role
+   files, `human-access:` in `SKILL.md` and `roles/kanri.md`,
+   `human-access: done` in the three peer role files, `human-contact:` in
+   `SKILL.md` and the four role files, `the human by grant` three times in
+   `SKILL.md`, `## Human access` in `SKILL.md`, `roles/kanri.md`, and
+   `kaiseki-brief.md`;
    the
    strings that must be absent
    (`/rename`, `four-session`, `<plan>`, "a rename observed" in
@@ -1051,6 +1161,7 @@ by a plan task — those are T1 and T2.
 | I-4 the two design rules | Applied: the `kanri-address:`, `bug-report:`, `triage:`, and exit terms are in `SKILL.md`; each obligation is in the file of the role that performs it; the loop's new steps are in Kanri's file. |
 | I-5 the bug-report flow | Adopted with the three agreed deviations and Kanri's additions: "The bug intake". The tracking paragraph is under the Issue outcome; the Sekkei clause is in the term paragraph. |
 | I-6 session-exit shoroku | Adopted with the three recommendations the human accepted: "Session exit". Its batch-sizing half is "Sizing batches for one Jisso" — Sekkei's Step 3 clause, the Replace table's planned-replacement row, and this plan's expectation of one Jisso. |
+| I-7 the human's counterpart is Kanri | Adopted as Kanri proposed, with the two feasibility limits stated in the contract: "Human access". The standing grants are the orders line and the brief's section; the roles table's cells read as proposed. |
 
 ## Deferred items
 
@@ -1076,11 +1187,14 @@ For Kanri's `S-n` table:
 - requirements: already written — req-04f5's bullet "Trouble reports reach
   the repository's Kanri, and Kanri answers them" and its checkpoint bullet,
   committed by Kanri on 2026-09-07 (fixed inputs); nothing left for T1.
+- decision, **escalated**: the human's counterpart is Kanri, and a role
+  reaches the human only under Kanri's grant for what needs the human's eyes
+  or hands — the principle the session-exit ADR follows from (I-7).
 - decision, **escalated**: every planned session exit carries its own
-  shoroku, using decision-1f5f's split for the roles that cannot reach the
-  human and Kanri's direct ruling for the rest, with Kaiseki committing under
-  `docs/` at its exit — generalizes decision-1f5f beyond its justification
-  and retires design-4807's "Kaiseki never commits" (spec review F-38).
+  shoroku, using decision-1f5f's split because no role but Kanri reaches the
+  human unless granted, with Kaiseki committing under `docs/` at its exit —
+  generalizes decision-1f5f and retires design-4807's "Kaiseki never
+  commits" (spec review F-38); its reasoning follows from the ADR above.
 - decision: addressing by born name, no rename, the roster as the address
   book — reverses the "uniqueness check, not an address book" reasoning of
   the 2026-09-06 design and design-4807, on the measured facts (a rename
