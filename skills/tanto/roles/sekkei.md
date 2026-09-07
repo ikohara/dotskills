@@ -63,7 +63,17 @@ superpowers writing-plans. Then add, yourself:
   tree, not only the files the batch wrote;
 - **how a batch is verified**. For a plan that ships Markdown, that section
   names lint on the changed paths by name, the content greps, a real YAML load
-  of any frontmatter, and a JSON parse of any JSON the plan writes.
+  of any frontmatter, and a JSON parse of any JSON the plan writes;
+- when the plan edits this skill's own files, the **boundary from which a
+  role may be started or replaced** — where one is *permitted*, as distinct
+  from the boundaries where the second bullet expects one — stated in Global
+  Constraints and in the Batches section: the first boundary at which every
+  file the plan touches agrees with every other, because a session started
+  before it reads a half-edited skill — which may be the final boundary, in
+  which case a replacement waits for it and the plan says so; and the
+  sentence that until then the authority for the run's sessions is the
+  constraints, Kanri's orders line, and the batch prompts (contract rule
+  11).
 
 The report and prompt skeletons do **not** go in the plan. The plan says that
 reports and prompts follow the tanto templates, and names nothing else.

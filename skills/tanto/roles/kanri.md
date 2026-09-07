@@ -112,7 +112,12 @@ this order.
 
 1. Cold-read the committed plan and the spec, and send Sekkei one line per open
    question. Wait for its pointer: it answers by editing the plan or the spec,
-   never by explaining in a message.
+   never by explaining in a message. If the plan edits this skill's own files,
+   record as `R-n`, before any batch prompt or subagent is dispatched, that
+   the run's sessions follow the constraints, your orders lines, and the
+   batch prompts rather than the role text on disk, and the boundary the plan
+   names for a role start or replacement (contract rule 11); every batch
+   prompt and a handover file then carry it.
 2. Move the ledger from `.superpowers/sdd/<topic>/` to
    `.superpowers/sdd/<plan-basename>/kanri.md`, note the move in the roster's
    Events list, and name the topic directory in the moved ledger's Plan
