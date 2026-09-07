@@ -21,10 +21,10 @@ This file is the shared contract. Every role reads it, then reads exactly one
 
 | Role | Count per repo | Owns | Talks to |
 | --- | --- | --- | --- |
-| Kanri (管理) | exactly 1 | roster, conductor ledger, batch prompts, rulings, shoroku adoption and the T0 and T1 write-outs, lifecycle requests | human, Sekkei, Jisso, Kaiseki |
-| Sekkei (設計) | 0 or 1 | spec, plan, spec and plan review | human, Kanri |
-| Jisso (実装) | 0 or 1 | the SDD run, batch reports, commits, the T2 shoroku proposal and write-out | Kanri only |
-| Kaiseki (解析) | 0 or 1, on demand | root-cause reports; never a fix, never a commit | human, Kanri |
+| Kanri (管理) | exactly 1 | roster, conductor ledger, batch prompts, rulings, shoroku adoption and the T0 and T1 write-outs, the exit directions, the bug intake, lifecycle requests | human, Sekkei, Jisso, Kaiseki |
+| Sekkei (設計) | 0 or 1 | spec, plan, spec and plan review | Kanri; the human by grant |
+| Jisso (実装) | 0 or 1 | the SDD run, batch reports, commits, the T2 shoroku proposal and write-out | Kanri; the human by grant |
+| Kaiseki (解析) | 0 or 1, on demand | root-cause reports; never a fix; no commit but its exit shoroku | Kanri; the human by grant |
 
 ## Invocation
 
@@ -47,7 +47,7 @@ Kanri's lifecycle request. Kanri runs `/tanto kanri` with no address.
 
 ## Start sequence
 
-Three steps, in this order, before any role work.
+Two steps, in this order, before any role work.
 
 ### 1. Model check
 
@@ -57,14 +57,7 @@ substring of that id. On a mismatch, tell the human what was expected and what
 is running, ask them to run `/model <family>` and then `/tanto` again, and
 stop. The check warns only. Never switch a model.
 
-### 2. Rename
-
-Ask the human to run `/rename <role>` in this session — a skill cannot rename
-its own session. Wait for their confirmation, run `ListAgents`, and check that
-this session's name is now the role id. If it is not, continue under the
-observed name and say so in the handshake.
-
-### 3. Handshake
+### 2. Handshake
 
 Kanri skips the handshake and runs the start sequence in `roles/kanri.md`
 instead. Every other role does the handshake below.
@@ -115,6 +108,9 @@ Send Kanri exactly one message:
 handshake role=<role> name=<name [ref]> cwd=<path> model=<model id> branch=<branch> mode=<permission mode|unknown>
 ```
 
+`name [ref]` is what `ListAgents` prints for this session on its first line
+("This session is `<name> [<ref>]`").
+
 `mode=` is what you can see about your own permission mode — `auto` when your
 system prompt says auto mode is active, otherwise `unknown`. It is advisory.
 
@@ -129,12 +125,32 @@ The roster lives at `.superpowers/sdd/roster.md`, is written only by Kanri from
 `[ref]`, kind, and start time — not the cwd, the model, or the role; the
 handshake carries those.
 
-Address a peer by its **bare name**: `to` is `kanri`, `sekkei`, `jisso`, or
-`kaiseki`. A `/rename` changes the name `ListAgents` shows and the envelope's
-`from-name`; the `[ref]` does not change; the **old** name stops delivering.
-So the roster is a uniqueness check — exactly one live session per role name —
-and not an address book. Two live sessions sharing a name make `SendMessage`
-error and ask for the ref, which is the refusal we want.
+### The address
+
+- The address of a session is the **bare name** its handshake carried:
+  `dotskills-0d`, not `kanri`. `SendMessage` delivers a bare name that matches
+  exactly one live session. When it reports the name ambiguous, run
+  `ListAgents` once and append the `[ref]` from that listing, with the space
+  that precedes it.
+- **An address written `<name> [<ref>]` is used as the bare `<name>`.** The
+  `[ref]` is an identity, shown wherever a session is named so that the
+  listing, the roster, and the handover agree on which session is meant; it is
+  appended to a `to` value only after `SendMessage` reports the name ambiguous,
+  and never pasted from a file. Every command line (`/tanto <role> <address>`),
+  every `to` value, and every "Send to" blank carries the bare name.
+- **Kanri's address** reaches a role in one of three ways, in this order of
+  precedence: the `kanri-address:` line below; the second argument of
+  `/tanto <role> <address>`, pasted by the human from Kanri's request; the
+  first data row of `.superpowers/sdd/roster.md`.
+- **Every other role's address** is known only to Kanri, from the handshake,
+  and Kanri is the only session that sends to Jisso, Sekkei, or Kaiseki. A
+  reply copies the envelope's `from` into `to` and needs no name at all.
+
+Kanri's address is the first data row of the roster. A message whose first line
+is `kanri-address: <name> [<ref>] — handover accepted; the roster's first row is rewritten`
+comes from a successor Kanri and replaces Kanri's address from then on; the
+roster's first row says the same. A role whose send to Kanri errors re-reads
+that row.
 
 ## Messages
 
@@ -150,9 +166,96 @@ error and ask for the ref, which is the refusal we want.
 - Never poll `ListAgents`; never send "are you done". Check the listing only
   when an expected signal did not arrive.
 - A reply copies the incoming message's `from` into `to`.
+- At a batch boundary Kanri has verified, Sekkei answers in one line,
+  `committed <subject>` or `nothing to commit`; Kanri sends the next batch
+  prompt only after that reply or Sekkei's idle notice.
 - Permission boundaries are per session. Never ask a peer for work that was
   denied in your own session or would be blocked there. Blocked work goes to
-  the human.
+  Kanri, which rules on human access.
+
+A defect noticed in a skill goes to the Kanri of the repository that ships that
+skill, as a **bug report**: a file written from `templates/bug-report.md` and
+one line, `bug-report: <absolute path>`. Kanri is the intake, and the human
+supplies the intake's address. A defect that surfaces in a spec dialogue
+reaches Kanri as an `I-n` relay through Sekkei, not as a bug report.
+
+Kanri answers a bug report with one line, in one of five forms:
+`triage: issue-<id>`, `triage: redirect — <one line>`,
+`triage: kaiseki requested`, `triage: hotfix — <commit subject>`, and
+`triage: relayed as I-<n>`.
+
+## Human access
+
+The human's counterpart is Kanri. By default a role has no human access:
+Jisso and an attached Kaiseki never address the human unless granted, and a
+role addresses the human directly only for what needs the human's eyes or
+hands — a visual check in a browser or a GUI, an OS dialog, a credential — and
+only after Kanri has judged it necessary and granted it for that scope. Two
+standing grants exist: Sekkei's spec and plan dialogue, given at its creation
+and named in Kanri's orders line; and an attached Kaiseki's debugging
+conversation, written in its brief. A standalone Kaiseki has no Kanri, and the
+human in the room is its counterpart.
+
+The request is one line to Kanri,
+`human-needed: <what the human must do> — <why no other way> — <where: this window>`,
+and the role idles until the answer. Kanri answers in one line,
+`human-access: granted — <scope> — <until>` or
+`human-access: denied — <alternative>`, recorded as `R-n`. On a grant Kanri
+tells the human, as a numbered list, to go to the role's window
+(`<name> [<ref>]`), do `<what>`, and come back. The role's direct exchange
+stays within the scope and ends with one line to Kanri,
+`human-access: done — <what the human did or decided>`.
+
+This is protocol, not enforcement: every role has its own window, and two
+things stay outside the rule. The harness's own prompts — a permission dialog,
+the model-mismatch stop of the start sequence — reach the human in the role's
+window and cannot be routed through Kanri. And when the human speaks in a
+role's window unprompted, the role answers, because silence costs more than
+the exception, and sends Kanri one line,
+`human-contact: <one line on what was said>`; that is not a grant for anything
+beyond the exchange.
+
+## Session exit
+
+Before the human deletes a session in the normal flow, the session's **exit
+shoroku** runs. It is the T2 split applied to that session: the session writes
+its candidates as a numbered list to `exit-<role>[-<suffix>]-proposal.md`;
+Kanri rules per the adoption rule, escalates requirement and ADR items to the
+human, and answers item by item in `exit-<role>[-<suffix>]-direction.md`; the
+session applies the accepted subset per `docs/AGENTS.md`, lints, commits once
+by explicit path in the slot Kanri gives it, and sends Kanri one line. Kanri
+verifies the diff as for any batch, marks the `S-n` rows written, and only then
+asks the human to delete the session. An exit whose candidates carry no
+requirement or ADR item asks the human nothing; the human sees the delete
+request and the commit. Candidates are what is not yet in any file — a rejected
+alternative and its reason, a fact measured, a defect noticed, an observation
+about the run — never a restatement of a spec, a plan, a report, or a ledger.
+Kanri's own exit and a standalone Kaiseki have no second session to rule; each
+role file says how.
+
+The lines, each sent with `notify_when_idle: true`. Kanri sends
+`exit: propose your shoroku; write it to <path>`; the session answers with one
+line and the path; Kanri sends `exit: direction at <path>`; the session answers
+`exit write-out committed: <subject>` or `exit write-out: nothing accepted`. A
+session that has not answered when its idle notice arrives is past answering:
+Kanri treats the exit as forced — the roster's Events line says the exit
+shoroku did not run and what was lost, as far as Kanri knows — asks the human
+to delete it, and continues. Jisso idles through another session's exit; the
+cost is one boundary.
+
+The file pattern is `exit-<role>[-<suffix>]`, with the suffix the batch letter
+for Jisso (`exit-jisso-B`, a Jisso leaving at batch B's boundary), the case
+number for Kaiseki (`exit-kaiseki-1`), absent for Sekkei (`exit-sekkei`), and
+the date for Kanri (`exit-kanri-<YYYY-MM-DD>`); the conductor ledger's Stage
+values mirror it. The files live where the role's other files live: Jisso's and
+an attached Kaiseki's under `.superpowers/sdd/<plan-basename>/`, Sekkei's under
+`.superpowers/sdd/<topic>/`, Kanri's own next to the roster. Kanri's exit has a
+proposal file but no direction file, because it rules on itself.
+
+The write-out commit's subject begins with `docs: exit shoroku` or
+`docs: T<n> shoroku` — `docs: exit shoroku for jisso at B`,
+`docs: T2 shoroku for <topic>` — which is the fixed prefix the whole-branch
+review package excludes.
 
 ## Artifacts
 
@@ -161,6 +264,8 @@ error and ask for the ref, which is the refusal we want.
 | `docs/superpowers/specs/<date>-<topic>-design.md` | Sekkei | Kanri, Jisso | the spec; committed |
 | `docs/superpowers/plans/<date>-<topic>.md` | Sekkei | Kanri, Jisso | the plan; committed; carries Global Constraints, a Batches section, and how a batch is verified |
 | `.superpowers/sdd/roster.md` | Kanri | all roles | one row per role |
+| `.superpowers/sdd/kanri-handover.md` | the outgoing Kanri | the successor Kanri | the handover; deleted by the successor once accepted |
+| `.superpowers/sdd/inbox/<date>-<slug>.md` | Kanri | Kanri | a bug report received, with its Triage section |
 | `.superpowers/sdd/<topic>/kanri.md`, then `.superpowers/sdd/<plan-basename>/kanri.md` | Kanri | Sekkei, Jisso, Kaiseki | the conductor ledger |
 | `.superpowers/sdd/<topic>/spec-inputs.md` (optional) | Kanri | Sekkei | scope inputs the human gave Kanri during spec work, numbered `I-n`, each with Kanri's advisory notes |
 | `.superpowers/sdd/<plan-basename>/batch-<X>-prompt.md` | Kanri | Jisso, human | the same text as the `SendMessage`, so the human can paste it if the message did not arrive |
@@ -169,14 +274,17 @@ error and ask for the ref, which is the refusal we want.
 | `.superpowers/sdd/<plan-basename>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
 | `.superpowers/sdd/<plan-basename>/shoroku-proposal.md` | Jisso | Kanri | the T2 proposal, written to a file instead of printed |
 | `.superpowers/sdd/<plan-basename>/shoroku-direction.md` | Kanri | Jisso | Kanri's answer to that proposal, item by item |
+| `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-proposal.md`, or the topic directory for Sekkei, or `.superpowers/sdd/exit-kanri-<date>-proposal.md` | the exiting session | Kanri | the exit shoroku proposal |
+| `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-direction.md`, or the topic directory for Sekkei | Kanri | the exiting session | Kanri's answer, item by item |
 | `.superpowers/sdd/<plan-basename>/progress.md` | Jisso, through the SDD skill | Kanri | the SDD ledger; Kanri reads it and never writes it |
 | `.superpowers/sdd/.gitignore` holding `*` | the SDD skill's `sdd-workspace` script, or Kanri at start when it runs first | git | keeps everything above untracked, so nothing is ever staged |
 | `$CLAUDE_CONFIG_DIR/tanto.json` | the user | every role at start, Kanri at each handshake | the personal expected-model config |
 
-Templates are copied and filled, never restated in prose: `templates/roster.md`,
-`templates/kanri.md`, `templates/batch-prompt.md`, `templates/batch-report.md`,
-`templates/kaiseki-brief.md`, `templates/kaiseki-report.md`, and
-`templates/tanto.json`.
+Templates are copied and filled, never restated in prose. There are nine:
+`templates/roster.md`, `templates/kanri.md`, `templates/kanri-handover.md`,
+`templates/bug-report.md`, `templates/batch-prompt.md`,
+`templates/batch-report.md`, `templates/kaiseki-brief.md`,
+`templates/kaiseki-report.md`, and `templates/tanto.json`.
 
 No `<plan-basename>` exists before the plan is committed, so the conductor
 ledger starts under `.superpowers/sdd/<topic>/` and Kanri moves it to
@@ -197,7 +305,8 @@ ledger moves; the topic directory stays as the spec-phase record.
    `docs/superpowers/` and `.superpowers/sdd/`, at any time, and, while a batch
    is in flight, commits only at a batch boundary Kanri has verified; while no
    batch is in flight it commits whenever its work is ready. Kaiseki edits only
-   to instrument and leaves the tree clean.
+   to instrument and leaves the tree clean. Neither writes under `docs/`,
+   except the accepted subset of its own exit shoroku, at its exit.
 6. Every subagent dispatch names a `model` from `tanto.json`; none omits it.
 7. Small batches of three or four tasks. Each boundary is a ruling checkpoint
    and a lifecycle checkpoint.
@@ -205,17 +314,27 @@ ledger moves; the topic directory stays as the spec-phase record.
    before more fixing.
 9. At most two strong-model sessions active at once: Sekkei pauses while
    Kaiseki is active.
+10. No `tanto` session is renamed after it has started under `/tanto` — Kanri
+    included, from its start line onward. A rename changes the name the listing
+    shows and the envelope's `from-name`, the ref does not change, and the old
+    name stops delivering even with the ref attached (measured 2026-09-06). A
+    rename before `/tanto <role>` is the human's own choice: the skill neither
+    asks for one nor forbids it, and the handshake carries whatever the name
+    is.
 
 ## The four SDD stop classes
 
-subagent-driven-development names four things that stop an executor, and only
-these: an irreversible or destructive operation; a security-sensitive action; a
-side effect outside this worktree that norms say you ask about first (a merge, a
-push to a shared branch, a publish); and a plan so broken that every path
-forward is a guess. Under `tanto` those four plus a scope or spec change
-are the only items that reach the human, and they reach the human through
-Kanri. `roles/jisso.md` quotes the source text verbatim; this restatement is
-for the roles that route on it.
+Quoted verbatim, the same bytes as `roles/jisso.md` carries, so that one
+fixed-string search checks both copies against the source:
+
+> Four things stop you, and only these: an irreversible or destructive
+> operation; a security-sensitive action; a side effect outside this worktree
+> that norms say you ask about first (a merge, a push to a shared branch, a
+> publish); and a plan so broken that every path forward is a guess. For those,
+> stop and ask.
+
+Under `tanto` those four plus a scope or spec change are the only stops that
+reach the human, and they reach the human through Kanri.
 
 ## Workspace
 

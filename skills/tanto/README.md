@@ -14,6 +14,9 @@ one implementation plan.
 - Keeps state in files rather than in messages — a roster, a conductor ledger,
   batch prompts and reports, Kaiseki briefs and reports. A message is one line
   plus a path, because a message dies with the session and a file does not.
+- Takes bug reports about the skills this repository ships: a report is a file
+  and one line to Kanri, which triages it into an issue, a redirect, a
+  root-cause session, a one-line hotfix, or an input to a spec in progress.
 - Composes, without editing them, superpowers brainstorming, writing-plans,
   subagent-driven development, systematic-debugging, and requesting-code-review;
   the `docs/` document-management system that `kisou` installs; and `shoroku`
@@ -53,21 +56,25 @@ Start Kanri first, with no address:
 ```
 
 Every other role is created when Kanri asks the human for it, and starts with
-Kanri's bare name as the address, exactly as Kanri's request prints it:
+Kanri's name as its request prints it:
 
 ```console
-/tanto sekkei kanri
-/tanto jisso kanri
-/tanto kaiseki kanri
+/tanto sekkei <kanri>
+/tanto jisso <kanri>
+/tanto kaiseki <kanri>
 ```
+
+`<kanri>` is the bare name Kanri's request prints — the name that session was
+born with. No `tanto` session is renamed once it has started, because a rename
+would invalidate every address already held.
+
+Every attached role then checks its model and sends Kanri one handshake line;
+Kanri checks its model too, but receives handshakes rather than sending one,
+and standalone Kaiseki sends none. Kanri replies with that role's standing
+orders.
 
 `/tanto kaiseki` with no address is standalone Kaiseki — the strong model leads
 one debugging session, with no roster and no batch loop.
-
-Every attached role then checks its model, asks the human to run
-`/rename <role>`, and sends Kanri one handshake line; Kanri checks its model and
-asks for the rename too, but it receives handshakes rather than sending one, and
-standalone Kaiseki sends none. Kanri replies with that role's standing orders.
 
 ## Layout
 
@@ -75,18 +82,20 @@ standalone Kaiseki sends none. Kanri replies with that role's standing orders.
 - `roles/kanri.md`, `roles/sekkei.md`, `roles/jisso.md`, `roles/kaiseki.md` —
   one procedure per role. A session reads exactly one.
 - `templates/` — copy-and-fill skeletons: `roster.md`, `kanri.md` (the
-  conductor ledger), `batch-prompt.md`, `batch-report.md`, `kaiseki-brief.md`,
-  `kaiseki-report.md`, and `tanto.json` (the built-in expected-model defaults).
+  conductor ledger), `kanri-handover.md`, `bug-report.md`, `batch-prompt.md`,
+  `batch-report.md`, `kaiseki-brief.md`, `kaiseki-report.md`, and `tanto.json`
+  (the built-in expected-model defaults).
 
 ## Relationship to kisou, shoroku, and superpowers
 
 `kisou` installs the `docs/` document-management system and `shoroku` fills it;
 `tanto` decides **when** it is filled and **who** fills it — Kanri at T0 and
-T1, Jisso at T2 with Kanri answering `Direction?` through a file. superpowers
-supplies the spec, plan, implementation, and debugging machinery; `tanto`
-supplies the sessions, the boundaries between them, and the model discipline.
-None of those skills is edited: every override `tanto` makes is written into
-its own role files.
+T1, Jisso at T2 with Kanri answering `Direction?` through a file, and every
+session at its own exit. superpowers supplies the spec, plan, implementation,
+and debugging machinery; `tanto` supplies the sessions, the boundaries between
+them, and the model discipline. None of those skills is edited: every override
+`tanto` makes is written into its own role files.
 
-The design this skill implements is
-`docs/superpowers/specs/2026-09-06-tanto-design.md`.
+The designs this skill implements are
+`docs/superpowers/specs/2026-09-06-tanto-design.md` and
+`docs/superpowers/specs/2026-09-07-kanri-lifecycle-design.md`.
