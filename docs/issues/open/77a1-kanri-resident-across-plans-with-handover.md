@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-06
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 The human's direction on 2026-09-06, after the first plan closed: Kanri is
@@ -66,3 +66,15 @@ What has to change:
 
 Related: req-04f5, design-4807, issue-1c70 (the name the successor takes),
 issue-770d (the dogfood that surfaced this).
+
+Measurement, 2026-09-07 (the first data point for the threshold in item 2):
+the resident Kanri that started on 2026-09-06 noticed a compaction on its
+second day, at the batch C boundary of its second plan, after 8 accepted
+batches and 1 plan close, plus that plan's spec and plan reviews, two
+whole-branch review dispatches, and one exit direction. Its context began
+with a harness summary; every ruling the summary named was in the conductor
+ledger, and nothing was found missing. The `tokens left` figure the harness
+prints was about 14.8M just before the compaction, so that figure is not the
+context window and cannot serve as the trigger. The noticed compaction fired
+the handover per the delivered role file; a background review agent was
+alive at the time, which is issue-f801.
