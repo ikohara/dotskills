@@ -777,10 +777,11 @@ boundary as the point where Kanri replaces it if it judges it long.
 ### Where it lives
 
 - `SKILL.md` — the "Session exit" section, the lines, the file pattern, the
-  commit subject convention; rule 5 gains "except the accepted subset of its
-  own exit shoroku, at its exit" for Sekkei and Kaiseki; the roles table's
-  Kaiseki cell becomes "never a fix; no commit but its exit shoroku"; Kanri's
-  Owns cell gains the bug intake and the exit direction.
+  commit subject convention; the boundary-reply pair under Messages, since
+  Sekkei sends it and Kanri routes on it; rule 5 gains "except the accepted
+  subset of its own exit shoroku, at its exit" for Sekkei and Kaiseki; the
+  roles table's Kaiseki cell becomes "never a fix; no commit but its exit
+  shoroku"; Kanri's Owns cell gains the bug intake and the exit direction.
 - `roles/kanri.md` — sending the lines, ruling, directing, verifying, the
   delete request only afterwards, the Kanri case; loop step 6; the Replace
   and Delete rows; the Kaiseki branch's step 5.
@@ -906,14 +907,14 @@ talks to.
 
 | File | Changes |
 | --- | --- |
-| `skills/tanto/SKILL.md` | start sequence of two steps; "The address" and the `kanri-address:` term under Handshake and roster; rule 10; rule 5's exit clause; the roles table's Kaiseki and Kanri cells; the two bug-report paragraphs under Messages; the "Session exit" section; the artifacts rows above and the nine-template sentence; the stop classes as a verbatim quote |
-| `skills/tanto/README.md` | Usage without rename and with `<kanri>` as the pasted name; the intake bullet in What it does; Layout lists nine templates; the closing line names both designs |
+| `skills/tanto/SKILL.md` | start sequence of two steps, with the `name [ref]` sentence under the handshake form; "The address" as a subsection under Handshake and roster, and the `kanri-address:` term below it; rule 10; rule 5's exit clause; the roles table's Kaiseki and Kanri cells; under Messages, the boundary-reply bullet (`committed <subject>` or `nothing to commit`, the pair Sekkei sends and Kanri waits for — a term two roles route on) and the two bug-report paragraphs; the "Session exit" section; the artifacts rows above and the nine-template sentence; the stop classes as a verbatim quote |
+| `skills/tanto/README.md` | Usage without rename and with `<kanri>` as the pasted name, the handshake paragraph kept and placed before the standalone-Kaiseki line; the intake bullet in What it does; the Relationship paragraph gains "and every session at its own exit"; Layout lists nine templates; the closing line names both designs |
 | `skills/tanto/templates/roster.md` | address-book paragraph; Residency section; the between-plans Shoroku candidates section; the Events examples as listed |
 | `skills/tanto/templates/batch-prompt.md` | `<kanri-address>` twice; the `Kanri — <name> [<ref>]` line in Setup on resume |
 | `skills/tanto/templates/kaiseki-brief.md` | `<kanri-address>` once |
 | `skills/tanto/templates/kanri-handover.md` | new, the handover skeleton |
 | `skills/tanto/templates/bug-report.md` | new, the report skeleton |
-| `skills/tanto/templates/kanri.md` | the Written column and the Stage values; a "Hotfixes since the previous plan" line in Plan; Progress example gains "handover written"; Session events example gains a handover, a triage, and an exit shoroku |
+| `skills/tanto/templates/kanri.md` | the Written column and the Stage values, with one sentence below the table that every write-out takes only the adopted rows marked `no` and fills the column with the commit subject; a "Hotfixes since the previous plan" line in Plan; Progress example gains "handover written"; Session events example gains a handover, a triage, and an exit shoroku |
 | `skills/tanto/roles/kanri.md` | as mapped above: opening paragraph; Start; handshake check; the loop; Handover; Bug intake; Exit shoroku; request lines with the real name; the Replace and Delete rows; the residency paragraph; the Kaiseki branch's step 5 |
 | `skills/tanto/roles/sekkei.md` | opening sentence; "send Kanri" three times and "ask Kanri" once; the `kanri-address:` obligation; the Step 3 verification and batch-sizing clauses; the exit candidates and apply step; the write-rule clause; the reply to the boundary line |
 | `skills/tanto/roles/jisso.md` | opening sentence; "send Kanri" twice; the obligation; the verification section; the exit sentences in T2 |
@@ -993,7 +994,8 @@ For each batch, in the plan's "How a batch is verified":
    `## Residency` and `## Shoroku candidates` in `roster.md`, the `Kanri — `
    line in `batch-prompt.md`, `Written` in `templates/kanri.md`, the rule 5
    exit clause and "no commit but its exit shoroku" in `SKILL.md`,
-   `nothing to commit` in `roles/sekkei.md` and `roles/kanri.md`; the
+   `nothing to commit` in `SKILL.md`, `roles/sekkei.md`, and `roles/kanri.md`;
+   the
    strings that must be absent
    (`/rename`, `four-session`, `<plan>`, "a rename observed" in
    `roster.md`, "You do not commit" and "never write under `docs/` yourself"
