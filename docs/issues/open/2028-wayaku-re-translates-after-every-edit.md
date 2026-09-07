@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-06
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 While reviewing the tanto spec on 2026-09-06, the Sekkei session re-ran
@@ -34,3 +34,14 @@ time; the mtime check exists so that a repeated request skips work, not so
 that the agent watches for changes.
 
 Optionally mirror the sentence in req-5e6f (the wayaku requirement).
+
+Measured 2026-09-07, in the Sekkei session of the kanri-lifecycle run: the
+skill's update mode (`和訳更新`) diffed the old and new source per section and
+patched only the affected regions on each of eight updates of a 3,400-line
+plan, one to three minutes each, after a first full run that split the file
+across five chunk subagents. So the premise above — a re-run costs a full
+translation — held only for the first run. The measurement was taken with a
+sonnet subagent that kept its context across the updates; a fresh invocation
+has no such context, and whether it patches as cheaply is not measured. This
+is data for the issue, not a resolution: the fix proposed above still decides
+whether the agent re-runs at all.

@@ -257,3 +257,37 @@ breaks frontmatter parsing silently, which is what the second line prints
 `0`, and record the fallback.
 
 Use `uv run --no-project`, never a bare `python`.
+
+## 9. Linting an extracted tree
+
+The extraction method's third leg. `scripts/lint.sh` runs pre-commit, which
+takes only paths inside the repository, so a scratch tree of blocks extracted
+from a plan cannot go through it. The markdownlint-cli2 the hook uses is
+installed in the pre-commit cache; run it on the scratch tree with the
+repository's configuration, whose `ignores` still apply (templates and
+`docs/superpowers/**` are skipped there too):
+
+```bash
+ML=$(ls ~/.cache/pre-commit/repo*/node_env-default/Scripts/markdownlint-cli2 | head -1)
+"$ML" --config /path/to/dotskills/.markdownlint-cli2.yaml skills/tanto/SKILL.md skills/tanto/README.md skills/tanto/roles/*.md docs/notes/tanto-consistency-checks.md
+```
+
+Expected: `Summary: 0 error(s)`. The `repo*` directory is named after the
+hook's `rev` and changes whenever it does, so glob for it rather than naming
+it; on a POSIX host the executable sits under `bin/` instead of `Scripts/`.
+Replace `/path/to/dotskills` with the repository root — never commit a home
+directory.
+
+Trailing whitespace and the final newline are the two things markdownlint
+does not check and the hooks fix silently:
+
+```bash
+for f in $(find skills docs -name '*.md'); do
+  [ "$(grep -c '[[:space:]]$' "$f")" != "0" ] && echo "trailing whitespace: $f"
+  [ "$(tail -c1 "$f" | od -An -c | tr -d ' ')" != '\n' ] && echo "no final newline: $f"
+done; echo done
+```
+
+Expected: `done` alone. A block that passes here survives `markdownlint
+--fix` on commit byte for byte, which is what a complete-contents plan
+promises.
