@@ -359,7 +359,7 @@ The outgoing Kanri's steps, in `roles/kanri.md`'s Handover section:
 
 If the human says "continue" instead of creating the successor, delete the
 handover file, record the declined handover in the roster's Events (the
-`<k>` counter stays), and resume — at loop step 7 in a plan, or waiting for
+`<k>` counter stays), and resume — at loop step 8 in a plan, or waiting for
 the next topic between plans.
 
 ### Kanri's Start, reordered
@@ -423,7 +423,8 @@ The batch loop in `roles/kanri.md` becomes, per batch:
    intake"): rule on each, send the redirects, the Kaiseki requests, and the
    relays now; an issue to file or a hotfix to make waits for the commit
    window at step 7.
-5. Report one line to the human (unchanged).
+5. Report one line to the human (unchanged); its numbered questions are for
+   the four SDD stop classes and a scope or spec change, the contract's term.
 6. **Check the lifecycle tables and the handover trigger.** Rewrite the
    roster's Residency line. If a create request is due, make it. If a delete
    or a replace of a live, coherent session is due, or a handover trigger

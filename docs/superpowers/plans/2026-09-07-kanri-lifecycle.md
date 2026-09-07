@@ -1363,6 +1363,13 @@ Expected: `1`
 - This file is **linted**, so every `<placeholder>` outside a fenced block
   lives inside a code span.
 
+This task ran at batch B before two edits Kanri ruled at that boundary
+(R-13): loop step 5 names the contract's term, "a scope or spec change", and
+the declined-handover paragraph resumes at loop step 8, the next prompt,
+rather than at step 7. The block below is the final content; the delta between
+it and the tree reaches the tree through the whole-branch review's single fix
+wave, as for Task 1.
+
 - [ ] **Step 1: Replace `skills/tanto/roles/kanri.md` with exactly this content** — the complete file follows in Steps 1a to 1e; transcribe them in order into one file, joining the parts with exactly one blank line.
 
 - [ ] **Step 1a: opening, Start, the four cases, and the handshake**
@@ -1511,7 +1518,7 @@ Per batch, in this order.
    relays now. An issue to file or a hotfix to make waits for the commit window
    at step 7.
 5. Report one line to the human. Ask numbered questions only for the four SDD
-   stop classes and for scope changes.
+   stop classes and for a scope or spec change.
 6. **Check the lifecycle tables and the handover trigger.** Rewrite the
    roster's Residency line. If a create request is due, make it. If a delete or
    a replace of a live, coherent session is due, or a handover trigger has
@@ -1686,7 +1693,7 @@ never a copy.
 
 If the human says "continue" instead of creating the successor, delete the
 handover file, record the declined handover in the roster's Events (the `<k>`
-counter stays), and resume — at loop step 7 in a plan, or waiting for the next
+counter stays), and resume — at loop step 8 in a plan, or waiting for the next
 topic between plans.
 ````
 
@@ -2821,6 +2828,10 @@ there: Sekkei's plan review before the plan is committed, Jisso's pre-flight
 before its first task, and the conductor's pre-flight at each boundary before
 a batch is accepted.
 
+On this working tree files may be checked out with CRLF, so every command
+below that flattens a file strips CR first (`tr -d '\r'`); the counts do not
+depend on the checkout.
+
 They also earn a run after a superpowers upgrade, because checks 4 and 5
 compare text the skill quotes against the plugin's own source. A failure is one
 of three things — a typo in the skill, a file a plan forgot, or a change in
@@ -2998,6 +3009,18 @@ done
 
 Expected: five lines, each ending `-> 1`.
 
+The `kanri-address:` obligation sentence, byte-identical in the three peer
+role files once each file's line wrapping is flattened — the sentence wraps at
+a different column in each file, so a raw `grep -cF` returns 0:
+
+```bash
+for f in skills/tanto/roles/sekkei.md skills/tanto/roles/jisso.md skills/tanto/roles/kaiseki.md; do
+  printf '%s -> %s\n' "$f" "$(tr -d '\r' < "$f" | tr '\n' ' ' | tr -s ' ' | grep -cF "A message whose first line is \`kanri-address: <name> [<ref>]\` replaces Kanri's address from then on; if a send to Kanri errors, re-read the roster's first data row.")"
+done
+```
+
+Expected: three lines, each ending `-> 1`.
+
 ## 7. The strings that must be absent
 
 ```bash
@@ -3006,15 +3029,18 @@ grep -rn -i 'four-session' skills/tanto/
 grep -rn '<plan>' skills/tanto/
 grep -n 'a rename observed' skills/tanto/templates/roster.md
 grep -n 'uniqueness check, not an address book' skills/tanto/templates/roster.md
-grep -nF 'You do not commit' skills/tanto/roles/kaiseki.md
-grep -nF 'never write under `docs/` yourself' skills/tanto/roles/kaiseki.md
+tr -d '\r' < skills/tanto/roles/kaiseki.md | tr '\n' ' ' | tr -s ' ' | sed 's/\*\*//g' | grep -n 'You do not commit'
+tr -d '\r' < skills/tanto/roles/kaiseki.md | tr '\n' ' ' | tr -s ' ' | grep -n 'never write under `docs/` yourself'
 grep -nF 'Kaiseki itself never writes under' skills/tanto/roles/kanri.md
 grep -rn 'skills/tanto/' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
 grep -rnE '\b[0-9a-f]{7,40}\b' skills/tanto/
 ```
 
-Expected: no output from the first nine (each exits 1). The tenth is read, not
-counted: no line may be an actual commit hash. Tracked content carries commit
+Expected: no output from the first nine (each exits 1). The sixth and seventh
+flatten the file first, because their pre-images — `You **do not commit**` with
+its bold markers, and `never write under `docs/` yourself` across a line
+break — would never have matched a raw line; the sixth also strips `**`. The
+tenth is read, not counted: no line may be an actual commit hash. Tracked content carries commit
 subjects, never hashes, and `<sha7>` inside a template blank is a placeholder,
 not a hash. `<plan>` is checked because `<plan-basename>` is the only correct
 form; runtime text is skill-relative, so only the skill's `README.md` and this
@@ -3178,12 +3204,14 @@ and `roles/jisso.md`.
 
 - [ ] **Step 6: Check 6 — the strings the roles route on**
 
-Run all three blocks under `## 6. The strings the roles route on`.
+Run all four blocks under `## 6. The strings the roles route on`.
 Expected: the twenty-seven numbers `2`, `1`, `1`, `2`, `1`, `1`, `1`, `1`,
 `5`, `3`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `3`, `1`, `1`, `1`,
 `1`, `1`, `1` in that order, then
 five lines each ending `-> 1` (the triage answers), then five more lines each
-ending `-> 1` (the request line in the contract and the four role files).
+ending `-> 1` (the request line in the contract and the four role files), then
+three lines each ending `-> 1` (the `kanri-address:` obligation sentence,
+flattened, in the three peer role files).
 
 - [ ] **Step 7: Check 7 — the strings that must be absent**
 
