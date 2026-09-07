@@ -222,7 +222,8 @@ shoroku** runs. The shoroku stages are T0 (decisions, on `main` before Sekkei
 exists), T1 (requirements and issues, after the plan commit), and T2
 (everything else, after the final batch); `R-n` numbers Kanri's rulings and
 `S-n` its shoroku candidates, both in the conductor ledger; the adoption rule
-is that requirement and ADR items go to the human and Kanri decides the rest.
+is that requirement and ADR items, and any item Kanri cannot classify or is
+unsure about, go to the human, and Kanri decides the rest.
 It is the T2 split applied to that session: the session writes
 its candidates as a numbered list to `exit-<role>[-<suffix>]-proposal.md`;
 Kanri rules per the adoption rule, escalates requirement and ADR items to the
