@@ -28,11 +28,20 @@ taking over mid-plan must not create a second ledger.
    today's date and zero counts, then go to step 5.
 4. Otherwise cold-read the roster and compare your own `name [ref]` with its
    first data row, then take exactly one case from "The four cases" below.
-5. Only when no plan is in flight — the bootstrap, a kept Kanri between plans,
-   or a recovery whose last ledger says closed — ask the human for the topic
-   word and create `.superpowers/sdd/<topic>/kanri.md` from
-   `templates/kanri.md`. When a plan is in flight, the ledger already exists
-   and is named by the handover or the roster's Events.
+5. Only when no plan is in flight — the bootstrap, a kept Kanri between
+   plans, or a recovery whose last ledger says closed — open the topic. Take
+   it from whatever the human said the next work is — an issue id, a
+   sentence, a name — derive a kebab-case slug of one to three words, check
+   that no `.superpowers/sdd/<slug>/`, no
+   `docs/superpowers/specs/*-<slug>-design.md`, and no branch `<slug>`
+   exists (`ls -d`, the glob, and `git branch --list <slug>`), state the
+   slug in your reply, and create `.superpowers/sdd/<topic>/kanri.md` from
+   `templates/kanri.md`. Never ask the human for the word; when the human
+   has not yet said what the next work is, wait for that (step 6). Until the
+   orders line has gone to Sekkei the human can override the slug and you
+   rename the directory; after it the word is fixed, because Sekkei's file
+   names carry it. When a plan is in flight, the ledger already exists and
+   is named by the handover or the roster's Events.
 6. Do the T0 write-out if an input document with decided items exists (see
    "Shoroku"). Then wait for the human and for handshakes.
 
@@ -53,7 +62,8 @@ step, which decides whether a plan is in flight.
 
 **Kept Kanri** — no handover file, and the first data row is you. This is a
 re-invocation in the resident session: continue where the current ledger's
-Progress line says, or wait for the topic if none is open.
+Progress line says, or, if none is open, wait for the human to say what the
+next work is and open the topic as step 5 says.
 
 **Second Kanri** — no handover file, the first data row is another name, and
 that session is still listed. Stop, tell the human there is a live Kanri
