@@ -832,10 +832,12 @@ conventions under tanto", and following the boundary-rules plan as the model:
   a role may be started or replaced. After A, `SKILL.md` defines
   `review-ready:` and `brief:`, the two artifacts, and ten templates, and the
   README describes the brief, while the two role files still send neither
-  line and keep no `dialogue.md`; and the note still expects thirteen `ok`
-  lines from check 2 (the tree gives fourteen once the template exists and
-  `SKILL.md` names it) and "Fifteen skill files, nine of them templates" —
-  the contract a batch ahead of the roles and the note that act on it. The
+  line and keep no `dialogue.md`, and `roles/kanri.md` still sends every
+  prompt and brief with a subscription the contract now forbids; and the note
+  still expects thirteen `ok` lines from check 2 (the tree gives fourteen once
+  the template exists and `SKILL.md` names it) and "Fifteen skill files, nine
+  of them templates" — the contract a batch ahead of the roles and the note
+  that act on it. The
   Batches section names that set as the forward-reference set and says
   checks 1 to 8 run only at the batch B boundary, in Task 7. The **batch B
   boundary** is the one from which a role may be started or replaced, and it
@@ -844,14 +846,17 @@ conventions under tanto", and following the boundary-rules plan as the model:
   throughout. Two commands decide it, both named in the plan. (1) The tree
   sweep, **raw** per file — `grep -cF` counts lines, and a flattened file is
   one line — over `SKILL.md`, `roles/*.md`, and `templates/*.md` for
-  `review-ready: <` and `brief: <path>`: at the batch A boundary `SKILL.md`
-  counts one of each and every other file zero; at the batch B boundary the
-  values of the note's new check 6 block. (2) The term sweep design-4807
-  names: grep the plan's own new-passage blocks of batch A for every term
-  batch B lands — `review-ready: <`, `brief: <path>`, `dialogue.md`,
-  `templates/review-brief.md`, `review-brief-spec.md`, `review-brief-plan.md`,
-  and the note's changed counts — and record the set found as the
-  forward-reference set, rather than asserting it empty.
+  `review-ready: <`, `brief: <path>`, and `notify_when_idle: true`: at the
+  batch A boundary `SKILL.md` counts one, one, and two, `roles/kanri.md`
+  zero, zero, and six (its four prompt-and-brief subscriptions plus the two
+  exit lines, the forward reference the I-4 rule leaves until Task 5), and
+  every other file zero; at the batch B boundary the values of the note's new
+  check 6 block. (2) The term sweep design-4807 names: grep the plan's own
+  new-passage blocks of batch A for every term batch B lands — `review-ready:
+  <`, `brief: <path>`, `dialogue.md`, `templates/review-brief.md`,
+  `review-brief-spec.md`, `review-brief-plan.md`, `notify_when_idle`, and the
+  note's changed counts — and record the set found as the forward-reference
+  set, rather than asserting it empty.
 - **Line endings**, per the consistency note: no per-file table in the plan;
   `git ls-files --eol <file>` before and after each edit shows the same
   `w/crlf` or `w/lf` and never `w/mixed`, and a passage is written with the
