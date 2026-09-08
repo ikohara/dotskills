@@ -5,6 +5,16 @@ edits `skills/tanto/` runs the whole set as one task instead of restating the
 commands. Run them from the repository root, in the order below, and record
 each command's output: the output is the deliverable of a consistency pass.
 
+**Run these commands as written.** A paraphrase is where a consistency pass
+loses its own reliability, and two measured cases say why. `grep -n '[ \t]$'`
+substituted for check 9's `grep -c '[[:space:]]$'` matches every line ending in
+the letter `t`: inside single quotes a bracket expression reads `\t` as the two
+characters `\` and `t`, not as a tab. And `**Output**` substituted for a
+recorded baseline's `Output:` heading finds no blocks at all, which reads as
+"no baseline exists" rather than as a typo. A divergence between a command here
+and the tree is this note's problem or the tree's; a divergence introduced in
+transcription is neither, and it looks exactly like a result.
+
 Three moments in a `tanto` plan call for the same extraction method —
 every fenced block of the plan pulled into a scratch tree, diffed
 against `HEAD`, and these commands run there: Sekkei's plan review
@@ -23,6 +33,56 @@ on the tree as for any plan; of check 9, the extracted-tree lint does not
 apply to such a plan, and the trailing-whitespace and final-newline sweep
 runs as for any plan.
 
+Six things a passage plan's pass needs that a whole-file plan's does not.
+
+1. **The diff form.** `git diff "$(git merge-base main HEAD)" -- <file>`
+   compares the working tree with the merge base, so it is right both before and
+   after a task's commit. `git diff main...HEAD` compares commits only and
+   misses an uncommitted edit; the two-dot form differs again. A pre-commit
+   verification step built on the three-dot form under-reports silently.
+2. **The hunk count is a task-time check, never an invariant.** `git diff`
+   merges two changed regions into one hunk when at most six unchanged lines
+   separate them — three lines of context on each side; five and six give one
+   hunk, seven gives two. A plan states the count it expects at each task and a
+   reviewer reads the hunks.
+3. **Hunk order is file order, not task order.** A passage written by a late
+   task can sit above passages written by an early one, so an attribution by
+   hunk index is wrong and no count can catch it. Match each hunk to a passage
+   by its text.
+4. **Reconstruct-and-compare**, the alignment check that replaces the extracted
+   tree. Either replay the plan's old/new pairs onto the merge-base file and
+   diff the result against the tree, or classify every `-U0` added and removed
+   line against the union of the plan's blocks and require zero uncovered lines
+   — the second form needs no knowledge of each passage's shape. One trap: an
+   insertion's new block omits its anchor, so a naive replace drops it.
+5. **A review method for the plan itself.** Apply the passages to copies of the
+   files and re-run markdownlint with the repository configuration plus every
+   string this note counts. That is the passage-plan analogue of check 9's
+   extracted-tree lint, and one script settles what a spec otherwise asserts by
+   reading.
+6. **A flaw in the spec's own block is never a task-level edit.** In a passage
+   plan the spec's bytes reach the tree verbatim, so a wording or wrapping flaw
+   arrives with them — and the task that carries it is the one place it cannot
+   be fixed, since an edit outside the passage breaks the invariant above. Such
+   a flaw is a whole-branch-review item.
+
+**Splice-and-compare, before a fix-wave list is dispatched.** A list of passage
+edits can pass every command it specifies — old text present, new text absent,
+line numbers holding — and still be wrong, because none of those commands reads
+the replacement joined to the unchanged line that follows it. So for each item,
+flatten the old text, splice in the item's stated change with `sed`, and
+word-diff the result against the flattened new block; equality means no word was
+gained or lost beyond the intended change. The failure this catches has a
+mechanical cause: a replacement that widens a line inside a wrapped block
+already at the file's ceiling pays for the width with a word, and the narrower
+the ceiling the likelier it is. A fix that touches one line and leaves its
+neighbours alone avoids it structurally.
+
+**An absence check must be falsifiable at repository scope.** Pair every
+"the new form is present" check with a `grep -rn` over the skill that must print
+nothing, so the pass decides that the old form is gone everywhere rather than
+that the new form arrived somewhere.
+
 The index stores LF throughout, but the working tree is mixed file by file —
 some paths are checked out with CRLF and some with LF. So every command below
 that flattens a file strips CR first (`tr -d '\r'`), unconditionally: it is
@@ -31,6 +91,16 @@ it returns a plausible `0` rather than an error. Never decide a line-ending
 question with a grep for a control character, which in this shell matches every
 line of an LF-only stream and so returns the line count; settle it with byte
 counts instead — `git cat-file -s` against the piped byte count, or `od -c`.
+
+That mixture is an artifact, not a property, and a plan must not encode it as a
+table. `core.autocrlf=true` is set globally on this machine and `.gitattributes`
+gives `.md` only `* text=auto`, with per-file `eol=` for `*.sh` and `*.bat`
+alone; every `.md` blob is `i/lf` in the index. So which files are checked out
+CRLF depends on how each happened to be written here, and **a fresh Windows
+clone checks out every `.md` as CRLF**. Any list of per-file endings is a
+snapshot of one working tree. The deciding command is `git ls-files --eol <file>`
+run before and after an edit: it must show the same `w/crlf` or `w/lf` as
+before, and never `w/mixed`.
 
 They also earn a run after a superpowers upgrade, because checks 4 and 5
 compare text the skill quotes against the plugin's own source. A failure is one
@@ -134,9 +204,14 @@ test -f "$SP/requesting-code-review/code-reviewer.md" && echo code-reviewer-pres
 grep -cF 'Direction?' skills/shoroku/SKILL.md
 ```
 
-Expected: a nonzero count on every `grep` line, and `code-reviewer-present`. A
-zero means superpowers or `shoroku` moved: do not silently rewrite the role
-file — report which line no longer matches.
+Expected, for the superpowers version named under "Versions these checks
+assume": the counts `1 1 4 1 1 1 1 1`, then `code-reviewer-present`, then `1`.
+**Any change in a count means superpowers or `shoroku` moved — not only a zero.**
+A third line dropping from `4` to `2` is the overridden text moving, which is
+exactly the drift this check exists to catch, and a "nonzero on every line"
+expectation would wave it through. A version bump is expected to move these
+counts: record the new ones here with the new version when it lands. Either way,
+do not silently rewrite the role file — report which line changed.
 
 ## 5. The two verbatim quotes' pinned lines are present in every copy
 
@@ -234,6 +309,34 @@ where a plain `grep -cF` pins it, or its check flattens the file first. A
 wrapped line cannot be pinned by `grep -cF` at all — no raw line carries it, so
 the count is `0` in every copy and the check silently pins nothing.
 
+The authority triad, which the rule above does **not** cover. Rule 11, Kanri's
+"When the plan lands" step 1, and Sekkei's Step 3 bullet each name the same
+three sources of authority, but they are not byte-identical — the subject
+differs by role:
+
+- `SKILL.md` — "the plan's Global Constraints, Kanri's orders line, and the
+  batch prompts"
+- `roles/kanri.md` — "the constraints, your orders line, and the batch prompts"
+- `roles/sekkei.md` — "the constraints, Kanri's orders line, and the batch
+  prompts"
+
+So no full-string check can pin all three. Pin the common substring instead, and
+add the absence check that makes a number disagreement visible:
+
+```bash
+for f in skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/sekkei.md; do
+  printf '%s -> %s\n' "$f" "$(tr -d '\r' < "$f" | tr '\n' ' ' | tr -s ' ' | grep -cF 'orders line, and the batch prompts')"
+done
+grep -rn 'orders lines' skills/tanto/
+```
+
+Expected: three lines, each ending `-> 1`, then no output at all from the
+`grep -rn` (it exits 1). Both halves can fail, which is the point. A plural in
+one copy of a phrase meant to agree is invisible to every other check here: it
+was singular in seven of eight occurrences across the skill, six task reviews
+read the passage carrying the plural, and only a whole-branch pass that could
+see all three copies at once caught it.
+
 ## 7. The strings that must be absent
 
 ```bash
@@ -307,20 +410,28 @@ repository's configuration, whose `ignores` still apply (templates and
 
 ```bash
 ML=$(ls ~/.cache/pre-commit/repo*/node_env-default/Scripts/markdownlint-cli2 | head -1)
-"$ML" --config /path/to/dotskills/.markdownlint-cli2.yaml skills/tanto/SKILL.md skills/tanto/README.md skills/tanto/roles/*.md docs/notes/tanto-consistency-checks.md
+"$ML" --config "$(git rev-parse --show-toplevel)/.markdownlint-cli2.yaml" skills/tanto/SKILL.md skills/tanto/README.md skills/tanto/roles/*.md docs/notes/tanto-consistency-checks.md
 ```
 
 Expected: `Summary: 0 error(s)`. The `repo*` directory is named after the
 hook's `rev` and changes whenever it does, so glob for it rather than naming
 it; on a POSIX host the executable sits under `bin/` instead of `Scripts/`.
-Replace `/path/to/dotskills` with the repository root — never commit a home
-directory.
+The config path comes from `git rev-parse --show-toplevel` so the block is
+copy-pasteable and still never embeds a home directory.
+
+Two notes on this block. Its argument list is the tree's **real** paths, which
+is why it can be run as-is against the repository; a scratch tree substitutes
+its own paths there, and the heading and the arguments otherwise disagree. And
+`markdownlint-cli2` from the cache, run **without** `--fix`, is the right
+instrument for a **read-only reviewer**: four of `scripts/lint.sh`'s hooks
+mutate files, so a review seat forbidden to touch the tree cannot run the
+repository's own lint entry point at all.
 
 Trailing whitespace and the final newline are the two things markdownlint
 does not check and the hooks fix silently:
 
 ```bash
-for f in $(find skills docs -name '*.md'); do
+find skills docs -name '*.md' -print0 | while IFS= read -r -d '' f; do
   [ "$(grep -c '[[:space:]]$' "$f")" != "0" ] && echo "trailing whitespace: $f"
   [ "$(tail -c1 "$f" | od -An -c | tr -d ' ')" != '\n' ] && echo "no final newline: $f"
 done; echo done
@@ -328,4 +439,7 @@ done; echo done
 
 Expected: `done` alone. A block that passes here survives `markdownlint
 --fix` on commit byte for byte, which is what a complete-contents plan
-promises.
+promises. The loop reads a NUL-delimited list rather than an unquoted
+`$(find ...)`, which would word-split on any path containing a space; none of
+the repository's Markdown files has one today, so this is a latent case closed
+rather than a bug fixed.

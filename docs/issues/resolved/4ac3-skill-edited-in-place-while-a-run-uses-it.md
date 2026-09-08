@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-07
-updated: 2026-09-07
+updated: 2026-09-08
 ---
 
 The user-level `tanto` link points into this working tree, so a plan that
@@ -36,3 +36,17 @@ their orders, and the prompts, not the role text on disk. That is one data point
 for the second shape above, the rule a skill-editing plan states: the mitigation
 that worked was not a copy of the skill but a declaration of where authority
 lives while the files are in motion.
+
+Resolved by the boundary-rules design of 2026-09-07 and its plan, which chose
+the second of the two shapes above: a rule every skill-editing plan states,
+rather than a copy of the skill for the running roles. decision-5c8e records the
+choice and the rejected alternatives. `SKILL.md` gained contract rule 11
+("feat(tanto): contract rule 11, a plan that edits this skill in place"), and
+the two obligations it assigns went to the role files that perform them — Kanri
+records the authority ruling as an `R-n` before any batch prompt or subagent is
+dispatched, and Sekkei states the boundary from which a role may be started or
+replaced in Global Constraints and in the Batches section ("feat(tanto): the
+rule-11 obligations in Kanri's and Sekkei's procedures"). The rule was in force
+during the run that wrote it: both batch prompts carried the authority ruling,
+and the plan named its batch A boundary as the safe one, proved at each boundary
+by a command rather than asserted.

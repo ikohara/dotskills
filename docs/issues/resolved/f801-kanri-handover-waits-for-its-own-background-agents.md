@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-07
-updated: 2026-09-07
+updated: 2026-09-08
 ---
 
 The Kanri role file's handover section (design-4807, the kanri-lifecycle
@@ -41,3 +41,17 @@ lost rather than pending.
 
 Related: issue-77a1 (the residency and the trigger), decision-de63 (Kanri
 resident with a handover).
+
+Resolved by the boundary-rules design of 2026-09-07 and its plan. The Timing
+subsection of the Kanri role file now carries the wait as a rule — the handover
+file is written only after every background agent the session dispatched has
+returned and every commit line it promised a peer at that boundary has been sent
+and verified, with nothing new dispatched in between and the human's word the
+only override ("feat(tanto): a due Kanri handover waits for what the session
+still owns"). The loop's step 6 defers a create request that falls due at a
+handover boundary to the successor, and step 7 routes the handover through the
+wait. The handover template gained the "Agents of this session still running"
+line under In flight, so a handover written on the override says what is lost
+rather than pending ("feat(tanto): the handover file lists the agents lost with
+the session"). design-4807's Handover section states the rule; the wait is
+unbounded, because the harness gives no signal to bound it by.

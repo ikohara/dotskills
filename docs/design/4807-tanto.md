@@ -2,7 +2,7 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-09-07
+updated: 2026-09-08
 ---
 
 ## Purpose and shape
@@ -38,7 +38,7 @@ root README says which is which.
 `SKILL.md` is the shared contract every role reads: invocation and role-word
 normalization, the model check, the handshake, the address rule, the roster, the
 message rules, human access, the session-exit protocol, the artifacts table, the
-ten rules, the four SDD stop classes, and the workspace policy. It ends by
+eleven rules, the four SDD stop classes, and the workspace policy. It ends by
 branching to exactly one `roles/<role>.md`. A session reads its own role file and
 never the other three — which is why any term two or more roles route on has to
 live in `SKILL.md` itself.
@@ -48,6 +48,12 @@ conductor ledger, the handover, the bug report, the batch prompt, the batch
 report, the Kaiseki brief, the Kaiseki report, and the built-in expected-model
 defaults. The templates directory is markdownlint-ignored, so skeletons carry
 bare blanks; the whitespace and line-ending hooks still apply to them.
+
+The templates are written in English like the rest of the repository, with one
+exception: a section addressed to the human — the batch report's "Questions for
+the human" — may take the chat language, since a question the human must answer
+is worth putting in the language they are being asked in. That is issue-a1c9's
+spirit applied to a report rather than to a review brief.
 
 The skill's mechanical consistency checks live outside the skill, in
 `docs/notes/tanto-consistency-checks.md`. A plan that edits `skills/tanto/`
@@ -59,6 +65,17 @@ Every path the skill names at runtime is relative to the skill directory, the
 base directory Claude Code reports when the skill loads. The skill's own text
 never names its source location, so it runs unchanged from a user-level link or
 from a project's local skills directory in any repository.
+
+That link has a consequence for this repository, and rule 11 draws it: when the
+skill the sessions load is the working tree's own copy, a plan that edits
+`skills/tanto/` changes the skill its own sessions are running, and a session
+started mid-plan reads whatever is on disk at that moment. So while such a plan
+is in flight the authority for the run's sessions is the plan's Global
+Constraints, Kanri's orders line, and the batch prompts, not the role text on
+disk; Kanri records that as a ruling when the plan lands. The rule states the
+premise conditionally, because `SKILL.md` ships to hosts where the skill is
+installed as a copy and the hazard does not arise there. decision-5c8e holds the
+reasoning and the alternative that was rejected.
 
 ## The start sequence
 
@@ -163,13 +180,30 @@ should not expect the seventh column there.
 The loop has three parts, and the first two are what a steady-state description
 of it leaves out.
 
-**Start, before anything is asked.** Kanri's start runs its branch before it asks
-for a topic, because a successor taking over mid-plan must not create a second
+**Start, before anything is asked.** Kanri's start runs its branch before it
+opens a topic, because a successor taking over mid-plan must not create a second
 ledger: read the config and the listing, ensure the workspace ignore file
 exists, bootstrap the roster if it is absent, and otherwise cold-read the roster
 and take exactly one of four cases — a handover to accept, a kept Kanri
 continuing, a second Kanri that must stop and ask, or a recovery whose sessions
 are gone.
+
+**Kanri derives the topic word; it never asks for one.** When no plan is in
+flight, Kanri takes the topic from whatever the human said the next work is — an
+issue id, a sentence, a name — derives a kebab-case slug of one to three words,
+checks the three places a stale word would collide (the topic directory, the
+spec file name, and the branch), and **states** the slug in its reply rather
+than asking for it. A Kanri with nothing said yet waits for the human to say
+what the next work is; it does not ask for a word. The human may override the
+slug until the orders line has gone to Sekkei, after which it is fixed, because
+Sekkei's file names carry it. Nothing about the word needs the human's judgment
+beyond its being short and unique, and under req-04f5 the human is interrupted
+only at defined checkpoints.
+
+The word reaches five places, which is why it is fixed at the orders line: the
+topic directory, the spec and plan file names, the plan basename and so the
+workspace, the branch, and the roster's Events prose. issue-f2c4 proposes
+collapsing the first three by making the topic the plan basename.
 
 **When the plan lands.** Cold-read the committed plan and spec and send Sekkei
 one line per open question; move the ledger to the plan's workspace and note the
@@ -224,13 +258,32 @@ The successor reads the handover, rewrites the roster, sends every live peer the
 `kanri-address:` line, deletes the handover file so a stale one cannot start a
 false handover, and asks the human to delete the old session.
 
-The first handover ran on 2026-09-07, mid-plan rather than after the merge
-decision. The trigger was a compaction noticed on the session's second day. It
-waited for the session's own background agent to return before writing the file
-— a subagent dies with its session and a successor inherits only its report file,
-which is issue-f801 — and the successor's Handover case then ran as specified,
-with the human deleting the old session afterwards. The numbers are in
-`docs/reports/2026-09-07-kanri-lifecycle-dogfood.md`.
+**A due handover waits for what the session still owns.** The handover file is
+written only after every background agent the session dispatched has returned,
+and after every commit line it promised a peer at that boundary has been sent
+and its commit verified. A subagent belongs to its session and dies with it, and
+so does an idle subscription the session holds: the successor inherits a report
+file, never a completion notice. Between the last of those and the handover
+file, nothing new is dispatched — no batch prompt, no review, no create request;
+the commit window's own slots are not new dispatches, and a create request that
+fell due at that boundary is the successor's to make. The wait is unbounded,
+because the harness gives no signal to bound it by, and the human's word is the
+only override. A handover written on that override lists every agent still
+running under the handover file's **In flight** section, so the successor knows
+those results are lost rather than pending.
+
+One case does not hold a handover: a boundary that a skill-editing plan has not
+yet named safe for a replacement. The handover proceeds when due — req-04f5 and
+decision-de63 make it mandatory at a boundary — and the successor takes the
+authority ruling from the handover file's "Rulings the next batch inherits"
+rather than from the tree.
+
+The rule is the 2026-09-07 handover's own ruling, generalized. That handover ran
+mid-plan rather than after the merge decision, on a compaction noticed on the
+session's second day; it waited for the session's own background agent to return
+before writing the file, and the successor's Handover case then ran as
+specified, with the human deleting the old session afterwards. The numbers are
+in `docs/reports/2026-09-07-kanri-lifecycle-dogfood.md`.
 
 ## Bug intake
 
@@ -441,6 +494,23 @@ A plan that carries **complete file contents in fenced blocks** turns each task
 into transcription plus verification, and lets a reviewer check plan alignment
 by extracting the blocks and diffing rather than by judgment.
 
+The alternative is a plan that carries **passages**: for each edit an anchor
+line that occurs once, the old passage verbatim, and the new passage verbatim.
+A task then replaces exactly the old passage and changes no other byte, which is
+what a 580-line file gains over a whole-file block when the plan touches seven
+places in it. The alignment check changes with the shape: there is no extracted
+tree, and instead the diff of each touched file against the merge base must be
+exactly that file's passages so far. The form is
+`git diff "$(git merge-base main HEAD)" -- <file>`, which compares the working
+tree with the merge base and is therefore right both before and after a task's
+commit; `git diff main...HEAD` compares commits only and misses an uncommitted
+edit, and the two-dot form differs again. The stronger check, cheap enough to
+schedule by name, is **reconstruct-and-compare**: replay the plan's old/new
+pairs onto the merge-base file and diff against the tree, or classify every
+`-U0` added and removed line against the union of the blocks — the second form
+needs no knowledge of each passage's shape. One trap: an insertion's new block
+omits its anchor, so a naive replace drops it.
+
 A structural count written into a task's steps — a heading count, an occurrence
 count — is a **task-time check, not an invariant**. A later review can mandate a
 new section, and a fix wave forbidden to edit the plan cannot repair the count,
@@ -481,13 +551,27 @@ plan under this protocol.
 - **Line endings: the index is LF throughout, and the working tree is mixed file
   by file.** A command that flattens a file strips CR unconditionally, and a
   line-ending claim is settled by byte counts — `git cat-file -s` against the
-  piped count, or `od -c` — never by a grep for a control character.
+  piped count, or `od -c` — never by a grep for a control character. **State the
+  procedure, never a table of endings.** `core.autocrlf=true` is global here and
+  `.gitattributes` gives `.md` only `* text=auto`, with per-file `eol=` for
+  `*.sh` and `*.bat` alone, so the working tree's split is an artifact of how
+  each file happened to be written and a fresh clone checks out every `.md` as
+  CRLF. A per-file table is a snapshot of one working tree; the deciding command
+  is `git ls-files --eol` on the file before and after the edit, which must show
+  the same value and never `w/mixed`.
 - **A whole-file replacement preserves pre-existing wording defects by
   construction.** A plan that rewrites a file whole needs an explicit pass for
   them.
 - **A fix-wave list is drafted under the same conditions as a plan** and
   deserves the same pre-flight: run each specified command once before
-  dispatching it.
+  dispatching it, **and compare its output with what the list expects** —
+  running without comparing catches nothing. That is the command level. The
+  level above it is that the pre-flight must also read **the replacement joined
+  to the unchanged text around it, as prose**: splice each item's stated change
+  into its old text and word-diff the result against its new text. A list item
+  can pass every command it specifies — old text present, new text absent, line
+  numbers holding — and still drop a word when its replacement meets the line
+  that follows it.
 - **Spend the review seat on the half the controller cannot prove.** Establish
   byte identity mechanically first, then point the reviewer at the cross-file
   contracts and the human-facing questions; that is where the reviews of that
@@ -499,6 +583,79 @@ planned replacement is expected — the bound is the number of reviews the
 executor must read, not the size of the files. And a stop condition worded as a
 property of the whole tree is backed by a command that sweeps the whole tree,
 not only the files the batch wrote.
+
+The conventions below came out of the third plan, the first to carry passages
+rather than whole files.
+
+- **A plan that edits this skill's own files names the boundary from which a
+  role may be started or replaced**, in its Global Constraints and in its
+  Batches section — where one is *permitted*, which is a different question from
+  where one is *expected*. The answer may be the final boundary, and then a
+  replacement waits for it and the plan says so. Rule 11 is the term; Kanri's
+  recording step and Sekkei's plan convention are the obligations.
+- **A passage's wrap column belongs to the destination file and is chosen when
+  the spec block is authored.** The carrying task cannot re-wrap without
+  breaking byte identity, so a block authored at 68-76 columns for a file whose
+  prose runs to 79 stays narrow forever, and a wording flaw in the spec's block
+  reaches the tree verbatim. In a passage plan the task that carries such a flaw
+  is the one place it cannot be fixed; it is a whole-branch-review item.
+- **A replacement that widens a line inside a wrapped block at the file's
+  ceiling pays for the width with a word.** The narrower the ceiling, the
+  likelier. A fix that touches one line and leaves its neighbours alone avoids
+  the failure structurally, which is why it is worth preferring even when a
+  three-line re-wrap reads better.
+- **An absence check must be falsifiable at repository scope.** A `grep -rn`
+  over the skill that prints nothing decides the old form is gone everywhere;
+  a check on the new form decides only that it arrived somewhere. Both halves
+  are needed and both must be able to fail.
+- **The trailer check is per commit.** An aggregate `grep -c` over a branch
+  counts trailer *lines*, so a commit carrying two and a commit carrying none
+  balance out; loop over the commits instead. Two trailer identities coexist in
+  practice — `Claude <noreply@anthropic.com>` from a plan's commit templates and
+  `Claude Fable 5.1 <noreply@anthropic.com>` from a Fable session's harness —
+  and both satisfy `AGENTS.md`, which is why the check greps the prefix.
+- **A plan names the shell its fenced blocks run in.** On a Windows host with
+  PowerShell primary, a plan built from quoted heredocs is unrunnable until the
+  implementer guesses Git Bash.
+- **The reviewer's brief says what the review package cannot show.** A reviewer
+  of a transcription task verifies by a command rather than by eye; and the
+  package is written with `-U10`, so adjacent changed regions appear merged and
+  the plan's default-context hunk count is invisible in it, while CR bytes are
+  stripped, so line endings are invisible too. On a plan whose constraints turn
+  on per-file endings, the dispatch says so and the reviewer runs one byte
+  check. The hunk count belongs to the controller's boundary sweep.
+- **The brief carries the bytes; a dispatch's prose is orientation.** When a
+  dispatch's summary of a passage disagrees with the brief's block, the brief
+  wins and the implementer says so. A summary is written from memory of the
+  block and drifts from it in exactly the way transcription must not.
+- **`--numstat` is the instrument for a line count.** `grep -c '^+[^+]'`
+  undercounts an added blank line, which is a bare `+`.
+- **When a spec names a boundary as safe, grep the spec's own new-passage blocks
+  for every term a later batch lands**, and record the forward-reference set
+  rather than asserting it empty.
+- **A passage that rewrites another role's procedure goes to that role's live
+  session** with the question "which of your obligations does this touch",
+  before the spec review rather than instead of it. The role checks the clause
+  it is asked about and does not re-derive the rule against its own lifecycle
+  obligations, so the review still has to run.
+- **A plan that edits the note governing its own verification licenses its own
+  omission.** Legitimate when the spec ratified it at plan review and the
+  pre-edit baseline skipped the same check for the same reason — and a pattern
+  to watch, since the warrant and the thing warranted arrive in one branch.
+- **decision-2f36's hotfix-lane exclusion holds for a passage plan on a
+  different reason.** The ADR reasons from whole-file blocks, where a later task
+  would overwrite the fix; a passage plan keeps the rule because a hotfix
+  collides with the file's in-flight edits and verification, block shape aside.
+
+Three alternatives were weighed and rejected while these conventions were
+derived, and the reasons are worth keeping. A **bounded** handover wait was
+rejected because the harness gives no signal to bound it by, so a bound would be
+a guess written as a rule. A **date prefix on the topic word** was rejected
+because the spec, the plan, and the workspace already carry a date, so a dated
+topic either doubles it in every file name or becomes the larger unification now
+filed as issue-f2c4. And **whole-file blocks for a passage-shaped plan** were
+rejected because they would have meant transcribing a 580-line file to change
+seven places in it.
 
 ## The five triage outcomes, and why five
 
@@ -585,3 +742,37 @@ review's fix wave and deliberately not re-synced into the plan:
   standard output, the template check matches fixed strings, the triage block
   states its expectation, and the flattened greps print the matched phrase
   instead of the whole file.
+
+**The boundary-rules design of 2026-09-07.** Its plan carried passages rather
+than whole files, so the delivered skill matches those blocks except at five
+points, each a ruled correction made in the whole-branch review's fix wave and
+deliberately not re-synced into the plan or the spec:
+
+- `roles/kanri.md`, "When the plan lands" step 1 — "your orders line", singular,
+  where the plan's block had the plural. It was the sole plural of eight
+  occurrences in the skill and sat in one of three copies of the authority triad
+  that are meant to agree.
+- `roles/kanri.md`, Start step 5 — the creation sentence gains "where the
+  `<topic>` is that slug", binding a placeholder the step used but never
+  introduced after deriving the slug under a different name.
+- `templates/kanri-handover.md`, the fourth In flight bullet — wrapped onto two
+  lines to match its peers, where the plan's block had one line of 124 columns.
+  The trailing clause "; lost with this session" stays: the Handover section's
+  wait depends on it.
+- `roles/sekkei.md`, Step 3's fourth bullet — "the Batches bullet" for "the
+  second bullet", so an ordinal cross-reference into a list the plan tells
+  Sekkei to add to cannot rot when a bullet is inserted ahead of it.
+- `roles/kanri.md`, "The final batch" step 2 — the fix-wave pre-flight sentence
+  gains "and compare its output with what the list expects", the comparing half
+  of the condition it invokes.
+
+Four of the plan's own needles for those passages therefore no longer match the
+tree. The handover bullet's still does, because its check flattens the file and
+flattening collapses a re-wrap; the spec's handover-file block and the plan's
+Task 3 both still carry the one-line form.
+
+Two wordings stay as the spec's bytes, for its next revision rather than for a
+fix wave: "a handover file" in rule 11 and in Kanri's step 1, where "any
+handover file" would read better; and rule 11's "no further role is created",
+whose scope — beyond the roles that start the plan — is resolved two sentences
+later rather than where the clause is read.
