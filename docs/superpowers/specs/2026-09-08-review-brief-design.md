@@ -394,9 +394,9 @@ meanwhile — a restart, a handover — because the writer dies with the session
 that dispatched it. Put brainstorming's review gate to the human with the
 brief's text verbatim, the spec's path, and the brief's, and record the
 human's answers in `dialogue.md` in the brief's reply shape. A new brief is
-written when the human asks
-for one, or when the spec's judgment points changed after the answers — a
-fixed input, a rejected alternative, a deferred item — not when its prose did.
+written when the human asks for one, or when the spec's judgment points
+changed after the answers — a fixed input, a rejected alternative, a deferred
+item — not when its prose did.
 ```
 
 The middle paragraph is the file's current Step 2, transcribed; the first and
@@ -472,13 +472,13 @@ the paragraph "The harness's own prompts ...":
    unsettled line saying whether an answer is needed; every point in its
    three parts; every pointer the document's own heading text, verbatim and
    untranslated, so that `grep '^#'` on the document matches it. Dispatch
-   once more if the form fails; if it fails
-   again, send the brief as it stands and tell the human in one line. Never
-   edit it, and do not read the document to validate it — a point that
-   misreads the document is caught by the human's answer or by your cold
-   read, which stays where it is. Then send Sekkei `brief: <path>`. The human
-   answers in Sekkei's window under the standing grant; the answers reach you
-   through `dialogue.md` and the document.
+   once more if the form fails; if it fails again, send the brief as it
+   stands and tell the human in one line. Never edit it, and do not read the
+   document to validate it — a point that misreads the document is caught by
+   the human's answer or by your cold read, which stays where it is. Then send
+   Sekkei `brief: <path>`. The human answers in Sekkei's window under the
+   standing grant; the answers reach you through `dialogue.md` and the
+   document.
 ```
 
 The routed strings stay on one line: `review-ready: <path>` once, `brief:
