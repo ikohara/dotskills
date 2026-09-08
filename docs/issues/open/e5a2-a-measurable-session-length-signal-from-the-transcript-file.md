@@ -80,3 +80,22 @@ Related: issue-40ed (blocked by this: its threshold needs this signal's
 data), issue-77a1 (resolved; the residency line and the trigger),
 issue-f801 (the handover's wait), decision-de63 (the trigger set, which
 deliberately excludes the token figure).
+
+Measured 2026-09-09 by the resident Kanri, with the transcript method above,
+over six sessions of two plans (kanri-lifecycle, boundary-rules): the Kanri of
+the first compacted at 8.6 MB, 3,082 records, and 618 user records — the
+wake-ups, one per human message, peer message, or idle notice — over two
+days; its successor reached 5.3 MB, 1,993 records, and 394 wake-ups in 1.7
+days with no compaction; a Sekkei ran 4.6 MB and 377 wake-ups per plan, a
+Jisso 3.5 to 4.5 MB and about 200 wake-ups per plan. Two things follow. The
+wake-up is the cost unit: every one re-reads the session's whole context as
+input, so a long-lived Kanri pays its context size on each notice. And of the
+successor's 394 wake-ups, 81 were idle notices against 77 peer messages, most
+of the notices false idles (a peer had dispatched a subagent and its turn
+ended) carrying no information — the subscriptions roughly doubled the cost
+for nothing, and the review-brief plan drops them (its spec input I-4). The
+report's own warning reproduced: a plain grep for the compaction phrase
+matched once in the successor's transcript, on a quoted string inside a shell
+command, and that session was never compacted. The human lowered effort from
+extra high to high on the Kanri and Sekkei sessions on 2026-09-09; the effect
+is not yet measured.

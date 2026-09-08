@@ -24,3 +24,17 @@ that triggers a handover before a compaction, or decide none is needed.
 The tokens-left figure the harness prints in its reminders was rejected as a
 signal: its unit is not documented as the context window and its presence is
 not guaranteed.
+
+Two more data points, 2026-09-09. The kanri-lifecycle Kanri noticed its
+compaction at 8 batches and 1 plan close on its second day, at 8.6 MB and
+618 wake-ups of transcript. Its successor conducted the boundary-rules plan
+and the review-brief spec phase — 4 batches, 2 plan closes, 1.7 days, 5.3 MB
+and 394 wake-ups — with no compaction, and handed over on the human's word
+for a reason the two signals do not name: cost. Each wake-up re-reads the
+whole context, so a resident Kanri's per-turn cost grows with its age, and
+the human feels it as the 5-hour usage window filling across the workspaces
+that run tanto. A third candidate signal, then, beside the human's word and a
+noticed compaction: a cost threshold on wake-ups times context size, readable
+from the transcript (issue-e5a2's method), with a handover at the next plan
+close once it is crossed — cheaper than waiting for the compaction it
+predicts.
