@@ -6,8 +6,10 @@ reviews a spec or a plan, a third party lists, concisely and in the language
 of the chat, only the points that need the human's judgment, each with a
 pointer into the document, so the human confirms those and reads the rest
 only where a point sends them. The design adds one template, two message
-lines, one artifact Sekkei keeps during the spec dialogue, and one step each
-to Sekkei's and Kanri's procedures. It also carries three plan conventions the
+lines, two artifacts — the brief files, and the dialogue record Sekkei keeps
+during the spec dialogue — one item in Kanri's procedure, five passages in
+Sekkei's, two bullets and a sentence in the README, and the consistency note's
+counts with one new pinned line. It also carries three plan conventions the
 previous run's T2 landed in design-4807 but not in Sekkei's file. The skill's
 earlier designs are the tanto design of 2026-09-06, the kanri-lifecycle design
 of 2026-09-07, and the boundary-rules design of 2026-09-07; its as-built
@@ -54,9 +56,12 @@ Decided before or during the dialogue, not reopened here:
   cheaper or faster: a review is input-heavy and short, `fable` is twice the
   price of `opus` per token on both input and output (the cached price table
   of the Claude API skill, 2026-06-24), and a top-family subagent is what a
-  real run lost to a rate limit (decision-9a3a). The brief writer therefore
-  runs on `subagents.reviewer`, and Kanri's read of the brief is the
-  top-family pass on the human-facing points. A `fable` reviewer is an
+  real run lost to a rate limit (decision-9a3a). The write half of the
+  question is already the default: `subagents.drafter` is `opus` in
+  `templates/tanto.json`, and the implementers are `sonnet`; the top family
+  writes only the spec, which is the design judgment itself. The brief writer
+  therefore runs on `subagents.reviewer`, and Kanri's check of the brief is
+  the top-family pass on the human-facing points. A `fable` reviewer is an
   experiment through the personal `tanto.json` overlay, deferred item 2.
 - **The answers to the brief are the confirmation (D-2).** The human's
   answers to the brief's points are the confirmation req-3c4d requires; the
@@ -153,7 +158,9 @@ spec-inputs.md and dialogue.md; for a plan also the spec>.
 
 Each point is three parts: the question the human decides, in one sentence;
 the document's answer, in one sentence; the pointer — the section heading
-that answers it, never a line number.
+that answers it, never a line number. At most five points per section; what
+does not fit goes to the last section, one line each. For a spec, section 5's
+body is the single line `<not applicable — a spec>`.
 
 ## 1. Scope and what was excluded
 
@@ -165,10 +172,11 @@ that answers it, never a line number.
 
 ## 3. Requirements
 
-Two questions per item: which requirement this design serves, and whether it
-adds to or changes a requirement or an ADR.
+Two questions per item: which requirement this design serves — read from the
+document's own `req-<id>` citations, "not stated" when it has none — and
+whether it adds to or changes a requirement or an ADR.
 
-1. Serves: <req-<id>, the bullet> — Adds or changes: <yes: what, or no> — See: <section>
+1. Serves: <req-<id>, the bullet, or "not stated"> — Adds or changes: <yes: what, or no> — See: <section>
 
 ## 4. Deferred items
 
@@ -189,14 +197,31 @@ mixed-line-ending hooks still apply.
 
 ### The writer
 
-A read-only subagent on `subagents.reviewer`, dispatched by Kanri with the
-document's path, the chat's language, and the input set: for a spec, the
-spec, `spec-inputs.md`, and `dialogue.md`; for a plan, the plan and the spec.
-It writes the brief file and nothing else. Kanri reads the brief — if it
-skips a section of the template or misreads the document, Kanri dispatches
-again; Kanri never edits it — and sends Sekkei the path. A second brief for
-the same document is written only when the human asks for one; small edits
-after the human's answers do not trigger one.
+A read-only subagent on `subagents.reviewer`, dispatched by Kanri on arrival
+of `review-ready:`, a batch in flight or not — it reads only and writes one
+untracked file, so it takes no commit slot and disturbs no implementer. The
+dispatch names the document's path; the inputs (for a spec, the spec,
+`spec-inputs.md`, and `dialogue.md`; for a plan, the plan and the spec); the
+output path; the template path; and the chat's language, which is the
+language of the human's own messages to Kanri, with `dialogue.md` as the
+reference if the two windows differ. The writer writes the brief file and
+nothing else.
+
+Kanri checks the brief's **form**, not its content: the five sections present
+(section 5 reading "not applicable" for a spec), every point in its three
+parts, every pointer a heading the document has (`grep '^#'` on the document,
+not a read of its prose). If the form fails, Kanri dispatches once more; if it
+fails again, Kanri sends the brief as it stands and tells the human in one
+line. Kanri never edits the brief and does not read the document to validate
+it — that would be the pre-read the fixed inputs reject, and it would
+contaminate the cold read — so a point that misreads the document is caught by
+the human's answer or by Kanri's cold read after the commit. Then Kanri sends
+Sekkei the path.
+
+A new brief for the same document is written when the human asks for one, or
+when the document's judgment points changed after the human's answers — a
+fixed input, a rejected alternative, a deferred item, a batch cut — not when
+its prose did.
 
 ## The flow
 
@@ -234,21 +259,45 @@ brief writer reads it, and T1's shoroku takes it as an input — under this
 protocol it is the one record of the human's own words.
 ```
 
-`roles/sekkei.md`, Step 2, two paragraphs appended after "... Kanri adopts
-from its Shoroku candidates.":
+`roles/sekkei.md`, Step 1, a paragraph after "Write the spec at the path
+above, self-contained. ... without a round trip.":
 
 ```markdown
-A passage in the spec that rewrites another role's procedure goes to that
-role's session for a check before the spec is committed, when that session is
-live, with the question which of its obligations it touches; Kanri's answer
-comes back as an `I-n`.
-
-Then, before the human reads the spec, send Kanri `review-ready: <spec path>`
-and wait for `brief: <path>`. Put the brief's text verbatim in your review
-request to the human, with the spec's path and the brief's, and record the
-human's answers in `dialogue.md`. A second brief is written only when the
-human asks for one.
+In Fixed inputs, name the requirement each decision serves — `req-<id>` and
+the bullet — or say that none does; the brief's third section reads it from
+there. Commit the spec, then hold brainstorming's review gate: the human
+reads the spec only after Step 2's brief has come back, and edits after the
+human's answers are further commits.
 ```
+
+`roles/sekkei.md`, Step 2, its body replaced whole (the heading stays):
+
+```markdown
+Before the review, a passage in the spec that rewrites another role's
+procedure goes to that role's session for a check, when that session is live:
+send Kanri the passage and the question which of its obligations it touches;
+Kanri relays it and answers as an `I-n`.
+
+Dispatch a **read-only** reviewer on `subagents.reviewer`. Give it the spec and
+the repo's `docs/decisions/` and `docs/requirements/`, ask it to check the
+spec against them, and have it write its report to
+`.superpowers/sdd/<topic>/spec-review.md` with a **Shoroku candidates**
+section at the end. Rule on every finding yourself. Scope findings go to the
+human; everything else is yours. Then send Kanri one line with the report
+path: Kanri adopts from its Shoroku candidates.
+
+Then send Kanri `review-ready: <spec path>` and idle until `brief: <path>`
+arrives; never poll. Put brainstorming's review gate to the human with the
+brief's text verbatim, the spec's path, and the brief's, and record the
+human's answers in `dialogue.md`. A new brief is written when the human asks
+for one, or when the spec's judgment points changed after the answers — a
+fixed input, a rejected alternative, a deferred item — not when its prose did.
+```
+
+The middle paragraph is the file's current Step 2, transcribed; the first and
+last are new. The other-role check is routed through Kanri because Sekkei
+never messages Jisso (the one-boss rule), and it comes before the review, as
+design-4807's convention says.
 
 `roles/sekkei.md`, Step 3, a paragraph before "The report and prompt
 skeletons do **not** go in the plan.":
@@ -278,9 +327,10 @@ insertion next to an anchor that stays.
    never been run is a placeholder in a command's shape; fix the plan, not
    the expectation.
 4. Lint the changed paths.
-5. Send Kanri `review-ready: <plan path>` and wait for `brief: <path>`; put
-   the brief's text verbatim in your request for the one OK, with both paths.
-   On the human's OK, commit under your commit rule below.
+5. Send Kanri `review-ready: <plan path>` and idle until `brief: <path>`
+   arrives, never polling; put the brief's text verbatim in your request for
+   the one OK, with both paths. On the human's OK, commit under your commit
+   rule below.
 ```
 
 Items 1, 3, and 4 are the file's current text, transcribed; items 2 and 5
@@ -295,21 +345,30 @@ Sekkei's file anyway (spec input I-1, Kanri's optional note).
 the paragraph "The harness's own prompts ...":
 
 ```markdown
-5. On `review-ready: <path>` from Sekkei, dispatch the review brief on
-   `subagents.reviewer`: a read-only subagent that reads the document — for a
-   spec also `spec-inputs.md` and `dialogue.md`, for a plan also the spec —
-   and writes `.superpowers/sdd/<topic>/review-brief-spec.md` or
-   `review-brief-plan.md` from `templates/review-brief.md`, in the chat's
-   language, which you name in the dispatch. Read the brief: if it skips a
-   section of the template or misreads the document, dispatch it again; never
-   edit it. Then send Sekkei `brief: <path>`. The human answers the brief in
-   Sekkei's window under the standing grant; the answers reach you through
-   `dialogue.md` and the document, and your cold read stays where it is.
+5. On `review-ready: <path>` from Sekkei — at any time, a batch in flight or
+   not, because the writer reads only and writes one untracked file —
+   dispatch the review brief on `subagents.reviewer`, a read-only subagent,
+   naming in the dispatch: the document's path; its inputs, for a spec also
+   `spec-inputs.md` and `dialogue.md`, for a plan also the spec; the output,
+   `.superpowers/sdd/<topic>/review-brief-spec.md` or `review-brief-plan.md`;
+   the template, `templates/review-brief.md`; and the chat's language, which
+   is the language of the human's own messages to you (`dialogue.md` is the
+   reference if the two windows differ). Check the brief's form, not the
+   document: the five sections present (section 5 reads "not applicable" for
+   a spec), every point in its three parts, every pointer a heading the
+   document has (`grep '^#'` on the document). Dispatch once more if the form
+   fails; if it fails again, send the brief as it stands and tell the human
+   in one line. Never edit it, and do not read the document to validate it —
+   a point that misreads the document is caught by the human's answer or by
+   your cold read, which stays where it is. Then send Sekkei `brief: <path>`.
+   The human answers in Sekkei's window under the standing grant; the answers
+   reach you through `dialogue.md` and the document.
 ```
 
-Kanri's cold read of the committed plan (When the plan lands, step 1) is
-unchanged: the brief is the human's pre-read, the cold read is Kanri's, and
-they read for different things.
+The routed strings stay on one line: `review-ready: <path>` once, `brief:
+<path>` once, both on lines of their own. Kanri's cold read of the committed
+plan (When the plan lands, step 1) is unchanged: the brief is the human's
+pre-read, the cold read is Kanri's, and they read for different things.
 
 ### The artifacts
 
@@ -353,17 +412,26 @@ Layout, the templates bullet:
   `review-brief.md`, and `tanto.json` (the built-in expected-model defaults).
 ```
 
-and the closing sentence names four designs, adding
-`docs/superpowers/specs/2026-09-08-review-brief-design.md` after the
-boundary-rules path. No other README drift is expected; the task that edits
-`SKILL.md` records the review either way.
+and the closing sentence names four designs:
+
+```markdown
+The designs this skill implements are
+`docs/superpowers/specs/2026-09-06-tanto-design.md`,
+`docs/superpowers/specs/2026-09-07-kanri-lifecycle-design.md`,
+`docs/superpowers/specs/2026-09-07-boundary-rules-design.md`, and
+`docs/superpowers/specs/2026-09-08-review-brief-design.md`.
+```
+
+No other README drift is expected; the task that edits `SKILL.md` records the
+review either way.
 
 ## What the human's answer means
 
 The human's answers to the brief's points are the confirmation the review
-asks for. For a spec, that is brainstorming's user review gate; for a plan,
-the one OK req-04f5 names before the commit, which decision-1f5f keeps as the
-first of req-3c4d's two points. The brief does not shorten the checkpoint's
+asks for. For a spec, that is brainstorming's user review gate, held by Sekkei
+until the brief has come back; for a plan, the one OK req-04f5 names before
+the commit, which is the first of the two points at which decision-1f5f
+preserves req-3c4d's confirmation. The brief does not shorten the checkpoint's
 authority; it shortens the reading. The writer owes completeness of the five
 sections; a point it misses is Kanri's to catch at the cold read and Sekkei's
 in its own review, as today.
@@ -373,12 +441,17 @@ in its own review, as today.
 ### The two questions
 
 Section 3 of the brief asks, for each item, which requirement the design
-serves and whether it adds to or changes a requirement or an ADR. The human
-answers in the chat's language; Sekkei records the answers in `dialogue.md`;
-Kanri takes a "yes" as a requirement or ADR candidate for the `S-n` table,
-already confirmed by the human, and escalates only the wording. This is the
-one hook tanto adds for requirement extraction, and it is a question, not a
-rule.
+serves and whether it adds to or changes a requirement or an ADR. The first
+question is answered from the document's own `req-<id>` citations, which
+Sekkei's Step 1 now requires in Fixed inputs; where the document is silent,
+"not stated" is the answer and goes under "What the writer could not settle".
+The human answers in the chat's language; Sekkei records the answers in
+`dialogue.md`; Kanri takes a "yes" as a requirement or ADR candidate for the
+`S-n` table and escalates it under decision-1f5f as it escalates every such
+item — the escalation still runs; what narrows is its content, because the
+human's answer in the brief already carries the substance, so the escalation
+confirms the wording. This is the one hook tanto adds for requirement
+extraction, and it is a question, not a rule.
 
 ### The a1c9 need is a requirement
 
@@ -413,8 +486,9 @@ The dialogue's analysis, for the issue filed at T1 (deferred item 1):
   `docs/requirements/AGENTS.md` (coarse, one file per topic, never one file
   per sentence) applied to classification — a small need folds into an
   existing requirement's section as one bullet, or is design; a new file only
-  for a new topic — and the human's confirmation, which the adoption rule
-  already requires for every requirement item.
+  for a new topic — and the human's confirmation, which tanto's adoption rule
+  (decision-1f5f) already requires for every requirement item and which
+  shoroku's own `Direction?` gate (req-3c4d) requires outside tanto.
 - The pairing: a requirement file and a design file per topic already cite
   each other (req-04f5 and design-4807 do); the check to add is bullet-level
   — a design section that names no requirement, a requirement bullet no
@@ -424,46 +498,63 @@ The dialogue's analysis, for the issue filed at T1 (deferred item 1):
 
 ## Where each change lives
 
-Seventeen passages in six files, one of them new. A **replacement**
-supersedes an old passage; an **insertion** adds text next to an anchor that
-stays; the new file is one passage of its own shape.
+Nineteen passages in six files, one of them new. A **replacement** supersedes
+an old passage; an **insertion** adds text next to an anchor that stays; the
+new file is one passage of its own shape. The template comes first, so that
+no task leaves `SKILL.md` naming a file that does not exist.
 
 | File | Passage | Shape | Task |
 | --- | --- | --- | --- |
-| `skills/tanto/SKILL.md` | Messages, the review-brief bullet after the boundary-reply bullet | insertion | 1 |
-| `skills/tanto/SKILL.md` | Artifacts, two rows after the `spec-inputs.md` row | insertion | 1 |
-| `skills/tanto/SKILL.md` | the Templates sentence, ten | replacement | 1 |
-| `skills/tanto/README.md` | What it does, the review-brief bullet after the bug-reports bullet | insertion | 2 |
-| `skills/tanto/README.md` | Layout, the templates bullet | replacement | 2 |
-| `skills/tanto/README.md` | the closing sentence, four designs | replacement | 2 |
-| `skills/tanto/templates/review-brief.md` | the whole file | new file | 3 |
+| `skills/tanto/templates/review-brief.md` | the whole file | new file | 1 |
+| `skills/tanto/SKILL.md` | Messages, the review-brief bullet after the boundary-reply bullet | insertion | 2 |
+| `skills/tanto/SKILL.md` | Artifacts, two rows after the `spec-inputs.md` row | insertion | 2 |
+| `skills/tanto/SKILL.md` | the Templates sentence, ten | replacement | 2 |
+| `skills/tanto/README.md` | What it does, the review-brief bullet after the bug-reports bullet | insertion | 3 |
+| `skills/tanto/README.md` | Layout, the templates bullet | replacement | 3 |
+| `skills/tanto/README.md` | the closing sentence, four designs | replacement | 3 |
 | `skills/tanto/roles/sekkei.md` | Step 1, the `dialogue.md` paragraph after the brainstorming paragraph | insertion | 4 |
-| `skills/tanto/roles/sekkei.md` | Step 2, two paragraphs appended | insertion | 4 |
+| `skills/tanto/roles/sekkei.md` | Step 1, the requirement-citation and review-gate paragraph after the "Write the spec" paragraph | insertion | 4 |
+| `skills/tanto/roles/sekkei.md` | Step 2, the body | replacement | 4 |
 | `skills/tanto/roles/sekkei.md` | Step 3, the passage-plan paragraph before "The report and prompt skeletons" | insertion | 4 |
 | `skills/tanto/roles/sekkei.md` | Step 4, the numbered list | replacement | 4 |
 | `skills/tanto/roles/kanri.md` | Human access, item 5 after item 4 | insertion | 5 |
+| `docs/notes/tanto-consistency-checks.md` | the opening, the flattened-count sentence after the paragraph that ends "or `od -c`." | insertion | 6 |
 | `docs/notes/tanto-consistency-checks.md` | Versions, "Sixteen skill files, ten of them templates" | replacement | 6 |
 | `docs/notes/tanto-consistency-checks.md` | check 1, the `ls` gains `skills/tanto/templates/review-brief.md`, Expected says sixteen | replacement | 6 |
 | `docs/notes/tanto-consistency-checks.md` | check 2, Expected says fourteen `ok` lines and lists `templates/review-brief.md` after `templates/kanri.md` | replacement | 6 |
 | `docs/notes/tanto-consistency-checks.md` | check 3, the MAP gains `templates/review-brief.md skills/tanto/roles/kanri.md`, Expected says ten and seven | replacement | 6 |
-| `docs/notes/tanto-consistency-checks.md` | check 6, a last block pinning `review-ready: <` and `brief: <path>`, after the orders-line block | insertion | 6 |
+| `docs/notes/tanto-consistency-checks.md` | check 6, a sixth and last block pinning `review-ready: <` and `brief: <path>`, anchored on the last line of check 6's final Expected paragraph | insertion | 6 |
 
-The note's check 6 block, new, appended as the check's last block, after the
-block that pins "orders line, and the batch prompts" (the outer fence here is
-four backticks because the passage itself contains a fence):
+The note's opening sentence, new, a paragraph after the one that ends "or
+`od -c`.":
+
+```markdown
+A flattened `grep -cF` counts lines, so it returns `0` or `1`: it pins the
+presence of a phrase that may wrap, never a per-file occurrence count. Count
+the occurrences of a line that does not wrap with a raw `grep -cF` on the
+file.
+```
+
+The note's check 6 block, new, the sixth and last, appended after the final
+Expected paragraph of the block that pins "orders line, and the batch
+prompts" (the outer fence here is four backticks because the passage itself
+contains a fence):
 
 ````markdown
-The two lines of the review brief, each on one line where it occurs:
+The two lines of the review brief, each on one line where it occurs, counted
+raw over every Markdown file of the skill so that a stray copy fails the
+check:
 
 ```bash
-for f in skills/tanto/SKILL.md skills/tanto/roles/sekkei.md skills/tanto/roles/kanri.md; do
+for f in skills/tanto/SKILL.md skills/tanto/roles/*.md skills/tanto/templates/*.md; do
   printf '%s review-ready %s brief %s\n' "$f" "$(grep -cF 'review-ready: <' "$f")" "$(grep -cF 'brief: <path>' "$f")"
 done
 ```
 
 Expected: `skills/tanto/SKILL.md review-ready 1 brief 1`,
-`skills/tanto/roles/sekkei.md review-ready 2 brief 2`,
-`skills/tanto/roles/kanri.md review-ready 1 brief 1`.
+`skills/tanto/roles/kanri.md review-ready 1 brief 1`,
+`skills/tanto/roles/sekkei.md review-ready 2 brief 2`, and every other line
+ending `review-ready 0 brief 0`.
 ````
 
 Task 7 is the consistency pass and writes nothing; a failing check there is a
@@ -482,33 +573,46 @@ conventions under tanto", and following the boundary-rules plan as the model:
   passage, with the shape from the table; the new file is one block. The
   drafter reads each old passage from the tree at drafting time; this
   document gives every new passage verbatim except the note's three count
-  changes, whose new text is the old with the number and the list changed as
-  the table says. Needles from quoted heredocs, passed as `"$needle"`; the
-  merge-base diff `git diff "$(git merge-base main HEAD)" -- <file>`; hunk
-  counts as task-time checks; every fenced `bash` block in Git Bash.
-- **Seven tasks in two batches.** A: Task 1 `SKILL.md`; Task 2 `README.md`,
-  with the drift review recorded; Task 3 `templates/review-brief.md`. B: Task
-  4 `roles/sekkei.md`; Task 5 `roles/kanri.md`; Task 6 the note; Task 7 the
-  consistency pass, verification-only.
+  changes (Versions, check 1, check 2, check 3), whose new text is the old
+  with the number and the list changed as the table says. Needles from
+  quoted heredocs, passed as `"$needle"`; the merge-base diff
+  `git diff "$(git merge-base main HEAD)" -- <file>`; hunk counts as
+  task-time checks; every fenced `bash` block in Git Bash.
+- **Seven tasks in two batches.** A: Task 1 `templates/review-brief.md`;
+  Task 2 `SKILL.md`; Task 3 `README.md`, with the drift review recorded. B:
+  Task 4 `roles/sekkei.md`; Task 5 `roles/kanri.md`; Task 6 the note; Task 7
+  the consistency pass, verification-only. The template comes first so that
+  `SKILL.md` never names a file that is not yet in the tree.
 - **The boundaries.** The batch A boundary is **not** the boundary from which
-  a role may be started or replaced: after A, `SKILL.md` defines
-  `review-ready:` and `brief:` and the artifacts, and the README describes
-  the brief, while the two role files still send neither line and keep no
-  `dialogue.md` — the contract a batch ahead of the roles that act on it,
-  which the Batches section names as the forward-reference set. The **batch
-  B boundary** is the one from which a role may be started or replaced, and
-  it is the final boundary, the case Sekkei's Step 3 bullet foresees; the
-  plan says so in Global Constraints and Batches, and this plan expects one
-  Jisso throughout. The sweep that decides it: a per-file flattened count of
-  `review-ready: <` and `brief: <path>` over `SKILL.md`, `roles/*.md`, and
-  `templates/*.md` — at the batch A boundary `SKILL.md` counts one of each
-  and every other file zero; at the batch B boundary the counts of the
-  note's new check 6 block.
+  a role may be started or replaced. After A, `SKILL.md` defines
+  `review-ready:` and `brief:`, the two artifacts, and ten templates, and the
+  README describes the brief, while the two role files still send neither
+  line and keep no `dialogue.md`; and the note still expects thirteen `ok`
+  lines from check 2 (the tree gives fourteen once the template exists and
+  `SKILL.md` names it) and "Fifteen skill files, nine of them templates" —
+  the contract a batch ahead of the roles and the note that act on it. The
+  Batches section names that set as the forward-reference set and says
+  checks 1 to 8 run only at the batch B boundary, in Task 7. The **batch B
+  boundary** is the one from which a role may be started or replaced, and it
+  is the final boundary, the case Sekkei's Step 3 bullet foresees; the plan
+  says so in Global Constraints and Batches, and this plan expects one Jisso
+  throughout. Two commands decide it, both named in the plan. (1) The tree
+  sweep, **raw** per file — `grep -cF` counts lines, and a flattened file is
+  one line — over `SKILL.md`, `roles/*.md`, and `templates/*.md` for
+  `review-ready: <` and `brief: <path>`: at the batch A boundary `SKILL.md`
+  counts one of each and every other file zero; at the batch B boundary the
+  values of the note's new check 6 block. (2) The term sweep design-4807
+  names: grep the plan's own new-passage blocks of batch A for every term
+  batch B lands — `review-ready: <`, `brief: <path>`, `dialogue.md`,
+  `templates/review-brief.md`, `review-brief-spec.md`, `review-brief-plan.md`,
+  and the note's changed counts — and record the set found as the
+  forward-reference set, rather than asserting it empty.
 - **Line endings**, per the consistency note: no per-file table in the plan;
   `git ls-files --eol <file>` before and after each edit shows the same
   `w/crlf` or `w/lf` and never `w/mixed`, and a passage is written with the
-  file's ending as measured then. The new template takes LF, like every
-  other template.
+  file's ending as measured then. The new template is written LF and checked
+  **after `git add`**, because `git ls-files --eol` prints nothing for an
+  untracked path: `i/lf w/lf`.
 - **Write-outs are outside the plan**, with the same exception and the same
   whole-branch-review exclusion as the previous plan; Task 6's note commit is
   plan output and stays in the package; Kanri's `docs(issues):` commits on
@@ -533,20 +637,22 @@ replacement's old passage returns `0`, an insertion's anchor still returns
 `1`; the merge-base diff shows the passages written so far and nothing else;
 `git ls-files --eol` unchanged; lint by name; commit by explicit path with
 the trailer, confirmed. For the new template: the file exists, `git ls-files
---eol` shows `w/lf`, and its headings in order are the six of the template
-plus the title.
+--eol` after `git add` shows `i/lf w/lf`, and its headings in order are the
+six of the template plus the title.
 
 At the batch A boundary, additionally: the frontmatter hook and the PyYAML
-load on `SKILL.md`; the README drift review recorded; the two-line sweep
-above showing `SKILL.md` alone. At the batch B boundary: the sweep at its
-final values; Task 7's run of the note's checks 1 to 8 as written and check
-9's whitespace sweep, compared with the pre-edit baseline Sekkei records at
-plan review — checks 1, 2, 3, and 6 are **expected to differ** from the
-baseline exactly as Task 6 changes their Expected text (sixteen, fourteen,
-ten and seven, the new last block of check 6), and the report says so per
-check; every
-other check equal to the baseline; lint on every touched path by name; the
-trailer equality over `main..HEAD`.
+load on `SKILL.md`; the README drift review recorded; the raw tree sweep
+showing `SKILL.md` alone; the term sweep over batch A's blocks with its set
+recorded. Checks 1 to 8 of the note do not run at the batch A boundary — the
+note is a batch B file, and its check 2 and Versions line are in the
+forward-reference set. At the batch B boundary: the raw sweep at the note's
+values; Task 7's run of the note's checks 1 to 8 as written and check 9's
+whitespace sweep, compared with the pre-edit baseline Sekkei records at plan
+review — checks 1, 2, 3, and 6 are **expected to differ** from the baseline
+exactly as Task 6 changes their Expected text (sixteen, fourteen, ten and
+seven, the new sixth block of check 6), and the report says so per check;
+every other check equal to the baseline; lint on every touched path by name;
+the trailer equality over `main..HEAD`.
 
 ## Out of scope
 
@@ -596,11 +702,15 @@ For Kanri's `S-n` table:
   a clause that the human's own words in the spec dialogue are kept as a
   record.
 - decision, **escalated**: the brief writer is dispatched by Kanri, not the
-  author, on the reviewer tier, and the confirmation req-3c4d requires is
-  given on the brief's points with the document as referent — the choice
-  over Sekkei dispatching it and over Kanri pre-reading, and the reasons;
-  amends decision-1f5f's first point by saying how the plan's approval is
-  given, so it carries `amends: ["1f5f"]` and 1f5f gains `amended_by`.
+  author, on the reviewer tier; Kanri checks the brief's form and never reads
+  the document for it; the confirmation req-3c4d requires is given on the
+  brief's points with the document as referent; and a requirement or ADR
+  item the human has already answered in the brief is still escalated under
+  decision-1f5f, with the escalation confirming the wording — the choices
+  over Sekkei dispatching it and over Kanri pre-reading, and the reasons.
+  It amends decision-1f5f's first point by saying how the plan's approval is
+  given and what the escalation of a brief-answered item carries, so it
+  carries `amends: ["1f5f"]` and 1f5f gains `amended_by`.
 - design-4807: Human access gains the brief and the dialogue record; Skill
   layout counts sixteen files and ten templates; the artifacts; "Kanri's
   loop, with its entry and its side channel" notes that the spec dialogue's
@@ -616,6 +726,21 @@ For Kanri's `S-n` table:
   no third-party review of a spec or plan and no explicit human approval of
   a plan beyond the execution choice, which tanto adds as the reviewer
   subagents, the one OK, and Kanri's cold read.
+- facts from the spec review, measured 2026-09-08: two of the nine
+  templates (`batch-report.md`, `kaiseki-report.md`) are checked out CRLF
+  and seven LF, so "every template is LF" is false of this tree;
+  `git ls-files --eol` prints nothing for an untracked path, so a new file's
+  ending is checked after `git add`; a flattened `grep -cF` returns `0` or
+  `1` and cannot serve as an occurrence count — the trap that produced the
+  review's F-2, closed by the note's new sentence; `dialogue.md` lives
+  untracked and becomes durable only through T1.
+- observation about the process, from the spec review: design-4807's
+  convention that a passage rewriting another role's procedure goes to that
+  role's live session before the spec review was not applied by this spec
+  at first — the first spec written after the convention landed — and was
+  applied after the review, as I-2; a convention only in the design entry
+  and not in a role file is not scheduled by anyone, which is why this plan
+  lands it in `roles/sekkei.md`.
 - observations about the process: the human's two questions (the models;
   requirement extraction) each changed the design — the first by confirming
   the defaults with a measurement issue, the second by moving the fix to
