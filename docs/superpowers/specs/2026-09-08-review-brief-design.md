@@ -280,10 +280,12 @@ Kanri checks the brief's **form**, not its content: the five sections, the
 unsettled section, and "How to answer" present (section 5 reading "not
 applicable" for a spec); every point opening with one of the four tags —
 confirm, choose, decide, nothing — and every unsettled line saying whether an
-answer is needed; every point in its three parts; every pointer the
-document's own heading text, verbatim and untranslated, so that `grep '^#'`
-on the document matches it without a read of its prose. If the form fails,
-Kanri dispatches once more; if it
+answer is needed; every point in its three parts — the two before `See:` and
+the pointer after it, which may itself carry the ` — ` separator, as a plan's
+task headings do (I-5), so the check splits the text before `See:` and not
+the heading; every pointer the document's own heading text, verbatim and
+untranslated, so that `grep '^#'` on the document matches it without a read
+of its prose. If the form fails, Kanri dispatches once more; if it
 fails again, Kanri sends the brief as it stands and tells the human in one
 line. Kanri never edits the brief and does not read the document to validate
 it — that would be the pre-read the fixed inputs reject, and it would
@@ -470,15 +472,16 @@ the paragraph "The harness's own prompts ...":
    present (section 5 reads "not applicable" for a spec); every point opening
    with one of the four tags — confirm, choose, decide, nothing — and every
    unsettled line saying whether an answer is needed; every point in its
-   three parts; every pointer the document's own heading text, verbatim and
-   untranslated, so that `grep '^#'` on the document matches it. Dispatch
-   once more if the form fails; if it fails again, send the brief as it
-   stands and tell the human in one line. Never edit it, and do not read the
-   document to validate it — a point that misreads the document is caught by
-   the human's answer or by your cold read, which stays where it is. Then send
-   Sekkei `brief: <path>`. The human answers in Sekkei's window under the
-   standing grant; the answers reach you through `dialogue.md` and the
-   document.
+   three parts — the two before `See:` and the pointer after it, which may
+   carry the ` — ` separator, as a plan's task headings do; every pointer the
+   document's own heading text, verbatim and untranslated, so that
+   `grep '^#'` on the document matches it. Dispatch once more if the form
+   fails; if it fails again, send the brief as it stands and tell the human
+   in one line. Never edit it, and do not read the document to validate it —
+   a point that misreads the document is caught by the human's answer or by
+   your cold read, which stays where it is. Then send Sekkei `brief: <path>`.
+   The human answers in Sekkei's window under the standing grant; the answers
+   reach you through `dialogue.md` and the document.
 ```
 
 The routed strings stay on one line: `review-ready: <path>` once, `brief:
@@ -925,6 +928,7 @@ change to `docs/design/`, `docs/decisions/`, `docs/requirements/`, or
 | I-1 the scope, issue-a1c9 and its three questions | Adopted. Who writes: Kanri dispatches the writer on `subagents.reviewer`, checks the brief's form, hands the path to Sekkei (Kanri's third shape). What the answer means: the answers to the brief's points are the confirmation; the document is the referent. Where it lives: `.superpowers/sdd/<topic>/review-brief-spec.md` and `-plan.md`, Kanri's default, delivered verbatim in Sekkei's window. Rule 11 applied: the batch B boundary is the replacement boundary and the plan says so; Kanri records the authority ruling at the landing (R-3 already does). Two batches. The three optional conventions ride along in `roles/sekkei.md`. Beyond the note: `dialogue.md`, the human's words kept, from the dialogue's D-3. |
 | I-2 Kanri's check of item 5 | Adopted: the handover exception in item 5 and "The writer"; the pointer as the document's heading, untranslated, in the template, item 5, and "What it is"; the recovery taken on Sekkei's side (send the line again after a replaced Kanri) in Step 2 and Step 4; the placement under Human access kept as Kanri accepted it. |
 | I-3 the human's reaction to the first brief | Adopted: every point opens with its asked tag (confirm, choose, decide, nothing); the brief opens with "How to answer" — the reply shapes and one worked example, after shoroku's Direction prompt; the unsettled section says per line whether an answer is needed; Kanri's form check gains the tags and the section; Sekkei records the answers in `dialogue.md` in the reply shape. The dogfood brief stood for this review, as Kanri proposed, because the human had answered it. |
+| I-5 the brief writer's note, task headings carry the separator | Adopted as option (b): the pointer is the last part, after `See:`, and may carry ` — `; the form check splits only the text before `See:`. The template is unchanged; the rule is in "The writer" and Kanri's item 5, so the check never steers which heading a pointer names. |
 | I-4 drop Kanri's idle subscriptions | Adopted as Kanri described, with slot (c) dropping its subscription too (the cleaner rule): the Messages bullet, When the plan lands step 5, the batch loop's steps 1, 7, and 8, the Kaiseki branch's step 2, and the Replace row; the exit lines unchanged; the note's new check 6 block counts `notify_when_idle: true` so a stray subscription fails the check; design-4807 at T2. |
 
 ## Deferred items
