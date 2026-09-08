@@ -885,6 +885,11 @@ Per passage, as in the boundary-rules plan: the anchor returns `1` before
 the edit; after it, on the flattened file, the new passage returns `1`, a
 replacement's old passage returns `0`, an insertion's anchor still returns
 `1`; the merge-base diff shows the passages written so far and nothing else;
+one exception, for a replacement whose new passage contains its old text
+transcribed (Sekkei's Step 2, whose middle paragraph is the current body):
+there the old passage still returns `1` after the edit, so the plan pins the
+two junctions instead — the heading joined to the old first line, and the old
+last line joined to the next heading — each `1` before the edit and `0` after;
 `git ls-files --eol` unchanged; lint by name; commit by explicit path with
 the trailer, confirmed. For the new template: the file exists, `git ls-files
 --eol` after `git add` shows `i/lf w/lf`, and its headings in order are the
