@@ -89,6 +89,15 @@ Decided before or during the dialogue, not reopened here:
   untracked, next to the review reports; Sekkei puts the brief's text
   verbatim in its review request, so the human reads it in the window where
   the dialogue was and answers there.
+- **Kanri's check of its own passage (I-2).** Per the convention this spec
+  lands in Sekkei's Step 2, the one passage that rewrites Kanri's file went to
+  the live Kanri after the spec review. Kanri's two load-bearing edits are
+  folded in: a brief writer is a subagent, so a due handover defers its
+  dispatch to the successor and a writer still running on the human's
+  override is listed under In flight; and a pointer is the document's heading
+  text as it stands, untranslated, or the form check would fail a compliant
+  brief. Kanri's optional recovery clause is taken on Sekkei's side: after a
+  restart or a handover, Sekkei sends the line again.
 - **The two design rules** from design-4807, applied again: an obligation
   lives in the file of the role that performs it; a term two or more roles
   route on lives in `SKILL.md`. The two lines are the terms; the brief step
@@ -119,7 +128,9 @@ subsections, Deferred items, and Shoroku candidates; a plan carries it in
 Global Constraints and Batches. The brief lists, from those, only what the
 human decides, each item as a question with the document's answer and a
 pointer to the section that answers it — never a line number, which an edit
-moves.
+moves. The pointer is the document's heading text as it stands, untranslated:
+the one part of a point not rendered into the chat's language, so that
+Kanri's form check can match it against the document.
 
 Five fixed sections, and a sixth for what the writer could not settle:
 
@@ -157,8 +168,10 @@ language <language>. Inputs read: <the document; for a spec also
 spec-inputs.md and dialogue.md; for a plan also the spec>.
 
 Each point is three parts: the question the human decides, in one sentence;
-the document's answer, in one sentence; the pointer — the section heading
-that answers it, never a line number. At most five points per section; what
+the document's answer, in one sentence; the pointer — the document's section
+heading that answers it, copied as it stands in the document and not
+translated, never a line number; the pointer is the one part of a point not
+rendered into the chat's language. At most five points per section; what
 does not fit goes to the last section, one line each. For a spec, section 5's
 body is the single line `<not applicable — a spec>`.
 
@@ -200,7 +213,11 @@ mixed-line-ending hooks still apply.
 A read-only subagent on `subagents.reviewer`, dispatched by Kanri on arrival
 of `review-ready:`, a batch in flight or not — it reads only and writes one
 untracked file, so it takes no commit slot and disturbs no implementer. The
-dispatch names the document's path; the inputs (for a spec, the spec,
+one exception is a handover that is due: Timing's wait forbids every new
+subagent, so the successor dispatches the writer from the handover's Next
+step, and a writer still running when a handover is written on the human's
+word is listed under In flight like any agent (Kanri's I-2). The dispatch
+names the document's path; the inputs (for a spec, the spec,
 `spec-inputs.md`, and `dialogue.md`; for a plan, the plan and the spec); the
 output path; the template path; and the chat's language, which is the
 language of the human's own messages to Kanri, with `dialogue.md` as the
@@ -209,8 +226,9 @@ nothing else.
 
 Kanri checks the brief's **form**, not its content: the five sections present
 (section 5 reading "not applicable" for a spec), every point in its three
-parts, every pointer a heading the document has (`grep '^#'` on the document,
-not a read of its prose). If the form fails, Kanri dispatches once more; if it
+parts, every pointer the document's own heading text, verbatim and
+untranslated, so that `grep '^#'` on the document matches it without a read of
+its prose. If the form fails, Kanri dispatches once more; if it
 fails again, Kanri sends the brief as it stands and tells the human in one
 line. Kanri never edits the brief and does not read the document to validate
 it — that would be the pre-read the fixed inputs reject, and it would
@@ -287,7 +305,9 @@ human; everything else is yours. Then send Kanri one line with the report
 path: Kanri adopts from its Shoroku candidates.
 
 Then send Kanri `review-ready: <spec path>` and idle until `brief: <path>`
-arrives; never poll. Put brainstorming's review gate to the human with the
+arrives; never poll, and send the line again if Kanri's session was replaced
+meanwhile — a restart, a handover — because the writer dies with the session
+that dispatched it. Put brainstorming's review gate to the human with the
 brief's text verbatim, the spec's path, and the brief's, and record the
 human's answers in `dialogue.md`. A new brief is written when the human asks
 for one, or when the spec's judgment points changed after the answers — a
@@ -297,7 +317,9 @@ fixed input, a rejected alternative, a deferred item — not when its prose did.
 The middle paragraph is the file's current Step 2, transcribed; the first and
 last are new. The other-role check is routed through Kanri because Sekkei
 never messages Jisso (the one-boss rule), and it comes before the review, as
-design-4807's convention says.
+design-4807's convention says. The re-send after a replaced Kanri is the
+recovery Kanri's I-2 asked for, taken on Sekkei's side because Sekkei already
+idles on the line and knows it is pending.
 
 `roles/sekkei.md`, Step 3, a paragraph before "The report and prompt
 skeletons do **not** go in the plan.":
@@ -328,9 +350,10 @@ insertion next to an anchor that stays.
    the expectation.
 4. Lint the changed paths.
 5. Send Kanri `review-ready: <plan path>` and idle until `brief: <path>`
-   arrives, never polling; put the brief's text verbatim in your request for
-   the one OK, with both paths. On the human's OK, commit under your commit
-   rule below.
+   arrives, never polling (send the line again if Kanri's session was
+   replaced meanwhile); put the brief's text verbatim in your request for the
+   one OK, with both paths. On the human's OK, commit under your commit rule
+   below.
 ```
 
 Items 1, 3, and 4 are the file's current text, transcribed; items 2 and 5
@@ -346,7 +369,10 @@ the paragraph "The harness's own prompts ...":
 
 ```markdown
 5. On `review-ready: <path>` from Sekkei — at any time, a batch in flight or
-   not, because the writer reads only and writes one untracked file —
+   not, because the writer reads only and writes one untracked file; unless a
+   handover is due, in which case the successor dispatches it from the
+   handover's Next step, and a writer still running when a handover is
+   written on the human's word is listed under In flight like any agent —
    dispatch the review brief on `subagents.reviewer`, a read-only subagent,
    naming in the dispatch: the document's path; its inputs, for a spec also
    `spec-inputs.md` and `dialogue.md`, for a plan also the spec; the output,
@@ -355,14 +381,15 @@ the paragraph "The harness's own prompts ...":
    is the language of the human's own messages to you (`dialogue.md` is the
    reference if the two windows differ). Check the brief's form, not the
    document: the five sections present (section 5 reads "not applicable" for
-   a spec), every point in its three parts, every pointer a heading the
-   document has (`grep '^#'` on the document). Dispatch once more if the form
-   fails; if it fails again, send the brief as it stands and tell the human
-   in one line. Never edit it, and do not read the document to validate it —
-   a point that misreads the document is caught by the human's answer or by
-   your cold read, which stays where it is. Then send Sekkei `brief: <path>`.
-   The human answers in Sekkei's window under the standing grant; the answers
-   reach you through `dialogue.md` and the document.
+   a spec), every point in its three parts, every pointer the document's own
+   heading text, verbatim and untranslated, so that `grep '^#'` on the
+   document matches it. Dispatch once more if the form fails; if it fails
+   again, send the brief as it stands and tell the human in one line. Never
+   edit it, and do not read the document to validate it — a point that
+   misreads the document is caught by the human's answer or by your cold
+   read, which stays where it is. Then send Sekkei `brief: <path>`. The human
+   answers in Sekkei's window under the standing grant; the answers reach you
+   through `dialogue.md` and the document.
 ```
 
 The routed strings stay on one line: `review-ready: <path>` once, `brief:
@@ -667,7 +694,8 @@ change to `docs/design/`, `docs/decisions/`, `docs/requirements/`, or
 
 | Input | Answer |
 | --- | --- |
-| I-1 the scope, issue-a1c9 and its three questions | Adopted. Who writes: Kanri dispatches the writer on `subagents.reviewer`, reads the brief, hands the path to Sekkei (Kanri's third shape). What the answer means: the answers to the brief's points are the confirmation; the document is the referent. Where it lives: `.superpowers/sdd/<topic>/review-brief-spec.md` and `-plan.md`, Kanri's default, delivered verbatim in Sekkei's window. Rule 11 applied: the batch B boundary is the replacement boundary and the plan says so; Kanri records the authority ruling at the landing (R-3 already does). Two batches. The three optional conventions ride along in `roles/sekkei.md`. Beyond the note: `dialogue.md`, the human's words kept, from the dialogue's D-3. |
+| I-1 the scope, issue-a1c9 and its three questions | Adopted. Who writes: Kanri dispatches the writer on `subagents.reviewer`, checks the brief's form, hands the path to Sekkei (Kanri's third shape). What the answer means: the answers to the brief's points are the confirmation; the document is the referent. Where it lives: `.superpowers/sdd/<topic>/review-brief-spec.md` and `-plan.md`, Kanri's default, delivered verbatim in Sekkei's window. Rule 11 applied: the batch B boundary is the replacement boundary and the plan says so; Kanri records the authority ruling at the landing (R-3 already does). Two batches. The three optional conventions ride along in `roles/sekkei.md`. Beyond the note: `dialogue.md`, the human's words kept, from the dialogue's D-3. |
+| I-2 Kanri's check of item 5 | Adopted: the handover exception in item 5 and "The writer"; the pointer as the document's heading, untranslated, in the template, item 5, and "What it is"; the recovery taken on Sekkei's side (send the line again after a replaced Kanri) in Step 2 and Step 4; the placement under Human access kept as Kanri accepted it. |
 
 ## Deferred items
 
