@@ -7,10 +7,12 @@ of the chat, only the points that need the human's judgment, each with a
 pointer into the document, so the human confirms those and reads the rest
 only where a point sends them. The design adds one template, two message
 lines, two artifacts — the brief files, and the dialogue record Sekkei keeps
-during the spec dialogue — one item in Kanri's procedure, five passages in
-Sekkei's, two bullets and a sentence in the README, and the consistency note's
-counts with one new pinned line. It also carries three plan conventions the
-previous run's T2 landed in design-4807 but not in Sekkei's file. The skill's
+during the spec dialogue — five passages in Kanri's procedure (one for the
+brief, four for I-4), five in Sekkei's, two bullets and a sentence in the
+README, and the consistency note's counts with one new pinned line. It also
+carries three plan conventions the previous run's T2 landed in design-4807
+but not in Sekkei's file, and, on the human's word (I-4), drops Kanri's idle
+subscriptions on batch prompts and briefs. The skill's
 earlier designs are the tanto design of 2026-09-06, the kanri-lifecycle design
 of 2026-09-07, and the boundary-rules design of 2026-09-07; its as-built
 record is design-4807. This document restates what it needs from them, so
@@ -106,6 +108,12 @@ Decided before or during the dialogue, not reopened here:
   numbered list. Both are in the template, "What it is", and the form check;
   the dogfood brief stood as written for this spec's review, and the human
   answered it "brief 異論なし".
+- **Kanri stops subscribing to idle (I-4), on the human's word.** Measured on
+  2026-09-09: half of Kanri's wake-ups were idle notices, most of them false.
+  Batch prompts and Kaiseki briefs go out without a subscription, the report
+  line is the signal, a subscription is the overdue fallback, and the exit
+  lines keep theirs. In scope because it touches only files this plan already
+  edits; Kanri applies it by ruling (R-4) until it lands.
 - **The two design rules** from design-4807, applied again: an obligation
   lives in the file of the role that performs it; a term two or more roles
   route on lives in `SKILL.md`. The two lines are the terms; the brief step
@@ -292,25 +300,54 @@ its prose did.
 
 ### The lines, in the contract
 
-`SKILL.md`, section Messages, gains one bullet after the boundary-reply
-bullet ("At a batch boundary Kanri has verified, Sekkei answers in one line
-..."):
+`SKILL.md`, section Messages: its bullet list is replaced whole, because
+three bullets change at once — the review-brief bullet is new, and the
+idle-subscription bullet and the boundary-reply bullet change for I-4 (see
+"Kanri stops subscribing to idle"). The two paragraphs after the list (the
+bug report and the five `triage:` forms) are untouched:
 
 ```markdown
+- One boss. Only Kanri messages Jisso. Sekkei and Kaiseki never do — inbound
+  messages queue and drain in order, and a second boss interleaves
+  instructions.
+- A message is one line plus a path. Report bodies, rulings, briefs, and plans
+  live in files: a message dies with the session, a file survives compaction
+  and a VS Code restart.
+- Kanri sends batch prompts and Kaiseki briefs **without** an idle
+  subscription and waits for the receiver's one-line report. It subscribes —
+  a pure `notify_when_idle`, no message — only when an expected signal is
+  overdue, and treats a notice that arrives before the report as a reason to
+  check the workspace, never as the signal: a peer's turn ends whenever it
+  dispatches a subagent, so most notices are false idles. The exit lines keep
+  their `notify_when_idle: true`, because there the idle notice is the
+  forced-exit signal by design.
+- Never poll `ListAgents`; never send "are you done". Check the listing only
+  when an expected signal did not arrive.
+- A reply copies the incoming message's `from` into `to`.
+- At a batch boundary Kanri has verified, Sekkei answers in one line,
+  `committed <subject>` or `nothing to commit`; Kanri sends the next batch
+  prompt only after that reply, or, when the reply is overdue, after the
+  notice of a subscription made then.
 - Before the human reviews a spec or a plan, Sekkei sends Kanri
   `review-ready: <path>`. Kanri dispatches the **review brief** on
   `subagents.reviewer` — a read-only subagent that writes
   `.superpowers/sdd/<topic>/review-brief-spec.md` or `review-brief-plan.md`
-  from `templates/review-brief.md`, in the chat's language — reads it, and
-  answers `brief: <path>`. Sekkei puts the brief's text verbatim in its
+  from `templates/review-brief.md`, in the chat's language — checks its form,
+  and answers `brief: <path>`. Sekkei puts the brief's text verbatim in its
   review request, with both paths. The human's answers to the brief's points
   are the confirmation that review asks for; the document is what the points
   point into, and the human reads it where a point sends them.
+- Permission boundaries are per session. Never ask a peer for work that was
+  denied in your own session or would be blocked there. Blocked work goes to
+  Kanri, which rules on human access.
 ```
 
-The two routed strings, `review-ready: <path>` and `brief: <path>`, each stay
-on one line in every file that carries them, so the consistency note can pin
-them with a fixed-string grep.
+The first, second, fourth, fifth, and last bullets are the file's current
+text, transcribed. The two routed strings, `review-ready: <path>` and
+`brief: <path>`, each stay on one line in every file that carries them, so
+the consistency note can pin them with a fixed-string grep; so does
+`notify_when_idle: true`, which after this plan occurs only in the exit
+lines.
 
 ### Sekkei's obligations
 
@@ -504,6 +541,128 @@ The designs this skill implements are
 No other README drift is expected; the task that edits `SKILL.md` records the
 review either way.
 
+## Kanri stops subscribing to idle (I-4)
+
+### The measurement
+
+From the session transcripts of 2026-09-09 (the review-brief ledger's
+Measurements): the resident Kanri was woken 394 times since the handover of
+2026-09-07, 81 of them by idle notices against 77 peer messages, and most of
+the notices were false idles — Jisso had dispatched a subagent and its turn
+ended. Every wake-up reads the session's whole context as input, so the
+subscriptions roughly doubled Kanri's cost for no information; the report
+line is the only reliable signal, as the kanri-lifecycle run had already
+measured. The human asked that the change ride in this plan (I-4), and Kanri
+applies it by ruling (that ledger's R-4) until it lands.
+
+### The rule
+
+Kanri sends batch prompts and Kaiseki briefs without an idle subscription and
+waits for the receiver's one-line report. It subscribes — a pure
+`notify_when_idle`, no message — only when an expected signal is overdue, and
+a notice that arrives before the report is a reason to check the workspace,
+never the signal. The same for the boundary line to Sekkei: Sekkei's reply
+has arrived after its notice more than once (measured 2026-09-08), so slot (c)
+drops its subscription too. The exit lines keep `notify_when_idle: true`: at
+an exit the idle notice is the forced-exit signal by design, and nothing
+there changes. Jisso's and Kaiseki's files never subscribe and are untouched.
+
+The contract's bullet is in "The lines, in the contract" above. Kanri's
+procedure changes in four passages of `roles/kanri.md`.
+
+When the plan lands, step 5, replaced whole:
+
+```markdown
+5. On Jisso's handshake, reply with the orders line. Then write batch A's
+   prompt from `templates/batch-prompt.md`, with
+   `First batch, no previous verdict.` in its previous-batch-verdict section,
+   save it as `.superpowers/sdd/<plan-basename>/batch-A-prompt.md`, and send
+   the same text, without an idle subscription.
+```
+
+The batch loop, steps 1 to 8, replaced whole (steps 2 to 6 are the file's
+current text, transcribed; 1, 7, and 8 change):
+
+```markdown
+1. Wait for Jisso's one-line report message. Do not poll; subscribe to its
+   idle — a pure `notify_when_idle`, no message — only when the report is
+   overdue, and check the workspace before acting on any notice: a notice
+   before the report is usually a false idle, an implementer's turn ending.
+2. **Verify the tree before reading the report.** `git status` clean; the
+   commits and their trailers as claimed; the plan file in the state this batch
+   should have left it; repo-specific leftovers such as stray processes or temp
+   directories; a spot check of the claimed tests. You verify in place — there
+   is no worktree.
+3. Read the report. For each item under "Rulings needed": a **known cause** you
+   rule on yourself, recorded as `R-n` in the ledger with what it costs if
+   wrong and which later tasks inherit it; an **unknown cause** opens the
+   Kaiseki branch below; a **scope or spec change** goes to the human. Then
+   adopt or reject each shoroku candidate per the adoption rule, and update the
+   ledger's `S-n` table, its Batches row, and its Progress line.
+4. **Triage any bug report that arrived during the batch**, per "Bug intake"
+   below: rule on each, and send the redirects, the Kaiseki requests, and the
+   relays now. An issue to file or a hotfix to make waits for the commit window
+   at step 7.
+5. Report one line to the human. Ask numbered questions only for the four SDD
+   stop classes and for a scope or spec change.
+6. **Check the lifecycle tables and the handover trigger.** Rewrite the
+   roster's Residency line. If a create request is due, make it, unless a
+   handover trigger has fired, in which case the successor makes it from the
+   handover's Next step. If a delete or a replace of a live, coherent session
+   is due, or a handover trigger has fired, run the proposal half of "Exit
+   shoroku" now: send the `exit:` lines, rule on the proposals, write the
+   directions. Delete requests wait for step 7.
+7. **The commit window.** One committer at a time, in this order, Jisso idle
+   throughout. (a) Each exiting session applies its direction and commits; you
+   verify the diff and only then ask the human to delete that session. (b) Your
+   own edits — the hotfix, the issues from step 4, and your own exit shoroku
+   when a handover is due — each committed by you in its turn. (c) Tell Sekkei
+   the boundary is verified, naming any Kaiseki create or delete since the
+   last boundary, then wait for Sekkei's one-line reply — `committed
+   <subject>` or `nothing to commit`; subscribe to its idle only when the
+   reply is overdue, and record in the ledger's Session events if a notice
+   came without a reply; skip (c) when Sekkei is not live. If a handover is
+   due, the window ends, after the wait Timing prescribes, with steps 2 to 4
+   of "The handover, in a plan and between plans" — the exit shoroku was step
+   6's proposal and slot (b)'s commit — and the loop stops here; the next
+   prompt is the successor's.
+8. Write the next batch prompt from `templates/batch-prompt.md`, carrying the
+   rulings the next tasks inherit and the concrete model families from
+   `tanto.json`. Save it as
+   `.superpowers/sdd/<plan-basename>/batch-<X>-prompt.md` and send the same
+   text, without an idle subscription.
+```
+
+The Kaiseki branch, step 2, replaced whole:
+
+```markdown
+2. Classify. Known cause — rule and send Jisso back to work. Unknown — ask the
+   human to create Kaiseki; after its handshake, write
+   `.superpowers/sdd/<plan-basename>/kaiseki-<n>-brief.md` from
+   `templates/kaiseki-brief.md`, its Human access line filled — the debugging
+   conversation in Kaiseki's window until its report is written, unless you
+   judge otherwise — and send its path, without an idle subscription. If the
+   human declines to create Kaiseki, rule `continue the SDD rounds`: Jisso
+   resumes at round 3 with the resumed implementer, and rounds 4-5 go to
+   `subagents.escalation`.
+```
+
+The Replace table, the first row, its Symptom cell: "or the idle
+subscription expired with no report" becomes "or a subscription made when the
+report was overdue expired with no report"; the Action cell is unchanged.
+
+After the plan, `notify_when_idle: true` occurs twice in `SKILL.md` (the
+Messages bullet's exception and the Session exit paragraph) and twice in
+`roles/kanri.md` (the two exit lines), and nowhere else in the skill; the
+note's new check 6 block counts it.
+
+### At T2
+
+design-4807's "Kanri's loop, with its entry and its side channel" says "wait
+for the idle notice or the report line, never poll"; at T2 it says the report
+line alone, with the subscription as the overdue fallback and the measurement
+behind the change.
+
 ## What the human's answer means
 
 The human's answers to the brief's points are the confirmation the review
@@ -577,15 +736,15 @@ The dialogue's analysis, for the issue filed at T1 (deferred item 1):
 
 ## Where each change lives
 
-Nineteen passages in six files, one of them new. A **replacement** supersedes
-an old passage; an **insertion** adds text next to an anchor that stays; the
-new file is one passage of its own shape. The template comes first, so that
-no task leaves `SKILL.md` naming a file that does not exist.
+Twenty-three passages in six files, one of them new. A **replacement**
+supersedes an old passage; an **insertion** adds text next to an anchor that
+stays; the new file is one passage of its own shape. The template comes
+first, so that no task leaves `SKILL.md` naming a file that does not exist.
 
 | File | Passage | Shape | Task |
 | --- | --- | --- | --- |
 | `skills/tanto/templates/review-brief.md` | the whole file | new file | 1 |
-| `skills/tanto/SKILL.md` | Messages, the review-brief bullet after the boundary-reply bullet | insertion | 2 |
+| `skills/tanto/SKILL.md` | Messages, the bullet list (the idle rule, the boundary reply, the review-brief bullet) | replacement | 2 |
 | `skills/tanto/SKILL.md` | Artifacts, two rows after the `spec-inputs.md` row | insertion | 2 |
 | `skills/tanto/SKILL.md` | the Templates sentence, ten | replacement | 2 |
 | `skills/tanto/README.md` | What it does, the review-brief bullet after the bug-reports bullet | insertion | 3 |
@@ -596,7 +755,11 @@ no task leaves `SKILL.md` naming a file that does not exist.
 | `skills/tanto/roles/sekkei.md` | Step 2, the body | replacement | 4 |
 | `skills/tanto/roles/sekkei.md` | Step 3, the passage-plan paragraph before "The report and prompt skeletons" | insertion | 4 |
 | `skills/tanto/roles/sekkei.md` | Step 4, the numbered list | replacement | 4 |
+| `skills/tanto/roles/kanri.md` | When the plan lands, step 5 | replacement | 5 |
+| `skills/tanto/roles/kanri.md` | The batch loop, steps 1 to 8 | replacement | 5 |
+| `skills/tanto/roles/kanri.md` | The Kaiseki branch, step 2 | replacement | 5 |
 | `skills/tanto/roles/kanri.md` | Human access, item 5 after item 4 | insertion | 5 |
+| `skills/tanto/roles/kanri.md` | Session lifecycle, the Replace table's first row | replacement | 5 |
 | `docs/notes/tanto-consistency-checks.md` | the opening, the flattened-count sentence after the paragraph that ends "or `od -c`." | insertion | 6 |
 | `docs/notes/tanto-consistency-checks.md` | Versions, "Sixteen skill files, ten of them templates" | replacement | 6 |
 | `docs/notes/tanto-consistency-checks.md` | check 1, the `ls` gains `skills/tanto/templates/review-brief.md`, Expected says sixteen | replacement | 6 |
@@ -620,20 +783,23 @@ prompts" (the outer fence here is four backticks because the passage itself
 contains a fence):
 
 ````markdown
-The two lines of the review brief, each on one line where it occurs, counted
-raw over every Markdown file of the skill so that a stray copy fails the
-check:
+The two lines of the review brief, and the idle subscription that only the
+exit lines keep, each on one line where it occurs, counted raw over every
+Markdown file of the skill so that a stray copy fails the check:
 
 ```bash
 for f in skills/tanto/SKILL.md skills/tanto/roles/*.md skills/tanto/templates/*.md; do
-  printf '%s review-ready %s brief %s\n' "$f" "$(grep -cF 'review-ready: <' "$f")" "$(grep -cF 'brief: <path>' "$f")"
+  printf '%s review-ready %s brief %s idle %s\n' "$f" "$(grep -cF 'review-ready: <' "$f")" "$(grep -cF 'brief: <path>' "$f")" "$(grep -cF 'notify_when_idle: true' "$f")"
 done
 ```
 
-Expected: `skills/tanto/SKILL.md review-ready 1 brief 1`,
-`skills/tanto/roles/kanri.md review-ready 1 brief 1`,
-`skills/tanto/roles/sekkei.md review-ready 2 brief 2`, and every other line
-ending `review-ready 0 brief 0`.
+Expected: `skills/tanto/SKILL.md review-ready 1 brief 1 idle 2`,
+`skills/tanto/roles/kanri.md review-ready 1 brief 1 idle 2`,
+`skills/tanto/roles/sekkei.md review-ready 2 brief 2 idle 0`, and every other
+line ending `review-ready 0 brief 0 idle 0`. The two `idle` in `SKILL.md`
+are the Messages bullet's exception and the Session exit paragraph; the two
+in `roles/kanri.md` are the exit lines. A batch prompt or a brief sent with a
+subscription would show as a third.
 ````
 
 Task 7 is the consistency pass and writes nothing; a failing check there is a
@@ -749,6 +915,7 @@ change to `docs/design/`, `docs/decisions/`, `docs/requirements/`, or
 | I-1 the scope, issue-a1c9 and its three questions | Adopted. Who writes: Kanri dispatches the writer on `subagents.reviewer`, checks the brief's form, hands the path to Sekkei (Kanri's third shape). What the answer means: the answers to the brief's points are the confirmation; the document is the referent. Where it lives: `.superpowers/sdd/<topic>/review-brief-spec.md` and `-plan.md`, Kanri's default, delivered verbatim in Sekkei's window. Rule 11 applied: the batch B boundary is the replacement boundary and the plan says so; Kanri records the authority ruling at the landing (R-3 already does). Two batches. The three optional conventions ride along in `roles/sekkei.md`. Beyond the note: `dialogue.md`, the human's words kept, from the dialogue's D-3. |
 | I-2 Kanri's check of item 5 | Adopted: the handover exception in item 5 and "The writer"; the pointer as the document's heading, untranslated, in the template, item 5, and "What it is"; the recovery taken on Sekkei's side (send the line again after a replaced Kanri) in Step 2 and Step 4; the placement under Human access kept as Kanri accepted it. |
 | I-3 the human's reaction to the first brief | Adopted: every point opens with its asked tag (confirm, choose, decide, nothing); the brief opens with "How to answer" — the reply shapes and one worked example, after shoroku's Direction prompt; the unsettled section says per line whether an answer is needed; Kanri's form check gains the tags and the section; Sekkei records the answers in `dialogue.md` in the reply shape. The dogfood brief stood for this review, as Kanri proposed, because the human had answered it. |
+| I-4 drop Kanri's idle subscriptions | Adopted as Kanri described, with slot (c) dropping its subscription too (the cleaner rule): the Messages bullet, When the plan lands step 5, the batch loop's steps 1, 7, and 8, the Kaiseki branch's step 2, and the Replace row; the exit lines unchanged; the note's new check 6 block counts `notify_when_idle: true` so a stray subscription fails the check; design-4807 at T2. |
 
 ## Deferred items
 
@@ -795,9 +962,11 @@ For Kanri's `S-n` table:
 - design-4807: Human access gains the brief and the dialogue record; Skill
   layout counts sixteen files and ten templates; the artifacts; "Kanri's
   loop, with its entry and its side channel" notes that the spec dialogue's
-  words now reach Kanri through `dialogue.md`; a set under "Where the
-  delivered skill differs" for this design only if the fix wave leaves a
-  difference.
+  words now reach Kanri through `dialogue.md`, and says the report line is
+  the signal and the idle subscription the overdue fallback, with I-4's
+  measurement (394 wake-ups, 81 idle notices against 77 peer messages, most
+  of them false idles); a set under "Where the delivered skill differs" for
+  this design only if the fix wave leaves a difference.
 - issues: a1c9 moves to `docs/issues/resolved/` at T2; deferred items 1 and
   2 are filed at T1.
 - facts from the dialogue: `fable` is twice `opus` per token on input and
