@@ -4,10 +4,10 @@ title: a review brief of the decisions, in the chat language, before the human r
 severity: medium
 depends_on: []
 blocks: []
-claimed_by: null
-claimed_at: null
+claimed_by: tanto review-brief plan (Kanri, dotskills)
+claimed_at: 2026-09-09T00:00:00+09:00
 created: 2026-09-07
-updated: 2026-09-07
+updated: 2026-09-09
 ---
 
 Under `tanto` the human's checkpoints are the spec and the plan: Sekkei
