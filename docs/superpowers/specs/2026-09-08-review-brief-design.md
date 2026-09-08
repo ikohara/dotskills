@@ -893,7 +893,7 @@ last line joined to the next heading — each `1` before the edit and `0` after;
 `git ls-files --eol` unchanged; lint by name; commit by explicit path with
 the trailer, confirmed. For the new template: the file exists, `git ls-files
 --eol` after `git add` shows `i/lf w/lf`, and its headings in order are the
-six of the template plus the title.
+seven of the template plus the title — eight lines from `grep '^#'`.
 
 At the batch A boundary, additionally: the frontmatter hook and the PyYAML
 load on `SKILL.md`; the README drift review recorded; the raw tree sweep
