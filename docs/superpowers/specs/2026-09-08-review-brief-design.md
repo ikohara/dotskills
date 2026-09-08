@@ -98,6 +98,14 @@ Decided before or during the dialogue, not reopened here:
   text as it stands, untranslated, or the form check would fail a compliant
   brief. Kanri's optional recovery clause is taken on Sekkei's side: after a
   restart or a handover, Sekkei sends the line again.
+- **The human's reaction to the first brief (I-3).** Kanri ran the design's
+  flow by hand on this spec, and the human, before answering the brief,
+  asked for two things about its form: that each point say what it asks of
+  them, and that the brief show the reply shapes with an example, the way
+  shoroku's Direction prompt does, so that the whole brief is answered as a
+  numbered list. Both are in the template, "What it is", and the form check;
+  the dogfood brief stood as written for this spec's review, and the human
+  answered it "brief 異論なし".
 - **The two design rules** from design-4807, applied again: an obligation
   lives in the file of the role that performs it; a term two or more roles
   route on lives in `SKILL.md`. The two lines are the terms; the brief step
@@ -131,6 +139,18 @@ pointer to the section that answers it — never a line number, which an edit
 moves. The pointer is the document's heading text as it stands, untranslated:
 the one part of a point not rendered into the chat's language, so that
 Kanri's form check can match it against the document.
+
+Each point opens with what it asks of the human — **confirm**, **choose**,
+**decide**, or **nothing** — and the brief opens with a "How to answer"
+section: a numbered list, one line per point, the reply shapes shown (`OK`,
+`→ <option>`, `→ <decision>`, `change: <what>`, `later: <reason>`, `all OK`)
+and one worked example, the way shoroku's Direction prompt shows the replies
+it accepts. The human answers the whole brief without composing sentences,
+and Sekkei records the answers in `dialogue.md` in that shape, which makes
+Kanri's T1 reading mechanical. The "could not settle" section says per line
+whether an answer is needed. This is the human's reaction to the first brief
+(I-3): a point did not say whether it wanted a confirmation, a choice, or
+nothing, and the unsettled section read as a demand for answers.
 
 Five fixed sections, and a sixth for what the writer could not settle:
 
@@ -167,41 +187,65 @@ Document: <path> — brief written <YYYY-MM-DD> on <model family> for the chat
 language <language>. Inputs read: <the document; for a spec also
 spec-inputs.md and dialogue.md; for a plan also the spec>.
 
-Each point is three parts: the question the human decides, in one sentence;
-the document's answer, in one sentence; the pointer — the document's section
-heading that answers it, copied as it stands in the document and not
-translated, never a line number; the pointer is the one part of a point not
-rendered into the chat's language. At most five points per section; what
-does not fit goes to the last section, one line each. For a spec, section 5's
-body is the single line `<not applicable — a spec>`.
+## How to answer
+
+Answer in a numbered list, one line per point, `<section>.<point>` then the
+reply. The shapes: `OK` confirms the document's answer; `→ <option>` chooses
+one of the options a point names; `→ <decision>` decides what the document
+left open; `change: <what>` accepts with an edit; `later: <reason>` defers.
+`all OK` confirms every point tagged confirm at once, and a point not
+mentioned counts as confirmed. Example:
+
+    all OK
+    2.1 → (b)
+    3.1 change: the bullet reads "..."
+    4.2 later: measure first
+
+Each point opens with what it asks of you: **confirm** — the document
+decided, say OK or object; **choose** — the document names options, pick
+one; **decide** — the document left it open, your answer decides it;
+**nothing** — information, no answer needed unless you object. Then the
+question, in one sentence; the document's answer, in one sentence; and the
+pointer — the document's section heading that answers it, copied as it
+stands in the document and not translated, never a line number; the pointer
+is the one part of a point not rendered into the chat's language. At most
+five points per section; what does not fit goes to the last section, one
+line each. For a spec, section 5's body is the single line
+`<not applicable — a spec>`.
 
 ## 1. Scope and what was excluded
 
-1. Q: <...> — A: <...> — See: <section>
+1. [confirm | choose | decide | nothing] Q: <...> — A: <...> — See: <section>
 
 ## 2. Choices among alternatives, with the rejected ones and their reasons
 
-1. Q: <...> — A: <...> — See: <section>
+1. [confirm | choose | decide | nothing] Q: <...> — A: <...> — See: <section>
 
 ## 3. Requirements
 
 Two questions per item: which requirement this design serves — read from the
 document's own `req-<id>` citations, "not stated" when it has none — and
-whether it adds to or changes a requirement or an ADR.
+whether it adds to or changes a requirement or an ADR. A point that adds or
+changes one asks you to confirm its wording; a point that serves one and
+changes nothing asks nothing.
 
-1. Serves: <req-<id>, the bullet, or "not stated"> — Adds or changes: <yes: what, or no> — See: <section>
+1. [confirm | nothing] Serves: <req-<id>, the bullet, or "not stated"> — Adds or changes: <yes: what, or no> — See: <section>
 
 ## 4. Deferred items
 
-1. Q: <...> — A: <...> — See: <section>
+1. [confirm | choose | decide | nothing] Q: <...> — A: <...> — See: <section>
 
 ## 5. For a plan: the batch cut, the replacement boundary, what each batch verifies
 
-1. Q: <...> — A: <...> — See: <section>
+1. [confirm | choose | decide | nothing] Q: <...> — A: <...> — See: <section>
 
 ## What the writer could not settle
 
-- <a point whose answer or classification the document does not decide, one line each, or "none">
+Each line says what an answer here does: "no answer needed unless you
+object" for a decided item that overflowed its section, or "an answer here
+decides <what>" for a gap the document leaves.
+
+- [nothing | decide] <the point, one line> — <no answer needed unless you object | an answer here decides <what>>
 ```
 
 The template is markdownlint-ignored (`skills/**/templates/**`), so its bare
@@ -224,11 +268,14 @@ language of the human's own messages to Kanri, with `dialogue.md` as the
 reference if the two windows differ. The writer writes the brief file and
 nothing else.
 
-Kanri checks the brief's **form**, not its content: the five sections present
-(section 5 reading "not applicable" for a spec), every point in its three
-parts, every pointer the document's own heading text, verbatim and
-untranslated, so that `grep '^#'` on the document matches it without a read of
-its prose. If the form fails, Kanri dispatches once more; if it
+Kanri checks the brief's **form**, not its content: the five sections, the
+unsettled section, and "How to answer" present (section 5 reading "not
+applicable" for a spec); every point opening with one of the four tags —
+confirm, choose, decide, nothing — and every unsettled line saying whether an
+answer is needed; every point in its three parts; every pointer the
+document's own heading text, verbatim and untranslated, so that `grep '^#'`
+on the document matches it without a read of its prose. If the form fails,
+Kanri dispatches once more; if it
 fails again, Kanri sends the brief as it stands and tells the human in one
 line. Kanri never edits the brief and does not read the document to validate
 it — that would be the pre-read the fixed inputs reject, and it would
@@ -309,7 +356,8 @@ arrives; never poll, and send the line again if Kanri's session was replaced
 meanwhile — a restart, a handover — because the writer dies with the session
 that dispatched it. Put brainstorming's review gate to the human with the
 brief's text verbatim, the spec's path, and the brief's, and record the
-human's answers in `dialogue.md`. A new brief is written when the human asks
+human's answers in `dialogue.md` in the brief's reply shape. A new brief is
+written when the human asks
 for one, or when the spec's judgment points changed after the answers — a
 fixed input, a rejected alternative, a deferred item — not when its prose did.
 ```
@@ -352,7 +400,8 @@ insertion next to an anchor that stays.
 5. Send Kanri `review-ready: <plan path>` and idle until `brief: <path>`
    arrives, never polling (send the line again if Kanri's session was
    replaced meanwhile); put the brief's text verbatim in your request for the
-   one OK, with both paths. On the human's OK, commit under your commit rule
+   one OK, with both paths, and record the answers in `dialogue.md` in the
+   brief's reply shape. On the human's OK, commit under your commit rule
    below.
 ```
 
@@ -380,10 +429,13 @@ the paragraph "The harness's own prompts ...":
    the template, `templates/review-brief.md`; and the chat's language, which
    is the language of the human's own messages to you (`dialogue.md` is the
    reference if the two windows differ). Check the brief's form, not the
-   document: the five sections present (section 5 reads "not applicable" for
-   a spec), every point in its three parts, every pointer the document's own
-   heading text, verbatim and untranslated, so that `grep '^#'` on the
-   document matches it. Dispatch once more if the form fails; if it fails
+   document: the five sections, the unsettled section, and "How to answer"
+   present (section 5 reads "not applicable" for a spec); every point opening
+   with one of the four tags — confirm, choose, decide, nothing — and every
+   unsettled line saying whether an answer is needed; every point in its
+   three parts; every pointer the document's own heading text, verbatim and
+   untranslated, so that `grep '^#'` on the document matches it. Dispatch
+   once more if the form fails; if it fails
    again, send the brief as it stands and tell the human in one line. Never
    edit it, and do not read the document to validate it — a point that
    misreads the document is caught by the human's answer or by your cold
@@ -696,6 +748,7 @@ change to `docs/design/`, `docs/decisions/`, `docs/requirements/`, or
 | --- | --- |
 | I-1 the scope, issue-a1c9 and its three questions | Adopted. Who writes: Kanri dispatches the writer on `subagents.reviewer`, checks the brief's form, hands the path to Sekkei (Kanri's third shape). What the answer means: the answers to the brief's points are the confirmation; the document is the referent. Where it lives: `.superpowers/sdd/<topic>/review-brief-spec.md` and `-plan.md`, Kanri's default, delivered verbatim in Sekkei's window. Rule 11 applied: the batch B boundary is the replacement boundary and the plan says so; Kanri records the authority ruling at the landing (R-3 already does). Two batches. The three optional conventions ride along in `roles/sekkei.md`. Beyond the note: `dialogue.md`, the human's words kept, from the dialogue's D-3. |
 | I-2 Kanri's check of item 5 | Adopted: the handover exception in item 5 and "The writer"; the pointer as the document's heading, untranslated, in the template, item 5, and "What it is"; the recovery taken on Sekkei's side (send the line again after a replaced Kanri) in Step 2 and Step 4; the placement under Human access kept as Kanri accepted it. |
+| I-3 the human's reaction to the first brief | Adopted: every point opens with its asked tag (confirm, choose, decide, nothing); the brief opens with "How to answer" — the reply shapes and one worked example, after shoroku's Direction prompt; the unsettled section says per line whether an answer is needed; Kanri's form check gains the tags and the section; Sekkei records the answers in `dialogue.md` in the reply shape. The dogfood brief stood for this review, as Kanri proposed, because the human had answered it. |
 
 ## Deferred items
 
