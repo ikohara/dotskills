@@ -543,7 +543,8 @@ final values; Task 7's run of the note's checks 1 to 8 as written and check
 9's whitespace sweep, compared with the pre-edit baseline Sekkei records at
 plan review — checks 1, 2, 3, and 6 are **expected to differ** from the
 baseline exactly as Task 6 changes their Expected text (sixteen, fourteen,
-ten and seven, the fifth block), and the report says so per check; every
+ten and seven, the new last block of check 6), and the report says so per
+check; every
 other check equal to the baseline; lint on every touched path by name; the
 trailer equality over `main..HEAD`.
 
