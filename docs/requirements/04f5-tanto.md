@@ -2,7 +2,7 @@
 id: "04f5"
 title: tanto — multi-session orchestration of one implementation plan in Claude Code
 created: 2026-09-06
-updated: 2026-09-07
+updated: 2026-09-09
 ---
 
 ## Purpose
@@ -78,6 +78,19 @@ artifacts.
 - **Composes without modifying.** superpowers, the `kisou` document system, and
   `shoroku` are used as they are; every override tanto needs is written into
   tanto's own files.
+- **The human reviews through a brief of the judgment points.** Before the
+  human reads a spec or a plan, a third party Kanri dispatches writes a brief,
+  in the chat's language, of only the points that need the human's judgment,
+  each with a pointer into the document. The human's answers to those points
+  are the confirmation the review asks for, and the human reads the document
+  where a point sends them. The human's own words in the spec dialogue are
+  kept as a record, so that Kanri and the write-outs read them rather than a
+  paraphrase.
+- **Escalated wording reaches the human in the chat's language too.** When
+  the wording of a requirement or an ADR that Kanri escalates is in a language
+  other than the chat's, the escalation carries the original followed by a
+  reference translation in the chat's language; the original is what is
+  written, the translation is what the human reads it by.
 - **Claude Code only, and says so.** The skill depends on session discovery and
   cross-session messaging that no other Agent Skills host provides, and its
   documentation states this next to the host-agnostic skills in this repo.
