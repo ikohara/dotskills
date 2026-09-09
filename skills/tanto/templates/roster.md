@@ -7,9 +7,14 @@ Kept by Kanri at `.superpowers/sdd/roster.md`. Kanri is the only writer.
 - One row per role, Kanri's own row first.
 - One live session per role. A second handshake for a role that already has a
   live row gets no row and is reported to the human.
-- Every handshake rewrites that role's row in full.
+- Every handshake rewrites that role's row in full. A handshake whose
+  `transcript=` matches a row's Transcript column is that row's session
+  resumed, and rewrites the row in place with the new name and `[ref]`, status
+  `live`.
 - A row whose session is no longer listed by `ListAgents` gets status `dead`.
-  Rows are never deleted, so the run stays readable after a replacement.
+  A dead, replaced, or refused row stays, with its Residency row, until the
+  plan closes, then both move to `roster-archive.md` as one row, so the run
+  stays readable after a replacement and the roster stays short.
 - This is the address book: one row per live role, Kanri's row first, the
   `Name [ref]` column being the address the row's session answers to, used as
   the bare name. It stays correct because nothing renames a session. The
@@ -17,10 +22,10 @@ Kept by Kanri at `.superpowers/sdd/roster.md`. Kanri is the only writer.
   roster, and the handover.
 - Kanri dispatches nothing to a session that has no accepted row here.
 
-| Role | Name [ref] | cwd | Model | Branch | Mode | Started | Status |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| kanri | <name> [<ref>] | <absolute path> | <model id> | <branch> | <auto or unknown> | <YYYY-MM-DD HH:MM> | live |
-| <role> | <name> [<ref>] | <absolute path> | <model id> | <branch> | <auto or unknown> | <YYYY-MM-DD HH:MM> | live |
+| Role | Name [ref] | cwd | Model | Branch | Mode | Started | Status | Transcript |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| kanri | <name> [<ref>] | <absolute path> | <model id> | <branch> | <auto or unknown> | <YYYY-MM-DD HH:MM> | live | <absolute path or unavailable> |
+| <role> | <name> [<ref>] | <absolute path> | <model id> | <branch> | <auto or unknown> | <YYYY-MM-DD HH:MM> | live | <absolute path or unavailable> |
 
 Status is one of `live`, `dead`, `replaced`, `refused`. `refused` records a
 handshake that got no row — a duplicate role, or a model that did not match
@@ -28,14 +33,25 @@ handshake that got no row — a duplicate role, or a model that did not match
 
 ## Residency
 
-Kanri <name> [<ref>] since <YYYY-MM-DD>: <n> batches, <m> plans, <k> compactions noticed.
+| Role | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans | Noticed |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| kanri | <name> [<ref>] | <YYYY-MM-DD> | <boundary or plan close> | <n> | <n> | <n> | <n> | <n> | <m> | <k> |
+| <role> | <name> [<ref>] | <YYYY-MM-DD> | <boundary> | <n> | <n> | <n> | <n> | — | — | — |
 
-One line, rewritten in place by Kanri at every boundary and plan close, and the
-only cross-plan counter the skill keeps. The counts are cumulative since this
-Kanri's own start: `<n>` increments when Kanri accepts a batch, `<m>` when a
-plan closes, `<k>` when Kanri notices a compaction. A declined handover leaves
-`<k>` incremented, so the count stays a record. A handover resets the line to
-the successor's name and date with zero counts.
+One row per session of the current run, live or not, Kanri's first, rewritten
+in place by Kanri at every boundary and plan close from the readings the
+sessions send (`SKILL.md`, "The transcript reading"): a role's row from its
+latest boundary or exit line, Kanri's own from the reading it takes at the
+trigger check. The last three columns are Kanri's only — batches accepted,
+plans closed, and compactions noticed by the session itself, cumulative since
+its own start; a declined handover leaves Noticed incremented, so the count
+stays a record, and a handover resets Kanri's row to the successor with zero
+counts. A reading Kanri doubted and could not verify carries `(unverified)`
+after its Compactions figure; `unavailable` stands in the four figures when
+the session sent that. At the plan close every row whose session is dead,
+replaced, or refused moves to `roster-archive.md`, joined with its status row
+above, and it is the archive's rows across runs that a threshold for the
+handover or a replacement will be read from (issue-40ed).
 
 ## Shoroku candidates
 
@@ -50,6 +66,9 @@ the written ones here as the record.
 | S-1 | <the triage, report, or session that raised it> | <one line> | <requirements, design, decisions, issues, notes, or reports> | <yes, no, or escalated> | <T0, T1, T2, or exit:<role>[-<suffix>]> | <no, or the subject of the commit that wrote the row out> |
 
 ## Events
+
+At a plan close the closed plan's lines move to `roster-archive.md`, so this
+list holds the current run.
 
 - <YYYY-MM-DD HH:MM> — <one line: a handshake accepted, or refused and why; a
   session declared dead and what was verified; the conductor ledger moved from
