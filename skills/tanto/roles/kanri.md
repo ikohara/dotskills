@@ -27,7 +27,7 @@ taking over mid-plan must not create a second ledger.
    from `templates/roster.md` with your row first and a Residency line with
    today's date and zero counts, then go to step 5.
 4. Otherwise cold-read the roster and compare your own `name [ref]` with its
-   first data row, then take exactly one case from "The four cases" below.
+   first data row, then take exactly one case from "The five cases" below.
 5. Only when no plan is in flight — the bootstrap, a kept Kanri between
    plans, or a recovery whose last ledger says closed — open the topic. Take
    it from whatever the human said the next work is — an issue id, a
@@ -45,7 +45,7 @@ taking over mid-plan must not create a second ledger.
 6. Do the T0 write-out if an input document with decided items exists (see
    "Shoroku"). Then wait for the human and for handshakes.
 
-### The four cases
+### The five cases
 
 **Handover** — `.superpowers/sdd/kanri-handover.md` exists. In order: read the
 handover and the ledger it names, and `progress.md` if a plan is in flight;
@@ -70,10 +70,20 @@ that session is still listed. Stop, tell the human there is a live Kanri
 already, and ask whether that one should hand over or this session should be
 deleted. Write nothing.
 
-**Recovery** — no handover file, the first data row is another name, and that
-session is not listed. Mark every row whose session is gone `dead`, with an
-Events line per row saying whether its exit shoroku ran and what was lost, and
-run "Recovery after a VS Code restart" below.
+**Resumed Kanri** — no handover file, the first data row is another name that
+`ListAgents` does not list, and that row's Transcript column is your own
+transcript path. This is your own conversation resumed under a new name:
+rewrite the first row in place with your new name and `[ref]`, status `live`,
+send the `kanri-address:` line of `SKILL.md`'s Resuming to every listed peer,
+write the Events line `resumed: <old name> → <new name>`, and continue where
+the ledger's Progress line says. No row is marked `dead`, and there is no tree
+recovery beyond `git status`.
+
+**Recovery** — no handover file, the first data row is another name, that
+session is not listed, and its Transcript column is not your own path. Mark
+every row whose session is gone `dead`, with an Events line per row saying
+whether its exit shoroku ran and what was lost, and run "Recovery after a VS
+Code restart" below.
 
 ## On a handshake
 
@@ -91,6 +101,12 @@ Four steps, in this order.
    `orders: plan=<path> ledger=<path> branch=<b>; read roles/jisso.md in the tanto skill directory`.
    Kaiseki gets the brief path, or `no brief, stop` in a smoke test.
 
+A handshake whose `transcript=` equals a row's Transcript column is that
+session resumed under a new name, not a second session: rewrite the row in
+place with the new name and `[ref]`, status `live`, write the Events line
+`resumed: <old name> → <new name>`, and send nothing but your address. Step 2's
+one-live-row-per-role check does not refuse it.
+
 A second handshake for a role that already has a live row, or a model
 mismatch, gets **no row**: record it in the roster as `refused` with an Events
 line saying which, and tell the human. A Jisso whose `mode=` is not `auto` also
@@ -107,12 +123,44 @@ after the ledger moves.
 
 ## When the plan lands
 
-Sekkei sends you one line saying the plan is committed, with its path. Then, in
-this order.
+Sekkei sends you one line,
+`plan committed: <plan path>; dryrun: <dry-run path> — <reading>`, naming the
+plan and the dry-run report.
 
-1. Cold-read the committed plan and the spec, and send Sekkei one line per open
-   question. Wait for its pointer: it answers by editing the plan or the spec,
-   never by explaining in a message. If the plan edits this skill's own files,
+The frame command, from the repository root, with `P` the plan path:
+
+```bash
+awk '{
+  if (s) {
+    if (f) {
+      if (match($0, /^`+/) && RLENGTH == k && $0 ~ /^`+[ \t]*$/) f = 0
+      n++; next
+    }
+    if ($0 ~ /^##/) { s = 0; print "[steps: " n " lines]" }
+    else {
+      if (match($0, /^`{3,}/)) { f = 1; k = RLENGTH }
+      n++; next
+    }
+  }
+  if ($0 ~ /^### Task/) t = 1; else if ($0 ~ /^## /) t = 0
+  if (t && $0 ~ /^- \[ \] \*\*Step/) { s = 1; n = 1; next }
+  print
+} END { if (s) print "[steps: " n " lines]" }' "$P"
+```
+
+Then, in this order.
+
+1. Cold-read the spec whole and the plan's **frame** — everything outside the
+   task steps: Global Constraints, File structure, each task's head down to its
+   first step, Batches, How a batch is verified, the sweeps, and the
+   Self-Review — as the frame command above prints it. The steps' passage
+   blocks and commands you take on Sekkei's dry-run report,
+   `.superpowers/sdd/<topic>/plan-dryrun.md`, which the plan-committed line
+   names, plus one command of your own that checks every anchor the plan
+   names against the tree; a plan that has no dry-run report is read whole.
+   Send Sekkei one line per open question. Wait for its pointer: it answers by
+   editing the plan or the spec, never by explaining in a message. If the plan
+   edits this skill's own files,
    record as `R-n`, before any batch prompt or subagent is dispatched, that
    the run's sessions follow the constraints, your orders line, and the
    batch prompts rather than the role text on disk, and the boundary the plan
@@ -646,8 +694,11 @@ stays either way.
 
 ### Recovery after a VS Code restart
 
-All sessions die together, and the human recreates you first. Run
-`ListAgents`, mark every roster row that is no longer listed as `dead`, verify
-the tree if a batch was in flight, then ask for the missing roles in this
-order: Jisso only if a batch is in flight, Kaiseki only if a bug is open,
-Sekkei only if a spec or plan is in progress.
+Every window is resumed at once rather than recreated, and the human types
+`/tanto resume` in your window first — the Resumed Kanri case above — and then
+in each other window, in any order; no address is pasted. Mark `dead` only a
+row whose session neither `ListAgents` lists nor re-handshakes by the time the
+human says the windows are done. Verify the tree if a batch was in flight, then
+ask for the roles still missing, in this order: Jisso only if a batch is in
+flight, Kaiseki only if a bug is open, Sekkei only if a spec or plan is in
+progress.
