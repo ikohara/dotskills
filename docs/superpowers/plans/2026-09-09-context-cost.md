@@ -177,7 +177,7 @@ this table.
 
 | File | Passages | Task |
 | --- | --- | --- |
-| `skills/tanto/SKILL.md` | P1.1 the Invocation table's `resume` row, "those five", and the `/tanto resume` sentence; P1.2 the handshake line's `transcript=`; P1.3 the sentence after the `mode=` paragraph; P1.4 the section `## The transcript reading` with its closing compaction paragraph; P1.5 the section `## Resuming`; P1.6 the Messages bullet on the boundary reply; P1.7 the Session exit `exit write-out committed:` line; P1.8 the Session exit file pattern's Kanri entry; P1.9 the Artifacts row for `roster-archive.md`; P1.10 the Artifacts row for `plan-dryrun.md`; P1.11 the Artifacts row for `compaction-<role>-<n>.md`; P1.12 the Artifacts row's changed Kanri exit-proposal path; P1.13 "There are eleven" and `templates/roster-archive.md` in the templates list | 1 |
+| `skills/tanto/SKILL.md` | P1.1 the Invocation table's `resume` row, "those five", and the `/tanto resume` sentence; P1.2 the handshake line's `transcript=`; P1.3 the sentence after the `mode=` paragraph; P1.4 the section `## The transcript reading` with its closing compaction paragraph; P1.5 the section `## Resuming`; P1.6 the Messages bullet on the boundary reply; P1.7 the Session exit `exit write-out committed:` line; P1.8 the Session exit file pattern's Kanri entry; P1.9 the Artifacts row for `roster-archive.md`; P1.10 the Artifacts row for `plan-dryrun.md`; P1.11 the Artifacts row for `compaction-<role>-<n>.md`; P1.12 the Artifacts row's changed Kanri exit-proposal path; P1.13 "There are eleven" and `templates/roster-archive.md` in the templates list; P8.10 the "Handshake and roster" column list gains `transcript`, added at Kanri's cold read (R-9) and landed by task 8 | 1, 8 |
 | `skills/tanto/templates/roster.md` | P2.1 the Keeping rule's handshake bullet gains the resume sentence; P2.2 the Keeping rule's dead-row bullet; P2.3 the address book's `Transcript` column; P2.4 the `## Residency` section as a table; P2.5 the `## Events` sentence on the plan close | 2 |
 | `skills/tanto/templates/roster-archive.md` | P2.6 the whole file, **new** | 2 |
 | `skills/tanto/templates/kanri.md` | P3.1 the `S-n` table's Stage cell Kanri pattern; P3.2 the two Written-column sentences under that table; P3.3 the Measurements fixed row and its sentence | 3 |
@@ -4724,6 +4724,9 @@ Expected: `1`
 - Modify: `skills/tanto/README.md` — four passages, P8.1 to P8.4.
 - Modify: `docs/notes/tanto-consistency-checks.md` — five passages, P8.5 to
   P8.9.
+- Modify: `skills/tanto/SKILL.md` — one passage, P8.10, added at Kanri's cold
+  read (ledger R-9): the roster column list of "Handshake and roster" gains
+  `transcript`, which task 2 added to the roster and P1.5 keys the resume on.
 - Modify: nothing else. Steps 22 to 30 write no file; their recorded output
   **is** part of this task's deliverable.
 
@@ -4744,14 +4747,14 @@ Expected: `1`
 - **The dispatch for this task tells the reviewer to re-run the sweeps**, not
   to read them: a report of a check is not the check.
 
-- [ ] **Step 1: Read the two files' line endings, before the first edit**
+- [ ] **Step 1: Read the three files' line endings, before the first edit**
 
 ````bash
-git ls-files --eol skills/tanto/README.md docs/notes/tanto-consistency-checks.md
+git ls-files --eol skills/tanto/README.md docs/notes/tanto-consistency-checks.md skills/tanto/SKILL.md
 ````
 
-Expected: `i/lf`, `w/crlf`, `attr/text=auto` for both. Measured 2026-09-09.
-Every passage below is written **CRLF**.
+Expected: `i/lf`, `w/crlf`, `attr/text=auto` for all three. Measured
+2026-09-09. Every passage below is written **CRLF**.
 
 - [ ] **Step 2: Verify the P8.1 anchor, before the edit**
 
@@ -4962,6 +4965,75 @@ tail -c1 skills/tanto/README.md | od -An -c | tr -d ' '
 ````
 
 Expected: `1`, `1`, `\n`. Baseline `0`, `0`, `\n`, measured 2026-09-09.
+
+- [ ] **Step 13a: Verify the P8.10 anchor, before the edit**
+
+P8.10 was added at Kanri's cold read (ledger R-9): `SKILL.md`'s "Handshake
+and roster" column list was quoted in no passage of the spec or the plan,
+while P1.5's Resuming keys the resume on the roster's Transcript column and
+P2.3 added that column. It lands in this task so that the last task closes
+the contradiction, and its steps are numbered 13a to 13c so that every step
+number the rest of the plan cites stays as it is.
+
+Anchor — the sentence before the column list, which stays:
+
+````bash
+needle=$(cat <<'EOF'
+The roster lives at `.superpowers/sdd/roster.md`, is written only by Kanri from
+EOF
+)
+grep -cF -- "$needle" skills/tanto/SKILL.md
+git ls-files --eol skills/tanto/SKILL.md
+````
+
+Expected: `1`, and `w/crlf`. Measured 2026-09-09, on the tree as batch A left
+it. The passage is written CRLF.
+
+- [ ] **Step 13b: P8.10 — the roster's column list gains `transcript`**
+
+This is a **replacement** of the four lines below by the four that follow —
+the column list and the `ListAgents` sentence that shares its lines,
+rewrapped together; the sentence's words do not change.
+
+Old passage — replace exactly these 4 lines and nothing else:
+
+````markdown
+`templates/roster.md`, and has Kanri's row first. Columns are role, name
+`[ref]`, cwd, model, branch, mode, started, status. `ListAgents` shows name,
+`[ref]`, kind, and start time — not the cwd, the model, or the role; the
+handshake carries those.
+````
+
+New passage, written CRLF:
+
+````markdown
+`templates/roster.md`, and has Kanri's row first. Columns are role, name
+`[ref]`, cwd, model, branch, mode, started, status, transcript. `ListAgents`
+shows name, `[ref]`, kind, and start time — not the cwd, the model, or the
+role; the handshake carries those.
+````
+
+- [ ] **Step 13c: Verify P8.10**
+
+````bash
+new=$(cat <<'EOF'
+Columns are role, name `[ref]`, cwd, model, branch, mode, started, status, transcript. `ListAgents` shows name, `[ref]`, kind, and start time — not the cwd, the model, or the role; the handshake carries those.
+EOF
+)
+tr -d '\r' < skills/tanto/SKILL.md | tr '\n' ' ' | tr -s ' ' | grep -cF -- "$new"
+old=$(cat <<'EOF'
+mode, started, status. `ListAgents`
+EOF
+)
+tr -d '\r' < skills/tanto/SKILL.md | tr '\n' ' ' | tr -s ' ' | grep -cF -- "$old"
+grep -c 'started, status, transcript' skills/tanto/SKILL.md
+git ls-files --eol skills/tanto/SKILL.md
+````
+
+Expected: `1`, `0`, `1`, and `w/crlf`. Baseline `0`, `1`, `0`, measured
+2026-09-09 on the tree as batch A left it. The old-passage pin is the old
+line's tail joined to the sentence that followed it, which only the unedited
+lines have.
 
 - [ ] **Step 14: Verify the P8.5 anchor, before the edit**
 
@@ -5341,7 +5413,7 @@ Batch B is tasks 5 to 8 and batch A is tasks 1 to 4. This sweep **prints its
 hits**, so that what it decided is on the record; it is not a `wc -l`.
 
 ````bash
-for t in 'Resumed Kanri' 'resumed:' 'Residency row' 'Residency table' 'original then reference translation' 'reference translation' 'superseded: <topic> R-n' 'exit:kanri-<YYYY-MM-DD>-<name>' 'roster-archive' 'compacted:' 'confirmed:' 'plan-dryrun' '(unverified)'; do
+for t in 'Resumed Kanri' 'resumed:' 'Residency row' 'Residency table' 'original then reference translation' 'reference translation' 'superseded: <topic> R-n' 'exit:kanri-<YYYY-MM-DD>-<name>' 'roster-archive' 'compacted:' 'confirmed:' 'plan-dryrun' '(unverified)' 'status, transcript'; do
   echo "== $t"
   grep -rnF -- "$t" skills/tanto/SKILL.md skills/tanto/README.md skills/tanto/roles skills/tanto/templates
 done
@@ -5369,8 +5441,16 @@ Expected, read term by term against the batch A files —
   once: the pair.
 - `exit:kanri-<YYYY-MM-DD>-<name>` — `templates/kanri.md` once and
   `roles/kanri.md` once: the pair.
-- `roster-archive` — `SKILL.md` twice, `templates/roster.md` twice,
-  `roles/kanri.md` once, `README.md` once.
+- `roster-archive` — `SKILL.md` twice, `templates/roster.md` three times
+  (the Keeping rule's dead-row bullet, the Residency block, and the Events
+  sentence), `templates/roster-archive.md` once (its own first paragraph
+  names its path), `roles/kanri.md` once, `README.md` once. Measured on the
+  tree as batch A left it: the two template counts are Jisso's R-J2 and
+  R-J3.
+- `status, transcript` — `SKILL.md` once, P8.10's own line, and nowhere
+  else: the roster's header spells the column `Transcript`, which this term
+  does not match, and that is the point — the contract's prose column list
+  and the template's header are the pair the sweep keeps aligned.
 - `compacted:` and `confirmed:` — `SKILL.md` once each and `roles/kanri.md`
   once each: the pairs.
 - `plan-dryrun` — `SKILL.md`, `roles/sekkei.md`, and `roles/kanri.md`, once
@@ -5550,41 +5630,43 @@ Expected:
   `1`. An aggregate count over the branch would let a commit with two trailers
   balance a commit with none, which is why the check loops.
 
-- [ ] **Step 31: The two files' line endings are what step 1 read**
+- [ ] **Step 31: The three files' line endings are what step 1 read**
 
 ````bash
-git ls-files --eol skills/tanto/README.md docs/notes/tanto-consistency-checks.md
+git ls-files --eol skills/tanto/README.md docs/notes/tanto-consistency-checks.md skills/tanto/SKILL.md
 ````
 
-Expected: the same `i/lf`, `w/crlf`, `attr/text=auto` for both, and never
-`w/mixed`.
+Expected: the same `i/lf`, `w/crlf`, `attr/text=auto` for all three, and
+never `w/mixed`.
 
 - [ ] **Step 32: The diff of each file is exactly its passages**
 
 ````bash
-for f in skills/tanto/README.md docs/notes/tanto-consistency-checks.md; do
+for f in skills/tanto/README.md docs/notes/tanto-consistency-checks.md skills/tanto/SKILL.md; do
   echo "== $f"
   git diff "$(git merge-base main HEAD)" -- "$f"
 done
 ````
 
 Expected: `README.md` — hunks holding P8.1, P8.2, P8.3, and P8.4; the note —
-hunks holding P8.5 to P8.9. Read each hunk against the blocks above and match
-by text; no hunk count is stated.
+hunks holding P8.5 to P8.9; `SKILL.md` — hunks holding P1.1 to P1.13 and
+P8.10, the last a four-line change inside "Handshake and roster". Read each
+hunk against the blocks above and match by text; no hunk count is stated.
 
-- [ ] **Step 33: Lint the two paths**
+- [ ] **Step 33: Lint the three paths**
 
 ````bash
-./scripts/lint.sh skills/tanto/README.md docs/notes/tanto-consistency-checks.md
+./scripts/lint.sh skills/tanto/README.md docs/notes/tanto-consistency-checks.md skills/tanto/SKILL.md
 ````
 
-Windows alternative: `scripts\lint.bat` with the same two paths. Expected: exit
-0, every hook `Passed` or `Skipped`, none `Failed`. markdownlint binds on both.
+Windows alternative: `scripts\lint.bat` with the same three paths. Expected:
+exit 0, every hook `Passed` or `Skipped`, none `Failed`. markdownlint binds on
+all three.
 
 - [ ] **Step 34: Commit**
 
 ````bash
-git commit --only skills/tanto/README.md docs/notes/tanto-consistency-checks.md -m "docs(tanto): the README and the consistency note follow the reading and the archive" -m "The README says a session measures its own context, lists /tanto resume, and names the eleventh template and this spec. The consistency note counts seventeen skill files and eleven templates: check 1 lists roster-archive.md, check 2 expects fifteen ok lines, check 3's map gains the archive against Kanri's role file and expects eleven, and check 6 pins the new Residency table header in the roster and the handover in place of the old one-line Residency, adds transcript=, compacted:, and confirmed: as routed strings, and states the new thirty-two-number sequence." -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit --only skills/tanto/README.md docs/notes/tanto-consistency-checks.md skills/tanto/SKILL.md -m "docs(tanto): the README and the consistency note follow the reading and the archive" -m "The README says a session measures its own context, lists /tanto resume, and names the eleventh template and this spec. The consistency note counts seventeen skill files and eleven templates: check 1 lists roster-archive.md, check 2 expects fifteen ok lines, check 3's map gains the archive against Kanri's role file and expects eleven, and check 6 pins the new Residency table header in the roster and the handover in place of the old one-line Residency, adds transcript=, compacted:, and confirmed: as routed strings, and states the new thirty-two-number sequence. SKILL.md's roster column list gains transcript, the column task 2 added and Resuming keys on (P8.10, Kanri's cold read R-9)." -m "Co-Authored-By: Claude <noreply@anthropic.com>"
 ````
 
 - [ ] **Step 35: Verify the trailer**
@@ -5632,7 +5714,7 @@ human decided this at the plan brief, 2026-09-09.
 | Batch | Tasks | Delivers | Stop conditions at the boundary |
 | --- | --- | --- | --- |
 | A | 1, 2, 3, 4 | `SKILL.md` with `## The transcript reading` and its closing compaction paragraph, `## Resuming`, the `resume` invocation row and "those five", the handshake's `transcript=` and its sentence, the Messages boundary-reply bullet, the `exit write-out` lines and the Kanri exit pattern, the three new Artifacts rows and the changed exit-proposal path, and "There are eleven"; `templates/roster.md` with the `Transcript` column, the resume sentence, the dead-row rule, the Residency **table**, and the Events sentence; the new `templates/roster-archive.md`; `templates/kanri.md` with the Stage cell, the two Written-column sentences, and the Measurements fixed row; `templates/batch-report.md` and `templates/kaiseki-report.md` with `- Transcript — <reading>`; `templates/kanri-handover.md` with `(unverified)` and the one-row Residency; `roles/jisso.md`, `roles/kaiseki.md`, and `roles/sekkei.md` with the self-check, the reading, Sekkei's one dry run and `plan-dryrun.md`, the grant clause, and the Models row | lint clean on every changed path, by name (ten paths); every flattened new-passage grep of tasks 1 to 4 returns `1`, every Verify step's old-passage pin returns `0`, every insertion's anchor still returns `1`, and every anchor block returns the post-edit value its step states; `grep -c '^## The transcript reading$' skills/tanto/SKILL.md` and `grep -c '^## Resuming$' skills/tanto/SKILL.md` each `1`; `grep -rcF 'transcript:' skills/tanto` is `2` and only in `SKILL.md`; `grep -cF -- '— <reading>' <file>` at least `1` in `roles/sekkei.md`, `roles/jisso.md`, `roles/kaiseki.md`, `templates/batch-report.md`, `templates/kaiseki-report.md`, and `templates/kanri-handover.md`; `test -f skills/tanto/templates/roster-archive.md` exits 0; `grep -c 'There are eleven' skills/tanto/SKILL.md` is `1` and `grep -c 'There are ten'` is `0`; `grep -cF 'given again with each new topic' skills/tanto/roles/sekkei.md` is `0`; the note's checks 1, 2, 5, 8, and 9 as the **unedited** note states them, except checks 1 and 2, whose counts this batch knowingly breaks by adding the eleventh template and which task 8 repairs — that omission is licensed here and named in task 8's Interfaces; `git ls-files --eol` unchanged for all ten paths and never `w/mixed`; `git diff "$(git merge-base main HEAD)" -- <file>` for each of the ten read hunk by hunk against the blocks; `git status --short` prints nothing; `git status --porcelain \| grep -c '\.bak'` is `0`; every commit on the branch carries exactly one `Co-Authored-By:` line, checked per commit; **the tree is deliberately not self-consistent here, so no role may be started or replaced from this boundary** |
-| B | 5, 6, 7, 8 | `roles/kanri.md` with the fifth start case, the Recovery clause, the handshake match, the many-at-once restart, the frame command and the frame cold read, the trigger paragraph and the self-check, the Residency rows, the residency lines, `### Readings` with the `compacted:` handling, the Replace and Delete rows, "Your own exit", the three escalation clauses, the adoption rule's three sentences, and the grant clause; `skills/tanto/README.md` with the reading, `/tanto resume`, `roster-archive.md`, and this spec; `docs/notes/tanto-consistency-checks.md` with seventeen files, eleven templates, and checks 1, 2, 3, and 6 rewritten; and the recorded output of the forward sweep, the backward sweep, the absence sweeps, the spec's whole Verification section, the reading pipeline, and the frame command | everything in batch A's list, re-run over the whole tree, **plus**: the note's checks 1, 2, 3, 5, 6, 7, 8, and 9 as **task 8 leaves them** — seventeen `ok`, fifteen `ok`, eleven `ok` and no `UNCITED`, the five stop-class and four-statuses `1`s, check 6's thirty-two numbers, check 7's nine silent greps and the two `multi-session orchestration` `1`s, check 8's `['argument-hint', 'description', 'name']` / `ok` / `json ok`, and check 9's `Summary: 0 error(s)` and `done`; the spec's Verification section run whole, every value as task 8 step 28 states it; the reading pipeline extracted from `SKILL.md` and run on the running session's own transcript, printing one line matching `^transcript: [0-9]+ B, [0-9]+ records, [0-9]+ wake-ups, [0-9]+ compactions$`; the frame command extracted from `roles/kanri.md` and run, printing `631` and `4` on `docs/superpowers/plans/2026-09-09-requirement-extraction.md` and `497` and `7` on `docs/superpowers/plans/2026-09-07-boundary-rules.md`; the forward sweep, the backward sweep, and the eight absence sweeps, each printing its hits and each of the absence greps printing nothing; `git diff --name-only "$(git merge-base main HEAD)"` naming exactly the thirteen files, the spec, this plan, `docs/issues/open/12d3-*.md` from the commit "docs(issues): tanto keeps both untracked directories at a plan close", and any `docs: T<n> shoroku` or `docs: exit shoroku` path; **the tree is self-consistent here, and this is the boundary from which a role may be started or replaced** |
+| B | 5, 6, 7, 8 | `roles/kanri.md` with the fifth start case, the Recovery clause, the handshake match, the many-at-once restart, the frame command and the frame cold read, the trigger paragraph and the self-check, the Residency rows, the residency lines, `### Readings` with the `compacted:` handling, the Replace and Delete rows, "Your own exit", the three escalation clauses, the adoption rule's three sentences, and the grant clause; `skills/tanto/README.md` with the reading, `/tanto resume`, `roster-archive.md`, and this spec; `docs/notes/tanto-consistency-checks.md` with seventeen files, eleven templates, and checks 1, 2, 3, and 6 rewritten; `SKILL.md`'s roster column list with `transcript` (P8.10); and the recorded output of the forward sweep, the backward sweep, the absence sweeps, the spec's whole Verification section, the reading pipeline, and the frame command | everything in batch A's list, re-run over the whole tree, **plus**: the note's checks 1, 2, 3, 5, 6, 7, 8, and 9 as **task 8 leaves them** — seventeen `ok`, fifteen `ok`, eleven `ok` and no `UNCITED`, the five stop-class and four-statuses `1`s, check 6's thirty-two numbers, check 7's nine silent greps and the two `multi-session orchestration` `1`s, check 8's `['argument-hint', 'description', 'name']` / `ok` / `json ok`, and check 9's `Summary: 0 error(s)` and `done`; the spec's Verification section run whole, every value as task 8 step 28 states it; the reading pipeline extracted from `SKILL.md` and run on the running session's own transcript, printing one line matching `^transcript: [0-9]+ B, [0-9]+ records, [0-9]+ wake-ups, [0-9]+ compactions$`; the frame command extracted from `roles/kanri.md` and run, printing `631` and `4` on `docs/superpowers/plans/2026-09-09-requirement-extraction.md` and `497` and `7` on `docs/superpowers/plans/2026-09-07-boundary-rules.md`; the forward sweep, the backward sweep, and the eight absence sweeps, each printing its hits and each of the absence greps printing nothing; `git diff --name-only "$(git merge-base main HEAD)"` naming exactly the thirteen files, the spec, this plan, `docs/issues/open/12d3-*.md` from the commit "docs(issues): tanto keeps both untracked directories at a plan close", and any `docs: T<n> shoroku` or `docs: exit shoroku` path; **the tree is self-consistent here, and this is the boundary from which a role may be started or replaced** |
 
 The final batch — the whole-branch review's fix wave, dispatched by Kanri after
 batch B — is the protocol's own and is not counted here; a fix-wave list is
@@ -5765,7 +5847,7 @@ there, and the whole checklist at batch B's.
       output from its nine greps, then the two `multi-session orchestration`
       lines; **check 9** — `Summary: 0 error(s)` and `done`.
 - [ ] **The two sweeps and the absence sweeps**, which are task 8's steps 25,
-      26, and 27: the forward sweep prints its hits for thirteen terms, the
+      26, and 27: the forward sweep prints its hits for fourteen terms, the
       backward sweep prints its hits for eight, and each of the eight absence
       greps prints nothing and exits 1. A stop condition worded as a property
       of the whole tree — "no file spells the reading line twice", "the old
