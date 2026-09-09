@@ -62,6 +62,8 @@ artifacts.
   is in the repository's workspace, so any session can be replaced or recreated
   and the run continues from disk. A message between sessions carries one line
   and a path, nothing that would be lost with the session.
+- **A session resumed under a new name rejoins the run as easily as
+  possible.**
 - **Root cause before more fixing.** When fix rounds fail for a reason nobody
   can name, the strong model leads an interactive root-cause pass; the fix it
   prescribes goes through the ordinary implementation review.
