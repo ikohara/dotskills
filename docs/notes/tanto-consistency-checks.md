@@ -40,6 +40,11 @@ Six things a passage plan's pass needs that a whole-file plan's does not.
    after a task's commit. `git diff main...HEAD` compares commits only and
    misses an uncommitted edit; the two-dot form differs again. A pre-commit
    verification step built on the three-dot form under-reports silently.
+   A whole-tree check's baseline belongs on the plan's own branch, or names
+   the branch it was measured on and states no count: the
+   requirement-extraction spec baselined its `skills/tanto` name-only diff on
+   the sibling branch `review-brief` while that plan's batches were landing,
+   and the count it stated went three, four, five within a day.
 2. **The hunk count is a task-time check, never an invariant.** `git diff`
    merges two changed regions into one hunk when at most six unchanged lines
    separate them — three lines of context on each side; five and six give one
@@ -82,6 +87,11 @@ neighbours alone avoids it structurally.
 "the new form is present" check with a `grep -rn` over the skill that must print
 nothing, so the pass decides that the old form is gone everywhere rather than
 that the new form arrived somewhere.
+Once the spec and the plan are committed under `docs/superpowers/`, an absence
+grep whose scope includes `docs` excludes that directory —
+`grep -rn --exclude-dir=superpowers '<old text>' skills docs` — because both
+documents quote the passage they remove, and the pass would otherwise report
+its own quotations.
 
 The index stores LF throughout, but the working tree is mixed file by file —
 some paths are checked out with CRLF and some with LF. So every command below
@@ -484,6 +494,15 @@ its own paths there, and the heading and the arguments otherwise disagree. And
 instrument for a **read-only reviewer**: four of `scripts/lint.sh`'s hooks
 mutate files, so a review seat forbidden to touch the tree cannot run the
 repository's own lint entry point at all.
+
+Three more, from a scratch-tree dry run on this host. The Claude Code Bash
+tool fails a long command — roughly forty lines and up, carrying a quoted
+heredoc plus a pipeline — with `unexpected EOF while looking for matching
+'''`, whatever the content; write the same commands to a script file with the
+Write tool and run it by path. Recursive deletion is denied to the session, so
+a dry run takes a fresh scratch directory per run rather than clearing one.
+And the editor's markdownlint reports on files under `.superpowers/` — a plan
+draft, a brief — are advisory: the commit path ignores that directory.
 
 Trailing whitespace and the final newline are the two things markdownlint
 does not check and the hooks fix silently:

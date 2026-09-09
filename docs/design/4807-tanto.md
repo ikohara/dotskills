@@ -670,6 +670,20 @@ plan under this protocol.
   byte identity mechanically first, then point the reviewer at the cross-file
   contracts and the human-facing questions; that is where the reviews of that
   plan found what no grep would.
+- **The plan drafter's transcription is a second spec review.** A byte-exact
+  transcription of the spec's blocks, with the plan's own commands run
+  against them, catches what a reading review does not: in
+  requirement-extraction the spec reviewer's twenty findings missed a grep
+  needle wrapped across a line break in one passage, and the drafter found it
+  because the plan's grep failed. It cost nothing because the spec was still
+  an untracked draft under the parallel-topic rule and Sekkei re-wrapped the
+  block before the commit; on a committed spec it would have been a
+  whole-branch-review item.
+- **A drafter told to leave a heading empty is also told not to describe
+  it.** Sekkei's three sections were drafted in a scratch file while the
+  drafter ran and merged into its placeholder headings by script — a turn
+  saved — and the drafter's Self-Review had described the placeholders it was
+  told to leave, so that sentence had to be rewritten after the merge.
 
 Two sizing rules complete the set. Batches are sized so that one executor
 carries a batch without growing long, and the plan says at which boundaries a
