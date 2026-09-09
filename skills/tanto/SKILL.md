@@ -38,8 +38,12 @@ Normalize the role word to its romaji id before anything else.
 | `せっけい`, `設計`, `sekkei` | `sekkei` |
 | `じっそう`, `実装`, `jisso` | `jisso` |
 | `かいせき`, `解析`, `kaiseki` | `kaiseki` |
+| `resume` | `resume` |
 
-Any other word: say the role is unknown, list those four ids, and stop.
+Any other word: say the role is unknown, list those five ids, and stop.
+
+`/tanto resume` skips the start sequence — no model check, no first
+handshake — and runs "Resuming" below.
 
 The optional second argument is Kanri's address, pasted by the human from
 Kanri's lifecycle request. Kanri runs `/tanto kanri` with no address.
@@ -105,7 +109,7 @@ Kaiseki always receives the address on the command line.
 Send Kanri exactly one message:
 
 ```text
-handshake role=<role> name=<name [ref]> cwd=<path> model=<model id> branch=<branch> mode=<permission mode|unknown>
+handshake role=<role> name=<name [ref]> cwd=<path> model=<model id> branch=<branch> mode=<permission mode|unknown> transcript=<absolute path|unavailable>
 ```
 
 `name [ref]` is what `ListAgents` prints for this session on its first line
@@ -113,6 +117,10 @@ handshake role=<role> name=<name [ref]> cwd=<path> model=<model id> branch=<bran
 
 `mode=` is what you can see about your own permission mode — `auto` when your
 system prompt says auto mode is active, otherwise `unknown`. It is advisory.
+
+`transcript=` is the path of this session's own transcript per "The transcript
+reading", so that Kanri can record it and, where its session may read that
+path, verify a reading it doubts.
 
 Jisso then **waits** for Kanri's reply. It carries the plan path and the ledger
 path Jisso cannot start without. Sekkei and Kaiseki start reading while they
@@ -152,6 +160,102 @@ comes from a successor Kanri and replaces Kanri's address from then on; the
 roster's first row says the same. A role whose send to Kanri errors re-reads
 that row.
 
+## The transcript reading
+
+Every session can measure its own context from its transcript, the file the
+harness appends to on disk as the session runs. The **reading** is four
+figures from that file, taken by the session itself, and it is the only cost
+signal the skill uses. The `tokens left` figure the harness prints is not one:
+its unit is not documented as the context window.
+
+Locate the file from the scratchpad path the system prompt names,
+`<...>/<project slug>/<session id>/scratchpad`: the transcript is
+`<config dir>/projects/<project slug>/<session id>.jsonl`, where the config
+directory is `$CLAUDE_CONFIG_DIR` when set and `~/.claude` otherwise. Then, in
+a POSIX shell with `T` the transcript path:
+
+```bash
+b=$(wc -c < "$T"); r=$(wc -l < "$T")
+w=$(grep '"type":"user"' "$T" | grep -vc '"tool_result"')
+c=$(grep '"type":"user"' "$T" | grep -v '"tool_result"' | grep -Ec '"(content|text)":"This session is being continued from a previous conversation')
+echo "transcript: $b B, $r records, $w wake-ups, $c compactions"
+```
+
+- **Bytes** and **records** are the file's size and its line count, one JSON
+  record per line.
+- **Wake-ups** are the records of `type: user` that carry no tool result: one
+  per human message, peer message, or idle notice, each the start of a turn
+  that re-reads the whole context. The test is a substring of the line, so
+  the count may be off by one.
+- **Compactions** are the wake-ups whose text begins with the harness's
+  phrase. The check is on the record type and the text's first characters; a
+  plain grep for the phrase over-counts, because the phrase also appears in
+  tool output and in this file. The phrase is the harness's and may change: a
+  reworded one reads as `0`, and a compaction the session notices for itself
+  is still the signal it always was.
+
+The line the command prints is the reading, and it travels as it is: appended
+after ` — ` to the boundary and exit lines the roles already send, and written
+into the batch and Kaiseki reports where their templates have a slot. A
+compaction does not shrink the file, and a tool result is stored at full size,
+so bytes overstate what the context holds; the figures are compared with each
+other across sessions, never with a token count.
+
+A session whose transcript is not where this says — another host, a config
+directory the environment does not name, a read the session is not permitted
+— sends `transcript: unavailable — <one line why>` in its place.
+
+A session whose reading shows a compaction it has not yet reported writes
+every item its summary attributes to the human — "the human said", "ruled",
+"saw", "confirmed" — one per line, to
+`.superpowers/sdd/<plan-basename>/compaction-<role>-<n>.md` (the topic
+directory for Sekkei; `<n>` one more than the highest such file for that
+role, so that a second compaction or a replaced session does not overwrite
+the first), names the file in its next line to Kanri as
+`compacted: <path>`, and until Kanri answers `confirmed: <path>` acts on
+none of those items beyond finishing the task in hand. Two sessions have no
+Kanri to answer: Kanri itself, whose own case is its handover file, and a
+standalone Kaiseki, which puts the items to the human in its own window.
+What the harness summarizes is not the human's words; the human's words
+are in the dialogue file, the ledger, and the human's own window.
+
+## Resuming
+
+A Claude Code conversation that is resumed — after an editor restart, a
+closed tab, an ended terminal — keeps its context, its session id, and its
+transcript, and comes back under a new name and `[ref]`; nothing in the
+transcript marks the resume (measured 2026-09-09). Its old address is dead
+from then on. The transcript path the handshake carried is the identity that
+survives, and the roster's Transcript column holds it.
+
+`/tanto resume`, typed by the human in a window, and the self-check every
+role runs at each of its boundaries are the same act: run `ListAgents` once;
+find the roster row whose Transcript column is this session's own transcript
+path; if the name the listing prints for this session is that row's, nothing
+happened. If it differs, this session was resumed:
+
+- A role sends its handshake line again, to the roster's first data row,
+  with the same `transcript=`. Kanri matches the path, rewrites the row in
+  place with the new name and `[ref]` — status `live`, no `dead` row — writes
+  an Events line `resumed: <old name> → <new name>`, and answers with its own
+  address. The role continues where it was; its context is the same. A row a
+  recovery had already marked `dead` returns to `live` the same way, and the
+  Events line corrects the earlier one.
+- Kanri rewrites the roster's first data row with its new name and `[ref]`,
+  and sends `kanri-address: <name> [<ref>] — resumed; the roster's first row is rewritten`
+  to every live peer whose name `ListAgents` still lists. A peer not listed
+  was resumed too, and re-handshakes on its own `/tanto resume`, finding the
+  new first row.
+
+After an editor restart, which resumes every window at once, the human types
+`/tanto resume` in Kanri's window first and then in each other window, in any
+order; no address is pasted. A session whose path matches no row is not a
+resumed role: `/tanto resume` says so and stops, and the human runs
+`/tanto <role> <address>` there as for a new session.
+
+`/tanto resume` reads this file and nothing else. The role file is already in
+the session's context, which is what a resume preserves.
+
 ## Messages
 
 - One boss. Only Kanri messages Jisso. Sekkei and Kaiseki never do — inbound
@@ -174,9 +278,9 @@ that row.
   when an expected signal did not arrive.
 - A reply copies the incoming message's `from` into `to`.
 - At a batch boundary Kanri has verified, Sekkei answers in one line,
-  `committed <subject>` or `nothing to commit`; Kanri sends the next batch
-  prompt only after that reply, or, when the reply is overdue, after the
-  notice of a subscription made then.
+  `committed <subject>` or `nothing to commit`, each with its reading appended
+  after ` — `; Kanri sends the next batch prompt only after that reply, or,
+  when the reply is overdue, after the notice of a subscription made then.
 - Before the human reviews a spec or a plan, Sekkei sends Kanri
   `review-ready: <path>`. Kanri dispatches the **review brief** on
   `subagents.reviewer` — a read-only subagent that writes
@@ -259,7 +363,8 @@ role file says how.
 The lines, each sent with `notify_when_idle: true`. Kanri sends
 `exit: propose your shoroku; write it to <path>`; the session answers with one
 line and the path; Kanri sends `exit: direction at <path>`; the session answers
-`exit write-out committed: <subject>` or `exit write-out: nothing accepted`. A
+`exit write-out committed: <subject> — <reading>` or
+`exit write-out: nothing accepted — <reading>`. A
 session that has not answered when its idle notice arrives is past answering:
 Kanri treats the exit as forced — the roster's Events line says the exit
 shoroku did not run and what was lost, as far as Kanri knows — asks the human
@@ -269,8 +374,9 @@ cost is one boundary.
 The file pattern is `exit-<role>[-<suffix>]`, with the suffix the batch letter
 for Jisso (`exit-jisso-B`, a Jisso leaving at batch B's boundary), the case
 number for Kaiseki (`exit-kaiseki-1`), absent for Sekkei (`exit-sekkei`), and
-the date for Kanri (`exit-kanri-<YYYY-MM-DD>`); the conductor ledger's Stage
-values mirror it. The files live where the role's other files live: Jisso's and
+the date and the bare name for Kanri (`exit-kanri-<YYYY-MM-DD>-<name>`); the
+conductor ledger's Stage values mirror it. The files live where the role's
+other files live: Jisso's and
 an attached Kaiseki's under `.superpowers/sdd/<plan-basename>/`, Sekkei's under
 `.superpowers/sdd/<topic>/`, Kanri's own next to the roster. Kanri's exit has a
 proposal file but no direction file, because it rules on itself.
@@ -287,30 +393,33 @@ review package excludes.
 | `docs/superpowers/specs/<date>-<topic>-design.md` | Sekkei | Kanri, Jisso | the spec; committed |
 | `docs/superpowers/plans/<date>-<topic>.md` | Sekkei | Kanri, Jisso | the plan; committed; carries Global Constraints, a Batches section, and how a batch is verified |
 | `.superpowers/sdd/roster.md` | Kanri | all roles | one row per role |
+| `.superpowers/sdd/roster-archive.md` | Kanri | Kanri | from `templates/roster-archive.md`; the roster's dead, replaced, and refused rows with their last readings, and the closed plans' Events lines, appended at each plan close |
 | `.superpowers/sdd/kanri-handover.md` | the outgoing Kanri | the successor Kanri | the handover; deleted by the successor once accepted |
 | `.superpowers/sdd/inbox/<date>-<slug>.md` | Kanri | Kanri | a bug report received, with its Triage section |
 | `.superpowers/sdd/<topic>/kanri.md`, then `.superpowers/sdd/<plan-basename>/kanri.md` | Kanri | Sekkei, Jisso, Kaiseki | the conductor ledger |
 | `.superpowers/sdd/<topic>/spec-inputs.md` (optional) | Kanri | Sekkei | scope inputs the human gave Kanri during spec work, numbered `I-n`, each with Kanri's advisory notes |
 | `.superpowers/sdd/<topic>/dialogue.md` | Sekkei | Kanri, the brief writer, T1 | the spec dialogue: each question Sekkei put and the human's answer, verbatim, in order |
 | `.superpowers/sdd/<topic>/review-brief-spec.md`, `.superpowers/sdd/<topic>/review-brief-plan.md` | the brief writer Kanri dispatches | Kanri, then the human through Sekkei | the review brief, from `templates/review-brief.md`, in the chat's language |
+| `.superpowers/sdd/<topic>/plan-dryrun.md` | Sekkei | the plan reviewer, Kanri | each verification command of the plan run once on scratch copies, with its output and the expectation |
 | `.superpowers/sdd/<plan-basename>/batch-<X>-prompt.md` | Kanri | Jisso, human | the same text as the `SendMessage`, so the human can paste it if the message did not arrive |
 | `.superpowers/sdd/<plan-basename>/batch-<X>-report.md` | Jisso | Kanri | fixed skeleton |
 | `.superpowers/sdd/<plan-basename>/kaiseki-<n>-brief.md` | Kanri | Kaiseki | fixed skeleton |
 | `.superpowers/sdd/<plan-basename>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
 | `.superpowers/sdd/<plan-basename>/shoroku-proposal.md` | Jisso | Kanri | the T2 proposal, written to a file instead of printed |
 | `.superpowers/sdd/<plan-basename>/shoroku-direction.md` | Kanri | Jisso | Kanri's answer to that proposal, item by item |
-| `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-proposal.md`, or the topic directory for Sekkei, or `.superpowers/sdd/exit-kanri-<YYYY-MM-DD>-proposal.md` | the exiting session | Kanri | the exit shoroku proposal |
+| `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-proposal.md`, or the topic directory for Sekkei, or `.superpowers/sdd/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md` | the exiting session | Kanri | the exit shoroku proposal |
 | `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-direction.md`, or the topic directory for Sekkei | Kanri | the exiting session | Kanri's answer, item by item |
+| `.superpowers/sdd/<plan-basename>/compaction-<role>-<n>.md`, or the topic directory for Sekkei | the compacted session | Kanri, or the human for Kanri itself and a standalone Kaiseki | every item a compaction summary attributes to the human, one per line, rewritten with the human's answers |
 | `.superpowers/sdd/<plan-basename>/progress.md` | Jisso, through the SDD skill | Kanri | the SDD ledger; Kanri reads it and never writes it |
 | `.superpowers/sdd/.gitignore` holding `*` | the SDD skill's `sdd-workspace` script, or Kanri at start when it runs first | git | keeps everything above untracked, so nothing is ever staged |
 | `$CLAUDE_CONFIG_DIR/tanto.json` | the user | every role at start, Kanri at each handshake | the personal expected-model config |
 
-Templates are copied and filled, never restated in prose. There are ten:
-`templates/roster.md`, `templates/kanri.md`, `templates/kanri-handover.md`,
-`templates/bug-report.md`, `templates/batch-prompt.md`,
-`templates/batch-report.md`, `templates/kaiseki-brief.md`,
-`templates/kaiseki-report.md`, `templates/review-brief.md`, and
-`templates/tanto.json`.
+Templates are copied and filled, never restated in prose. There are eleven:
+`templates/roster.md`, `templates/roster-archive.md`, `templates/kanri.md`,
+`templates/kanri-handover.md`, `templates/bug-report.md`,
+`templates/batch-prompt.md`, `templates/batch-report.md`,
+`templates/kaiseki-brief.md`, `templates/kaiseki-report.md`,
+`templates/review-brief.md`, and `templates/tanto.json`.
 
 No `<plan-basename>` exists before the plan is committed, so the conductor
 ledger starts under `.superpowers/sdd/<topic>/` and Kanri moves it to
