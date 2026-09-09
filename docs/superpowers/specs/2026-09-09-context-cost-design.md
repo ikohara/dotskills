@@ -784,8 +784,9 @@ Git Bash from the repository root.
   `roles/kanri.md`, `roles/sekkei.md`, `roles/jisso.md`, `roles/kaiseki.md`,
   `templates/batch-report.md`, `templates/kaiseki-report.md`, and
   `templates/kanri-handover.md`; `grep -rcF 'transcript:' skills/tanto` —
-  `1`, in `SKILL.md` only, so that no file spells the literal line twice.
-  Baseline `0` for every one.
+  `2`, in `SKILL.md` only (the `echo` and the `transcript: unavailable`
+  fallback), so that no other file spells the literal line. Baseline `0` for
+  every one.
 - **No reuse, in all three places.**
   `grep -c 'keep it for the next spec' skills/tanto/roles/kanri.md` — `0`;
   `grep -c 'kept Sekkei' skills/tanto/roles/kanri.md` — `0`;
