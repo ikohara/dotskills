@@ -4,10 +4,10 @@ title: roles/jisso.md's dispatch table has no row for the brief writer
 severity: medium
 depends_on: []
 blocks: []
-claimed_by: tanto context-cost plan (Kanri, dotskills)
-claimed_at: 2026-09-09T17:30:00+09:00
+claimed_by: null
+claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-10
 ---
 
 `skills/tanto/roles/jisso.md` carries a Models table — "The skill says" against
@@ -40,3 +40,9 @@ rather than to a term.
 Related: design-4807 (Human access, the brief writer; Skill layout),
 decision-9a3a (the two maps of the expected-model config), decision-ace0 (the
 brief writer on the reviewer tier).
+
+Resolution (context-cost, 2026-09-09): `roles/jisso.md`'s Models table gained
+the row — "the review brief writer" → "`subagents.reviewer`, Kanri's dispatch
+and not yours" — so the table now accounts for every seat the protocol
+dispatches, and says of this one that it is not Jisso's. The table stays in
+`roles/jisso.md`; moving it was considered and left out of scope.

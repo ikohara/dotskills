@@ -4,10 +4,10 @@ title: a session resumed under a new name rejoins the run only through the human
 severity: medium
 depends_on: []
 blocks: []
-claimed_by: tanto context-cost plan (Kanri, dotskills)
-claimed_at: 2026-09-09T17:30:00+09:00
+claimed_by: null
+claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-10
 ---
 
 Raised by the human on 2026-09-09, after the third editor restart this
@@ -78,3 +78,31 @@ the nearest, since a resume is a cost event):
 Related: req-04f5, design-4807 (Session lifecycle, Recovery), decision-de63,
 decision-73c3 (sessions addressed by born name), issue-e5a2 (the transcript
 as a session's own record), issue-1c70 (resolved; names across repositories).
+
+Resolution (context-cost, 2026-09-09): a resumed session rejoins through
+`/tanto resume` and a self-check, keyed on the **transcript path** — the
+identity a resume keeps.
+
+The shape was chosen after measuring what actually survives, which this issue
+could not assume. A resumed conversation keeps its context, its session id and
+its transcript file; the name and `[ref]` change; and **nothing in the
+transcript marks the resume** — the only `SessionStart` hook records are
+`startup` at a true start, while `SessionStart:compact` marks a compaction
+rather than a resume. So a session can see its own resume only in the listing,
+and no peer can locate another's transcript, which is why the path travels in
+the handshake and the roster's address book gained a **Transcript** column.
+
+All four of the issue's shapes were taken, joined: the path as the key, the
+self-check narrowed to boundaries rather than every wake-up, Kanri first with
+the roster doing the rest, and a fifth start case. `/tanto resume` is the fifth
+invocation word and reads `SKILL.md` and nothing else, because the role file is
+already in the context a resume preserves. A handshake whose `transcript=`
+matches a row rewrites that row in place — status `live`, no `dead` row, one
+Events line `resumed: <old name> → <new name>`. After an editor restart the
+human types `/tanto resume` in Kanri's window first and then in each other
+window, in any order, with no address pasted; a row is marked `dead` only if
+its session neither lists nor re-handshakes by the time the human says the
+windows are done.
+
+The rejected alternative was one listing per turn: it costs a turn's worth of
+context for a state that changes once.

@@ -63,6 +63,17 @@ Six things a passage plan's pass needs that a whole-file plan's does not.
    line against the union of the plan's blocks and require zero uncovered lines
    — the second form needs no knowledge of each passage's shape. One trap: an
    insertion's new block omits its anchor, so a naive replace drops it.
+   **Prefer the second form, and treat the first as unavailable by default.**
+   A plan that names the dry run's application script as its replay names a
+   tool that lives in the drafting session's scratchpad: on the context-cost
+   run that script was already gone by the final boundary, which is the
+   boundary that most needs it. The second form needs only the plan and
+   `git diff`, and it measured 443 added lines with **0 unaccounted** across
+   thirteen files. Its one caveat is that a plan states some replacements in
+   **prose** rather than in a fence — a licensed heading rename, an old line
+   named in a step's sentence — so a fence-only classification must expect a
+   small number of removals it cannot cover and check each by hand; there were
+   three.
    Reconstruction is the only **complete** check a passage plan has, and the
    reason is that a boundary's set of presence greps cannot be complete: a
    needle proves the line it sits on and says nothing about the rest of the
@@ -85,6 +96,25 @@ Six things a passage plan's pass needs that a whole-file plan's does not.
    be fixed, since an edit outside the passage breaks the invariant above. Such
    a flaw is a whole-branch-review item.
 
+**A pre-edit anchor sweep, once, before the first task.** Extract every anchor
+check the plan states — the steps whose own wording says "before the edit" —
+run them against the tree, and compare each with the value its step states. It
+is one command and it converts the plan's "measured `<date>`" claims from an
+assumption about authoring time into a measurement at execution time: 64 blocks
+before one batch and 31 before the next, all matching, on the context-cost run.
+It is the dry run's complement — the dry run proves the edits **apply**, this
+proves the tree has not **moved under them** since the plan was written. Re-run
+the same extraction after the batch against each step's stated post-edit value,
+remembering that an anchor which is a passage's unchanged opening still returns
+`1` and only one that the new passage wholly supersedes inverts to `0`.
+
+**Label a shared verification checklist per batch.** A plan cut into batches
+whose "how a batch is verified" section is one list is a final-batch checklist
+run at every boundary: about ten of one plan's twenty-two bullets named files a
+later batch writes and could not pass at the first boundary. Either mark each
+bullet with the batch it binds at, or make the Batches table's per-batch row
+the authority for the early boundaries and say so.
+
 **Splice-and-compare, before a fix-wave list is dispatched.** A list of passage
 edits can pass every command it specifies — old text present, new text absent,
 line numbers holding — and still be wrong, because none of those commands reads
@@ -106,6 +136,20 @@ grep whose scope includes `docs` excludes that directory —
 `grep -rn --exclude-dir=superpowers '<old text>' skills docs` — because both
 documents quote the passage they remove, and the pass would otherwise report
 its own quotations.
+
+**That exclusion is not enough, and the wider scope usually is not wanted.**
+The same plan's write-out lane produces more quotations of the text it removes:
+T1, T2 and every exit shoroku write ADRs, design entries and issue resolutions
+under `docs/decisions/`, `docs/design/` and `docs/issues/`, and a record whose
+subject is "we stopped saying X" **must** quote X. So a sweep written over
+`skills docs` goes red on a clean skill by construction, and it did — two of
+the context-cost plan's eight absence sweeps exited 0 with three hits, all of
+them in an ADR and a design entry written by that plan's own shoroku. The
+invariant they existed to prove held: the same greps over `skills/` alone
+exited 1. **State the scope per sweep.** Scope it to `skills/` when the claim
+is about the skill; widen it only when the claim really is that no document
+anywhere still asserts the old rule, and then exclude the write-out tree as
+well as `docs/superpowers/`.
 
 The index stores LF throughout, but the working tree is mixed file by file —
 some paths are checked out with CRLF and some with LF. So every command below
@@ -245,6 +289,62 @@ counts nothing, ended a miscount two rounds had failed to end. The original
 error was a list of three bullets carrying four passages — an ambiguous unit,
 not a typo, which is what a miscount in prose usually is.
 
+**The instruments are extracted, never retyped.** A command a plan ships inside
+a file — the reading pipeline in `SKILL.md`, the frame command in
+`roles/kanri.md` — is pulled out of that file with `sed`/`awk` and run, so that
+a transcription error cannot pass by producing the right answer from a
+different program. Both reproduce their documented figures this way: the frame
+command extracted from the role file is sixteen lines and prints 631 lines with
+4 markers on one reference plan and 497 with 7 on the other, and the reading
+pipeline extracted from the contract prints 84 wake-ups and 1 compaction on the
+8.6 MB transcript a JSON parse agrees with exactly. A **read-only** review seat
+cannot run `scripts/lint.sh` at all — four of its hooks rewrite files — so
+check 9's `markdownlint-cli2` from the pre-commit cache, invoked without
+`--fix`, is that seat's substitute; it served twice on the context-cost run.
+
+**A sweep proves what it greps for, which is less than it appears.** Three
+limits, each measured. A sweep for the terms a plan **introduces** is not a
+sweep for the prose those terms **contradict** — the one instance in the
+context-cost run, a column list enumerated without the column the new protocol
+keyed on, was found by a task reviewer and by no instrument of the plan
+(design-4807 records the table-drift rule this belongs to). A frame command
+that does not track fences resets on any `##` heading line and printed 1746
+lines with
+37 markers, because passage plans quote headings inside fenced blocks; close a
+fence only on the same backtick count. And write the sweep's terms **first** and
+the "where each change lives" table from them, not the reverse: one spec's table
+needed the sweep to make it honest twice, at nine quoting locations and then at
+four terms.
+
+**How a dispatch is worded changes what comes back.** Four things paid, all
+measured on the cheapest tier or on a single seat. Telling an implementer *why*
+an expectation may be unsatisfiable — and that the right response is to keep the
+mandated text and report rather than bend either — produced the right behaviour
+three times out of three on `sonnet`, for four sentences in the prompt. Telling
+a reviewer of a **verification-only** deliverable to *re-run* the checks rather
+than read the report of them is visible in what it does: that reviewer
+re-derived a note's counts and a thirty-two-number sequence from the tree.
+Telling a re-reviewer to judge the **wording** against the finding, not only the
+diff, changed what was checked on all three items it was applied to — one was
+verified against a cost argument in two other files, one by going to look for a
+third writer of the same cell, one by cadence against its neighbours. And a fix
+wave takes **one dispatch, not one per finding**: eight items across six files
+landed in one dispatch and one commit, with the batch prompt itself serving as
+the brief because it already carried every old and new text verbatim, so no
+transcription seam existed. Pair that with the conductor pre-checking each old
+text in the tree before dispatch — one grep per item — which is what makes
+"report a mismatch rather than paper over it" a real instruction instead of a
+hopeful one.
+
+**Two traps of this host.** Set `PYTHONIOENCODING=utf-8` for any Python that
+prints a plan's text: the default here is cp932 and a single em dash kills a
+measurement script mid-run. And the SDD workspace under `.superpowers/sdd/` is
+**untracked** — its `.gitignore` is `*`, nothing under it has ever been
+committed — so the repository's "no commit hashes, no user-specific paths in
+tracked content" rule does not bind a report or a ledger there. Two reviewers
+independently read it the other way. The rule binds what a shoroku write-out
+**lifts out of** that workspace into `docs/`, which is the check worth making.
+
 Adding a check is an edit to this file.
 
 ## Versions these checks assume
@@ -258,6 +358,15 @@ Adding a check is an edit to this file.
   `superpowers 6.3.0, cache absent, checked by hand` with the results.
 - **`shoroku` in this repository**, at `skills/shoroku/SKILL.md`.
 - **Seventeen skill files, eleven of them templates**, as check 1 lists them.
+
+These two numbers are a **structural count**, the kind design-4807 calls a
+task-time check rather than an invariant: every plan that adds a template edits
+four of them — this bullet, check 1's path list and its expected count, check
+2's expected count, and check 3's map — so a plan that adds one and updates
+three leaves a check failing that nothing else will catch. A plan may
+knowingly break them mid-run, as the context-cost plan broke checks 1 and 2
+from its second task until its last; when it does, the batch that breaks them
+says so and the batch that repairs them names the count it restores.
 
 ## 1. Every file of the layout exists
 
@@ -374,6 +483,15 @@ two. This check pins one line of each quote per copy; whole-quote byte
 identity is a plan's extraction-and-diff job, not this command's.
 
 ## 6. The strings the roles route on
+
+A cross-role line needs **one full-string check per copy**, not a prefix. A grep
+for the head of a line cannot tell the literal from the placeholder — the
+reading line is spelled once, in `SKILL.md`'s `echo`, and every other file
+carries `<reading>` instead, so a prefix grep for `transcript` matches both and
+proves neither. Where a line is duplicated by design across files, pin each copy
+by its own complete string: the Residency table header is checked byte for byte
+in `templates/roster.md` and again in `templates/kanri-handover.md`, which is
+what makes a drift between the two loud.
 
 ```bash
 grep -cF '<kanri-address>' skills/tanto/templates/batch-prompt.md

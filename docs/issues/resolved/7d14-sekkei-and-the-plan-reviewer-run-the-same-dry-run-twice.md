@@ -4,10 +4,10 @@ title: Sekkei's plan dry run and the plan reviewer's dry run are the same work d
 severity: low
 depends_on: []
 blocks: []
-claimed_by: tanto context-cost plan (Kanri, dotskills)
-claimed_at: 2026-09-09T17:30:00+09:00
+claimed_by: null
+claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-10
 ---
 
 `skills/tanto/roles/sekkei.md` Step 4 asks Sekkei to run every verification
@@ -41,3 +41,20 @@ two most expensive seats of the run.
 
 Related: issue-5830 (the cold read's cost), issue-e5a2 (a session-length
 signal), design-4807 (the plan conventions).
+
+Resolution (context-cost, 2026-09-09): `roles/sekkei.md` Step 4 was reordered
+so the dry run is **one record, not two**. Sekkei runs every verification
+command the plan states, once, on scratch copies with the passages applied, and
+writes `.superpowers/sdd/<topic>/plan-dryrun.md` — the application script's
+path, then each command, its output, and the plan's expectation. The plan
+reviewer is then dispatched **with that report** and reads it, spot-checking a
+few commands rather than re-running the set. The report became a named artifact
+in `SKILL.md`'s Artifacts table and the plan-committed line names it, which
+Kanri's cold read also depends on (issue-5830).
+
+The split proved out on this plan's own review, which is the evidence for
+keeping it: the reviewer **reproduced the plan's edits by parsing its fenced
+blocks**, making a 17-anchor finding visible in one pass with **no re-run of
+the dry run's 211 commands**. That is the intended division of labour — Sekkei
+runs the commands, the reviewer replays the edits and audits the claims made
+about them.

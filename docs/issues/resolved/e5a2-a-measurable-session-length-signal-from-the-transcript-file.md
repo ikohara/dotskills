@@ -4,10 +4,10 @@ title: a measurable session-length signal from the transcript file, for Kanri an
 severity: medium
 depends_on: []
 blocks: ["40ed"]
-claimed_by: tanto context-cost plan (Kanri, dotskills)
-claimed_at: 2026-09-09T17:30:00+09:00
+claimed_by: null
+claimed_at: null
 created: 2026-09-07
-updated: 2026-09-09
+updated: 2026-09-10
 ---
 
 Reported to the intake on 2026-09-07 by the Kanri of a repository trialling
@@ -131,3 +131,32 @@ A plain count of the phrase "idle notice" in that transcript is 13 although no
 subscription was ever made — the over-count warned of above, this time from
 quoted skill text. The cold read of the plan and spec, about 65k tokens carried
 for the rest of the plan, was the largest single input (issue-5830).
+
+Resolution (context-cost, 2026-09-09): the skill gained the **reading** — four
+figures (bytes, records, wake-ups, compactions) from a `wc`-and-`grep` pipeline
+defined once in `SKILL.md`, taken by each session on its own transcript at its
+boundaries and sent with the lines it already sends. Proposals 2 and 3 were
+taken; proposal 1, Kanri reading its peers' transcripts, was demoted to a
+verification read a doubted self-report may be checked against, because a
+peer's config directory and the host's permission class are not Kanri's to
+assume.
+
+**The counting method in this issue was wrong, and the corrected figures
+matter.** A wake-up is a user record carrying **no tool result**; counting
+every `type: user` record, as the headline here does, over-counts by the tool
+calls. On the 8.6 MB kanri-lifecycle transcript the true figures are 618 user
+records, 534 tool results, **84 wake-ups**, 1 compaction — so the reported 618
+wake-ups was 84, a factor of 7.4 on that session. On the same file the
+grep-only pipeline and a JSON parse agree **exactly**, which is stronger than
+the "within one" the spec claimed.
+
+Two questions this issue raised stay open and are **not** closed by this move:
+whether bytes and records compare meaningfully **across hosts** (they are
+compared with each other on one host here), and where the harness defines the
+compaction phrase — the typed check fails safe, reading `0`, if the phrase is
+reworded. issue-40ed carries the threshold that the readings are the dataset
+for.
+
+The measurements are in `docs/reports/2026-09-10-tanto-context-cost-dogfood.md`;
+design-4807's Purpose-and-shape section records the instrument and the two
+rejected alternatives.

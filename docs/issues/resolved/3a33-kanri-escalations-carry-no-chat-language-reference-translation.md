@@ -4,10 +4,10 @@ title: Kanri's escalations carry no chat-language reference translation of the w
 severity: low
 depends_on: []
 blocks: []
-claimed_by: tanto context-cost plan (Kanri, dotskills)
-claimed_at: 2026-09-09T17:30:00+09:00
+claimed_by: null
+claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-10
 ---
 
 The human's word of 2026-09-09, on Q-1 of the review-brief T1: from now on,
@@ -33,3 +33,14 @@ should do the same outside `tanto` is a question for the
 requirement-extraction spec (its I-1, note 3), not settled here.
 
 Related: req-04f5, req-3c4d, decision-1f5f, decision-ace0.
+
+Resolution (context-cost, 2026-09-09): "The adoption rule" in `roles/kanri.md`
+gained the rule — an escalated item whose wording is in a language other than
+the chat's is put to the human as the original followed by a reference
+translation in the chat's language — and the three places that say "ask the
+human the escalated items" each gained ", original then reference translation,"
+so the rule is read where it is applied rather than only where it is stated.
+The three are T0 and T1, T2 step 2, and Exit shoroku step 2; two of the three
+old passages wrapped across lines, so each was edited as it wrapped. Verified by
+count: `reference translation` four times in the file, `original then reference
+translation` three.

@@ -2,7 +2,7 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-09-09
+updated: 2026-09-10
 ---
 
 ## Purpose and shape
@@ -32,6 +32,21 @@ that Jisso can continue, stays open as issue-0673.
 sessions and cross-session messaging to address them by name; no other Agent
 Skills host provides both. The repo's other skills stay host-agnostic, and the
 root README says which is which.
+
+A session's cost is **measured, not guessed**. Every role takes a **reading** of
+its own transcript — bytes, records, wake-ups, compactions — at its boundaries
+and sends it with the lines it already sends; the roster keeps the readings of
+the current run and an archive keeps them across runs. The instrument is four
+figures from a `wc`-and-`grep` pipeline defined once in `SKILL.md`, run by the
+session on its own file. A script under the skill was rejected (it would be the
+skill's first non-Markdown file, a lint and a runtime surface), and so was Kanri
+reading its peers' transcripts as the primary source: a peer's config directory
+and the host's permission class are not Kanri's to assume, and on this host
+alone the project's transcripts sit under two config paths that resolve to one
+store. That is why the path travels in the handshake — the `[ref]` a session
+can see is not the session id, so nothing a peer holds leads to the file.
+No threshold is chosen: the archive's rows are the dataset, and the number that
+would fire a handover or a replacement on cost is a later ADR's (issue-40ed).
 
 ## Skill layout
 
@@ -93,10 +108,22 @@ Measured on 2026-09-09, during the review-brief plan: rule 11's creation
 clause was crossed once, knowingly, by the human — a Sekkei for the next topic
 was created during batch A while a task was editing `SKILL.md` — and no defect
 followed; the orders line's authority sentence covered it, and that Sekkei's
-topic touched no `tanto` file. The same day showed the cheaper path for a
-known next topic: a Sekkei deleted on Kanri's keep-or-delete question and
-recreated ten minutes later cost one session's context for nothing, where a
-kept Sekkei given the next topic costs none.
+topic touched no `tanto` file.
+
+**A Sekkei is never reused across topics** — decision-f496. An earlier
+measurement here read the other way: a Sekkei deleted on Kanri's
+keep-or-delete question and recreated ten minutes later cost one session's
+context for nothing, "where a kept Sekkei given the next topic costs none".
+That bullet is **reversed**, on the human's rule of 2026-09-09. Reuse spares
+the human nothing, because the next spec needs its dialogue whether the session
+is old or new; what the old session carries — the previous spec, plan and
+reviews — is on disk and in the spec inputs; and its context would be re-read
+at every wake-up of the new topic, which is the cost this design now measures.
+The saving the earlier bullet counted was one session creation; the charge it
+did not count was every subsequent turn. The other reuse conditions were
+reviewed from the same viewpoint and stand: Jisso within a plan, Kanri across
+plans, Kaiseki per case, and a resume after a restart, which is the same
+context under a new name and not a reuse at all.
 
 ## The start sequence
 
@@ -144,6 +171,25 @@ invocation as the human pasted it, and the roster's first data row. Every other
 role's address is known only to Kanri, from the handshake, and Kanri is the only
 session that sends to Sekkei, Jisso or Kaiseki.
 
+A name is not durable, and that is why the **transcript path** is the identity a
+resume keeps. Measured 2026-09-09: a resumed conversation keeps its context, its
+session id and its transcript file, comes back under a new name and `[ref]`, and
+leaves **no record of the resume in the transcript** — the only `SessionStart`
+hook records are `startup` at a true start, and `SessionStart:compact` marks a
+compaction rather than a resume. So a session sees its own resume only in the
+listing. `/tanto resume`, the fifth invocation word, and the self-check every
+role runs at each of its boundaries are the same act: one listing, then compare
+the name it prints for this session against the roster row whose Transcript
+column is this session's own path. A peer that differs re-sends its handshake
+and Kanri rewrites the row in place — status `live`, no `dead` row, one Events
+line `resumed: <old> → <new>`; Kanri rewrites its own first row and tells every
+listed peer its new address. The self-check runs at boundaries and not at every
+wake-up, because one listing per turn was the alternative and it costs a turn's
+worth of context for a state that changes once. A standalone Kaiseki has no
+roster and therefore no self-check. The Transcript column that all of this keys
+on is written by the handshake for the peers and by Kanri itself for its own
+row, as the roster section above says.
+
 ## The expected-model config
 
 Two maps and two mechanisms, recorded in full as decision-9a3a.
@@ -171,10 +217,28 @@ with the eight fields the handshake carries. It is the **address book**: the
 name-and-ref column is the address the row's session answers to, used as the
 bare name, and it stays correct because nothing renames a session.
 
-The roster also carries a **Residency** line, the only cross-plan counter the
-skill keeps — batches accepted, plans closed, compactions noticed, since this
-Kanri's own start — because the roster is the only file that outlives a plan. A
-handover resets it to the successor with zero counts. Between plans there is no
+The roster also carries a **Residency** table, one row per session of the
+current run with Kanri's first: the four figures of that session's latest
+reading, the boundary it was read at, and — for Kanri's row only — the
+cross-plan counters the skill keeps, batches accepted, plans closed and
+compactions noticed since this Kanri's own start, because the roster is the only
+file that outlives a plan. A handover resets Kanri's row to the successor with
+zero counts. A reading Kanri doubted and could not verify carries `(unverified)`
+after its Compactions figure. At a plan close every row whose session is dead,
+replaced or refused moves, with its last reading and the closed plan's Events
+lines, to `roster-archive.md` — the eleventh template, and the file a threshold
+will one day be read from. The archive is untracked and dies with the workspace,
+so each plan's T2 direction carries the run's Residency rows into the dogfood
+report, which is where the readings survive.
+
+The address book gained a **Transcript** column with the same change. It holds
+the path each role's handshake carried, and it is the identity that survives a
+resume, so a handshake whose `transcript=` matches a row is that row's session
+resumed and rewrites the row in place. Kanri sends no handshake, so Kanri writes
+its own cell — at the bootstrap and again in the Handover case; that gap is what
+the whole-branch review found and the fix wave closed.
+
+Between plans there is no
 ledger, so the roster also carries a Shoroku candidates table with the ledger's
 columns, and Kanri moves the unwritten rows into the new ledger when a topic
 opens.
@@ -248,11 +312,34 @@ topic directory, the spec and plan file names, the plan basename and so the
 workspace, the branch, and the roster's Events prose. issue-f2c4 proposes
 collapsing the first three by making the topic the plan basename.
 
-**When the plan lands.** Cold-read the committed plan and spec and send Sekkei
-one line per open question; move the ledger to the plan's workspace and note the
-move in the roster's events; do the T1 write-out; ask the human to create Jisso;
-on Jisso's handshake reply with the standing-orders line, then write the first
-batch prompt from its template and send it.
+**When the plan lands.** Cold-read the committed spec whole and the plan's
+**frame** and send Sekkei one line per open question; move the ledger to the
+plan's workspace and note the move in the roster's events; do the T1 write-out;
+ask the human to create Jisso; on Jisso's handshake reply with the
+standing-orders line, then write the first batch prompt from its template and
+send it.
+
+The cold read is Kanri's largest single input and it stays in context for the
+rest of the run, so it reads the **frame** — everything outside the task steps,
+printed by a sixteen-line `awk` command in the role file that replaces each
+task's steps with one `[steps: N lines]` marker and tracks fences so a heading
+quoted inside a block does not end the skip. Measured: 631 of 1891 lines, 497 of
+1796, 582 of 3090, and 850 of 6032 on the context-cost plan itself — a third or
+less, and the ratio falls as a plan gets more step-heavy. The cut is the whole
+step, not only its fenced blocks, and that choice is measured too: the
+blocks-only cut saves 20 percent where the whole-step cut saves 67, because in a
+passage plan the step prose outweighs the blocks. A plan in another shape prints
+whole, which is the safe failure.
+
+What the frame read gives up it takes from two other artifacts, and the split
+matters. The steps' **commands and their outputs** come from Sekkei's dry-run
+report; a **passage block** is read from the plan by its id, on demand. The
+report is not a substitute for the plan here — it carries commands, outputs and
+expectations and not the blocks, which the whole-branch review confirmed by
+sampling new-passage lines that occur zero times in it. Nor is the report cheap:
+for the context-cost plan it is 5038 lines, 5.9 times the frame, so the saving
+is a function of two artifacts and depends on consulting it selectively rather
+than reading it whole.
 
 **The loop, per batch**, in this order: wait for the report line, never poll;
 verify the tree *before* reading the report; read the report
@@ -318,7 +405,35 @@ itself. State lives in files, so a compaction loses nothing a successor cannot
 read back; it is the harness's own evidence that the session has grown long. The
 token figure the harness prints is deliberately not used — its unit is not
 documented as the context window. A count threshold is deferred as issue-40ed,
-and the Residency counters exist so one can be chosen later.
+and the Residency counters exist so one can be chosen later. Kanri now sees its
+own compaction two ways: as it always did, and as a `1` in the Compactions
+figure of the reading it takes at every trigger check — a figure it had not
+noticed counts as noticed when it reads it.
+
+**A peer's compaction is a replacement condition too** — decision-6dea, which
+amends decision-de63 by symmetry. One compaction in Jisso's reading means
+replacement at the next boundary, in Sekkei's at its next commit, in Kaiseki's
+at its report, and in each case the exit shoroku runs first. The rejected
+alternative was to keep the evidence-of-loss condition and merely record the
+compaction; the reason for symmetry is that a summary standing in place of the
+conversation is the loss, whatever its size. The trade is real and was made
+knowingly: a compacted session is the *cheap* one in context terms, and
+replacing it pays a fresh cold read.
+
+What a compaction summary attributes to the human is **unverified until the
+human confirms it**. A session whose reading shows a compaction it has not yet
+reported writes every item its summary ascribes to the human — said, ruled,
+saw, confirmed — to `compaction-<role>-<n>.md`, names it to Kanri as
+`compacted: <path>`, and acts on none of those items beyond the task in hand
+until `confirmed: <path>` comes back; Kanri puts each item to the human, records
+the answers as rulings, and marks the file `confirmed`, `corrected`, or
+`denied`. Two sessions have no Kanri to answer: Kanri itself, whose case is the
+handover file's `(unverified)` marking, and a standalone Kaiseki, which asks the
+human in its own window. What the harness summarizes is not the human's words;
+the human's words are in the dialogue file, the ledger, and the human's own
+window. The loop is a new interrupt class, outside req-04f5's checkpoint list,
+and it was accepted because the alternative is acting on words the human did not
+say.
 
 Timing is a boundary only: a batch accepted and the next prompt not yet sent, or
 between plans. The outgoing Kanri writes its own exit shoroku first, then the
@@ -857,6 +972,59 @@ that run's only weakness turned out to live:
   it forward.** The reconstruction check appeared in one task's review, was
   written into the next task's dispatch, and was used by every review after it.
 
+The context-cost run added seven more, all of them found by a reviewer or a
+boundary rather than by the plan's own instruments.
+
+- **An anchor check inverts only when the new passage wholly supersedes the
+  needle.** When the needle is the passage's *unchanged opening* it still
+  returns `1` after a correct edit — 15 of 32 invert in one plan, 31 of 66
+  across another — so every anchor step states the value it returns
+  afterwards, and a boundary that re-runs the blocks mechanically reads the
+  non-inverting half as a failure without it.
+- **An explicit "Old passage — replace exactly these N lines" block is what
+  makes reconstruct-and-compare a real check.** A 73-passage plan was
+  replayable end to end by an independent seat because 44 of its passages
+  carried one, each matching exactly once, with the needle in a quoted
+  heredoc.
+- **The reconstruct-and-compare harness must be durable, not session-local.**
+  design-4807 already called that check "cheap enough to schedule by name" and
+  no plan schedules it; the context-cost run found the sharper problem — the
+  dry run's application script lived in the drafting session's scratchpad and
+  was gone by the final boundary, the one that most needs it. The boundary
+  used a cheaper form instead, which needs no edit engine: **every changed
+  line of the merge-base diff must be text the plan literally quotes** (443
+  added lines, 0 unaccounted, across thirteen files). Its one caveat is that a
+  plan states some replacements in prose rather than in a fence, so three
+  removals were accounted for by prose and a fence-only reconstruction must
+  expect them.
+- **A "where each change lives" table drifts in both directions, and a sweep
+  catches only one.** It lists the passage that *defines* a line and misses
+  the passages that *quote* it — six of nine misses in one spec, nine found by
+  the review — which a whole-tree sweep does catch. It does not catch the
+  other direction: **old prose that a new term contradicts**. A sweep for
+  introduced terms is not a sweep for contradicted ones, and the one instance
+  in this run (a column list enumerated without the column the new resume
+  protocol keys on) was found by a task reviewer and by nothing else. Write
+  the sweep terms first and the table from them.
+- **An absence sweep must state its scope, and scope it to the tree it asserts
+  about.** A sweep written over `skills docs` to prove a superseded string is
+  gone collides with the write-out the same plan produces: T1, T2 and every
+  exit shoroku write ADRs and design records that *necessarily quote the text
+  they supersede*, so the check goes red on a clean tree by construction.
+- **A plan's count prose is not a checksum.** Six count defects landed across
+  one plan — a step's expected counts, four "the N that follow" leads, a
+  baseline off by one, and two in a sweep narrative — and a dry run that
+  applied 72 of 72 passages caught none of them, because it applies blocks and
+  runs commands and does not audit prose *about* them. Counts no command
+  consumes are unverified text, and a sweep narrative that states counts ages
+  faster than the sweep.
+- **A pre-edit anchor sweep over the whole plan, before task 1, is cheap and
+  load-bearing.** 64 blocks at one batch and 31 at the next, all matching: it
+  converts the plan's "measured" claims from an assumption about authoring
+  time into a measurement at execution time, for one command. It is the dry
+  run's complement — the dry run proves the edits apply, this proves the tree
+  has not moved under them.
+
 Three alternatives were weighed and rejected while these conventions were
 derived, and the reasons are worth keeping. A **bounded** handover wait was
 rejected because the harness gives no signal to bound it by, so a bound would be
@@ -1035,3 +1203,28 @@ was not re-synced.
   the skill while its loop skipped one; the ruling widened the loop rather than
   narrowing the prose, and the block's Expected text is unchanged because
   `README.md` scores zero on all three strings.
+
+**The context-cost design of 2026-09-09.** Its plan carried passages, and the
+delivered skill matches them; the divergences are in the **spec's own
+Verification section**, which the tree contradicts and which was deliberately
+left as the record rather than edited during the run:
+
+- **The `compaction-<role>` item cannot pass as the spec words it.** The spec
+  asks for "at least `1` in `SKILL.md` and `roles/kanri.md`"; the tree gives
+  `SKILL.md` twice and `roles/kanri.md` zero, because `roles/kanri.md` answers
+  the compaction file through `compacted: <path>` rather than by spelling the
+  pattern. The plan says exactly that at its step 26 and then reprints the
+  spec's looser wording at step 28, so the plan contradicts itself and the
+  tree agrees with the more precise half. Nothing in the skill is wrong; the
+  expectation is.
+- **The check-1 wording.** The spec's Verification says check 1 yields
+  "seventeen `ok`" lines; check 1 emits paths, not `ok` lines — the `ok` count
+  belongs to check 2. Both were ruled as the record, not fixed, because a spec
+  is a frozen argument and a plan's own text is not edited mid-run to make a
+  check read better.
+
+The lesson generalizes past these two: a spec's Verification section is prose
+about commands, and prose about commands is not run. Where the plan and the
+spec disagree about a value, the tree settles it and the more precise of the
+two is usually the plan's, because the plan is the document whose steps were
+actually executed.

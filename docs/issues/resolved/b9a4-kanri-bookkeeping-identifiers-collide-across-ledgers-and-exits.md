@@ -4,10 +4,10 @@ title: Kanri's bookkeeping identifiers collide — S-n across two open ledgers, 
 severity: low
 depends_on: []
 blocks: []
-claimed_by: tanto context-cost plan (Kanri, dotskills)
-claimed_at: 2026-09-09T17:30:00+09:00
+claimed_by: null
+claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-10
 ---
 
 Two collisions in the identifiers `roles/kanri.md` has Kanri keep, both seen
@@ -47,3 +47,25 @@ Candidate fixes, for a later plan: a cross-ledger reference names the ledger
 file pattern gains the Kanri's bare name or a sequence when the date is
 taken. Related: decision-de63 (Kanri resident with a handover),
 decision-d831 (every planned exit carries its own shoroku), req-04f5.
+
+Resolution (context-cost, 2026-09-09): all three cases closed.
+
+1. **Kanri's exit-file pattern gains the bare name** —
+   `exit-kanri-<YYYY-MM-DD>-<name>`, in `SKILL.md`'s session-exit paragraph and
+   its Artifacts row and in `roles/kanri.md`'s "Your own exit", with the ledger
+   template's Stage cell mirroring it as `exit:kanri-<YYYY-MM-DD>-<name>`. The
+   collision was on disk, not hypothetical:
+   `.superpowers/sdd/exit-kanri-2026-09-09-proposal.md` and
+   `…-2026-09-09-b-proposal.md` both existed. The other roles' patterns are
+   unchanged.
+2. **A cross-ledger reference names its topic first** — `context-cost S-1` —
+   while bare numbers stay bare inside their own ledger.
+3. **The Written column takes only values a filter can read**: `no`, a commit
+   subject, or `superseded: <topic> R-n`, the last counting as written; a
+   candidate with two stages is split into two rows rather than carrying a
+   compound value.
+
+Case 3 arrived from the other side during this run's own bookkeeping: an
+adopted `S-n` row that is **superseded** rather than written would otherwise
+stay `Written: no` for ever, so a filter on that column could never reach zero.
+That is why `superseded:` counts as written.
