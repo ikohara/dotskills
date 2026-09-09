@@ -95,7 +95,11 @@ counts instead — `git cat-file -s` against the piped byte count, or `od -c`.
 A flattened `grep -cF` counts lines, so it returns `0` or `1`: it pins the
 presence of a phrase that may wrap, never a per-file occurrence count. Count
 the occurrences of a line that does not wrap with a raw `grep -cF` on the
-file.
+file. And flatten the **needle** the same way you flatten the file, which is
+why a heredoc needle is written as one physical line: `grep -F` splits a
+multi-line pattern into OR'd alternatives, so an unflattened multi-line needle
+against a flattened file is a weak any-line match rather than a substring test,
+and returns `1` on text that does not contain the passage at all.
 
 That mixture is an artifact, not a property, and a plan must not encode it as a
 table. `core.autocrlf=true` is set globally on this machine and `.gitattributes`
@@ -112,6 +116,34 @@ compare text the skill quotes against the plugin's own source. A failure is one
 of three things — a typo in the skill, a file a plan forgot, or a change in
 superpowers. The third is never repaired by rewriting the quote; it is reported
 as a ruling needed.
+
+Three more traps, all of them met while running these checks against a plan
+that edits the skill passage by passage.
+
+**A pre-edit check whose anchor is the old passage reads as a failure once the
+edit has landed.** Some replacements are anchored on the very line they
+replace — a counted bullet, a table's first row, an Expected paragraph. Before
+the edit the anchor returns `1`; after a *correct* edit it must return `0`. A
+plan states that shape in the step so the zero is legible, and a boundary that
+re-runs a whole batch's verification blocks mechanically must expect exactly
+those to invert: in the review-brief run, 6 of 51 re-run blocks did, and all
+six were this case. Read the matching new-passage check beside it — if that one
+returns `1`, the replacement landed.
+
+**Re-wrapping a passage can split a code span across a line break.** The result
+is valid CommonMark and passes markdownlint, and it silently defeats the
+one-line rule the counted strings in check 6 depend on — a raw `grep -cF` for
+`` `committed <subject>` `` returns `0` when the backticks straddle a newline.
+After any wrap-column change, sweep for lines carrying an odd number of
+backticks.
+
+**A hunk count is meaningless without the context width that produced it, and a
+check two files must agree on is one block cited, not two copies.** The same
+run measured `1/3/3/4/5/6` at `-U3`, `1/2/2/5/2/3` at `-U10` and `1/3/5/7/7/9`
+at `-U0` for one set of files; and the raw sweep it ran at a boundary was this
+note's check 6 block copied into a plan, where the copy and the original then
+diverged by one path. State the width with the count, or state no count and
+read the hunks; and cite this file's block rather than duplicating it.
 
 Adding a check is an edit to this file.
 

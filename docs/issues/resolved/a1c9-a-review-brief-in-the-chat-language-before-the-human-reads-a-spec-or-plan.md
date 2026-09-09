@@ -59,3 +59,18 @@ lost.
 Related: req-04f5 (the human's interrupt budget), req-3c4d (the human's
 confirmation), decision-1f5f (Kanri as the human's delegate), the `wayaku`
 skill.
+
+**Resolved 2026-09-09** by the review-brief design of 2026-09-08 and its plan
+of 2026-09-09, on branch `review-brief`. The three open questions were answered
+in the spec dialogue: Kanri dispatches the writer, a read-only subagent on the
+reviewer tier, and checks the brief's form without reading the document
+(decision-ace0); the human's answers to the brief's points **are** the
+confirmation req-3c4d asks for, with the document as the referent; and the
+brief lives at `.superpowers/sdd/<topic>/review-brief-spec.md` or
+`review-brief-plan.md`, untracked beside the review reports, reaching the human
+verbatim inside Sekkei's review request. The five-item list above survives into
+the brief's five sections with one widening — the requirement item became two
+questions. `wayaku` is untouched: whether a full translation is still made
+alongside a brief is the human's own setting, deliberately left outside the
+skill. The shipped shape is `templates/review-brief.md` and design-4807's
+Human access section; req-04f5 gained the bullet at T1.

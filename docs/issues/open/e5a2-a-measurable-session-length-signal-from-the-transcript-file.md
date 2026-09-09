@@ -7,7 +7,7 @@ blocks: ["40ed"]
 claimed_by: null
 claimed_at: null
 created: 2026-09-07
-updated: 2026-09-07
+updated: 2026-09-09
 ---
 
 Reported to the intake on 2026-09-07 by the Kanri of a repository trialling
@@ -99,3 +99,23 @@ matched once in the successor's transcript, on a quoted string inside a shell
 command, and that session was never compacted. The human lowered effort from
 extra high to high on the Kanri and Sekkei sessions on 2026-09-09; the effect
 is not yet measured.
+
+A second measurement method, and a cost the transcript does not show. On
+2026-09-09 the human read the VS Code extension's **Account & Usage** view for
+the last 24 hours on this machine: 91% of usage attributed to subagent-heavy
+sessions, 89% to contexts over 150k ("longer sessions are more expensive even
+when cached"), 23% to periods with four or more sessions running in parallel,
+and 24% to general-purpose subagents, with skills and plugins at 1 to 2% each.
+So the charge scales with **context length**, not with the wake-up count alone,
+and cached reads are not free in that accounting. The transcript file gives the
+counts; this view gives the weighting, and the two together are the signal.
+
+The other cost this run measured is not a wake-up at all. During the
+review-brief plan an `opus` task reviewer was **killed mid-review by a session
+limit** and had to be re-dispatched, losing one full review seat; the
+re-dispatched review then came back clean on its first pass. The reviewer is
+read-only, so nothing had to be recovered — the checkout was untouched and the
+review package intact. decision-9a3a's concern, a run losing a subagent to a
+rate limit, recurred one model family down, on the reviewer tier, and against
+the **session** limit rather than the per-minute one. The unit that bit was a
+long-running subagent's own budget, which no wake-up count predicts.

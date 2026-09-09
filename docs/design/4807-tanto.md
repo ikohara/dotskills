@@ -2,7 +2,7 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-09-08
+updated: 2026-09-09
 ---
 
 ## Purpose and shape
@@ -43,17 +43,24 @@ branching to exactly one `roles/<role>.md`. A session reads its own role file an
 never the other three — which is why any term two or more roles route on has to
 live in `SKILL.md` itself.
 
-Nine templates are copied and filled, never restated in prose: the roster, the
+Ten templates are copied and filled, never restated in prose: the roster, the
 conductor ledger, the handover, the bug report, the batch prompt, the batch
-report, the Kaiseki brief, the Kaiseki report, and the built-in expected-model
-defaults. The templates directory is markdownlint-ignored, so skeletons carry
-bare blanks; the whitespace and line-ending hooks still apply to them.
+report, the Kaiseki brief, the Kaiseki report, the review brief, and the
+built-in expected-model defaults. With `SKILL.md`, the README, and the four role
+files, the skill is sixteen files. The templates directory is
+markdownlint-ignored, so skeletons carry bare blanks; the whitespace and
+line-ending hooks still apply to them.
 
-The templates are written in English like the rest of the repository, with one
-exception: a section addressed to the human — the batch report's "Questions for
-the human" — may take the chat language, since a question the human must answer
-is worth putting in the language they are being asked in. That is issue-a1c9's
-spirit applied to a report rather than to a review brief.
+The templates are written in English like the rest of the repository, with two
+exceptions, both addressed to the human. The batch report's "Questions for the
+human" may take the chat language, since a question the human must answer is
+worth putting in the language they are being asked in. The review brief is
+rendered wholly into the chat's language, headings included, and its template is
+the English source the writer renders — except for the form markers, which stay
+as the template writes them so that Kanri's form check can match them: the
+bracketed tag words, the `Q:` / `A:` / `Serves:` / `Adds or changes:` / `See:`
+labels, the `## <n>.` numbers, and the pointer after `See:`, which is the
+document's own heading text.
 
 The skill's mechanical consistency checks live outside the skill, in
 `docs/notes/tanto-consistency-checks.md`. A plan that edits `skills/tanto/`
@@ -175,6 +182,18 @@ rows marked `no`, so nothing is written twice. Both live in
 carries the same state inside its Adopted cell, so a reader of that workspace
 should not expect the seventh column there.
 
+Two more workspace artifacts belong to the spec phase. **`dialogue.md`**, under
+the topic directory, is Sekkei's: each question it put to the human and the
+human's answer, verbatim, in order. Kanri, the brief writer, and the T1
+write-out read it, which is the point — the human's own words reach them
+without Sekkei's paraphrase in between. Its caveat is worth stating, because the
+skill calls it the one record of the human's own words while it lives untracked
+under `.superpowers/sdd/`: it survives only as long as the workspace, and its
+content becomes durable only when T1 writes it out. **`review-brief-spec.md`**
+and **`review-brief-plan.md`**, beside the review reports in the same directory,
+are the brief writer's, written from `templates/review-brief.md` in the chat's
+language; Kanri reads them for form and the human reads them through Sekkei.
+
 ## Kanri's loop, with its entry and its side channel
 
 The loop has three parts, and the first two are what a steady-state description
@@ -211,8 +230,8 @@ move in the roster's events; do the T1 write-out; ask the human to create Jisso;
 on Jisso's handshake reply with the standing-orders line, then write the first
 batch prompt from its template and send it.
 
-**The loop, per batch**, in this order: wait for the idle notice or the report
-line, never poll; verify the tree *before* reading the report; read the report
+**The loop, per batch**, in this order: wait for the report line, never poll;
+verify the tree *before* reading the report; read the report
 and rule, adopting or rejecting each shoroku candidate; **triage any bug report
 that arrived during the batch**; report one line to the human; **check the
 lifecycle tables and the handover trigger**, running the proposal half of a
@@ -226,11 +245,38 @@ the triage's issues, the exits, Kanri's own commits, Sekkei's — happens before
 the prompt that wakes Jisso, and the pre-commit hooks stash every unstaged change
 while they run, so nobody edits a tracked file outside its own slot.
 
+**The report line is the signal, and the subscription is the overdue fallback.**
+Kanri sends batch prompts and Kaiseki briefs without an idle subscription and
+waits for the one-line report; it subscribes — a pure `notify_when_idle`, no
+message — only when a signal is overdue, and treats a notice arriving before the
+report as a reason to check the workspace rather than as the signal, because a
+peer's turn ends whenever it dispatches a subagent and most notices are
+therefore false idles. The measurement behind the rule: across two days one
+Kanri took 394 wake-ups against 77 peer messages, with **81 idle notices** —
+about half its wake-ups — and every wake-up re-reads the session's whole context
+as input. Only the exit lines keep their subscription, because there the idle
+notice is the forced-exit signal by design.
+
+Dropping the subscription removed the only event that woke Kanri to notice a
+silent peer, and "overdue" has neither a threshold nor a clock: a session holding
+no subscription has no timer. **The human in Kanri's window is the detector.** A
+report is overdue when the human says the batch has gone quiet, or when Kanri's
+window wakes for anything else and the report has not arrived; Kanri's boundary
+line to the human names which signal it is waiting for, which is what makes the
+human able to play that part. The alternative — keeping a subscription as a
+watchdog — is what the measurement rejected.
+
 **The side channel.** If Sekkei is live, tell it when a boundary has been
 verified and whenever Kaiseki is created or deleted — Sekkei's commit rule and
 its pause both depend on facts only Kanri holds, and Sekkei is forbidden to poll
 for them. Sekkei answers that line with `committed <subject>` or
 `nothing to commit`, which is the pair Kanri waits for before moving on.
+
+The side channel runs the other way too, through a file rather than a message:
+the spec dialogue happens in Sekkei's window under a standing grant, and its
+words reach Kanri through `dialogue.md`, not through Sekkei's summary of them.
+That is what lets Kanri's T1 reading be mechanical and what gives the brief
+writer the human's own answers to select from.
 
 Sekkei may write under its two directories at any time, which is what lets it
 draft the next plan while the current one's batches run, but it **commits** only
@@ -329,6 +375,35 @@ already used survive as grants rather than as exceptions: Sekkei's spec and plan
 dialogue, given in Kanri's orders line, and an attached Kaiseki's debugging
 conversation, written into its brief. A standalone Kaiseki has no Kanri and the
 human in the room is its counterpart, so the term does not apply.
+
+**The review brief** is the one piece of human-facing work Kanri produces rather
+than relays, and it sits in this section because it is what the human reads
+before the review gate. On `review-ready: <path>` from Sekkei — sent before each
+spec and plan review, a batch in flight or not — Kanri dispatches a **read-only**
+subagent on `subagents.reviewer` with five inputs: the document's path; what to
+read beside it (for a spec, `spec-inputs.md` and `dialogue.md`; for a plan, the
+spec); the output path; the template; and the chat's language, which is the
+language of the human's own messages to Kanri. The writer writes the brief file
+and nothing else, so it takes no commit slot and disturbs no implementer. A
+handover that is due is the one exception: Timing's wait forbids every new
+subagent, so the successor dispatches the writer from the handover's Next step,
+and a writer still running when a handover is written is listed under In flight.
+
+Kanri then checks the brief's **form**, never its content: eight headings — the
+title, the how-to-answer section, the five numbered sections, and the unsettled
+section — present and in that order, the headings themselves in the chat's
+language; every point opening with one of the four tags, and every unsettled line
+saying whether an answer is needed; every point in its three parts, the two
+before `See:` and the pointer after it, which may itself carry the ` — `
+separator as a plan's task headings do; and every pointer the document's own
+heading text, verbatim and untranslated. `grep '^#'` on the document for its
+headings is the **whole** read Kanri makes — reading its prose would be the
+pre-read the design rejects and would contaminate the cold read. A failing form
+is dispatched once more; a second failure is sent as it stands with one line to
+the human. Kanri never edits the brief, and answers Sekkei `brief: <path>`. A
+point that misreads the document is caught by the human's answer or by Kanri's
+cold read after the commit. decision-ace0 holds the reasoning and the
+alternatives that were rejected.
 
 ## The batch contracts
 
@@ -481,6 +556,16 @@ mechanically; both held under a second plan:
 - **A term two or more roles route on lives in the shared contract.** The four
   stop classes were defined in the executor's file while three other files
   routed on them.
+
+The first rule has a second face, found when a convention this document itself
+recorded failed to run: **a convention that no role file carries is not in
+force.** The convention that a spec passage rewriting another role's procedure
+goes to that role's live session for a check lived only here and inside a spec's
+own block; no role file scheduled it, and the first spec written after it landed
+did not apply it — a defect the spec review caught. A convention recorded in a
+design document is a description of what the files do; if no file does it,
+nothing does. The fix shipped as a passage in Sekkei's Step 2, where the
+obligation now lives.
 
 ## Plan conventions under tanto
 
@@ -647,6 +732,63 @@ rather than whole files.
   would overwrite the fix; a passage plan keeps the rule because a hotfix
   collides with the file's in-flight edits and verification, block shape aside.
 
+The second passage plan added eleven more, most of them about the **instruments**
+a passage plan checks itself with rather than about its shape — which is where
+that run's only weakness turned out to live:
+
+- **A term sweep selects the plan's own new-passage blocks, not a line range,
+  and prints its hits.** A range-based sweep of a passage plan is dominated by
+  the plan's own `Run`, `git add`, and needle lines — 47 hits against a true set
+  of seven — and a sweep that ends in `wc -l` leaves no record of what it found.
+- **A plan whose passages are byte-identical to the spec inherits the spec's
+  wrap flaws, and must name them**, so that neither the implementer re-wraps nor
+  the reviewer files them. A flattened `grep -cF` cannot catch a re-wrap, so
+  byte identity has no mechanical guard beyond the merge-base diff read by eye —
+  or the reconstruction check below.
+- **A hunk count is meaningless without the context width that produced it.**
+  Measured three times in one run at three widths: `SKILL.md` gave 2 at `-U10`
+  against the task-time 3 at `-U3`; `roles/kanri.md` gave 3 at `-U8` against 4
+  at `-U3`; the whole-branch review read `1/2/2/5/2/3` at `-U10` and
+  `1/3/5/7/7/9` at `-U0` against the same task-time `1/3/3/4/5/6`. A plan or a
+  report states the width with the count, or states no count and reads the
+  hunks. A hunk-count **explanation** is a second claim beside the number and can
+  be wrong while the number is right, so a fix wave checks the arithmetic and not
+  only the total.
+- **When a replacement's anchor is the old passage, the step names the shape.**
+  Otherwise the pre-edit check reads as a failure the moment anyone re-runs it,
+  because after a correct replacement it must return `0`. A boundary that
+  re-runs a batch's verification blocks mechanically sees exactly those invert —
+  6 of 51 blocks in this run — and its procedure should say so.
+- **The reconstruction check.** A reviewer extracts the brief's old and new
+  blocks programmatically, applies them to the base blob as the stated shapes
+  say, and compares the result with the committed blob. It proves byte identity
+  and "no other byte moved" in one move, is stronger than reading hunks, removes
+  the reviewer's own transcription from the loop, and scales — ten replacements
+  across five files at once in the fix wave. Its by-product is the load-bearing
+  half: it proves each old passage occurs **exactly once** in the base, which is
+  the assumption a passage plan silently rests on.
+- **A verification-only task's reviewer re-extracts the instrument before
+  re-running it**, diffing the report's transcribed command blocks against its
+  own extraction from the source. That is what makes "run the commands as
+  written" checkable at all; without it a paraphrase that happens to produce the
+  right answer passes.
+- **Dispatches say "show the output, do not summarize it", and reviewers are
+  told to re-establish what they verify** rather than read it. Every one of the
+  run's fourteen task-level findings was in an implementer's report prose, and
+  every one was caught by a reviewer re-deriving the fact.
+- **A sweep's expected-output prose is a claim about sources** and can
+  misattribute a hit while the set the sweep decides is right — the same shape as
+  the hunk-count explanation, one level up.
+- **A qualifier that lives in the spec's prose but not in its fenced block never
+  reaches the runtime file.** When a block's meaning depends on a gloss around
+  it, the gloss belongs in the block.
+- **A check that a plan and a note must agree on is one block cited, not two
+  copies.** The plan's raw sweep and the note's check 6 were the same command
+  copied twice, and both omitted the same path.
+- **A method a reviewer invents mid-run spreads only if the controller carries
+  it forward.** The reconstruction check appeared in one task's review, was
+  written into the next task's dispatch, and was used by every review after it.
+
 Three alternatives were weighed and rejected while these conventions were
 derived, and the reasons are worth keeping. A **bounded** handover wait was
 rejected because the harness gives no signal to bound it by, so a bound would be
@@ -776,3 +918,52 @@ fix wave: "a handover file" in rule 11 and in Kanri's step 1, where "any
 handover file" would read better; and rule 11's "no further role is created",
 whose scope — beyond the roles that start the plan — is resolved two sentences
 later rather than where the clause is read.
+
+**The review-brief design of 2026-09-08.** Its plan carried passages rather than
+whole file contents, and the whole-branch review found spec conformance exact —
+all eighteen fenced blocks of the spec's seven binding sections byte-identical,
+flattened, to the delivered passages, with zero stray bytes. So the delivered
+skill differs from that spec in exactly nine places, and every one of them is a
+correction the whole-branch review's fix wave made **after** the spec was
+committed: the plan's Sekkei had already left, the defects the review found were
+in the spec's own blocks rather than in their transcription, and the ruling was
+that the fix wave edits the tree while this document keeps the record. The spec
+was not re-synced.
+
+- `templates/review-brief.md`, the header paragraph — the **form markers** are
+  named as an exception to rendering: the bracketed tag words, the `Q:` / `A:` /
+  `Serves:` / `Adds or changes:` / `See:` labels, the `## <n>.` numbers, and the
+  pointer. A form check naming English literals cannot run against a brief the
+  template says is rendered whole; the earlier revision had closed this for the
+  pointer alone and left the tags, the labels, and the fixed headings open.
+- The same file, the `all OK` sentence — a point tagged **choose** or **decide**
+  needs its own line and stays open if unanswered. As written, `all OK` and the
+  "a point not mentioned counts as confirmed" clause together closed an open
+  decision by silence.
+- The same file, the pointer sentence and section 5's line — the exception is
+  generalized past the pointer to the labels and the tags, and section 5's line
+  for a spec is the literal `not applicable — a spec` without brackets, because
+  `<...>` served in the template both as a fill slot and, once, as a literal.
+- `roles/kanri.md`, Human access item 5 — the form check is **eight headings in
+  that order in the chat's language**, and `grep '^#'` for the document's
+  headings is the whole read Kanri makes. The old text looked for English
+  literals and, in the same sentence, forbade the read it required.
+- `roles/kanri.md`, the batch loop's step 1 — the **overdue detector** is named:
+  the human's word that the batch has gone quiet, or a wake-up for another
+  reason, with the boundary line saying which signal Kanri waits for.
+- `roles/kanri.md`, the commit window's slot (c) — re-wrapped so
+  `committed <subject>` sits on one line. No word changed; the previous wrap had
+  split the string across a line break, which is lint-clean and valid CommonMark
+  and silently defeated the note's one-line rule for a counted string.
+- `SKILL.md`, the Messages idle bullet — the same overdue detector, in the
+  contract.
+- `roles/sekkei.md`, Step 2 and Step 4 item 5 — "**the document's** judgment
+  points" for "the spec's", and the new-brief rule added to the plan gate too,
+  naming a changed batch cut and the re-send of `review-ready:`. The spec's prose
+  meant both documents; only its Step 2 block said so.
+- `docs/notes/tanto-consistency-checks.md`, check 6's sixth block — the loop
+  reads `skills/tanto/README.md` as well, so the note differs from the spec's
+  block by one path. The block's prose claimed to count every Markdown file of
+  the skill while its loop skipped one; the ruling widened the loop rather than
+  narrowing the prose, and the block's Expected text is unchanged because
+  `README.md` scores zero on all three strings.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-07
-updated: 2026-09-07
+updated: 2026-09-09
 ---
 
 decision-de63 fires a Kanri handover on two signals only, the human's word
@@ -38,3 +38,15 @@ noticed compaction: a cost threshold on wake-ups times context size, readable
 from the transcript (issue-e5a2's method), with a handover at the next plan
 close once it is crossed — cheaper than waiting for the compaction it
 predicts.
+
+Two refinements from the review-brief run, both recorded in fuller form on
+issue-e5a2. First, a threshold on wake-ups **alone** under-counts: the
+Account & Usage view of 2026-09-09 attributes 89% of a day's usage to contexts
+over 150k and only 23% to parallel sessions, so the charge scales with context
+size and the candidate signal above — wake-ups times context size — is the
+right shape rather than a wake-up count with a bigger number. Second, a
+resident Kanri is not the only thing that can exhaust a session's budget: an
+`opus` reviewer subagent was killed mid-review by a session limit during this
+run, independently of the conductor's own wake-ups. A handover trigger read off
+Kanri's transcript will not see that, so the cost threshold and the handover
+threshold are not quite the same instrument.
