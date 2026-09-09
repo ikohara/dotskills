@@ -36,8 +36,9 @@ artifacts.
   stop classes of subagent-driven development, a scope or spec change, and a
   shoroku item that adds to or changes a requirement or a decision; and the
   merge decision. Beyond those, the human is asked only for what only the
-  human can do: create or retire a session when Kanri requests it, and settle
-  a triage or handover question Kanri cannot decide alone. Everything else is
+  human can do: create or retire a session when Kanri requests it, confirm
+  the items a compaction summary attributes to the human, and settle a
+  triage or handover question Kanri cannot decide alone. Everything else is
   a ruling a role records in a file.
 - **The human's counterpart is Kanri.** A role addresses the human directly
   only for what needs the human's eyes or hands, such as a visual check in a
@@ -64,6 +65,9 @@ artifacts.
   and a path, nothing that would be lost with the session.
 - **A session resumed under a new name rejoins the run as easily as
   possible.**
+- **A session's cost is measured, not guessed.** Every role reads its own
+  transcript at its boundaries, the roster keeps the readings of the current
+  run, and the archive keeps them across runs.
 - **Root cause before more fixing.** When fix rounds fail for a reason nobody
   can name, the strong model leads an interactive root-cause pass; the fix it
   prescribes goes through the ordinary implementation review.
