@@ -70,7 +70,7 @@ meanwhile — a restart, a handover — because the writer dies with the session
 that dispatched it. Put brainstorming's review gate to the human with the
 brief's text verbatim, the spec's path, and the brief's, and record the
 human's answers in `dialogue.md` in the brief's reply shape. A new brief is
-written when the human asks for one, or when the spec's judgment points
+written when the human asks for one, or when the document's judgment points
 changed after the answers — a fixed input, a rejected alternative, a deferred
 item — not when its prose did.
 
@@ -131,7 +131,8 @@ reports and prompts follow the tanto templates, and names nothing else.
    replaced meanwhile); put the brief's text verbatim in your request for the
    one OK, with both paths, and record the answers in `dialogue.md` in the
    brief's reply shape. On the human's OK, commit under your commit rule
-   below.
+   below. A new brief is written on the same terms as in Step 2, a changed
+   batch cut included; send `review-ready:` again to ask for it.
 
 Then send Kanri one line saying the plan is committed, with its path.
 

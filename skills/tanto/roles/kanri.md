@@ -139,6 +139,10 @@ Per batch, in this order.
    idle — a pure `notify_when_idle`, no message — only when the report is
    overdue, and check the workspace before acting on any notice: a notice
    before the report is usually a false idle, an implementer's turn ending.
+   You hold no clock while you wait: a report is overdue when the human says
+   the batch has gone quiet, or when your window wakes for anything else and
+   the report has not arrived. Say in your boundary line to the human which
+   signal you are waiting for, so that the human is that detector.
 2. **Verify the tree before reading the report.** `git status` clean; the
    commits and their trailers as claimed; the plan file in the state this batch
    should have left it; repo-specific leftovers such as stray processes or temp
@@ -169,14 +173,14 @@ Per batch, in this order.
    own edits — the hotfix, the issues from step 4, and your own exit shoroku
    when a handover is due — each committed by you in its turn. (c) Tell Sekkei
    the boundary is verified, naming any Kaiseki create or delete since the
-   last boundary, then wait for Sekkei's one-line reply — `committed
-   <subject>` or `nothing to commit`; subscribe to its idle only when the
-   reply is overdue, and record in the ledger's Session events if a notice
-   came without a reply; skip (c) when Sekkei is not live. If a handover is
-   due, the window ends, after the wait Timing prescribes, with steps 2 to 4
-   of "The handover, in a plan and between plans" — the exit shoroku was step
-   6's proposal and slot (b)'s commit — and the loop stops here; the next
-   prompt is the successor's.
+   last boundary, then wait for Sekkei's one-line reply —
+   `committed <subject>` or `nothing to commit`; subscribe to its idle only
+   when the reply is overdue, and record in the ledger's Session events if a
+   notice came without a reply; skip (c) when Sekkei is not live. If a
+   handover is due, the window ends, after the wait Timing prescribes, with
+   steps 2 to 4 of "The handover, in a plan and between plans" — the exit
+   shoroku was step 6's proposal and slot (b)'s commit — and the loop stops
+   here; the next prompt is the successor's.
 8. Write the next batch prompt from `templates/batch-prompt.md`, carrying the
    rulings the next tasks inherit and the concrete model families from
    `tanto.json`. Save it as
@@ -572,8 +576,10 @@ lines, and these are your steps.
    the template, `templates/review-brief.md`; and the chat's language, which
    is the language of the human's own messages to you (`dialogue.md` is the
    reference if the two windows differ). Check the brief's form, not the
-   document: the five sections, the unsettled section, and "How to answer"
-   present (section 5 reads "not applicable" for a spec); every point opening
+   document: eight headings — the title, the how-to-answer section, the five
+   numbered sections, and the unsettled section — present and in that order,
+   the headings themselves in the chat's language (for a spec, section 5's
+   body is the one line the template gives, rendered); every point opening
    with one of the four tags — confirm, choose, decide, nothing — and every
    unsettled line saying whether an answer is needed; every point in its
    three parts — the two before `See:` and the pointer after it, which may
@@ -581,7 +587,8 @@ lines, and these are your steps.
    document's own heading text, verbatim and untranslated, so that
    `grep '^#'` on the document matches it. Dispatch once more if the form
    fails; if it fails again, send the brief as it stands and tell the human
-   in one line. Never edit it, and do not read the document to validate it —
+   in one line. Never edit it, and do not read the document's prose to
+   validate it — `grep '^#'` for its headings is the whole read you make;
    a point that misreads the document is caught by the human's answer or by
    your cold read, which stays where it is. Then send Sekkei `brief: <path>`.
    The human answers in Sekkei's window under the standing grant; the answers

@@ -163,11 +163,13 @@ that row.
 - Kanri sends batch prompts and Kaiseki briefs **without** an idle
   subscription and waits for the receiver's one-line report. It subscribes —
   a pure `notify_when_idle`, no message — only when an expected signal is
-  overdue, and treats a notice that arrives before the report as a reason to
-  check the workspace, never as the signal: a peer's turn ends whenever it
-  dispatches a subagent, so most notices are false idles. The exit lines keep
-  their `notify_when_idle: true`, because there the idle notice is the
-  forced-exit signal by design.
+  overdue, which is the human's observation or a wake-up for another reason,
+  since a session holding no subscription has no clock; and it treats a
+  notice that arrives before the report as a reason to check the workspace,
+  never as the signal: a peer's turn ends whenever it dispatches a subagent,
+  so most notices are false idles. The exit lines keep their
+  `notify_when_idle: true`, because there the idle notice is the forced-exit
+  signal by design.
 - Never poll `ListAgents`; never send "are you done". Check the listing only
   when an expected signal did not arrive.
 - A reply copies the incoming message's `from` into `to`.

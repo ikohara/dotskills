@@ -3,9 +3,13 @@
 Written by the brief writer Kanri dispatches, at
 `.superpowers/sdd/<topic>/review-brief-spec.md` or `review-brief-plan.md`,
 next to the review reports and untracked under `.superpowers/sdd/.gitignore`.
-Every part of the brief, these headings included, is written in the chat's
-language, which the dispatch names; this template is the English source the
-writer renders. The brief selects and renders; it does not analyze anew.
+Every part of the brief is written in the chat's language, which the dispatch
+names, the headings included; this template is the English source the writer
+renders. The form markers are the exception and stay exactly as they are
+here: the bracketed tag words `confirm`, `choose`, `decide`, `nothing`, the
+labels `Q:`, `A:`, `Serves:`, `Adds or changes:`, `See:`, the `## <n>.`
+numbers, and the pointer after `See:`. The brief selects and renders; it does
+not analyze anew.
 
 Document: <path> — brief written <YYYY-MM-DD> on <model family> for the chat
 language <language>. Inputs read: <the document; for a spec also
@@ -17,8 +21,10 @@ Answer in a numbered list, one line per point, `<section>.<point>` then the
 reply. The shapes: `OK` confirms the document's answer; `→ <option>` chooses
 one of the options a point names; `→ <decision>` decides what the document
 left open; `change: <what>` accepts with an edit; `later: <reason>` defers.
-`all OK` confirms every point tagged confirm at once, and a point not
-mentioned counts as confirmed. Example:
+`all OK` confirms every point tagged confirm at once, and a point tagged
+confirm or nothing that goes unmentioned counts as confirmed; a point tagged
+choose or decide needs its own line, and an unanswered one stays open.
+Example:
 
     all OK
     2.1 → (b)
@@ -31,11 +37,11 @@ one; **decide** — the document left it open, your answer decides it;
 **nothing** — information, no answer needed unless you object. Then the
 question, in one sentence; the document's answer, in one sentence; and the
 pointer — the document's section heading that answers it, copied as it
-stands in the document and not translated, never a line number; the pointer
-is the one part of a point not rendered into the chat's language. At most
-five points per section; what does not fit goes to the last section, one
-line each. For a spec, section 5's body is the single line
-`<not applicable — a spec>`.
+stands in the document and not translated, never a line number; the pointer,
+like the labels and the tags, is not rendered into the chat's language. At
+most five points per section; what does not fit goes to the last section,
+one line each. For a spec, section 5's body is the single rendered line
+`not applicable — a spec`.
 
 ## 1. Scope and what was excluded
 

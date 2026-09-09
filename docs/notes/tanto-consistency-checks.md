@@ -350,7 +350,7 @@ exit lines keep, each on one line where it occurs, counted raw over every
 Markdown file of the skill so that a stray copy fails the check:
 
 ```bash
-for f in skills/tanto/SKILL.md skills/tanto/roles/*.md skills/tanto/templates/*.md; do
+for f in skills/tanto/SKILL.md skills/tanto/README.md skills/tanto/roles/*.md skills/tanto/templates/*.md; do
   printf '%s review-ready %s brief %s idle %s\n' "$f" "$(grep -cF 'review-ready: <' "$f")" "$(grep -cF 'brief: <path>' "$f")" "$(grep -cF 'notify_when_idle: true' "$f")"
 done
 ```
