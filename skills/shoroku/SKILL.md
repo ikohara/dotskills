@@ -52,6 +52,10 @@ a single numbered proposal grouped by destination file, ending with
 `Direction?` → wait → apply the accepted subset per the per-type `AGENTS.md` →
 **one** git commit (no auto-push) → report files changed + commit hash.
 
+Classification follows the two splits the type files define — design vs
+decisions, requirements vs issues — and the proposal carries the requirement
+pairing `docs/AGENTS.md`'s Propose step defines; neither is restated here.
+
 Parse direction flexibly: `OK` / `全部適用` accept all; `2 と 5 だけ` accept
 named; `3 はやめて` reject named; `5 の severity は high で` accept with an edit;
 `全部やめ` / `cancel` write nothing.
