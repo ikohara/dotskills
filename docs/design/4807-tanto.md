@@ -43,6 +43,11 @@ branching to exactly one `roles/<role>.md`. A session reads its own role file an
 never the other three — which is why any term two or more roles route on has to
 live in `SKILL.md` itself.
 
+The same rule places a command: the transcript reading is in `SKILL.md`
+because every role runs it, and the frame command is in `roles/kanri.md`
+because Kanri alone reads it — one command per reader set, not one section for
+both (the context-cost spec dialogue, 2026-09-09).
+
 Ten templates are copied and filled, never restated in prose: the roster, the
 conductor ledger, the handover, the bug report, the batch prompt, the batch
 report, the Kaiseki brief, the Kaiseki report, the review brief, and the
@@ -215,6 +220,16 @@ exists, bootstrap the roster if it is absent, and otherwise cold-read the roster
 and take exactly one of four cases — a handover to accept, a kept Kanri
 continuing, a second Kanri that must stop and ask, or a recovery whose sessions
 are gone.
+
+The recovery's floor is one `/tanto resume` per window, typed by the human
+(req-04f5, a resumed session rejoins as easily as possible). A cheaper-looking
+path was put and rejected in the context-cost dialogue of 2026-09-09: Kanri
+probing every session the listing shows and the roster does not know with a
+one-line "handshake if you are a tanto role", so that resumed peers answer on
+their own. It wakes every unrelated session on the machine — three of the five
+peers listed during that dialogue belonged to other repositories — at the cost
+of each one's whole context, and it breaks the roster's rule that Kanri
+dispatches nothing to a session without a row.
 
 **Kanri derives the topic word; it never asks for one.** When no plan is in
 flight, Kanri takes the topic from whatever the human said the next work is — an
