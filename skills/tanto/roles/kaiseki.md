@@ -68,16 +68,18 @@ defects observed" item tagged `blocks this task: no`. On Kanri's
 `.superpowers/sdd/<plan-basename>/exit-kaiseki-<n>-proposal.md`; on its
 `exit: direction at <path>`, apply the accepted subset under `docs/` per
 `docs/AGENTS.md`, lint, commit once by explicit path in the slot Kanri gives
-you, and answer `exit write-out committed: <subject>` or
-`exit write-out: nothing accepted`.
+you, and answer `exit write-out committed: <subject> — <reading>` or
+`exit write-out: nothing accepted — <reading>`.
 
 ## The report
 
 Write `kaiseki-<n>.md` at the path the brief names, from the tanto skill's
 `templates/kaiseki-report.md` — attached, `<n>` is the number in the brief's
 filename; standalone, it is `1`, or one more than the highest `kaiseki-<n>.md`
-already in `.superpowers/sdd/kaiseki/`. Then send Kanri one line with the
-path — standalone, there is no Kanri to send to, and the report goes to the
+already in `.superpowers/sdd/kaiseki/`. Before the line, run the self-check of
+`SKILL.md`'s Resuming — one `ListAgents`; a name that is not your row's means
+you were resumed, and the handshake goes first. Then send Kanri one line with
+the path — standalone, there is no Kanri to send to, and the report goes to the
 human in this session. Two sections decide what happens next, so be exact in
 them:
 
@@ -86,7 +88,9 @@ them:
   back to you as another brief, a `no` becomes a shoroku candidate that you
   write out yourself at your exit.
 - **Tree state on exit.** Name the WIP commit by its subject, say whether
-  instrumentation was removed, and confirm `git status` is clean.
+  instrumentation was removed, confirm `git status` is clean, and take your own
+  reading (`SKILL.md`, "The transcript reading") into the section's
+  `- Transcript — <reading>` line.
 
 "Cannot reproduce" is still a report. Write it, say exactly what you tried, and
 let Kanri decide whether Jisso reruns or the human is asked about the

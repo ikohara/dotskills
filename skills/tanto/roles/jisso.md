@@ -44,8 +44,11 @@ A batch is the task range Kanri's prompt names. Execute those tasks, then
 **stop and idle** — do not start the next task. At the boundary:
 
 1. Write `batch-<X>-report.md` in the workspace from the tanto skill's
-   `templates/batch-report.md`.
-2. Send Kanri one line with that path.
+   `templates/batch-report.md`, taking your own reading (`SKILL.md`, "The
+   transcript reading") into its `- Transcript — <reading>` line.
+2. Before the line, run the self-check of `SKILL.md`'s Resuming — one
+   `ListAgents`; a name that is not your row's means you were resumed, and the
+   handshake goes first. Then send Kanri one line with that path.
 3. Idle. Kanri verifies the tree, rules, and sends the next prompt.
 
 Everything you would otherwise say to a human goes in the report. A message is
@@ -92,6 +95,7 @@ omitted model inherits your session's.
 | fix rounds 4-5, one tier above the implementer that got stuck | `subagents.escalation` |
 | the plan drafter | `subagents.drafter`, which is Sekkei's dispatch and not yours |
 | the spec reviewer, the plan reviewer | `subagents.reviewer`, also Sekkei's |
+| the review brief writer | `subagents.reviewer`, Kanri's dispatch and not yours |
 | anything else — an ad-hoc search, a one-off exploration | `subagents.default` |
 
 One key for every review is deliberate: no `tanto` subagent runs on the top
@@ -213,7 +217,8 @@ that exit. Kanri sends `exit: propose your shoroku; write it to <path>`, the
 path being `exit-jisso-<X>-proposal.md` in the workspace with `<X>` the batch
 letter, and answers item by item in `exit-jisso-<X>-direction.md` beside it.
 Apply, lint, commit once by explicit path in the slot Kanri gives you, and
-answer `exit write-out committed: <subject>` or
-`exit write-out: nothing accepted`. Any write-out — this one, T2, or a later
+answer `exit write-out committed: <subject> — <reading>` or
+`exit write-out: nothing accepted — <reading>`. Any write-out — this one, T2,
+or a later
 one — takes only the adopted `S-n` rows whose Written column says `no`, so
 nothing is written twice.
