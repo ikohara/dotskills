@@ -23,10 +23,21 @@ human confirms it; ends the reuse of a Sekkei across topics; and closes four
 small `tanto` items on the way. The files are `skills/tanto/SKILL.md`, the
 four role files, four templates and one new one, and the README.
 
-Scope: issue-5830, issue-e5a2 (all three proposals), issue-40ed (the
-instrument, not the number), issue-7d14, issue-b9a4, issue-dc72, issue-3a33,
-issue-9a68 (a Measurements row only), and the ruling recorded as
-`context-cost S-1` in the ledger, which this spec supersedes.
+Scope: issue-5830; issue-e5a2, proposals 2 and 3 taken and proposal 1
+answered by demotion to a verification read; issue-40ed (the instrument, not
+the number); issue-7d14; issue-b9a4, all three cases; issue-dc72; issue-3a33;
+issue-9a68 (a Measurements row only); issue-42be, a session resumed under a
+new name rejoins the run (spec input I-2); and the ruling recorded as
+`context-cost S-1` in the ledger, which this spec supersedes. At T2 the plan
+moves to `resolved/` issue-5830, issue-e5a2, issue-7d14, issue-b9a4,
+issue-dc72, issue-3a33, and issue-42be; issue-40ed and issue-9a68 stay open
+until the data they wait for exists. Not in: issue-9d17 (the human's word,
+Q-6), and the rest of the small tanto items the human plans to sweep after
+this topic — issue-12d3, issue-867f, issue-f2ec, issue-15bf, issue-9d17,
+and issue-f2c4 are that sweep's scope. One Kanri commit rides this branch
+outside the plan, "docs(issues): tanto keeps both untracked directories at a
+plan close" (issue-12d3); the plan names it wherever it states what the
+merge base should show.
 
 ## Fixed inputs
 
@@ -49,8 +60,9 @@ requirement it serves.
   load. The boundary from which a role may be started or replaced is the
   final one, batch B, because Kanri's role file in batch B answers what the
   contract in batch A introduces; until then the authority is the plan's
-  Global Constraints, Kanri's orders line, and the batch prompts. Serves
-  req-04f5 (state lives in files; small batches).
+  Global Constraints, Kanri's orders line, and the batch prompts
+  (decision-5c8e: a plan that edits tanto runs on the skill it is editing).
+  Serves req-04f5 (state lives in files; small batches).
 - **A peer's compaction is a replacement condition (Q-3, "推奨（対称）").**
   One compaction in Jisso's reading means replacement at the next boundary,
   exit shoroku first; one in Sekkei's means replacement at its next commit;
@@ -99,6 +111,16 @@ requirement it serves.
   instrument, the rules, the small items and the contract edits, and rule
   11 with the batches and the verification, each approved as presented and
   written out below.
+- **A resumed session rejoins through `/tanto resume` and a self-check at
+  its boundaries (I-2; Q-5, "じゃあ Q-5 OK").** The transcript path is the
+  stable identity, the human's word per window is `/tanto resume` — the
+  human's own form, "これは「/tanto resume」になる？ よね？" — and the
+  self-check runs at each boundary, not at every wake-up; the alternative,
+  one `ListAgents` per turn, was put and not taken. Serves req-04f5 ("A
+  session resumed under a new name rejoins the run as easily as possible").
+- **issue-9d17 stays out (Q-6, "推奨（外す）で").** A start-time tidiness
+  check, for the small-items sweep. Serves nothing here; named so that the
+  sweep's scope is the remainder.
 
 ## The cost, measured
 
@@ -108,16 +130,19 @@ same day, on this Windows host.
 
 - **The transcript resolves.** With `CLAUDE_CONFIG_DIR` set, this Sekkei's
   transcript was at
-  `C:\Users\0000105523\.claude-priv\projects\c--Users-0000105523-devel-dotskills\<session id>.jsonl`,
+  `C:\Users\<user>\.claude-priv\projects\c--Users-<user>-devel-dotskills\<session id>.jsonl`,
   the session id being the directory the scratchpad path names. After about
   25 minutes: 0.71 MB, 168 records, 24 records of `type: user`, of which 17
-  were tool results and 7 were wake-ups.
+  were tool results and 7 were wake-ups. A Windows backslash path works
+  unchanged in Git Bash.
 - **A wake-up is a user record without a tool result.** issue-e5a2 counted
   every `type: user` record as a wake-up (618 for the kanri-lifecycle
   Kanri); a tool result is also a `type: user` record, so that figure
   over-counts by the tool calls. The corrected count is the user records
-  whose line carries no `tool_result`; a grep-only reading agrees with a JSON
-  parse within one on six transcripts.
+  whose line carries no `tool_result`. On that 8.6 MB transcript the grep
+  reading and a JSON parse agree exactly: 618 user records, 534 tool
+  results, 84 wake-ups, 1 compaction — the headline figure was seven times
+  the wake-ups. On six shorter transcripts the two agree within one.
 - **The compaction check must be typed.** On the seventeen transcripts of this
   project under the current config directory, the check on record type plus
   text prefix finds exactly one compaction — the 8.6 MB kanri-lifecycle Kanri
@@ -129,10 +154,18 @@ same day, on this Windows host.
   `dotskills-04 [77f43d]` for a session whose id begins `be3f768a`; nothing a
   peer can see leads to the transcript, so the path has to travel in the
   handshake.
-- **Two config directories hold this project's transcripts** here,
-  `.claude-priv` and `.claude`, because the config directory moved during
-  the runs; a session's own transcript is under the directory its own
-  environment names.
+- **Two config paths, one transcript store.** `.claude-priv` and `.claude`
+  both hold this project's seventeen transcripts here, and the two copies of
+  a file share one inode: one store under two paths, because the config
+  directory moved during the runs. A session's own transcript is under the
+  path its own environment names, and nothing a peer can see says which.
+- **A resume keeps the session id and the transcript, and leaves no mark.**
+  Kanri's transcript for the resumed `dotskills-e0` → `dotskills-08` is one
+  file with the same `sessionId` on every record, a 32-minute silence at the
+  editor restart, and no record of the resume: the only `SessionStart` hook
+  records are `startup` at the true start (a compacted transcript carries
+  `SessionStart:compact`). The name and the `[ref]` change; the path does
+  not; and a session sees its own resume only in `ListAgents`.
 - **The frame of a plan is a third of it, or less.** The frame command below,
   which keeps everything outside the task steps, prints 631 of the
   requirement-extraction plan's 1891 lines, 497 of boundary-rules' 1796, and
@@ -209,6 +242,13 @@ cost, measured").
 | Kaiseki | at its report and at its exit lines | a `- Transcript — <reading>` line under "Tree state on exit" in `templates/kaiseki-report.md`; appended to the `exit write-out` line |
 | Kanri | at every trigger check — loop step 6 in a plan, every turn between plans | its own Residency row, and the residency lines it prints to the human |
 
+Which files spell what: `SKILL.md` alone carries the literal line, in the
+`echo` of the pipeline; every other place — the four role files, the three
+report and handover templates, the residency lines — carries the placeholder
+`<reading>`, and the verification below checks each copy by its own full
+string (design-4807's one-spelling rule for a cross-role line). The handshake
+line lives only in `SKILL.md`; no role file quotes it.
+
 The handshake line in `SKILL.md` becomes:
 
 ```text
@@ -230,30 +270,33 @@ first. The section's text:
 ```markdown
 ## Residency
 
-| Role | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| kanri | <name> [<ref>] | <YYYY-MM-DD> | <boundary or plan close> | <n> | <n> | <n> | <n> | <n> | <m> |
-| <role> | <name> [<ref>] | <YYYY-MM-DD> | <boundary> | <n> | <n> | <n> | <n> | — | — |
+| Role | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans | Noticed |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| kanri | <name> [<ref>] | <YYYY-MM-DD> | <boundary or plan close> | <n> | <n> | <n> | <n> | <n> | <m> | <k> |
+| <role> | <name> [<ref>] | <YYYY-MM-DD> | <boundary> | <n> | <n> | <n> | <n> | — | — | — |
 
-One row per live session, Kanri's first, rewritten in place by Kanri at every
-boundary and plan close from the readings the sessions send (`SKILL.md`, "The
-transcript reading"): a role's row from its latest boundary or exit line,
-Kanri's own from the reading it takes at the trigger check. Batches and Plans
-are Kanri's only — batches accepted and plans closed, cumulative since its own
-start; a handover resets Kanri's row to the successor with zero counts. A
-reading Kanri doubted and could not verify carries `(unverified)` after its
-Compactions figure; `unavailable` stands in the four figures when the session
-sent that. A row whose session is dead or replaced moves, with its last
-reading, to `roster-archive.md` at the plan close, and it is the archive's
-rows across runs that a threshold for the handover or a replacement will be
-read from (issue-40ed).
+One row per session of the current run, live or not, Kanri's first, rewritten
+in place by Kanri at every boundary and plan close from the readings the
+sessions send (`SKILL.md`, "The transcript reading"): a role's row from its
+latest boundary or exit line, Kanri's own from the reading it takes at the
+trigger check. The last three columns are Kanri's only — batches accepted,
+plans closed, and compactions noticed by the session itself, cumulative since
+its own start; a declined handover leaves Noticed incremented, so the count
+stays a record, and a handover resets Kanri's row to the successor with zero
+counts. A reading Kanri doubted and could not verify carries `(unverified)`
+after its Compactions figure; `unavailable` stands in the four figures when
+the session sent that. At the plan close every row whose session is dead,
+replaced, or refused moves to `roster-archive.md`, joined with its status row
+above, and it is the archive's rows across runs that a threshold for the
+handover or a replacement will be read from (issue-40ed).
 ```
 
 The Keeping rule's bullet "Rows are never deleted, so the run stays readable
-after a replacement" becomes: a dead, replaced, or refused row stays until
-the plan closes, then moves to the archive with its last reading, so the run
-stays readable and the roster stays short. The Events section gains one
-sentence: at a plan close, the closed plan's lines move to the archive.
+after a replacement" becomes: a dead, replaced, or refused row stays, with its
+Residency row, until the plan closes, then both move to the archive as one
+row, so the run stays readable and the roster stays short. The Events section
+gains one sentence: at a plan close, the closed plan's lines move to the
+archive.
 
 ### `skills/tanto/templates/roster-archive.md`, new
 
@@ -272,9 +315,13 @@ is rewritten here; rows and lines are appended in the order they arrive.
 
 ## Sessions
 
-| Role | Name [ref] | Model | Branch | Started | Ended | Status | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| <role> | <name> [<ref>] | <model id> | <branch> | <YYYY-MM-DD> | <YYYY-MM-DD> | <dead, replaced, or refused> | <last boundary> | <n> | <n> | <n> | <n> | <n or —> | <m or —> |
+| Role | Name [ref] | Model | Branch | Started | Ended | Status | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans | Noticed |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| <role> | <name> [<ref>] | <model id> | <branch> | <YYYY-MM-DD> | <YYYY-MM-DD> | <dead, replaced, or refused> | <last boundary> | <n> | <n> | <n> | <n> | <n or —> | <m or —> | <k or —> |
+
+An archive row is the roster's status row for that session joined with its
+last Residency row; the cwd and Mode columns are dropped, Ended is the date
+the row's status changed.
 
 ## Events
 
@@ -335,15 +382,19 @@ passage plans of this repository keep: tasks under `### Task`, steps as
 `- [ ] **Step`. A plan in another shape prints whole, which is the safe
 failure.
 
-What the cold read loses: the passage blocks' bytes, which Sekkei's dry run
-verified mechanically and the anchor check pins to the tree; what it keeps:
+The cut is wider than issue-5830 proposed — the whole step, not only its
+fenced blocks — because a step's prose is instructions to the implementer
+that the dry run and the reviewer already read, and the measured frame at a
+third of the plan is what makes the read cheap. What the cold read loses:
+the passage blocks and the step prose, which Sekkei's dry run verified
+mechanically and the anchor check pins to the tree; what it keeps:
 everything Kanri's judgment used at the two cold reads on record
 (review-brief R-6, requirement-extraction R-4). The second of those is the
 rule's second data point, applied by ruling before this design.
 
 ### `skills/tanto/roles/sekkei.md`, Step 4 — one dry run, one report
 
-Step 4's items 1 and 3 swap and name the report:
+Step 4 becomes, in this order:
 
 1. Run every verification command the plan states, once, on this machine, on
    scratch copies with the passages applied, and write
@@ -356,7 +407,8 @@ Step 4's items 1 and 3 swap and name the report:
    and spot-checks a few of its commands rather than re-running the set, and
    writes `plan-review.md` with its Shoroku candidates section; rule, then
    send Kanri the report path.
-3. Check spec conformance and the batch cuts yourself (unchanged).
+3. Check spec conformance and the batch cuts yourself (today's item 2, its
+   text unchanged).
 4. Lint the changed paths (unchanged).
 5. `review-ready:` and the brief (unchanged).
 
@@ -374,13 +426,14 @@ a threshold can be chosen later.") is replaced by:
 
 > Not the `tokens left` figure the harness prints in its reminders, whose
 > unit is not documented as the context window and whose presence is not
-> guaranteed; and not a threshold on the reading, because none has been
-> chosen. At every check take your own reading (`SKILL.md`, "The transcript
-> reading") and rewrite your Residency row with it: a compactions figure of
-> `1` where you noticed none is the second signal, seen in a file. The
-> Residency rows, and the archive's rows across runs, are the data a
-> threshold on cost will be chosen from, by an ADR, once enough sessions have
-> ended (issue-40ed).
+> guaranteed; not a batch or plan count, for which the data points are still
+> few; and not a threshold on the reading, because none has been chosen. At
+> every check take your own reading (`SKILL.md`, "The transcript reading")
+> and rewrite your Residency row with it: a compactions figure of `1` where
+> you noticed none is the second signal, seen in a file, and counts as
+> noticed. The Residency rows, and the archive's rows across runs, are the
+> data a threshold on cost will be chosen from, by an ADR, once enough
+> sessions have ended (issue-40ed).
 
 Under "Session lifecycle", a new subsection **Readings** after the Create,
 Replace, and Delete tables:
@@ -423,12 +476,16 @@ Three rules, one per place.
 > A session whose reading shows a compaction it has not yet reported writes
 > every item its summary attributes to the human — "the human said", "ruled",
 > "saw", "confirmed" — one per line, to
-> `.superpowers/sdd/<plan-basename>/compaction-<role>.md` (the topic directory
-> for Sekkei), names the file in its next line to Kanri as
+> `.superpowers/sdd/<plan-basename>/compaction-<role>-<n>.md` (the topic
+> directory for Sekkei; `<n>` one more than the highest such file for that
+> role, so that a second compaction or a replaced session does not overwrite
+> the first), names the file in its next line to Kanri as
 > `compacted: <path>`, and until Kanri answers `confirmed: <path>` acts on
-> none of those items beyond finishing the task in hand. What the harness
-> summarizes is not the human's words; the human's words are in the
-> dialogue file, the ledger, and the human's own window.
+> none of those items beyond finishing the task in hand. Two sessions have no
+> Kanri to answer: Kanri itself, whose own case is its handover file, and a
+> standalone Kaiseki, which puts the items to the human in its own window.
+> What the harness summarizes is not the human's words; the human's words
+> are in the dialogue file, the ledger, and the human's own window.
 
 **Kanri** (`roles/kanri.md`, the Readings subsection, continued):
 
@@ -457,8 +514,11 @@ Kanri hands over — <name> [<ref>] — <n> batches, <m> plans since <YYYY-MM-DD
 ```
 
 Its paragraph "The same counts go into the roster's Residency line, which you
-rewrite at every boundary and plan close" says "row" and "table" instead, and
-`<k>` is what the reading's compactions figure says once the reading exists.
+rewrite at every boundary and plan close" says "row" and "table" instead.
+`<k>` stays the count of compactions you noticed, incremented as today and
+left incremented by a declined handover (decision-de63); the reading's
+compactions figure is a separate column, and a `1` there you had not noticed
+increments `<k>` when you read it.
 
 ### The plan close moves the record to the archive
 
@@ -469,17 +529,115 @@ Events lines to `roster-archive.md` — from `templates/roster-archive.md` when
 the file does not exist yet — fills the ledger's Measurements fixed row, and
 waits for the next topic".
 
+## A resumed session rejoins the run
+
+The transcript path the handshake now carries is the identity that survives a
+resume (see "The cost, measured"), so a resumed session can be matched to its
+row without the human naming it. Four pieces.
+
+### `SKILL.md`: the fifth invocation word, and a Resuming section
+
+The Invocation table gains a row, `resume` → `resume`, and the sentence
+"Any other word: say the role is unknown, list those four ids, and stop"
+says "those five". `/tanto resume` skips the start sequence — no model check,
+no first handshake — and runs the section below, placed after "The
+transcript reading":
+
+````markdown
+## Resuming
+
+A Claude Code conversation that is resumed — after an editor restart, a
+closed tab, an ended terminal — keeps its context, its session id, and its
+transcript, and comes back under a new name and `[ref]`; nothing in the
+transcript marks the resume (measured 2026-09-09). Its old address is dead
+from then on. The transcript path the handshake carried is the identity that
+survives, and the roster's Transcript column holds it.
+
+`/tanto resume`, typed by the human in a window, and the self-check every
+role runs at each of its boundaries are the same act: run `ListAgents` once;
+find the roster row whose Transcript column is this session's own transcript
+path; if the name the listing prints for this session is that row's, nothing
+happened. If it differs, this session was resumed:
+
+- A role sends its handshake line again, to the roster's first data row,
+  with the same `transcript=`. Kanri matches the path, rewrites the row in
+  place with the new name and `[ref]` — status `live`, no `dead` row — writes
+  an Events line `resumed: <old name> → <new name>`, and answers with its own
+  address. The role continues where it was; its context is the same. A row a
+  recovery had already marked `dead` returns to `live` the same way, and the
+  Events line corrects the earlier one.
+- Kanri rewrites the roster's first data row with its new name and `[ref]`,
+  and sends `kanri-address: <name> [<ref>] — resumed; the roster's first row is rewritten`
+  to every live peer whose name `ListAgents` still lists. A peer not listed
+  was resumed too, and re-handshakes on its own `/tanto resume`, finding the
+  new first row.
+
+After an editor restart, which resumes every window at once, the human types
+`/tanto resume` in Kanri's window first and then in each other window, in any
+order; no address is pasted. A session whose path matches no row is not a
+resumed role: `/tanto resume` says so and stops, and the human runs
+`/tanto <role> <address>` there as for a new session.
+
+`/tanto resume` reads this file and nothing else. The role file is already in
+the session's context, which is what a resume preserves.
+````
+
+### `templates/roster.md`: the Transcript column
+
+The address book gains a last column, `Transcript`, holding the path the
+handshake carried, `unavailable` when it carried that. The Keeping rule's
+"Every handshake rewrites that role's row in full" gains: a handshake whose
+`transcript=` matches a row is that row's session resumed, and rewrites the
+row in place with the new name and `[ref]`, status `live`. The archive's
+Sessions table does not carry the column.
+
+### The role files: the self-check at the boundary
+
+One sentence in each, at the point where the role sends its boundary line:
+"Before the line, run the self-check of `SKILL.md`'s Resuming — one
+`ListAgents`; a name that is not your row's means you were resumed, and the
+handshake goes first." For Jisso that is "At the boundary" step 2, for Sekkei
+the boundary reply, for Kaiseki the report's one line, for Kanri the trigger
+check at loop step 6 and every turn between plans.
+
+### `roles/kanri.md`: the fifth start case, the handshake match, the recovery
+
+"The four cases" become five. **Resumed Kanri** — no handover file, the
+first data row is another name that is not listed, and that row's
+Transcript column is your own transcript path: this is your own conversation
+resumed under a new name; rewrite the first row, send the `kanri-address:`
+line of `SKILL.md`'s Resuming to every listed peer, and continue where the
+ledger's Progress line says — no row is marked `dead`, no tree recovery
+beyond `git status`. The Recovery case keeps its condition with one more
+clause, "and its Transcript column is not your own path". "On a handshake"
+gains the match: a handshake whose `transcript=` equals a row's Transcript
+column is that session resumed; rewrite the row, write the Events line, and
+send nothing but your address. "Recovery after a VS Code restart" becomes
+the many-at-once procedure: the human types `/tanto resume` in your window
+first, which is the Resumed Kanri case, then in each other window; mark
+`dead` only a row whose session neither lists nor re-handshakes by the time
+the human says the windows are done; then ask for the roles still missing,
+in the order the section already gives.
+
 ## The small items
 
-- **b9a4, the identifiers.** `SKILL.md`'s "Session exit" paragraph on the
-  file pattern says "the date and the bare name for Kanri
-  (`exit-kanri-<YYYY-MM-DD>-<name>`)", and its Artifacts row and
-  `roles/kanri.md`'s "Your own exit" paragraph use the same pattern, so that
-  two Kanri exiting on one day do not collide. The other roles' patterns are
-  unchanged; only Kanri's are dated. A reference to an `S-n` or `R-n` from
-  outside its own ledger — the roster, a handover file, another ledger —
-  names the topic first, `context-cost S-1`; one sentence at the end of "The
-  adoption rule". Bare numbers stay bare inside a ledger.
+- **b9a4, the identifiers — three cases.** (1) Kanri's exit-file pattern
+  gains the bare name: `SKILL.md`'s "Session exit" paragraph says "the date
+  and the bare name for Kanri (`exit-kanri-<YYYY-MM-DD>-<name>`)", its
+  Artifacts row and `roles/kanri.md`'s "Your own exit" paragraph use the same
+  pattern, and the ledger template's Stage cell mirrors it as
+  `exit:kanri-<YYYY-MM-DD>-<name>`. The evidence is on disk:
+  `.superpowers/sdd/exit-kanri-2026-09-09-proposal.md` and
+  `exit-kanri-2026-09-09-b-proposal.md`. The other roles' patterns are
+  unchanged. (2) A reference to an `S-n` or `R-n` from outside its own
+  ledger — the roster, a handover file, another ledger — names the topic
+  first, `context-cost S-1`; bare numbers stay bare inside a ledger. (3) The
+  Written column takes only values a filter can read: `no`, a commit subject,
+  or `superseded: <topic> R-n`, the last counting as written; a candidate
+  with two stages is split into two rows when the second stage is
+  identified, never written as a compound value. Cases 2 and 3 are two
+  sentences at the end of "The adoption rule" and the same two in the ledger
+  template's paragraph under the `S-n` table.
 - **dc72, the Models table.** `roles/jisso.md`'s table gains one row: "the
   review brief writer" → "`subagents.reviewer`, Kanri's dispatch and not
   yours". The table stays in `roles/jisso.md`.
@@ -488,35 +646,47 @@ waits for the next topic".
   other than the chat's is put to the human as the original followed by a
   reference translation in the chat's language (req-04f5). The three places
   that say "ask the human the escalated items" — T0 and T1, T2 step 2, Exit
-  shoroku step 2 — add ", original then reference translation," so that the
-  rule is read where it is applied.
+  shoroku step 2 — each gain ", original then reference translation,", so
+  that the rule is read where it is applied; two of the three old passages
+  wrap across lines, so the plan quotes each as it wraps and the check
+  counts three.
 - **9a68, the concurrency measurement.** `templates/kanri.md`'s Measurements
-  table gains a fixed row: "strong-model sessions active at once, the peak,
-  and whether a 429 was seen" — filled at the plan close, by the Delete row
-  above. Rule 9 is unchanged; the ADR that keeps, relaxes, or replaces it
-  reads the ledgers.
+  table's example row, which already names this measurement, becomes the
+  fixed row: "strong-model sessions active at once, the peak, and whether a
+  429 was seen" — filled at the plan close, by the Delete row above, from
+  the ledger's Session events, where Kanri writes one line each time a third
+  strong-model session goes live. Rule 9 is unchanged; the ADR that keeps,
+  relaxes, or replaces it reads the ledgers.
 
 ## Where each change lives
 
+The table lists the passage that defines each change and every passage that
+quotes the line it changes; the spec review found that a table of this kind
+drifts by listing definitions and missing quotes, so the plan's whole-tree
+sweep greps the terms below in every file of the skill rather than trusting
+this table.
+
 | File | Change |
 | --- | --- |
-| `skills/tanto/SKILL.md` | the section "The transcript reading" with its closing compaction paragraph; the handshake line's `transcript=` and its sentence; the Messages bullet on the boundary reply saying the reading is appended; the Session exit paragraph's Kanri pattern; the Artifacts rows for `plan-dryrun.md`, `roster-archive.md`, `compaction-<role>.md`, and the changed Kanri exit path; "There are eleven" and `templates/roster-archive.md` in the templates list |
-| `skills/tanto/roles/kanri.md` | the frame command and step 1 of "When the plan lands"; the trigger paragraph; the residency lines; the Readings subsection with the `compacted:` handling; the Replace rows; the Delete rows for Sekkei and the plan close; "Your own exit"'s pattern; the adoption rule's two sentences and the three escalation clauses; the commit window's quote of Sekkei's boundary reply, which now carries the reading |
-| `skills/tanto/roles/sekkei.md` | Step 4 reordered with `plan-dryrun.md`; the plan-committed line; the boundary reply and exit lines carrying the reading; the handshake sentence |
-| `skills/tanto/roles/jisso.md` | the batch report's Transcript line named in "At the boundary"; the exit line carrying the reading; the Models table row |
-| `skills/tanto/roles/kaiseki.md` | the report's Transcript line named under "Tree state on exit"; the exit line carrying the reading |
-| `skills/tanto/templates/roster.md` | the Residency table; the Keeping rule bullet; the Events sentence |
+| `skills/tanto/SKILL.md` | the Invocation table's `resume` row and "those five"; the section "Resuming"; the section "The transcript reading" with its closing compaction paragraph; the handshake line's `transcript=` and its sentence; the Messages bullet on the boundary reply saying the reading is appended; the Session exit paragraph's Kanri pattern and its `exit write-out committed:` line, which carries the reading; the Artifacts rows for `plan-dryrun.md`, `roster-archive.md`, `compaction-<role>-<n>.md`, and the changed Kanri exit path; "There are eleven" and `templates/roster-archive.md` in the templates list |
+| `skills/tanto/roles/kanri.md` | the fifth start case and the Recovery case's added clause; the handshake match in "On a handshake"; "Recovery after a VS Code restart" as the many-at-once procedure; the self-check at loop step 6 and between plans; the frame command and step 1 of "When the plan lands", and the sentence before the list that describes the plan-committed line; the trigger paragraph; the residency lines; the Readings subsection with the `compacted:` handling; the Replace rows; the Delete rows for Sekkei and the plan close; "Your own exit"'s pattern; the adoption rule's three sentences (b9a4 cases 2 and 3, 3a33) and the three escalation clauses; the commit window's quote of Sekkei's boundary reply, which now carries the reading; the Exit shoroku step 3 quote of `exit write-out committed:`; the three places that say "Residency line" (the bootstrap step, the Handover case, loop step 6), which say "Residency row"; the human-access item that gives the dialogue grant "again when you give a kept Sekkei the next topic", which loses that clause |
+| `skills/tanto/roles/sekkei.md` | the self-check before the boundary reply; Step 4 reordered with `plan-dryrun.md`; the plan-committed line; the boundary reply and exit lines carrying the reading; the opening paragraph's "given again with each new topic", which becomes "given at your creation" |
+| `skills/tanto/roles/jisso.md` | the self-check at "At the boundary" step 2; the batch report's Transcript line named there; the exit line carrying the reading; the Models table row |
+| `skills/tanto/roles/kaiseki.md` | the self-check before the report's one line; the report's Transcript line named under "Tree state on exit"; the exit line carrying the reading |
+| `skills/tanto/templates/roster.md` | the Transcript column and the resume sentence in the Keeping rule; the Residency table; the Keeping rule bullet on dead rows; the Events sentence |
 | `skills/tanto/templates/roster-archive.md` | new |
-| `skills/tanto/templates/kanri.md` | the Measurements fixed row |
+| `skills/tanto/templates/kanri.md` | the Measurements fixed row; the Stage cell's Kanri pattern; the two Written-column sentences |
 | `skills/tanto/templates/batch-report.md` | `- Transcript — <reading>` in the header list |
 | `skills/tanto/templates/kaiseki-report.md` | `- Transcript — <reading>` under "Tree state on exit" |
 | `skills/tanto/templates/kanri-handover.md` | the `(unverified)` marking in Rulings; the Residency section as one row |
-| `skills/tanto/README.md` | the templates list gains `roster-archive.md`; a sentence on the reading where the README says state lives in files |
-| `docs/notes/tanto-consistency-checks.md` | check 3's map gains `templates/roster-archive.md skills/tanto/roles/kanri.md` and expects eleven; check 2's path list gains the three new paths |
+| `skills/tanto/README.md` | the templates list gains `roster-archive.md`; a sentence on the reading where the README says state lives in files; `/tanto resume` where the README lists the invocation; the list of designs the skill implements gains this spec |
+| `docs/notes/tanto-consistency-checks.md` | the Versions bullet says seventeen skill files, eleven templates; check 1 lists the new template and expects seventeen; check 2 expects fifteen `ok` lines; check 3's map gains `templates/roster-archive.md skills/tanto/roles/kanri.md` and expects eleven; check 6 replaces the two Residency-line pins with pins on the new Residency table header in both files, adds `transcript=`, `compacted:`, and `confirmed:` as routed strings, and its expected number sequence and prose follow |
 
-Not changed: `templates/batch-prompt.md`, `templates/bug-report.md`,
-`templates/kaiseki-brief.md`, `templates/review-brief.md`,
-`templates/tanto.json`, and every file outside `skills/tanto/` and the note.
+Not changed by the plan: `templates/batch-prompt.md`,
+`templates/bug-report.md`, `templates/kaiseki-brief.md`,
+`templates/review-brief.md`, `templates/tanto.json`, and every file outside
+`skills/tanto/` and the note. `docs/design/4807-tanto.md`'s "ten templates,
+sixteen files" and its kept-Sekkei bullet are T2's, under the adoption rule.
 
 ## Requirements
 
@@ -526,16 +696,26 @@ Not changed: `templates/batch-prompt.md`, `templates/bug-report.md`,
 - **req-04f5, "Escalated wording reaches the human in the chat's language
   too"** — served by the 3a33 sentences; the requirement exists, the role
   text did not.
+- **req-04f5, "A session resumed under a new name rejoins the run as easily
+  as possible"** — served by "A resumed session rejoins the run": one
+  `/tanto resume` per window, no address, no `dead` rows.
 - **Candidate bullet for the human at T1, req-04f5:** "A session's cost is
   measured, not guessed. Every role reads its own transcript at its
-  boundaries, the roster keeps the readings of the live run, and the archive
-  keeps them across runs, so that the thresholds for a handover and a
-  replacement are chosen from data." Kanri escalates it under the adoption
-  rule; this spec does not decide it.
-- **No ADR changes.** decision-de63's two triggers stand; the reuse rule for
-  Sekkei is a design rule with its reason in the Fixed inputs, not a
-  decision the human took against an alternative with lasting consequences
-  outside the skill. The threshold ADR is deferred, below.
+  boundaries, the roster keeps the readings of the current run, and the
+  archive keeps them across runs." The measurement obligation only; what is
+  chosen from the data is a later decision's. Kanri escalates it under the
+  adoption rule; this spec does not decide it.
+- **Two ADR candidates for the human at T1**, under decision-1f5f. Both meet
+  `docs/decisions/AGENTS.md`'s test — a choice among real alternatives with
+  lasting consequences — and the spec review found the spec's earlier claim
+  of "no ADR changes" resting on a test the criterion does not have. (a) A
+  peer's compaction is a replacement condition: extends decision-de63's
+  second trigger to Jisso, Sekkei, and Kaiseki; the rejected alternative is
+  the evidence-of-loss condition. (b) A Sekkei is never reused across
+  topics: supersedes the ledger's S-1 and reverses design-4807's measured
+  bullet that "a kept Sekkei given the next topic costs none"; the rejected
+  alternative is reuse when the context is short. decision-de63's own two
+  triggers stand. The threshold ADR is deferred, below.
 
 ## What the plan must contain
 
@@ -548,14 +728,19 @@ Not changed: `templates/batch-prompt.md`, `templates/bug-report.md`,
   then the authority for the run's sessions is these constraints, Kanri's
   orders line, and the batch prompts.
 - **Two batches of four tasks, one Jisso.** Batch A, the contract and the
-  peers: task 1 `SKILL.md`; task 2 `templates/roster.md` and the new
-  `templates/roster-archive.md`; task 3 the ledger, batch-report,
-  kaiseki-report, and handover templates; task 4 `roles/jisso.md`,
-  `roles/kaiseki.md`, `roles/sekkei.md`. Batch B, Kanri's rules: task 5 the
+  peers: task 1 `SKILL.md` (the reading, Resuming, the invocation row, the
+  handshake, the lines, the exit pattern, the Artifacts rows, the templates
+  count); task 2 `templates/roster.md` (the Transcript column, the Residency
+  table, the keeping rules) and the new `templates/roster-archive.md`; task
+  3 the ledger, batch-report, kaiseki-report, and handover templates; task 4
+  `roles/jisso.md`, `roles/kaiseki.md`, `roles/sekkei.md` (the self-check,
+  the reading, Step 4, the Models row, the grant sentence). Batch B, Kanri's
+  rules: task 5 the start cases, the handshake match, the recovery, and the
   cold read (the frame command and step 1); task 6 the trigger, the
-  residency lines, the Readings subsection; task 7 the Replace and Delete
-  rows, the small items in `roles/kanri.md`, "Your own exit"; task 8 the
-  README, the consistency note, and the whole-tree sweep. The batch A
+  self-check, the residency lines, the Readings subsection; task 7 the
+  Replace and Delete rows, the small items in `roles/kanri.md`, "Your own
+  exit", the grant clause; task 8 the README, the consistency note, and the
+  whole-tree sweep. The batch A
   boundary leaves `SKILL.md` and the peers describing a reading Kanri's
   role file does not yet take — the reason B is the safe boundary; the plan
   says a replacement waits for it.
@@ -586,10 +771,19 @@ Git Bash from the repository root.
   extracted tree for them.
 - **The reading section.** `grep -c '^## The transcript reading$' skills/tanto/SKILL.md`
   — `1`. Baseline `0`.
-- **The reading travels.** `grep -rcF 'transcript:' skills/tanto` — at least
-  `1` in `SKILL.md`, the four role files, `templates/batch-report.md`,
-  `templates/kaiseki-report.md`, and `templates/kanri-handover.md`. Baseline
-  `0` everywhere.
+- **The reading travels, one full string per copy.**
+  `grep -cF 'echo "transcript: $b B, $r records, $w wake-ups, $c compactions"' skills/tanto/SKILL.md`
+  — `1`; `grep -cF -- '— <reading>' <file>` — at least `1` in each of
+  `roles/kanri.md`, `roles/sekkei.md`, `roles/jisso.md`, `roles/kaiseki.md`,
+  `templates/batch-report.md`, `templates/kaiseki-report.md`, and
+  `templates/kanri-handover.md`; `grep -rcF 'transcript:' skills/tanto` —
+  `1`, in `SKILL.md` only, so that no file spells the literal line twice.
+  Baseline `0` for every one.
+- **No reuse, in all three places.**
+  `grep -c 'keep it for the next spec' skills/tanto/roles/kanri.md` — `0`;
+  `grep -c 'kept Sekkei' skills/tanto/roles/kanri.md` — `0`;
+  `grep -cF 'given again with each new topic' skills/tanto/roles/sekkei.md`
+  — `0`. Baseline `1`, `1`, `1`.
 - **The handshake carries the path.** `grep -c 'transcript=' skills/tanto/SKILL.md`
   — at least `1`. Baseline `0`.
 - **The reading runs.** The pipeline from "The transcript reading" with `T`
@@ -614,28 +808,80 @@ Git Bash from the repository root.
 - **Eleven templates.** `grep -c 'There are eleven' skills/tanto/SKILL.md` —
   `1`; `grep -c 'There are ten' skills/tanto/SKILL.md` — `0`. Baseline `0`
   and `1`.
-- **No reuse.** `grep -c 'keep it for the next spec' skills/tanto/roles/kanri.md`
-  — `0`. Baseline `1`.
 - **The Kanri exit pattern.** `grep -rcF 'exit-kanri-<YYYY-MM-DD>-<name>' skills/tanto`
   — `2` in `SKILL.md`, at least `1` in `roles/kanri.md`;
   `grep -rcF 'exit-kanri-<YYYY-MM-DD>-proposal' skills/tanto` — `0`.
   Baseline `0`, and `1` in each of the two files.
-- **The reference translation.** `grep -c 'reference translation' skills/tanto/roles/kanri.md`
-  — at least `1`. Baseline `0`.
+- **The reference translation, in all four places.**
+  `grep -c 'reference translation' skills/tanto/roles/kanri.md` — at least
+  `1` (the adoption rule);
+  `grep -c 'original then reference translation' skills/tanto/roles/kanri.md`
+  — `3` (the three escalation points). Baseline `0` and `0`.
+- **The Written convention and the cross-ledger reference.**
+  `grep -c 'superseded: <topic> R-n' skills/tanto/roles/kanri.md skills/tanto/templates/kanri.md`
+  — `1` each. Baseline `0` each.
+- **The Stage cell mirrors the pattern.**
+  `grep -cF 'exit:kanri-<YYYY-MM-DD>-<name>' skills/tanto/templates/kanri.md skills/tanto/roles/kanri.md`
+  — at least `1` each. Baseline `0` each.
 - **The brief writer's row.** `grep -c '| the review brief writer |' skills/tanto/roles/jisso.md`
   — `1`. Baseline `0`.
+- **Resuming.** `grep -c '^## Resuming$' skills/tanto/SKILL.md` — `1`;
+  `grep -cF '| `resume` | `resume` |' skills/tanto/SKILL.md` — `1`;
+  `grep -rcF '/tanto resume' skills/tanto` — at least `1` in `SKILL.md`,
+  `roles/kanri.md`, and `README.md`; `grep -cF '| Transcript |' skills/tanto/templates/roster.md`
+  — `1`; `grep -c 'Resumed Kanri' skills/tanto/roles/kanri.md` — at least
+  `1`; `grep -rcF "SKILL.md\`'s Resuming" skills/tanto/roles` — at least
+  `1` in each of the four role files. Baseline `0` for every one.
 - **The stop classes are still one string.** The note's check 5 on
   `SKILL.md` and `roles/jisso.md` — the pinned lines present in both, as
-  before. Baseline: line 374 and line 59.
+  before; the check pins content, and the `SKILL.md` line number moves with
+  the inserted section. Baseline: present in both.
 - **The frontmatter and the JSON.** The note's check 8 — `['argument-hint',
   'description', 'name']`, `ok`, `json ok`. Baseline the same.
-- **Every template is cited.** The note's check 3 with its map extended by
-  `templates/roster-archive.md skills/tanto/roles/kanri.md` — eleven `ok`
-  lines, no `UNCITED`. Baseline: ten `ok`.
+- **The note's counts, as the note edited by task 8 states them.** Check 1 —
+  seventeen `ok`; check 2 — fifteen `ok`; check 3 with its map extended by
+  `templates/roster-archive.md skills/tanto/roles/kanri.md` — eleven `ok`,
+  no `UNCITED`; check 6 — its new expected sequence, with the Residency
+  table header pinned once in `templates/roster.md` and once in
+  `templates/kanri-handover.md`, and `transcript=`, `compacted:`, and
+  `confirmed:` each found where the note says. Baseline: sixteen, fourteen,
+  ten, and the old sequence.
 - **One trailer per commit.**
   `git log --format=%H "$(git merge-base main HEAD)..HEAD" | while read -r h; do git show -s --format=%B "$h" | grep -c '^Co-Authored-By:'; done`
   — every line `1`.
 - **No `.bak` left.** `git status --porcelain | grep -c '\.bak'` — `0`.
+
+## Open for the human at the review
+
+The spec review raised five points that are the human's, not text fixes.
+Each carries Sekkei's recommendation; the review brief puts them.
+
+1. **The archive is untracked and dies with a workspace wipe.** It sits under
+   `.superpowers/sdd/`, ignored by git, on one machine. Recommendation: the
+   plan's T2 dogfood report, and every later plan's, carries the rows the
+   archive gained that plan as a Measurements table, so the dataset the
+   threshold ADR reads is in `docs/reports/` — the same answer design-4807
+   gives for `dialogue.md`. One sentence in the Delete row's plan-close
+   entry.
+2. **A peer's compaction as a replacement condition trades a cold read for a
+   compaction.** A compacted session is the cheap one in context terms, and
+   its replacement pays a full cold read of the plan or the spec. The human
+   ruled for symmetry (Q-3); the reviewer asks whether Sekkei and Kaiseki are
+   meant, not only Jisso, where the escalation evidence already exists.
+   Recommendation: keep the ruling as made — the reason for symmetry is that
+   a summary in place of the conversation is the loss, not its size.
+3. **The compaction-confirmation loop is a new interrupt class.** Every item a
+   summary attributes to the human comes back to the human as a numbered
+   list in Kanri's window, outside req-04f5's checkpoint list.
+   Recommendation: accept it as "what only the human can do" and let T1 add
+   it to the checkpoint bullet, since the alternative is acting on words the
+   human did not say.
+4. **Two ADR candidates**, under "Requirements": a peer's compaction as a
+   replacement condition, and no reuse of a Sekkei across topics.
+   Recommendation: both, at T1 under decision-1f5f.
+5. **issue-7d14 is Sekkei's addition** to the scope the human set at Q-1.
+   Recommendation: keep it; the dry-run report is the artifact the cold read
+   needs, so its cost is one sentence.
 
 ## Out of scope
 
@@ -675,6 +921,21 @@ Git Bash from the repository root.
   human's confirmation at the review.
 - **I-1, note 6 (no T0).** None; the Fixed inputs carry what the dialogue
   decided.
+- **I-2, note 1 (why 42be belongs here).** Taken: the transcript path the
+  reading needs is the identity a resume keeps, so one plan under rule 11.
+- **I-2, note 2 (the four shapes; measure the identity first).** Measured
+  before asking (see "The cost, measured"): the session id and the path
+  survive, the name does not, and nothing marks the resume. The subset
+  taken is all four, joined: the path as the key (shape 3), the self-check
+  at boundaries and on `/tanto resume` rather than at every wake-up (shape
+  1, narrowed), Kanri first and the roster does the rest (shape 2), and the
+  fifth start case (shape 4).
+- **I-2, note 3 (the measured resumes).** Cited in "Resuming" as the
+  measured fact; the seven name changes in the roster's Events are the
+  record.
+- **I-2, note 4 (issue-9d17).** Asked; out (Q-6).
+- **I-2, note 5 (what comes after).** The sweep's remainder is named in
+  Scope.
 
 ## Deferred items
 
@@ -705,5 +966,12 @@ Git Bash from the repository root.
    because reuse spares the human nothing and its context is the cost
    (design, and the human's words in `dialogue.md` for T1).
 6. issue-7d14 taken up by this spec (claim).
-7. Two config directories hold one project's transcripts on this host, so
-   the self-report is the only reliable locator (note).
+7. Two config paths resolve to one transcript store on this host (same
+   inode), so the self-report is the only reliable locator (note).
+8. A resume keeps the session id and the transcript file and leaves no
+   record in it; `SessionStart:startup` marks a true start and
+   `SessionStart:compact` a compaction (note, and the fact issue-42be's
+   shape 3 waited for).
+9. The whole-tree sweep is what catches the quotes a "where each change
+   lives" table misses; the spec review found nine (design, a sentence on
+   the table's known drift).
