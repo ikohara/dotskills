@@ -344,7 +344,7 @@ It becomes:
 > Cold-read the spec whole and the plan's **frame** — everything outside the
 > task steps: Global Constraints, File structure, each task's head down to its
 > first step, Batches, How a batch is verified, the sweeps, and the
-> Self-Review — as the frame command below prints it. The steps' passage
+> Self-Review — as the frame command above prints it. The steps' passage
 > blocks and commands you take on Sekkei's dry-run report,
 > `.superpowers/sdd/<topic>/plan-dryrun.md`, which the plan-committed line
 > names, plus one command of your own that checks every anchor the plan
@@ -501,7 +501,10 @@ Three rules, one per place.
 batch inherits"): a ruling known only from the compaction summary is marked
 `(unverified)` on its line, and the successor puts it to the human at its
 first boundary. The template's Residency section becomes "Kanri's Residency
-row from the roster, verbatim, with its last reading", one row.
+row from the roster, verbatim, with its last reading", one row, followed by
+one bullet, "The reading taken when this handover was written — <reading>",
+so that the handover carries the reading in the one spelling every copy
+uses.
 
 ### The residency lines to the human
 
@@ -527,7 +530,11 @@ says closed") gains, in its Say column: "...prints the residency line, moves
 the dead, replaced, and refused rows with their last readings and this plan's
 Events lines to `roster-archive.md` — from `templates/roster-archive.md` when
 the file does not exist yet — fills the ledger's Measurements fixed row, and
-waits for the next topic".
+waits for the next topic". And because the archive is untracked and dies
+with a workspace wipe, T2's direction (step 2 of "T2") carries the roster's
+Residency rows of the run, so that the dogfood report's Measurements table
+keeps under `docs/reports/` the readings the archive will hold — the human's
+answer to the first point under "Open for the human at the review".
 
 ## A resumed session rejoins the run
 
@@ -854,7 +861,10 @@ Git Bash from the repository root.
 ## Open for the human at the review
 
 The spec review raised five points that are the human's, not text fixes.
-Each carries Sekkei's recommendation; the review brief puts them.
+Each carries Sekkei's recommendation; the review brief put them, and the
+human answered `all OK` on 2026-09-09, with the wording of the requirement
+bullet and the two ADRs left to T1's escalation. Point 1 became the sentence
+in T2's direction under "The plan close moves the record to the archive".
 
 1. **The archive is untracked and dies with a workspace wipe.** It sits under
    `.superpowers/sdd/`, ignored by git, on one machine. Recommendation: the
