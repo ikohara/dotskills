@@ -48,7 +48,7 @@ updated: 2026-05-27
 - Two tests for "this is a requirement": the need survives a change of design
   — it would still hold if the system were built another way; and its reason
   is the user's own situation — time, trust, language, authority — not the
-  system's coherence. A statement that passes neither is design or an issue.
+  system's coherence. A statement that fails either is design or an issue.
 - The granularity rule above applies to classification too: a small need folds
   into an existing topic file as one bullet under a `## Section`, or is
   design; a new file only for a new topic. Never one file per sentence.
