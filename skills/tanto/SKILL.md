@@ -160,15 +160,30 @@ that row.
 - A message is one line plus a path. Report bodies, rulings, briefs, and plans
   live in files: a message dies with the session, a file survives compaction
   and a VS Code restart.
-- Kanri sends every batch prompt and every Kaiseki brief with
-  `notify_when_idle: true`. The receiver also sends one line back when its
-  report is written. Either signal is enough to proceed.
+- Kanri sends batch prompts and Kaiseki briefs **without** an idle
+  subscription and waits for the receiver's one-line report. It subscribes —
+  a pure `notify_when_idle`, no message — only when an expected signal is
+  overdue, and treats a notice that arrives before the report as a reason to
+  check the workspace, never as the signal: a peer's turn ends whenever it
+  dispatches a subagent, so most notices are false idles. The exit lines keep
+  their `notify_when_idle: true`, because there the idle notice is the
+  forced-exit signal by design.
 - Never poll `ListAgents`; never send "are you done". Check the listing only
   when an expected signal did not arrive.
 - A reply copies the incoming message's `from` into `to`.
 - At a batch boundary Kanri has verified, Sekkei answers in one line,
   `committed <subject>` or `nothing to commit`; Kanri sends the next batch
-  prompt only after that reply or Sekkei's idle notice.
+  prompt only after that reply, or, when the reply is overdue, after the
+  notice of a subscription made then.
+- Before the human reviews a spec or a plan, Sekkei sends Kanri
+  `review-ready: <path>`. Kanri dispatches the **review brief** on
+  `subagents.reviewer` — a read-only subagent that writes
+  `.superpowers/sdd/<topic>/review-brief-spec.md` or `review-brief-plan.md`
+  from `templates/review-brief.md`, in the chat's language — checks its form,
+  and answers `brief: <path>`. Sekkei puts the brief's text verbatim in its
+  review request, with both paths. The human's answers to the brief's points
+  are the confirmation that review asks for; the document is what the points
+  point into, and the human reads it where a point sends them.
 - Permission boundaries are per session. Never ask a peer for work that was
   denied in your own session or would be blocked there. Blocked work goes to
   Kanri, which rules on human access.
@@ -274,6 +289,8 @@ review package excludes.
 | `.superpowers/sdd/inbox/<date>-<slug>.md` | Kanri | Kanri | a bug report received, with its Triage section |
 | `.superpowers/sdd/<topic>/kanri.md`, then `.superpowers/sdd/<plan-basename>/kanri.md` | Kanri | Sekkei, Jisso, Kaiseki | the conductor ledger |
 | `.superpowers/sdd/<topic>/spec-inputs.md` (optional) | Kanri | Sekkei | scope inputs the human gave Kanri during spec work, numbered `I-n`, each with Kanri's advisory notes |
+| `.superpowers/sdd/<topic>/dialogue.md` | Sekkei | Kanri, the brief writer, T1 | the spec dialogue: each question Sekkei put and the human's answer, verbatim, in order |
+| `.superpowers/sdd/<topic>/review-brief-spec.md`, `.superpowers/sdd/<topic>/review-brief-plan.md` | the brief writer Kanri dispatches | Kanri, then the human through Sekkei | the review brief, from `templates/review-brief.md`, in the chat's language |
 | `.superpowers/sdd/<plan-basename>/batch-<X>-prompt.md` | Kanri | Jisso, human | the same text as the `SendMessage`, so the human can paste it if the message did not arrive |
 | `.superpowers/sdd/<plan-basename>/batch-<X>-report.md` | Jisso | Kanri | fixed skeleton |
 | `.superpowers/sdd/<plan-basename>/kaiseki-<n>-brief.md` | Kanri | Kaiseki | fixed skeleton |
@@ -286,11 +303,12 @@ review package excludes.
 | `.superpowers/sdd/.gitignore` holding `*` | the SDD skill's `sdd-workspace` script, or Kanri at start when it runs first | git | keeps everything above untracked, so nothing is ever staged |
 | `$CLAUDE_CONFIG_DIR/tanto.json` | the user | every role at start, Kanri at each handshake | the personal expected-model config |
 
-Templates are copied and filled, never restated in prose. There are nine:
+Templates are copied and filled, never restated in prose. There are ten:
 `templates/roster.md`, `templates/kanri.md`, `templates/kanri-handover.md`,
 `templates/bug-report.md`, `templates/batch-prompt.md`,
 `templates/batch-report.md`, `templates/kaiseki-brief.md`,
-`templates/kaiseki-report.md`, and `templates/tanto.json`.
+`templates/kaiseki-report.md`, `templates/review-brief.md`, and
+`templates/tanto.json`.
 
 No `<plan-basename>` exists before the plan is committed, so the conductor
 ledger starts under `.superpowers/sdd/<topic>/` and Kanri moves it to
