@@ -29,14 +29,22 @@ to the roster and the ledgers, never a copy.
 
 ## Rulings the next batch inherits
 
-- R-<n> — <the ruling, one line, copied verbatim as compaction insurance>
+- R-<n> — <the ruling, one line, copied verbatim as compaction insurance>; a
+  ruling known only from a compaction summary is marked `(unverified)` on its
+  line, and the successor puts it to the human at its first boundary
 - Models the next prompt must restate — implementers on
   <the subagents.implementer family>, every review on <the subagents.reviewer
   family>, fix rounds 4-5 on <the subagents.escalation family>.
 
 ## Residency
 
-Kanri <name> [<ref>] since <YYYY-MM-DD>: <n> batches, <m> plans, <k> compactions noticed.
+Kanri's Residency row from the roster, verbatim, with its last reading.
+
+| Role | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans | Noticed |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| kanri | <name> [<ref>] | <YYYY-MM-DD> | <boundary or plan close> | <n> | <n> | <n> | <n> | <n> | <m> | <k> |
+
+- The reading taken when this handover was written — <reading>
 
 ## Next step
 

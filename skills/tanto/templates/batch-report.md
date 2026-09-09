@@ -4,6 +4,7 @@
 - Plan commit — <the plan commit's subject line>
 - Branch — <branch>, base <base commit subject>, head <head commit subject>
 - SDD ledger — <.superpowers/sdd/<plan-basename>/progress.md>
+- Transcript — <reading>
 
 ## Tasks
 

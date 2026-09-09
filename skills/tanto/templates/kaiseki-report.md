@@ -52,6 +52,7 @@ bullet standing.>
 - WIP commit — <the subject of the commit holding the failing state>
 - Instrumentation — <removed, or "none added">
 - `git status` — clean
+- Transcript — <reading>
 
 ## Shoroku candidates
 
