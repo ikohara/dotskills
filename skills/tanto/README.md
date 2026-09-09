@@ -17,6 +17,11 @@ one implementation plan.
 - Takes bug reports about the skills this repository ships: a report is a file
   and one line to Kanri, which triages it into an issue, a redirect, a
   root-cause session, a one-line hotfix, or an input to a spec in progress.
+- Puts a **review brief** in front of the human before each spec and plan
+  review: the points that need the human's judgment, each with a pointer into
+  the document, in the chat's language, written by a third party Kanri
+  dispatches — so the human confirms those and reads the rest only where a
+  point sends them.
 - Composes, without editing them, superpowers brainstorming, writing-plans,
   subagent-driven development, systematic-debugging, and requesting-code-review;
   the `docs/` document-management system that `kisou` installs; and `shoroku`
@@ -83,8 +88,8 @@ one debugging session, with no roster and no batch loop.
   one procedure per role. A session reads exactly one.
 - `templates/` — copy-and-fill skeletons: `roster.md`, `kanri.md` (the
   conductor ledger), `kanri-handover.md`, `bug-report.md`, `batch-prompt.md`,
-  `batch-report.md`, `kaiseki-brief.md`, `kaiseki-report.md`, and `tanto.json`
-  (the built-in expected-model defaults).
+  `batch-report.md`, `kaiseki-brief.md`, `kaiseki-report.md`,
+  `review-brief.md`, and `tanto.json` (the built-in expected-model defaults).
 
 ## Relationship to kisou, shoroku, and superpowers
 
@@ -98,5 +103,6 @@ them, and the model discipline. None of those skills is edited: every override
 
 The designs this skill implements are
 `docs/superpowers/specs/2026-09-06-tanto-design.md`,
-`docs/superpowers/specs/2026-09-07-kanri-lifecycle-design.md`, and
-`docs/superpowers/specs/2026-09-07-boundary-rules-design.md`.
+`docs/superpowers/specs/2026-09-07-kanri-lifecycle-design.md`,
+`docs/superpowers/specs/2026-09-07-boundary-rules-design.md`, and
+`docs/superpowers/specs/2026-09-08-review-brief-design.md`.
