@@ -30,6 +30,9 @@ updated: 2026-05-27
 - Describe the operational truth: structure, components, data flow, and the
   reasoning for the current shape.
 - Link to a recorded choice with `decision-<id>` where relevant.
+- Name the requirement each `## Section` serves with `req-<id>`. A section
+  that serves none says so ("serves no requirement; internal shape"), so a
+  shoroku proposal can ask whether an unstated need stands behind it.
 
 ## design vs decisions
 

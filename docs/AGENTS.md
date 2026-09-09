@@ -100,10 +100,19 @@ run this; it needs no skill.
 1. **Read** the session: the conversation, plus any Markdown written or edited
    during it, plus the existing `docs/` as baseline.
 2. **Classify** each fragment as exactly one of requirement / design /
-   decision / issue (see "design vs decisions" in the type files for the
-   design/decision split).
+   decision / issue. The type files define the two splits that are easy to
+   get wrong: "design vs decisions" in `docs/design/AGENTS.md`, and
+   "requirements vs issues" in `docs/requirements/AGENTS.md` — a need
+   the user states that the system does not meet yet is **two** fragments, a
+   requirement and an issue, not one issue.
 3. **Propose** a single numbered list, grouped by destination file, of only the
-   entries that would change project state. End with `Direction?` and wait.
+   entries that would change project state. Each `design/` entry in the
+   list names the `req-<id>` it serves, or says it serves none. Of the entries
+   in the list, flag the unpaired: a design section that serves no requirement
+   (ask whether an unstated need stands behind it), and a requirement bullet
+   no design serves (ask whether the need is unmet — an issue — or met but not
+   described — a `design/` entry). The standing tree is not swept; a
+   backfill is its own run. End with `Direction?` and wait.
 4. **Apply** the accepted subset, following the per-type `AGENTS.md`. Stage and
    commit as **one** git commit naming the session's topic. No auto-push.
 5. **Report** the files changed and the commit hash. If nothing substantive,
