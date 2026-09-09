@@ -58,3 +58,21 @@ human's word, so that the next plan starts on a short context. With the idle
 subscriptions gone its wake-ups were on the order of thirty, a tenth of its
 predecessor's, which puts the weight of the cost signal on context size — the
 plan's cold read above all — rather than on the wake-up count.
+
+The instrument, 2026-09-09. The context-cost design (its T1) delivers the
+measurement and not the number: every session takes a **reading** of its own
+transcript — bytes, records, wake-ups, compactions — at its boundaries and
+sends it with the lines it already sends; the roster's Residency becomes a
+table of those readings, and at each plan close the rows of dead, replaced,
+and refused sessions move to an untracked `roster-archive.md` next to the
+roster, whose rows across runs are the dataset this threshold is read from.
+Because that archive is untracked and local, each plan's dogfood report under
+`docs/reports/` carries the rows the archive gained, so the dataset survives a
+workspace wipe. Two corrections to the figures above: a wake-up is a user
+record **without** a tool result, so the 618 of the kanri-lifecycle Kanri is
+84 wake-ups (the rest were tool results), and the 394 and 851 are record
+counts of the same kind; the readings from here on use the corrected form.
+This issue stays open, blocked on the data, until enough sessions have ended
+for an ADR to choose the number — or to decide that none is needed. Whether
+bytes and records are comparable across hosts stays open too; on one host the
+sessions are compared with each other.

@@ -4,8 +4,8 @@ title: roles/jisso.md's dispatch table has no row for the brief writer
 severity: medium
 depends_on: []
 blocks: []
-claimed_by: null
-claimed_at: null
+claimed_by: tanto context-cost plan (Kanri, dotskills)
+claimed_at: 2026-09-09T17:30:00+09:00
 created: 2026-09-09
 updated: 2026-09-09
 ---
