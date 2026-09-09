@@ -129,9 +129,9 @@ wait — the human is in the room, and the reply arrives as a
 
 The roster lives at `.superpowers/sdd/roster.md`, is written only by Kanri from
 `templates/roster.md`, and has Kanri's row first. Columns are role, name
-`[ref]`, cwd, model, branch, mode, started, status. `ListAgents` shows name,
-`[ref]`, kind, and start time — not the cwd, the model, or the role; the
-handshake carries those.
+`[ref]`, cwd, model, branch, mode, started, status, transcript. `ListAgents`
+shows name, `[ref]`, kind, and start time — not the cwd, the model, or the
+role; the handshake carries those.
 
 ### The address
 

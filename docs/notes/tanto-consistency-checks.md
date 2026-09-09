@@ -257,7 +257,7 @@ Adding a check is an edit to this file.
   When the cache is absent, read the installed skills by hand and record
   `superpowers 6.3.0, cache absent, checked by hand` with the results.
 - **`shoroku` in this repository**, at `skills/shoroku/SKILL.md`.
-- **Sixteen skill files, ten of them templates**, as check 1 lists them.
+- **Seventeen skill files, eleven of them templates**, as check 1 lists them.
 
 ## 1. Every file of the layout exists
 
@@ -266,6 +266,7 @@ ls skills/tanto/SKILL.md skills/tanto/README.md \
   skills/tanto/roles/kanri.md skills/tanto/roles/sekkei.md \
   skills/tanto/roles/jisso.md skills/tanto/roles/kaiseki.md \
   skills/tanto/templates/roster.md skills/tanto/templates/kanri.md \
+  skills/tanto/templates/roster-archive.md \
   skills/tanto/templates/kanri-handover.md \
   skills/tanto/templates/bug-report.md \
   skills/tanto/templates/batch-prompt.md \
@@ -276,7 +277,7 @@ ls skills/tanto/SKILL.md skills/tanto/README.md \
   skills/tanto/templates/tanto.json 2>&1
 ```
 
-Expected: all sixteen paths listed, no `No such file or directory`.
+Expected: all seventeen paths listed, no `No such file or directory`.
 
 ## 2. Every in-skill path named by the contract or a role file resolves
 
@@ -289,12 +290,14 @@ grep -oh 'roles/[a-z]*\.md\|templates/[a-z-]*\.md\|templates/tanto\.json\|skills
     done
 ```
 
-Expected: fourteen `ok` lines — `roles/jisso.md`, `roles/kaiseki.md`,
+Expected: fifteen `ok` lines — `roles/jisso.md`, `roles/kaiseki.md`,
 `roles/kanri.md`, `roles/sekkei.md`, `templates/batch-prompt.md`,
 `templates/batch-report.md`, `templates/bug-report.md`,
 `templates/kaiseki-brief.md`, `templates/kaiseki-report.md`,
 `templates/kanri-handover.md`, `templates/kanri.md`,
-`templates/review-brief.md`, `templates/roster.md`, `templates/tanto.json` —
+`templates/review-brief.md`, `templates/roster-archive.md`,
+`templates/roster.md`, and `templates/tanto.json`, whose relative order for the
+two roster paths is the locale's and is not part of this check —
 and **no** `MISSING` line. A `MISSING` line is either a typo in the reference
 or a file the plan forgot.
 
@@ -305,6 +308,7 @@ while read -r tpl reader; do
   if grep -qF "$tpl" "$reader"; then echo "ok       $tpl <- $reader"; else echo "UNCITED  $tpl <- $reader"; fi
 done <<'MAP'
 templates/roster.md skills/tanto/roles/kanri.md
+templates/roster-archive.md skills/tanto/roles/kanri.md
 templates/kanri.md skills/tanto/roles/kanri.md
 templates/kanri-handover.md skills/tanto/roles/kanri.md
 templates/bug-report.md skills/tanto/roles/kanri.md
@@ -317,8 +321,8 @@ templates/tanto.json skills/tanto/SKILL.md
 MAP
 ```
 
-Expected: ten `ok` lines, no `UNCITED`. Seven of the ten are Kanri's, because
-Kanri copies seven of the templates itself.
+Expected: eleven `ok` lines, no `UNCITED`. Eight of the eleven are Kanri's,
+because Kanri copies eight of the templates itself.
 
 ## 4. The superpowers and shoroku sentences the skill overrides still exist
 
@@ -393,19 +397,30 @@ grep -cF 'nothing to commit' skills/tanto/roles/kanri.md
 grep -cF 'nothing to commit' skills/tanto/SKILL.md
 grep -cF 'human-needed:' skills/tanto/SKILL.md
 grep -cF 'the human by grant' skills/tanto/SKILL.md
-grep -cF 'Kanri <name> [<ref>] since <YYYY-MM-DD>:' skills/tanto/templates/roster.md
-grep -cF 'Kanri <name> [<ref>] since <YYYY-MM-DD>:' skills/tanto/templates/kanri-handover.md
+grep -cF '| Role | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans | Noticed |' skills/tanto/templates/roster.md
+grep -cF '| Role | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans | Noticed |' skills/tanto/templates/kanri-handover.md
 grep -cF '| S-n | Source | Candidate | Destination | Adopted | Stage | Written |' skills/tanto/templates/roster.md
 grep -cF '| S-n | Source | Candidate | Destination | Adopted | Stage | Written |' skills/tanto/templates/kanri.md
 grep -cF 'bug-report: <absolute path>' skills/tanto/SKILL.md
 grep -cF 'bug-report: <absolute path>' skills/tanto/templates/bug-report.md
+grep -cF 'transcript=<absolute path|unavailable>' skills/tanto/SKILL.md
+grep -cF 'compacted: <path>' skills/tanto/SKILL.md
+grep -cF 'compacted: <path>' skills/tanto/roles/kanri.md
+grep -cF 'confirmed: <path>' skills/tanto/SKILL.md
+grep -cF 'confirmed: <path>' skills/tanto/roles/kanri.md
 ```
 
-Expected, one number per line, in order: `2`, `1`, `1`, `2`, `1`, `1`, `1`,
+Expected, one number per line, in order: `2`, `1`, `1`, `3`, `1`, `1`, `1`,
 `1`, `5`, `3`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `3`, `1`,
-`1`, `1`, `1`, `1`, `1`. The six trailing `1`s pin the three cross-file pairs
-— the Residency line, the seven-column `S-n` header, and the bug-report line
-— each copy once, so that a change to one copy shows up as a mismatch. The
+`1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`. The fourth is `3` because
+`SKILL.md` spells `kanri-address:` three times: the handshake section's
+handover form, the Resuming section's resumed form, and the `<kanri-address>`
+blank's own paragraph. The six `1`s before the last five pin the three
+cross-file pairs — the Residency table header, the seven-column `S-n` header,
+and the bug-report line — each copy once, so that a change to one copy shows
+up as a mismatch. The last five pin the strings the reading and the compaction
+rule route on: the handshake's `transcript=` blank in the contract, and
+`compacted:` and `confirmed:` in the contract and in Kanri's role file. The
 `--` before the
 `- Kanri` pattern is required: without it `grep` reads the leading `-` as an
 option.

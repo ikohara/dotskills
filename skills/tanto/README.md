@@ -14,6 +14,10 @@ one implementation plan.
 - Keeps state in files rather than in messages — a roster, a conductor ledger,
   batch prompts and reports, Kaiseki briefs and reports. A message is one line
   plus a path, because a message dies with the session and a file does not.
+  Every session also measures its own context from its own transcript — bytes,
+  records, wake-ups, compactions — and sends that reading with the lines it
+  already sends, so the roster holds what the current run costs and its archive
+  holds what earlier runs cost.
 - Takes bug reports about the skills this repository ships: a report is a file
   and one line to Kanri, which triages it into an issue, a redirect, a
   root-cause session, a one-line hotfix, or an input to a spec in progress.
@@ -81,15 +85,21 @@ orders.
 `/tanto kaiseki` with no address is standalone Kaiseki — the strong model leads
 one debugging session, with no roster and no batch loop.
 
+A window that comes back after an editor restart or a closed tab keeps its
+context and its transcript but gets a new name. `/tanto resume`, typed in that
+window, matches it to its roster row by that transcript path and rejoins it to
+the run; no address is pasted, and Kanri's window goes first.
+
 ## Layout
 
 - `SKILL.md` — the shared contract every role reads.
 - `roles/kanri.md`, `roles/sekkei.md`, `roles/jisso.md`, `roles/kaiseki.md` —
   one procedure per role. A session reads exactly one.
-- `templates/` — copy-and-fill skeletons: `roster.md`, `kanri.md` (the
-  conductor ledger), `kanri-handover.md`, `bug-report.md`, `batch-prompt.md`,
-  `batch-report.md`, `kaiseki-brief.md`, `kaiseki-report.md`,
-  `review-brief.md`, and `tanto.json` (the built-in expected-model defaults).
+- `templates/` — copy-and-fill skeletons: `roster.md`, `roster-archive.md`,
+  `kanri.md` (the conductor ledger), `kanri-handover.md`, `bug-report.md`,
+  `batch-prompt.md`, `batch-report.md`, `kaiseki-brief.md`,
+  `kaiseki-report.md`, `review-brief.md`, and `tanto.json` (the built-in
+  expected-model defaults).
 
 ## Relationship to kisou, shoroku, and superpowers
 
@@ -105,4 +115,5 @@ The designs this skill implements are
 `docs/superpowers/specs/2026-09-06-tanto-design.md`,
 `docs/superpowers/specs/2026-09-07-kanri-lifecycle-design.md`,
 `docs/superpowers/specs/2026-09-07-boundary-rules-design.md`, and
-`docs/superpowers/specs/2026-09-08-review-brief-design.md`.
+`docs/superpowers/specs/2026-09-08-review-brief-design.md`, and
+`docs/superpowers/specs/2026-09-09-context-cost-design.md`.
