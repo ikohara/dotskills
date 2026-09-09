@@ -27,4 +27,13 @@ requirement-extraction plan lands. The first such run also measures how many
 sections end up saying "serves no requirement", which is the first data on
 whether the explicit "none" earns its place.
 
+One wording point for that run to settle as it goes. The design template's new
+Body bullet — "Name the requirement each `## Section` serves with `req-<id>`" —
+reads unconditionally on its own, as though every section of every entry owed
+one immediately; the scope that makes it tractable, the entries a proposal
+carries rather than the standing tree, lives in `docs/AGENTS.md`'s Propose step
+instead. A reader who meets the bullet without the step will over-apply it.
+Either the bullet gains the scope or the backfill run establishes by example
+that it is per-proposal.
+
 Related: req-1a2b, req-3c4d, req-04f5, issue-ad1a.

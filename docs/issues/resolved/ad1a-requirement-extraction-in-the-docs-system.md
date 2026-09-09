@@ -60,3 +60,26 @@ Not in the review-brief plan, by that spec's Fixed inputs (D-2): the fix
 belongs where every classifier reads. Related: req-1a2b (`kisou`),
 req-3c4d (`shoroku`), req-04f5, decision-1f5f, issue-a1c9, and the
 review-brief design of 2026-09-08 ("What goes to kisou and shoroku").
+
+**Resolved 2026-09-09** by the requirement-extraction plan. Six passages
+landed: the `## requirements vs issues` section carrying the rule, its two
+tests, the granularity gate and the `Direction?` gate; the exit paragraph in
+the issues template, placed where a classifier matching "missing" reads first;
+the rewritten Classify step, which keeps "exactly one" and says the unmet need
+is **two** fragments; the two pairing bullets in the design and requirements
+Body rules; and the rewritten Propose step, which flags the unpaired among the
+entries a proposal carries. `skills/shoroku/SKILL.md` gained one sentence
+naming the two splits and the pairing without restating either. All four of
+this repository's installed copies were brought level.
+
+One wording of this issue is superseded, openly. It asked for the pairing check
+"as a `kisou` consistency check"; it became a **docs-system rule** in the
+template text instead (D-1). kisou's refresh compares section structure against
+its templates and reads no `docs/` content at all, so it has no place to run
+such a check — and the loss this issue describes happens at classification,
+where `shoroku` stands, not at installation, where `kisou` does. The rule now
+lives in the text both skills serve, and every classifier runs it.
+
+What the plan deliberately did not do: sweep the standing tree. No existing
+design section was made to name its requirement; that backfill is issue-320e,
+a shoroku run of its own, item by item.

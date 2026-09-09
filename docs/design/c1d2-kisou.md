@@ -2,7 +2,7 @@
 id: "c1d2"
 title: kisou skill — modes, template syntax, case mapping, migrate detection
 created: 2026-05-28
-updated: 2026-09-03
+updated: 2026-09-09
 ---
 
 ## Shape
@@ -31,6 +31,24 @@ paths* before committing — this assumes the project's `lint` script accepts
 file-path arguments (lint only those). Because kisou ships `lint` as an empty
 stub (never auto-generates script content), this is a contract the
 author-filled script must satisfy, not something kisou enforces.
+
+How the bundle's own Markdown is verified, and by whom:
+
+- The templates are **not** markdownlint-checked where they live. This
+  repository's `.markdownlint-cli2.yaml` ignores `skills/**/templates/**`, so
+  only the installed copies under `docs/` are linted and a template-only change
+  ships unlinted. Linting a template's Markdown therefore means copying it to a
+  non-ignored path with the `{{…}}` names expanded and running the linter there.
+- Four pre-commit hooks do bind on `skills/**/templates/**` — frontmatter,
+  trailing-whitespace, end-of-file, and mixed-line-ending — because
+  markdownlint-cli2 is the one Markdown hook the configuration gives an ignore.
+  So a template is checked for shape and hygiene but not for Markdown.
+- The installed `docs/**/AGENTS.md` copies are **agent instruction files** in
+  the sense of this repository's own `AGENTS.md`, which forbids editing them
+  without explicit human approval. A refresh of them therefore needs a recorded
+  approval before any task touches them — not because kisou requires it, but
+  because the files it installs are governed by the rule they themselves state.
+  The requirement-extraction plan had that approval through its review brief.
 
 ## Template syntax (three categories, processed in order)
 
@@ -86,6 +104,21 @@ Then **all TEMPLATE FILL blocks are deleted** before writing.
   write; `scripts/` → add missing requested scripts, never overwrite; existing
   doc-system → leave intact, add only around it.
 
+  The refresh compares **section structure against the template** and reads no
+  `docs/` content; kisou has no consistency check over what the documents say.
+  Its gate is a per-file fingerprint, and where the fingerprint does not match
+  it falls through to the `.bak`-and-fresh-write branch — which means an
+  unrecognized file is not left alone but replaced, the most destructive of the
+  available outcomes. The rejection has to come from the operator, so a refresh
+  is only as safe as the person answering its prompts. Refreshing a downstream
+  copy by hand instead was considered and rejected: it would leave this path
+  (decision-281f) unexercised, so the plan runs `kisou migrate` in docs-only
+  scope and hand-mirrors only what the refresh misses. Leaving a missed passage
+  un-mirrored, to display the failure in the tree, was also rejected — the
+  template-versus-copy diff is the invariant that makes an installed copy
+  trustworthy, and a finding is carried by an issue and by the run's record,
+  never by a knowingly wrong file.
+
 Because refresh keys on **section identity (the heading)** and never removes an
 author section, fixed-section headings in `skills/kisou/templates/**` are
 stable identifiers: a template change goes inside the existing section's body,
@@ -94,6 +127,37 @@ never into a renamed heading. A renamed heading lands downstream as a duplicate
 (issue-9ab0). The ADR template's `## Superseding (the only edit to an accepted
 ADR)` heading was kept verbatim for this reason when partial supersession was
 added (decision-89da).
+
+## Refresh (measured 2026-09-09)
+
+Serves `req-1a2b` — re-running migrate refreshes a kisou-managed file toward
+the current template.
+
+The refresh path had never been exercised until the requirement-extraction plan
+ran it on this repository's own four installed `docs/**/AGENTS.md` copies, in
+docs-only scope, after the templates had gained six passages. Measured shape:
+
+- **Two of the six passages went through the real refresh path**, both in
+  `docs/AGENTS.md` — the one file whose fingerprint matched. The refresh found
+  the diverged fixed-text section, proposed replacing it, and once accepted
+  produced the exact template text; it misplaced and mangled nothing it
+  actually touched.
+- **The other four were never offered.** `docs/requirements/AGENTS.md`,
+  `docs/design/AGENTS.md`, and `docs/issues/AGENTS.md` were classified
+  not-kisou-managed, because no fingerprint covers a per-type
+  `docs/<type>/AGENTS.md` (issue-e19f), and each drew a `.bak`-and-rewrite
+  offer instead. Two thirds of the refresh the plan needed did not happen.
+- **Two open questions stayed open**, and the run is not evidence about them:
+  the fingerprint gap diverted three files before the fixed-text test ever ran
+  (issue-2bf9, masked rather than disproved), and the one file that did reach
+  the refresh branch needed no new section, so insertion position went untested
+  (issue-f623).
+- Every migrate on **this** repository offers the script slots `scripts/` lacks
+  — `setup`, `run`, `build`, `test`, and `tidy` — since it holds only
+  `bootstrap` and `lint`, so a dogfood here always carries a decline step.
+
+The run is written up in
+`docs/reports/2026-09-09-requirement-extraction-dogfood.md`.
 
 ## File output paths
 

@@ -28,4 +28,13 @@ added fixed section takes the position the template gives it, relative to the
 fixed sections around it; an author-added section stays where the author put
 it.
 
+The refresh run of 2026-09-09 left this untested. The one file that reached the
+refresh branch, `docs/AGENTS.md`, needed no new section — only two replacements
+in place — and the file that did need one,
+`docs/requirements/AGENTS.md`, never got there (issue-e19f). The section was
+placed by hand at the template's own position. A discarded first attempt at
+that task simulated kisou rather than running it and appended the section after
+`## Growth`; that is a guess about the behavior, not a measurement of it, and
+is not evidence either way.
+
 Related: req-1a2b, design-c1d2, decision-281f, issue-ad1a, issue-2bf9.

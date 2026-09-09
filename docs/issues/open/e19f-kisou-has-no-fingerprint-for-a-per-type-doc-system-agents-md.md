@@ -37,5 +37,20 @@ The fix is one more fingerprint line — the per-type file's fixed heading set
 (`## File`, `## Frontmatter`, `## Body`, and the type's own sections), or the
 opening definition sentence each per-type template carries.
 
+Measured 2026-09-09, no longer predicted. The requirement-extraction plan ran
+`kisou migrate` in docs-only scope on this repository, needing six passages
+mirrored into four installed copies. kisou recognized `docs/AGENTS.md` and
+refreshed it correctly; it classified `docs/requirements/AGENTS.md`,
+`docs/design/AGENTS.md`, and `docs/issues/AGENTS.md` as **not** kisou-managed
+and offered, for each, to rename it to `<file>.bak` and write a fresh
+template-filled file. The offers were rejected and the four affected passages
+were hand-mirrored. So two thirds of the refresh the plan needed did not
+happen, and the failure was not a refusal but an offer to destroy: the gate
+misses, and the fall-through is the most destructive branch available. The
+rejection had to come from the operator answering the prompts.
+
+The run is written up in
+`docs/reports/2026-09-09-requirement-extraction-dogfood.md`.
+
 Related: req-1a2b, design-c1d2, decision-281f, issue-ad1a, issue-2bf9,
 issue-f50d.

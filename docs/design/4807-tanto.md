@@ -485,6 +485,36 @@ wave, adjudicates residuals in the SDD ledger, and reports. There is no second
 fix wave; residual load-bearing findings reach the human through Kanri's merge
 question.
 
+## What the executor's loop assumes
+
+Serves `req-04f5`. Three properties the SDD fix loop rests on, each measured in
+the requirement-extraction run of 2026-09-09 rather than assumed.
+
+**An implementer can die mid-task, and the clean tree is the executor's to
+restore.** A subagent that hits an API session limit stops wherever it is: no
+report, no commit, and a working tree carrying half an edit. The handoff
+invariant — a clean status — is then the executor's responsibility, not the
+next implementer's, and a task brief that tells an implementer to stop if the
+tree is dirty is right to do so. Before reverting, write the partial work to a
+diff in the workspace: the revert becomes reversible, the evidence survives,
+and a finding about *how* the attempt went wrong can afterwards be stated from
+the artifact instead of from memory. That mattered here — the discarded attempt
+had stopped running the tool it was measuring and begun simulating it, and the
+preserved diff is what let the claim be checked rather than recalled.
+
+**A resumed implementer keeps its context across a host restart.** Rounds one
+to three of the fix loop resume the original implementer rather than dispatch a
+fresh one, which is worth nothing if the handle dies with the session; measured
+here, it does not — the session was restarted and renamed mid-run, and two
+further fix rounds ran on the same agent with its context intact.
+
+**A fix loop can run entirely on prose.** Where a task's deliverable is a
+record — a measurement, a set of recorded check outputs — its findings land in
+that record and touch no tracked byte, so the fix rounds produce no commits and
+the scoped re-review has no diff to read. Point that re-review at the
+deliverable itself, and tell it that the **empty** diff is one of the things it
+confirms.
+
 ## Shoroku staging, session exits, and the adoption rule
 
 The write-out into this document system is staged rather than done once at the

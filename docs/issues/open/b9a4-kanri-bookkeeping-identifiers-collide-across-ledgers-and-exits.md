@@ -31,6 +31,17 @@ the roster. Two Kanri exited on 2026-09-09 — the predecessor on the human's
 word for cost, this one at the plan close — and the second proposal had to
 take an unofficial `-b` suffix to avoid overwriting the first.
 
+A third case, the same shape: a **compound value in the `Written` column**
+hides an outstanding half. An `S-n` row whose candidate has two stages — a
+claim written at T1 and a status move due at T2 — takes a value like
+`claim: <commit subject>; move: no`, and a selection of the rows still to write
+by "the Written column says `no`" skips it. The row is not wrong; it is
+unfilterable. Met on 2026-09-09, where the row carrying issue-ad1a's move to
+`resolved/` was invisible to that filter while the move was genuinely
+outstanding, and it was the executor's proposal rather than the ledger that
+surfaced it. Either such a row is split in two when its second stage is
+identified, or the column takes a convention a filter can read.
+
 Candidate fixes, for a later plan: a cross-ledger reference names the ledger
 (`review-brief S-6`), or the ledger's rows carry a topic prefix; the exit
 file pattern gains the Kanri's bare name or a sequence when the date is

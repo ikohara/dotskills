@@ -49,7 +49,10 @@ Six things a passage plan's pass needs that a whole-file plan's does not.
    merges two changed regions into one hunk when at most six unchanged lines
    separate them — three lines of context on each side; five and six give one
    hunk, seven gives two. A plan states the count it expects at each task and a
-   reviewer reads the hunks.
+   reviewer reads the hunks. A **removed-line** count is not a check either: a
+   replacement whose new passage repeats the old one's first line leaves that
+   line as context, so a five-line old block can show three removed lines. Only
+   the hunk read decides.
 3. **Hunk order is file order, not task order.** A passage written by a late
    task can sit above passages written by an early one, so an attribution by
    hunk index is wrong and no count can catch it. Match each hunk to a passage
@@ -60,6 +63,17 @@ Six things a passage plan's pass needs that a whole-file plan's does not.
    line against the union of the plan's blocks and require zero uncovered lines
    — the second form needs no knowledge of each passage's shape. One trap: an
    insertion's new block omits its anchor, so a naive replace drops it.
+   Reconstruction is the only **complete** check a passage plan has, and the
+   reason is that a boundary's set of presence greps cannot be complete: a
+   needle proves the line it sits on and says nothing about the rest of the
+   block. Of the six bullets in the section the requirement-extraction plan
+   added, four carried no needle at all, so a body mangled the same way in the
+   template and in the installed copy would have passed every grep — and the
+   template-versus-copy diff would have passed too, since it compares those two
+   with each other and not with the plan. Where a plan writes the same passage
+   into a template and an installed copy, that diff is nonetheless the one check
+   that binds the pair: a fix applied to one side alone passes every content
+   grep and fails only there.
 5. **A review method for the plan itself.** Apply the passages to copies of the
    files and re-run markdownlint with the repository configuration plus every
    string this note counts. That is the passage-plan analogue of check 9's
@@ -119,7 +133,26 @@ CRLF depends on how each happened to be written here, and **a fresh Windows
 clone checks out every `.md` as CRLF**. Any list of per-file endings is a
 snapshot of one working tree. The deciding command is `git ls-files --eol <file>`
 run before and after an edit: it must show the same `w/crlf` or `w/lf` as
-before, and never `w/mixed`.
+before, and never `w/mixed`. That command pads its columns with **two** spaces
+before `attr`, so a plan quoting `i/lf w/crlf attr/text=auto` with single
+spaces reads as a mismatch against its own expectation; quote the shape, not
+the spacing.
+
+`grep` and `sed` strip CR on input; `diff` does not. So an anchored grep over a
+CRLF file needs nothing, while a comparison of two files needs
+`--strip-trailing-cr` — or `tr -d '\r'` on both sides — the moment one side has
+been through a `sed` pipeline, which emits LF. Without it the diff reports every
+line, which reads as total divergence rather than as a line-ending artifact.
+This is what makes a template-versus-expanded-copy comparison work at all.
+
+**Truncated output is not a measurement.** A pre-check that pipes `grep`
+through `cut -c1-120` truncates the longer of two paths mid-line, and the
+result looks exactly like a wrapped sentence; a batch prompt of 2026-09-09
+described a template as wrapping a sentence across two lines on that basis,
+when both files held it on one. The conclusion drawn happened to survive, but
+the stated fact did not, and a later reader would have taken it on trust. A
+pre-check states the command it ran, and a command that truncates has not
+measured the thing it printed.
 
 They also earn a run after a superpowers upgrade, because checks 4 and 5
 compare text the skill quotes against the plugin's own source. A failure is one
@@ -154,6 +187,63 @@ at `-U0` for one set of files; and the raw sweep it ran at a boundary was this
 note's check 6 block copied into a plan, where the copy and the original then
 diverged by one path. State the width with the count, or state no count and
 read the hunks; and cite this file's block rather than duplicating it.
+
+**A heading-stability check puts the working tree on the left.** Written
+`diff <(grep '^#' <file>) <(git show main:<file> | grep '^#')`, an *added*
+heading prints with `<` and a `d` — `5d4` — and the `&& echo "no difference"`
+does not fire, because `diff` exits 1. That is the expected shape, not a
+failure, and a plan states the literal output so a reader does not "fix" it by
+swapping the sides.
+
+**A check whose remedy is a revert must scope its path set to the task's own
+outputs, never a whole directory.** A plan step of 2026-09-09 expected
+`git diff --name-only "$(git merge-base main HEAD)" -- docs` to list exactly
+the four files its task wrote, and told the implementer to revert anything
+else. On its own branch that was impossible: the same branch carried the plan's
+spec and plan under `docs/superpowers/` and the conductor's write-out under
+`docs/issues/` — eleven paths from earlier commits — and obeying the remedy
+would have destroyed committed work. The check that isolates a task's own
+effect is `git status --porcelain` before its commit; a merge-base listing
+answers a different question and needs the branch's other traffic named.
+
+**The installed copies inherit the templates' ragged wrapping, and it stays
+ragged.** A passage written for a template whose directory names are `{{…}}`
+variables is narrower once expanded, so the copy's lines look under-filled. Do
+not re-wrap them: the template-versus-copy diff compares byte for byte, and a
+tidier copy is a broken one.
+
+**A verification-only task inverts the reviewer's standing instruction.** When
+the deliverable *is* the recorded output of checks, a reviewer told not to
+re-run the tests verifies nothing at all — the record is the claim under
+review. Tell that reviewer to re-run, and judge the record on whether it reads
+as captured or reconstructed. Three tells, from a run that was genuine: an
+incidental count no reconstruction would land on (a diff's line total), the
+exact padding and ordering of a tool's own output (`(no files to check)` beside
+each skipped hook), and a result that is *not* the tidy one — a step whose
+correct outcome is a non-zero exit and a missing "no difference" line, which is
+the easiest place in a plan to fake a pass. Deferred minors in such a report
+are triaged mechanically rather than case by case: `git check-ignore` and
+`git ls-files` settle in one command whether a finding touches a tracked byte
+at all.
+
+**When the finding is a wording defect, the re-review judges the wording.**
+Matching the changed words against the ruling verifies only that an edit was
+made, not that the replacement is right. A fix wave of 2026-09-09 turned "a
+statement that passes neither" into "fails either" in a rule whose two tests
+are conjunctive; the check that mattered was reading the new clause as the
+contrapositive of that conjunction, which no diff comparison performs.
+
+**A self-check by regex over prose systematically misses what it was built
+from.** After correcting two miscounts, an implementer re-checked its own work
+with a pattern assembled from those two instances; it could not match
+`three "missed" passages`, where a quoted word sits between the numeral and the
+noun, and on that basis the report certified itself clean while still carrying
+the defect. The pattern that found the instances cannot prove their absence.
+The remedy that worked was not a better pattern but a **named unit**: fixing by
+ruling that passages were six and files were four, and that a list's length
+counts nothing, ended a miscount two rounds had failed to end. The original
+error was a list of three bullets carrying four passages — an ambiguous unit,
+not a typo, which is what a miscount in prose usually is.
 
 Adding a check is an edit to this file.
 

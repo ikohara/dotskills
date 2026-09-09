@@ -39,6 +39,16 @@ two kinds of angle brackets — a fill placeholder the author owns from a
 notation token the rule text uses — so that the fixed-text test is decidable
 without knowing the author's intent.
 
+The refresh run of 2026-09-09 did **not** exercise this, and the issue must
+not be closed on its evidence. The fingerprint gap of issue-e19f diverted
+three of the four files before the fixed-text classification ever ran on them,
+so for those three the literal reading was never reached. For the one file that
+did reach the refresh branch, `docs/AGENTS.md`, the **intended** reading held:
+its "Session shoroku (excerpting)" section was offered for replacement even
+though its body carries `<id>` notation. That is one data point in favor of the
+intended reading and none against the literal one — the defect is **masked,
+not disproved**.
+
 Related: req-1a2b, design-c1d2, decision-281f, issue-ad1a (the plan whose
 refresh run exercises this), issue-e19f (the per-type fingerprint), and
 issue-f623 (the insertion position of an added section).

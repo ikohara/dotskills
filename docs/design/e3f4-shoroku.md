@@ -2,7 +2,7 @@
 id: "e3f4"
 title: shoroku skill — excerpting modes, classification, partial-accept flow
 created: 2026-05-28
-updated: 2026-07-17
+updated: 2026-09-09
 ---
 
 ## Shape
@@ -40,6 +40,63 @@ in an unprepared repo it stops and points the user at `kisou`.
    the source's topic. No auto-push.
 5. **Report** files changed + commit hash. Empty / minimal source ⇒
    "nothing to distill", write nothing — never invent content.
+
+### Classification and the requirement pairing
+
+Serves `req-3c4d`. Added 2026-09-09; the authority stays `docs/AGENTS.md`, and
+the summary above is not restated there.
+
+Classification follows the **two splits the type files define** — "design vs
+decisions" in `docs/design/AGENTS.md` and "requirements vs issues" in
+`docs/requirements/AGENTS.md`. The second is the newer of the two: a need the
+user states that the system does not meet yet is **two** fragments, a
+requirement and an issue, not one issue. The proposal then carries the
+**requirement pairing** the Propose step defines — each `design/` entry names
+the `req-<id>` it serves or says it serves none, and the unpaired are flagged.
+
+Three properties of that rule matter to this skill's shape:
+
+- **It is scoped to the proposal's own entries, never the standing tree.** A
+  whole-tree sweep would flag every section of every design entry and offer an
+  issue for every requirement bullet — the mirror image of the over-extraction
+  the granularity gate exists to prevent. A backfill is its own run
+  (issue-320e).
+- **The requirement-side flag is a question, not a verdict.** A requirement
+  bullet no design serves may be unmet — a gap, and then an issue — or met but
+  never described, and then a `design/` entry. Offering the issue outright
+  would make the rule itself a source of over-extraction; the proposal asks and
+  the user answers at `Direction?`.
+- **It lives in the docs system, not in either skill.** The loss happens at
+  classification, where shoroku stands, and kisou reads no `docs/` content at
+  all, so a kisou-side scan for unpaired bullets was rejected: the rule is
+  template text that every classifier runs, and kisou merely installs it.
+
+A translation rule for the `Direction?` proposal was considered and rejected:
+the proposal is already presented in the chat's language, so the original-plus-
+reference-translation shape belongs to `tanto`'s escalation to the human
+(`req-04f5`), not here.
+
+Two seams between this skill's wording and the docs system's remain open, as
+`issue-2c4d` predicts for a bundle authored on one side and followed on the
+other: `SKILL.md` says "pairing" where the docs rules say "unpaired", and the
+Propose step does not state that the pairing's evidence comes from the design
+entries carried in the proposal itself.
+
+The six passages that landed this rule were written verbatim into the templates
+and the installed copies and needed no wording change under review — with one
+exception, which is worth recording because of where it surfaced. The "two
+tests" bullet joins its tests with "and" but originally disposed only of a
+statement that "passes neither", leaving the pass-exactly-one case with no
+verdict; the correct clause is "fails either", the contrapositive of a
+conjunction. **This is a defect class, not a typo**: a rule stating two
+conjunctive tests, followed by a failure clause written with "neither",
+inverts the rule's strictness silently and still reads well. It survived the
+spec dialogue, the spec review, the review brief the human answered, the plan
+review, and four implementation reviews, and was caught only by the
+whole-branch review — the first reader whose whole job was to read the landed
+text as text. The tree now says "fails either"; the spec of 2026-09-09 is the
+record of what was approved and is deliberately not amended, so it still quotes
+"passes neither" in its block.
 
 ## Partial-accept parsing
 

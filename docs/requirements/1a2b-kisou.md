@@ -2,7 +2,7 @@
 id: "1a2b"
 title: kisou — scaffold and migrate a project's standard structure
 created: 2026-05-28
-updated: 2026-06-17
+updated: 2026-09-09
 ---
 
 ## Purpose
@@ -25,6 +25,9 @@ script files — without re-deriving conventions per project.
 - Migrate auto-detects existing project state (dirs, case, scripts, OS
   support, doc-system presence) and only asks the user about inputs it
   cannot determine.
+- Uncertainty narrows what migrate proposes, never widens it: the less
+  kisou can tell about a file, the less it offers to change, and a file it
+  cannot classify is left alone and reported.
 - Re-running migrate on a project kisou previously set up refreshes it
   toward the current template — picking up template improvements made
   since it was first scaffolded — so kisou-using projects do not freeze at
