@@ -114,6 +114,6 @@ them, and the model discipline. None of those skills is edited: every override
 The designs this skill implements are
 `docs/superpowers/specs/2026-09-06-tanto-design.md`,
 `docs/superpowers/specs/2026-09-07-kanri-lifecycle-design.md`,
-`docs/superpowers/specs/2026-09-07-boundary-rules-design.md`, and
+`docs/superpowers/specs/2026-09-07-boundary-rules-design.md`,
 `docs/superpowers/specs/2026-09-08-review-brief-design.md`, and
 `docs/superpowers/specs/2026-09-09-context-cost-design.md`.

@@ -24,8 +24,9 @@ taking over mid-plan must not create a second ledger.
    skill's `sdd-workspace` script writes the same line on every run; you are
    only running first.
 3. If `.superpowers/sdd/roster.md` is absent, this is the bootstrap: create it
-   from `templates/roster.md` with your row first and a Residency row carrying
-   today's date, your own reading, and zero counts, then go to step 5.
+   from `templates/roster.md` with your row first — its Transcript column
+   your own transcript path, since you send no handshake — and a Residency
+   row carrying today's date, your own reading, and zero counts, then go to step 5.
 4. Otherwise cold-read the roster and compare your own `name [ref]` with its
    first data row, then take exactly one case from "The five cases" below.
 5. Only when no plan is in flight — the bootstrap, a kept Kanri between
@@ -50,9 +51,10 @@ taking over mid-plan must not create a second ledger.
 **Handover** — `.superpowers/sdd/kanri-handover.md` exists. In order: read the
 handover and the ledger it names, and `progress.md` if a plan is in flight;
 from `ListAgents`, note whether the old Kanri is still listed; rewrite the
-roster — your own row first with status `live`, the old Kanri's row `replaced`
-(or `dead` if it was not listed), the Residency row reset to your name and
-today with zero counts and your own reading, and one Events line "handover
+roster — your own row first with status `live` and your own transcript path
+in its Transcript column, the old Kanri's row `replaced` (or `dead` if it was
+not listed), the Residency row reset to your name and today with zero counts
+and your own reading, and one Events line "handover
 accepted by `<you>` from
 `<old>`"; send every live peer, to its bare name from the roster, one line
 `kanri-address: <name> [<ref>] — handover accepted; the roster's first row is rewritten`;
@@ -154,11 +156,13 @@ Then, in this order.
 1. Cold-read the spec whole and the plan's **frame** — everything outside the
    task steps: Global Constraints, File structure, each task's head down to its
    first step, Batches, How a batch is verified, the sweeps, and the
-   Self-Review — as the frame command above prints it. The steps' passage
-   blocks and commands you take on Sekkei's dry-run report,
+   Self-Review — as the frame command above prints it. The steps' commands
+   and their outputs you take on Sekkei's dry-run report,
    `.superpowers/sdd/<topic>/plan-dryrun.md`, which the plan-committed line
-   names, plus one command of your own that checks every anchor the plan
-   names against the tree; a plan that has no dry-run report is read whole.
+   names, and a passage block you need you read from the plan by its id, on
+   demand — never the report whole, which is larger than the frame; plus one
+   command of your own that checks every anchor the plan names against the
+   tree; a plan that has no dry-run report is read whole.
    Send Sekkei one line per open question. Wait for its pointer: it answers by
    editing the plan or the spec, never by explaining in a message. If the plan
    edits this skill's own files,
@@ -713,7 +717,7 @@ session is dead first — uncommitted work may be in the tree.
 | the plan is committed, the cold-read questions are answered, and the human does not want a next spec now | Sekkei is done; delete it after its exit shoroku is committed — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
 | Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; delete it after its exit shoroku is committed, or keep it if more of the same bug is expected |
 | the final batch is accepted, T2 is written, leftovers are clean, and the human has executed the merge decision | Jisso is done; delete it after its exit shoroku is committed, which at plan end is T2 |
-| Jisso is deleted and the ledger's Progress line says closed | this plan is closed; Kanri stays, prints the residency line, moves the dead, replaced, and refused rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet — fills the ledger's Measurements fixed row, and waits for the next topic |
+| Jisso is deleted and the ledger's Progress line says closed | this plan is closed; Kanri stays, prints the residency line, marks `dead` the rows of the sessions deleted at this close, moves the dead, replaced, and refused rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet — fills the ledger's Measurements fixed row, and waits for the next topic |
 
 You are resident. A plan's end is a boundary like any other, and the next topic
 starts with a new topic directory and a new ledger under the same roster,

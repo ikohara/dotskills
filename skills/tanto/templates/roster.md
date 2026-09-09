@@ -73,7 +73,8 @@ list holds the current run.
 - <YYYY-MM-DD HH:MM> — <one line: a handshake accepted, or refused and why; a
   session declared dead and what was verified; the conductor ledger moved from
   .superpowers/sdd/<topic>/ to .superpowers/sdd/<plan-basename>/; a VS Code
-  restart and which roles were recreated; a handover written by <name> [<ref>];
+  restart and which roles were recreated; resumed: <old name> → <new name>;
+  a handover written by <name> [<ref>];
   a handover accepted by <name> [<ref>] from <name> [<ref>]; an exit shoroku
   committed by <name> [<ref>], or not run and what was lost; a bug report
   received, or sent to <name> [<ref>]; a hotfix committed between plans>

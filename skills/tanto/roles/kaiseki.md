@@ -76,9 +76,10 @@ you, and answer `exit write-out committed: <subject> — <reading>` or
 Write `kaiseki-<n>.md` at the path the brief names, from the tanto skill's
 `templates/kaiseki-report.md` — attached, `<n>` is the number in the brief's
 filename; standalone, it is `1`, or one more than the highest `kaiseki-<n>.md`
-already in `.superpowers/sdd/kaiseki/`. Before the line, run the self-check of
-`SKILL.md`'s Resuming — one `ListAgents`; a name that is not your row's means
-you were resumed, and the handshake goes first. Then send Kanri one line with
+already in `.superpowers/sdd/kaiseki/`. Attached, before the line, run the
+self-check of `SKILL.md`'s Resuming — one `ListAgents`; a name that is not your
+row's means you were resumed, and the handshake goes first; standalone, there
+is no roster and no self-check. Then send Kanri one line with
 the path — standalone, there is no Kanri to send to, and the report goes to the
 human in this session. Two sections decide what happens next, so be exact in
 them:

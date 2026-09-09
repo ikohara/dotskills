@@ -26,6 +26,8 @@ to the roster and the ledgers, never a copy.
 
 - <The ledger section that holds them, by path and heading, plus anything not
   yet written there, one line each.>
+- <A `compacted: <path>` line a peer sent that has no `confirmed:` answer yet,
+  by path; the successor answers it at its first boundary.>
 
 ## Rulings the next batch inherits
 

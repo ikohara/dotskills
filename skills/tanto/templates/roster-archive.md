@@ -14,8 +14,8 @@ is rewritten here; rows and lines are appended in the order they arrive.
 | <role> | <name> [<ref>] | <model id> | <branch> | <YYYY-MM-DD> | <YYYY-MM-DD> | <dead, replaced, or refused> | <last boundary> | <n> | <n> | <n> | <n> | <n or —> | <m or —> | <k or —> |
 
 An archive row is the roster's status row for that session joined with its
-last Residency row; the cwd and Mode columns are dropped, Ended is the date
-the row's status changed.
+last Residency row; the cwd and Mode columns are dropped, Started keeps the
+date and drops the time, Ended is the date the row's status changed.
 
 ## Events
 
