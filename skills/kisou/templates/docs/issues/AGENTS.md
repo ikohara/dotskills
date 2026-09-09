@@ -4,6 +4,11 @@ An `issues` file records a known problem or deferred decision: something is
 wrong or missing, but is not being fixed right now. Status is encoded by
 **directory**, not a frontmatter field.
 
+When the missing thing is a need the user stated, the need itself is a
+requirement fragment and the issue records only the gap — see
+"requirements vs issues" in `{{docs}}/{{requirements}}/AGENTS.md`. An issue
+filed alone loses the requirement.
+
 ## Lifecycle (by directory)
 
 - `{{docs}}/{{issues}}/open/` — actionable now.
