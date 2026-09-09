@@ -1,0 +1,31 @@
+---
+id: "f623"
+title: kisou's refresh has no insertion-position rule for a section it adds
+severity: low
+depends_on: []
+blocks: []
+claimed_by: null
+claimed_at: null
+created: 2026-09-09
+updated: 2026-09-09
+---
+
+Found in the requirement-extraction spec review (2026-09-09).
+
+`skills/kisou/SKILL.md` Step 3 (migrate), the kisou-managed refresh, says of
+"a **missing** fixed section / block → add it, template-filled" and nothing
+about where the section lands in the file. The template fixes an order — in
+the requirements template the new `## requirements vs issues` section sits
+between `## Body` and `## Growth` — and a heading check (`grep '^#'`) passes
+wherever the section is appended, so an added section at the end of the file
+passes the check a reader would naturally run and fails only a whole-file
+comparison against the expanded template.
+
+The requirement-extraction plan uses the expanded-template diff, not the
+heading grep, to decide its refresh run for this reason, and measures where
+kisou puts the added section. The fix is one sentence in the refresh rule: an
+added fixed section takes the position the template gives it, relative to the
+fixed sections around it; an author-added section stays where the author put
+it.
+
+Related: req-1a2b, design-c1d2, decision-281f, issue-ad1a, issue-2bf9.

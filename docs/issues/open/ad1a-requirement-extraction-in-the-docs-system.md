@@ -4,8 +4,8 @@ title: requirement extraction in the docs system — a need the human states is 
 severity: medium
 depends_on: []
 blocks: []
-claimed_by: null
-claimed_at: null
+claimed_by: tanto requirement-extraction plan (Kanri, dotskills)
+claimed_at: 2026-09-09T14:12:00+09:00
 created: 2026-09-09
 updated: 2026-09-09
 ---
