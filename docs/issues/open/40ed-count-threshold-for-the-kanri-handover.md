@@ -76,3 +76,18 @@ This issue stays open, blocked on the data, until enough sessions have ended
 for an ADR to choose the number — or to decide that none is needed. Whether
 bytes and records are comparable across hosts stays open too; on one host the
 sessions are compared with each other.
+
+The handover half of this issue closed on 2026-09-10 without a number: the
+human set the rule that Kanri hands over at every plan close, without a
+threshold and without asking (req-04f5's residency bullet, reworded that day),
+because the close is the cheapest moment to reset a resident session's
+context and the question had been answered "yes" at every close so far. What
+stays open here is the **replacement** half — the reading at which a peer's
+growth, short of a compaction, should replace it — and the data for it. One
+more Kanri data point for that: `dotskills-38` (the resumed `dotskills-e0`)
+handed over at the context-cost close at `transcript: 5287752 B, 1979
+records, 49 wake-ups, 0 compactions`, after five batches and two plans in
+one day; of its 49 wake-ups about fifteen were the human's turns, twenty peer
+lines, four idle notices from two Sekkei exits (issue-d725), and four subagent
+completions. That session was also the first strong session here to hit the
+usage-credit limit, at the T2 commit line.

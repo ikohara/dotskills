@@ -30,5 +30,14 @@ step states, and report the mismatches with the other findings. It belongs in
 Sekkei's Step 4 (the dry run) and in the application script the dry run
 already writes; the reviewer's replay then confirms rather than discovers.
 
-Related: req-04f5, issue-7d14 (the dry run as one record), design-4807 (the
-anchor-shape rule), docs/notes/tanto-consistency-checks.md.
+A second check for the same pass, from the context-cost run's count defects
+(six "replace exactly these N lines" leads off by one, and a batch report's
+"the seven that follow" for a six-line block): the parser that extracts a
+replacement's old block already knows its line count, so it compares that
+count with the lead's N and reports the difference. No command consumes those
+numbers today, which is why a 72/72 dry run passed them; a parser that reads
+them makes the prose a check. Both passes belong in the passage script
+issue-7481 proposes.
+
+Related: req-04f5, issue-7d14 (the dry run as one record), issue-7481,
+design-4807 (the anchor-shape rule), docs/notes/tanto-consistency-checks.md.
