@@ -92,6 +92,11 @@ question with a grep for a control character, which in this shell matches every
 line of an LF-only stream and so returns the line count; settle it with byte
 counts instead — `git cat-file -s` against the piped byte count, or `od -c`.
 
+A flattened `grep -cF` counts lines, so it returns `0` or `1`: it pins the
+presence of a phrase that may wrap, never a per-file occurrence count. Count
+the occurrences of a line that does not wrap with a raw `grep -cF` on the
+file.
+
 That mixture is an artifact, not a property, and a plan must not encode it as a
 table. `core.autocrlf=true` is set globally on this machine and `.gitattributes`
 gives `.md` only `* text=auto`, with per-file `eol=` for `*.sh` and `*.bat`
@@ -120,7 +125,7 @@ Adding a check is an edit to this file.
   When the cache is absent, read the installed skills by hand and record
   `superpowers 6.3.0, cache absent, checked by hand` with the results.
 - **`shoroku` in this repository**, at `skills/shoroku/SKILL.md`.
-- **Fifteen skill files, nine of them templates**, as check 1 lists them.
+- **Sixteen skill files, ten of them templates**, as check 1 lists them.
 
 ## 1. Every file of the layout exists
 
@@ -135,10 +140,11 @@ ls skills/tanto/SKILL.md skills/tanto/README.md \
   skills/tanto/templates/batch-report.md \
   skills/tanto/templates/kaiseki-brief.md \
   skills/tanto/templates/kaiseki-report.md \
+  skills/tanto/templates/review-brief.md \
   skills/tanto/templates/tanto.json 2>&1
 ```
 
-Expected: all fifteen paths listed, no `No such file or directory`.
+Expected: all sixteen paths listed, no `No such file or directory`.
 
 ## 2. Every in-skill path named by the contract or a role file resolves
 
@@ -151,13 +157,14 @@ grep -oh 'roles/[a-z]*\.md\|templates/[a-z-]*\.md\|templates/tanto\.json\|skills
     done
 ```
 
-Expected: thirteen `ok` lines — `roles/jisso.md`, `roles/kaiseki.md`,
+Expected: fourteen `ok` lines — `roles/jisso.md`, `roles/kaiseki.md`,
 `roles/kanri.md`, `roles/sekkei.md`, `templates/batch-prompt.md`,
 `templates/batch-report.md`, `templates/bug-report.md`,
 `templates/kaiseki-brief.md`, `templates/kaiseki-report.md`,
-`templates/kanri-handover.md`, `templates/kanri.md`, `templates/roster.md`,
-`templates/tanto.json` — and **no** `MISSING` line. A `MISSING` line is either
-a typo in the reference or a file the plan forgot.
+`templates/kanri-handover.md`, `templates/kanri.md`,
+`templates/review-brief.md`, `templates/roster.md`, `templates/tanto.json` —
+and **no** `MISSING` line. A `MISSING` line is either a typo in the reference
+or a file the plan forgot.
 
 ## 3. Every template is cited by the role that copies it
 
@@ -171,14 +178,15 @@ templates/kanri-handover.md skills/tanto/roles/kanri.md
 templates/bug-report.md skills/tanto/roles/kanri.md
 templates/batch-prompt.md skills/tanto/roles/kanri.md
 templates/kaiseki-brief.md skills/tanto/roles/kanri.md
+templates/review-brief.md skills/tanto/roles/kanri.md
 templates/batch-report.md skills/tanto/roles/jisso.md
 templates/kaiseki-report.md skills/tanto/roles/kaiseki.md
 templates/tanto.json skills/tanto/SKILL.md
 MAP
 ```
 
-Expected: nine `ok` lines, no `UNCITED`. Six of the nine are Kanri's, because
-Kanri copies six of the templates itself.
+Expected: ten `ok` lines, no `UNCITED`. Seven of the ten are Kanri's, because
+Kanri copies seven of the templates itself.
 
 ## 4. The superpowers and shoroku sentences the skill overrides still exist
 
@@ -336,6 +344,24 @@ one copy of a phrase meant to agree is invisible to every other check here: it
 was singular in seven of eight occurrences across the skill, six task reviews
 read the passage carrying the plural, and only a whole-branch pass that could
 see all three copies at once caught it.
+
+The two lines of the review brief, and the idle subscription that only the
+exit lines keep, each on one line where it occurs, counted raw over every
+Markdown file of the skill so that a stray copy fails the check:
+
+```bash
+for f in skills/tanto/SKILL.md skills/tanto/roles/*.md skills/tanto/templates/*.md; do
+  printf '%s review-ready %s brief %s idle %s\n' "$f" "$(grep -cF 'review-ready: <' "$f")" "$(grep -cF 'brief: <path>' "$f")" "$(grep -cF 'notify_when_idle: true' "$f")"
+done
+```
+
+Expected: `skills/tanto/SKILL.md review-ready 1 brief 1 idle 2`,
+`skills/tanto/roles/kanri.md review-ready 1 brief 1 idle 2`,
+`skills/tanto/roles/sekkei.md review-ready 2 brief 2 idle 0`, and every other
+line ending `review-ready 0 brief 0 idle 0`. The two `idle` in `SKILL.md`
+are the Messages bullet's exception and the Session exit paragraph; the two
+in `roles/kanri.md` are the exit lines. A batch prompt or a brief sent with a
+subscription would show as a third.
 
 ## 7. The strings that must be absent
 
