@@ -24,8 +24,8 @@ taking over mid-plan must not create a second ledger.
    skill's `sdd-workspace` script writes the same line on every run; you are
    only running first.
 3. If `.superpowers/sdd/roster.md` is absent, this is the bootstrap: create it
-   from `templates/roster.md` with your row first and a Residency line with
-   today's date and zero counts, then go to step 5.
+   from `templates/roster.md` with your row first and a Residency row carrying
+   today's date, your own reading, and zero counts, then go to step 5.
 4. Otherwise cold-read the roster and compare your own `name [ref]` with its
    first data row, then take exactly one case from "The five cases" below.
 5. Only when no plan is in flight — the bootstrap, a kept Kanri between
@@ -51,8 +51,9 @@ taking over mid-plan must not create a second ledger.
 handover and the ledger it names, and `progress.md` if a plan is in flight;
 from `ListAgents`, note whether the old Kanri is still listed; rewrite the
 roster — your own row first with status `live`, the old Kanri's row `replaced`
-(or `dead` if it was not listed), the Residency line reset to your name and
-today with zero counts, and one Events line "handover accepted by `<you>` from
+(or `dead` if it was not listed), the Residency row reset to your name and
+today with zero counts and your own reading, and one Events line "handover
+accepted by `<you>` from
 `<old>`"; send every live peer, to its bare name from the roster, one line
 `kanri-address: <name> [<ref>] — handover accepted; the roster's first row is rewritten`;
 delete the handover file, because the Events line is the record and a stale
@@ -209,7 +210,8 @@ Per batch, in this order.
 5. Report one line to the human. Ask numbered questions only for the four SDD
    stop classes and for a scope or spec change.
 6. **Check the lifecycle tables and the handover trigger.** Rewrite the
-   roster's Residency line. If a create request is due, make it, unless a
+   roster's Residency row from your own reading and from the readings the peers
+   sent. If a create request is due, make it, unless a
    handover trigger has fired, in which case the successor makes it from the
    handover's Next step. If a delete or a replace of a live, coherent session
    is due, or a handover trigger has fired, run the proposal half of "Exit
@@ -312,7 +314,9 @@ the human is asked about the environment.
 
 Two signals fire a handover. Check them at every boundary: at loop step 6 while
 a plan is in flight, and, between plans, at the start of every turn you get — a
-message, or the human speaking.
+message, or the human speaking. Run the self-check of `SKILL.md`'s Resuming at
+the same points — one `ListAgents`; a name that is not your row's means you
+were resumed, and the roster's first row is rewritten before anything else.
 
 1. **The human's word.** Always, and it overrides the residency line.
 2. **A compaction noticed.** Your context now begins with a summary of earlier
@@ -322,10 +326,16 @@ message, or the human speaking.
    own signal that the session has grown long, and it is the one signal a
    session can see for itself.
 
-Not the `tokens left` figure the harness prints in its reminders, whose unit is
-not documented as the context window and whose presence is not guaranteed; and
-not a batch or plan count, for which there is one data point so far. The
-residency counters are recorded so that a threshold can be chosen later.
+Not the `tokens left` figure the harness prints in its reminders, whose
+unit is not documented as the context window and whose presence is not
+guaranteed; not a batch or plan count, for which the data points are still
+few; and not a threshold on the reading, because none has been chosen. At
+every check take your own reading (`SKILL.md`, "The transcript reading")
+and rewrite your Residency row with it: a compactions figure of `1` where
+you noticed none is the second signal, seen in a file, and counts as
+noticed. The Residency rows, and the archive's rows across runs, are the
+data a threshold on cost will be chosen from, by an ADR, once enough
+sessions have ended (issue-40ed).
 
 Which of the two procedures follows is decided by whether a ledger is open.
 
@@ -362,16 +372,18 @@ human. The `[<ref>]` is the identity; the human copies the bare name into the
 next `/tanto <role> <name>`.
 
 ```text
-Kanri stays — <name> [<ref>] — <n> batches, <m> plans since <YYYY-MM-DD>, <k> compactions noticed; handover not due.
-Kanri hands over — <name> [<ref>] — <n> batches, <m> plans since <YYYY-MM-DD>, <k> compactions noticed; handover written.
+Kanri stays — <name> [<ref>] — <n> batches, <m> plans since <YYYY-MM-DD>, <k> compactions noticed — <reading>; handover not due.
+Kanri hands over — <name> [<ref>] — <n> batches, <m> plans since <YYYY-MM-DD>, <k> compactions noticed — <reading>; handover written.
 ```
 
 The second form is followed by the numbered commands from the handover file.
-The same counts go into the roster's Residency line, which you rewrite at every
-boundary and plan close: `<n>` increments when you accept a batch, `<m>` when a
-plan closes, `<k>` when you notice a compaction, all three cumulative since
-your own start. A declined handover leaves `<k>` incremented, so the count
-stays a record.
+The same counts go into the roster's Residency table, in your own row, which
+you rewrite at every boundary and plan close: `<n>` increments when you accept
+a batch, `<m>` when a plan closes, `<k>` when you notice a compaction, all
+three cumulative since your own start. A declined handover leaves `<k>`
+incremented, so the count stays a record. The reading's compactions figure is a
+separate column, and a `1` there that you had not noticed increments `<k>` when
+you read it.
 
 ### The handover file
 
@@ -691,6 +703,25 @@ cold-read as if fresh. Your only exit is the Handover section above.
 After T2 and the merge decision, also ask the human whether to delete
 `.superpowers/sdd/<plan-basename>/`. Jisso never deletes it, and the roster
 stays either way.
+
+### Readings
+
+Every role sends its reading with its boundary and exit lines, and Jisso's
+and Kaiseki's reports carry it; copy each into that role's Residency row at
+loop step 6, with the boundary it was read at. A reading you doubt — a
+session whose report lost a ruling with `0 compactions`, or one that sent
+`unavailable` — you may verify with the same pipeline on the path its
+handshake carried, when that path is one your session may read; a read
+that is denied or fails leaves the self-report standing, marked
+`(unverified)`. Never ask a peer to read a transcript for you.
+
+On `compacted: <path>` read the file, put each item to the human in your
+own window as a numbered list, record the answers as `R-n`, rewrite the file
+with `confirmed`, `corrected: <the human's words>`, or `denied` beside each
+item, and answer `confirmed: <path>`. A report's claim of the form "the
+human saw X" or "the human ruled Y" from a session whose reading shows a
+compaction is unverified until the human confirms it here, and no
+severity-high issue is filed on such a claim alone.
 
 ### Recovery after a VS Code restart
 
