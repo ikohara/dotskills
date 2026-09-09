@@ -313,7 +313,9 @@ anything else.
    own signal that the session has grown long, and it is the one signal a
    session can see for itself.
 
-Signals 2 and 3 are the mid-plan case. Not the `tokens left` figure the
+Signal 3 is the mid-plan case; signal 2 is any time at all, and a human who
+says "continue" at a plan close declines that close's handover the way the
+Handover section already describes. Not the `tokens left` figure the
 harness prints in its reminders, whose unit is not documented as the context
 window and whose presence is not guaranteed; and not a threshold on the
 reading, because the plan close arrives first in practice and no number was
@@ -440,9 +442,10 @@ stays either way.
 ```text
 The role is resident; the session that carries it is not. A plan's end is a
 boundary like any other for the run, and the next topic starts with a new topic
-directory and a new ledger under the same roster, cold-read as if fresh — by
-your successor, because the close hands the role over (decision-b6cb). Your
-only exit is the Handover section above.
+directory and a new ledger under the same roster, cold-read as if fresh —
+normally by your successor, because the close hands the role over
+(decision-b6cb), and by you when the human declines that handover. Your only
+exit is the Handover section above.
 
 Neither `.superpowers/sdd/<plan-basename>/` nor the topic directory beside it is
 deleted at the close, and you ask the human about neither. After T2 the two have
@@ -601,6 +604,47 @@ reviewer. It is Node with no dependencies, its tests are beside it and run by
 `node --test`, and `roles/sekkei.md` and `roles/jisso.md` name its subcommands.
 ```
 
+### The two places the first old-value sweep missed
+
+Both were found after the passages above were written: one by Kanri's
+role-procedure check, one by a second, wider sweep run because of it. Neither
+contains a term this plan introduces, which is precisely issue-10bc's point —
+a sweep for what a plan adds is not a sweep for what it contradicts — and both
+are recorded in the table further down with the needle that would have found
+them.
+
+`templates/kanri-handover.md` enumerates the trigger set in the blank the
+outgoing Kanri fills. Today's handover, which ran under decision-b6cb, had to
+write the plan close into a blank that does not offer it.
+
+**P-H1** `skills/tanto/templates/kanri-handover.md` — replace exactly this 1 line
+
+```text
+<The trigger that fired — the human's word, or a compaction noticed — and when.>
+```
+
+**P-H1 →**
+
+```text
+<The trigger that fired — the plan close, the human's word, or a compaction noticed — and when.>
+```
+
+`roles/jisso.md`'s "What tanto overrides" table states the workspace rule from
+Jisso's side, and its third column carries the deletion question issue-12d3
+removes. P-S3 and P-K7 alone would have left Jisso's copy contradicting both.
+
+**P-J3** `skills/tanto/roles/jisso.md` — replace exactly this 1 line
+
+```text
+| SDD Finish — delete the workspace once the final review is clean | never delete it | it holds the conductor ledger, the reports, and the T2 source; Kanri asks the human about it after T2 and the merge decision |
+```
+
+**P-J3 →**
+
+```text
+| SDD Finish — delete the workspace once the final review is clean | never delete it | it holds the conductor ledger, the reports, and the T2 source; nobody deletes it at the close, and the topic directory beside it stays on the same terms (issue-12d3) |
+```
+
 ## 3. The roles that author and execute a passage plan
 
 ### `skills/tanto/roles/sekkei.md`, Step 3 — the block conventions
@@ -633,11 +677,14 @@ plan is machine-checkable and not only readable:
   opening it still returns `1` after a correct edit;
 - an old value the plan contradicts is
   `**O<task>.<n>** <needle> — <where it must be gone, or why it may stay>`,
-  one per entity the plan changes — for a column added, the sentences that
+  one per **entity** the plan changes — for a column added, the sentences that
   list the columns; for a template added, "There are ten"; for a file renamed,
-  its old name. A sweep for the terms a plan introduces is not a sweep for the
-  prose those terms contradict, and only this one catches the second
-  (issue-10bc).
+  its old name. Write these before the passages, not after, and from the
+  entity rather than from the new text: a set whose cardinality changes is
+  reached by no new term at all, and a rule two role files state in different
+  words needs both spellings as needles. A sweep for the terms a plan
+  introduces is not a sweep for the prose those terms contradict, and only
+  this one catches the second (issue-10bc).
 
 Each block appears **once**; a later task that needs one cites it by its id and
 does not re-quote it. A count in prose is written only where a command consumes
@@ -904,6 +951,8 @@ skill needs of its host. Both change.
 | 12d3 | `skills/tanto/SKILL.md` | P-S3 |
 | 15bf | `skills/tanto/SKILL.md` | P-S4 |
 | the instrument's existence | `skills/tanto/SKILL.md` | A-S5, P-S5 |
+| b6cb (the trigger, as the handover file states it) | `skills/tanto/templates/kanri-handover.md` | P-H1 |
+| 12d3 (Jisso's copy of the workspace rule) | `skills/tanto/roles/jisso.md` | P-J3 |
 | f813, 10bc, 7281, D-6 | `skills/tanto/roles/sekkei.md` | P-E1 |
 | 7481, 88d3, 10bc | `skills/tanto/roles/sekkei.md` | P-E2 |
 | 7481 | `skills/tanto/roles/jisso.md` | A-J1, P-J1 |
@@ -912,9 +961,18 @@ skill needs of its host. Both change.
 | 7481, 88d3, 10bc (the governing note) | `docs/notes/tanto-consistency-checks.md` | authored by the plan's task |
 | the instrument's existence | `skills/tanto/README.md` | P-M1, P-M2 |
 
+Two rows of this table are **not** passages of this plan, and are named here so
+that the gap is stated rather than discovered. `docs/design/4807-tanto.md`
+carries the superseded text in two places — its Handover section still says
+"Two signals fire one", and its report-line paragraph still states the
+subscription rule the exit lines are losing — and both are **T2 shoroku**,
+along with the eleven issues' move to `docs/issues/resolved/`. The plan does
+not touch `docs/design/`, and T2 is where the design record catches up.
+
 Read the table with the next section, not on its own. This one lists the
 passage that **defines** each change and misses the passages that **quote** it;
-the sweep below catches the other direction.
+the sweep below catches the other direction — and did, twice, after this table
+was first written.
 
 ## Old values this plan contradicts
 
@@ -934,6 +992,18 @@ these as its `O` blocks and its verification re-runs them after the last batch.
 | `application script's path` | `roles/sekkei.md` ×1 | gone; P-E2 |
 | `There are eleven` | `SKILL.md` ×1 | **stays.** The templates count is unchanged; the executable is not a template, and P-S5 adds it in a paragraph of its own rather than to that list |
 | `exit lines` | `roles/kanri.md` ×1, `SKILL.md` ×1 outside the passages | **stays.** Both are about where a reading travels, not about a subscription |
+| `compaction noticed` | `roles/kanri.md` ×1 inside P-K1, `templates/kanri-handover.md` ×1 | gone from the handover template's two-signal list; P-H1. The `roles/kanri.md` hit is signal 3's own heading and stays |
+| `asks the human about it` | `roles/jisso.md` ×1 | gone; P-J3 |
+| `Two signals` | `roles/kanri.md` ×1 | gone; P-K1 |
+
+The last three rows were added after the first sweep, which missed two of them.
+`compaction noticed` was not a needle at all — the trigger set's *old cardinality*
+is what changes, and no term in the new text names it — and `asks the human
+about it` is `whether to delete` said in other words, in another role's copy of
+the same rule. The lesson is in the Shoroku candidates: an `O` needle set
+written from the plan's new terms is the sweep issue-10bc says does not work,
+and the needles must be written from the **entity** that changes — the trigger
+set, the deletion question — then spelled every way the tree spells it.
 
 One needle belongs to the note rather than the skill and its task authors it:
 the note's passage-plan list describes the reconstruct-and-compare check as
@@ -991,7 +1061,13 @@ a flat type and the note that governs the plan's own verification.
   | --- | --- | --- |
   | A | the parser and `lint`; `replay`; `diff` and `verify`; the note and the layout entries | the instrument, tested, and the note that schedules it |
   | B | `roles/sekkei.md` Step 3; `roles/sekkei.md` Step 4; `roles/jisso.md`; `templates/review-brief.md` | the authoring and execution rules that use it |
-  | C | the handover text; issue-d725 across both files; issue-12d3 across both files; issue-15bf, the f2ec reading, and the README | Kanri's procedure and the contract |
+  | C | the handover text and the handover template (P-K1, P-K2, P-K6, P-K7, P-H1); issue-d725 across both files; issue-12d3 across all three files (P-S3, P-K7, P-J3); issue-15bf, the f2ec reading, and the README | Kanri's procedure and the contract |
+
+  Each cross-file item stays one task, which is what keeps the tree
+  self-consistent at every boundary. P-J3 joins the issue-12d3 task and P-H1
+  the handover task for that reason: a batch that changed `SKILL.md`'s
+  workspace rule without `roles/jisso.md`'s copy of it would leave the two
+  disagreeing at its boundary.
 
 - **How a batch is verified**, naming by name: lint on the changed paths
   individually; `node --test` for batch A and `mise x node@22 -- node --test`
@@ -1151,7 +1227,25 @@ T1.
    placeholder — is in the spec, but the general form belongs to design-4807's
    plan conventions: a self-describing plan needs the parser to know which of
    its lead lines are use and which are mention.
-9. **The dialogue's cost, for the `opus`-Sekkei measurement Kanri owns**: eleven
+9. **issue-10bc's own instrument failed on its own spec, twice, and the
+   correction says how to write the needles.** The first `O` table swept ten
+   needles and passed clean. Kanri's role-procedure check then found
+   `templates/kanri-handover.md`'s two-signal blank, and a wider sweep run
+   because of it found `roles/jisso.md`'s copy of the deletion question. Both
+   misses have the same cause and it is not carelessness: the needles had been
+   written from the **terms** the plan changes, which is the forward sweep
+   issue-10bc already says does not work, rather than from the **entity** — the
+   trigger set, the deletion question — spelled every way the tree spells it.
+   `whether to delete` and `asks the human about it` are the same rule in two
+   role files; `compaction noticed` names a set whose *cardinality* is what
+   changes, so no new term reaches it at all. The rule that follows, and that
+   belongs beside issue-10bc in design-4807: **write one needle per changed
+   entity, then enumerate the tree's spellings of that entity, and do it before
+   the passages rather than after.** Corollary, measured here: the role whose
+   procedure a passage rewrites is a better detector of this class than the
+   author's own sweep, which is an argument for the role-check step running
+   before the spec review rather than instead of it.
+10. **The dialogue's cost, for the `opus`-Sekkei measurement Kanri owns**: eleven
    turns, of which two were the human overturning a Sekkei recommendation
    (D-11, and the interpreter-probing detour before D-9) and one was a
    clarifying question the human asked rather than answered. Kanri holds the
