@@ -50,3 +50,11 @@ resident Kanri is not the only thing that can exhaust a session's budget: an
 run, independently of the conductor's own wake-ups. A handover trigger read off
 Kanri's transcript will not see that, so the cost threshold and the handover
 threshold are not quite the same instrument.
+
+A fourth residency data point, 2026-09-09: the successor Kanri (`dotskills-8c`)
+closed one plan — 3 batches, 1 plan close, 0 compactions — in under a day, at
+2.9 MB and 851 transcript records, and handed over at the plan close on the
+human's word, so that the next plan starts on a short context. With the idle
+subscriptions gone its wake-ups were on the order of thirty, a tenth of its
+predecessor's, which puts the weight of the cost signal on context size — the
+plan's cold read above all — rather than on the wake-up count.

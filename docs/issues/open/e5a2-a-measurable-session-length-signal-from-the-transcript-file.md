@@ -119,3 +119,15 @@ review package intact. decision-9a3a's concern, a run losing a subagent to a
 rate limit, recurred one model family down, on the reviewer tier, and against
 the **session** limit rather than the per-minute one. The unit that bit was a
 long-running subagent's own budget, which no wake-up count predicts.
+
+The idle rule measured from the other side. The Kanri that took over on
+2026-09-09 (`dotskills-8c`) ran with no idle subscription at all, under the
+rule the review-brief plan landed: it conducted that plan end to end — three
+batches, T1 and its addendum, T2, the merge — and the spec and plan phases of
+the next topic, and exited the same day at 2.9 MB and 851 records, with 14 peer
+messages, 3 subagent notifications, and about a dozen human turns: on the
+order of thirty real wake-ups, against the previous Kanri's 394 over 1.7 days.
+A plain count of the phrase "idle notice" in that transcript is 13 although no
+subscription was ever made — the over-count warned of above, this time from
+quoted skill text. The cold read of the plan and spec, about 65k tokens carried
+for the rest of the plan, was the largest single input (issue-5830).

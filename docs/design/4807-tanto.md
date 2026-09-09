@@ -84,6 +84,15 @@ premise conditionally, because `SKILL.md` ships to hosts where the skill is
 installed as a copy and the hazard does not arise there. decision-5c8e holds the
 reasoning and the alternative that was rejected.
 
+Measured on 2026-09-09, during the review-brief plan: rule 11's creation
+clause was crossed once, knowingly, by the human — a Sekkei for the next topic
+was created during batch A while a task was editing `SKILL.md` — and no defect
+followed; the orders line's authority sentence covered it, and that Sekkei's
+topic touched no `tanto` file. The same day showed the cheaper path for a
+known next topic: a Sekkei deleted on Kanri's keep-or-delete question and
+recreated ten minutes later cost one session's context for nothing, where a
+kept Sekkei given the next topic costs none.
+
 ## The start sequence
 
 Two steps, in this order, before any role work:
