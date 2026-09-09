@@ -128,14 +128,17 @@ this order.
    prompt from `templates/batch-prompt.md`, with
    `First batch, no previous verdict.` in its previous-batch-verdict section,
    save it as `.superpowers/sdd/<plan-basename>/batch-A-prompt.md`, and send
-   the same text with `notify_when_idle: true`.
+   the same text, without an idle subscription.
 6. Enter the batch loop below at step 1.
 
 ## The batch loop
 
 Per batch, in this order.
 
-1. Wait for the idle notice or Jisso's one-line report message. Do not poll.
+1. Wait for Jisso's one-line report message. Do not poll; subscribe to its
+   idle — a pure `notify_when_idle`, no message — only when the report is
+   overdue, and check the workspace before acting on any notice: a notice
+   before the report is usually a false idle, an implementer's turn ending.
 2. **Verify the tree before reading the report.** `git status` clean; the
    commits and their trailers as claimed; the plan file in the state this batch
    should have left it; repo-specific leftovers such as stray processes or temp
@@ -165,20 +168,20 @@ Per batch, in this order.
    verify the diff and only then ask the human to delete that session. (b) Your
    own edits — the hotfix, the issues from step 4, and your own exit shoroku
    when a handover is due — each committed by you in its turn. (c) Tell Sekkei
-   the boundary is verified, with `notify_when_idle: true`, naming any Kaiseki
-   create or delete since the last boundary, then wait for Sekkei's one-line
-   reply — `committed <subject>` or `nothing to commit` — or for its idle
-   notice, whichever comes first, and record in the ledger's Session events if
-   the notice came without a reply; skip (c) when Sekkei is not live. If a
-   handover is due, the window ends, after the wait Timing prescribes, with
-   steps 2 to 4 of "The handover, in a plan and between plans" — the exit
-   shoroku was step 6's proposal and slot (b)'s commit — and the loop stops
-   here; the next prompt is the successor's.
+   the boundary is verified, naming any Kaiseki create or delete since the
+   last boundary, then wait for Sekkei's one-line reply — `committed
+   <subject>` or `nothing to commit`; subscribe to its idle only when the
+   reply is overdue, and record in the ledger's Session events if a notice
+   came without a reply; skip (c) when Sekkei is not live. If a handover is
+   due, the window ends, after the wait Timing prescribes, with steps 2 to 4
+   of "The handover, in a plan and between plans" — the exit shoroku was step
+   6's proposal and slot (b)'s commit — and the loop stops here; the next
+   prompt is the successor's.
 8. Write the next batch prompt from `templates/batch-prompt.md`, carrying the
    rulings the next tasks inherit and the concrete model families from
    `tanto.json`. Save it as
    `.superpowers/sdd/<plan-basename>/batch-<X>-prompt.md` and send the same
-   text with `notify_when_idle: true`.
+   text, without an idle subscription.
 
 Steps 4, 6, and 7 are everything that needs Jisso idle or the index free, and
 they all precede the prompt that wakes Jisso. The pre-commit hooks stash every
@@ -227,10 +230,10 @@ is the classification rule.
    `.superpowers/sdd/<plan-basename>/kaiseki-<n>-brief.md` from
    `templates/kaiseki-brief.md`, its Human access line filled — the debugging
    conversation in Kaiseki's window until its report is written, unless you
-   judge otherwise — and send its path with
-   `notify_when_idle: true`. If the human declines to create Kaiseki, rule
-   `continue the SDD rounds`: Jisso resumes at round 3 with the resumed
-   implementer, and rounds 4-5 go to `subagents.escalation`.
+   judge otherwise — and send its path, without an idle subscription. If the
+   human declines to create Kaiseki, rule `continue the SDD rounds`: Jisso
+   resumes at round 3 with the resumed implementer, and rounds 4-5 go to
+   `subagents.escalation`.
 3. Kaiseki writes `kaiseki-<n>.md` and sends you one line with the path.
 4. Record `R-n` as `fix per kaiseki-<n>.md` and send Jisso one line — resume
    task N, apply the report, add the regression test, fix-round counter back to
@@ -557,6 +560,32 @@ lines, and these are your steps.
 4. A `human-contact:` line from a peer is information — the human spoke in
    that window unprompted and the peer answered. Record it in Session events;
    it grants nothing beyond that exchange.
+5. On `review-ready: <path>` from Sekkei — at any time, a batch in flight or
+   not, because the writer reads only and writes one untracked file; unless a
+   handover is due, in which case the successor dispatches it from the
+   handover's Next step, and a writer still running when a handover is
+   written on the human's word is listed under In flight like any agent —
+   dispatch the review brief on `subagents.reviewer`, a read-only subagent,
+   naming in the dispatch: the document's path; its inputs, for a spec also
+   `spec-inputs.md` and `dialogue.md`, for a plan also the spec; the output,
+   `.superpowers/sdd/<topic>/review-brief-spec.md` or `review-brief-plan.md`;
+   the template, `templates/review-brief.md`; and the chat's language, which
+   is the language of the human's own messages to you (`dialogue.md` is the
+   reference if the two windows differ). Check the brief's form, not the
+   document: the five sections, the unsettled section, and "How to answer"
+   present (section 5 reads "not applicable" for a spec); every point opening
+   with one of the four tags — confirm, choose, decide, nothing — and every
+   unsettled line saying whether an answer is needed; every point in its
+   three parts — the two before `See:` and the pointer after it, which may
+   carry the ` — ` separator, as a plan's task headings do; every pointer the
+   document's own heading text, verbatim and untranslated, so that
+   `grep '^#'` on the document matches it. Dispatch once more if the form
+   fails; if it fails again, send the brief as it stands and tell the human
+   in one line. Never edit it, and do not read the document to validate it —
+   a point that misreads the document is caught by the human's answer or by
+   your cold read, which stays where it is. Then send Sekkei `brief: <path>`.
+   The human answers in Sekkei's window under the standing grant; the answers
+   reach you through `dialogue.md` and the document.
 
 The harness's own prompts — a permission dialog, the model-mismatch stop —
 reach the human in the peer's window and are outside this rule.
@@ -581,7 +610,7 @@ bare name as your start line printed it in place of `<name>`.
 
 | Symptom | Action |
 | --- | --- |
-| Jisso is gone — not in `ListAgents`, `SendMessage` errors, or the idle subscription expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers); ask the human to delete the dead session and create a new Jisso; the next prompt says `resume batch X from task N`; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
+| Jisso is gone — not in `ListAgents`, `SendMessage` errors, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers); ask the human to delete the dead session and create a new Jisso; the next prompt says `resume batch X from task N`; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
 | Jisso context decay — two consecutive batches needed escalation, or a report says compaction lost rulings | at the batch boundary, ask the human to delete and create; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
 | Jisso has carried the batches the plan expects of one session | replace it at the next boundary, exit shoroku first |
 | A handover trigger fired at a boundary | run the Handover section; the successor asks for your deletion |
