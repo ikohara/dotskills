@@ -32,13 +32,29 @@ Run superpowers brainstorming with the human. The dialogue is theirs; the
 write-up is yours. Take the architectural path — this is a design document, not
 a one-liner.
 
+Keep `.superpowers/sdd/<topic>/dialogue.md` as you go: each question you put
+and the human's answer, verbatim, in order. Kanri may read it at any time, the
+brief writer reads it, and T1's shoroku takes it as an input — under this
+protocol it is the one record of the human's own words.
+
 Cut the branch from `main`, named after the topic, **before** the spec commit.
 Everything from here rides on that branch.
 
 Write the spec at the path above, self-contained. Kanri and Jisso both cold-read
 it, and neither can ask you what you meant without a round trip.
 
+In Fixed inputs, name the requirement each decision serves — `req-<id>` and
+the bullet — or say that none does; the brief's third section reads it from
+there. Commit the spec, then hold brainstorming's review gate: the human
+reads the spec only after Step 2's brief has come back, and edits after the
+human's answers are further commits.
+
 ## Step 2 — spec review
+
+Before the review, a passage in the spec that rewrites another role's
+procedure goes to that role's session for a check, when that session is live:
+send Kanri the passage and the question which of its obligations it touches;
+Kanri relays it and answers as an `I-n`.
 
 Dispatch a **read-only** reviewer on `subagents.reviewer`. Give it the spec and
 the repo's `docs/decisions/` and `docs/requirements/`, ask it to check the
@@ -47,6 +63,16 @@ spec against them, and have it write its report to
 section at the end. Rule on every finding yourself. Scope findings go to the
 human; everything else is yours. Then send Kanri one line with the report
 path: Kanri adopts from its Shoroku candidates.
+
+Then send Kanri `review-ready: <spec path>` and idle until `brief: <path>`
+arrives; never poll, and send the line again if Kanri's session was replaced
+meanwhile — a restart, a handover — because the writer dies with the session
+that dispatched it. Put brainstorming's review gate to the human with the
+brief's text verbatim, the spec's path, and the brief's, and record the
+human's answers in `dialogue.md` in the brief's reply shape. A new brief is
+written when the human asks for one, or when the spec's judgment points
+changed after the answers — a fixed input, a rejected alternative, a deferred
+item — not when its prose did.
 
 ## Step 3 — the plan
 
@@ -75,6 +101,11 @@ superpowers writing-plans. Then add, yourself:
   constraints, Kanri's orders line, and the batch prompts (contract rule
   11).
 
+A plan that carries passages rather than whole files wraps each new passage
+at its destination file's column, chosen when the block is authored, and
+states each passage's shape — a replacement of an old passage, or an
+insertion next to an anchor that stays.
+
 The report and prompt skeletons do **not** go in the plan. The plan says that
 reports and prompts follow the tanto templates, and names nothing else.
 
@@ -86,13 +117,21 @@ reports and prompts follow the tanto templates, and names nothing else.
    section at the end; after you have ruled, send Kanri one line with the
    report path.
 2. Check spec conformance and the batch cuts yourself. A cut that leaves the
-   tree inconsistent at its boundary is a bad cut.
+   tree inconsistent at its boundary is a bad cut. When the plan names a
+   boundary as safe for a role start or replacement, grep the plan's own
+   new-passage blocks for every term a later batch lands; a boundary is safe
+   by that sweep, not by assertion.
 3. Run every verification command the plan states, once, on this machine,
    and compare its output with what the plan expects. A command that has
    never been run is a placeholder in a command's shape; fix the plan, not
    the expectation.
 4. Lint the changed paths.
-5. Get one OK from the human, then commit under your commit rule below.
+5. Send Kanri `review-ready: <plan path>` and idle until `brief: <path>`
+   arrives, never polling (send the line again if Kanri's session was
+   replaced meanwhile); put the brief's text verbatim in your request for the
+   one OK, with both paths, and record the answers in `dialogue.md` in the
+   brief's reply shape. On the human's OK, commit under your commit rule
+   below.
 
 Then send Kanri one line saying the plan is committed, with its path.
 
