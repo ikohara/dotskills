@@ -2,7 +2,7 @@
 id: "3c4d"
 title: shoroku — excerpt sessions, memory, or files into a project's docs
 created: 2026-05-28
-updated: 2026-07-22
+updated: 2026-09-09
 ---
 
 ## Purpose
@@ -26,9 +26,16 @@ time.
   whole-file material — an investigation worth freezing, durable
   reference material — goes to the flat `notes` / `reports`
   (decision `3544`). Skip anything that does not change project state.
+- A need the user states that the system does not meet yet is proposed
+  as **two** fragments, a requirement and an issue, never as one issue
+  alone; the requirement outlives the fix, and the issue closes with it.
 - Present a single numbered proposal grouped by destination file. End
   with `Direction?` and wait for partial-accept input (`OK` / `2 と 5
   だけ` / `3 はやめて` / `全部やめ` etc.).
+- The proposal names, per `design` entry, the requirement it serves or
+  says it serves none, and asks about a design section that serves no
+  requirement and a requirement bullet no design serves; the check runs
+  over the proposal's own entries, never the standing tree.
 - Apply the accepted subset following the rules in each
   `docs/<type>/AGENTS.md`. Stage as **one** git commit; never auto-push.
 - Empty / minimal source ⇒ report "nothing to distill" and write
