@@ -224,7 +224,8 @@ Per batch, in this order.
    when a handover is due — each committed by you in its turn. (c) Tell Sekkei
    the boundary is verified, naming any Kaiseki create or delete since the
    last boundary, then wait for Sekkei's one-line reply —
-   `committed <subject>` or `nothing to commit`; subscribe to its idle only
+   `committed <subject> — <reading>` or `nothing to commit — <reading>`;
+   subscribe to its idle only
    when the reply is overdue, and record in the ledger's Session events if a
    notice came without a reply; skip (c) when Sekkei is not live. If a
    handover is due, the window ends, after the wait Timing prescribes, with
@@ -431,14 +432,25 @@ list, only two kinds of item:
    project must do, and why a choice was made, stay the human's;
 2. one you cannot classify, or are unsure about.
 
+An escalated item whose wording is in a language other than the chat's is put
+to the human as the original followed by a reference translation in the chat's
+language.
+
 Everything else — design, issues, notes, reports — you decide and record in the
 `S-n` table, and the human sees the result in the commit.
+
+A reference to an `S-n` or an `R-n` from outside its own ledger — the roster, a
+handover file, another ledger — names the topic first, `<topic> S-n`; bare
+numbers stay bare inside a ledger. The Written column takes only a value a
+filter can read: `no`, a commit subject, or `superseded: <topic> R-n`, the last
+counting as written; a candidate with two stages is split into two rows when
+the second stage is identified, never written as a compound value.
 
 ### T0 and T1
 
 At both stages you propose to yourself, apply the adoption rule, ask the human
-the escalated items, apply the accepted subset per `docs/AGENTS.md` and the
-per-type files, lint, and make one commit.
+the escalated items, original then reference translation, apply the accepted
+subset per `docs/AGENTS.md` and the per-type files, lint, and make one commit.
 
 - **T0**, before Sekkei is created — the decided items of the input document
   become ADRs, on `main`, before the branch is cut.
@@ -457,10 +469,13 @@ to the human.
    `.superpowers/sdd/<plan-basename>/shoroku-proposal.md` and sends you one
    line.
 2. **You direct.** Rule on every item per the adoption rule, record the rulings
-   in the `S-n` table, ask the human the escalated items, and write the answer
-   **item by item** — accept, reject, or accept with an edit — to
-   `.superpowers/sdd/<plan-basename>/shoroku-direction.md`. Then send Jisso one
-   line with that path.
+   in the `S-n` table, ask the human the escalated items,
+   original then reference translation, and write the answer **item by item**
+   — accept, reject, or accept with an edit — to
+   `.superpowers/sdd/<plan-basename>/shoroku-direction.md`, with the roster's
+   Residency rows of this run appended for the dogfood report's Measurements
+   table — the readings the archive will hold, kept under `docs/reports/`
+   (issue-40ed). Then send Jisso one line with that path.
 3. **Jisso applies.** It writes the accepted subset, lints, commits once, and
    reports. Verify the diff and the commit as you do for any batch. The human
    sees the result at the merge decision.
@@ -480,12 +495,14 @@ file pattern `exit-<role>[-<suffix>]`; these are your steps.
    the topic directory for Sekkei.
 2. Rule on every item per the adoption rule, record the rulings in the `S-n`
    table with Stage `exit:<role>[-<suffix>]`, ask the human the escalated
-   items, and write the answer item by item to the matching
+   items, original then reference translation, and write the answer item by
+   item to the matching
    `exit-<role>[-<suffix>]-direction.md`. Then send
    `exit: direction at <path>` with `notify_when_idle: true`.
 3. The session applies the accepted subset, lints, commits once by explicit
    path in the slot you give it in the commit window, and answers
-   `exit write-out committed: <subject>` or `exit write-out: nothing accepted`.
+   `exit write-out committed: <subject> — <reading>` or
+   `exit write-out: nothing accepted — <reading>`.
 4. Verify the diff and the commit as you do for any batch, fill the `S-n`
    rows' Written column with that subject, and only then ask the human to
    delete the session.
@@ -498,9 +515,10 @@ and continue. The same Events line goes in whenever you mark a row `dead`.
 **Your own exit.** You have no second session to rule on you, so you rule on
 yourself: propose from the ledger and the roster rather than from recollection,
 escalate to the human in this session, write, lint, commit once, and mark the
-rows `exit:kanri-<YYYY-MM-DD>`. There is a proposal file,
-`.superpowers/sdd/exit-kanri-<YYYY-MM-DD>-proposal.md`, and no direction file.
-It is step 1 of the Handover above.
+rows `exit:kanri-<YYYY-MM-DD>-<name>`, `<name>` being your own bare name. There
+is a proposal file,
+`.superpowers/sdd/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md`, and no direction
+file. It is step 1 of the Handover above.
 
 **Between plans** there is no ledger, so record candidates in the roster's
 Shoroku candidates section instead, and move the rows whose Written column says
@@ -618,9 +636,8 @@ lines, and these are your steps.
    ends with `human-access: done — <what the human did or decided>`; note that
    line in the ledger's Session events.
 3. Two standing grants are yours to give without a request: Sekkei's spec and
-   plan dialogue, in its orders line at the handshake, and the same line again
-   when you give a kept Sekkei the next topic; an attached Kaiseki's debugging
-   conversation, in the Human access section of its brief.
+   plan dialogue, in its orders line at the handshake; an attached Kaiseki's
+   debugging conversation, in the Human access section of its brief.
 4. A `human-contact:` line from a peer is information — the human spoke in
    that window unprompted and the peer answered. Record it in Session events;
    it grants nothing beyond that exchange.
@@ -678,7 +695,9 @@ bare name as your start line printed it in place of `<name>`.
 | Symptom | Action |
 | --- | --- |
 | Jisso is gone — not in `ListAgents`, `SendMessage` errors, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers); ask the human to delete the dead session and create a new Jisso; the next prompt says `resume batch X from task N`; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
-| Jisso context decay — two consecutive batches needed escalation, or a report says compaction lost rulings | at the batch boundary, ask the human to delete and create; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
+| Jisso context decay — its reading shows a compaction, two consecutive batches needed escalation, or a report says compaction lost rulings | at the batch boundary, ask the human to delete and create; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
+| Sekkei's reading shows a compaction | at its next commit — a verified boundary, or, with no batch in flight, when its work is ready — run "Exit shoroku", then ask the human to delete and create; the dialogue, the drafts, and the reviews on disk are the recovery point, and the new Sekkei takes the spec inputs and `dialogue.md` as its own |
+| Kaiseki's reading shows a compaction | at its report: the report as it stands is the recovery point; run "Exit shoroku", then ask the human to delete it and, if the case is open, create a new Kaiseki with the same brief |
 | Jisso has carried the batches the plan expects of one session | replace it at the next boundary, exit shoroku first |
 | A handover trigger fired at a boundary | run the Handover section; the successor asks for your deletion |
 | Sekkei is gone before the plan is committed | ask the human to create a new Sekkei; the spec and plan drafts on disk are the recovery point; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
@@ -691,10 +710,10 @@ session is dead first — uncommitted work may be in the tree.
 
 | When | Say |
 | --- | --- |
-| the plan is committed, the cold-read questions are answered, and the human does not want a next spec now | Sekkei is done; delete it after its exit shoroku is committed, or keep it for the next spec |
+| the plan is committed, the cold-read questions are answered, and the human does not want a next spec now | Sekkei is done; delete it after its exit shoroku is committed — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
 | Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; delete it after its exit shoroku is committed, or keep it if more of the same bug is expected |
 | the final batch is accepted, T2 is written, leftovers are clean, and the human has executed the merge decision | Jisso is done; delete it after its exit shoroku is committed, which at plan end is T2 |
-| Jisso is deleted and the ledger's Progress line says closed | this plan is closed; Kanri stays, prints the residency line, and waits for the next topic |
+| Jisso is deleted and the ledger's Progress line says closed | this plan is closed; Kanri stays, prints the residency line, moves the dead, replaced, and refused rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet — fills the ledger's Measurements fixed row, and waits for the next topic |
 
 You are resident. A plan's end is a boundary like any other, and the next topic
 starts with a new topic directory and a new ledger under the same roster,
