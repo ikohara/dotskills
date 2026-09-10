@@ -41,7 +41,9 @@ These are settled. Nothing below re-argues them; the plan inherits them whole.
    requirement gained on 2026-09-09 and the skill text never followed.
 
 3. **The fingerprint of a doc-system file is one general rule, not a list**
-   (Q-2, B): a `{docs,Documents}/**/AGENTS.md` is kisou-managed when its H1
+   (Q-2 B, narrowed at D-1 from "H1 and a substantially matching heading
+   set" to the H1 alone, the heading set becoming the proposal's material):
+   a `{docs,Documents}/**/AGENTS.md` is kisou-managed when its H1
    is the one the expanded template gives it — `# AGENTS.md` for the root,
    together with the `## Document management` heading, and `# <type>/ — AGENTS`
    for a type. The per-type enumeration the issue proposed was rejected
@@ -147,7 +149,19 @@ table, the same names `SKILL.md` Step 2 lists. It then resolves the seven
 targets under `--docs`: `AGENTS.md`, and `<type>/AGENTS.md` for
 `requirements`, `design`, `decisions`, `issues`, `notes`, `reports`, each
 directory name expanded. The status subdirectories under `issues/` are not
-targets and are not created.
+targets and are not created — by the tool or by kisou; `SKILL.md` already
+says a writer creates one on demand when the first issue lands there. A
+`--docs` directory that does not exist is a docs root with seven absent
+targets — seven `create` items, exit 1 — not an error; only a path that
+exists and cannot be read is exit 2. In migrate, an absent doc-system file is
+therefore always the instrument's `create` item, and "write the bundle" in
+`SKILL.md`'s migrate text means accepting those items; the scaffold mode's
+own copy step is untouched.
+
+When `--case` is omitted and the derived case finds none of the seven
+targets while the other case finds at least one, the tool exits 2 and says to
+pass `--case`, rather than proposing seven creates over an intact doc-system
+whose root is named neither `docs` nor `Documents`.
 
 ### Fingerprint
 
@@ -158,21 +172,40 @@ file also carries the `## Document management` heading, which is what keeps
 a layer-B `AGENTS.md` copied to the wrong place from passing. A target
 whose first heading is anything else, or that has no heading, is
 **not kisou-managed**: the script reports it and proposes nothing for it.
+A root whose H1 matches but which lacks `## Document management` gets its
+own note — kisou-managed by H1, the document-management heading missing,
+restore it by hand — because that heading is also a fixed section, and the
+generic note would hide that the file is one `add` away from refreshable.
 This is fixed input 3, in code.
 
 ### Sections
 
 Both the expanded template and the target are split into sections at every
-heading line (`#`, `##`, `###`, …) outside a fenced code block; a heading
-inside a fence — the `# POSIX` and `# PowerShell` comments in
+**ATX** heading line — one to six `#`, at most three leading spaces, then a
+space — outside a fenced code block. A fence opens with a run of three or
+more backticks or tildes and closes with a run of the same character at
+least as long; an indented code block is not a fence, and a `#` in one is
+not a heading either, since it is indented four spaces. A leading YAML
+frontmatter block (`---` on line 1 to the next `---` line) is skipped, so a
+`#` inside it is not a heading. Setext headings (a text line underlined with
+`===` or `---`) are not recognized: a target that uses one for its H1 fails
+the fingerprint and is reported as not kisou-managed, which is the safe
+side. A heading inside a fence — the `# POSIX` and `# PowerShell` comments in
 `docs/AGENTS.md`'s command blocks, the `## Context …` lines in the ADR
 template's body sketch — is body text. A section is its heading line and
 every line up to the next heading, flat, with no nesting: a `###` under a
-`##` is its own section. The section's identity is the heading line's text,
-exactly; its body is compared exactly after the normalization below. The
-template's headings are the **fixed sections**. A heading in the target that
-the template does not have is an **author-added section**, reported and
-never written. Every template section is fixed-text (fixed input 4).
+`##` is its own section. Lines before the first heading are the preamble:
+neither a fixed nor an author section, left as they are, not reported.
+
+The section's identity is the heading line's text, exactly; its body is
+compared exactly after the normalization below. The template's headings are
+the **fixed sections**. A heading in the target that the template does not
+have is an **author-added section**, reported and never written. When a
+heading repeats in the target, the first occurrence is the fixed section and
+every later one is an author-added section, reported by heading; a template
+in which a heading repeats is a template error, exit 2, beside "a template
+with no H1" — none of the seven has one, measured fence-aware at this spec's
+review. Every template section is fixed-text (fixed input 4).
 
 ### `check` — the report
 
@@ -187,8 +220,11 @@ order. The item kinds:
   item inserts the expanded section at the position below.
 - `replace` — the target is kisou-managed and a fixed section's body
   differs. The item replaces the section's body with the template's. The
-  item is followed by a line diff of the section: removed lines prefixed
-  `-`, added lines prefixed `+`, unchanged lines omitted.
+  item is followed by the whole section, both ways: every line of the
+  target's body prefixed `-`, then every line of the template's body
+  prefixed `+`. No line-matching algorithm — the sections are short, and a
+  rewrap, the case the dogfood pins, is unreadable as a matched diff and
+  plain as two blocks. Test 4 asserts that text exactly.
 
 After the numbered items, notices that are not items and cannot be applied:
 
@@ -215,15 +251,20 @@ section from its neighbors as the template's own spacing does.
 ### `apply --items <n,…>`
 
 `apply` recomputes the same list `check` would print, takes the numbers
-given, and writes exactly those items: a `create` writes the file (creating
-its directory), an `add` inserts, a `replace` substitutes the body. Items
-are applied in list order, each against the tree the previous one left, so
-two adjacent missing sections accepted together land in template order. It
-refuses a number that is not an item (a note has no number; a number past
-the list is an error), and it refuses to run with no `--items`. It prints
-the items it applied, in the `check` form, so the operator sees what was
-written. A section the user did not accept is left exactly as it was, and
-partial acceptance (`2 と 5 だけ`) is the normal case, not the exception.
+given, and resolves each to an item's **identity** — path, kind, heading —
+from that list. Then it writes them in list order, and after every write it
+recomputes the list from the tree as it now is and finds the next accepted
+item by identity, so an `add` whose anchor another accepted `add` just
+created lands after it, in template order; a `create` writes the file
+(creating its directory), an `add` inserts, a `replace` substitutes the
+body. It refuses a number that is not an item (a note has no number; a
+number past the list is an error), and it refuses to run with no `--items`.
+It prints the items it applied, in the `check` form, so the operator sees
+what was written — which is also the only guard against the tree having
+moved between the operator's `check` and the `apply`: the numbers are
+re-derived, not stored, and what was written is shown. A section the user
+did not accept is left exactly as it was, and partial acceptance
+(`2 と 5 だけ`) is the normal case, not the exception.
 
 ### Exit codes
 
@@ -231,15 +272,17 @@ partial acceptance (`2 と 5 だけ`) is the normal case, not the exception.
 | --- | --- | --- |
 | 0 | no items (notes may exist) | every requested item written |
 | 1 | one or more items | — |
-| 2 | bad arguments, unreadable template or target, a template with no H1 | bad arguments, an item number that does not exist, a write failure |
+| 2 | bad arguments, an unreadable template, a target that exists and cannot be read, a template with no H1 or with a repeated heading, a `--case` derivation that finds no target while the other case finds one | bad arguments, no `--items`, an item number that does not exist, a write failure |
 
 The hook uses `check`'s code as it is: a level tree exits 0.
 
 ### Encoding and line endings
 
-Files are read as UTF-8. Before comparison, `\r\n` becomes `\n` and the
-file's trailing newlines are reduced to one; a difference of line endings
-alone is not a divergence. `apply` writes a file with the line ending the
+Files are read as UTF-8, and a leading byte-order mark (U+FEFF) is stripped
+on read — otherwise a BOM'd target's first line is not `# AGENTS.md` and the
+fingerprint misses with a note that looks identical to a pass. Before
+comparison, `\r\n` becomes `\n` and the file's trailing newlines are reduced
+to one; a difference of line endings or of a BOM alone is not a divergence. `apply` writes a file with the line ending the
 target file already uses — `\r\n` when its first line ended so, `\n`
 otherwise — and a `create` writes `\n`. Line wrapping is **not** normalized:
 a paragraph wrapped at a different column is a divergence (fixed input 7),
@@ -265,27 +308,39 @@ fixtures in a temporary directory per test. The cases the plan must carry:
    into a `Documents/` root, with `--case` omitted, so the derivation is
    tested.
 2. **Absent.** An empty docs root: seven `create` items, exit 1; `apply`
-   with all seven yields identity.
+   with all seven yields identity. The same for a `--docs` path that does
+   not exist. A `--docs` path that is a file, not a directory: exit 2.
 3. **Fingerprint.** A `requirements/AGENTS.md` whose H1 is `# Requirements`
    is a note, not an item, and `apply` never touches it; a root `AGENTS.md`
    with the right H1 but no `## Document management` is the same.
-4. **Diverged.** A copy with one paragraph rewrapped: one `replace` item with
-   a `-`/`+` diff; `apply` restores identity.
+4. **Diverged.** A copy with one paragraph rewrapped: one `replace` item,
+   its printed text asserted exactly — the item line, every old body line
+   with `-`, every new body line with `+`; `apply` restores identity.
 5. **Missing section, position.** A copy lacking `## requirements vs issues`
    (between `## Body` and `## Growth` in the requirements template): one
    `add` item; after `apply`, the section sits between those two. Then the
-   same copy also lacking `## Body`: the section is inserted after
-   `## Frontmatter`, the nearest preceding section present. Then a copy that
-   has only the H1 section: inserted at the end.
+   same copy also lacking `## Body`: two `add` items; applying only the
+   second inserts it after `## Frontmatter`, the nearest preceding section
+   present; applying both in one `apply` lands `## Body` after
+   `## Frontmatter` and `## requirements vs issues` after `## Body`, in
+   template order. Then a copy that has only the H1 section: inserted at
+   the end.
 6. **Author section.** A copy with an extra `## Local conventions` between
    two fixed sections: a note, no item, and after an `apply` of an unrelated
-   item the section is still there, in place.
-7. **Fence.** A copy whose fenced block contains a `#` line: no spurious
-   section, identity holds.
-8. **Line endings.** A CRLF copy of the template: identity; a CRLF copy with
-   one diverged section: `apply` writes CRLF back.
+   item the section is still there, in place. A copy in which `## File`
+   appears twice: the first is compared, the second is a note.
+7. **Fence.** A copy whose backtick-fenced block contains a `#` line, and
+   one whose tilde-fenced block does: no spurious section, identity holds. A
+   copy with a leading frontmatter block: skipped, identity holds. A copy
+   whose H1 is setext: a not-kisou-managed note.
+8. **Encoding and line endings.** A CRLF copy of the template: identity; a
+   CRLF copy with one diverged section: `apply` writes CRLF back. A copy
+   with a BOM: identity.
 9. **Errors.** `apply` with no `--items`, with a number past the list, and
-   with a note's position: exit 2 and nothing written.
+   with a note's position: exit 2 and nothing written. A template directory
+   in which one file repeats a heading: exit 2. A `--docs` named `Docs`
+   holding a PascalCase doc-system, `--case` omitted: exit 2 with the
+   message to pass `--case`.
 
 ### What `check` is to kisou, and what it is not
 
@@ -297,7 +352,7 @@ their free-text sections, all of which the script does not parse and the
 skill text still judges. It is not a template linter and reads no
 `docs/<type>/*.md` entry.
 
-## 2. `skills/kisou/SKILL.md` — ten passages
+## 2. `skills/kisou/SKILL.md` — eleven passages
 
 Each passage below quotes the text on `main` as of 2026-09-11 that it
 replaces or anchors to, and says what the new text must say. The plan
@@ -352,9 +407,11 @@ Old:
 >   intact; treat the migrate scope as **layer-B only** unless the user asks
 >   otherwise. It is still a refresh target (see the Present branch below).
 
-New: **full** → nothing is absent; whether anything is proposed for it comes
-from the instrument in the Present branch, inside whatever scope the user
-picks below. No default scope, no parenthetical.
+New: **full** → the root and the four managed per-type files are present;
+what is absent — `notes/` and `reports/` included, since they sit outside
+this tally — and what diverged comes from the instrument in the Present
+branch, inside whatever scope the user picks below. No default scope, no
+parenthetical. The tally itself (five artifacts) is not changed (Q-11 a1).
 
 ### P5 — Step 3 (migrate), the fingerprint line for the doc-system
 
@@ -383,16 +440,29 @@ a layer-B test.
 
 ### P7 — Step 3 (migrate), the doc-system refresh is the instrument
 
-Insert after P6's paragraph a paragraph saying: for the doc-system the
-comparison is not made by reading. Run
+Old, the sentence that opens the kisou-managed branch's procedure:
+
+> Compare the file's
+> structure against what the current template would produce for the detected
+> inputs, and propose (always as numbered items, never a silent auto-merge):
+
+New: that sentence scoped to layer B — for a layer-B file, compare its
+structure against what the current template would produce for the detected
+inputs, and propose, always as numbered items, never a silent auto-merge —
+and, after the two bullets and P6's paragraph, a paragraph saying: for a
+doc-system `AGENTS.md` the comparison is not yours. Run
 `node "$KISOU/scripts/doc-system-check.js" check --docs <root> --case <case>`
 with the detected values, `$KISOU` set to this skill's directory in the same
-tool call; copy its numbered items into the proposal as they are, its notes
-after them; and after the user's answer pass the accepted numbers to
-`apply --items <n,…>`, which writes those and nothing else. It places an
-added section where the template places it — after the nearest preceding
-fixed section the file has, else before the nearest following one, else at
-the end — and leaves an author-added section where the author put it.
+tool call. Its items go into the proposal as one contiguous block at the
+**end** of the numbered list, in the tool's order, renumbered to follow the
+layer-B items; kisou keeps the offset it added and, after the user's answer,
+passes `apply --items` the accepted numbers **minus that offset**. The tool's
+notes go after the list, unnumbered. `apply` writes the accepted items and
+nothing else. It places an added section where the template places it —
+after the nearest preceding fixed section the file has, else before the
+nearest following one, else at the end — and leaves an author-added section
+where the author put it. There is one authority per file: the instrument for
+`{docs,Documents}/**/AGENTS.md`, the reading for layer B.
 
 ### P8 — Step 3 (migrate), the fall-through
 
@@ -402,6 +472,10 @@ Old:
 > fingerprint) → do not attempt a merge. With approval, rename the original to
 > `<file>.bak` and write a fresh template-filled file, then tell the author to
 > graft the wanted sections back by hand. The `.bak` keeps this non-destructive.
+
+(The block is a continuation of the `- **Present** …` bullet and every line
+of it is indented two spaces in the file; the passage block is authored at
+that column.)
 
 New: **Not kisou-managed** → leave it alone and report it: name the file,
 say which fingerprint it missed, and propose nothing for it. Renaming it to
@@ -416,16 +490,33 @@ Old:
 > - **`docs/` doc-system** → write the bundle if absent; if already present, leave
 >   it intact and add only around it.
 
-New: write the bundle if absent; if present, its content stays and its
-structure is refreshed, and the instrument's report is the proposal —
-absent files created, missing fixed sections added, diverged fixed-text
-sections offered for replacement with their diff, author-added sections
-kept, and nothing else touched.
+New: the instrument's report is the proposal, whether the doc-system is
+absent or present — an absent file is a `create` item (all seven, for a
+`none` doc-system: that is "write the bundle"), a missing fixed section an
+`add`, a diverged fixed-text section a `replace` shown with its diff; an
+author-added section is kept and reported; content is never touched.
 
 ### P10 — Prohibited actions
 
 Insert after the line "- Do NOT auto-push." a line: Do NOT rename a file to
 `.bak`, or offer to, unless the user asked for that file by name.
+
+### P11 — Step 3 (migrate), the sentence issue-2bf9 filed against
+
+Old, the second bullet of the kisou-managed refresh (a continuation indented
+two spaces, like P8):
+
+> - a **diverged fixed-text section** — one whose template body has **no
+>   `<...>` free-text** (e.g. AGENTS `## Language`, the `docs/AGENTS.md`
+>   document-management rules) → show the diff and propose replacing the stale
+>   body.
+
+New: a **diverged fixed-text section** — one whose body differs from the
+template's, fixed text being what the paragraph below defines (P6) — show
+the diff and propose replacing the stale body; the examples stay. The
+literal "no `<...>` free-text" test goes, because it is the text the issue
+names as the defect, and a reader must not meet it before P6's definition
+(Q-11 b1).
 
 ## 3. `skills/kisou/README.md`
 
@@ -464,10 +555,24 @@ holds `check-md-frontmatter`, one hook:
 and commit that touches a template or a copy, and nowhere else. The
 biome-check hook already binds on `.js` files, so the script and its test
 are formatted and linted by the existing configuration with no addition.
-`node` is a stated prerequisite of this repository through `mise`
-(`CONTRIBUTING.md`, Prerequisites), which pins Node 22 for the tests;
-the hook runs whatever `node` is on the path, and the script's floor is what
-makes that safe.
+The hook runs whatever `node` is on the path, and the script's floor is what
+makes that safe; the tests run under the floor through `mise x node@22`,
+which resolves the toolchain on demand (this repository pins nothing in a
+`.mise.toml`).
+
+Two consequences the hook brings, stated so that the next plan meets them
+knowingly. First, from batch C on, a commit that edits a template's body
+fails its own check unless the same commit brings this repository's copies
+level — the invariant working as designed, and the reason a template edit
+and its `kisou migrate` on this repository are one commit from now on.
+Second, the copies are markdownlint-checked with `--fix` and the templates
+are not (`.markdownlint-cli2.yaml` ignores `skills/**/templates/**`), so a
+template that expands to something markdownlint would fix is a permanent
+hook failure; the invariant therefore requires every template to be
+markdownlint-clean **as expanded**, which is the check design-c1d2 already
+describes (copy to a non-ignored path, expand, lint) and which batch B's
+task 6 runs on the seven copies — a `check` at 0 items after markdownlint
+has run on them is that proof.
 
 ### The dogfood
 
@@ -515,13 +620,14 @@ six issues by `issue-<id>` and this spec by name and date, never by path.
 
 ### Approvals
 
-Two of this plan's edits fall under this repository's `AGENTS.md` "Never
+Three of this plan's edits fall under this repository's `AGENTS.md` "Never
 do" list and need explicit human approval recorded before the task that
-makes them: the `.pre-commit-config.yaml` edit (linter configuration) and
-the two `docs/**/AGENTS.md` rewrites (agent instruction files). Both are
-decide points in the plan's review brief, each with a default of
-"approved", and the human's answers in `dialogue.md` are the record. The
-`SKILL.md` and `README.md` edits are the plan's ordinary work.
+makes them: the `.pre-commit-config.yaml` edit (linter configuration), the
+`node` line in `CONTRIBUTING.md` (repo-root Markdown), and the two
+`docs/**/AGENTS.md` rewrites (agent instruction files). They are two decide
+points in the plan's review brief — the first two share one — each with a
+default of "approved", and the human's answers in `dialogue.md` are the
+record. The `SKILL.md` and `README.md` edits are the plan's ordinary work.
 
 ## Old values this plan contradicts
 
@@ -541,6 +647,7 @@ first thing to place.
 | `only for clang + CMake` | 1 / 0 / 0 | `skills/kisou/SKILL.md`: gone (P2 rewords it to "only for a clang + CMake project", which this needle does not match); the README's "for clang + CMake projects" is a different phrase and stays. |
 | ``(`setup` / `run` /`` | 1 / 0 / 0 | `skills/kisou/SKILL.md`: gone (P3); the Step 2 list of the six slots is a different sentence and stays. |
 | `keeps this non-destructive` | 1 / 0 / 0 | `skills/kisou/SKILL.md`: gone (P8). |
+| ``` `<...>` free-text** (e.g. ``` | 1 / 0 / 0 | `skills/kisou/SKILL.md`: gone (P11); the phrase wraps in the file, and this needle is the part on one line, spanning the point P11 changes. |
 
 The sweep covers `skills/kisou/**` and `docs/design/c1d2-kisou.md`; the
 files the plan does not touch are swept first.
@@ -576,8 +683,10 @@ classification; requirement and ADR items go to the human.
   doc-system → leave intact, add only around it" and "a present
   real-content file → `.bak` + fresh write" become what fixed inputs 2 and 5
   say; the Refresh section gains this run's measurement once the report
-  exists (T2); the "How the bundle's own Markdown is verified" list gains
-  the hook.
+  exists (T2), and its sentence "Every migrate on **this** repository offers
+  the script slots `scripts/` lacks — `setup`, `run`, `build`, `test`, and
+  `tidy`" loses `tidy`, which fixed input 6 stops offering here; the "How
+  the bundle's own Markdown is verified" list gains the hook.
 - **Six issues** move to `docs/issues/resolved/` at T2, each with its
   resolution: e19f, 2bf9, f50d, f623, afed, acc0. issue-2bf9 and issue-e19f
   close on the dogfood's observation, issue-f623 on test case 5, as their
@@ -588,8 +697,10 @@ classification; requirement and ADR items go to the human.
 - **Global Constraints**: this repository's `AGENTS.md` rules (lint the
   changed paths, commit by explicit path, the `Co-Authored-By` trailer, no
   edits to agent instruction files or linter configuration without the
-  recorded approval above); the model families from `tanto.json`
-  (`implementer` sonnet, `reviewer` opus, `escalation` opus); the `$KISOU`
+  recorded approval above); the model families from the **effective**
+  `tanto.json` — the personal overlay on the template's defaults, which are
+  `implementer` sonnet, `reviewer` opus, `drafter` opus, `escalation` opus,
+  `default` sonnet — as the plan's author reads them; the `$KISOU`
   and `$TANTO` conventions; the statement that contract rule 11 does not
   apply (the plan edits `skills/kisou/`, ledger R-1) and that a role may be
   started or replaced at any boundary; no worktree, the shared branch
@@ -600,9 +711,10 @@ classification; requirement and ADR items go to the human.
     item kinds, the diff, the notes, the ordering, the exit codes — with
     tests 2, 4, 6, 8's first half; (3) `apply --items` and the insertion
     position, with tests 5, 6's second half, 8's second half, 9. Delivers
-    the script and its tests green under `mise x node@22 -- node --test
-    skills/kisou/scripts/`, biome clean.
-  - **B — the text.** (4) `SKILL.md` P1–P10 as passage blocks with their
+    the script and its tests green under
+    `mise x node@22 -- node --test 'skills/kisou/scripts/*.test.js'` (the
+    glob, issue-235b), biome clean.
+  - **B — the text.** (4) `SKILL.md` P1–P11 as passage blocks with their
     `O` rows and anchors; (5) `README.md`'s three places; (6) a
     sweep-and-check task: run `check` on this repository's seven copies and
     record the two expected items and their diffs verbatim in the batch
@@ -612,13 +724,27 @@ classification; requirement and ADR items go to the human.
   - **C — this repository.** (7) the dogfood: the migrate run, the two
     acceptances, the "before" and "after" of the hook's command; (8) the
     hook in `.pre-commit-config.yaml`, a real YAML load of the file, and
-    `scripts/lint.sh` on the changed paths passing with the hook in; (9) the
-    dogfood report. Delivers a level tree with the check wired.
-- **The Verify step of every task** is one invocation of
-  `node "$TANTO/scripts/passage-check.js" verify --plan <path> --task <N>`;
-  the JavaScript files are whole-file deliverables described by the tests
-  they must pass, not passages; the hook is a passage into
-  `.pre-commit-config.yaml` with the file's own YAML load as its anchor.
+    the hook run **by id over all files** —
+    `uv tool run pre-commit run kisou-doc-system-check --all-files` — since
+    `scripts/lint.sh` on the changed path alone would skip it (the config
+    file does not match the hook's own `files:` pattern), and one line in
+    `CONTRIBUTING.md`'s Prerequisites naming `node` (22 or later) as what the
+    hook runs — a repo-root Markdown edit, approved in the same decide point
+    as the hook (Q-11 c1); (9) the dogfood report. The order 7 → 8 → 9 is
+    load-bearing: the commit that adds the
+    hook runs it, and it passes only on a level tree. Delivers a level tree
+    with the check wired.
+- **The Verify step of a task that carries passages** (4, 5, 8) is one
+  invocation of
+  `node "$TANTO/scripts/passage-check.js" verify --plan <path> --task <N>`.
+  A task with no passage block gets `verify` as a no-op — it prints
+  `task N: no passages` and exits 0, measured at this spec's review — so the
+  **whole-file tasks** (1, 2, 3, the JavaScript; 7, the dogfood; 9, the
+  report) name the test command in the glob form as their Verify, together
+  with the content grep or exit code that shows their deliverable exists;
+  the JavaScript files are described by the tests they must pass, not by
+  passages; the hook is a passage into `.pre-commit-config.yaml` with the
+  file's own YAML load as its anchor.
 - **How a batch is verified**: section Verification below, copied into the
   plan.
 - **Self-Review** states the largest task's line and step counts and names
@@ -630,20 +756,23 @@ classification; requirement and ADR items go to the human.
 
 At every batch boundary, on the whole tree:
 
-- `mise x node@22 -- node --test skills/kisou/scripts/` — the floor is the
-  pinned version, and the run's `node --version` line is in the batch
-  report (from batch A on).
+- `mise x node@22 -- node --test 'skills/kisou/scripts/*.test.js'` — the
+  **quoted glob**, never the directory form, which fails with
+  `MODULE_NOT_FOUND` on this host (issue-235b, measured 2026-09-10 and again
+  at this spec's review); the floor is the pinned version, and the run's
+  `node --version` line is in the batch report (from batch A on).
 - `./scripts/lint.sh <changed paths>` — biome on the `.js` files,
   markdownlint on `skills/kisou/SKILL.md` and `README.md` (the templates are
   ignored by configuration and are not touched), the frontmatter hook,
   yamllint and `check-yaml` on `.pre-commit-config.yaml` (batch C).
 - A real YAML load of `SKILL.md`'s frontmatter:
   `uv run --no-project --with pyyaml python -c "import yaml,io; yaml.safe_load(io.open('skills/kisou/SKILL.md',encoding='utf-8').read().split('---')[1])"`,
-  and `sed -n 's/^description: //p' skills/kisou/SKILL.md | grep -c ': '`
-  printing `0` (from batch B on).
-- `node "$TANTO/scripts/passage-check.js" diff` against the merge base —
-  every passage block applied exactly, every `O` needle at its stated
-  count (from batch B on).
+  and `! sed -n 's/^description: //p' skills/kisou/SKILL.md | grep -q ': '`
+  — negated, because `grep -c` printing `0` exits 1 and a Verify read by
+  exit code would call the pass a failure (from batch B on).
+- `node "$TANTO/scripts/passage-check.js" diff --plan <plan path> --base <merge base>`
+  — both options are required — every passage block applied exactly, every
+  `O` needle at its stated count (from batch B on).
 - `node skills/kisou/scripts/doc-system-check.js check --docs docs --case snake_case`
   exits **1 with two items** after batch A and batch B, and **0** after
   batch C; the change of that value is batch C's acceptance test.
@@ -654,8 +783,9 @@ At every batch boundary, on the whole tree:
 
 ## Open for the human at the review
 
-1. The `.pre-commit-config.yaml` edit (the hook) — approval to edit linter
-   configuration. Default if unanswered: approved.
+1. The `.pre-commit-config.yaml` edit (the hook) and the one-line `node`
+   prerequisite in `CONTRIBUTING.md` — approval to edit linter
+   configuration and repo-root Markdown. Default if unanswered: approved.
 2. The rewrite of `docs/notes/AGENTS.md` and `docs/reports/AGENTS.md`
    through the dogfood — approval to edit agent instruction files. Default
    if unanswered: approved.
@@ -709,7 +839,32 @@ At every batch boundary, on the whole tree:
 
 ## The reviews this spec has had, and what each found
 
-Filled in by Sekkei after Step 2; empty at the spec commit.
+**Spec review, 2026-09-11** (`.superpowers/sdd/kisou-refresh/spec-review.md`,
+a read-only reviewer on `opus`): 24 findings — 1 blocker, 11 major, 8 minor,
+4 nit — against a spec whose nine needle counts, seven old-text quotes, and
+dogfood expectation all reproduced exactly. Sekkei's rulings:
+
+- Accepted and folded in: the test command's glob form (issue-235b); the
+  single authority per file (P7 now replaces the "Compare the file's
+  structure" sentence); who writes an absent doc-system (the instrument's
+  `create` items); proposal numbering in full scope (a contiguous block at
+  the end, offset kept by kisou); a missing docs root (seven creates); BOM;
+  duplicate headings; `apply`'s recompute-by-identity; the Verify step of
+  whole-file tasks; batch C's hook run by id and its load-bearing order;
+  the two unrunnable commands; the fence, frontmatter, setext, and preamble
+  rules; the root's own missing-heading note; the `--case` derivation
+  guard; design-c1d2's `tidy` sentence; the Q-2 citation; P8's indent; the
+  effective `tanto.json`; the hook's two consequences; the whole-section
+  diff.
+- Rejected in part: finding 5's claim that scaffold requires the
+  `issues/{open,deferred,resolved}/` skeleton — `SKILL.md` Step 3 (scaffold)
+  says the opposite, a writer creates a status directory on demand; the
+  spec now says nobody creates them.
+- Put to the human as scope (findings 2, 3, 13) and answered at Q-11 with
+  Sekkei's recommendations: P4 reworded against the five-file tally, the
+  tally unchanged; P11 added for issue-2bf9's own sentence, with its `O`
+  row; and `node` named in `CONTRIBUTING.md`'s Prerequisites by batch C's
+  task 8, under the hook's decide point.
 
 ## Shoroku candidates from this spec work
 
