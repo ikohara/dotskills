@@ -154,15 +154,22 @@ prompt and any handover file carries it.
 
 ## Batches
 
-Four batches, fourteen tasks. Every item that spans two files is one task —
-that is what keeps the tree self-consistent at each boundary.
+Four batches, fourteen tasks. Every cross-file item whose two halves must
+agree is one task — that is what keeps the tree self-consistent at each
+boundary: P11.3 with issue-12d3, P9.7 and P9.8 with the handover, P12.6 with
+the brief, P7.7 with the other three seats of issue-7481. The invariant is
+about text that must stay byte-identical across files, not about issues, and
+two items are deliberately split without creating an inconsistency, because
+neither half quotes the other: issue-f2ec's dispatch half (`roles/jisso.md`,
+task 7, batch B) and its reading half (`roles/kanri.md`, task 13, batch D) are
+parallel prose, and issue-7481's four seats span five files inside batch B.
 
 | Batch | Tasks | Delivers | Stop conditions at the boundary |
 | --- | --- | --- | --- |
-| A | 1 the parser and `lint`; 2 `replay`; 3 `diff` and `verify`; 4 the note (P-N1—P-N5) | the instrument, tested, and the note that schedules it | the four gates above; `mise x node@22 -- node --test` passes with its version recorded; the note's checks 1 and 2 pass at their new expected values |
-| B | 5 `roles/sekkei.md` Step 3 and the verification bullet (P-E1, P-E3); 6 `roles/sekkei.md` Step 4 (P-E2); 7 the executing seats (A-J1, P-J1, A-J2, P-J2, P-J4, A-K12, P-K12); 8 the instrument's existence (A-S5, P-S5, P-M1, P-M2) | issue-7481's four seats, and the authoring rules that use the script | **the replacement boundary opens here**; `passage-check.js diff` runs clean from this boundary on |
-| C | 9 the handover, whole (P-K1, P-K2, P-K6, P-K10, P-K11, P-K13, P-H1, P-T1); 10 issue-d725 (P-K3, P-K4, P-K5, P-S1, P-S2); 11 issue-12d3 (P-S3, P-K7, P-J3) | Kanri's procedure and the contract | `passage-check.js diff` clean; no `notify_when_idle: true` anywhere under `skills/tanto/` |
-| D | 12 issue-867f (P-R1, A-R2, P-R2, P-R3, P-R4, P-K9); 13 issue-f2ec's reading and issue-15bf (A-K8, P-K8, P-S4); 14 the whole-tree sweeps and the `O` needles | the brief, the measurement, the mode, and the proof | every `O` needle at its stated disposition with hits printed; the note's check 5 in-repo greps unchanged |
+| A | 1 the parser and `lint`; 2 `replay`; 3 `diff` and `verify`; 4 the note (P4.1—P4.5) | the instrument, tested, and the note that schedules it | the four gates above; `mise x node@22 -- node --test` passes with its version recorded; the note's checks 1 and 2 pass at their new expected values |
+| B | 5 `roles/sekkei.md` Step 3 and the verification bullet (P5.1, P5.2); 6 `roles/sekkei.md` Step 4 (P6.1); 7 the executing seats (A7.1, P7.2, A7.3, P7.4, P7.5, A7.6, P7.7); 8 the instrument's existence (A8.1, P8.2, A8.3, P8.4, A8.5, P8.6) | issue-7481's four seats, and the authoring rules that use the script | **the replacement boundary opens here**; `passage-check.js diff` runs clean from this boundary on |
+| C | 9 the handover, whole (P9.1, P9.2, P9.3, P9.4, P9.5, P9.6, P9.7, P9.8); 10 issue-d725 (P10.1, P10.2, P10.3, P10.4, P10.5); 11 issue-12d3 (P11.1, P11.2, P11.3) | Kanri's procedure and the contract | `passage-check.js diff` clean; no `notify_when_idle: true` anywhere under `skills/tanto/` |
+| D | 12 issue-867f (P12.1, A12.2, P12.3, P12.4, P12.5, P12.6); 13 issue-f2ec's reading and issue-15bf (A13.1, P13.2, P13.3); 14 the whole-tree sweeps and the `O` needles | the brief, the measurement, the mode, and the proof | every `O` needle at its stated disposition with hits printed; the note's check 5 in-repo greps unchanged |
 
 **No planned replacement.** No batch expects one. Batch A is the heaviest and
 runs entirely on one Jisso.
@@ -171,8 +178,8 @@ Two tasks are called out because their size is the data issue-7281 asks for,
 not because anything is wrong with them.
 
 - **Task 9 is the largest at eight blocks.** It is one task because splitting it
-  would put `P-K6`'s "run the Handover section" in the tree a boundary before
-  `P-K10` and `P-K11` fix what that section says at a plan close.
+  would put `P9.3`'s "run the Handover section" in the tree a boundary before
+  `P9.4` and `P9.5` fix what that section says at a plan close.
 - **Task 14 is verification-only** — its deliverable is recorded output and it
   creates no file. Its dispatch tells the reviewer to **re-run** the checks
   rather than read the report, because the output is the deliverable; the
@@ -201,7 +208,11 @@ subagent-driven development asks for.
 4. **Line endings**, in two parts, because they are two different claims:
 
    ```bash
-   git ls-files --eol <the nine existing target paths>
+   git ls-files --eol skills/tanto/SKILL.md skills/tanto/README.md \
+     skills/tanto/roles/kanri.md skills/tanto/roles/sekkei.md \
+     skills/tanto/roles/jisso.md skills/tanto/templates/review-brief.md \
+     skills/tanto/templates/roster.md skills/tanto/templates/kanri-handover.md \
+     docs/notes/tanto-consistency-checks.md
    git ls-files --eol skills/tanto/scripts/passage-check.js skills/tanto/scripts/passage-check.test.js
    ```
 
@@ -234,12 +245,24 @@ subagent-driven development asks for.
    `$HOME/.claude/plugins/cache/...`, which no edit of this plan could move —
    those two are context, not stop conditions. The three in-repo greps are the
    check: this plan touches neither quote, and they are what proves it.
-9. **The trailer**, per commit, in a loop over the batch's commits, grepping
-   the prefix `Co-Authored-By: Claude`.
+9. **The note's check 7, and specifically its ninth line**, which must stay
+   silent:
+
+   ```bash
+   grep -rn 'skills/tanto/' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
+   ```
+
+   Runtime text in this skill is skill-relative; only the skill's `README.md`
+   and the note itself may name `skills/tanto/`. The reason is stronger than
+   tidiness: that path is repo-relative, and `tanto` runs in any repository,
+   where `skills/tanto/` does not exist. A hit names the file and the line, and
+   the fix belongs in the passage that wrote it.
+10. **The trailer**, per commit, in a loop over the batch's commits, grepping
+    the prefix `Co-Authored-By: Claude`.
 
 A stop condition worded as a property of the whole tree is backed by a command
-that sweeps the whole tree, not only the files the batch wrote. Checks 6, 7 and
-8 are those.
+that sweeps the whole tree, not only the files the batch wrote. Checks 6, 7, 8
+and 9 are those.
 
 ## The boundary from which a role may be started or replaced
 
@@ -430,7 +453,7 @@ mapped, once.
 | A-K8 | A13.1 | `skills/tanto/roles/kanri.md` | 13 | D | f2ec (the reading) |
 | P-K8 | P13.2 | `skills/tanto/roles/kanri.md` | 13 | D | f2ec (the reading) |
 | P-S4 | P13.3 | `skills/tanto/SKILL.md` | 13 | D | 15bf |
-| the spec's "Old values this plan contradicts" table | O14.1 to O14.17 | `skills/tanto/` | 14 | D | 10bc |
+| the spec's "Old values this plan contradicts" table | O14.1 to O14.16 | `skills/tanto/` | 14 | D | 10bc |
 
 Two changes the spec's own table names are **not** passages of this plan and
 are named here so the gap is stated rather than discovered:
@@ -512,10 +535,10 @@ only where a command consumes it, and a block appears once.
 
 | Subcommand | What it does | What it closes |
 | --- | --- | --- |
-| `lint --plan <path>` | Parses only. Every lead line well-formed; every `N` equal to its block's real line count; every id unique; every id cited in prose present as a block; every anchor step stating both values; every insertion carrying an anchor step; and **no `O` needle occurring anywhere in the plan's own new-passage text** (`needle-in-new-text`) — a needle the replacement text reproduces cannot detect the change it was written for, and returns the same count after the plan as before. | issue-88d3's count half, issue-f813's citation rule, issue-10bc's needle trap |
+| `lint --plan <path>` | Parses only. Every lead line well-formed; every `N` equal to its block's real line count; every id unique; every id cited in prose present as a block; every anchor step stating both values; every insertion carrying an anchor step; and **no `O` needle occurring in the plan's own new-passage text** — that text being the concatenation of the blocks that follow a `**P<id> →**` lead, and nothing else, because a search over the whole plan would flag all of them by way of their own `O` lead lines. A needle the plan's replacement text contains cannot detect the change it was written for, and returns the same count after the plan as before. | issue-88d3's count half, issue-f813's citation rule, issue-10bc's needle trap |
 | `replay --plan <path> --base <ref>` | Copies the base blobs to a temporary tree and applies each passage, asserting each old passage occurs **exactly once**. Then re-runs each anchor command against the applied copy and compares the result with its stated `after:` value. Then runs the plan's commands in order against that tree, printing each output beside its stated expectation — **skipping any command that invokes `passage-check.js verify`**, because `verify` reads the working tree and `replay` has already made that check against its own. Then runs every `O` needle against the applied tree and prints every residual hit. | issue-88d3's anchor half, issue-7481's command-runner half, issue-10bc |
 | `diff --plan <path> --base <ref>` | Every added line of `git diff <base>` must be text the plan literally quotes; lists the added lines that are not, and the removed lines outside any fenced block. A path the plan declares as created is exempt — its lines are accounted for by construction — and the exemption is read from the plan's `created:` list, never inferred. Needs only the plan and `git`. | issue-7481's core |
-| `verify --plan <path> --task <N>` | What a task's Verify step invokes, against the working tree: each of task `N`'s new passages present exactly once, each of its anchors at its stated `after:` value, and `diff` scoped to the files task `N` touches. | D-6 |
+| `verify --plan <path> --task <N>` | What a task's Verify step invokes, against the working tree: each of task `N`'s new passages present exactly once, and each of its anchors at its stated `after:` value. It takes no `--base` and does no diffing — that is `diff`'s job at the boundary, and a subcommand that did both would need a base ref its callers do not have. | D-6 |
 
 `replay` reconstructs; `diff` classifies. They prove the same thing from
 opposite sides, and only `diff` survives the session that wrote it.
@@ -574,6 +597,32 @@ line to stderr.
 - **The script carries no shebang and is always invoked as `node <path>`.**
   Under `text=auto` its working-tree copy is CRLF on Windows, and a shebang
   line ending in CR is not a runnable interpreter path.
+
+### What `replay` treats as a command, and how it compares
+
+A dry run's value is that it runs the plan's commands; three things decide
+which commands those are, and a first draft of this spec pinned none of them.
+
+- **Which fences carry commands.** A fenced block is a command block when its
+  info string is `bash` or `console`, at any backtick count — this plan uses
+  four backticks for its command fences and three for its passage blocks, and
+  a parser keyed on three would find one block out of eighty.
+- **Which commands are not run.** `replay` works on a scratch tree that is not
+  a git repository, so it **skips** and reports as skipped: any command whose
+  first word is `git`; any invocation of `scripts/passage-check.js verify`,
+  whose subject is the working tree rather than the applied copy; and any
+  command the plan marks with a trailing `# replay: skip — <reason>` comment,
+  which is how a plan declares one the script cannot classify. Everything else
+  runs. The skipped set is printed with its reasons, never elided: a dry run
+  that silently skips is a dry run that passed nothing.
+- **How an expectation is found and compared.** The paragraph immediately
+  following a command block, when it begins with `Expected:`, is that block's
+  expectation. `replay` prints the command, its actual output, and that
+  paragraph, adjacent, and marks them `MATCH` only when the output appears in
+  the expectation as a literal substring after both are stripped of
+  surrounding whitespace. Anything else is `DIFFERS`, which is a report and
+  not a verdict — the comparison is deliberately crude, because Sekkei
+  adjudicates and a clever comparison would hide the cases worth reading.
 
 ### Module format
 
@@ -636,6 +685,14 @@ Create `skills/tanto/scripts/passage-check.test.js` with exactly this content.
 The fixtures are built from arrays of lines rather than template literals so
 that no line of a fixture plan starts at column 0 in this document — a lead
 line written flush left inside this task's body would be a block of this plan.
+
+`SWEEP_CLEAN` and `SWEEP_TRAPPED` are the `needle-in-new-text` pair, and they
+differ only in the needle. `alpha` occurs in the fixture's **old** block and in
+the `O` lead itself but in no `→` block, so it is clean; `gamma` is the
+replacement text, so it is the trap. The pair is what pins the searched text to
+the concatenation of the `→` blocks: an implementation that searched the whole
+plan would flag both, and on a real plan it would flag every needle by way of
+its own `O` lead line.
 
 ````js
 'use strict';
@@ -706,6 +763,18 @@ const INSERTION = [
   '```text',
   'delta',
   '```',
+];
+
+const SWEEP_CLEAN = [
+  '### Task 94: the old-value sweep',
+  '',
+  '**O94.1** `alpha` — gone from `tmp/fixture.md`; P91.1 replaces it',
+];
+
+const SWEEP_TRAPPED = [
+  '### Task 94: the old-value sweep',
+  '',
+  '**O94.1** `gamma` — gone from `tmp/fixture.md`; P91.1 replaces it',
 ];
 
 const codes = (lines) => lintPlan(parsePlan(plan(lines))).map((p) => p.code);
@@ -835,6 +904,16 @@ test('lint reports an anchor that omits a value', () => {
   const lines = INSERTION.slice();
   lines[2] = '**A92.1** `tmp/fixture.md` — `grep -c alpha tmp/fixture.md` — before: 1';
   assert.ok(codes(lines).includes('anchor-missing-value'));
+});
+
+test('a needle occurring outside every new-passage block lints clean', () => {
+  assert.deepStrictEqual(codes(REPLACEMENT.concat([''], SWEEP_CLEAN)), []);
+});
+
+test('lint reports a needle the plan reproduces in its own new-passage text', () => {
+  const problems = lintPlan(parsePlan(plan(REPLACEMENT.concat([''], SWEEP_TRAPPED))));
+  assert.deepStrictEqual(problems.map((p) => p.code), ['needle-in-new-text']);
+  assert.strictEqual(problems[0].id, 'O94.1');
 });
 
 test('lint exits 0 on a clean plan and 1 on a failing one', () => {
@@ -972,9 +1051,10 @@ Expected: `1`
 
 **Done when:** `mise x node@22 -- node --test skills/tanto/scripts/` passes on
 the recorded Node 22 version, `lint --plan` exits `0` on a clean plan and `1`
-with `no-task-headings` on one with no task heading, an unreadable plan exits
-`2`, the JavaScript hook ran rather than skipped, and both paths read
-`i/lf w/lf`.
+with `no-task-headings` on one with no task heading, `lint` reports
+`needle-in-new-text` for a needle that occurs in a `→` block and stays silent
+for one that occurs only outside them, an unreadable plan exits `2`, the
+JavaScript hook ran rather than skipped, and both paths read `i/lf w/lf`.
 
 ---
 
@@ -1000,23 +1080,28 @@ with `no-task-headings` on one with no task heading, an unreadable plan exits
   holding the applied copies, `failures` is an array of
   `{ code, id, message }` with `code` one of `'occurrence-count'`,
   `'anchor-after'`, `'command-output'`, and `residuals` is an array of
-  `{ id, needle, hits }`. Task 3 reuses `applyBlock` and the line-ending
-  detection through this function only; it does not re-enter the temporary
-  tree.
+  `{ id, needle, hits }`. `options` carries `cwd`, the repository the base
+  blobs are read from, defaulting to `process.cwd()`; this task's own tests
+  pass the throwaway repository they built.
 - Add `replayPlan` to `module.exports`.
 
 - [ ] **Step 1: Append the failing tests**
 
 Append to `skills/tanto/scripts/passage-check.test.js`. `makeRepo` builds a
 throwaway git repository so that `--base` resolves without touching this one;
-`-c user.email` and `-c user.name` are passed so the test does not depend on
-the machine's git configuration.
+`-c user.email`, `-c user.name` and `-c core.autocrlf=false` are passed so the
+test does not depend on the machine's git configuration — the last of the three
+because the line-ending test reads the bytes of a blob it wrote as CRLF, and an
+`autocrlf` that normalized it would make that test measure git rather than
+`replay`.
 
 ````js
+const { replayPlan } = require('./passage-check.js');
+
 function makeRepo(files) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'passage-check-repo-'));
   const git = (...args) =>
-    execFileSync('git', ['-C', dir, '-c', 'user.email=t@t', '-c', 'user.name=t', ...args], {
+    execFileSync('git', ['-C', dir, '-c', 'user.email=t@t', '-c', 'user.name=t', '-c', 'core.autocrlf=false', ...args], {
       encoding: 'utf8',
     });
   git('init', '-q');
@@ -1063,10 +1148,10 @@ test('replay re-runs each anchor against the applied copy and compares it with a
 
 test('replay restores the dominant line ending of the file it copied', () => {
   const repo = makeRepo({ 'tmp/fixture.md': 'alpha\r\nbeta\r\n' });
-  const file = writePlan(REPLACEMENT);
-  const result = runIn(repo.dir, ['replay', '--plan', file, '--base', repo.head]);
-  assert.strictEqual(result.code, 0);
-  assert.match(result.out, /\r\n|crlf/i);
+  const parsed = parsePlan(fs.readFileSync(writePlan(REPLACEMENT), 'utf8'));
+  const result = replayPlan(parsed, repo.head, { cwd: repo.dir });
+  assert.strictEqual(result.ok, true);
+  assert.strictEqual(fs.readFileSync(path.join(result.tree, 'tmp/fixture.md'), 'utf8'), 'gamma\r\n');
 });
 
 test('replay prints residual O hits under a heading naming their count, and still exits 0', () => {
@@ -1095,10 +1180,15 @@ test('replay skips a command that invokes passage-check verify', () => {
   assert.match(result.out, /skipped/i);
 });
 
-test('an unresolvable base exits 2, not 1', () => {
+test('an unresolvable base exits 2 and names the ref, unlike an unknown subcommand', () => {
   const repo = makeRepo({ 'tmp/fixture.md': 'alpha\nbeta\n' });
-  const result = runIn(repo.dir, ['replay', '--plan', writePlan(REPLACEMENT), '--base', 'no-such-ref']);
+  const file = writePlan(REPLACEMENT);
+  const unknown = runIn(repo.dir, ['no-such-subcommand', '--plan', file]);
+  assert.strictEqual(unknown.code, 2);
+  assert.doesNotMatch(unknown.out, /no-such-ref/);
+  const result = runIn(repo.dir, ['replay', '--plan', file, '--base', 'no-such-ref']);
   assert.strictEqual(result.code, 2);
+  assert.match(result.out, /no-such-ref/);
 });
 ````
 
@@ -1108,7 +1198,21 @@ test('an unresolvable base exits 2, not 1', () => {
 mise x node@22 -- node --test skills/tanto/scripts/
 ````
 
-Expected: the task 1 tests still pass; the seven new ones fail.
+Expected: the task 1 tests still pass; **six** of the seven new ones fail,
+because `replay` is not yet a subcommand.
+
+The seventh is counted apart from the six, and the reason is worth reading
+before you run this step. Its assertion is an **error** outcome, and the error
+path a not-yet-written subcommand already takes is the same one: before
+`replay` exists, `['replay', '--plan', ..., '--base', 'no-such-ref']` is an
+unknown subcommand, which exits `2` as well. Its exit-code assertion therefore
+holds before a line of `replay` is written and can never go red on its own, and
+the usage line cannot separate the two cases either, because the exit-code
+table gives **every** `2` one. What fails today is its other assertion — that
+the output names the ref that could not be resolved, which only an implemented
+`replay` prints. Read that test's failure line and confirm it failed on the
+missing ref rather than on the exit code; a test whose red step passes is not
+yet a test.
 
 - [ ] **Step 3: Implement `replay`**
 
@@ -1161,9 +1265,11 @@ Expected: `i/lf w/lf attr/text=auto` for both paths, then `1`.
 
 **Done when:** the suite passes on Node 22; `replay` exits `0` on a plan whose
 old passages each match once and whose anchors land on their `after:` values,
-`1` when an occurrence count or an anchor disagrees, and `2` on an unresolvable
-`--base`; a residual `O` hit prints under a count heading and does not fail the
-run; and a `verify` command in the plan is reported as skipped.
+`1` when an occurrence count or an anchor disagrees, and `2`, with the
+unresolvable ref named in the output, on an unresolvable `--base`; the applied
+copy of a CRLF file reads back CRLF byte for byte; a residual `O` hit prints
+under a count heading and does not fail the run; and a `verify` command in the
+plan is reported as skipped.
 
 ---
 
@@ -1292,9 +1398,11 @@ that fall outside every fenced block. It names the exempted paths in its output
 rather than passing them silently. It needs only the plan and `git`.
 
 `verify` reads the **working tree**: each of task `N`'s new passages present
-exactly once, each of its anchors at its stated `after:` value, and `diff`
-scoped to the files task `N` touches. A task that touches only created paths
-reports "no passages", which is a result and not a failure.
+exactly once, and each of its anchors at its stated `after:` value. It takes no
+`--base` and does no diffing — that is `diff`'s job at the boundary, and a
+subcommand that did both would need a base ref its callers do not have. A task
+that touches only created paths reports "no passages", which is a result and
+not a failure.
 
 - [ ] **Step 4: Run the tests and watch them pass**
 
@@ -1402,7 +1510,7 @@ grep -oh 'roles/[a-z]*\.md\|templates/[a-z-]*\.md\|templates/tanto\.json\|skills
 **P4.3 →**
 
 ```text
-grep -oh 'roles/[a-z]*\.md\|templates/[a-z-]*\.md\|templates/tanto\.json\|skills/tanto/[a-z/-]*\.md\|skills/tanto/[a-z/-]*\.json\|skills/tanto/[a-z/.-]*\.js' \
+grep -oh 'roles/[a-z]*\.md\|templates/[a-z-]*\.md\|templates/tanto\.json\|scripts/[a-z.-]*\.js\|skills/tanto/[a-z/-]*\.md\|skills/tanto/[a-z/-]*\.json' \
 ```
 
 - [ ] **Step 5: P4.4 — check 2's expected `ok` lines**
@@ -1468,8 +1576,8 @@ grep -cF 'skills/tanto/scripts/passage-check.test.js 2>&1' docs/notes/tanto-cons
 grep -cF 'skills/tanto/templates/tanto.json 2>&1' docs/notes/tanto-consistency-checks.md
 grep -cF 'Expected: all nineteen paths listed, no `No such file or directory`.' docs/notes/tanto-consistency-checks.md
 grep -cF 'Expected: all seventeen paths listed, no `No such file or directory`.' docs/notes/tanto-consistency-checks.md
-grep -cF 'skills/tanto/[a-z/.-]*\.js' docs/notes/tanto-consistency-checks.md
-grep -cF "\.json' \\" docs/notes/tanto-consistency-checks.md
+grep -cF 'scripts/[a-z.-]*\.js' docs/notes/tanto-consistency-checks.md
+grep -cF 'tanto\.json\|skills/tanto/' docs/notes/tanto-consistency-checks.md
 grep -cF 'Expected: seventeen `ok` lines — `roles/jisso.md`, `roles/kaiseki.md`,' docs/notes/tanto-consistency-checks.md
 grep -cF 'Expected: fifteen `ok` lines — `roles/jisso.md`, `roles/kaiseki.md`,' docs/notes/tanto-consistency-checks.md
 grep -cF 'the final boundary, which is the boundary that most needs it (issue-7481).' docs/notes/tanto-consistency-checks.md
@@ -1478,9 +1586,13 @@ grep -cF '**Prefer the second form, and treat the first as unavailable by defaul
 
 Expected, line by line: `1`, `0`, `1`, `0`, `1`, `0`, `1`, `0`, `1`, `0`.
 Baseline before the edit, measured 2026-09-10: `0`, `1`, `0`, `1`, `0`, `1`,
-`0`, `1`, `0`, `1`. The sixth needle is written in double quotes because it
-carries a single quote and a trailing backslash — the tail of check 2's
-extraction expression, which the new line no longer ends with.
+`0`, `1`, `0`, `1`. The sixth needle **spans the point P4.3 changes**. P4.3
+inserts one alternative into check 2's extraction expression rather than
+rewriting the line, so every substring that avoids the insertion point — the
+line's `.json' \` tail among them — survives the edit and returns the same
+count afterwards, which reads as "not fixed". This needle straddles
+`templates/tanto\.json\|` and the alternative that used to follow it, so it
+is the one that inverts.
 
 - [ ] **Step 8: Run the note's own checks 1 and 2, as the note now states them**
 
@@ -1597,18 +1709,22 @@ plan is machine-checkable and not only readable:
   entity rather than from the new text: a set whose cardinality changes is
   reached by no new term at all, and a rule two role files state in different
   words needs both spellings as needles. Sweep the files the plan does **not**
-  touch first — a file with a passage gets read anyway — and **run each needle
-  as you write it**, because one that wraps in its target returns `0`, which
-  reads as "already gone". Record the raw count and the disposition of each
-  hit, not one verdict. A sweep for the terms a plan introduces is not a sweep
-  for the prose those terms contradict, and only this one catches the second
-  (issue-10bc).
+  touch first — a file with a passage gets read anyway. **A needle must span
+  the point where the text changes**: where a passage *inserts* into a phrase,
+  every substring of the old phrase that avoids the insertion point survives
+  the edit and returns the same count afterwards, which reads as "not fixed"
+  or, worse, "already gone". `lint` checks this by searching the plan's own
+  new-passage text for each needle. **Run each needle as you write it** — one
+  that wraps in its target returns `0`, and `0` reads as "already gone".
+  Record the raw count and the disposition of each hit, not one verdict. A
+  sweep for the terms a plan introduces is not a sweep for the prose those
+  terms contradict, and only this one catches the second (issue-10bc).
 
 Each block appears **once**; a later task that needs one cites it by its id and
 does not re-quote it. A count in prose is written only where a command consumes
-it. Every Verify step of a task is one invocation,
-`node skills/tanto/scripts/passage-check.js verify --plan <path> --task <N>`,
-rather than commands you write out: the needles, the anchor values, and the
+it. Every Verify step of a task is one invocation of
+`scripts/passage-check.js verify --plan <path> --task <N>`, rather than
+commands you write out: the needles, the anchor values, and the
 line counts are all determined by the blocks, so writing them again only
 creates something that can drift from them (issue-f813).
 
@@ -1638,8 +1754,8 @@ threshold is set: the sizes are recorded until one can be chosen (issue-7281).
   of any frontmatter, and a JSON parse of any JSON the plan writes; for a plan
   that ships code, the test command together with the runtime version it is
   pinned to, so that a version claim is a run and not an assertion; and for a
-  plan that carries passages,
-  `node skills/tanto/scripts/passage-check.js diff` as the boundary check,
+  plan that carries passages, `scripts/passage-check.js diff` as the boundary
+  check,
   which is what makes that check outlive the session that wrote it
   (issue-7481);
 ```
@@ -1735,8 +1851,8 @@ Expected: `i/lf`, `w/crlf`, `attr/text=auto`, and never `w/mixed`.
 **P6.1 →**
 
 ```text
-1. Run `node skills/tanto/scripts/passage-check.js lint --plan <path>`, then
-   the same script's `replay --plan <path> --base <merge base>`, and write
+1. Run `scripts/passage-check.js lint --plan <path>`, then the same script's
+   `replay --plan <path> --base <merge base>`, and write
    `.superpowers/sdd/<topic>/plan-dryrun.md` from what they print: the two
    commands, each one's output, and your ruling on every failure. `lint`
    checks the plan against itself — the lead lines, each `N` against its
@@ -1756,15 +1872,19 @@ Expected: `i/lf`, `w/crlf`, `attr/text=auto`, and never `w/mixed`.
 - [ ] **Step 3: Verify the passage**
 
 ````bash
-grep -cF '1. Run `node skills/tanto/scripts/passage-check.js lint --plan <path>`, then' skills/tanto/roles/sekkei.md
+grep -cF '1. Run `scripts/passage-check.js lint --plan <path>`, then the same script' skills/tanto/roles/sekkei.md
 grep -cF '1. Run every verification command the plan states, once, on this machine, on' skills/tanto/roles/sekkei.md
 grep -cF "application script's path" skills/tanto/roles/sekkei.md
 ````
 
 Expected, line by line: `1`, `0`, `0`. Baseline before the edit, measured
-2026-09-10: `0`, `1`, `1`. The third is the `O` needle of the spec's old-value
-table for this file, carried in task 14 as O14.8 and re-run here because this
-is the task that removes its only hit.
+2026-09-10: `0`, `1`, `1`. The first needle stops one word short of the line it
+quotes, which ends `the same script's`: an apostrophe inside a single-quoted
+`grep -cF` argument cannot be escaped, and double quotes would make the
+backticked path a command substitution. The prefix is still unique to the new
+line. The third is the `O` needle of the spec's old-value table for this file,
+carried in task 14 as O14.8 and re-run here because this is the task that
+removes its only hit.
 
 - [ ] **Step 4: The diff of the file is its three passages so far**
 
@@ -1863,8 +1983,8 @@ checks rather than trust the report, because the output is the deliverable.
 ```text
 
 For a plan that carries passages, run
-`node skills/tanto/scripts/passage-check.js diff --plan <path> --base <merge base>`
-at every batch boundary, before you report. It prints the added lines of the
+`scripts/passage-check.js diff --plan <path> --base <merge base>` at every
+batch boundary, before you report. It prints the added lines of the
 merge-base diff that the plan does not literally quote, and the removed lines
 that fall outside any fenced block; both sets must be empty, or accounted for
 in your report. It needs only the plan and `git`, so unlike an application
@@ -1967,8 +2087,8 @@ Expected: `1`, the `before:` value.
 
    For a plan that carries passages, give that reviewer the plan, the merge
    base, and one command —
-   `node skills/tanto/scripts/passage-check.js replay --plan <path> --base <merge base>`
-   — so that the replay it would otherwise rebuild by hand is the instrument
+   `scripts/passage-check.js replay --plan <path> --base <merge base>` — so
+   that the replay it would otherwise rebuild by hand is the instrument
    Sekkei and Jisso already ran (issue-7481). Its report says what the replay
    printed, and the review seat goes to the cross-file contracts and the
    human-facing questions, which no script judges.
@@ -1977,11 +2097,11 @@ Expected: `1`, the `before:` value.
 - [ ] **Step 9: Verify the four passages and the three anchors**
 
 ````bash
-grep -cF '`node skills/tanto/scripts/passage-check.js diff --plan <path> --base <merge base>`' skills/tanto/roles/jisso.md
+grep -cF '`scripts/passage-check.js diff --plan <path> --base <merge base>`' skills/tanto/roles/jisso.md
 grep -cF 'approval. Neither half is enforcement — an implementer can always lie — but the' skills/tanto/roles/jisso.md
 grep -cF 'none, and its equivalents differ in kind. A plan that also ships code has a real' skills/tanto/roles/jisso.md
 grep -cF 'that produces Markdown — a skill, a document set, a template pack — has none,' skills/tanto/roles/jisso.md
-grep -cF '`node skills/tanto/scripts/passage-check.js replay --plan <path> --base <merge base>`' skills/tanto/roles/kanri.md
+grep -cF '`scripts/passage-check.js replay --plan <path> --base <merge base>`' skills/tanto/roles/kanri.md
 grep -c 'because the output is the deliverable.' skills/tanto/roles/jisso.md
 grep -c '^## Fix rounds and the Kaiseki trigger$' skills/tanto/roles/jisso.md
 grep -cF 'commissions its own final review.' skills/tanto/roles/kanri.md
@@ -2110,7 +2230,10 @@ The skill also ships one executable, `scripts/passage-check.js`: the instrument
 a plan that carries passages checks itself with, run by Sekkei in place of an
 agent dry run, by Jisso at every batch boundary, and by the whole-branch
 reviewer. It is Node with no dependencies, its tests are beside it and run by
-`node --test`, and `roles/sekkei.md` and `roles/jisso.md` name its subcommands.
+`node --test`, and `roles/sekkei.md` and `roles/jisso.md` name its
+subcommands. Its path is written skill-relative, like every other path in
+this skill: run it as `node <the skill directory>/scripts/passage-check.js`,
+that directory being the one the harness names when it invokes the skill.
 ```
 
 - [ ] **Step 4: P8.4 and P8.6 — the README's layout and prerequisites**
@@ -2131,7 +2254,7 @@ reviewer. It is Node with no dependencies, its tests are beside it and run by
 
 ```text
 - `scripts/passage-check.js` — the instrument a plan that carries passages
-  checks itself with, and `passage-check.test.js` beside it. Node, no
+  checks itself with, and `scripts/passage-check.test.js` beside it. Node, no
   dependencies, invoked as `node <path>`.
 ```
 
@@ -2155,7 +2278,7 @@ reviewer. It is Node with no dependencies, its tests are beside it and run by
   application, and the first-party skills assume `node` the same way.
 ```
 
-- [ ] **Step 5: Verify the three passages, the anchor, and both insertion points**
+- [ ] **Step 5: Verify the three passages, the three anchors, and all three insertion points**
 
 ````bash
 grep -cF 'The skill also ships one executable, `scripts/passage-check.js`: the instrument' skills/tanto/SKILL.md
@@ -2164,6 +2287,8 @@ grep -cF 'expected-model defaults).' skills/tanto/README.md
 grep -cF 'is not host-agnostic and does not run on other Agent' skills/tanto/README.md
 grep -cF -- '- `scripts/passage-check.js` — the instrument a plan that carries passages' skills/tanto/README.md
 grep -cF -- '- **Node 22 or newer on `PATH`**, for `scripts/passage-check.js`. Only a plan' skills/tanto/README.md
+grep -nF '`templates/review-brief.md`, and `templates/tanto.json`.' skills/tanto/SKILL.md
+grep -nF 'The skill also ships one executable, `scripts/passage-check.js`: the instrument' skills/tanto/SKILL.md
 grep -nF 'expected-model defaults).' skills/tanto/README.md
 grep -nF -- '- `scripts/passage-check.js` — the instrument a plan that carries passages' skills/tanto/README.md
 grep -nF 'is not host-agnostic and does not run on other Agent' skills/tanto/README.md
@@ -2173,18 +2298,24 @@ grep -cF 'There are eleven' skills/tanto/SKILL.md
 
 Expected: `1`, then `1`, `1`, `1` — P8.2 present, and A8.1, A8.3 and A8.5 at
 their stated `after:` values — then `1`, `1` for the two README bullets. The
-four `grep -n` lines then print line numbers in pairs, and **the two pairs have
-different offsets**. P8.4's bullet lands on the line immediately after
+six `grep -n` lines then print line numbers in three pairs, and **the three
+pairs have different offsets**, so a pair is read against its own offset and
+not against a blanket rule. P8.2's paragraph lands **two** lines after
+`` `templates/review-brief.md`, and `templates/tanto.json`. ``, which is `+2`,
+because P8.2's new block opens with a blank line — this is the pair that pins
+where the SKILL.md insertion went, which its anchor at `before: 1, after: 1`
+cannot do. P8.4's bullet lands on the line immediately after
 `expected-model defaults).`, which is `+1`, because that needle is the last
 line of A8.3's five-line anchor block. P8.6's bullet lands **two** lines after
 the host-agnostic line, `+2`, because A8.5's needle is the *third* line of a
 four-line block and the insertion goes after the fourth. A blanket "+1" here
-was wrong and the dry run measured it. Neither new block opens with a blank line, and neither list
+was wrong and the dry run measured it. Neither README block opens with a blank line, and neither list
 separates its items with one. The last check reads `1`: the templates count is
 unchanged, because the executable is not a template and P8.2 adds it in a
-paragraph of its own rather than to that list. Baseline before the edits,
-measured 2026-09-10: `0`, `1`, `1`, `1`, `0`, `0`, then the two anchor line
-numbers alone (`102:` and `41:`, the bullets absent), and `1`.
+paragraph of its own rather than to that list — it is **recorded as context,
+not as a stop condition**. Baseline before the edits, measured 2026-09-10:
+`0`, `1`, `1`, `1`, `0`, `0`, then the three insertion-point line numbers alone
+(`422:`, `102:` and `41:`, the new text absent in all three), and `1`.
 
 - [ ] **Step 6: The diff of each file is exactly its passages**
 
@@ -2215,9 +2346,10 @@ git log -1 --format=%B | grep -c 'Co-Authored-By: Claude'
 
 Expected: `1`.
 
-**Done when:** the checks of Step 5 hold, both README insertions sit directly
-below their anchors, neither file's diff against the merge base removes a line,
-and lint is clean on both changed paths.
+**Done when:** the checks of Step 5 hold, each of the three insertions sits at
+its own stated offset below its insertion point — `+2`, `+1`, `+2` — neither
+file's diff against the merge base removes a line, and lint is clean on both
+changed paths.
 
 ---
 ### Task 9: the handover, whole
@@ -2508,19 +2640,19 @@ same sixteen values with `1` and `0` exchanged.
 
 ````bash
 grep -cF 'Two signals fire a handover' skills/tanto/roles/kanri.md
-grep -cF 'Two signals' skills/tanto/roles/kanri.md
 grep -cF 'threshold on the reading' skills/tanto/roles/kanri.md
 grep -cF 'Which of the two procedures' skills/tanto/roles/kanri.md
 grep -cF 'handover or a replacement will be read from' skills/tanto/templates/roster.md
 grep -cF 'compaction noticed' skills/tanto/roles/kanri.md
 ````
 
-Expected, line by line: `0`, `0`, `0`, `0`, `0`, `1`. Baseline before the
-edits, measured 2026-09-10: `1`, `1`, `1`, `1`, `1`, `1`. The last needle
-**stays at 1**: that hit is signal 3's own heading inside P9.1's new block, and
-it is the one hit of this sweep that a correct edit does not remove. These six
-are O14.2, O14.17, O14.6, O14.14, O14.11 and O14.15 of task 14, re-run here
-because this is the task that settles them.
+Expected, line by line: `0`, `0`, `0`, `0`, `1`. Baseline before the edits,
+measured 2026-09-10: `1`, `1`, `1`, `1`, `1`. The last needle **stays at 1**:
+that hit is signal 3's own heading inside P9.1's new block, and it is the one
+hit of this sweep that a correct edit does not remove, so it is **recorded as
+context, not as a stop condition**. These five are O14.2, O14.6, O14.14,
+O14.11 and O14.15 of task 14, re-run here because this is the task that settles
+them.
 
 - [ ] **Step 12: The diff of each file is exactly its passages**
 
@@ -2555,9 +2687,10 @@ git log -1 --format=%B | grep -c 'Co-Authored-By: Claude'
 
 Expected: `1`.
 
-**Done when:** the sixteen checks of Step 10 alternate `1 0`, the six of Step 11
-read `0 0 0 0 0 1`, each file's diff against the merge base is exactly its
-passages, and lint is clean on all three changed paths.
+**Done when:** the sixteen checks of Step 10 alternate `1 0`, the four removals
+of Step 11 read `0 0 0 0` with `compaction noticed` recorded at `1` as context,
+each file's diff against the merge base is exactly its passages, and lint is
+clean on all three changed paths.
 
 ---
 
@@ -3123,6 +3256,8 @@ grep -cF '`— If unanswered:`, the `## <n>.` numbers, and the pointer after `Se
 grep -cF 'numbers, and the pointer after `See:`. The brief selects and renders; it does' skills/tanto/templates/review-brief.md
 grep -cF 'choose or decide point without that clause failing the check; every pointer' skills/tanto/roles/kanri.md
 grep -cF 'three parts — the two before `See:` and the pointer after it, which may' skills/tanto/roles/kanri.md
+grep -n 'For a spec, section 5' skills/tanto/templates/review-brief.md
+grep -nF 'Every point tagged **choose** or **decide** ends with `— If unanswered: <what>`' skills/tanto/templates/review-brief.md
 ````
 
 Expected, line by line: `1`, `0`, `1` — the anchor at its stated `after:` value
@@ -3133,6 +3268,14 @@ occurrence count, and the sixth is the same four lines counted from their old
 ending, which is why it is anchored with `$` — the old line is a prefix of the
 new one and only the end of line decides. `grep -c` counts lines, and these
 four lines are distinct lines.
+
+The two `grep -n` lines then pin where P12.3 landed, which no content grep can:
+the second prints a line number **three** greater than the first — A12.2's
+anchor line, the second line of its two-line block, the blank line P12.3's new
+block opens with, then the paragraph. The absolute numbers move, because P12.1
+lands earlier in the same file and is four lines longer than what it replaces;
+the offset does not. Baseline before the edits, measured 2026-09-10: `43:`
+alone, the paragraph absent.
 
 - [ ] **Step 9: Verify the two old values this task removes**
 
@@ -3147,7 +3290,8 @@ Expected, line by line: `0`, `0`, `1`. Baseline before the edits, measured
 `"not stated" when it has none`, about a `req-<id>` citation, and has nothing
 to do with the test-suite premise task 7 removed from `roles/jisso.md`. It is
 the standing example of why an `O` row records the disposition of each hit
-rather than one verdict. These are O14.7, O14.12 and O14.13 of task 14.
+rather than one verdict, and it is **recorded as context, not as a stop
+condition**. These are O14.7, O14.12 and O14.13 of task 14.
 
 - [ ] **Step 10: The diff of each file is exactly its passages**
 
@@ -3180,9 +3324,10 @@ git log -1 --format=%B | grep -c 'Co-Authored-By: Claude'
 
 Expected: `1`.
 
-**Done when:** the ten checks of Step 8 read `1 0 1 1 4 0 1 0 1 0`, the three of
-Step 9 read `0 0 1`, both diffs are exactly their passages, and lint is clean on
-both changed paths.
+**Done when:** the ten checks of Step 8 read `1 0 1 1 4 0 1 0 1 0` and its two
+`grep -n` lines put P12.3's paragraph three lines below the anchor, the two
+removals of Step 9 read `0 0` with `has none` recorded at `1` as context, both
+diffs are exactly their passages, and lint is clean on both changed paths.
 
 ---
 
@@ -3282,10 +3427,23 @@ grep -cF 'A **measurement** report — one whose deliverable is what a tool actu
 grep -c 'adopt or reject each shoroku candidate per the adoption rule' skills/tanto/roles/kanri.md
 grep -cF 'and `unknown` is the measured ceiling rather than a gap: a session outside auto' skills/tanto/SKILL.md
 grep -cF 'system prompt says auto mode is active, otherwise `unknown`. It is advisory.' skills/tanto/SKILL.md
+grep -n 'adopt or reject each shoroku candidate per the adoption rule' skills/tanto/roles/kanri.md
+grep -nF 'A **measurement** report — one whose deliverable is what a tool actually did' skills/tanto/roles/kanri.md
+grep -n '^4\. \*\*Triage any bug report that arrived during the batch\*\*' skills/tanto/roles/kanri.md
 ````
 
 Expected, line by line: `1`, `1` — the anchor at its stated `after:` value —
 `1`, `0`. Baseline before the edits, measured 2026-09-10: `0`, `1`, `0`, `1`.
+
+The three `grep -n` lines then pin where P13.2 landed, and this is the
+placement check that matters most in this plan: P13.2 inserts **into a numbered
+step** of Kanri's batch loop, where landing under the wrong step is invisible
+to every content grep above. Expected: the second line number is **three**
+greater than the first — the anchor line, the second line of A13.1's two-line
+block, the blank line the new block opens with, then the paragraph — and the
+third, the batch loop's next numbered step, is greater still, so the paragraph
+sits inside step 3 rather than under step 4. Baseline before the edit, measured
+2026-09-10: `208:`, nothing for the paragraph, and `210:` for step 4.
 
 - [ ] **Step 6: The diff of each file is exactly its passages**
 
@@ -3317,17 +3475,19 @@ git log -1 --format=%B | grep -c 'Co-Authored-By: Claude'
 
 Expected: `1`.
 
-**Done when:** the four checks of Step 5 read `1 1 1 0`, both diffs are exactly
-their passages, and lint is clean on both changed paths.
+**Done when:** the four checks of Step 5 read `1 1 1 0` and its three `grep -n`
+lines put P13.2's paragraph three lines below the anchor and above the batch
+loop's next numbered step, both diffs are exactly their passages, and lint is
+clean on both changed paths.
 
 ---
 
 ### Task 14: the whole-tree sweeps and the `O` needles
 
-**Batch:** D. **Blocks:** O14.1 to O14.17.
+**Batch:** D. **Blocks:** O14.1 to O14.16.
 
 **This task is a measurement, and it writes no file.** Its deliverable is
-recorded output: the seventeen `O` needles run over `skills/tanto/` with their
+recorded output: the sixteen `O` needles run over `skills/tanto/` with their
 **hits printed rather than counted**, the whole-tree checks run over the
 finished branch, and a ruling on every residual hit. It makes no commit,
 because it changes nothing.
@@ -3354,7 +3514,7 @@ and prescribes no report skeleton of its own.
   expected values are the dispositions the `O` blocks below state.
 - Produces: the recorded output that closes the plan.
 
-**The seventeen `O` blocks.** Each is one entity this plan changes, with the
+**The sixteen `O` blocks.** Each is one entity this plan changes, with the
 raw hit count recorded at authoring time on 2026-09-10 and the disposition
 ruled by Sekkei. A disposition of "gone" cites the passages that remove the
 hits; a disposition of "stays" says why.
@@ -3391,9 +3551,12 @@ hits; a disposition of "stays" says why.
 
 **O14.16** `asks the human about it` — 1 hit: `roles/jisso.md` ×1; gone; P11.3
 
-**O14.17** `Two signals` — 1 hit: `roles/kanri.md` ×1; gone; P9.1
+`Two signals` is not a row of its own. It is `Two signals fire a handover`
+without its tail — one needle inside the other, in one file, removed by the one
+passage — and the rule is one needle per changed **entity**, so the shorter form
+would count the same removal twice.
 
-- [ ] **Step 1: Extract the seventeen needles from this plan, and count them**
+- [ ] **Step 1: Extract the sixteen needles from this plan, and count them**
 
 The needles are read out of the `O` blocks above rather than retyped, so that
 there is one place each needle is written.
@@ -3405,7 +3568,7 @@ sed -n 's/^\*\*O14\.[0-9]\{1,2\}\*\* `\([^`]*\)`.*/\1/p' "$plan" > "$needles"
 wc -l < "$needles"
 ````
 
-Expected: `17`. A smaller number means a needle carries a backtick or a lead
+Expected: `16`. A smaller number means a needle carries a backtick or a lead
 was reworded, and the sweep below would then be silently short.
 
 - [ ] **Step 2: Run every needle over the whole skill, with the hits printed**
@@ -3418,10 +3581,11 @@ done < "${TMPDIR:-/tmp}/tanto-sweep-o-needles.txt"
 ````
 
 Expected, needle by needle, against the dispositions above: `(no hits)` for
-O14.1 to O14.8, O14.11, O14.12, O14.14, O14.16 and O14.17; one hit in
-`SKILL.md` for O14.9; two hits for O14.10, in `roles/kanri.md` and `SKILL.md`;
-one hit in `templates/review-brief.md` for O14.13; and, for O14.15, one hit in
-`roles/kanri.md` and none in `templates/kanri-handover.md`.
+O14.1 to O14.8, O14.11, O14.12, O14.14 and O14.16 — twelve of the sixteen; one
+hit in `SKILL.md` for O14.9; two hits for O14.10, in `roles/kanri.md` and
+`SKILL.md`; one hit in `templates/review-brief.md` for O14.13; and, for
+O14.15, one hit in `roles/kanri.md` and none in
+`templates/kanri-handover.md`.
 
 **Read O14.15's result carefully before recording it.** Its disposition says
 the phrase is gone from the handover template's two-signal list, which is a
@@ -3482,7 +3646,21 @@ greps are what proves it. Check 5's other two greps target
 `$HOME/.claude/plugins/cache/...`, which no edit of this plan could move; they
 are recorded as context, not as a stop condition.
 
-- [ ] **Step 7: Lint every changed path, named individually**
+- [ ] **Step 7: The note's check 7, the string that must be absent**
+
+````bash
+grep -rn 'skills/tanto/' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
+````
+
+Expected: no output, and the command exits 1. This is check 7's ninth line, run
+whole rather than paraphrased. Runtime text in this skill is skill-relative;
+only the skill's `README.md` and the note itself may name `skills/tanto/`, and
+the reason is stronger than tidiness — that path is repo-relative, and `tanto`
+runs in any repository, where `skills/tanto/` does not exist. Baseline on the
+pre-plan tree, measured 2026-09-10: silent. A hit names the file and the line,
+and the fix belongs in the passage that wrote it, not here.
+
+- [ ] **Step 8: Lint every changed path, named individually**
 
 ````bash
 ./scripts/lint.sh skills/tanto/SKILL.md skills/tanto/README.md skills/tanto/roles/kanri.md skills/tanto/roles/sekkei.md skills/tanto/roles/jisso.md skills/tanto/templates/kanri-handover.md skills/tanto/templates/roster.md skills/tanto/templates/review-brief.md docs/notes/tanto-consistency-checks.md skills/tanto/scripts/passage-check.js skills/tanto/scripts/passage-check.test.js
@@ -3492,7 +3670,7 @@ Windows alternative: `scripts\lint.bat` with the same eleven paths. Expected:
 exit 0, every hook `Passed` or `Skipped`, none `Failed`, and the JavaScript
 hook appearing as run rather than as `(no files to check) Skipped`.
 
-- [ ] **Step 8: Record the output**
+- [ ] **Step 9: Record the output**
 
 Write what the commands printed into the batch report, per
 `skills/tanto/templates/batch-report.md`: each command, its output, and the
@@ -3502,27 +3680,31 @@ could not run on this machine and the route taken instead — is a sanctioned
 outcome and is named in the report rather than papered over. Nothing is written
 from what a command was expected to produce.
 
-**Done when:** the seventeen needles have been run with their hits printed and
+**Done when:** the sixteen needles have been run with their hits printed and
 each hit ruled on; the eleven paths report their two expected line-ending
 shapes and none reports `w/mixed`; the suite passes on a recorded `v22.`
 version; `diff` reports nothing unaccounted and names the two exempt paths; the
-note's checks 1, 2 and 5 hold with their new values; lint is clean on all
-eleven paths with the JavaScript hook run; and the output is recorded.
+note's checks 1, 2 and 5 hold with their new values and its check 7 is silent;
+lint is clean on all eleven paths with the JavaScript hook run; and the output
+is recorded.
 
 ---
 
 ## Self-Review
 
 **1. Spec coverage.** Every block the spec authors is placed. The spec carries
-38 `P` blocks and 6 `A` blocks; this plan carries 44 blocks, each exactly once,
-and the "Where each change lives" table maps every spec label to its plan id
-and its task. The spec's eleven issues each have a task: 7481, 88d3, 10bc and
+38 `P` blocks and 8 `A` blocks; this plan carries all 46 of them, each exactly
+once, plus the 16 `O` blocks of its own old-value sweep — **62 blocks** in
+all. Both figures are lead-line censuses, taken over the spec and over this
+file outside every fenced region, on 2026-09-10 after the re-transcription
+from the corrected spec. The "Where each change lives" table maps every spec
+label to its plan id and its task. The spec's eleven issues each have a task: 7481, 88d3, 10bc and
 f813 in tasks 1 to 3 (the instrument), task 4 (the note that schedules it), and
 tasks 5 and 7 (the seats that run it); d725 in task 10; 12d3 in task 11; 867f
 in task 12; f2ec in tasks 7 and 13; 15bf in task 13; 7281 in task 5's P5.1 and
 in this review. The operational text of req-04f5 and decision-b6cb is task 9.
 The spec's Verification items 1 to 7 are covered: item 1 by the lint step of
-every task and by task 14 step 7, with the deferred fourth gate at task 1 step
+every task and by task 14 step 8, with the deferred fourth gate at task 1 step
 5; item 2 by task 1 step 4, task 2 step 4, task 3 step 4 and task 14 step 4;
 item 3 by the baseline step of every passage task and by task 14 step 3; item 4
 by task 14 steps 1 and 2; item 5 by task 14 step 5; item 6 by task 4 step 8 and
@@ -3549,20 +3731,31 @@ block object's fields (`kind`, `id`, `task`, `ordinal`, `path`, `shape`,
 2's occurrence assertion under the same name. The `Problem` shape
 `{ code, id, message }` is one shape across `lintPlan`, `replayPlan` and
 `verifyTask`, with disjoint `code` vocabularies per subcommand. The subcommand
-names, the option names `--plan`, `--base` and `--task`, and the invocation
-form `node skills/tanto/scripts/passage-check.js <subcommand>` match between
-tasks 1 to 3 and the passages that name them in tasks 5, 6, 7 and 8.
+names and the option names `--plan`, `--base` and `--task` match between tasks
+1 to 3 and the passages that name them in tasks 5, 6, 7 and 8. The path in
+front of them deliberately does not, and the split is the one thing in this
+item that is not a single form: this plan's own commands run in this
+repository and say `node skills/tanto/scripts/passage-check.js <subcommand>`,
+while the runtime text the passages write is skill-relative and says
+`scripts/passage-check.js <subcommand>`, because `tanto` runs in any
+repository and `skills/tanto/` exists only in this one. The note's check 7 is
+what enforces that, and this plan now runs it — "How a batch is verified"
+item 9, and task 14 step 7.
 
 **4. Sizes, per P5.1's own new rule.** Size has two components and they do not
-pick the same task. By **line count** the largest is **task 1**, at 395 lines
+pick the same task. By **line count** the largest is **task 1**, at 427 lines
 and 8 steps: it carries the whole first test file, and three of batch A's four
 tasks build one program. By **block count** the largest is **task 9**, at eight
-blocks — 341 lines and 14 steps — and it is one task because splitting it would
+blocks — 342 lines and 14 steps — and it is one task because splitting it would
 put P9.3's "run the Handover section" in the tree a boundary before P9.4 and
-P9.5 fix what that section says at a close. Then task 14 at 308 lines and 8
-steps, task 12 at 230 lines and 12 steps, task 10 at 227, and task 7 at 246
-lines and 13 steps. The smallest is task 6, at 105 lines and 6 steps. The whole
-plan is 3392 lines. **Task 14 is a sweep-and-check task**: its deliverable is
+P9.5 fix what that section says at a close. Then task 7 at 246 lines and 13
+steps, task 12 at 242 lines and 12 steps, task 10 at 227 lines and 11 steps,
+and task 14 at 208 lines and 9 steps. The smallest is task 6, at 109 lines and
+6 steps. The whole plan is 3823 lines. Every task figure here was measured on
+2026-09-10, after the re-transcription from the corrected spec: a line count
+is the span from that task's own heading to the line before the next task's,
+a step count is the number of step checkboxes inside that span, and the file
+total is `wc -l`. **Task 14 is a sweep-and-check task**: its deliverable is
 recorded output rather than a file, it makes no commit, and its reviewer is
 told to re-run the checks rather than read the report — per P5.1's own rule,
 because a verification-only deliverable inverts the reviewer's standing
@@ -3623,8 +3816,8 @@ here rather than only in the spec, because a task reads this file.
    change is a change and not a discovery.
 
 Nothing else in the spec looked wrong to me. The 38 `P` blocks each resolve
-against exactly one place in their target file on today's tree, the 6 `A`
-anchors each return their stated `before:` value, and all seventeen `O` needles
+against exactly one place in their target file on today's tree, the 8 `A`
+anchors each return their stated `before:` value, and all sixteen `O` needles
 return exactly the hit counts the spec's table records — checked before this
 plan was written, and the baselines quoted in each task's verification steps
 are those measurements.
