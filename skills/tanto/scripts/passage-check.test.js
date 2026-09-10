@@ -271,3 +271,99 @@ test("a CRLF plan parses the same as an LF one", () => {
   const parsed = parsePlan(fs.readFileSync(file, "utf8"));
   assert.deepStrictEqual(parsed.blocks[0].old, ["alpha", "beta"]);
 });
+
+const { replayPlan } = require("./passage-check.js");
+
+function makeRepo(files) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "passage-check-repo-"));
+  const git = (...args) =>
+    execFileSync(
+      "git",
+      ["-C", dir, "-c", "user.email=t@t", "-c", "user.name=t", "-c", "core.autocrlf=false", ...args],
+      {
+        encoding: "utf8",
+      },
+    );
+  git("init", "-q");
+  for (const [name, content] of Object.entries(files)) {
+    fs.mkdirSync(path.dirname(path.join(dir, name)), { recursive: true });
+    fs.writeFileSync(path.join(dir, name), content, "utf8");
+    git("add", name);
+  }
+  git("commit", "-qm", "base");
+  return { dir, git, head: git("rev-parse", "HEAD").trim() };
+}
+
+function runIn(cwd, args) {
+  try {
+    return { code: 0, out: execFileSync(process.execPath, [SCRIPT, ...args], { cwd, encoding: "utf8" }) };
+  } catch (err) {
+    return { code: err.status, out: `${err.stdout || ""}${err.stderr || ""}` };
+  }
+}
+
+test("replay applies a passage to a copy of the base blob and exits 0", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const file = writePlan(REPLACEMENT);
+  const result = runIn(repo.dir, ["replay", "--plan", file, "--base", repo.head]);
+  assert.strictEqual(result.code, 0);
+  assert.strictEqual(fs.readFileSync(path.join(repo.dir, "tmp/fixture.md"), "utf8"), "alpha\nbeta\n");
+});
+
+test("replay fails when an old passage occurs other than the stated number of times", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\nalpha\nbeta\n" });
+  const file = writePlan(REPLACEMENT);
+  const result = runIn(repo.dir, ["replay", "--plan", file, "--base", repo.head]);
+  assert.strictEqual(result.code, 1);
+  assert.match(result.out, /P91\.1/);
+});
+
+test("replay re-runs each anchor against the applied copy and compares it with after", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\n" });
+  const wrong = INSERTION.slice();
+  wrong[2] = "**A92.1** `tmp/fixture.md` — `grep -c alpha tmp/fixture.md` — before: 1, after: 0";
+  assert.strictEqual(runIn(repo.dir, ["replay", "--plan", writePlan(INSERTION), "--base", repo.head]).code, 0);
+  assert.strictEqual(runIn(repo.dir, ["replay", "--plan", writePlan(wrong), "--base", repo.head]).code, 1);
+});
+
+test("replay restores the dominant line ending of the file it copied", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\r\nbeta\r\n" });
+  const parsed = parsePlan(fs.readFileSync(writePlan(REPLACEMENT), "utf8"));
+  const result = replayPlan(parsed, repo.head, { cwd: repo.dir });
+  assert.strictEqual(result.ok, true);
+  assert.strictEqual(fs.readFileSync(path.join(result.tree, "tmp/fixture.md"), "utf8"), "gamma\r\n");
+});
+
+test("replay prints residual O hits under a heading naming their count, and still exits 0", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const lines = REPLACEMENT.concat(["", "**O91.2** `alpha` — gone once P91.1 lands"]);
+  const result = runIn(repo.dir, ["replay", "--plan", writePlan(lines), "--base", repo.head]);
+  assert.strictEqual(result.code, 0);
+  assert.match(result.out, /1 residual/i);
+});
+
+test("replay skips a command that invokes passage-check verify", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const lines = REPLACEMENT.concat([
+    "",
+    "```bash",
+    "node skills/tanto/scripts/passage-check.js verify --plan p.md --task 91",
+    "```",
+    "",
+    "Expected: `0`",
+  ]);
+  const result = runIn(repo.dir, ["replay", "--plan", writePlan(lines), "--base", repo.head]);
+  assert.strictEqual(result.code, 0);
+  assert.match(result.out, /skipped/i);
+});
+
+test("an unresolvable base exits 2 and names the ref, unlike an unknown subcommand", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const file = writePlan(REPLACEMENT);
+  const unknown = runIn(repo.dir, ["no-such-subcommand", "--plan", file]);
+  assert.strictEqual(unknown.code, 2);
+  assert.doesNotMatch(unknown.out, /no-such-ref/);
+  const result = runIn(repo.dir, ["replay", "--plan", file, "--base", "no-such-ref"]);
+  assert.strictEqual(result.code, 2);
+  assert.match(result.out, /no-such-ref/);
+});
