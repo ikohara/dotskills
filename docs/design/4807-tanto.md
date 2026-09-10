@@ -1025,6 +1025,28 @@ boundary rather than by the plan's own instruments.
   run's complement — the dry run proves the edits apply, this proves the tree
   has not moved under them.
 
+The tanto-sweep run of 2026-09-10 added two more, both about where a passage
+plan's defects actually sit.
+
+- **The verbatim passages are the part that does not fail; the prose around
+  them is where every defect lives.** Across that run's plan phase the 38
+  passages and 8 anchor steps were checked by six independent parsers over four
+  rounds of edits and never once failed — every old passage resolved its stated
+  number of times, every declared count matched its block, every anchor returned
+  its stated value. Every defect of the phase was outside the blocks: in a lead
+  line's count, a needle, an expectation's prose, a test's assertion, an
+  interface sentence, a heading's uniqueness, a trailing blank line. That is the
+  case for keeping the old and new passages verbatim and once, and it predicts
+  where the next run's defects will be, which is the more useful half.
+- **When a fix to runtime text cannot be run, say which test you could not
+  perform**, and treat the choice as provisional until a seat that can run it
+  does. In that run a shell variable for the skill's own directory was set aside
+  as over-engineering in favour of a bare skill-relative path; the bare path
+  dropped the interpreter along with the repository prefix, and five passages
+  went on to order a shebang-less file to run itself. The rejection was made on
+  the shape of the fix rather than on whether the result ran, which is a taste
+  judgment substituted for a test and not declared as one.
+
 Three alternatives were weighed and rejected while these conventions were
 derived, and the reasons are worth keeping. A **bounded** handover wait was
 rejected because the harness gives no signal to bound it by, so a bound would be
@@ -1034,6 +1056,68 @@ topic either doubles it in every file name or becomes the larger unification now
 filed as issue-f2c4. And **whole-file blocks for a passage-shaped plan** were
 rejected because they would have meant transcribing a 580-line file to change
 seven places in it.
+
+## What a measurement can settle, and what it cannot (req-04f5)
+
+req-04f5 puts the spec dialogue's judgment with the human and the design with
+Sekkei, and a measurement is how Sekkei keeps a claim honest. The tanto-sweep
+dialogue of 2026-09-10 found the failure mode twice in one session, and both
+times the measurement itself was accurate.
+
+- Sekkei set out to measure which Python interpreters the machine carried. The
+  human stopped it — 「いや、既存のインタプリタを調べても仕方ない。uv を使えば、
+  任意のバージョンを指定して実行できるんだから、決めの問題だよ」, that measuring
+  the interpreters already installed settles nothing, since `uv` runs any
+  version on request, so the floor is a decision and not an observation. The
+  reading would have been correct and irrelevant.
+- Sekkei measured the installed plugin cache, found JavaScript skill payload,
+  and read it as confirming that skills ship scripts — the premise it had
+  offered for shipping Python. The human asked the question it had not:
+  「それは、skill を動かす環境 (harness) が Node.js だからじゃない？」, whether
+  that was so only because the environment the skill runs in is Node. The same
+  measurement, asked the other question, reversed the language choice.
+
+**A measurement answers the question it was given, so a measurement that
+confirms a premise has said nothing about the premise.** Before measuring to
+confirm, write down what result would change the answer; if none would, the
+question is wrong and the reading is decoration. This sits beside the related
+failure of recalling a fact about a different host — there the recollection was
+wrong, here it was right and the question was not.
+
+## What makes a convention bind (req-04f5)
+
+req-04f5 asks that state live in files and that rulings be recorded rather than
+remembered, and this document is where the plan conventions accumulate. The
+tanto-sweep run measured what actually makes one of them hold, and the answer
+is not care.
+
+In that run one Sekkei wrote three conventions and then broke all three, each
+inside the document that states it, twice quoting a rule in the same paragraph
+where it was broken:
+
+| The rule, as written | Broken after writing it | Found by |
+| --- | --- | --- |
+| a decision reaches `dialogue.md` before the document | 2 | the spec review; Kanri's cold read |
+| a count in prose is written only where a command consumes it | 4 | Sekkei's own pre-flight; the plan review; the dry run; a re-sync pass |
+| an old-value needle must span the point where the text changes | 3 | Kanri's role-check; the dry run, twice |
+
+Nine violations of three rules by the rules' own author. What separates the
+rules that stopped recurring from those that did not is **what runs them**:
+
+- **Prose binds nobody.** All nine violations were of rules that existed only
+  as prose at the moment of the violation.
+- **A step binds whoever runs the step**, and only at the moment they run it.
+- **A command binds everyone, the author included, and it binds while the
+  document is being written rather than at review.** The needle rule became a
+  one-line search of the plan's own replacement text and found the two
+  outstanding instances at once; the count rule became a thirty-line pre-flight
+  and found five defects before the first commit.
+
+So a convention derived here **says which of the three it is, and if it is
+prose, says what would make it a command.** Two of this repository's most
+expensive plan findings — the needle trap and the count trap — sat in this
+document as prose for two runs and were broken in the interval by the people
+who had read them.
 
 ## The five triage outcomes, and why five
 
