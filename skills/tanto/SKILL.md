@@ -264,16 +264,19 @@ the session's context, which is what a resume preserves.
 - A message is one line plus a path. Report bodies, rulings, briefs, and plans
   live in files: a message dies with the session, a file survives compaction
   and a VS Code restart.
-- Kanri sends batch prompts and Kaiseki briefs **without** an idle
-  subscription and waits for the receiver's one-line report. It subscribes —
-  a pure `notify_when_idle`, no message — only when an expected signal is
-  overdue, which is the human's observation or a wake-up for another reason,
-  since a session holding no subscription has no clock; and it treats a
-  notice that arrives before the report as a reason to check the workspace,
-  never as the signal: a peer's turn ends whenever it dispatches a subagent,
-  so most notices are false idles. The exit lines keep their
-  `notify_when_idle: true`, because there the idle notice is the forced-exit
-  signal by design.
+- Kanri sends every line **without** an idle subscription — batch prompts,
+  Kaiseki briefs, and the `exit:` lines alike — and waits for the receiver's
+  one-line report. It subscribes — a pure `notify_when_idle`, no message —
+  only when an expected signal is overdue, which is the human's observation
+  or a wake-up for another reason, since a session holding no subscription
+  has no clock; and it treats a notice that arrives before the report as a
+  reason to check the workspace, never as the signal: a peer's turn ends
+  whenever it dispatches a subagent, so most notices are false idles. The
+  `exit:` lines carried a subscription until 2026-09-10, on the reasoning
+  that there the idle notice is the forced-exit signal; measured, it woke
+  Kanri four times across two exits and signalled nothing, because both
+  sessions answered normally and every notice arrived after its answer
+  (issue-d725).
 - Never poll `ListAgents`; never send "are you done". Check the listing only
   when an expected signal did not arrive.
 - A reply copies the incoming message's `from` into `to`.
@@ -360,16 +363,18 @@ about the run — never a restatement of a spec, a plan, a report, or a ledger.
 Kanri's own exit and a standalone Kaiseki have no second session to rule; each
 role file says how.
 
-The lines, each sent with `notify_when_idle: true`. Kanri sends
+The lines, each sent without an idle subscription, like every other tanto line.
+Kanri sends
 `exit: propose your shoroku; write it to <path>`; the session answers with one
 line and the path; Kanri sends `exit: direction at <path>`; the session answers
 `exit write-out committed: <subject> — <reading>` or
-`exit write-out: nothing accepted — <reading>`. A
-session that has not answered when its idle notice arrives is past answering:
-Kanri treats the exit as forced — the roster's Events line says the exit
-shoroku did not run and what was lost, as far as Kanri knows — asks the human
-to delete it, and continues. Jisso idles through another session's exit; the
-cost is one boundary.
+`exit write-out: nothing accepted — <reading>`. A session that has stopped
+answering is past answering, and Kanri learns it the way it learns of a missing
+batch report — the human says the session is gone, or Kanri's window wakes for
+another reason and the answer has not arrived. Kanri then treats the exit as
+forced — the roster's Events line says the exit shoroku did not run and what
+was lost, as far as Kanri knows — asks the human to delete it, and continues.
+Jisso idles through another session's exit; the cost is one boundary.
 
 The file pattern is `exit-<role>[-<suffix>]`, with the suffix the batch letter
 for Jisso (`exit-jisso-B`, a Jisso leaving at batch B's boundary), the case

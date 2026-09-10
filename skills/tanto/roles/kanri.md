@@ -521,8 +521,8 @@ the human deletes it. `SKILL.md`'s "Session exit" defines the mechanism and the
 file pattern `exit-<role>[-<suffix>]`; these are your steps.
 
 1. At the boundary where the exit falls, send that session
-   `exit: propose your shoroku; write it to <path>` with
-   `notify_when_idle: true`. The path is
+   `exit: propose your shoroku; write it to <path>`, without an idle
+   subscription, as with every other line you send. The path is
    `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-proposal.md`, or
    the topic directory for Sekkei.
 2. Rule on every item per the adoption rule, record the rulings in the `S-n`
@@ -530,7 +530,7 @@ file pattern `exit-<role>[-<suffix>]`; these are your steps.
    items, original then reference translation, and write the answer item by
    item to the matching
    `exit-<role>[-<suffix>]-direction.md`. Then send
-   `exit: direction at <path>` with `notify_when_idle: true`.
+   `exit: direction at <path>`, again without a subscription.
 3. The session applies the accepted subset, lints, commits once by explicit
    path in the slot you give it in the commit window, and answers
    `exit write-out committed: <subject> — <reading>` or
@@ -539,10 +539,12 @@ file pattern `exit-<role>[-<suffix>]`; these are your steps.
    rows' Written column with that subject, and only then ask the human to
    delete the session.
 
-A session that has not answered when its idle notice arrives is past answering:
-treat the exit as forced, write a roster Events line saying its exit shoroku
-did not run and what was lost as far as you know, ask the human to delete it,
-and continue. The same Events line goes in whenever you mark a row `dead`.
+A session that has stopped answering is past answering, and you learn it the
+way you learn of a missing batch report: the human says the session is gone, or
+your window wakes for another reason and the answer has not arrived. Treat the
+exit as forced, write a roster Events line saying its exit shoroku did not run
+and what was lost as far as you know, ask the human to delete it, and continue.
+The same Events line goes in whenever you mark a row `dead`.
 
 **Your own exit.** You have no second session to rule on you, so you rule on
 yourself: propose from the ledger and the roster rather than from recollection,
