@@ -50,8 +50,9 @@ counts. A reading Kanri doubted and could not verify carries `(unverified)`
 after its Compactions figure; `unavailable` stands in the four figures when
 the session sent that. At the plan close every row whose session is dead,
 replaced, or refused moves to `roster-archive.md`, joined with its status row
-above, and it is the archive's rows across runs that a threshold for the
-handover or a replacement will be read from (issue-40ed).
+above, and it is the archive's rows across runs that a threshold for replacing
+a peer will be read from (issue-40ed's other half; the handover half closed
+with decision-b6cb, which made the plan close the ordinary trigger).
 
 ## Shoroku candidates
 

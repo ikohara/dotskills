@@ -7,7 +7,7 @@ to the roster and the ledgers, never a copy.
 
 ## Why
 
-<The trigger that fired — the human's word, or a compaction noticed — and when.>
+<The trigger that fired — the plan close, the human's word, or a compaction noticed — and when.>
 
 ## In flight
 

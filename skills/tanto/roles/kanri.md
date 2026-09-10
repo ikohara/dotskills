@@ -326,32 +326,44 @@ the human is asked about the environment.
 
 ### The trigger
 
-Two signals fire a handover. Check them at every boundary: at loop step 6 while
-a plan is in flight, and, between plans, at the start of every turn you get — a
-message, or the human speaking. Run the self-check of `SKILL.md`'s Resuming at
-the same points — one `ListAgents`; a name that is not your row's means you
-were resumed, and the roster's first row is rewritten before anything else.
+Three signals fire a handover. Check them at every boundary: at loop step 6
+while a plan is in flight, and, between plans, at the start of every turn you
+get — a message, or the human speaking. Run the self-check of `SKILL.md`'s
+Resuming at the same points — one `ListAgents`; a name that is not your row's
+means you were resumed, and the roster's first row is rewritten before
+anything else.
 
-1. **The human's word.** Always, and it overrides the residency line.
-2. **A compaction noticed.** Your context now begins with a summary of earlier
+1. **The plan close**, and this is the ordinary one. After T2, the merge
+   decision, the peers' deletion, and the archive move, the handover runs:
+   without a threshold, and without asking (decision-b6cb). The close is the
+   moment with nothing in flight and the record complete, and a resident
+   session's per-turn cost is its age, so the reset is a planned step and not
+   a question put to the human once a plan (req-04f5).
+2. **The human's word.** Always, and at any boundary.
+3. **A compaction noticed.** Your context now begins with a summary of earlier
    conversation instead of the conversation itself, or a ruling the ledger
    holds is one you do not remember making. State lives in files, so a
    compaction loses nothing the successor cannot read back; it is the harness's
    own signal that the session has grown long, and it is the one signal a
    session can see for itself.
 
-Not the `tokens left` figure the harness prints in its reminders, whose
-unit is not documented as the context window and whose presence is not
-guaranteed; not a batch or plan count, for which the data points are still
-few; and not a threshold on the reading, because none has been chosen. At
-every check take your own reading (`SKILL.md`, "The transcript reading")
-and rewrite your Residency row with it: a compactions figure of `1` where
-you noticed none is the second signal, seen in a file, and counts as
-noticed. The Residency rows, and the archive's rows across runs, are the
-data a threshold on cost will be chosen from, by an ADR, once enough
-sessions have ended (issue-40ed).
+Signal 3 is the mid-plan case; signal 2 is any time at all, and a human who
+says "continue" at a plan close declines that close's handover the way the
+Handover section already describes. Not the `tokens left` figure the
+harness prints in its reminders, whose unit is not documented as the context
+window and whose presence is not guaranteed; and not a threshold on the
+reading, because the plan close arrives first in practice and no number was
+needed. At every check take your own reading (`SKILL.md`, "The transcript
+reading") and rewrite your Residency row with it: a compactions figure of `1`
+where you noticed none is signal 3, seen in a file, and counts as noticed. The
+Residency rows, and the archive's rows across runs, are the data a threshold
+for **replacing a peer** will be chosen from, by an ADR, once enough sessions
+have ended (issue-40ed's other half; its handover half closed with
+decision-b6cb).
 
-Which of the two procedures follows is decided by whether a ledger is open.
+Which procedure follows is decided by whether a ledger is open. A plan close
+has one open until you close it, so it takes the in-plan procedure with the two
+exceptions steps 1 and 3 name.
 
 ### Timing
 
@@ -382,8 +394,10 @@ next batch inherits" rather than from the tree.
 ### The residency line
 
 At every plan close, and whenever the human asks, print one of two lines to the
-human. The `[<ref>]` is the identity; the human copies the bare name into the
-next `/tanto <role> <name>`.
+human. At a plan close it is always the second, because the close is itself a
+handover trigger; "Kanri stays" is only ever the answer to the human's own
+mid-plan question. The `[<ref>]` is the identity; the human copies the bare
+name into the next `/tanto <role> <name>`.
 
 ```text
 Kanri stays — <name> [<ref>] — <n> batches, <m> plans since <YYYY-MM-DD>, <k> compactions noticed — <reading>; handover not due.
@@ -414,13 +428,18 @@ never a copy.
    yourself from the ledger and the roster, not from recollection, escalate to
    the human, write, lint, commit once, and mark the `S-n` rows written. What
    you cannot reconstruct goes into the handover file's "Not reconstructed"
-   section. In a plan this step is loop step 6's proposal and step 7's slot (b)
-   commit, already done when the window reaches this list; between plans it is
-   one act and the commit lands on `main`.
+   section. At a **batch boundary** this step is loop step 6's proposal and
+   step 7's slot (b) commit, already done when the window reaches this list. At
+   a **plan close** it is a fresh act, run after T2, the merge decision, the
+   peers' deletion and the archive move, and its commit lands on the plan's
+   branch (decision-b6cb). **Between plans** it is one act too, and the commit
+   lands on `main`.
 2. Write `.superpowers/sdd/kanri-handover.md` from its template.
-3. **In a plan**, set the ledger's Progress line to "handover written".
-   **Between plans**, there is no ledger, so write "handover written by
-   `<name> [<ref>]`" as a roster Events line instead.
+3. **At a batch boundary**, set the ledger's Progress line to "handover
+   written". **At a plan close** that line already says "closed", which the
+   delete table's row keys on, so leave it and record "handover written by
+   `<name> [<ref>]`" as a roster Events line. **Between plans** there is no
+   ledger, and that Events line is the only record.
 4. Print the "Kanri hands over" line with the numbered commands, and stop. Send
    nothing to any peer; answer the human if asked; do nothing else.
 
@@ -726,7 +745,7 @@ session is dead first — uncommitted work may be in the tree.
 | the plan is committed, the cold-read questions are answered, and the human does not want a next spec now | Sekkei is done; delete it after its exit shoroku is committed — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
 | Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; delete it after its exit shoroku is committed, or keep it if more of the same bug is expected |
 | the final batch is accepted, T2 is written, leftovers are clean, and the human has executed the merge decision | Jisso is done; delete it after its exit shoroku is committed, which at plan end is T2 |
-| Jisso is deleted and the ledger's Progress line says closed | this plan is closed; Kanri stays, prints the residency line, marks `dead` the rows of the sessions deleted at this close, moves the dead, replaced, and refused rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet — fills the ledger's Measurements fixed row, and waits for the next topic |
+| Jisso is deleted and the ledger's Progress line says closed | this plan is closed; mark `dead` the rows of the sessions deleted at this close, move the dead, replaced, and refused rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet, fill the ledger's Measurements fixed row, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
 
 You are resident. A plan's end is a boundary like any other, and the next topic
 starts with a new topic directory and a new ledger under the same roster,
