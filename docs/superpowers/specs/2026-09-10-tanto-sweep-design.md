@@ -253,6 +253,12 @@ follow, and both are mechanical:
 
 - a lead whose id or path is a `<...>` placeholder is documentation and is
   skipped;
+- **a lead inside a fenced block is not a lead.** A lead is by construction the
+  line *before* a fence, so one that appears *within* one is text — an example,
+  or a test fixture. This is the rule the instrument's own tests need: `lint`'s
+  fixtures are plans containing leads, and without it the test file would be
+  parsed as a plan. The fixtures also number their ids from 90 upward, so that
+  a fixture id can never collide with a real task's;
 - a lead is resolved only inside a **task body**, which is the text under a
   heading matching `^### Task <n>` or `^## Task <n>` — the shapes
   superpowers' writing-plans produces. `lint` **fails** when it finds zero task
@@ -264,7 +270,7 @@ follow, and both are mechanical:
 
 | Subcommand | What it does | What it closes |
 | --- | --- | --- |
-| `lint --plan <path>` | Parses only. Every lead line well-formed; every `N` equal to its block's real line count; every id unique; every id cited in prose present as a block; every anchor step stating both values. | issue-88d3's count half, issue-f813's citation rule |
+| `lint --plan <path>` | Parses only. Every lead line well-formed; every `N` equal to its block's real line count; every id unique; every id cited in prose present as a block; every anchor step stating both values; every insertion carrying an anchor step; and **no `O` needle occurring anywhere in the plan's own new-passage text** — a needle the plan's replacement text contains cannot detect the change it was written for, and returns the same count after the plan as before. | issue-88d3's count half, issue-f813's citation rule, issue-10bc's needle trap |
 | `replay --plan <path> --base <ref>` | Copies the base blobs to a temporary tree and applies each passage, asserting each old passage occurs **exactly once**. Then re-runs each anchor command against the applied copy and compares the result with its stated `after:` value. Then runs the plan's commands in order against that tree, printing each output beside its stated expectation — **skipping any command that invokes `passage-check.js verify`**, because `verify` reads the working tree and `replay` has already made that check against its own. Then runs every `O` needle against the applied tree and prints every residual hit. | issue-88d3's anchor half, issue-7481's command-runner half, issue-10bc |
 | `diff --plan <path> --base <ref>` | Every added line of `git diff <base>` must be text the plan literally quotes; lists the added lines that are not, and the removed lines outside any fenced block. A path the plan declares as created is exempt — its lines are accounted for by construction — and the exemption is read from the plan's `created:` list, never inferred. Needs only the plan and `git`. | issue-7481's core |
 | `verify --plan <path> --task <N>` | What a task's Verify step invokes, against the working tree: each of task `N`'s new passages present exactly once, each of its anchors at its stated `after:` value, and `diff` scoped to the files task `N` touches. | D-6 |
@@ -311,9 +317,17 @@ everything it checked held.
 A residual `O` hit is the exception and exits `0`: the old-value sweep is
 adjudicated, not decided — Sekkei rules each hit as "this becomes a passage" or
 "unchanged, and why" — so `replay` prints the hits under a heading that names
-their count and leaves the judgment where issue-10bc puts it. An unresolvable
-`--base`, an absent `git`, and an unreadable plan exit `2`, distinct from a
-check failure's `1`, so that a broken invocation is never read as a clean tree.
+their count and leaves the judgment where issue-10bc puts it.
+
+**Exit `2` is a broken invocation, distinct from a check failure's `1`**, so
+that a script that could not run is never read as a clean tree: an unresolvable
+`--base`, an absent `git`, an unreadable plan, a missing required option, and
+an unknown or absent subcommand. `2` also carries a usage line to stderr.
+
+The module's exported surface and whether it guards on `require.main` are the
+implementer's, not the spec's: nothing outside the file imports it today, and
+its tests may import it or invoke it as a program. The plan records which was
+chosen so that a later change is a change and not a discovery.
 
 ### Module format
 
@@ -997,12 +1011,16 @@ plan is machine-checkable and not only readable:
   entity rather than from the new text: a set whose cardinality changes is
   reached by no new term at all, and a rule two role files state in different
   words needs both spellings as needles. Sweep the files the plan does **not**
-  touch first — a file with a passage gets read anyway — and **run each needle
-  as you write it**, because one that wraps in its target returns `0`, which
-  reads as "already gone". Record the raw count and the disposition of each
-  hit, not one verdict. A sweep for the terms a plan introduces is not a sweep
-  for the prose those terms contradict, and only this one catches the second
-  (issue-10bc).
+  touch first — a file with a passage gets read anyway. **A needle must span
+  the point where the text changes**: where a passage *inserts* into a phrase,
+  every substring of the old phrase that avoids the insertion point survives
+  the edit and returns the same count afterwards, which reads as "not fixed"
+  or, worse, "already gone". `lint` checks this by searching the plan's own
+  new-passage text for each needle. **Run each needle as you write it** — one
+  that wraps in its target returns `0`, and `0` reads as "already gone".
+  Record the raw count and the disposition of each hit, not one verdict. A
+  sweep for the terms a plan introduces is not a sweep for the prose those
+  terms contradict, and only this one catches the second (issue-10bc).
 
 Each block appears **once**; a later task that needs one cites it by its id and
 does not re-quote it. A count in prose is written only where a command consumes
@@ -1331,6 +1349,14 @@ skipped the same check for the same reason, since no script existed to name.
 that enumerates the files, and a `## Prerequisites` section that lists what the
 skill needs of its host. Both change.
 
+Both README insertions carry an anchor step. The spec's first draft gave them
+none, and the grammar's own rule — every insertion carries one, because an
+insertion's block is text that survives the edit and so cannot pin where the
+new text went — was written after those two blocks and never applied back to
+them. The plan drafter found it by running `lint`'s rule against the spec.
+
+**A-M1** `skills/tanto/README.md` — `grep -cF 'expected-model defaults).' skills/tanto/README.md` — before: 1, after: 1
+
 **P-M1** `skills/tanto/README.md` — insert after these 5 lines
 
 ```text
@@ -1348,6 +1374,8 @@ skill needs of its host. Both change.
   checks itself with, and `passage-check.test.js` beside it. Node, no
   dependencies, invoked as `node <path>`.
 ```
+
+**A-M2** `skills/tanto/README.md` — `grep -cF 'is not host-agnostic and does not run on other Agent' skills/tanto/README.md` — before: 1, after: 1
 
 **P-M2** `skills/tanto/README.md` — insert after these 4 lines
 
@@ -1430,10 +1458,10 @@ these as its `O` blocks and its verification re-runs them after the last batch.
 | `There are eleven` | `SKILL.md` ×1 | **stays.** The templates count is unchanged; the executable is not a template, and P-S5 adds it in a paragraph of its own rather than to that list |
 | `exit lines` | 3 raw: `roles/kanri.md` ×1, `SKILL.md` ×2, one of which is inside P-S1's old block | **stays**, ending at 2. Both survivors are about where a reading travels, not about a subscription. The raw count is recorded because Verification item 4 re-runs the needle over the whole skill, where a qualifier is not what the command returns |
 | `handover or a replacement will be read from` | `templates/roster.md` ×1 | gone; P-T1 |
-| `three parts` | `roles/kanri.md` ×1 | gone; P-K9 |
+| `three parts — the two before` | `roles/kanri.md` ×1 | gone; P-K9. The needle was `three parts` until the dry run: P-K9's own new text reads "so three parts or four", so the short form returns 1 after the plan as well as before |
 | `has none` | 2: `roles/jisso.md` ×1, `templates/review-brief.md` ×1 | ends at 1. Jisso's is the test-suite premise and goes (P-J4); the brief template's is `"not stated" when it has none`, about a `req-<id>` citation, and stays |
 | `Which of the two procedures` | `roles/kanri.md` ×1 | gone; P-K13 |
-| `compaction noticed` | `roles/kanri.md` ×1 inside P-K1, `templates/kanri-handover.md` ×1 | gone from the handover template's two-signal list; P-H1. The `roles/kanri.md` hit is signal 3's own heading and stays |
+| `fired — the human's word` | `templates/kanri-handover.md` ×1 | gone; P-H1. This needle took **three** attempts, and the reason is the finding below. `compaction noticed` returns 2 before and 2 after. `the human's word, or a compaction noticed` returns 1 before and 1 after, because P-H1 *inserts* `the plan close, ` into the line and every substring that avoids the insertion point survives. Only a needle that **spans** the insertion point works |
 | `asks the human about it` | `roles/jisso.md` ×1 | gone; P-J3 |
 | `Two signals` | `roles/kanri.md` ×1 | gone; P-K1 |
 
@@ -1877,7 +1905,26 @@ T1.
     reads empty before the thing arrives. Found by Kanri's cold read of the
     committed spec, which is the third distinct seat to catch a defect the
     previous two could not.
-13. **The dialogue's cost, for the `opus`-Sekkei measurement Kanri owns**: eleven
+13. **An `O` needle must span the point where the text changes, and this is the
+    finding the whole spec paid the most to learn.** Three needles in a row
+    could not detect the change they were written for, each failing for the
+    same structural reason and each caught by a different seat. `compaction
+    noticed` — the change is to a set's *cardinality*, which no substring
+    names; caught by Kanri's role-check. `the human's word, or a compaction
+    noticed` — P-H1 *inserts* `the plan close, ` into the line, so every
+    substring that avoids the insertion point survives; caught by the dry run.
+    `three parts` — P-K9's own replacement text contains "so three parts or
+    four"; caught by the same run. The general form is sharp: **where a change
+    is an insertion, the needle must straddle the insertion point; where a
+    change is a replacement, the needle must be text the replacement does not
+    reproduce.** And it is mechanical, which is the valuable half — `lint`
+    searches the plan's own new-passage text for every `O` needle, and a hit
+    means the needle is dead. That check, written and run over this plan in one
+    command, found exactly the two the dry run had found and nothing else.
+    Three human-cost discoveries collapse into one command; issue-10bc's D-4
+    ruling that "finding the candidates is mechanical, only ruling on them is
+    judgment" gains a second mechanical half nobody had asked for.
+14. **The dialogue's cost, for the `opus`-Sekkei measurement Kanri owns**: eleven
    turns, of which two were the human overturning a Sekkei recommendation
    (D-11, and the interpreter-probing detour before D-9) and one was a
    clarifying question the human asked rather than answered. Kanri holds the
