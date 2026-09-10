@@ -636,7 +636,7 @@ function replayPlan(parsed, base, options = {}) {
     const skipReason =
       firstWord(fence.command) === "git"
         ? "a git command; the applied tree is not a git repository"
-        : /passage-check\.js\s+verify\b/.test(fence.command)
+        : /passage-check\.js["']?\s+verify\b/.test(fence.command)
           ? "invokes passage-check verify, whose subject is the working tree, not the applied copy"
           : skipPatterns.find((s) => fence.command.includes(s.pattern))?.reason;
 

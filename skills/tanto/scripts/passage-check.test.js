@@ -594,6 +594,26 @@ test("replay skips a command that invokes passage-check verify", () => {
   assert.match(result.out, /skipped/i);
 });
 
+test("replay skips the quoted $TANTO form of verify that the role files prescribe", () => {
+  // The closing double quote sits where the skip rule once expected
+  // whitespace, so the rule never fired on the form Sekkei is told to write
+  // and every verify fence ran inside the applied tree (kisou-refresh bug
+  // report, 2026-09-11).
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const lines = REPLACEMENT.concat([
+    "",
+    "```bash",
+    'node "$TANTO/scripts/passage-check.js" verify --plan p.md --task 91',
+    "```",
+    "",
+    "Expected: `0`",
+  ]);
+  const result = runIn(repo.dir, ["replay", "--plan", writePlan(lines), "--base", repo.head]);
+  assert.strictEqual(result.code, 0);
+  assert.match(result.out, /skipped 1 command/i);
+  assert.doesNotMatch(result.out, /DIFFERS/);
+});
+
 test("an unresolvable base exits 2 and names the ref, unlike an unknown subcommand", () => {
   const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
   const file = writePlan(REPLACEMENT);
