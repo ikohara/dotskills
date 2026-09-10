@@ -421,6 +421,18 @@ Templates are copied and filled, never restated in prose. There are eleven:
 `templates/kaiseki-brief.md`, `templates/kaiseki-report.md`,
 `templates/review-brief.md`, and `templates/tanto.json`.
 
+The skill also ships one executable, `scripts/passage-check.js`: the instrument
+a plan that carries passages checks itself with, run by Sekkei in place of an
+agent dry run, by Jisso at every batch boundary, and by the whole-branch
+reviewer. It is Node with no dependencies, its tests are beside it and run by
+`node --test`, and `roles/sekkei.md` and `roles/jisso.md` name its
+subcommands. Its path is written skill-relative, like every other path in
+this skill, and the role files spell the runnable form `$TANTO`: set that to
+the skill's own directory, which the harness names when it invokes the skill,
+and every command in this skill runs as written. It is never invoked bare —
+the file carries no shebang, so `node` is part of the command and not
+decoration.
+
 No `<plan-basename>` exists before the plan is committed, so the conductor
 ledger starts under `.superpowers/sdd/<topic>/` and Kanri moves it to
 `.superpowers/sdd/<plan-basename>/kanri.md` when the plan lands. Only the

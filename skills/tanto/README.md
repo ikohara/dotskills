@@ -40,6 +40,10 @@ one implementation plan.
   `SendMessage` to address them by name. Unlike `kisou`, `shoroku`, and
   `wayaku`, it is not host-agnostic and does not run on other Agent Skills
   hosts.
+- **Node 22 or newer on `PATH`**, for `scripts/passage-check.js`. Only a plan
+  that carries passages needs it, and only at the moments that check such a
+  plan; everything else in the skill is Markdown. Claude Code is itself a Node
+  application, and the first-party skills assume `node` the same way.
 - **The superpowers plugin**, for brainstorming, writing-plans,
   subagent-driven-development, systematic-debugging, and
   requesting-code-review. Sekkei and Jisso invoke them directly, and the SDD
@@ -100,6 +104,9 @@ the run; no address is pasted, and Kanri's window goes first.
   `batch-prompt.md`, `batch-report.md`, `kaiseki-brief.md`,
   `kaiseki-report.md`, `review-brief.md`, and `tanto.json` (the built-in
   expected-model defaults).
+- `scripts/passage-check.js` — the instrument a plan that carries passages
+  checks itself with, and `scripts/passage-check.test.js` beside it. Node, no
+  dependencies, invoked as `node <path>`.
 
 ## Relationship to kisou, shoroku, and superpowers
 
