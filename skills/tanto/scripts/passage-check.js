@@ -729,6 +729,233 @@ function runReplay(values) {
   return result.ok ? 0 : 1;
 }
 
+const DIFF_GIT_RE = /^diff --git a\/(.+) b\/(.+)$/;
+
+/**
+ * Every added/removed content line of a `git diff` text, each with the path
+ * of the file it belongs to. The path comes from the `diff --git a/... b/...`
+ * header rather than the `+++`/`---` lines, so a deleted file (whose `+++` is
+ * `/dev/null`) still carries a path for its removed lines.
+ */
+function parseDiffEntries(diffText) {
+  const entries = [];
+  let currentPath = null;
+  for (const line of diffText.split("\n")) {
+    const header = line.match(DIFF_GIT_RE);
+    if (header) {
+      currentPath = header[2];
+      continue;
+    }
+    if (line.startsWith("+++") || line.startsWith("---") || line.startsWith("@@") || line.startsWith("index ")) {
+      continue;
+    }
+    if (line.startsWith("+")) {
+      entries.push({ path: currentPath, kind: "add", content: line.slice(1) });
+    } else if (line.startsWith("-")) {
+      entries.push({ path: currentPath, kind: "remove", content: line.slice(1) });
+    }
+  }
+  return entries;
+}
+
+/** Every line that lies inside a fenced block of the plan, at any backtick count. */
+function fencedLineSet(lines) {
+  const set = new Set();
+  let fenceLen = 0;
+  for (const line of lines) {
+    if (fenceLen === 0) {
+      const open = line.match(/^(`{3,})/);
+      if (open) fenceLen = open[1].length;
+      continue;
+    }
+    if (/^`{3,}$/.test(line) && line.length >= fenceLen) {
+      fenceLen = 0;
+      continue;
+    }
+    set.add(line);
+  }
+  return set;
+}
+
+/**
+ * Classify `git diff <base>` from the side opposite `replay`: every added
+ * line outside a `created:` path must be text the plan literally quotes
+ * (present as a line anywhere in the plan), and every removed line must fall
+ * inside one of the plan's fenced blocks. Needs only the plan and `git` --
+ * no scratch tree, no passage application -- so, unlike `replay`, it is
+ * still there at the last boundary once the session that wrote the plan is
+ * gone. Returns { ok, unaccountedAdded, unexplainedRemoved, exempt }. Throws
+ * on a broken invocation -- an unresolvable `base` foremost -- which the
+ * caller reports as exit 2.
+ */
+function diffPlan(parsed, base, options = {}) {
+  const cwd = options.cwd || process.cwd();
+
+  try {
+    execFileSync("git", ["-C", cwd, "rev-parse", "--verify", `${base}^{commit}`], { encoding: "utf8" });
+  } catch {
+    throw new Error(`could not resolve --base '${base}'`);
+  }
+
+  const raw = execFileSync("git", ["-C", cwd, "diff", base], { encoding: "utf8" });
+  // Strip CR before classifying: a CRLF working tree diffed against an LF
+  // index carries CR bytes on the added lines, which no literal quote from
+  // the plan will ever contain.
+  const entries = parseDiffEntries(raw.replace(/\r/g, ""));
+
+  // De-duplicate by path: the plan may state `created:` more than once for
+  // the same path (this plan's own Global Constraints and instrument-spec
+  // sections both declare it), and the exempted count must reflect paths,
+  // not lines.
+  const exempt = [...new Set(parsed.created)];
+  const createdSet = new Set(exempt);
+
+  const quotedLines = new Set(parsed.lines);
+  const fenced = fencedLineSet(parsed.lines);
+
+  const unaccountedAdded = [];
+  const unexplainedRemoved = [];
+  for (const entry of entries) {
+    if (entry.path && createdSet.has(entry.path)) continue;
+    if (entry.kind === "add") {
+      if (!quotedLines.has(entry.content)) {
+        unaccountedAdded.push({ path: entry.path, content: entry.content });
+      }
+    } else if (!fenced.has(entry.content)) {
+      unexplainedRemoved.push({ path: entry.path, content: entry.content });
+    }
+  }
+
+  return {
+    ok: unaccountedAdded.length === 0 && unexplainedRemoved.length === 0,
+    unaccountedAdded,
+    unexplainedRemoved,
+    exempt,
+  };
+}
+
+/** `diff --plan <path> --base <ref>`. Returns the process exit code. */
+function runDiff(values) {
+  if (!values.plan || !values.base) {
+    process.stderr.write(`${USAGE}\n`);
+    return 2;
+  }
+  let text;
+  try {
+    text = fs.readFileSync(values.plan, "utf8");
+  } catch (err) {
+    process.stderr.write(`error reading plan: ${err.message}\n${USAGE}\n`);
+    return 2;
+  }
+  const parsed = parsePlan(text);
+
+  let result;
+  try {
+    result = diffPlan(parsed, values.base, { cwd: process.cwd() });
+  } catch (err) {
+    process.stderr.write(`error: ${err.message}\n${USAGE}\n`);
+    return 2;
+  }
+
+  if (result.exempt.length > 0) {
+    console.log(`${result.exempt.length} path${result.exempt.length === 1 ? "" : "s"} exempt as created:`);
+    for (const p of result.exempt) {
+      console.log(`  ${p}`);
+    }
+  }
+  for (const added of result.unaccountedAdded) {
+    console.log(`unaccounted-added: ${added.path ?? "(unknown path)"} — ${added.content}`);
+  }
+  for (const removed of result.unexplainedRemoved) {
+    console.log(`unexplained-removed: ${removed.path ?? "(unknown path)"} — ${removed.content}`);
+  }
+  if (result.ok) {
+    console.log("diff: clean");
+  }
+  return result.ok ? 0 : 1;
+}
+
+/**
+ * Check task `taskNumber`'s new passages and anchors against the working
+ * tree. Reads only the working tree -- no `--base`, no diffing; that is
+ * `diff`'s job at the boundary. Returns { ok, failures, passageCount }: a
+ * task whose body carries no `P` block -- for example one that touches only
+ * a `created:` path, which has nothing pre-existing for a "new" passage to
+ * be counted against -- reports `passageCount === 0`, which is a result and
+ * not a failure.
+ */
+function verifyTask(parsed, taskNumber, options = {}) {
+  const cwd = options.cwd || process.cwd();
+  const failures = [];
+
+  const passages = parsed.blocks.filter((b) => b.kind === "P" && b.task === taskNumber);
+  for (const block of passages) {
+    let lines;
+    try {
+      lines = toLines(normalize(fs.readFileSync(path.join(cwd, block.path), "utf8"))).lines;
+    } catch {
+      lines = [];
+    }
+    const matches = findMatches(lines, block.new);
+    if (matches.length === 0) {
+      failures.push({ code: "passage-absent", id: block.id, message: `new passage not found in ${block.path}` });
+    } else if (matches.length > 1) {
+      failures.push({
+        code: "passage-repeated",
+        id: block.id,
+        message: `new passage occurs ${matches.length} times in ${block.path}, expected 1`,
+      });
+    }
+  }
+
+  const anchors = parsed.blocks.filter((b) => b.kind === "A" && b.task === taskNumber);
+  for (const block of anchors) {
+    const actual = runShell(block.command, cwd).trim();
+    if (actual !== String(block.after).trim()) {
+      failures.push({
+        code: "anchor-after",
+        id: block.id,
+        message: `expected after: ${block.after}, got: ${actual}`,
+      });
+    }
+  }
+
+  return { ok: failures.length === 0, failures, passageCount: passages.length };
+}
+
+/** `verify --plan <path> --task <N>`. Returns the process exit code. */
+function runVerify(values) {
+  if (!values.plan || !values.task) {
+    process.stderr.write(`${USAGE}\n`);
+    return 2;
+  }
+  const taskNumber = Number(values.task);
+  if (!Number.isInteger(taskNumber)) {
+    process.stderr.write(`invalid --task '${values.task}'\n${USAGE}\n`);
+    return 2;
+  }
+  let text;
+  try {
+    text = fs.readFileSync(values.plan, "utf8");
+  } catch (err) {
+    process.stderr.write(`error reading plan: ${err.message}\n${USAGE}\n`);
+    return 2;
+  }
+  const parsed = parsePlan(text);
+  const result = verifyTask(parsed, taskNumber, { cwd: process.cwd() });
+
+  if (result.passageCount === 0) {
+    console.log(`task ${taskNumber}: no passages`);
+  } else if (result.ok) {
+    console.log(`task ${taskNumber}: verify clean`);
+  }
+  for (const failure of result.failures) {
+    console.log(`${failure.code}: ${failure.id} — ${failure.message}`);
+  }
+
+  return result.ok ? 0 : 1;
+}
+
 /** Dispatch a subcommand. Returns the process exit code. */
 function main(argv) {
   let parsed;
@@ -754,12 +981,18 @@ function main(argv) {
   if (subcommand === "replay") {
     return runReplay(parsed.values);
   }
+  if (subcommand === "diff") {
+    return runDiff(parsed.values);
+  }
+  if (subcommand === "verify") {
+    return runVerify(parsed.values);
+  }
 
   process.stderr.write(`${USAGE}\n`);
   return 2;
 }
 
-module.exports = { normalize, parsePlan, lintPlan, replayPlan, main };
+module.exports = { normalize, parsePlan, lintPlan, replayPlan, diffPlan, verifyTask, main };
 
 if (require.main === module) {
   process.exit(main(process.argv.slice(2)));

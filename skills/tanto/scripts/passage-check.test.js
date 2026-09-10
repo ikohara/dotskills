@@ -407,3 +407,84 @@ test("replay finds and runs a four-backtick command fence", () => {
   assert.strictEqual(result.code, 0);
   assert.match(result.out, /MATCH/);
 });
+
+test("diff passes when every added line is text the plan quotes", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  fs.writeFileSync(path.join(repo.dir, "tmp/fixture.md"), "gamma\n", "utf8");
+  const result = runIn(repo.dir, ["diff", "--plan", writePlan(REPLACEMENT), "--base", repo.head]);
+  assert.strictEqual(result.code, 0);
+});
+
+test("diff lists an added line the plan does not quote, and exits 1", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  fs.writeFileSync(path.join(repo.dir, "tmp/fixture.md"), "gamma\nepsilon\n", "utf8");
+  const result = runIn(repo.dir, ["diff", "--plan", writePlan(REPLACEMENT), "--base", repo.head]);
+  assert.strictEqual(result.code, 1);
+  assert.match(result.out, /epsilon/);
+});
+
+test("diff exempts a created path and names it in the output", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  fs.writeFileSync(path.join(repo.dir, "tmp/fixture.md"), "gamma\n", "utf8");
+  fs.writeFileSync(path.join(repo.dir, "tmp/made.md"), "anything at all\n", "utf8");
+  repo.git("add", "tmp/made.md");
+  const lines = ["```text", "created: tmp/made.md", "```"].concat(REPLACEMENT);
+  const result = runIn(repo.dir, ["diff", "--plan", writePlan(lines), "--base", repo.head]);
+  assert.strictEqual(result.code, 0);
+  assert.match(result.out, /1 path exempt as created/);
+  assert.match(result.out, /tmp\/made\.md/);
+});
+
+test("diff strips CR before classifying an added line", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  fs.writeFileSync(path.join(repo.dir, "tmp/fixture.md"), "gamma\r\n", "utf8");
+  assert.strictEqual(runIn(repo.dir, ["diff", "--plan", writePlan(REPLACEMENT), "--base", repo.head]).code, 0);
+});
+
+test("diff reports a removed line that falls outside every fenced block", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\nzeta\n" });
+  fs.writeFileSync(path.join(repo.dir, "tmp/fixture.md"), "gamma\n", "utf8");
+  const result = runIn(repo.dir, ["diff", "--plan", writePlan(REPLACEMENT), "--base", repo.head]);
+  assert.strictEqual(result.code, 1);
+  assert.match(result.out, /zeta/);
+});
+
+test("verify passes when a task new passage is present exactly once", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  fs.writeFileSync(path.join(repo.dir, "tmp/fixture.md"), "gamma\n", "utf8");
+  const result = runIn(repo.dir, ["verify", "--plan", writePlan(REPLACEMENT), "--task", "91"]);
+  assert.strictEqual(result.code, 0);
+});
+
+test("verify fails when a new passage is absent, and when it is present twice", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const file = writePlan(REPLACEMENT);
+  assert.strictEqual(runIn(repo.dir, ["verify", "--plan", file, "--task", "91"]).code, 1);
+  fs.writeFileSync(path.join(repo.dir, "tmp/fixture.md"), "gamma\ngamma\n", "utf8");
+  assert.strictEqual(runIn(repo.dir, ["verify", "--plan", file, "--task", "91"]).code, 1);
+});
+
+test("verify checks a task anchor against its after value", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\n" });
+  fs.writeFileSync(path.join(repo.dir, "tmp/fixture.md"), "alpha\ndelta\n", "utf8");
+  assert.strictEqual(runIn(repo.dir, ["verify", "--plan", writePlan(INSERTION), "--task", "92"]).code, 0);
+  const wrong = INSERTION.slice();
+  wrong[2] = "**A92.1** `tmp/fixture.md` — `grep -c alpha tmp/fixture.md` — before: 1, after: 3";
+  assert.strictEqual(runIn(repo.dir, ["verify", "--plan", writePlan(wrong), "--task", "92"]).code, 1);
+});
+
+test("verify reports no passages for a task that touches only created paths", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const lines = [
+    "```text",
+    "created: tmp/made.md",
+    "```",
+    "",
+    "### Task 94: only a created path",
+    "",
+    "Nothing but a new file.",
+  ];
+  const result = runIn(repo.dir, ["verify", "--plan", writePlan(lines), "--task", "94"]);
+  assert.strictEqual(result.code, 0);
+  assert.match(result.out, /no passages/i);
+});
