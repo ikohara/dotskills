@@ -696,37 +696,45 @@ function runReplay(values) {
     return 2;
   }
 
-  for (const failure of result.failures) {
-    console.log(`${failure.code}: ${failure.id} — ${failure.message}`);
-  }
-
-  const skipped = result.commands.filter((c) => c.skipped);
-  if (skipped.length > 0) {
-    console.log(`skipped ${skipped.length} command${skipped.length === 1 ? "" : "s"}:`);
-    for (const c of skipped) {
-      console.log(`  skipped: ${c.command} — ${c.reason}`);
+  // `replayPlan` never removes its own tree -- other tests read it back
+  // after the call returns -- so this wrapper, the thing that actually
+  // exits, removes it here instead. The `finally` covers a passing run and
+  // a failing one (exit 1) alike.
+  try {
+    for (const failure of result.failures) {
+      console.log(`${failure.code}: ${failure.id} — ${failure.message}`);
     }
-  }
-  for (const c of result.commands) {
-    if (c.skipped) continue;
-    if (c.status === "no-expectation") {
-      console.log(`ran (no stated expectation): ${c.command}\n${c.output}`);
-    } else {
-      console.log(
-        `${c.status.toUpperCase()}: ${c.command}\n  actual: ${c.output.trim()}\n  expected: ${c.expectation}`,
-      );
+
+    const skipped = result.commands.filter((c) => c.skipped);
+    if (skipped.length > 0) {
+      console.log(`skipped ${skipped.length} command${skipped.length === 1 ? "" : "s"}:`);
+      for (const c of skipped) {
+        console.log(`  skipped: ${c.command} — ${c.reason}`);
+      }
     }
-  }
+    for (const c of result.commands) {
+      if (c.skipped) continue;
+      if (c.status === "no-expectation") {
+        console.log(`ran (no stated expectation): ${c.command}\n${c.output}`);
+      } else {
+        console.log(
+          `${c.status.toUpperCase()}: ${c.command}\n  actual: ${c.output.trim()}\n  expected: ${c.expectation}`,
+        );
+      }
+    }
 
-  const residualHits = result.residuals.filter((r) => r.hits > 0).length;
-  console.log(
-    `${result.residuals.length} residual O needle${result.residuals.length === 1 ? "" : "s"} swept, ${residualHits} with hits:`,
-  );
-  for (const r of result.residuals) {
-    console.log(`  ${r.id} \`${r.needle}\` — ${r.hits} occurrence${r.hits === 1 ? "" : "s"}`);
-  }
+    const residualHits = result.residuals.filter((r) => r.hits > 0).length;
+    console.log(
+      `${result.residuals.length} residual O needle${result.residuals.length === 1 ? "" : "s"} swept, ${residualHits} with hits:`,
+    );
+    for (const r of result.residuals) {
+      console.log(`  ${r.id} \`${r.needle}\` — ${r.hits} occurrence${r.hits === 1 ? "" : "s"}`);
+    }
 
-  return result.ok ? 0 : 1;
+    return result.ok ? 0 : 1;
+  } finally {
+    fs.rmSync(result.tree, { recursive: true, force: true });
+  }
 }
 
 const DIFF_GIT_RE = /^diff --git a\/(.+) b\/(.+)$/;

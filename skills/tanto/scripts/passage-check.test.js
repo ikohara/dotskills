@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { after } = require("node:test");
 const assert = require("node:assert");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -9,12 +10,24 @@ const { normalize, parsePlan, lintPlan } = require("./passage-check.js");
 
 const SCRIPT = path.join(__dirname, "passage-check.js");
 
+// Every temporary directory a helper below creates, so this file's own
+// fixtures leave nothing behind under the OS temp dir -- the same obligation
+// `runReplay` carries for `replayPlan`'s tree, just discharged at file
+// teardown instead of per-call.
+const tmpDirs = [];
+after(() => {
+  for (const dir of tmpDirs) {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 function plan(lines) {
   return lines.join("\n") + "\n";
 }
 
 function writePlan(lines) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "passage-check-"));
+  tmpDirs.push(dir);
   const file = path.join(dir, "plan.md");
   fs.writeFileSync(file, plan(lines), "utf8");
   return file;
@@ -265,6 +278,7 @@ test("an unreadable plan exits 2, not 1", () => {
 
 test("a CRLF plan parses the same as an LF one", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "passage-check-"));
+  tmpDirs.push(dir);
   const file = path.join(dir, "plan.md");
   fs.writeFileSync(file, plan(REPLACEMENT).replace(/\n/g, "\r\n"), "utf8");
   assert.strictEqual(run(["lint", "--plan", file]).code, 0);
@@ -276,6 +290,7 @@ const { replayPlan } = require("./passage-check.js");
 
 function makeRepo(files) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "passage-check-repo-"));
+  tmpDirs.push(dir);
   const git = (...args) =>
     execFileSync(
       "git",
@@ -313,6 +328,30 @@ test("replay applies a passage to a copy of the base blob and exits 0", () => {
   const result = runIn(repo.dir, ["replay", "--plan", file, "--base", repo.head]);
   assert.strictEqual(result.code, 0);
   assert.strictEqual(fs.readFileSync(path.join(repo.dir, "tmp/fixture.md"), "utf8"), "alpha\nbeta\n");
+});
+
+function replayTreeDirs() {
+  return fs.readdirSync(os.tmpdir()).filter((name) => name.startsWith("passage-check-replay-"));
+}
+
+test("a CLI replay run removes its temporary tree, on a pass and on a failure alike", () => {
+  const before1 = new Set(replayTreeDirs());
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const passResult = runIn(repo.dir, ["replay", "--plan", writePlan(REPLACEMENT), "--base", repo.head]);
+  assert.strictEqual(passResult.code, 0);
+  assert.deepStrictEqual(
+    replayTreeDirs().filter((name) => !before1.has(name)),
+    [],
+  );
+
+  const before2 = new Set(replayTreeDirs());
+  const conflictRepo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\nalpha\nbeta\n" });
+  const failResult = runIn(conflictRepo.dir, ["replay", "--plan", writePlan(REPLACEMENT), "--base", conflictRepo.head]);
+  assert.strictEqual(failResult.code, 1);
+  assert.deepStrictEqual(
+    replayTreeDirs().filter((name) => !before2.has(name)),
+    [],
+  );
 });
 
 test("replay fails when an old passage occurs other than the stated number of times", () => {
