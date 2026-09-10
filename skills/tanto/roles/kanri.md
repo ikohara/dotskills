@@ -693,8 +693,11 @@ lines, and these are your steps.
    body is the one line the template gives, rendered); every point opening
    with one of the four tags — confirm, choose, decide, nothing — and every
    unsettled line saying whether an answer is needed; every point in its
-   three parts — the two before `See:` and the pointer after it, which may
-   carry the ` — ` separator, as a plan's task headings do; every pointer the
+   parts — the two before `See:`, then the pointer, and on a choose or decide
+   point the `— If unanswered:` clause after it, so three parts or four, any
+   of which may carry the ` — ` separator, as a plan's task headings do; a
+   choose or decide point without that clause failing the check; every pointer
+   the
    document's own heading text, verbatim and untranslated, so that
    `grep '^#'` on the document matches it. Dispatch once more if the form
    fails; if it fails again, send the brief as it stands and tell the human
