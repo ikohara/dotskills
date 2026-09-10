@@ -162,12 +162,22 @@ reports and prompts follow the tanto templates, and names nothing else.
 
 ## Step 4 — plan review
 
-1. Run every verification command the plan states, once, on this machine, on
-   scratch copies with the passages applied, and write
-   `.superpowers/sdd/<topic>/plan-dryrun.md`: the application script's path,
-   then each command, its output, and the plan's expectation. A command that
-   has never been run is a placeholder in a command's shape; fix the plan,
-   not the expectation.
+1. Run `node "$TANTO/scripts/passage-check.js" lint --plan <path>`, then the
+   same script's `replay --plan <path> --base <merge base>`, and write
+   `.superpowers/sdd/<topic>/plan-dryrun.md` from what they print: the two
+   commands, each one's output, and your ruling on every failure. `lint`
+   checks the plan against itself — the lead lines, each `N` against its
+   block's real line count, the ids' uniqueness, that every cited id exists,
+   that every anchor states both of its values. `replay` applies the passages
+   to copies of the merge-base blobs, asserting that each old passage occurs
+   exactly once; re-runs each anchor against the applied copy and compares the
+   result with its stated `after:` value, which a dry run that applies and
+   then verifies can never test (issue-88d3); runs the plan's commands in
+   order with each output beside its expectation; and prints every residual
+   hit of the plan's `O` needles. A command that has never been run is a
+   placeholder in a command's shape; fix the plan, not the expectation. The
+   script prints failures and does not interpret them: deciding which are plan
+   defects and which are artifacts of this machine is yours, and stays yours.
 2. Dispatch a **read-only** reviewer on `subagents.reviewer` to run the
    writing-plans checklist against the plan **and the dry-run report**: it
    reads the report and spot-checks a few of its commands rather than
