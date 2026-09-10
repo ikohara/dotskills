@@ -936,21 +936,42 @@ function verifyTask(parsed, taskNumber, options = {}) {
   const failures = [];
 
   const passages = parsed.blocks.filter((b) => b.kind === "P" && b.task === taskNumber);
+
+  // Group by target path and identical new text: a plan that states the
+  // same replacement more than once means it that many times over. Each
+  // block contributes its own declared occurrence count -- 1 for an
+  // ordinary replace or insertion, or a replace-all block's own stated
+  // `occurrences` (P12.4 in this branch's own plan is one such block,
+  // alone in its group, declaring 4) -- and the group's expected total is
+  // their sum.
+  const groups = new Map();
   for (const block of passages) {
+    const key = JSON.stringify([block.path, block.new]);
+    let group = groups.get(key);
+    if (!group) {
+      group = { path: block.path, new: block.new, blocks: [] };
+      groups.set(key, group);
+    }
+    group.blocks.push(block);
+  }
+
+  for (const group of groups.values()) {
     let lines;
     try {
-      lines = toLines(normalize(fs.readFileSync(path.join(cwd, block.path), "utf8"))).lines;
+      lines = toLines(normalize(fs.readFileSync(path.join(cwd, group.path), "utf8"))).lines;
     } catch {
       lines = [];
     }
-    const matches = findMatches(lines, block.new);
+    const matches = findMatches(lines, group.new);
+    const expected = group.blocks.reduce((sum, b) => sum + (b.shape === "replace-all" ? b.occurrences : 1), 0);
+    const id = group.blocks.map((b) => b.id).join(", ");
     if (matches.length === 0) {
-      failures.push({ code: "passage-absent", id: block.id, message: `new passage not found in ${block.path}` });
-    } else if (matches.length > 1) {
+      failures.push({ code: "passage-absent", id, message: `new passage not found in ${group.path}` });
+    } else if (matches.length !== expected) {
       failures.push({
-        code: "passage-repeated",
-        id: block.id,
-        message: `new passage occurs ${matches.length} times in ${block.path}, expected 1`,
+        code: "passage-count",
+        id,
+        message: `expected ${expected} occurrence${expected === 1 ? "" : "s"} of the new passage in ${group.path}, found ${matches.length}`,
       });
     }
   }
@@ -989,6 +1010,10 @@ function runVerify(values) {
     return 2;
   }
   const parsed = parsePlan(text);
+  if (!parsed.taskHeadings.includes(taskNumber)) {
+    process.stderr.write(`no such task in the plan: ${taskNumber}\n${USAGE}\n`);
+    return 2;
+  }
   const result = verifyTask(parsed, taskNumber, { cwd: process.cwd() });
 
   if (result.passageCount === 0) {
