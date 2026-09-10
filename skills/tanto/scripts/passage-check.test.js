@@ -454,6 +454,18 @@ test("diff reports a removed line that falls outside every fenced block", () => 
   assert.match(result.out, /zeta/);
 });
 
+test("diff reports a removed line that is itself literally --- rather than reading it as a file header", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\n---\nzeta\n" });
+  fs.writeFileSync(path.join(repo.dir, "tmp/fixture.md"), "gamma\n", "utf8");
+  const result = runIn(repo.dir, ["diff", "--plan", writePlan(REPLACEMENT), "--base", repo.head]);
+  assert.strictEqual(result.code, 1);
+  // Reported selectively, not everything: the ordinary removed line still
+  // shows up next to the `---` line that a loose `startsWith("---")` would
+  // misread as `git diff`'s own file-header line and silently drop.
+  assert.match(result.out, /unexplained-removed: tmp\/fixture\.md — ---/);
+  assert.match(result.out, /unexplained-removed: tmp\/fixture\.md — zeta/);
+});
+
 test("diff de-duplicates a created path the plan declares twice, exempting it once", () => {
   const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
   fs.writeFileSync(path.join(repo.dir, "tmp/fixture.md"), "gamma\n", "utf8");
