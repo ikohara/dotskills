@@ -624,10 +624,11 @@ Three of this plan's edits fall under this repository's `AGENTS.md` "Never
 do" list and need explicit human approval recorded before the task that
 makes them: the `.pre-commit-config.yaml` edit (linter configuration), the
 `node` line in `CONTRIBUTING.md` (repo-root Markdown), and the two
-`docs/**/AGENTS.md` rewrites (agent instruction files). They are two decide
-points in the plan's review brief — the first two share one — each with a
-default of "approved", and the human's answers in `dialogue.md` are the
-record. The `SKILL.md` and `README.md` edits are the plan's ordinary work.
+`docs/**/AGENTS.md` rewrites (agent instruction files). The spec's review
+brief put them as its two decide points (1.4 and 1.5) and the human
+approved both on 2026-09-11 — `dialogue.md`, Q-12 — which is the record;
+the plan's brief need not ask again, and its batch prompts cite Q-12. The
+`SKILL.md` and `README.md` edits are the plan's ordinary work.
 
 ## Old values this plan contradicts
 
@@ -785,12 +786,13 @@ At every batch boundary, on the whole tree:
 
 1. The `.pre-commit-config.yaml` edit (the hook) and the one-line `node`
    prerequisite in `CONTRIBUTING.md` — approval to edit linter
-   configuration and repo-root Markdown. Default if unanswered: approved.
+   configuration and repo-root Markdown. **Approved 2026-09-11** (brief
+   point 1.4; `dialogue.md` Q-12).
 2. The rewrite of `docs/notes/AGENTS.md` and `docs/reports/AGENTS.md`
-   through the dogfood — approval to edit agent instruction files. Default
-   if unanswered: approved.
+   through the dogfood — approval to edit agent instruction files.
+   **Approved 2026-09-11** (brief point 1.5; `dialogue.md` Q-12).
 3. The two ADRs in Requirements are the human's at T1, through Kanri; the
-   review asks nothing about them now.
+   review asked nothing about them.
 
 ## Out of scope
 
