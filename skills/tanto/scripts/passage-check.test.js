@@ -855,6 +855,10 @@ test("lint reports a malformed P lead with no count as malformed-lead, and skips
     ["malformed-lead"],
   );
   assert.strictEqual(problems[0].id, "P97.1");
+  // Asserted on the parse result itself, not only on lint's findings: the
+  // documentation skip produces no O block at all, so this pins the skip
+  // even though skipping it produces no lint finding either way.
+  assert.strictEqual(parsePlan(plan(MALFORMED_AND_PLACEHOLDER)).blocks.length, 0);
 });
 
 test("the file-teardown cleanup removes both the plan-writing and repo-fixture helper directories", () => {
