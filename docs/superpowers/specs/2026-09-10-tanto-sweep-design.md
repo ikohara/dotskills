@@ -1738,9 +1738,11 @@ it is the sharpest available evidence for issue-10bc's premise.
 - **Note 1, rule 11**: accepted; the boundary is stated in Global Constraints
   and in Batches, and section 1's "What this plan can and cannot use" says
   which half of the fixed form this plan uses and why the other half waits.
-- **Note 2, one sweep or several**: one sweep, sorted by destination file, three
-  batches of four. issue-f2c4 was the item that made a single sweep awkward and
-  it is out.
+- **Note 2, one sweep or several**: one sweep, sorted by destination file, in
+  four batches — A and B of four tasks, C and D of three, fourteen in all.
+  issue-f2c4 was the item that made a single sweep awkward and it is out. The
+  count was "three batches of four" until the spec review's findings added
+  eleven blocks and forced the recut; the sentence had not followed the table.
 - **Note 3, the two items that touch the requirement's design**: f2c4 is out;
   12d3 stayed design, and this spec proposes no requirement change. Nothing
   escalated.
