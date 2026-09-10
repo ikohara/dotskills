@@ -116,7 +116,12 @@ handshake role=<role> name=<name [ref]> cwd=<path> model=<model id> branch=<bran
 ("This session is `<name> [<ref>]`").
 
 `mode=` is what you can see about your own permission mode — `auto` when your
-system prompt says auto mode is active, otherwise `unknown`. It is advisory.
+system prompt says auto mode is active, otherwise `unknown`. It is advisory,
+and `unknown` is the measured ceiling rather than a gap: a session outside auto
+mode carries no statement of which mode is active, only the harness's line that
+tools run behind a user-selected one, so nothing better than `unknown` can be
+reported and Kanri's warning stays keyed on the absence of `auto` (measured
+2026-09-10, issue-15bf).
 
 `transcript=` is the path of this session's own transcript per "The transcript
 reading", so that Kanri can record it and, where its session may read that

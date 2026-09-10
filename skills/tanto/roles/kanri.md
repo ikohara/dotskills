@@ -207,6 +207,13 @@ Per batch, in this order.
    Kaiseki branch below; a **scope or spec change** goes to the human. Then
    adopt or reject each shoroku candidate per the adoption rule, and update the
    ledger's `S-n` table, its Batches row, and its Progress line.
+
+   A **measurement** report — one whose deliverable is what a tool actually did
+   — is read for whether its outcome **contradicts** the brief's prediction. A
+   real run usually does, somewhere; a report that confirms every expectation
+   deserves a second look rather than a faster approval, because a
+   reconstruction is built from the same brief the prediction came from
+   (issue-f2ec).
 4. **Triage any bug report that arrived during the batch**, per "Bug intake"
    below: rule on each, and send the redirects, the Kaiseki requests, and the
    relays now. An issue to file or a hotfix to make waits for the commit window
