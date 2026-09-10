@@ -709,7 +709,10 @@ function runReplay(values) {
     }
   }
 
-  console.log(`${result.residuals.length} residual O hit${result.residuals.length === 1 ? "" : "s"}:`);
+  const residualHits = result.residuals.filter((r) => r.hits > 0).length;
+  console.log(
+    `${result.residuals.length} residual O needle${result.residuals.length === 1 ? "" : "s"} swept, ${residualHits} with hits:`,
+  );
   for (const r of result.residuals) {
     console.log(`  ${r.id} \`${r.needle}\` — ${r.hits} occurrence${r.hits === 1 ? "" : "s"}`);
   }
