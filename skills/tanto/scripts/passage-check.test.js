@@ -98,6 +98,112 @@ const SWEEP_TRAPPED = [
   "**O94.1** `gamma` — gone from `tmp/fixture.md`; P91.1 replaces it",
 ];
 
+// Task 1 carries a passage; task 2 touches only a created: path and so has
+// no P block of its own -- the boundary case Step 1's test checks against a
+// task number (99) that matches no heading at all.
+const TASK_ONE_AND_TWO = [
+  "```text",
+  "created: tmp/made.md",
+  "```",
+  "",
+  "### Task 1: first fixture task",
+  "",
+  "**P1.1** `tmp/fixture.md` — replace exactly these 2 lines",
+  "",
+  "```text",
+  "alpha",
+  "beta",
+  "```",
+  "",
+  "**P1.1 →**",
+  "",
+  "```text",
+  "gamma",
+  "```",
+  "",
+  "### Task 2: only a created path",
+  "",
+  "Nothing but a new file.",
+];
+
+// Two P blocks in one task carrying the same new text against the same
+// path -- Step 2's grouping fixture.
+const SHARED_NEW_TEXT = [
+  "### Task 95: two blocks sharing new text",
+  "",
+  "**P95.1** `tmp/fixture.md` — replace exactly these 1 lines",
+  "",
+  "```text",
+  "alpha",
+  "```",
+  "",
+  "**P95.1 →**",
+  "",
+  "```text",
+  "shared",
+  "```",
+  "",
+  "**P95.2** `tmp/fixture.md` — replace exactly these 1 lines",
+  "",
+  "```text",
+  "beta",
+  "```",
+  "",
+  "**P95.2 →**",
+  "",
+  "```text",
+  "shared",
+  "```",
+];
+
+const WHOLE_FILE = [
+  "### Task 96: a whole new file",
+  "",
+  "**W96.1** `tmp/new.md` — new file, 2 lines",
+  "",
+  "```text",
+  "line one",
+  "line two",
+  "```",
+];
+
+// A replay-skip: declaration (column 0, `pattern — reason`) alongside a
+// fenced command it matches.
+const REPLAY_SKIP_FIXTURE = ["```text", "replay-skip: echo skip-marker — deliberately flaky in this fixture", "```"]
+  .concat(REPLACEMENT)
+  .concat(["", "```bash", "echo skip-marker and other words", "```", "", "Expected: `does not matter`"]);
+
+// A P lead whose tail has no count, alongside a placeholder O lead
+// (`<id>`/`<needle>`) that documents a convention rather than naming a
+// real block.
+const MALFORMED_AND_PLACEHOLDER = [
+  "### Task 97: a malformed lead and a placeholder",
+  "",
+  "**P97.1** `tmp/fixture.md` — replace these",
+  "",
+  "**O<id>** `<needle>` — a placeholder, not a real block",
+];
+
+// A single replace-all block, alone in its group: its own declared
+// occurrence count (4), not a flat group size of 1, is what verify must
+// expect. This is the shape task 12's P12.4 uses in the plan this branch
+// built.
+const REPLACE_ALL_SINGLE = [
+  "### Task 98: a single replace-all block",
+  "",
+  "**P98.1** `tmp/fixture.md` — replace all 4 occurrences of this 1 line",
+  "",
+  "```text",
+  "alpha",
+  "```",
+  "",
+  "**P98.1 →**",
+  "",
+  "```text",
+  "gamma",
+  "```",
+];
+
 const codes = (lines) => lintPlan(parsePlan(plan(lines))).map((p) => p.code);
 
 test("normalize turns CRLF into LF", () => {
@@ -663,6 +769,92 @@ test("verify reports no passages for a task that touches only created paths", ()
   const result = runIn(repo.dir, ["verify", "--plan", writePlan(lines), "--task", "94"]);
   assert.strictEqual(result.code, 0);
   assert.match(result.out, /no passages/i);
+});
+
+test("verify --task <N> matching no task heading exits 2 before any passage is read, but a created-only task still reports no passages", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const file = writePlan(TASK_ONE_AND_TWO);
+
+  const missing = runIn(repo.dir, ["verify", "--plan", file, "--task", "99"]);
+  assert.strictEqual(missing.code, 2);
+  assert.match(missing.out, /no such task in the plan: 99/);
+  assert.match(missing.out, /Usage:/);
+
+  const createdOnly = runIn(repo.dir, ["verify", "--plan", file, "--task", "2"]);
+  assert.strictEqual(createdOnly.code, 0);
+  assert.match(createdOnly.out, /no passages/i);
+});
+
+test("verifyTask groups P blocks sharing a target path and identical new text, expecting the group's size as the occurrence count", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "shared\nshared\n" });
+  const result = runIn(repo.dir, ["verify", "--plan", writePlan(SHARED_NEW_TEXT), "--task", "95"]);
+  assert.strictEqual(result.code, 0);
+});
+
+test("verify reports passage-count, stating expected and found, when a shared-text group's occurrence count disagrees", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "shared\n" });
+  const result = runIn(repo.dir, ["verify", "--plan", writePlan(SHARED_NEW_TEXT), "--task", "95"]);
+  assert.strictEqual(result.code, 1);
+  assert.match(result.out, /passage-count/);
+  assert.match(result.out, /expected 2/);
+  assert.match(result.out, /found 1/);
+});
+
+test("verify expects a lone replace-all block's own declared occurrence count, not a flat group size of 1", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\n" });
+  const file = writePlan(REPLACE_ALL_SINGLE);
+
+  fs.writeFileSync(path.join(repo.dir, "tmp/fixture.md"), "gamma\ngamma\ngamma\ngamma\n", "utf8");
+  assert.strictEqual(runIn(repo.dir, ["verify", "--plan", file, "--task", "98"]).code, 0);
+
+  fs.writeFileSync(path.join(repo.dir, "tmp/fixture.md"), "gamma\ngamma\n", "utf8");
+  const result = runIn(repo.dir, ["verify", "--plan", file, "--task", "98"]);
+  assert.strictEqual(result.code, 1);
+  assert.match(result.out, /passage-count/);
+  assert.match(result.out, /expected 4/);
+  assert.match(result.out, /found 2/);
+});
+
+test("a W lead parses with its path, count, and content", () => {
+  const parsed = parsePlan(plan(WHOLE_FILE));
+  assert.strictEqual(parsed.blocks.length, 1);
+  const block = parsed.blocks[0];
+  assert.strictEqual(block.kind, "W");
+  assert.strictEqual(block.id, "W96.1");
+  assert.strictEqual(block.path, "tmp/new.md");
+  assert.strictEqual(block.count, 2);
+  assert.deepStrictEqual(block.new, ["line one", "line two"]);
+});
+
+test("lint reports a W count that disagrees with its block", () => {
+  const lines = WHOLE_FILE.slice();
+  lines[2] = "**W96.1** `tmp/new.md` — new file, 3 lines";
+  assert.deepStrictEqual(codes(lines), ["count-mismatch"]);
+});
+
+test("replay reports a replay-skip pattern's matching fence as skipped, with its stated reason", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const result = runIn(repo.dir, ["replay", "--plan", writePlan(REPLAY_SKIP_FIXTURE), "--base", repo.head]);
+  assert.strictEqual(result.code, 0);
+  assert.match(result.out, /skipped: echo skip-marker and other words — deliberately flaky in this fixture/);
+});
+
+test("replay reports a fence with no Expected paragraph as run with no stated expectation, not as DIFFERS", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const lines = REPLACEMENT.concat(["", "```bash", "echo no-expectation-here", "```"]);
+  const result = runIn(repo.dir, ["replay", "--plan", writePlan(lines), "--base", repo.head]);
+  assert.strictEqual(result.code, 0);
+  assert.match(result.out, /ran \(no stated expectation\): echo no-expectation-here/);
+  assert.doesNotMatch(result.out, /DIFFERS/);
+});
+
+test("lint reports a malformed P lead with no count as malformed-lead, and skips a placeholder O lead as documentation", () => {
+  const problems = lintPlan(parsePlan(plan(MALFORMED_AND_PLACEHOLDER)));
+  assert.deepStrictEqual(
+    problems.map((p) => p.code),
+    ["malformed-lead"],
+  );
+  assert.strictEqual(problems[0].id, "P97.1");
 });
 
 test("the file-teardown cleanup removes both the plan-writing and repo-fixture helper directories", () => {
