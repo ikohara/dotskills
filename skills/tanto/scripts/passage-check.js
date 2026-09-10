@@ -697,8 +697,18 @@ function runReplay(values) {
   // it to clean up below -- on a passing run, a failing one, or a throw
   // partway through `replayPlan` (a plan path absent at `base` throws from
   // `git show`, well after the tree already holds a partial copy; only an
-  // unresolvable `--base` throws before any of that copying starts).
-  const tree = fs.mkdtempSync(path.join(os.tmpdir(), "passage-check-replay-"));
+  // unresolvable `--base` throws before any of that copying starts). Its
+  // own try/catch keeps a broken invocation (e.g. no writable temp
+  // directory) reported as exit 2 rather than an uncaught exception --
+  // there is nothing to remove yet at this point, so no `finally` is
+  // needed here.
+  let tree;
+  try {
+    tree = fs.mkdtempSync(path.join(os.tmpdir(), "passage-check-replay-"));
+  } catch (err) {
+    process.stderr.write(`error: ${err.message}\n${USAGE}\n`);
+    return 2;
+  }
   try {
     let result;
     try {

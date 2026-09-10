@@ -410,6 +410,32 @@ test("a locked temp tree does not turn a passing replay into a crash", () => {
   fs.rmSync(lockedTree, { recursive: true, force: true });
 });
 
+test("a temp-directory creation failure exits 2 with usage, not an uncaught exception", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const file = writePlan(REPLACEMENT);
+  const mkdtemp = mock.method(fs, "mkdtempSync", () => {
+    throw new Error("EACCES: permission denied, mkdtemp");
+  });
+  let stderr = "";
+  const stderrWrite = mock.method(process.stderr, "write", (chunk) => {
+    stderr += chunk;
+    return true;
+  });
+  const cwd = process.cwd();
+  let code;
+  try {
+    process.chdir(repo.dir);
+    code = main(["replay", "--plan", file, "--base", repo.head]);
+  } finally {
+    process.chdir(cwd);
+    mkdtemp.mock.restore();
+    stderrWrite.mock.restore();
+  }
+  assert.strictEqual(code, 2);
+  assert.match(stderr, /EACCES/);
+  assert.match(stderr, /Usage:/);
+});
+
 test("replay fails when an old passage occurs other than the stated number of times", () => {
   const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\nalpha\nbeta\n" });
   const file = writePlan(REPLACEMENT);
