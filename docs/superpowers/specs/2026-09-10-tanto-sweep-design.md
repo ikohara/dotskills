@@ -71,12 +71,15 @@ These are settled. Nothing below re-argues them; the plan inherits them whole.
     authority for the run's sessions is the plan's Global Constraints,
     Kanri's orders line, and the batch prompts.
 
-11. **The tooling for the script is the human's, and lands first** (D-8, and
-    the human's word of 2026-09-10 that the linter is configured before the
-    script is written). Before batch A's first task, the human puts two things
-    in place through the dotrepo base scaffold: a JavaScript linter targeting
+11. **The tooling for the script is the human's, and lands first** (D-8, D-12,
+    D-13). Before batch A's first task, the human puts two things in place
+    through the dotrepo base scaffold: a JavaScript linter targeting
     `skills/tanto/scripts/*.js` at Node 22, and `mise` in this repository's
     contributor prerequisites, since the tests are pinned to the floor with it.
+    The `mise` entry is a `CONTRIBUTING.md` change and so needed the human's
+    explicit approval, which D-13 records; the spec review raised it as a scope
+    item because the dialogue file did not yet carry D-12, where the human had
+    named `mise` twice.
     This plan touches neither `.pre-commit-config.yaml` nor `CONTRIBUTING.md`
     nor any other linter or formatter configuration — `AGENTS.md` forbids the
     first without explicit human approval and repo-root Markdown likewise.
@@ -181,22 +184,61 @@ The lead line is the machine contract, and it is visible in the rendered plan
 so that a reader and the parser see the same thing. There is exactly one place
 each fact is written.
 
-A **replacement** leads with
-`**P<id>** <path> — replace exactly these <N> lines`, then the old block, then
-`**P<id> →**`, then the new block. An **insertion** leads with
-`insert after these <N> lines`, and its new block omits the anchor lines the
-old block names, because an insertion's anchor stays. A **global replacement**
-leads with `replace all <N> occurrences of these <M> lines` and is the one
-shape whose old block is allowed to match more than once.
+**The id.** Every block's id is `<task>.<n>` — the plan's task number, a dot,
+and the block's ordinal within that task — prefixed by its kind: `P` for a
+passage, `A` for an anchor step, `O` for an old value, `W` for a whole file.
+`verify --plan <path> --task <N>` selects by that first component, so the task
+number in the id is load-bearing and not decoration. **This spec's own ids are
+not plan ids.** A spec has no tasks, so its blocks are labelled `P-K1`, `A-S5`,
+`P-M2` — grouped by destination file — and the drafter assigns each one a
+`<task>.<n>` when it places the block in a task. The plan's "Where each change
+lives" table carries both, spec label and plan id, so the mapping is written
+once and checkable.
 
-An **anchor step** leads with
+**Four shapes.**
+
+- A **replacement** leads with
+  `**P<id>** <path> — replace exactly these <N> lines`, then the old block,
+  then `**P<id> →**`, then the new block.
+- An **insertion** leads with `insert after these <N> lines` or
+  `insert before these <N> lines`, and its new block omits the anchor lines the
+  old block names, because an insertion's anchor stays. Both directions exist
+  because a section that must precede an existing heading has no other anchor
+  than that heading: this spec has one such block, and a first draft wrote it
+  as `insert after` with the direction corrected only in prose the parser does
+  not read.
+- A **global replacement** leads with
+  `replace all <N> occurrences of these <M> lines`. It is the one shape whose
+  old block is allowed to match more than once, and `<N>` is the count `lint`
+  checks.
+- A **whole file** leads with `**W<id>** <path> — new file, <N> lines` and
+  carries the file's entire content. A file the plan creates has no old
+  passage to anchor to, and `diff` needs to know its lines are accounted for.
+  A plan need not carry a created file this way — see `diff`'s `created:` set
+  below — and this plan does not, because transcribing a program byte for byte
+  buys nothing that its own tests do not.
+
+**An anchor step** leads with
 `**A<id>** <path> — <command> — before: <v>, after: <v>`, both values stated,
 always. An anchor check inverts only when the new passage wholly supersedes the
 needle; when the needle is the passage's unchanged opening it still returns `1`
 after a correct edit, and a boundary that re-runs the blocks mechanically reads
-the non-inverting half as a failure without the stated value.
+the non-inverting half as a failure without the stated value. **Every insertion
+carries one**, because an insertion's own block is text that survives the edit
+and so cannot pin where the new text went; a replacement carries one only when
+the plan wants a needle its blocks do not already quote. `lint` enforces that
+rule, which is why it is written here rather than left to judgment.
 
-An **old value the plan contradicts** leads with
+**An anchor needle never contains a backtick.** It is written inside an inline
+code span, and a single-backtick span ends at the next backtick, so a needle
+with one renders as fragments and a parser extracting the command gets a
+truncated string — silently, with no error. Measured on this spec: `A-S5`'s
+first draft embedded a `grep` pattern full of backticks and both the reviewer's
+parser and the author's dropped the anchor entirely, finding four of five. Pick
+a substring of the target line that carries none, and use `grep -cF` when the
+line's punctuation would otherwise need escaping.
+
+**An old value the plan contradicts** leads with
 `**O<id>** <needle> — <where it must be gone, or why it may stay>`, one per
 entity the plan changes.
 
@@ -204,19 +246,27 @@ The lead lines above are written with `<id>` and `<path>` placeholders on
 purpose. A plan that documents this grammar — this spec, the role files, the
 note — contains text shaped exactly like a lead line, and a parser that scans
 for the shape will try to resolve the documentation as a passage. Measured
-while writing this spec: a first draft used a concrete `**P3.2**
-\`skills/tanto/SKILL.md\`` in the illustration and a hand-written pre-flight
-reported it as a block with the wrong line count against a file it does not
-appear in. So `lint` resolves a lead only inside a task's body, and a lead
-whose id or path is a `<...>` placeholder is documentation and is skipped.
+while writing this spec: a first draft used a concrete `**P3.2**` with a real
+path in the illustration and a hand-written pre-flight reported it as a block
+with the wrong line count against a file it does not appear in. Two rules
+follow, and both are mechanical:
+
+- a lead whose id or path is a `<...>` placeholder is documentation and is
+  skipped;
+- a lead is resolved only inside a **task body**, which is the text under a
+  heading matching `^### Task <n>` or `^## Task <n>` — the shapes
+  superpowers' writing-plans produces. `lint` **fails** when it finds zero task
+  headings, rather than reporting success over zero blocks. That failure mode
+  is issue-5e47's hazard by name, and a script that depends on a plan's shape
+  must say so out loud rather than pass quietly when the shape changes.
 
 ### The four subcommands
 
 | Subcommand | What it does | What it closes |
 | --- | --- | --- |
 | `lint --plan <path>` | Parses only. Every lead line well-formed; every `N` equal to its block's real line count; every id unique; every id cited in prose present as a block; every anchor step stating both values. | issue-88d3's count half, issue-f813's citation rule |
-| `replay --plan <path> --base <ref>` | Copies the base blobs to a temporary tree and applies each passage, asserting each old passage occurs **exactly once**. Then re-runs each anchor command against the applied copy and compares the result with its stated `after:` value. Then runs the plan's commands in order, printing each output beside its stated expectation. Then runs every `O` needle against the applied tree and prints every residual hit. | issue-88d3's anchor half, issue-7481's command-runner half, issue-10bc |
-| `diff --plan <path> --base <ref>` | Every added line of `git diff <base>` must be text the plan literally quotes; lists the added lines that are not, and the removed lines outside any fenced block. Needs only the plan and `git`. | issue-7481's core |
+| `replay --plan <path> --base <ref>` | Copies the base blobs to a temporary tree and applies each passage, asserting each old passage occurs **exactly once**. Then re-runs each anchor command against the applied copy and compares the result with its stated `after:` value. Then runs the plan's commands in order against that tree, printing each output beside its stated expectation — **skipping any command that invokes `passage-check.js verify`**, because `verify` reads the working tree and `replay` has already made that check against its own. Then runs every `O` needle against the applied tree and prints every residual hit. | issue-88d3's anchor half, issue-7481's command-runner half, issue-10bc |
+| `diff --plan <path> --base <ref>` | Every added line of `git diff <base>` must be text the plan literally quotes; lists the added lines that are not, and the removed lines outside any fenced block. A path the plan declares as created is exempt — its lines are accounted for by construction — and the exemption is read from the plan's `created:` list, never inferred. Needs only the plan and `git`. | issue-7481's core |
 | `verify --plan <path> --task <N>` | What a task's Verify step invokes, against the working tree: each of task `N`'s new passages present exactly once, each of its anchors at its stated `after:` value, and `diff` scoped to the files task `N` touches. | D-6 |
 
 `replay` reconstructs; `diff` classifies. They prove the same thing from
@@ -224,6 +274,53 @@ opposite sides, and only `diff` survives the session that wrote it, which is
 the whole of issue-7481: the context-cost run's application script lived in a
 scratchpad under another session's id and was gone by the last boundary, the
 one that most needs the check.
+
+### Files the plan creates
+
+A plan that adds a file has nothing for `diff` to match its lines against, and
+every one of them is an added line of the merge-base diff. So the plan states,
+once, in its Global Constraints:
+
+```text
+created: skills/tanto/scripts/passage-check.js
+created: skills/tanto/scripts/passage-check.test.js
+```
+
+`diff` exempts those paths and says so in its output — `2 paths exempt as
+created`, naming them — rather than passing them silently, so that a reader
+sees what was not checked. `verify --task <N>` reports "no passages" for a task
+that touches only created paths, which is a result and not a failure. The
+alternative, carrying each new file as a `W` block, is available in the grammar
+and is not used here: transcribing a program byte for byte into a plan buys
+nothing its own tests do not already prove, and it would put the largest task
+in the plan at several hundred lines for no verification gain (issue-7281).
+
+### Exit codes, and what counts as a failure
+
+Under D-6 a task's Verify step **is** one invocation of `verify`, and a Verify
+step that cannot fail is not a check. Each subcommand exits `0` only when
+everything it checked held.
+
+| Subcommand | Exits non-zero when |
+| --- | --- |
+| `lint` | any lead is malformed; any `N` disagrees with its block; any id repeats; any cited id has no block; any insertion has no anchor step; any anchor omits a value; **or zero task headings were found** |
+| `replay` | a passage's old block matches other than the stated number of times; an applied anchor disagrees with its `after:` value; a command's output differs from its stated expectation |
+| `diff` | any added line outside a `created:` path is not quoted by the plan, or any removed line falls outside every fenced block |
+| `verify` | a task's new passage is absent or present more than once, or one of its anchors disagrees with its `after:` value |
+
+A residual `O` hit is the exception and exits `0`: the old-value sweep is
+adjudicated, not decided — Sekkei rules each hit as "this becomes a passage" or
+"unchanged, and why" — so `replay` prints the hits under a heading that names
+their count and leaves the judgment where issue-10bc puts it. An unresolvable
+`--base`, an absent `git`, and an unreadable plan exit `2`, distinct from a
+check failure's `1`, so that a broken invocation is never read as a clean tree.
+
+### Module format
+
+CommonJS with `require`, because there is no `package.json` and a bare `.js`
+file is CommonJS to Node. The test file follows the same choice. Stating it
+removes the one ambiguity that would otherwise cost an implementer a run:
+`import` in that file is a runtime error, not a lint finding.
 
 Two rules the parser enforces because prose cannot: a count is written only
 where a command consumes it, and a block appears once. The context-cost run
@@ -585,7 +682,7 @@ reported and Kanri's warning stays keyed on the absence of `auto` (measured
 
 ### `skills/tanto/SKILL.md`, the skill ships one executable
 
-**A-S5** `skills/tanto/SKILL.md` — `grep -c '^`templates/review-brief.md`, and `templates/tanto.json`.$' skills/tanto/SKILL.md` — before: 1, after: 1
+**A-S5** `skills/tanto/SKILL.md` — `grep -cF 'Templates are copied and filled, never restated in prose.' skills/tanto/SKILL.md` — before: 1, after: 1
 
 **P-S5** `skills/tanto/SKILL.md` — insert after these 1 lines
 
@@ -645,6 +742,223 @@ removes. P-S3 and P-K7 alone would have left Jisso's copy contradicting both.
 | SDD Finish — delete the workspace once the final review is clean | never delete it | it holds the conductor ledger, the reports, and the T2 source; nobody deletes it at the close, and the topic directory beside it stays on the same terms (issue-12d3) |
 ```
 
+### The three the second sweep missed, and the two seats issue-7481 had not reached
+
+The spec review found three more old values and two unreached seats. All three
+old values sit in files that carry **no other passage of this plan**, which is
+the sharpest form of issue-10bc yet seen: a file with a passage gets read
+anyway; a file without one is never opened unless a needle reaches it. All
+three are also **closed enumerations** — a sentence that counts or lists —
+which is the shape every miss in this spec has had.
+
+`templates/roster.md` still tells its reader that the archive feeds a threshold
+for the handover, which decision-b6cb closed.
+
+**P-T1** `skills/tanto/templates/roster.md` — replace exactly these 2 lines
+
+```text
+above, and it is the archive's rows across runs that a threshold for the
+handover or a replacement will be read from (issue-40ed).
+```
+
+**P-T1 →**
+
+```text
+above, and it is the archive's rows across runs that a threshold for replacing
+a peer will be read from (issue-40ed's other half; the handover half closed
+with decision-b6cb, which made the plan close the ordinary trigger).
+```
+
+`roles/kanri.md`'s brief form check counts a point's parts, and `P-R2` adds a
+fourth. This is the mechanism that would enforce the new clause, so leaving it
+would have closed issue-867f in the template and left it unenforced.
+
+**P-K9** `skills/tanto/roles/kanri.md` — replace exactly these 3 lines
+
+```text
+   unsettled line saying whether an answer is needed; every point in its
+   three parts — the two before `See:` and the pointer after it, which may
+   carry the ` — ` separator, as a plan's task headings do; every pointer the
+```
+
+**P-K9 →**
+
+```text
+   unsettled line saying whether an answer is needed; every point in its
+   parts — the two before `See:`, then the pointer, and on a choose or decide
+   point the `— If unanswered:` clause after it, so three parts or four, any
+   of which may carry the ` — ` separator, as a plan's task headings do; a
+   choose or decide point without that clause failing the check; every pointer
+   the
+```
+
+The review-brief template's form-marker list is the one place a writer reads to
+learn what not to translate, and `P-R2` declares a new marker without adding it
+there.
+
+**P-R4** `skills/tanto/templates/review-brief.md` — replace exactly these 4 lines
+
+```text
+renders. The form markers are the exception and stay exactly as they are
+here: the bracketed tag words `confirm`, `choose`, `decide`, `nothing`, the
+labels `Q:`, `A:`, `Serves:`, `Adds or changes:`, `See:`, the `## <n>.`
+numbers, and the pointer after `See:`. The brief selects and renders; it does
+```
+
+**P-R4 →**
+
+```text
+renders. The form markers are the exception and stay exactly as they are
+here: the bracketed tag words `confirm`, `choose`, `decide`, `nothing`, the
+labels `Q:`, `A:`, `Serves:`, `Adds or changes:`, `See:`,
+`— If unanswered:`, the `## <n>.` numbers, and the pointer after `See:`. The
+brief selects and renders; it does
+```
+
+`roles/jisso.md`'s verification section opens by asserting that a tanto plan has
+no test suite. Batch A ships one.
+
+**P-J4** `skills/tanto/roles/jisso.md` — replace exactly these 3 lines
+
+```text
+subagent-driven-development's dispatch templates assume a test suite. A plan
+that produces Markdown — a skill, a document set, a template pack — has none,
+and its equivalents differ in kind. Substitute these, and say so in every
+```
+
+**P-J4 →**
+
+```text
+subagent-driven-development's dispatch templates assume a test suite. A plan
+that produces Markdown — a skill, a document set, a template pack — usually has
+none, and its equivalents differ in kind. A plan that also ships code has a real
+one, and then both apply: the suite for the code, on the runtime version the
+plan pins, and the substitutes below for everything else. Substitute these, and
+say so in every
+```
+
+Two of issue-7481's four seats had no passage. The whole-branch review is
+Kanri's dispatch, not Jisso's, which is why the instrument for it lands in
+`roles/kanri.md` — and `P-S5` was asserting a capability the tree would not
+have supported.
+
+**A-K12** `skills/tanto/roles/kanri.md` — `grep -cF 'commissions its own final review.' skills/tanto/roles/kanri.md` — before: 1, after: 1
+
+**P-K12** `skills/tanto/roles/kanri.md` — insert after these 2 lines
+
+```text
+   commissions its own final review. Anything else you dispatch takes
+   `subagents.default`.
+```
+
+**P-K12 →**
+
+```text
+
+   For a plan that carries passages, give that reviewer the plan, the merge
+   base, and one command —
+   `node skills/tanto/scripts/passage-check.js replay --plan <path> --base <merge base>`
+   — so that the replay it would otherwise rebuild by hand is the instrument
+   Sekkei and Jisso already ran (issue-7481). Its report says what the replay
+   printed, and the review seat goes to the cross-file contracts and the
+   human-facing questions, which no script judges.
+```
+
+`roles/sekkei.md`'s "how a batch is verified" bullet knows only about a plan
+that ships Markdown. This plan is the first to ship code, and the first whose
+boundary check is a command rather than a set of greps.
+
+**P-E3** `skills/tanto/roles/sekkei.md` — replace exactly these 3 lines
+
+```text
+- **how a batch is verified**. For a plan that ships Markdown, that section
+  names lint on the changed paths by name, the content greps, a real YAML load
+  of any frontmatter, and a JSON parse of any JSON the plan writes;
+```
+
+**P-E3 →**
+
+```text
+- **how a batch is verified**. For a plan that ships Markdown, that section
+  names lint on the changed paths by name, the content greps, a real YAML load
+  of any frontmatter, and a JSON parse of any JSON the plan writes; for a plan
+  that ships code, the test command together with the runtime version it is
+  pinned to, so that a version claim is a run and not an assertion; and for a
+  plan that carries passages,
+  `node skills/tanto/scripts/passage-check.js diff` as the boundary check,
+  which is what makes that check outlive the session that wrote it
+  (issue-7481);
+```
+
+### The handover procedure gains the plan close as a third case
+
+`P-K1` makes the plan close a trigger, but the procedure the trigger routes
+into was written for two cases and the close is a third. Two of its steps say
+the wrong thing at a close: step 1 says the exit shoroku is already done, which
+is true only at a batch boundary, and step 3 overwrites the ledger's Progress
+line with "handover written" — the very line the delete-table row `P-K6`
+rewrites is keyed on ("the ledger's Progress line says closed"). The routing
+sentence above them speaks of "the two procedures".
+
+**P-K13** `skills/tanto/roles/kanri.md` — replace exactly this 1 line
+
+```text
+Which of the two procedures follows is decided by whether a ledger is open.
+```
+
+**P-K13 →**
+
+```text
+Which procedure follows is decided by whether a ledger is open. A plan close
+has one open until you close it, so it takes the in-plan procedure with the two
+exceptions steps 1 and 3 name.
+```
+
+**P-K10** `skills/tanto/roles/kanri.md` — replace exactly these 7 lines
+
+```text
+1. **Exit shoroku first** — the Kanri case under "Exit shoroku": propose to
+   yourself from the ledger and the roster, not from recollection, escalate to
+   the human, write, lint, commit once, and mark the `S-n` rows written. What
+   you cannot reconstruct goes into the handover file's "Not reconstructed"
+   section. In a plan this step is loop step 6's proposal and step 7's slot (b)
+   commit, already done when the window reaches this list; between plans it is
+   one act and the commit lands on `main`.
+```
+
+**P-K10 →**
+
+```text
+1. **Exit shoroku first** — the Kanri case under "Exit shoroku": propose to
+   yourself from the ledger and the roster, not from recollection, escalate to
+   the human, write, lint, commit once, and mark the `S-n` rows written. What
+   you cannot reconstruct goes into the handover file's "Not reconstructed"
+   section. At a **batch boundary** this step is loop step 6's proposal and
+   step 7's slot (b) commit, already done when the window reaches this list. At
+   a **plan close** it is a fresh act, run after T2, the merge decision, the
+   peers' deletion and the archive move, and its commit lands on the plan's
+   branch (decision-b6cb). **Between plans** it is one act too, and the commit
+   lands on `main`.
+```
+
+**P-K11** `skills/tanto/roles/kanri.md` — replace exactly these 3 lines
+
+```text
+3. **In a plan**, set the ledger's Progress line to "handover written".
+   **Between plans**, there is no ledger, so write "handover written by
+   `<name> [<ref>]`" as a roster Events line instead.
+```
+
+**P-K11 →**
+
+```text
+3. **At a batch boundary**, set the ledger's Progress line to "handover
+   written". **At a plan close** that line already says "closed", which the
+   delete table's row keys on, so leave it and record "handover written by
+   `<name> [<ref>]`" as a roster Events line. **Between plans** there is no
+   ledger, and that Events line is the only record.
+```
+
 ## 3. The roles that author and execute a passage plan
 
 ### `skills/tanto/roles/sekkei.md`, Step 3 — the block conventions
@@ -682,9 +996,13 @@ plan is machine-checkable and not only readable:
   its old name. Write these before the passages, not after, and from the
   entity rather than from the new text: a set whose cardinality changes is
   reached by no new term at all, and a rule two role files state in different
-  words needs both spellings as needles. A sweep for the terms a plan
-  introduces is not a sweep for the prose those terms contradict, and only
-  this one catches the second (issue-10bc).
+  words needs both spellings as needles. Sweep the files the plan does **not**
+  touch first — a file with a passage gets read anyway — and **run each needle
+  as you write it**, because one that wraps in its target returns `0`, which
+  reads as "already gone". Record the raw count and the disposition of each
+  hit, not one verdict. A sweep for the terms a plan introduces is not a sweep
+  for the prose those terms contradict, and only this one catches the second
+  (issue-10bc).
 
 Each block appears **once**; a later task that needs one cites it by its id and
 does not re-quote it. A count in prose is written only where a command consumes
@@ -770,15 +1088,18 @@ last boundary — the one that most needs it (issue-7481).
 
 **A-J2** `skills/tanto/roles/jisso.md` — `grep -c '^## Fix rounds and the Kaiseki trigger$' skills/tanto/roles/jisso.md` — before: 1, after: 1
 
-**P-J2** `skills/tanto/roles/jisso.md` — insert after these 1 lines
+**P-J2** `skills/tanto/roles/jisso.md` — insert before these 1 lines
 
 ```text
 ## Fix rounds and the Kaiseki trigger
 ```
 
-The new block goes **before** that heading; the anchor is the heading, which
-stays. The plan's task states that shape explicitly, since it is the one
-insertion in this plan whose text precedes its anchor.
+This is the block that made the grammar grow a fourth shape. A new section that
+must precede an existing heading has no anchor but that heading, and the first
+draft wrote `insert after` with the direction corrected only in prose — which
+`replay` does not read, so it would have reconstructed the section in the wrong
+place and `verify` would have passed the wrong edit. `P-J1` inserts into the
+same two-line gap; `P-J1` runs first, so its text sits above `P-J2`'s heading.
 
 **P-J2 →**
 
@@ -825,7 +1146,9 @@ choose or decide needs its own line, and an unanswered one stays open.
 confirm or nothing that goes unmentioned counts as confirmed. A point tagged
 choose or decide needs its own line; when it goes unanswered, what the point
 names after `— If unanswered:` is what it selects, so that you see before
-answering what your silence will choose.
+answering what your silence will choose. A choose or decide point carrying no
+such clause is a defective brief: it stays open, and Sekkei asks for it on its
+own line rather than reading a default into it.
 ```
 
 **A-R2** `skills/tanto/templates/review-brief.md` — `grep -c 'For a spec, section 5' skills/tanto/templates/review-brief.md` — before: 1, after: 1
@@ -847,7 +1170,8 @@ where one exists, and otherwise the recommendation Sekkei states with the
 brief; for a **choose** point it names one of the options the point lists. The
 clause is the writer's, it is rendered in the chat's language like the rest of
 the point, and the marker `— If unanswered:` itself is a form marker and stays
-as it is (issue-867f).
+as it is. The unsettled section's `decide` lines carry it too; they have no
+pointer, so it follows the line's own trailing clause instead (issue-867f).
 ```
 
 The four point templates in sections 1, 2, 4 and 5 gain the optional clause, so
@@ -863,16 +1187,20 @@ same one-line replacement, differing only in its section:
 **P-R3 →**
 
 ```text
-1. [confirm | choose | decide | nothing] Q: <...> — A: <...> — See: <section>[ — If unanswered: <what>]
+1. [confirm | choose | decide | nothing] Q: <...> — A: <...> — See: <section> — If unanswered: <what, on a choose or decide point only>
 ```
+
+The clause is written out rather than bracketed. On this same line `[...]`
+already means "pick one of these tag words", so a bracketed
+`[ — If unanswered: <what>]` would make one line use the same punctuation for
+two meanings and would read as optional the clause `P-R2` makes mandatory — the
+exact ambiguity that leaves issue-867f half-closed.
 
 This is the one block in this plan whose needle occurs more than once on
 purpose. Its task replaces all four occurrences and the Verify step counts
 four; `passage-check.js lint` would reject a `replace exactly these N lines`
 block that matches four times, so the plan states this one as a
-**global replacement**, with its occurrence count in the lead. The script's
-grammar therefore admits a third shape beside replace and insert:
-`replace all <N> occurrences of these <M> lines`.
+**global replacement**, with its occurrence count in the lead.
 
 ## 4. The note and the README
 
@@ -884,10 +1212,113 @@ editing `skills/tanto/` verifies itself. Its "Six things a passage plan's pass
 needs that a whole-file plan's does not" list, and its checks 1 and 2, are
 where `scripts/passage-check.js` belongs: the diff form it already describes is
 what the script's `diff` subcommand implements, and the reconstruct-and-compare
-it already calls the strongest check is what `replay` implements. The task
-adds the script to check 1's layout list and to check 2's in-skill path set,
-and replaces the passage-plan list's prose about a session-local application
-script with the script's own invocations.
+it already calls the strongest check is what `replay` implements.
+
+Its passages are carried here like every other file's. A first draft described
+this task in prose — "adds the script to check 1's layout list and to check 2's
+in-skill path set" — and that description hid three things a task would have
+had to invent: two counts stated in prose, and a **regex change**, because
+every alternative of check 2's extraction ends in `\.md` or `\.json` and the
+test file's stem contains a dot. design-4807's rule applies exactly — a
+qualifier that lives in the spec's prose but not in its fenced block never
+reaches the runtime file.
+
+**P-N1** `docs/notes/tanto-consistency-checks.md` — replace exactly this 1 line
+
+```text
+  skills/tanto/templates/tanto.json 2>&1
+```
+
+**P-N1 →**
+
+```text
+  skills/tanto/templates/tanto.json \
+  skills/tanto/scripts/passage-check.js \
+  skills/tanto/scripts/passage-check.test.js 2>&1
+```
+
+**P-N2** `docs/notes/tanto-consistency-checks.md` — replace exactly this 1 line
+
+```text
+Expected: all seventeen paths listed, no `No such file or directory`.
+```
+
+**P-N2 →**
+
+```text
+Expected: all nineteen paths listed, no `No such file or directory`.
+```
+
+**P-N3** `docs/notes/tanto-consistency-checks.md` — replace exactly this 1 line
+
+```text
+grep -oh 'roles/[a-z]*\.md\|templates/[a-z-]*\.md\|templates/tanto\.json\|skills/tanto/[a-z/-]*\.md\|skills/tanto/[a-z/-]*\.json' \
+```
+
+**P-N3 →**
+
+```text
+grep -oh 'roles/[a-z]*\.md\|templates/[a-z-]*\.md\|templates/tanto\.json\|skills/tanto/[a-z/-]*\.md\|skills/tanto/[a-z/-]*\.json\|skills/tanto/[a-z/.-]*\.js' \
+```
+
+The new alternative's character class admits `.` because
+`passage-check.test.js` carries one in its stem; `[a-z/-]*\.js` would match
+only `test.js` out of it. Run against a probe file holding the invocation lines
+`P-J1`, `P-E2`, `P-E3` and `P-K12` land, the extended expression extracts
+`scripts/passage-check.js` and `scripts/passage-check.test.js` and nothing
+else — measured 2026-09-10, before this block was written.
+
+**P-N4** `docs/notes/tanto-consistency-checks.md` — replace exactly these 10 lines
+
+```text
+Expected: fifteen `ok` lines — `roles/jisso.md`, `roles/kaiseki.md`,
+`roles/kanri.md`, `roles/sekkei.md`, `templates/batch-prompt.md`,
+`templates/batch-report.md`, `templates/bug-report.md`,
+`templates/kaiseki-brief.md`, `templates/kaiseki-report.md`,
+`templates/kanri-handover.md`, `templates/kanri.md`,
+`templates/review-brief.md`, `templates/roster-archive.md`,
+`templates/roster.md`, and `templates/tanto.json`, whose relative order for the
+two roster paths is the locale's and is not part of this check —
+and **no** `MISSING` line. A `MISSING` line is either a typo in the reference
+or a file the plan forgot.
+```
+
+**P-N4 →**
+
+```text
+Expected: seventeen `ok` lines — `roles/jisso.md`, `roles/kaiseki.md`,
+`roles/kanri.md`, `roles/sekkei.md`, `scripts/passage-check.js`,
+`scripts/passage-check.test.js`, `templates/batch-prompt.md`,
+`templates/batch-report.md`, `templates/bug-report.md`,
+`templates/kaiseki-brief.md`, `templates/kaiseki-report.md`,
+`templates/kanri-handover.md`, `templates/kanri.md`,
+`templates/review-brief.md`, `templates/roster-archive.md`,
+`templates/roster.md`, and `templates/tanto.json`, whose relative order for the
+two roster paths is the locale's and is not part of this check —
+and **no** `MISSING` line. A `MISSING` line is either a typo in the reference
+or a file the plan forgot.
+```
+
+**P-N5** `docs/notes/tanto-consistency-checks.md` — replace exactly these 5 lines
+
+```text
+   **Prefer the second form, and treat the first as unavailable by default.**
+   A plan that names the dry run's application script as its replay names a
+   tool that lives in the drafting session's scratchpad: on the context-cost
+   run that script was already gone by the final boundary, which is the
+   boundary that most needs it. The second form needs only the plan and
+```
+
+**P-N5 →**
+
+```text
+   **Both forms are `skills/tanto/scripts/passage-check.js` now** — `replay`
+   is the first and `diff` the second — and the script lives in the
+   repository rather than in a session's scratchpad. That was the defect: on
+   the context-cost run the dry run's application script was already gone by
+   the final boundary, which is the boundary that most needs it (issue-7481).
+   The second form needs only the plan and
+```
 
 This plan therefore **edits the note that governs its own verification**,
 which design-4807 records as a legitimate but watchable pattern: the warrant
@@ -957,9 +1388,15 @@ skill needs of its host. Both change.
 | 7481, 88d3, 10bc | `skills/tanto/roles/sekkei.md` | P-E2 |
 | 7481 | `skills/tanto/roles/jisso.md` | A-J1, P-J1 |
 | f2ec (the dispatch) | `skills/tanto/roles/jisso.md` | A-J2, P-J2 |
-| 867f | `skills/tanto/templates/review-brief.md` | P-R1, A-R2, P-R2, P-R3 |
-| 7481, 88d3, 10bc (the governing note) | `docs/notes/tanto-consistency-checks.md` | authored by the plan's task |
+| 867f | `skills/tanto/templates/review-brief.md` | P-R1, A-R2, P-R2, P-R3, P-R4 |
+| 7481, 88d3, 10bc (the governing note) | `docs/notes/tanto-consistency-checks.md` | P-N1, P-N2, P-N3, P-N4, P-N5 |
 | the instrument's existence | `skills/tanto/README.md` | P-M1, P-M2 |
+| b6cb (the archive's threshold, as the roster states it) | `skills/tanto/templates/roster.md` | P-T1 |
+| 867f (the form check that enforces it) | `skills/tanto/roles/kanri.md` | P-K9 |
+| b6cb (the handover procedure's third case) | `skills/tanto/roles/kanri.md` | P-K10, P-K11, P-K13 |
+| 7481 (the whole-branch reviewer's seat) | `skills/tanto/roles/kanri.md` | A-K12, P-K12 |
+| 7481 (how a batch is verified) | `skills/tanto/roles/sekkei.md` | P-E3 |
+| this plan ships a test suite | `skills/tanto/roles/jisso.md` | P-J4 |
 
 Two rows of this table are **not** passages of this plan, and are named here so
 that the gap is stated rather than discovered. `docs/design/4807-tanto.md`
@@ -991,19 +1428,58 @@ these as its `O` blocks and its verification re-runs them after the last batch.
 | `an unanswered one stays open` | `templates/review-brief.md` ×1 | gone; P-R1 |
 | `application script's path` | `roles/sekkei.md` ×1 | gone; P-E2 |
 | `There are eleven` | `SKILL.md` ×1 | **stays.** The templates count is unchanged; the executable is not a template, and P-S5 adds it in a paragraph of its own rather than to that list |
-| `exit lines` | `roles/kanri.md` ×1, `SKILL.md` ×1 outside the passages | **stays.** Both are about where a reading travels, not about a subscription |
+| `exit lines` | 3 raw: `roles/kanri.md` ×1, `SKILL.md` ×2, one of which is inside P-S1's old block | **stays**, ending at 2. Both survivors are about where a reading travels, not about a subscription. The raw count is recorded because Verification item 4 re-runs the needle over the whole skill, where a qualifier is not what the command returns |
+| `handover or a replacement will be read from` | `templates/roster.md` ×1 | gone; P-T1 |
+| `three parts` | `roles/kanri.md` ×1 | gone; P-K9 |
+| `has none` | 2: `roles/jisso.md` ×1, `templates/review-brief.md` ×1 | ends at 1. Jisso's is the test-suite premise and goes (P-J4); the brief template's is `"not stated" when it has none`, about a `req-<id>` citation, and stays |
+| `Which of the two procedures` | `roles/kanri.md` ×1 | gone; P-K13 |
 | `compaction noticed` | `roles/kanri.md` ×1 inside P-K1, `templates/kanri-handover.md` ×1 | gone from the handover template's two-signal list; P-H1. The `roles/kanri.md` hit is signal 3's own heading and stays |
 | `asks the human about it` | `roles/jisso.md` ×1 | gone; P-J3 |
 | `Two signals` | `roles/kanri.md` ×1 | gone; P-K1 |
 
-The last three rows were added after the first sweep, which missed two of them.
-`compaction noticed` was not a needle at all — the trigger set's *old cardinality*
-is what changes, and no term in the new text names it — and `asks the human
-about it` is `whether to delete` said in other words, in another role's copy of
-the same rule. The lesson is in the Shoroku candidates: an `O` needle set
-written from the plan's new terms is the sweep issue-10bc says does not work,
-and the needles must be written from the **entity** that changes — the trigger
-set, the deletion question — then spelled every way the tree spells it.
+**Seven of these rows were added after the first sweep passed clean**, in two
+rounds: two found by Kanri's role-procedure check, four more by the spec review,
+one by the wider sweep each of those prompted. The table is kept in this shape,
+misses included, because the pattern in them is the finding.
+
+- The first sweep's needles were written **from the plan's new terms**, which
+  is the forward sweep issue-10bc already says does not work. `compaction
+  noticed` is reached by no new term at all, because what changes is the
+  trigger set's *cardinality*; `asks the human about it` is `whether to delete`
+  said in other words in another role's copy of the same rule.
+- **Every miss is a closed enumeration** — a sentence that counts or lists.
+  "three parts", "the human's word, or a compaction noticed", "a threshold for
+  the handover or a replacement", "has none", "the two procedures", the form
+  markers' list. That is mechanisable: sweep for a number-word followed by a
+  noun, and for colon-introduced lists, over the whole skill. Finding the
+  candidate sentences is a command; ruling on them is the judgment D-4 keeps
+  with Sekkei.
+- **Every miss sits in a file carrying no other passage of this plan** —
+  `templates/roster.md`, `templates/kanri-handover.md`, and, for their own
+  sections, `roles/jisso.md` and `roles/kanri.md`. A file with a passage is
+  read anyway; a file without one is opened only if a needle reaches it. So
+  sweep the files the plan does **not** touch first.
+
+Two more rules came out of **running** the needles rather than asserting them,
+which is the only reason they are known:
+
+- **A needle that wraps in its target matches nothing.** The first form of the
+  roster needle was `threshold for the handover`, which returns `0` because
+  `templates/roster.md` breaks the phrase across two lines — and `0` reads as
+  "already gone", the most dangerous possible false pass. design-4807 records
+  this for cross-role lines that must stay byte-identical; it applies to `O`
+  needles with more force, because there the expected answer is often zero
+  anyway. Pick a fragment that survives the wrap, or flatten the file first.
+- **A needle may hit prose that has nothing to do with the change.** `has none`
+  matches Jisso's test-suite premise and, unrelatedly, the brief template's
+  `"not stated" when it has none`. So an `O` row records the raw count and the
+  disposition of **each** hit, never a single verdict — and Verification item 4
+  prints hits rather than counting them for the same reason.
+
+The rule that follows, and that `P-E1` lands in `roles/sekkei.md`: write one
+needle per changed **entity**, before the passages, spelled every way the tree
+spells it, sweep the untouched files first — and run each needle when you write
+it, because an `O` needle's failure mode is a silent zero.
 
 One needle belongs to the note rather than the skill and its task authors it:
 the note's passage-plan list describes the reconstruct-and-compare check as
@@ -1046,35 +1522,72 @@ a flat type and the note that governs the plan's own verification.
 ## What the plan must contain
 
 - **Global Constraints** built from `AGENTS.md` and the concrete model families
-  from `tanto.json`, plus: the linter prerequisite of Fixed input 11, which
-  Kanri verifies before batch A's prompt; the Node floor and the `mise`
-  invocation; the encoding and line-ending rules of section 1; and rule 11's
-  authority sentence.
-- **The rule 11 boundary.** Every item that spans two files is one task, so the
-  tree is self-consistent at each batch boundary and the intended answer is
-  **from the batch A boundary onward**. Sekkei's Step 4 item 3 confirms it by
-  sweeping the plan's own new-passage blocks for every term a later batch
-  lands; the plan states the swept result, not the intention.
-- **Batches**, three of four tasks each:
+  from `tanto.json`, plus: the two prerequisites of Fixed input 11 with the
+  command that decides each; **Git Bash** as the shell every fenced block runs
+  in, since every `A` block is a POSIX `grep` and every verification command a
+  bash one, on a host whose primary shell is PowerShell; the Node floor and the
+  `mise` invocation; the encoding and line-ending rules of section 1; the
+  `created:` list; and rule 11's authority sentence.
+
+- **The `created:` list**, verbatim, because `diff` reads it:
+
+  ```text
+  created: skills/tanto/scripts/passage-check.js
+  created: skills/tanto/scripts/passage-check.test.js
+  ```
+
+- **A command for each prerequisite**, because a constraint stated as an
+  absolute names the command that decides it, and because `./scripts/lint.sh`
+  on a `.js` path succeeds today by matching no hook at all — the absence of
+  the linter is invisible to the plan's own verification without one:
+
+  ```console
+  $ mise --version                      # expect a version, not "command not found"
+  $ grep -c 'js\|javascript\|eslint\|oxlint\|biome' .pre-commit-config.yaml
+  ```
+
+  The second must return non-zero-count before batch A's first task. Kanri runs
+  both and records the output in the ledger; a batch A prompt sent without them
+  cannot verify its own deliverable.
+
+- **The rule 11 boundary is the batch B boundary**, not batch A. Sekkei's Step 4
+  item 3 sweep, run on this spec, says so rather than the intention: at the A
+  boundary `docs/notes/tanto-consistency-checks.md` names `passage-check.js` as
+  the replay (P-N5) while `roles/sekkei.md` Step 4 still tells Sekkei to write
+  an application script and put its path in `plan-dryrun.md` — two files the
+  plan touches disagreeing. Batch B lands `P-E2` and closes it. `P-S5`'s new
+  `SKILL.md` paragraph forward-references `roles/sekkei.md`, `roles/jisso.md`
+  and the whole-branch reviewer, so it moves into batch B with them; that is
+  why the README and the layout entries are batch B's and not batch A's.
+
+- **Batches**, three or four tasks each:
 
   | Batch | Tasks | Delivers |
   | --- | --- | --- |
-  | A | the parser and `lint`; `replay`; `diff` and `verify`; the note and the layout entries | the instrument, tested, and the note that schedules it |
-  | B | `roles/sekkei.md` Step 3; `roles/sekkei.md` Step 4; `roles/jisso.md`; `templates/review-brief.md` | the authoring and execution rules that use it |
-  | C | the handover text and the handover template (P-K1, P-K2, P-K6, P-K7, P-H1); issue-d725 across both files; issue-12d3 across all three files (P-S3, P-K7, P-J3); issue-15bf, the f2ec reading, and the README | Kanri's procedure and the contract |
+  | A | A1 the parser and `lint`; A2 `replay`; A3 `diff` and `verify`; A4 the note (P-N1—P-N5) | the instrument, tested, and the note that schedules it |
+  | B | B1 `roles/sekkei.md` Steps 3 and verification (P-E1, P-E3); B2 `roles/sekkei.md` Step 4 (P-E2); B3 the executing seats (A-J1, P-J1, A-J2, P-J2, P-J4, A-K12, P-K12); B4 the instrument's existence (A-S5, P-S5, P-M1, P-M2) | issue-7481's four seats, and the authoring rules that use the script |
+  | C | C1 the handover, whole (P-K1, P-K2, P-K6, P-K10, P-K11, P-K13, P-H1, P-T1); C2 issue-d725 (P-K3, P-K4, P-K5, P-S1, P-S2); C3 issue-12d3 (P-S3, P-K7, P-J3) | Kanri's procedure and the contract |
+  | D | D1 issue-867f (P-R1, A-R2, P-R2, P-R3, P-R4, P-K9); D2 issue-f2ec's reading and issue-15bf (A-K8, P-K8, P-S4); D3 the whole-tree sweeps and the `O` needles | the brief, the measurement, the mode, and the proof |
 
-  Each cross-file item stays one task, which is what keeps the tree
-  self-consistent at every boundary. P-J3 joins the issue-12d3 task and P-H1
-  the handover task for that reason: a batch that changed `SKILL.md`'s
-  workspace rule without `roles/jisso.md`'s copy of it would leave the two
-  disagreeing at its boundary.
+  Every cross-file item is one task, which is what keeps the tree
+  self-consistent at every boundary — `P-J3` with issue-12d3, `P-H1` and `P-T1`
+  with the handover, `P-K9` with the brief, `P-K12` with the other three seats
+  of issue-7481. **C1 is the largest task at eight blocks**, and it is one task
+  because splitting it would put `P-K6`'s "run the Handover section" in the
+  tree a boundary before `P-K10` and `P-K11` fix what that section says at a
+  close. **D3 is a verification-only task**, whose deliverable is recorded
+  output; per `P-E1`'s own new rule its reviewer is told to re-run the checks
+  rather than read the report, and the plan's Self-Review states both facts
+  (issue-7281).
 
 - **How a batch is verified**, naming by name: lint on the changed paths
-  individually; `node --test` for batch A and `mise x node@22 -- node --test`
-  for the floor claim; the content greps; the `O` needle sweep after batch C;
-  `git ls-files --eol` before and after each task, unchanged and never
-  `w/mixed`; and, from the batch B boundary, `passage-check.js diff` as the
-  boundary check.
+  individually, under Git Bash; `mise x node@22 -- node --test
+  skills/tanto/scripts/` with the resolved version recorded; the content greps;
+  the `O` needle sweep in D3; `git ls-files --eol` per the split in
+  Verification item 3; and, **from the batch B boundary**,
+  `node skills/tanto/scripts/passage-check.js diff` as the boundary check —
+  batch A has no passages to check and batch B is where the script's own
+  callers land.
 - **No report or prompt skeletons.** Reports and prompts follow the tanto
   templates and the plan names nothing else.
 
@@ -1087,28 +1600,88 @@ and each backed by a command that sweeps the whole tree:
 2. `mise x node@22 -- node --test skills/tanto/scripts/` passes, with the
    version it resolved recorded beside the result. The floor is the version
    the tests run on, and the only one (D-9).
-3. `git ls-files --eol` over the changed paths shows `i/lf w/crlf` for each,
+3. `git ls-files --eol`, in **two** parts, because the two are different
+   claims. For the **nine existing paths**, `i/lf w/crlf attr/text=auto`,
    unchanged from the baseline recorded before batch A, and never `w/mixed`.
+   For the **two created paths**, `i/lf w/lf` — a file an implementer has just
+   written is LF in the working tree, and `w/crlf` is what a *checkout* under
+   `text=auto` produces later, not what the plan can observe. Requiring
+   `w/crlf` of them would fail every batch by construction; requiring nothing
+   of them would let a CRLF-written script through. `w/mixed` fails either way.
 4. Every `O` needle of the table above returns its stated disposition over
-   `skills/tanto/`, with the hits printed rather than counted.
+   `skills/tanto/`, **with the hits printed rather than counted**, and the raw
+   count compared with the raw count the table records — a qualifier such as
+   "outside the passages" is not what the command returns.
 5. From the batch B boundary,
    `node skills/tanto/scripts/passage-check.js diff --plan <path> --base <merge base>`
-   prints no unaccounted added line and no unexplained removed line.
-6. The two verbatim quotes `SKILL.md` and `roles/jisso.md` share — the four SDD
-   stop classes — still match byte for byte, as the note's check 5 requires.
-   This plan does not touch them, and the check is what proves it.
+   prints no unaccounted added line and no unexplained removed line, and names
+   the two `created:` paths it exempted. Batch A is not checked this way: it
+   carries no passages, and its two files are the exemption.
+6. The note's checks 1 and 2 pass with their new expected values — nineteen
+   paths listed, seventeen `ok` lines, no `MISSING` — which is what proves
+   `P-N1` to `P-N4` landed together rather than one without the others.
+7. The note's check 5, read for what it can actually decide. It pins **two**
+   quotes, not one: the four SDD stop classes, in the superpowers source, in
+   `roles/jisso.md` and in `SKILL.md`; and the four implementer statuses, in
+   the source and in `roles/jisso.md` only. Of its five greps, two target
+   `$HOME/.claude/plugins/cache/...`, which no edit of this plan could move —
+   those two cannot fail here and are recorded as context, not as a stop
+   condition. The three in-repo greps are the check: this plan touches neither
+   quote, and they are what proves it.
 
 ## Open for the human at the review
 
-1. The rule 11 boundary, once the forward-reference sweep has run: the spec
-   intends the batch A boundary, and the sweep, not the intention, decides.
-2. Whether `passage-check.js` shipping inside the skill — rather than under
+1. Whether `passage-check.js` shipping inside the skill — rather than under
    this repository's `scripts/`, which is issue-7481's letter — is the right
    reading of that issue. The dialogue settled it at D-7 and D-11 on
    portability grounds; the review is the place to object.
-3. The batch A weight. Three of its four tasks build one program, which is
-   heavier than a Markdown batch and is exactly the shape issue-7281 says has
-   no threshold yet. The sizes are recorded either way.
+2. The two prerequisites of Fixed input 11, approved at D-13, and their
+   timing: both land through dotrepo before batch A's first task, and Kanri
+   holds the batch A prompt until the two commands above return.
+3. The batch A weight, and C1's. Three of batch A's four tasks build one
+   program; C1 is eight blocks in one task because splitting it would leave
+   the tree contradicting itself at a boundary. Both are exactly the shape
+   issue-7281 says has no threshold yet, and the plan records the sizes rather
+   than choosing one.
+4. That the rule 11 boundary is **batch B**, not batch A. The spec's first
+   draft said A; the forward-reference sweep the review ran says B, because
+   the note names the script as the replay a batch before `roles/sekkei.md`
+   stops describing a scratchpad application script. No role may be started or
+   replaced before that boundary, Kanri's own handover and a Kaiseki by ruling
+   excepted.
+
+## The reviews this spec has had, and what each found
+
+Recorded because `roles/sekkei.md` Step 2 requires the first and design-4807
+records it as a convention derived from a measured miss, and because what each
+seat caught differs by kind.
+
+1. **The role-procedure check**, sent to Kanri before the spec review, as Step 2
+   requires. The spec rewrites Kanri's procedure in thirteen blocks, Jisso's in
+   five, and Sekkei's own in three; Kanri is the only other live session.
+   Kanri confirmed the clauses against its own obligations, verified every
+   anchor's first line on disk, and returned three points: an internal
+   contradiction in `P-K1`, one old value the sweep had missed
+   (`templates/kanri-handover.md`), and design-4807's two superseded spots.
+   Answered by editing the spec.
+2. **A wider sweep**, run because of Kanri's miss, which found a second
+   (`roles/jisso.md`'s copy of the deletion question).
+3. **The spec review**, a read-only reviewer on `subagents.reviewer`, report at
+   `.superpowers/sdd/tanto-sweep/spec-review.md`. Twenty-six findings, ten
+   high; every one accepted. It re-verified all 22 `P` blocks and all 5 `A`
+   anchors independently and found them sound, and located the defects outside
+   the blocks: the grammar had no shape for `P-J2`, the id grammar was written
+   two ways, `replay` recursed into `verify`, `diff` had no rule for a created
+   file, three more old values sat in files carrying no passage, and two of
+   issue-7481's four seats had no passage at all.
+
+The pattern across the three: **the blocks were right every time, and the
+prose around them was wrong every time**. The pre-flight the author wrote
+caught five count defects before the first commit and nothing else; the role
+whose procedure was being rewritten caught what the author's own sweep could
+not; the reviewer caught what neither could, by reading the spec against the
+files it does not touch. That is an argument for keeping all three seats, and
+it is the sharpest available evidence for issue-10bc's premise.
 
 ## Out of scope
 
@@ -1245,7 +1818,28 @@ T1.
    procedure a passage rewrites is a better detector of this class than the
    author's own sweep, which is an argument for the role-check step running
    before the spec review rather than instead of it.
-10. **The dialogue's cost, for the `opus`-Sekkei measurement Kanri owns**: eleven
+10. **The spec ran ahead of the record, and the record is what a reviewer
+    reads.** Two of the human's decisions — `mise`, and the line-ending
+    requirement — arrived mid-turn while the spec's first half was being
+    written, went straight into the spec, and were never copied into
+    `dialogue.md`. The spec review then filed the `mise` prerequisite as a
+    scope change on "no recorded decision", which was correct against the
+    record and wrong against what the human had said, twice. Nothing was lost
+    because the words were still in the session, but a Sekkei replaced between
+    those turns would have lost them, and that is exactly what `dialogue.md`
+    exists to prevent (req-04f5: the human's own words are kept as a record).
+    The rule: **a decision reaches `dialogue.md` before it reaches the
+    document.** A mid-turn message is the case that breaks it, because it
+    arrives with no question of its own to file it under.
+11. **A reversal should list the answers it invalidates.** D-11 overturned
+    Python but left D-9's "test on the floor only" standing, and the spec then
+    cited D-9 for a rule D-11 had just said no longer held for Node — until
+    `mise` made it hold again by a route nobody had recorded. A reversal turn
+    that names the earlier `D-n` answers it kills makes a later citation of one
+    visibly a new decision rather than an inherited one. Adopted into
+    `dialogue.md` for D-11 as a paragraph; the general form belongs to
+    design-4807's Sekkei conventions. (Raised by the spec review, candidate 9.)
+12. **The dialogue's cost, for the `opus`-Sekkei measurement Kanri owns**: eleven
    turns, of which two were the human overturning a Sekkei recommendation
    (D-11, and the interpreter-probing detour before D-9) and one was a
    clarifying question the human asked rather than answered. Kanri holds the
