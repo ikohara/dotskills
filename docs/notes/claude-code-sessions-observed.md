@@ -1,0 +1,46 @@
+# Claude Code sessions, as observed
+
+Facts about how a Claude Code session appears to itself and to its peers,
+measured in this repository's transcripts and `ListAgents` listings. `tanto`
+depends on both (design-4807), and each fact here changed what a Kanri did
+on the day it was measured. Add a fact only with the date and the way it was
+measured; remove one when a later measurement contradicts it.
+
+## The tab title comes from the first prompt, before the first reply
+
+Measured 2026-09-10 over the sixteen sessions of this project's transcript
+directory. Each transcript carries one record of type `ai-title`, written
+after the first `user` record and before any `assistant` record — for a
+session started with `/tanto <role> <address>`, at line 24, immediately
+after the expanded command. The title is a short summary of that first
+prompt: for the `/tanto` sessions it read `Tanto sekkei dotskills-c5`,
+`Tanto jisso dotskills-08`, or `Tanto kanri` in fourteen of sixteen, and the
+bare address (`dotskills-83`) in two; a session started with a plain sentence
+got a summary of the sentence.
+
+So nothing a session says after `/tanto` reaches its title, and no start
+line can "propose" one. The only lever is the first prompt: a plain line
+typed before `/tanto`, which the session answers at the cost of one turn, or
+`/rename` before `/tanto`, which the skill's rule 10 leaves to the human. The
+human chose to leave the titles as they are.
+
+## A session never appears in its own listing
+
+`ListAgents` prints the calling session on its own first line ("This session
+is `<name> [<ref>]`") and lists every other session below; it never lists the
+caller among the peers. Two consequences for a run, both seen on 2026-09-10:
+
+- A Kanri resumed under a new name that writes its handover without running
+  the self-check reports "no live peer" while its successor's first listing
+  shows one unknown session — started before the handover, absent from the
+  outgoing Kanri's own last listing — which is the outgoing Kanri itself.
+  The successor marks it `dead` by the rule (not listed under its roster
+  name), and the human, who alone sees both windows, deletes it. A resumed
+  Kanri that runs the self-check at its boundary (`SKILL.md`, "Resuming")
+  sees its new name on the listing's first line and rewrites its row first.
+- A peer count taken from a listing is "everyone but me"; a roster's live
+  rows are checked against the listing's peers plus the caller's own line.
+
+The listing also shows sessions of every other repository on the machine,
+with no cwd; a roster row is the only way to tell a run's own sessions from
+the rest, and a session with no row gets nothing.

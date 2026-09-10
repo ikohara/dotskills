@@ -2,7 +2,7 @@
 id: "04f5"
 title: tanto — multi-session orchestration of one implementation plan in Claude Code
 created: 2026-09-06
-updated: 2026-09-09
+updated: 2026-09-11
 ---
 
 ## Purpose
@@ -20,6 +20,11 @@ artifacts.
 
 ## Required behavior
 
+- **The calling repository is not assumed to build or run in a git worktree.**
+  Whether a second checkout builds and runs depends on the repository, so no
+  role that builds or runs is placed where that would be assumed; roles that
+  write only documents may draft anywhere, and the checkout belongs to the
+  role whose batches are in flight.
 - **Roles in separate sessions, at the human's hand.** Each role is its own
   session on the same repository and branch. The human creates and deletes
   sessions; Kanri is the only role that asks, and every request is a numbered
