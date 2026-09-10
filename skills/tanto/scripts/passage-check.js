@@ -7,7 +7,7 @@
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { execFileSync, execSync } = require("node:child_process");
+const { execFileSync, spawnSync } = require("node:child_process");
 const { parseArgs } = require("node:util");
 
 const USAGE = "Usage: passage-check.js <lint|replay|diff|verify> --plan <path> [--base <ref>] [--task <N>]";
@@ -528,13 +528,18 @@ function firstWord(command) {
   return m ? m[1] : "";
 }
 
-/** Run a shell command in Git Bash, capturing its output either way. */
+/**
+ * Run a shell command in Git Bash, capturing both stdout and stderr on
+ * every outcome. `execSync`'s stdout-only return value leaves a succeeding
+ * command's stderr with nowhere to go but the parent's own stderr -- pure
+ * noise, out of order and detached from the fence it belongs to -- so this
+ * uses `spawnSync` instead, whose result exposes both streams regardless of
+ * exit status, and concatenates them the way a caught `execSync` failure
+ * already would.
+ */
 function runShell(command, cwd) {
-  try {
-    return execSync(command, { cwd, encoding: "utf8", shell: "bash" });
-  } catch (err) {
-    return `${err.stdout || ""}${err.stderr || ""}`;
-  }
+  const result = spawnSync("bash", ["-c", command], { cwd, encoding: "utf8" });
+  return `${result.stdout || ""}${result.stderr || ""}`;
 }
 
 /**
@@ -639,7 +644,11 @@ function replayPlan(parsed, base, options = {}) {
       commands.push({ command: fence.command, skipped: false, output, expectation: null, status: "no-expectation" });
       continue;
     }
-    const status = fence.expectation.trim().includes(output.trim()) ? "match" : "differs";
+    // Empty output is never a MATCH, even against an expectation it is
+    // trivially a substring of: a false MATCH is the one result that stops
+    // a human from looking, and the comparison is deliberately crude.
+    const trimmedOutput = output.trim();
+    const status = trimmedOutput !== "" && fence.expectation.trim().includes(trimmedOutput) ? "match" : "differs";
     commands.push({ command: fence.command, skipped: false, output, expectation: fence.expectation, status });
   }
 

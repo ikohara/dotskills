@@ -367,3 +367,43 @@ test("an unresolvable base exits 2 and names the ref, unlike an unknown subcomma
   assert.strictEqual(result.code, 2);
   assert.match(result.out, /no-such-ref/);
 });
+
+test("an empty command output is never a MATCH", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const lines = REPLACEMENT.concat(["", "```bash", "true", "```", "", "Expected: nothing in particular"]);
+  const result = runIn(repo.dir, ["replay", "--plan", writePlan(lines), "--base", repo.head]);
+  assert.strictEqual(result.code, 0);
+  assert.match(result.out, /DIFFERS/);
+});
+
+test("replay applies a global replacement across every declared occurrence", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\nalpha\nbeta\n" });
+  const lines = REPLACEMENT.slice();
+  lines[2] = "**P91.1** `tmp/fixture.md` — replace all 2 occurrences of these 2 lines";
+  const result = runIn(repo.dir, ["replay", "--plan", writePlan(lines), "--base", repo.head]);
+  assert.strictEqual(result.code, 0);
+});
+
+test("replay fails a global replacement whose old block occurs a different number of times", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const lines = REPLACEMENT.slice();
+  lines[2] = "**P91.1** `tmp/fixture.md` — replace all 2 occurrences of these 2 lines";
+  const result = runIn(repo.dir, ["replay", "--plan", writePlan(lines), "--base", repo.head]);
+  assert.strictEqual(result.code, 1);
+  assert.match(result.out, /occurrence-count/);
+});
+
+test("replay finds and runs a four-backtick command fence", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const lines = REPLACEMENT.concat([
+    "",
+    "````bash",
+    "echo four-backtick-ran",
+    "````",
+    "",
+    "Expected: `four-backtick-ran`",
+  ]);
+  const result = runIn(repo.dir, ["replay", "--plan", writePlan(lines), "--base", repo.head]);
+  assert.strictEqual(result.code, 0);
+  assert.match(result.out, /MATCH/);
+});
