@@ -1,5 +1,5 @@
 const test = require("node:test");
-const { after } = require("node:test");
+const { after, mock } = require("node:test");
 const assert = require("node:assert");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -15,11 +15,18 @@ const SCRIPT = path.join(__dirname, "passage-check.js");
 // `runReplay` carries for `replayPlan`'s tree, just discharged at file
 // teardown instead of per-call.
 const tmpDirs = [];
-after(() => {
+function cleanupTmpDirs() {
   for (const dir of tmpDirs) {
-    fs.rmSync(dir, { recursive: true, force: true });
+    // Per-entry, so one locked directory does not stop every entry after
+    // it in the array from being attempted too.
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+    } catch {
+      // Best-effort teardown -- see above.
+    }
   }
-});
+}
+after(cleanupTmpDirs);
 
 function plan(lines) {
   return lines.join("\n") + "\n";
@@ -286,7 +293,7 @@ test("a CRLF plan parses the same as an LF one", () => {
   assert.deepStrictEqual(parsed.blocks[0].old, ["alpha", "beta"]);
 });
 
-const { replayPlan } = require("./passage-check.js");
+const { replayPlan, main } = require("./passage-check.js");
 
 function makeRepo(files) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "passage-check-repo-"));
@@ -352,6 +359,55 @@ test("a CLI replay run removes its temporary tree, on a pass and on a failure al
     replayTreeDirs().filter((name) => !before2.has(name)),
     [],
   );
+});
+
+test("a CLI replay run also removes its tree when replayPlan throws after creating it (a plan path absent at base)", () => {
+  // Unlike an unresolvable --base, which throws before replayPlan ever
+  // creates a tree, a plan path that base does not have throws from `git
+  // show` well after the tree already holds a partial copy -- the case
+  // this test targets. The fixture repo below has no tmp/fixture.md at
+  // all, so REPLACEMENT's P91.1 (which names that path) hits exactly that.
+  const repo = makeRepo({ "unrelated.md": "irrelevant\n" });
+  const before = new Set(replayTreeDirs());
+  const result = runIn(repo.dir, ["replay", "--plan", writePlan(REPLACEMENT), "--base", repo.head]);
+  assert.strictEqual(result.code, 2);
+  assert.deepStrictEqual(
+    replayTreeDirs().filter((name) => !before.has(name)),
+    [],
+  );
+});
+
+test("a locked temp tree does not turn a passing replay into a crash", () => {
+  // Simulates the one failure mode force:true does not cover -- a locked
+  // file on Windows -- by making rmSync itself throw. If runReplay's
+  // cleanup let that escape its finally, this in-process call would throw
+  // out of main() instead of returning, and the test would fail on the
+  // uncaught exception rather than on the assertion below.
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const file = writePlan(REPLACEMENT);
+  let lockedTree = null;
+  const rm = mock.method(fs, "rmSync", (target) => {
+    lockedTree = target;
+    throw new Error("EBUSY: simulated lock, resource busy or locked");
+  });
+  const log = mock.method(console, "log", () => {});
+  const cwd = process.cwd();
+  let code;
+  try {
+    process.chdir(repo.dir);
+    code = main(["replay", "--plan", file, "--base", repo.head]);
+  } finally {
+    process.chdir(cwd);
+    rm.mock.restore();
+    log.mock.restore();
+  }
+  assert.strictEqual(code, 0);
+  // The mock above simulated a permanent lock, so runReplay's own cleanup
+  // could not actually remove the tree -- the real fs.rmSync is restored
+  // now, so remove it here instead, leaving this test's own footprint at
+  // zero rather than trading one leak fixed for another introduced.
+  assert.ok(lockedTree, "expected runReplay's cleanup to call fs.rmSync on its tree");
+  fs.rmSync(lockedTree, { recursive: true, force: true });
 });
 
 test("replay fails when an old passage occurs other than the stated number of times", () => {
@@ -581,4 +637,45 @@ test("verify reports no passages for a task that touches only created paths", ()
   const result = runIn(repo.dir, ["verify", "--plan", writePlan(lines), "--task", "94"]);
   assert.strictEqual(result.code, 0);
   assert.match(result.out, /no passages/i);
+});
+
+test("the file-teardown cleanup removes both the plan-writing and repo-fixture helper directories", () => {
+  // Regression guard for the two prefixes that made up the bulk of the
+  // original leak (passage-check- and passage-check-repo-): the only other
+  // assertion on tmpDirs' removal filters for passage-check-replay-, so a
+  // no-op after() body, or a helper that stopped registering its
+  // directory, would still leave 47/47 green without this.
+  const planDir = path.dirname(writePlan(REPLACEMENT));
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  assert.ok(fs.existsSync(planDir));
+  assert.ok(fs.existsSync(repo.dir));
+
+  cleanupTmpDirs();
+
+  assert.ok(!fs.existsSync(planDir));
+  assert.ok(!fs.existsSync(repo.dir));
+});
+
+test("one directory whose removal fails does not stop the rest of the teardown loop from being attempted", () => {
+  const lockedDir = path.dirname(writePlan(REPLACEMENT));
+  const goodRepo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  assert.ok(fs.existsSync(lockedDir));
+  assert.ok(fs.existsSync(goodRepo.dir));
+
+  const originalRmSync = fs.rmSync;
+  const rm = mock.method(fs, "rmSync", (target, options) => {
+    if (target === lockedDir) {
+      throw new Error("EBUSY: simulated lock, resource busy or locked");
+    }
+    return originalRmSync(target, options);
+  });
+  try {
+    cleanupTmpDirs();
+  } finally {
+    rm.mock.restore();
+  }
+
+  // goodRepo.dir was registered after lockedDir, so it is only reached if
+  // the loop keeps going past lockedDir's failure instead of aborting on it.
+  assert.ok(!fs.existsSync(goodRepo.dir));
 });

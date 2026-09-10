@@ -546,9 +546,14 @@ function runShell(command, cwd) {
  * Reconstruct the plan against its merge base: copy the base blobs to a
  * temporary tree, apply every passage, re-run the anchors, run the plan's
  * commands, and sweep for residual `O` needles. Never touches the working
- * tree. Returns { ok, tree, failures, residuals, commands }. Throws on a
- * broken invocation -- an unresolvable `base` foremost among them -- which
- * the caller reports as exit 2.
+ * tree, and never removes its own tree -- a caller that wants the tree
+ * cleaned up on every path, including a throw partway through this
+ * function (a plan path absent at `base` throws well after the tree
+ * already holds a partial copy), should pass `options.tree` and remove
+ * that same path itself once this call returns or throws. Returns
+ * { ok, tree, failures, residuals, commands }. Throws on a broken
+ * invocation -- an unresolvable `base` or a plan path absent at `base`
+ * foremost among them -- which the caller reports as exit 2.
  */
 function replayPlan(parsed, base, options = {}) {
   const cwd = options.cwd || process.cwd();
@@ -559,7 +564,7 @@ function replayPlan(parsed, base, options = {}) {
     throw new Error(`could not resolve --base '${base}'`);
   }
 
-  const tree = fs.mkdtempSync(path.join(os.tmpdir(), "passage-check-replay-"));
+  const tree = options.tree || fs.mkdtempSync(path.join(os.tmpdir(), "passage-check-replay-"));
   const endings = new Map();
 
   // Step 1: copy each blob the plan names from `--base`, recording each
@@ -688,19 +693,21 @@ function runReplay(values) {
   }
   const parsed = parsePlan(text);
 
-  let result;
+  // Created here, not inside `replayPlan`, so this wrapper can always find
+  // it to clean up below -- on a passing run, a failing one, or a throw
+  // partway through `replayPlan` (a plan path absent at `base` throws from
+  // `git show`, well after the tree already holds a partial copy; only an
+  // unresolvable `--base` throws before any of that copying starts).
+  const tree = fs.mkdtempSync(path.join(os.tmpdir(), "passage-check-replay-"));
   try {
-    result = replayPlan(parsed, values.base, { cwd: process.cwd() });
-  } catch (err) {
-    process.stderr.write(`error: ${err.message}\n${USAGE}\n`);
-    return 2;
-  }
+    let result;
+    try {
+      result = replayPlan(parsed, values.base, { cwd: process.cwd(), tree });
+    } catch (err) {
+      process.stderr.write(`error: ${err.message}\n${USAGE}\n`);
+      return 2;
+    }
 
-  // `replayPlan` never removes its own tree -- other tests read it back
-  // after the call returns -- so this wrapper, the thing that actually
-  // exits, removes it here instead. The `finally` covers a passing run and
-  // a failing one (exit 1) alike.
-  try {
     for (const failure of result.failures) {
       console.log(`${failure.code}: ${failure.id} — ${failure.message}`);
     }
@@ -733,7 +740,17 @@ function runReplay(values) {
 
     return result.ok ? 0 : 1;
   } finally {
-    fs.rmSync(result.tree, { recursive: true, force: true });
+    // A removal failure (e.g. a locked file on Windows) is not the
+    // question the human ran `replay` to answer, and letting it escape
+    // this `finally` would discard whatever this call was about to return
+    // in favor of an uncaught exception instead. `maxRetries`/`retryDelay`
+    // give a transient lock a moment to clear; if it still fails, swallow
+    // it silently rather than compete with the adjudication output above.
+    try {
+      fs.rmSync(tree, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+    } catch {
+      // Deliberately silent -- see above.
+    }
   }
 }
 
