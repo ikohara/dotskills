@@ -207,7 +207,7 @@ text, these win.
 | --- | --- | --- |
 | SDD Setup — work in an isolated worktree | work in this tree on the shared branch | Kanri verifies in place and the human watches; every batch prompt restates it |
 | SDD — continuous execution, stopping only for the four classes | stop at each batch boundary and idle | the boundary is Kanri's ruling and lifecycle checkpoint; every batch prompt restates it |
-| SDD Finish — delete the workspace once the final review is clean | never delete it | it holds the conductor ledger, the reports, and the T2 source; Kanri asks the human about it after T2 and the merge decision |
+| SDD Finish — delete the workspace once the final review is clean | never delete it | it holds the conductor ledger, the reports, and the T2 source; nobody deletes it at the close, and the topic directory beside it stays on the same terms (issue-12d3) |
 | SDD Finish — collect "Rulings I made" into the final message, then run finishing-a-development-branch | put every ruling in each batch report's Rulings section, and never run finishing-a-development-branch | you talk to Kanri only, reports are read from files, and the merge decision is the human's, put by Kanri |
 | SDD Model Selection — scale the tier per dispatch, final review on the most capable model | use the `tanto.json` kinds, with one `reviewer` key for every review and never the top family | the personal file sets the tiers, and a top-family subagent is what rate-limited a real run |
 | SDD fix loop — five rounds, then the breaker | unchanged, plus the Kaiseki trigger at round 2 with an unknown cause, and again whenever an implementer returns blocked with an unknown cause at any round | root cause before more fixing |

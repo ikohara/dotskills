@@ -749,13 +749,17 @@ session is dead first — uncommitted work may be in the tree.
 | the final batch is accepted, T2 is written, leftovers are clean, and the human has executed the merge decision | Jisso is done; delete it after its exit shoroku is committed, which at plan end is T2 |
 | Jisso is deleted and the ledger's Progress line says closed | this plan is closed; mark `dead` the rows of the sessions deleted at this close, move the dead, replaced, and refused rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet, fill the ledger's Measurements fixed row, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
 
-You are resident. A plan's end is a boundary like any other, and the next topic
-starts with a new topic directory and a new ledger under the same roster,
-cold-read as if fresh. Your only exit is the Handover section above.
+The role is resident; the session that carries it is not. A plan's end is a
+boundary like any other for the run, and the next topic starts with a new topic
+directory and a new ledger under the same roster, cold-read as if fresh —
+normally by your successor, because the close hands the role over
+(decision-b6cb), and by you when the human declines that handover. Your only
+exit is the Handover section above.
 
-After T2 and the merge decision, also ask the human whether to delete
-`.superpowers/sdd/<plan-basename>/`. Jisso never deletes it, and the roster
-stays either way.
+Neither `.superpowers/sdd/<plan-basename>/` nor the topic directory beside it is
+deleted at the close, and you ask the human about neither. After T2 the two have
+the same standing: untracked, local to one machine, and useful only for a later
+re-read (issue-12d3).
 
 ### Readings
 

@@ -514,8 +514,11 @@ the merge decision is the human's. **No worktree by default** — Kanri verifies
 the tree in place and the human can watch it. Every batch prompt restates that
 as a Kanri directive.
 
-`.superpowers/sdd/<plan-basename>/` outlives the SDD run. Jisso never deletes
-it. After T2 and the merge decision, Kanri asks the human whether to delete it.
+`.superpowers/sdd/<plan-basename>/` outlives the SDD run, and so does the topic
+directory beside it. Jisso never deletes either, and nothing asks the human to
+delete either: after T2 the two have the same standing — untracked, local to one
+machine, useful only for a later re-read — and disk is the only cost
+(issue-12d3).
 
 ## Now read your role file
 
