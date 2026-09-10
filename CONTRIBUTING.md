@@ -6,6 +6,7 @@ See [README.md](README.md) for what this project is and how to use it.
 
 - Everything in the Prerequisites section of [README.md](README.md)
 - [uv](https://docs.astral.sh/uv/)
+- [mise](https://mise.jdx.dev/) — the pinned Node 22 the tanto plans test on
 - [PowerShell 7](https://aka.ms/powershell) (`pwsh`) — the PowerShell pre-commit hook requires it; 5.1 is not sufficient.
 - [PSScriptAnalyzer](https://www.powershellgallery.com/packages/PSScriptAnalyzer) — `pwsh -Command "Install-Module -Scope CurrentUser PSScriptAnalyzer"`.
 
