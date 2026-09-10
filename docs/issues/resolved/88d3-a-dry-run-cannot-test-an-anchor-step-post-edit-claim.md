@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-10
 ---
 
 Found by the context-cost plan review (2026-09-09). Sekkei's dry run applies
@@ -41,3 +41,11 @@ issue-7481 proposes.
 
 Related: req-04f5, issue-7d14 (the dry run as one record), issue-7481,
 design-4807 (the anchor-shape rule), docs/notes/tanto-consistency-checks.md.
+
+Resolved by the tanto-sweep plan's tasks 1 to 3's `passage-check.js`:
+`replay` re-runs every anchor against the applied copy and compares it with
+the stated `after:` value — the pass a dry run that only applies and then
+verifies can never take — and `lint` checks every lead's `N` against its
+block's real line count, closing the second check this issue asked for.
+Task 6 rewrites Sekkei's Step 4 to run `lint` and `replay` in place of the
+scratchpad script, and task 4 updates the governing note to match.

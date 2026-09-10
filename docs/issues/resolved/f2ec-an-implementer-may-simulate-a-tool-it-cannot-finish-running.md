@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-10
 ---
 
 A `tanto` task whose deliverable is a **measurement** — run a tool, record what
@@ -54,3 +54,11 @@ gives the reader something to check other than the report's own confidence.
 
 Related: req-04f5, design-4807, issue-ad1a (the plan this surfaced in),
 issue-e19f (what the real run actually found).
+
+Resolved by the tanto-sweep plan's task 7 (P7.4), a new "A measurement
+task's dispatch" section in `roles/jisso.md` stating the dispatch-side
+prohibition on simulation, and task 13 (P13.2), the reading-side rule
+inserted into `roles/kanri.md`'s batch loop: a measurement report is read
+for whether its outcome contradicts the brief's prediction, and one that
+confirms every expectation gets a second look rather than a faster
+approval.

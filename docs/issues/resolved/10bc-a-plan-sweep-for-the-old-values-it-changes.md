@@ -35,3 +35,23 @@ the plan's terms.
 Related: req-04f5, design-4807 (the two-directional drift of the "where each
 change lives" table; the plan conventions), issue-88d3, the context-cost
 dogfood report of 2026-09-10.
+
+Resolved by the tanto-sweep plan's task 5 (P5.1), which adds the `O` block
+convention to Sekkei's Step 3: an old-value needle per entity the plan
+changes, written before the passages and swept against every file the plan
+touches rather than only the ones a passage lands in.
+
+From the `2026-09-10-tanto-sweep` conductor ledger:
+
+- S-4: a closed enumeration (a count, a colon-introduced list) is the
+  highest-yield `O` needle shape; finding the candidate sentences is
+  mechanical, but ruling on them stays judgment — the half of this issue
+  D-4 called unmechanisable is only partly so.
+- S-58: the tanto-consistency note's "Seventeen skill files" count needed a
+  passage the plan itself did not carry, because its `O` sweep ran over
+  `skills/tanto/` only; the rule above now sweeps every file the plan
+  touches, not only the skill directory.
+- S-68: `SKILL.md`'s Artifacts table row for `plan-dryrun.md` was left
+  describing the superseded dry run — the third miss of the
+  closed-enumeration class in this plan (with S-58's note count and a role
+  file's sentence) — and the fix wave repaired it.

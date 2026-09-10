@@ -38,3 +38,10 @@ word rather than at once — the latency the batch-report rule already accepts.
 Related: req-04f5 (a session's cost is measured), issue-e5a2 (resolved: the
 394 wake-ups of which 81 were idle notices), decision-6dea, design-4807
 (Messages).
+
+Resolved by the tanto-sweep plan's task 10, which drops
+`notify_when_idle` from the `exit:` lines in `SKILL.md`'s Messages and
+Session-exit sections and from `roles/kanri.md`'s Exit shoroku steps, so
+that no tanto line carries a subscription; a forced exit is detected by the
+human's word, or by another wake-up finding no answer, per this issue's
+proposal.

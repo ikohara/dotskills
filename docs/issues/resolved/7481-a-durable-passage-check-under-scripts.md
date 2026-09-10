@@ -47,3 +47,25 @@ agent dry run explained them.
 
 Related: req-04f5, design-4807 (plan conventions), issue-88d3, issue-7d14
 (resolved), issue-5e47, the context-cost dogfood report of 2026-09-10.
+
+Resolved by the tanto-sweep plan's tasks 1 to 3, which build
+`skills/tanto/scripts/passage-check.js` (and its test file) as the durable
+script this issue proposed — `lint`, `replay`, `diff` and `verify`
+subcommands landed under the skill itself, not a repository's own
+`scripts/` — and by task 5's P5.2 and task 7's P7.2/P7.5, which put it in
+Sekkei's Step 4, Jisso's boundary check, and the whole-branch reviewer's
+instrument.
+
+From the `2026-09-10-tanto-sweep` conductor ledger:
+
+- S-10: the whole-branch reviewer is Kanri's dispatch, so the instrument for
+  it lands in `roles/kanri.md`, not `roles/jisso.md`; the same mis-location
+  will recur for any instrument the final review runs.
+- S-22: specifying an instrument's exclusions by example rather than by list
+  is where two implementers diverge — `replay`'s spec sanctioned one
+  exclusion, the dry run needed rules for 58 of 73 commands, and those rules
+  lived in a dispatch prompt, this issue's own failure mode one level up.
+- S-36: the letter of an issue filed from inside one repository can
+  silently scope a skill-wide instrument to that repository (this issue said
+  "under `scripts/`", the dev-tool directory; `tanto` runs in any
+  repository) — the script landed under the skill instead.

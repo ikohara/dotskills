@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-10
 ---
 
 Raised by the human on 2026-09-09 at the requirement-extraction plan close,
@@ -55,3 +55,11 @@ can do"); this issue is the gap against it, not a new need.
 
 Related: req-04f5, design-4807 (Workspace, Session lifecycle), issue-42be,
 issue-9d17 (no role sweeps the workspace root).
+
+Resolved by the tanto-sweep plan's task 11, which removes the "asks the
+human whether to delete it" sentence from `SKILL.md`'s Workspace section and
+the matching sentence from `roles/kanri.md`'s Session lifecycle, and states
+in all three places that move together — the contract, Kanri's residency
+paragraph, and Jisso's copy in the "What tanto overrides" table — that both
+untracked directories stay after a plan close, per the human's 2026-09-09
+decision recorded above.

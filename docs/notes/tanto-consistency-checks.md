@@ -24,6 +24,8 @@ accepted. No role file schedules them on its own; a plan that edits
 `skills/tanto/` schedules them by naming this note in its verification
 section.
 
+An absence check — check 7 below — is the one kind a new passage breaks simply by adding text, not by omitting it, so a plan that schedules only a subset of this note's checks must still schedule the absence checks: one plan scheduled checks 1, 2, and 5 and broke check 7 without ever running it.
+
 A plan that carries passages rather than whole files — an anchor line, the
 old passage, the new passage, for each edit — has no extracted tree. Its
 alignment check is the diff of each touched file against the merge base,
@@ -90,7 +92,7 @@ Six things a passage plan's pass needs that a whole-file plan's does not.
    files and re-run markdownlint with the repository configuration plus every
    string this note counts. That is the passage-plan analogue of check 9's
    extracted-tree lint, and one script settles what a spec otherwise asserts by
-   reading.
+   reading. An insert passage states which end carries the blank line its destination needs — `insert after` opens with the separator, `insert before` closes with it — and this lint must run on the *applied* copy of each file the plan writes, not on the plan's own fenced blocks: one plan's missing trailing blank line failed MD022 only on the applied tree, and nothing in the grammar, the anchors, or the presence greps could see it, because earlier passes had never built an applied tree to lint at all.
 6. **A flaw in the spec's own block is never a task-level edit.** In a passage
    plan the spec's bytes reach the tree verbatim, so a wording or wrapping flaw
    arrives with them — and the task that carries it is the one place it cannot
@@ -368,7 +370,7 @@ the first three, since a script is not a template; a plan that adds one and
 updates fewer leaves a check failing that nothing else will catch. A plan may
 knowingly break them mid-run, as the context-cost plan broke checks 1 and 2
 from its second task until its last; when it does, the batch that breaks them
-says so and the batch that repairs them names the count it restores.
+says so and the batch that repairs them names the count it restores. This paragraph's scope is not limited to the two bullets above it: any count tied to the shape of a file is a structural count in the same sense, and check 6's per-file `idle` figures are one — the `O` sweep runs over this note as well as over the skill, so a removal task can silently invalidate an expectation written for the thing it removed. One task zeroed `notify_when_idle: true` while check 6 still expected two matching lines, and nothing caught it: the expectation lived in prose that no passage quoted and no `O` needle named.
 
 ## 1. Every file of the layout exists
 
@@ -414,6 +416,8 @@ Expected: seventeen `ok` lines — `roles/jisso.md`, `roles/kaiseki.md`,
 two roster paths is the locale's and is not part of this check —
 and **no** `MISSING` line. A `MISSING` line is either a typo in the reference
 or a file the plan forgot.
+
+A count produced by a regex like this one moves with the text a plan writes, not with the files it creates: one plan's stated expectation for this check went 15 → 17 on the reasoning "the plan adds two files", when the value this check actually returns is 16. The wrong model survived a spec review, a dry run, and an adjudication before a run of the command caught it. State the count this check returns, not the arithmetic that produced it.
 
 ## 3. Every template is cited by the role that copies it
 
@@ -633,6 +637,8 @@ since 2026-09-10: no tanto line carries a subscription, the `exit:` lines
 included (issue-d725). Any nonzero figure is a subscription reintroduced,
 which is what this column now checks for.
 
+The pass condition is that **every line carrying an `idle` field ends `idle 0`**, not that every line of the output does — most lines this check prints carry no `idle` field at all. A naive count of lines not ending `idle 0` over the whole output always reads as a failure: one run counted 48 such lines and read the tree as broken, when only sixteen lines carried an `idle` field in the first place and all sixteen ended `idle 0`. Filter to the lines carrying the field before counting.
+
 ## 7. The strings that must be absent
 
 ```bash
@@ -657,7 +663,7 @@ an actual commit hash. Tracked content carries commit subjects, never
 hashes, and `<sha7>` inside a template blank is a placeholder, not a
 hash. `<plan>` is checked because `<plan-basename>` is the only correct
 form; runtime text is skill-relative, so only the skill's `README.md`
-and this note may name `skills/tanto/`.
+and this note may name `skills/tanto/`. This is a deliberate asymmetry, not an oversight: the skill's `README.md` may name `skills/tanto/` because it documents this repository's layout, which is precisely what runtime text must not depend on.
 
 The one wording invariant that must be **present**:
 
@@ -678,6 +684,8 @@ delivered layout, no `tanto` plan may edit it, and nothing the skill does at
 runtime depends on it. It describes the repository's skills for a reader — which
 are host-agnostic and which are not — so it changes when the set of skills
 changes, not when `tanto` does.
+
+A presence invariant belongs beside this absence check: every inline command in runtime text names an interpreter or is executable. Removing a repo-specific prefix from an invocation is not the same edit as making the command runnable — one fix satisfied the absence check above and still left five commands with no interpreter, because nothing here checks that what remains actually runs.
 
 ## 8. The frontmatter and the JSON parse
 
@@ -754,3 +762,7 @@ lints them through Biome, which a read-only seat cannot run; their content is
 checked by `mise x node@22 -- node --test "skills/tanto/scripts/*.test.js"` —
 the quoted glob, since the directory form fails on this host — and that is
 the command a read-only seat runs in place of the lint.
+
+## 10. A controller-written verification script earns the same scrutiny as the work it checks
+
+A scan a controller writes to check a plan is itself unreviewed code, and its **coverage** — not just its findings — is a claim that needs stating and testing separately. One pre-flight scan reported "38 of 38 passage blocks resolve exactly once against the current tree"; it had actually checked 25 — a loop skipped a single-task file before reaching the occurrence check, so the thirteen blocks in files only one task touches were never resolved, and the scan also missed that the plan carried one global replacement rather than none. Neither error was caught by the scan's own author; an independent parse of the plan surfaced the contradiction. "38 of 38 checked" and "no finding" are two different assertions, and the first is the one that can fail silently.

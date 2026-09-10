@@ -38,3 +38,11 @@ assumes for a plan without a dry-run report.
 
 Related: req-04f5, issue-7281, issue-7481, issue-88d3, design-4807 (plan
 conventions), superpowers writing-plans.
+
+Resolved by the tanto-sweep plan's task 5 (P5.1), which states the rule
+this issue asked for in `roles/sekkei.md`'s Step 3: each block appears once
+and a later task cites it by id rather than re-quoting it, and every Verify
+step is one invocation of `passage-check.js verify` rather than hand-written
+commands, so the needles, anchor values, and line counts cannot drift from
+the blocks that determine them; the Self-Review's sizes (issue-7281)
+accompany it.

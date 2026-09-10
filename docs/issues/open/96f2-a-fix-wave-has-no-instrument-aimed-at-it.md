@@ -42,3 +42,15 @@ already being built for plans.
 Related: req-04f5, design-4807 (the fix-wave pre-flight, and the passage
 conventions), issue-7481 (the durable passage check), the tanto-sweep plan
 review of 2026-09-10.
+
+S-93, from the `2026-09-10-tanto-sweep` conductor ledger (Kanri, at the
+tanto-sweep run's final boundary, 2026-09-10): the fix
+wave that closed that run was written in the plan's own block grammar and
+was checked by the instrument before dispatch (`lint` caught a false
+citation, `replay` a partial anchor) and after landing (`verify` clean,
+`diff` clean) — the first fix wave of the run whose Verify step was the
+instrument itself. This is one answer to this issue, measured: a fix wave
+gets the plan's instrument for free by being written in the plan's own
+grammar, rather than needing a separate instrument aimed at fix waves as
+such. No fix is proposed here either — this is a second data point, not a
+resolution.

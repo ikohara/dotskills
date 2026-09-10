@@ -48,7 +48,7 @@ can see is not the session id, so nothing a peer holds leads to the file.
 No threshold is chosen: the archive's rows are the dataset, and the number that
 would fire a handover or a replacement on cost is a later ADR's (issue-40ed).
 
-## Skill layout
+## Skill layout (req-04f5)
 
 `SKILL.md` is the shared contract every role reads: invocation and role-word
 normalization, the model check, the handshake, the address rule, the roster, the
@@ -92,6 +92,22 @@ Every path the skill names at runtime is relative to the skill directory, the
 base directory Claude Code reports when the skill loads. The skill's own text
 never names its source location, so it runs unchanged from a user-level link or
 from a project's local skills directory in any repository.
+
+The rule was violated once and fixed: five passages of the tanto-sweep plan
+wrote the repository-relative `node skills/tanto/scripts/passage-check.js`
+into three role files, naming this repository's own layout in runtime text
+that any repository must be able to run. The reason is stronger than tidiness
+— tanto runs in any repository, where that path does not exist — so the fix
+keeps the runtime text skill-relative (`scripts/passage-check.js`) and has
+`SKILL.md` say how to resolve it; `docs/notes/tanto-consistency-checks.md`
+carries the sweep for it as its own check.
+
+A skill-relative path is runnable only if the skill also says how a variable
+holding it reaches the same shell as the command that uses it, because shell
+state does not persist between tool calls. `$TANTO` needs an assignment
+convention and not only a definition: naming it once and reading it six
+commands later fails silently, so runtime text sets it in the same tool call
+as every command that reads it.
 
 That link has a consequence for this repository, and rule 11 draws it: when the
 skill the sessions load is the working tree's own copy, a plan that edits
@@ -356,17 +372,24 @@ the triage's issues, the exits, Kanri's own commits, Sekkei's — happens before
 the prompt that wakes Jisso, and the pre-commit hooks stash every unstaged change
 while they run, so nobody edits a tracked file outside its own slot.
 
-**The report line is the signal, and the subscription is the overdue fallback.**
-Kanri sends batch prompts and Kaiseki briefs without an idle subscription and
-waits for the one-line report; it subscribes — a pure `notify_when_idle`, no
-message — only when a signal is overdue, and treats a notice arriving before the
-report as a reason to check the workspace rather than as the signal, because a
-peer's turn ends whenever it dispatches a subagent and most notices are
-therefore false idles. The measurement behind the rule: across two days one
-Kanri took 394 wake-ups against 77 peer messages, with **81 idle notices** —
-about half its wake-ups — and every wake-up re-reads the session's whole context
-as input. Only the exit lines keep their subscription, because there the idle
-notice is the forced-exit signal by design.
+**The report line is the signal, and no tanto line carries a subscription.**
+Kanri sends every line — batch prompts, Kaiseki briefs, and the exit lines
+alike — without an idle subscription and waits for the one-line report; it
+subscribes — a pure `notify_when_idle`, no message — only when a signal is
+overdue, and treats a notice arriving before the report as a reason to check
+the workspace rather than as the signal, because a peer's turn ends whenever it
+dispatches a subagent and most notices are therefore false idles. The
+measurement behind the rule: across two days one Kanri took 394 wake-ups
+against 77 peer messages, with **81 idle notices** — about half its wake-ups —
+and every wake-up re-reads the session's whole context as input. The exit
+lines carried a subscription until 2026-09-10, on the reasoning that there the
+idle notice is the forced-exit signal by design; measured across two Sekkei
+exits it woke Kanri four times and signalled nothing, because both sessions
+answered normally and every notice arrived after its answer (issue-d725). A
+session that has stopped answering is now learned the way a missing batch
+report is learned — the human says the session is gone, or the window wakes
+for another reason and the answer has not arrived — and the forced exit
+follows from that.
 
 Dropping the subscription removed the only event that woke Kanri to notice a
 silent peer, and "overdue" has neither a threshold nor a clock: a session holding
@@ -398,14 +421,25 @@ reason that only applies while an implementer exists.
 
 ## Handover
 
-Kanri is resident, so its only exit is a handover — decision-de63. Two signals
-fire one, checked at every boundary: the human's word, which always overrides,
-and a **compaction noticed**, which is the one signal a session can see about
-itself. State lives in files, so a compaction loses nothing a successor cannot
-read back; it is the harness's own evidence that the session has grown long. The
-token figure the harness prints is deliberately not used — its unit is not
-documented as the context window. A count threshold is deferred as issue-40ed,
-and the Residency counters exist so one can be chosen later. Kanri now sees its
+Kanri is resident, so its only exit is a handover — decision-de63. Three
+signals fire one, checked at every boundary: at loop step 6 while a plan is in
+flight, and between plans at the start of every turn. **The plan close** is the
+ordinary one of the three — decision-b6cb: after T2, the merge decision, the
+peers' deletion, and the archive move, the handover runs without a threshold
+and without asking, because the close is the moment with nothing in flight and
+the record complete, and a resident session's per-turn cost is its age, so the
+reset is a planned step rather than a question put to the human once a plan
+(req-04f5). **The human's word**, which always overrides, at any boundary. And
+a **compaction noticed**, which is the one signal a session can see about
+itself and is the mid-plan case — a human who says "continue" at a plan close
+declines that close's handover the way this section already describes, which a
+mid-plan compaction never gets asked. State lives in files, so a compaction
+loses nothing a successor cannot read back; it is the harness's own evidence
+that the session has grown long. The token figure the harness prints is
+deliberately not used — its unit is not documented as the context window. A
+count threshold for **replacing a peer** is deferred as issue-40ed's other half
+— its handover half closed with decision-b6cb — and the Residency counters
+exist so one can be chosen later. Kanri now sees its
 own compaction two ways: as it always did, and as a `1` in the Compactions
 figure of the reading it takes at every trigger check — a figure it had not
 noticed counts as noticed when it reads it.
@@ -736,7 +770,7 @@ design document is a description of what the files do; if no file does it,
 nothing does. The fix shipped as a passage in Sekkei's Step 2, where the
 obligation now lives.
 
-## Plan conventions under tanto
+## Plan conventions under tanto (req-04f5)
 
 A plan for this protocol carries, beyond the usual conventions, a Batches
 section of three or four tasks each with the stop conditions at every boundary,
@@ -1025,8 +1059,11 @@ boundary rather than by the plan's own instruments.
   run's complement — the dry run proves the edits apply, this proves the tree
   has not moved under them.
 
-The tanto-sweep run of 2026-09-10 added two more, both about where a passage
-plan's defects actually sit.
+The tanto-sweep run of 2026-09-10 added the rest of this document's plan
+conventions, drawn from every phase of the plan: the spec review, two plan
+reviews, the spec dialogue's own candidates, Sekkei's human-contact lines,
+four batch reports, and the whole-branch review that closed it. Two are about
+where a passage plan's defects actually sit.
 
 - **The verbatim passages are the part that does not fail; the prose around
   them is where every defect lives.** Across that run's plan phase the 38
@@ -1046,6 +1083,188 @@ plan's defects actually sit.
   went on to order a shebang-less file to run itself. The rejection was made on
   the shape of the fix rather than on whether the result ran, which is a taste
   judgment substituted for a test and not declared as one.
+
+The rest, roughly in the order the run produced them:
+
+- **Write the `O` needles from the entities changed, then sweep the files the
+  plan does not touch, first.** All three old-value misses of the tanto-sweep
+  spec review sat in files the plan carried no passage for — the operational
+  form of the context-cost run's "drifts in both directions" finding, above: a
+  sweep that only reads touched files cannot see the direction it never looked
+  at.
+- **A document that defines a machine grammar should be parseable by the
+  parser it defines.** The spec's own passage ids must obey the id grammar it
+  states once, rather than being exempt from the rule they introduce.
+- **An anchor needle never contains a backtick.** Nested backticks render as
+  fragments and silently dropped one anchor from the spec review's own parse;
+  pick a backtick-free substring, or `grep -cF` a plain fragment instead of the
+  marked-up line.
+- **A dialogue turn that reverses a decision lists the earlier `D-n` answers
+  it invalidates** — the mirror of the rule recorded above (`What makes a
+  convention bind`) that a decision reaches `dialogue.md` before it reaches
+  any document. D-11 overturned D-9's Python premise but left D-9 itself
+  quotable, and the Node floor that `mise` later restored did so by a route
+  the dialogue never recorded as a reversal; an overturning turn that skips
+  the back-reference leaves a later reader unable to tell which turns are
+  still live.
+- **A dry-run "artifact" ruling is checkable only when it enumerates the
+  differing ids and accounts for each exactly once.** Two of three such
+  rulings on the tanto-sweep plan named items that had not in fact differed,
+  and the two that had — T14S1, T14S2 — went un-adjudicated; a ruling that
+  just says "artifact" is unfalsifiable.
+- **When one commit edits both the spec and the plan, diff the shared blocks;
+  do not assert them equal.** "38 passages byte for byte" held for 37 of
+  them — the one that diverged was the block the same commit had edited on
+  the spec side.
+- **A grammar a document both describes and instantiates states which of its
+  own conventions the parser is bound by, and an anchored match is what a
+  global replacement means.** 79 of the tanto-sweep plan's 80 command blocks
+  used four backticks while the instrument's only extraction fixture used
+  three — a fence-width convention the parser silently was not bound by; and
+  unanchored, `P12.4`'s old line still read `4` after a correct edit because
+  the new line extended the old, so a global block's verification anchors, or
+  a partial replacement is invisible to it.
+- **An anchor step at `before: 1, after: 1` proves only that the anchor was
+  not deleted.** Placement needs a `grep -n` pair with a stated offset, and
+  `+1` holds only when the needle is the anchor block's last line — which the
+  grammar does not guarantee. Beside the rule above that a checklist item is
+  worth its line only if it can fail.
+- **An insert passage states which end carries the blank line** — `insert
+  after` opens with the separator its destination needs, `insert before`
+  closes with it — because none of the grammar, the anchors, or the greps can
+  see a missing trailing blank line on their own: `P-J2`'s went unnoticed
+  through four passes and surfaced only once the applied tree was linted.
+- **A specification section added late must be wired into the step that
+  implements it.** When a spec grows a section, the audit is "which step now
+  has two sources of truth", not "is the new text correct".
+- **A crude comparison and a non-zero exit are incompatible design choices
+  for an instrument's contract**: either a check decides or it reports, and
+  the exit-code table is where the choice shows — and the row that gets
+  forgotten, in `replay`'s case.
+- **A plan that records a measurement of the world outside it ages the
+  moment the world moves, and a gate must read zero on today's tree before
+  it is trusted** — you have to run it to find out. The fix for the first is
+  to name who measures it and when, rather than keep the number fresh in a
+  document that outlives the date (Kanri, at the batch A prompt, for this
+  run); the second is the mirror of the absence rule already stated above —
+  a word-list gate that matched the exclude patterns and was open before the
+  thing it gates existed proved only that nobody had run it, and a presence
+  check is worth its line only if it reads empty before the thing it checks
+  for arrives.
+- **A skill may assume its host's runtime, and only its host's runtime.**
+  superpowers ships `.js` and `.sh` payload, invokes bare `node`, and carries
+  no `package.json`; the question to check is which runtime the host
+  guarantees, not which language best suits the task. (A Python-with-`uv`
+  alternative for the plan's own instrument was considered and reversed
+  during the spec dialogue, D-2/D-7/D-11.)
+- **This repository's line endings are, at the time of writing, uniform
+  rather than mixed file by file** — `i/lf w/crlf` for every Markdown file,
+  `eol=lf` pinned for the JS family since the Biome commit — which updates
+  the "mixed file by file" premise stated above; the instrument still must
+  not assume uniformity, since the premise is a fact about this tree's
+  history and not a property the grammar guarantees.
+- **An instrument is worth building before it is specified.** A thirty-line
+  pre-flight, written before the spec review, found all five count defects
+  among the tanto-sweep spec's 22 hand-written leads — the same off-by-one
+  shape as the context-cost run's six — and writing blocks under a checker
+  prevents defects rather than catching them after. Third instance of the
+  premise behind issue-88d3 and issue-7481.
+- **A document that specifies a grammar contains text shaped like it, and a
+  self-describing plan needs its parser to know use from mention**: a lead
+  inside a fenced block is text, a `<...>` placeholder is documentation, and
+  a lead resolves only inside a task body.
+- **Write one needle per changed entity, before the passages are drafted, not
+  after.** The tanto-sweep spec's own instrument failed against its own spec
+  twice on needles written from the terms the plan changes rather than from
+  the entity spelled every way the tree spells it; the role whose procedure a
+  passage rewrites detects this class better than the author's own sweep,
+  which is why the role-check now runs before the spec review, not instead of
+  it.
+- **An `O` needle must span the point where the text changes.** Where a
+  change inserts, the needle straddles the insertion point; where it
+  replaces, the needle is text the replacement does not reproduce. This is
+  mechanical — `lint` searches the plan's new-passage text for every needle
+  — and found exactly the two dead needles the dry run had already found by
+  hand.
+- **The floor is declared twice once `.mise.toml` exists, and it should not
+  be**: the file says `node = "22"` and the plan's own command says `mise x
+  node@22`, the version-pin instance of "one block cited, not two copies"
+  above. The command should read `mise x -- node --test skills/tanto/scripts/`
+  so the file stays the single declaration — not edited into the gated plan,
+  but for the next plan's conventions and for the verification bullet the
+  next time it changes.
+- **A plan's verbatim-mandated test can contradict the plan's own prose, and
+  the test wins by default because it is the executable one.** The
+  residual-`O` heading's noun disagreed with the test file the same plan
+  mandated verbatim — a hazard worth naming beside the block grammar wherever
+  a plan writes test files into itself.
+- **A plan may knowingly break a structural count mid-run, if the batch that
+  breaks it says so** — `docs/notes/tanto-consistency-checks.md`'s own
+  provision for a count that goes stale by construction, used for the first
+  time on the tanto-sweep plan's batch A, and it held exactly as written.
+- **A session's permission settings can refuse a directed step the human
+  approved in another window, and that refusal is correctly reported rather
+  than routed around.** A batch prompt directing a recursive deletion was
+  blocked by Jisso's own settings; its "if it fails, say so" clause is what
+  kept the batch from stalling. Beside decision-2f36's stop classes: a
+  directed step a session's settings block is reported, and Kanri does not
+  take it up in its own session either.
+- **A branch claim in runtime text is checked against the step's position in
+  the procedure, not read on its own.** The spec's `P-K10` wrote that a
+  commit "lands on the plan's branch" for a step that in fact runs after the
+  merge decision is executed, so the claim contradicted the close's own
+  ordering — caught by Jisso reading three passages of one file against each
+  other, not by any parser. `P-K10`'s wording is superseded by the fix wave's
+  form of the same passage.
+- **A plan that builds a checker carries one late task whose Verify step is
+  the checker run against the plan's own earlier tasks.** The tanto-sweep
+  plan's instrument was never run against the plan that built it, and the
+  first real `verify` failed — a false `passage-repeated` at task 12 —
+  because batch D, the opportunity to run it, used hand-written greps
+  instead. The fix wave's task 16 step 6 is that run; the human declined an
+  ADR for the rule (2026-09-10), so it stands as a plan convention here.
+- **`verifyTask`'s expected count is the post-replay invariant because it
+  reuses `replayPlan`'s own formula** — the sum of declared occurrence counts
+  per identical new text and path — stated as the reason the two agree, not
+  as a coincidence that happens to hold.
+- **A fix wave gets the plan's instrument by being written in the plan's own
+  block grammar.** The tanto-sweep fix wave was checked before dispatch
+  (`lint` caught a false citation, `replay` a partial anchor) and after
+  landing (`verify` clean, `diff` clean) — the first fix wave of the run
+  whose Verify step was the instrument itself, and the measured answer to
+  issue-96f2.
+
+Jisso's own dispatches to its fix subagents carry a matching set of
+conventions, measured during the same run:
+
+- **A controller's fix instruction is a hypothesis, not an order: the
+  dispatch says test this, and report if it is wrong, rather than asking the
+  implementer to comply as given.** An `execSync` `stdio` instruction meant to
+  capture stderr would in fact have discarded it — `execSync` returns stdout
+  only, whatever the `stdio` array says — and the implementer tested it,
+  reported that it did not work, and substituted `spawnSync`. A dispatch to
+  confirm the suite was green at 62 measured 61, because the fix had extended
+  an existing test's assertion rather than added a new `test()` call, and the
+  implementer reported the measured number rather than the expected one.
+- **A dispatch states the rule and its source, not a consequence it has not
+  measured.** One batch prompt fixed a task's block order correctly and added
+  a reason of its own invention — that reversing it would land a blank line
+  wrong — which a reviewer tested and found false: the blocks were
+  commutative, byte-identical either way, and the reviewer spent effort
+  disproving a claim nobody needed to make.
+- **A completion notice is not evidence the work landed.** A task's fix round
+  can end its turn mid-verification with correct, uncommitted work already in
+  the tree; the notice alone reads as a finished handoff, and `git status`
+  and `git log -1` are the cheap check that tells "done" from "stopped early"
+  before a task is treated as reported.
+- **A dispatch requires the trailer's prefix, `Co-Authored-By: Claude`, not
+  its exact text** — the dispatch-level form of the per-commit trailer check
+  already stated above. One dispatch quoted the trailer verbatim; the
+  implementer's own session mandated a longer identity, committed the
+  brief's text, and then amended to its own, disclosing the judgment call
+  rather than hiding it. Two identities already satisfy `AGENTS.md`, which is
+  exactly why the check is a prefix grep and not an equality test, and the
+  dispatch should ask for only what the check tests.
 
 Three alternatives were weighed and rejected while these conventions were
 derived, and the reasons are worth keeping. A **bounded** handover wait was

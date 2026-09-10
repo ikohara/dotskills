@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-10
 ---
 
 `skills/tanto/templates/review-brief.md`'s "How to answer" defines `all OK`
@@ -38,3 +38,17 @@ decide point.
 
 Related: decision-ace0 (the answers to the brief are the confirmation),
 design-4807, issue-a1c9 (resolved; the brief's origin).
+
+Resolved by the tanto-sweep plan's task 12, which adds an
+`— If unanswered: <what>` clause to every decide point in
+`templates/review-brief.md` (stated in both the answering paragraph and the
+point-form paragraph) and a fourth part to `roles/kanri.md`'s brief-form
+check that enforces it, so a bare `all OK` on a decide line selects the
+default the human saw before answering rather than an undefined reading.
+
+From the `2026-09-10-tanto-sweep` conductor ledger:
+
+- S-35: this issue was half-fixed before it was filed — the strict reading
+  landed in the 13:17 fix wave of 2026-09-09, the issue was written at 15:34
+  against it — so an issue written after a fix wave on the same file is now
+  re-read against the tree before it is planned.

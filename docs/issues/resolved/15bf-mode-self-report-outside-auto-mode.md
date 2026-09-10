@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-06
-updated: 2026-09-06
+updated: 2026-09-10
 ---
 
 The tanto handshake line carries `mode=`, which a session fills with `auto`
@@ -34,3 +34,11 @@ mode? If it can, `mode=` becomes informative in every direction rather than only
 when the answer is `auto`. If it cannot, the field stays a one-bit signal and
 Kanri's warning stays keyed on the absence of `auto`. Measure it the next time a
 role is started outside auto mode.
+
+Resolved by the tanto-sweep plan's task 13 (P13.3), which rewrites
+`SKILL.md`'s `mode=` paragraph: `unknown` is the measured ceiling, not a
+gap — a session outside auto mode carries no statement of which permission
+mode is active, only the harness's line that tools run behind a
+user-selected one, so nothing better than `unknown` can be reported and
+Kanri's warning stays keyed on the absence of `auto`, as measured on
+2026-09-10.

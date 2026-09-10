@@ -51,3 +51,36 @@ inverts the reviewer's standing instruction. A plan that right-sizes by lines
 alone will keep producing task 8s.
 
 Full figures in `docs/reports/2026-09-10-tanto-context-cost-dogfood.md`.
+
+More sizes, this time from the tanto-sweep plan's own Self-Review item 4, per
+its own new rule (2026-09-10). Size again has two components and they do not
+pick the same task: by **line count** the largest is **task 1**, at 458 lines
+and 8 steps; by **block count** the largest is **task 9**, at eight blocks —
+342 lines and 14 steps. Then task 7 at 248 lines and 13 steps, task 12 at
+242 lines and 12 steps, task 2 at 229 lines and 6 steps, task 10 at 227 lines
+and 11 steps, and task 14 at 208 lines and 9 steps; the smallest is task 6,
+at 109 lines and 6 steps. The whole plan is 3949 lines. Task 14 is again the
+sweep-and-check outlier: its deliverable is recorded output rather than a
+file, it makes no commit, and its reviewer is told to re-run the checks
+rather than read the report — the same shape context-cost's task 8 already
+showed here.
+
+The per-batch cost shape that run measured (Jisso's context cost per batch,
+from the T2 shoroku proposal's Part B item 9):
+
+| Boundary | Bytes | Records | Wake-ups | Compactions |
+| --- | --- | --- | --- | --- |
+| batch A | 2,141,746 | 772 | 19 | 0 |
+| batch B | 3,280,714 | 1,264 | 36 | 0 |
+| batch C | 3,787,339 | 1,464 | 43 | 0 |
+| batch D | 4,384,655 | 1,721 | 51 | 0 |
+| final | 4,928,098 | 1,969 | 57 | 0 |
+
+The shape, not the total, is the finding: **batch A alone is 43% of the
+whole run's transcript** (2.14 of 4.93 MB) for 4 of 16 tasks, and the four
+batches after it add only 1.14, 0.51, 0.59 and 0.54 MB, because batch A
+built the instrument under TDD (two of its four tasks took two fix rounds
+each) while every later batch is passage edits, which are cheap — the ten
+passage tasks (5, 6, 7, 8, 9, 10, 11, 12, 13, 15) took zero fix rounds
+between them, across 60-odd blocks. A plan that front-loads its executable
+work should expect its first batch to cost as much as the rest combined.
