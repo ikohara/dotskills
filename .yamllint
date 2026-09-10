@@ -9,3 +9,4 @@ rules:
 
 ignore: |
   apm.lock.yaml
+  pnpm-lock.yaml

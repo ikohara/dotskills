@@ -46,6 +46,7 @@ Refer to them as `<type>-<id>` in commits, code comments, and prose:
 - Markdown frontmatter: checked by the `check-md-frontmatter` pre-commit hook ([`scripts/check_md_frontmatter.py`](scripts/check_md_frontmatter.py)).
 - PowerShell: see [`scripts/PSScriptAnalyzerSettings.psd1`](scripts/PSScriptAnalyzerSettings.psd1).
 - YAML: see [`.yamllint`](.yamllint).
+- JavaScript / TypeScript / CSS: see [`biome.json`](biome.json).
 - All files: see [`.editorconfig`](.editorconfig).
 
 ### Pre-commit
