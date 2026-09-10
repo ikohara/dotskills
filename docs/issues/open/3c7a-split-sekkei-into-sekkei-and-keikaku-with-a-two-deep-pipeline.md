@@ -72,5 +72,15 @@ after the merge, and the re-send rule. If the split holds, the follow-up is
 a phase-keyed `sessions.sekkei` in `tanto.json` becoming unnecessary because
 the roles are two.
 
+**The exit file's suffix.** `skills/tanto/SKILL.md`, "Session exit", fixes
+the pattern `exit-<role>[-<suffix>]` with the suffix "absent for Sekkei
+(`exit-sekkei`)", and the Artifacts table says the same. That clause is
+contradicted the moment the spec and the plan are two sessions: the
+kisou-refresh run (2026-09-11) used `exit-sekkei-spec` and
+`exit-sekkei-plan` by ruling (its R-7), because two Sekkei sessions by stage
+would otherwise write the same file. So the split defines the suffix rule —
+or the roles' own names do (`exit-sekkei`, `exit-keikaku`), which needs no
+suffix at all — and the Artifacts table follows whichever it is.
+
 Related: req-04f5, decision-b6cb, decision-f496, decision-5c8e, design-4807,
 issue-9a68, issue-40ed, the dogfood report of 2026-09-10.
