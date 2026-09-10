@@ -271,7 +271,7 @@ follow, and both are mechanical:
 | Subcommand | What it does | What it closes |
 | --- | --- | --- |
 | `lint --plan <path>` | Parses only. Every lead line well-formed; every `N` equal to its block's real line count; every id unique; every id cited in prose present as a block; every anchor step stating both values; every insertion carrying an anchor step; and **no `O` needle occurring in the plan's own new-passage text** — that text being the concatenation of the blocks that follow a `**P<id> →**` lead, and nothing else, because a search over the whole plan would flag all of them by way of their own `O` lead lines. A needle the plan's replacement text contains cannot detect the change it was written for, and returns the same count after the plan as before. | issue-88d3's count half, issue-f813's citation rule, issue-10bc's needle trap |
-| `replay --plan <path> --base <ref>` | Copies the base blobs to a temporary tree and applies each passage, asserting each old passage occurs **exactly once**. Then re-runs each anchor command against the applied copy and compares the result with its stated `after:` value. Then runs the plan's commands in order against that tree, printing each output beside its stated expectation — **skipping any command that invokes `passage-check.js verify`**, because `verify` reads the working tree and `replay` has already made that check against its own. Then runs every `O` needle against the applied tree and prints every residual hit. | issue-88d3's anchor half, issue-7481's command-runner half, issue-10bc |
+| `replay --plan <path> --base <ref>` | Copies the base blobs to a temporary tree and applies each passage, asserting each old passage occurs **exactly once**. Then re-runs each anchor command against the applied copy and compares the result with its stated `after:` value. Then runs the plan's commands in order against that tree, printing each output beside its stated expectation — **skipping what it cannot run**: any `git` command, any invocation of `passage-check.js verify` (which reads the working tree, not the applied copy), and any pattern the plan declares as `replay-skip:`. The rules and the comparison are in "What `replay` treats as a command" below; this cell is a summary and not the contract. Then runs every `O` needle against the applied tree and prints every residual hit. | issue-88d3's anchor half, issue-7481's command-runner half, issue-10bc |
 | `diff --plan <path> --base <ref>` | Every added line of `git diff <base>` must be text the plan literally quotes; lists the added lines that are not, and the removed lines outside any fenced block. A path the plan declares as created is exempt — its lines are accounted for by construction — and the exemption is read from the plan's `created:` list, never inferred. Needs only the plan and `git`. | issue-7481's core |
 | `verify --plan <path> --task <N>` | What a task's Verify step invokes, against the working tree: each of task `N`'s new passages present exactly once, and each of its anchors at its stated `after:` value. It takes no `--base` and does no diffing — that is `diff`'s job at the boundary, and a subcommand that did both would need a base ref its callers do not have. | D-6 |
 
@@ -310,7 +310,7 @@ everything it checked held.
 | Subcommand | Exits non-zero when |
 | --- | --- |
 | `lint` | any lead is malformed; any `N` disagrees with its block; any id repeats; any cited id has no block; any insertion has no anchor step; any anchor omits a value; **or zero task headings were found** |
-| `replay` | a passage's old block matches other than the stated number of times; an applied anchor disagrees with its `after:` value; a command's output differs from its stated expectation |
+| `replay` | a passage's old block matches other than the stated number of times, or an applied anchor disagrees with its `after:` value. **Not** a command whose output differs from its expectation: that is printed, counted and left to Sekkei, because a dry run's value is the adjudication — the context-cost run's twelve automated failures were six plan defects and six harness artifacts, and a `replay` that exited non-zero on all twelve would have said nothing the six did not |
 | `diff` | any added line outside a `created:` path is not quoted by the plan, or any removed line falls outside every fenced block |
 | `verify` | a task's new passage is absent or present more than once, or one of its anchors disagrees with its `after:` value |
 
@@ -342,10 +342,16 @@ which commands those are, and a first draft of this spec pinned none of them.
   a git repository, so it **skips** and reports as skipped: any command whose
   first word is `git`; any invocation of `scripts/passage-check.js verify`,
   whose subject is the working tree rather than the applied copy; and any
-  command the plan marks with a trailing `# replay: skip — <reason>` comment,
-  which is how a plan declares one the script cannot classify. Everything else
-  runs. The skipped set is printed with its reasons, never elided: a dry run
-  that silently skips is a dry run that passed nothing.
+  command matching a pattern the plan declares in its Global Constraints as
+  `replay-skip: <pattern> — <reason>`, one line per pattern, which is how a
+  plan names the commands the script cannot classify — its own lint, its own
+  test runner, anything needing a toolchain the scratch tree lacks. Everything
+  else runs. The skipped set is printed with its reasons, never elided: a dry
+  run that silently skips is a dry run that passed nothing.
+- **A command fence with no `Expected:` paragraph after it** is run and its
+  output recorded under "no stated expectation". It is not a failure and not
+  a skip; roughly a third of a real plan's fences are `git add`/`git commit`
+  blocks and setup steps that state no expectation because they have none.
 - **How an expectation is found and compared.** The paragraph immediately
   following a command block, when it begins with `Expected:`, is that block's
   expectation. `replay` prints the command, its actual output, and that
@@ -740,8 +746,11 @@ agent dry run, by Jisso at every batch boundary, and by the whole-branch
 reviewer. It is Node with no dependencies, its tests are beside it and run by
 `node --test`, and `roles/sekkei.md` and `roles/jisso.md` name its
 subcommands. Its path is written skill-relative, like every other path in
-this skill: run it as `node <the skill directory>/scripts/passage-check.js`,
-that directory being the one the harness names when it invokes the skill.
+this skill, and the role files spell the runnable form `$TANTO`: set that to
+the skill's own directory, which the harness names when it invokes the skill,
+and every command in this skill runs as written. It is never invoked bare —
+the file carries no shebang, so `node` is part of the command and not
+decoration.
 ```
 
 ### The two places the first old-value sweep missed
@@ -900,7 +909,8 @@ have supported.
 
    For a plan that carries passages, give that reviewer the plan, the merge
    base, and one command —
-   `scripts/passage-check.js replay --plan <path> --base <merge base>` — so
+   `node "$TANTO/scripts/passage-check.js" replay --plan <path> --base <merge base>`
+   — so
    that the replay it would otherwise rebuild by hand is the instrument
    Sekkei and Jisso already ran (issue-7481). Its report says what the replay
    printed, and the review seat goes to the cross-file contracts and the
@@ -927,8 +937,8 @@ boundary check is a command rather than a set of greps.
   of any frontmatter, and a JSON parse of any JSON the plan writes; for a plan
   that ships code, the test command together with the runtime version it is
   pinned to, so that a version claim is a run and not an assertion; and for a
-  plan that carries passages, `scripts/passage-check.js diff` as the boundary
-  check,
+  plan that carries passages,
+  `node "$TANTO/scripts/passage-check.js" diff` as the boundary check,
   which is what makes that check outlive the session that wrote it
   (issue-7481);
 ```
@@ -1020,7 +1030,8 @@ insertion next to an anchor that stays.
 ```text
 A plan that carries passages rather than whole files wraps each new passage
 at its destination file's column, chosen when the block is authored, and
-writes every block in the shape `scripts/passage-check.js` parses, so that the
+writes every block in the shape `scripts/passage-check.js` parses — `$TANTO`
+being the skill's own directory, as `SKILL.md` sets it — so that the
 plan is machine-checkable and not only readable:
 
 - a replacement is `**P<task>.<n>** <path> — replace exactly these <N> lines`,
@@ -1054,7 +1065,8 @@ plan is machine-checkable and not only readable:
 Each block appears **once**; a later task that needs one cites it by its id and
 does not re-quote it. A count in prose is written only where a command consumes
 it. Every Verify step of a task is one invocation of
-`scripts/passage-check.js verify --plan <path> --task <N>`, rather than
+`node "$TANTO/scripts/passage-check.js" verify --plan <path> --task <N>`,
+rather than
 commands you write out: the needles, the anchor values, and the
 line counts are all determined by the blocks, so writing them again only
 creates something that can drift from them (issue-f813).
@@ -1083,8 +1095,8 @@ threshold is set: the sizes are recorded until one can be chosen (issue-7281).
 **P-E2 →**
 
 ```text
-1. Run `scripts/passage-check.js lint --plan <path>`, then the same script's
-   `replay --plan <path> --base <merge base>`, and write
+1. Run `node "$TANTO/scripts/passage-check.js" lint --plan <path>`, then the
+   same script's `replay --plan <path> --base <merge base>`, and write
    `.superpowers/sdd/<topic>/plan-dryrun.md` from what they print: the two
    commands, each one's output, and your ruling on every failure. `lint`
    checks the plan against itself — the lead lines, each `N` against its
@@ -1122,8 +1134,8 @@ checks rather than trust the report, because the output is the deliverable.
 ```text
 
 For a plan that carries passages, run
-`scripts/passage-check.js diff --plan <path> --base <merge base>` at every
-batch boundary, before you report. It prints the added lines of the
+`node "$TANTO/scripts/passage-check.js" diff --plan <path> --base <merge base>`
+at every batch boundary, before you report. It prints the added lines of the
 merge-base diff that the plan does not literally quote, and the removed lines
 that fall outside any fenced block; both sets must be empty, or accounted for
 in your report. It needs only the plan and `git`, so unlike an application
@@ -1174,6 +1186,7 @@ approval. Neither half is enforcement — an implementer can always lie — but 
 first removes the ambiguity that made simulating look like compliance, and the
 second gives the reader something to check other than the report's own
 confidence (issue-f2ec).
+
 ```
 
 ### `skills/tanto/templates/review-brief.md`, a decide point's default
