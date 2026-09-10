@@ -374,6 +374,11 @@ test("replay restores the dominant line ending of the file it copied", () => {
   const repo = makeRepo({ "tmp/fixture.md": "alpha\r\nbeta\r\n" });
   const parsed = parsePlan(fs.readFileSync(writePlan(REPLACEMENT), "utf8"));
   const result = replayPlan(parsed, repo.head, { cwd: repo.dir });
+  // replayPlan never removes its own tree -- this call bypasses the CLI
+  // wrapper that normally does -- so this test registers it with the same
+  // file-teardown the other helpers use. The removal itself only runs once
+  // every test in this file has finished, well after the read below.
+  tmpDirs.push(result.tree);
   assert.strictEqual(result.ok, true);
   assert.strictEqual(fs.readFileSync(path.join(result.tree, "tmp/fixture.md"), "utf8"), "gamma\r\n");
 });
