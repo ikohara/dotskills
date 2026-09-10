@@ -1542,13 +1542,30 @@ a flat type and the note that governs the plan's own verification.
   the linter is invisible to the plan's own verification without one:
 
   ```console
-  $ mise --version                      # expect a version, not "command not found"
-  $ grep -c 'js\|javascript\|eslint\|oxlint\|biome' .pre-commit-config.yaml
+  $ grep -cE 'eslint|oxlint|biome|prettier' .pre-commit-config.yaml
+  $ grep -ci 'mise' CONTRIBUTING.md
+  $ mise --version
   ```
 
-  The second must return non-zero-count before batch A's first task. Kanri runs
-  both and records the output in the ledger; a batch A prompt sent without them
-  cannot verify its own deliverable.
+  **All three must read `0`, `0`, and a version today**, and the first two must
+  read non-zero before batch A's first task. That each gate reads zero *now* is
+  the property that makes it a gate: a first draft of this bullet used
+  `grep -c 'js\|javascript\|eslint\|oxlint\|biome'`, which returns `3` on
+  today's tree — every hit an exclude pattern for a generated file
+  (`package-lock\.json$`, `compile_commands\.json$`, `\.(js|css)\.map$`), none
+  of them a linter. It would have opened the gate before the prerequisite
+  landed. A word-list gate matches the exclusions; name the tools.
+
+  The `mise` prerequisite has two halves and needs both commands: `mise
+  --version` tests this machine, and the `CONTRIBUTING.md` entry is the half
+  that arrives through dotrepo and that a second contributor reads.
+
+  One check is deferred, because it cannot run before the file exists: at task
+  A1, `./scripts/lint.sh skills/tanto/scripts/passage-check.js` must show a
+  JavaScript hook **running** rather than `(no files to check) Skipped`. That
+  is the only command that proves the configured linter actually matches the
+  path, as against merely being present in the file. Kanri runs the three gates
+  and records their output in the ledger; A1's report carries the fourth.
 
 - **The rule 11 boundary is the batch B boundary**, not batch A. Sekkei's Step 4
   item 3 sweep, run on this spec, says so rather than the intention: at the A
@@ -1596,7 +1613,11 @@ a flat type and the note that governs the plan's own verification.
 The stop conditions at each boundary, worded as properties of the whole tree
 and each backed by a command that sweeps the whole tree:
 
-1. `./scripts/lint.sh` on every changed path, named individually.
+1. `./scripts/lint.sh` on every changed path, named individually. On
+   `skills/tanto/scripts/passage-check.js` the JavaScript hook must appear as
+   run, not as `(no files to check) Skipped` — a lint that matches no hook
+   passes and proves nothing, which is why the prerequisite's three gates above
+   are checked before batch A and this fourth one inside it.
 2. `mise x node@22 -- node --test skills/tanto/scripts/` passes, with the
    version it resolved recorded beside the result. The floor is the version
    the tests run on, and the only one (D-9).
@@ -1839,7 +1860,22 @@ T1.
     visibly a new decision rather than an inherited one. Adopted into
     `dialogue.md` for D-11 as a paragraph; the general form belongs to
     design-4807's Sekkei conventions. (Raised by the spec review, candidate 9.)
-12. **The dialogue's cost, for the `opus`-Sekkei measurement Kanri owns**: eleven
+12. **A gate written from a word list matches the exclusions.** The first form
+    of the linter prerequisite's command,
+    `grep -c 'js\|javascript\|eslint\|oxlint\|biome' .pre-commit-config.yaml`,
+    returns `3` on a tree with no JavaScript linter at all: every hit is an
+    exclude pattern for a generated file — `package-lock\.json$`,
+    `compile_commands\.json$`, `\.(js|css)\.map$`. The gate was open before the
+    thing it gates existed, and it was written in the same bullet that quotes
+    design-4807's "a constraint stated as an absolute names the command that
+    decides it". The rule that generalises: **a gate must read zero on today's
+    tree, and you must run it to find out.** design-4807 already says an
+    absence check is worth its line only if it could have matched the thing it
+    forbids; this is the mirror — a presence check is worth its line only if it
+    reads empty before the thing arrives. Found by Kanri's cold read of the
+    committed spec, which is the third distinct seat to catch a defect the
+    previous two could not.
+13. **The dialogue's cost, for the `opus`-Sekkei measurement Kanri owns**: eleven
    turns, of which two were the human overturning a Sekkei recommendation
    (D-11, and the interpreter-probing detour before D-9) and one was a
    clarifying question the human asked rather than answered. Kanri holds the
