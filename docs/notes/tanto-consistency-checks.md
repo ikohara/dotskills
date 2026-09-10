@@ -358,13 +358,14 @@ Adding a check is an edit to this file.
   When the cache is absent, read the installed skills by hand and record
   `superpowers 6.3.0, cache absent, checked by hand` with the results.
 - **`shoroku` in this repository**, at `skills/shoroku/SKILL.md`.
-- **Seventeen skill files, eleven of them templates**, as check 1 lists them.
+- **Nineteen skill files, eleven of them templates**, as check 1 lists them.
 
 These two numbers are a **structural count**, the kind design-4807 calls a
 task-time check rather than an invariant: every plan that adds a template edits
 four of them — this bullet, check 1's path list and its expected count, check
-2's expected count, and check 3's map — so a plan that adds one and updates
-three leaves a check failing that nothing else will catch. A plan may
+2's expected count, and check 3's map — and a plan that adds a script edits
+the first three, since a script is not a template; a plan that adds one and
+updates fewer leaves a check failing that nothing else will catch. A plan may
 knowingly break them mid-run, as the context-cost plan broke checks 1 and 2
 from its second task until its last; when it does, the batch that breaks them
 says so and the batch that repairs them names the count it restores.
@@ -614,8 +615,8 @@ was singular in seven of eight occurrences across the skill, six task reviews
 read the passage carrying the plural, and only a whole-branch pass that could
 see all three copies at once caught it.
 
-The two lines of the review brief, and the idle subscription that only the
-exit lines keep, each on one line where it occurs, counted raw over every
+The two lines of the review brief, and the idle subscription no tanto line
+carries any more, each on one line where it occurs, counted raw over every
 Markdown file of the skill so that a stray copy fails the check:
 
 ```bash
@@ -624,13 +625,13 @@ for f in skills/tanto/SKILL.md skills/tanto/README.md skills/tanto/roles/*.md sk
 done
 ```
 
-Expected: `skills/tanto/SKILL.md review-ready 1 brief 1 idle 2`,
-`skills/tanto/roles/kanri.md review-ready 1 brief 1 idle 2`,
+Expected: `skills/tanto/SKILL.md review-ready 1 brief 1 idle 0`,
+`skills/tanto/roles/kanri.md review-ready 1 brief 1 idle 0`,
 `skills/tanto/roles/sekkei.md review-ready 2 brief 2 idle 0`, and every other
-line ending `review-ready 0 brief 0 idle 0`. The two `idle` in `SKILL.md`
-are the Messages bullet's exception and the Session exit paragraph; the two
-in `roles/kanri.md` are the exit lines. A batch prompt or a brief sent with a
-subscription would show as a third.
+line ending `review-ready 0 brief 0 idle 0`. Every `idle` figure reads `0`
+since 2026-09-10: no tanto line carries a subscription, the `exit:` lines
+included (issue-d725). Any nonzero figure is a subscription reintroduced,
+which is what this column now checks for.
 
 ## 7. The strings that must be absent
 
@@ -747,3 +748,9 @@ promises. The loop reads a NUL-delimited list rather than an unquoted
 `$(find ...)`, which would word-split on any path containing a space; none of
 the repository's Markdown files has one today, so this is a latent case closed
 rather than a bug fixed.
+
+The skill's two `.js` files are outside every block above. `scripts/lint.sh`
+lints them through Biome, which a read-only seat cannot run; their content is
+checked by `mise x node@22 -- node --test "skills/tanto/scripts/*.test.js"` —
+the quoted glob, since the directory form fails on this host — and that is
+the command a read-only seat runs in place of the lint.

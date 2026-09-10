@@ -113,17 +113,17 @@ writes every block in the shape `scripts/passage-check.js` parses — `$TANTO`
 being the skill's own directory, as `SKILL.md` sets it — so that the
 plan is machine-checkable and not only readable:
 
-- a replacement is `**P<task>.<n>** <path> — replace exactly these <N> lines`,
+- a replacement is ``**P<task>.<n>** `<path>` — replace exactly these <N> lines``,
   the old block, then `**P<task>.<n> →**` and the new block; an insertion says
   `insert after these <N> lines` and its new block omits the anchor lines,
   because an insertion's anchor stays;
 - an anchor step is
-  `**A<task>.<n>** <path> — <command> — before: <v>, after: <v>`, both values
+  ``**A<task>.<n>** `<path>` — `<command>` — before: <v>, after: <v>``, both values
   stated always: an anchor check inverts only when the new passage wholly
   supersedes the needle, and when the needle is the passage's unchanged
   opening it still returns `1` after a correct edit;
 - an old value the plan contradicts is
-  `**O<task>.<n>** <needle> — <where it must be gone, or why it may stay>`,
+  ``**O<task>.<n>** `<needle>` — <where it must be gone, or why it may stay>``,
   one per **entity** the plan changes — for a column added, the sentences that
   list the columns; for a template added, "There are ten"; for a file renamed,
   its old name. Write these before the passages, not after, and from the
@@ -173,9 +173,14 @@ reports and prompts follow the tanto templates, and names nothing else.
    exactly once; re-runs each anchor against the applied copy and compares the
    result with its stated `after:` value, which a dry run that applies and
    then verifies can never test (issue-88d3); runs the plan's commands in
-   order with each output beside its expectation; and prints every residual
-   hit of the plan's `O` needles. A command that has never been run is a
-   placeholder in a command's shape; fix the plan, not the expectation. The
+   order with each output beside its expectation — a command sits in a fenced
+   `bash` or `console` block, and the paragraph after it that begins
+   `Expected:` is what `replay` compares against; and prints every residual
+   hit of the plan's `O` needles, swept over every path the plan touches — a
+   wider set than the one an `O` row's counts were usually measured over, so
+   a residual above the row's number is the first thing to place. A command
+   that has never been run is a placeholder in a command's shape; fix the
+   plan, not the expectation. The
    script prints failures and does not interpret them: deciding which are plan
    defects and which are artifacts of this machine is yours, and stays yours.
 2. Dispatch a **read-only** reviewer on `subagents.reviewer` to run the

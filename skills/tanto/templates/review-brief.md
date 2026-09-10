@@ -89,4 +89,4 @@ Each line says what an answer here does: "no answer needed unless you
 object" for a decided item that overflowed its section, or "an answer here
 decides <what>" for a gap the document leaves.
 
-- [nothing | decide] <the point, one line> — <no answer needed unless you object | an answer here decides <what>>
+- [nothing | decide] <the point, one line> — <no answer needed unless you object | an answer here decides <what>> — If unanswered: <what, on a decide line only>

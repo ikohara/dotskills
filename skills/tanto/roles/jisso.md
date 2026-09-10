@@ -140,7 +140,11 @@ For a plan that carries passages, run
 at every batch boundary, before you report. It prints the added lines of the
 merge-base diff that the plan does not literally quote, and the removed lines
 that fall outside any fenced block; both sets must be empty, or accounted for
-in your report. It needs only the plan and `git`, so unlike an application
+in your report. It exits `0` when they are, `1` when they are not, and `2`
+when it could not run at all — a `2` is never a clean tree. Its first line
+names the paths the plan declared `created:`, which it exempted rather than
+checked; say in your report that they were. It needs only the plan and
+`git`, so unlike an application
 script written into some other session's scratchpad it is still there at the
 last boundary — the one that most needs it (issue-7481).
 

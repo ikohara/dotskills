@@ -109,7 +109,7 @@ Kaiseki always receives the address on the command line.
 Send Kanri exactly one message:
 
 ```text
-handshake role=<role> name=<name [ref]> cwd=<path> model=<model id> branch=<branch> mode=<permission mode|unknown> transcript=<absolute path|unavailable>
+handshake role=<role> name=<name [ref]> cwd=<path> model=<model id> branch=<branch> mode=<auto|unknown> transcript=<absolute path|unavailable>
 ```
 
 `name [ref]` is what `ListAgents` prints for this session on its first line
@@ -410,7 +410,7 @@ review package excludes.
 | `.superpowers/sdd/<topic>/spec-inputs.md` (optional) | Kanri | Sekkei | scope inputs the human gave Kanri during spec work, numbered `I-n`, each with Kanri's advisory notes |
 | `.superpowers/sdd/<topic>/dialogue.md` | Sekkei | Kanri, the brief writer, T1 | the spec dialogue: each question Sekkei put and the human's answer, verbatim, in order |
 | `.superpowers/sdd/<topic>/review-brief-spec.md`, `.superpowers/sdd/<topic>/review-brief-plan.md` | the brief writer Kanri dispatches | Kanri, then the human through Sekkei | the review brief, from `templates/review-brief.md`, in the chat's language |
-| `.superpowers/sdd/<topic>/plan-dryrun.md` | Sekkei | the plan reviewer, Kanri | each verification command of the plan run once on scratch copies, with its output and the expectation |
+| `.superpowers/sdd/<topic>/plan-dryrun.md` | Sekkei | the plan reviewer, Kanri | from `lint` and `replay` — the two commands, each one's output, and Sekkei's ruling on every failure |
 | `.superpowers/sdd/<plan-basename>/batch-<X>-prompt.md` | Kanri | Jisso, human | the same text as the `SendMessage`, so the human can paste it if the message did not arrive |
 | `.superpowers/sdd/<plan-basename>/batch-<X>-report.md` | Jisso | Kanri | fixed skeleton |
 | `.superpowers/sdd/<plan-basename>/kaiseki-<n>-brief.md` | Kanri | Kaiseki | fixed skeleton |
@@ -437,9 +437,11 @@ agent dry run, by Jisso at every batch boundary, and by the whole-branch
 reviewer. It is Node with no dependencies, its tests are beside it and run by
 `node --test`, and `roles/sekkei.md` and `roles/jisso.md` name its
 subcommands. Its path is written skill-relative, like every other path in
-this skill, and the role files spell the runnable form `$TANTO`: set that to
-the skill's own directory, which the harness names when it invokes the skill,
-and every command in this skill runs as written. It is never invoked bare —
+this skill, and the role files spell the runnable form `$TANTO`: set it to the
+skill's own directory, which the harness names when it invokes the skill,
+**in the same tool call as the command** — shell state does not persist
+between calls, and an unset `$TANTO` makes every one of these commands read a
+path at the filesystem root. It is never invoked bare —
 the file carries no shebang, so `node` is part of the command and not
 decoration.
 

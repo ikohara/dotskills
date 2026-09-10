@@ -278,7 +278,8 @@ After the last implementation batch is accepted:
    `node "$TANTO/scripts/passage-check.js" replay --plan <path> --base <merge base>`
    — so
    that the replay it would otherwise rebuild by hand is the instrument
-   Sekkei and Jisso already ran (issue-7481). Its report says what the replay
+   this run already built and used — Sekkei for `lint` and `replay`, Jisso
+   for `diff` at every boundary (issue-7481). Its report says what the replay
    printed, and the review seat goes to the cross-file contracts and the
    human-facing questions, which no script judges.
 2. Turn its findings into one more batch prompt — the final batch — and send it
@@ -374,9 +375,10 @@ exceptions steps 1 and 3 name.
 
 ### Timing
 
-Only at a boundary: a batch accepted and the next prompt not yet sent, or
-between plans. Never mid-batch — "never replace mid-batch on suspicion" names
-you too. Because the trigger is checked before the next prompt is written, a
+Only at a boundary: a batch accepted and the next prompt not yet sent, the
+plan close once the archive move is done, or between plans. Never mid-batch —
+"never replace mid-batch on suspicion" names you too. Because the trigger is
+checked before the next prompt is written, a
 handover that is due stops the loop at that point, and the next prompt is the
 successor's to send.
 
@@ -438,9 +440,10 @@ never a copy.
    section. At a **batch boundary** this step is loop step 6's proposal and
    step 7's slot (b) commit, already done when the window reaches this list. At
    a **plan close** it is a fresh act, run after T2, the merge decision, the
-   peers' deletion and the archive move, and its commit lands on the plan's
-   branch (decision-b6cb). **Between plans** it is one act too, and the commit
-   lands on `main`.
+   peers' deletion and the archive move, and its commit lands where the tree
+   is once the merge decision is executed — on `main` after a merge, on the
+   plan's branch only when the human declined the merge (decision-b6cb).
+   **Between plans** it is one act too, and the commit lands on `main`.
 2. Write `.superpowers/sdd/kanri-handover.md` from its template.
 3. **At a batch boundary**, set the ledger's Progress line to "handover
    written". **At a plan close** that line already says "closed", which the
@@ -452,8 +455,9 @@ never a copy.
 
 If the human says "continue" instead of creating the successor, delete the
 handover file, record the declined handover in the roster's Events (the `<k>`
-counter stays), and resume — at loop step 8 in a plan, or waiting for the next
-topic between plans.
+counter stays), and resume — at loop step 8 at a batch boundary, at the next
+topic's opening after a plan close, or waiting for the next topic between
+plans.
 
 ## Shoroku
 
@@ -699,7 +703,8 @@ lines, and these are your steps.
    the headings themselves in the chat's language (for a spec, section 5's
    body is the one line the template gives, rendered); every point opening
    with one of the four tags — confirm, choose, decide, nothing — and every
-   unsettled line saying whether an answer is needed; every point in its
+   unsettled line saying whether an answer is needed, and a decide line among
+   them carrying the `— If unanswered:` clause after that; every point in its
    parts — the two before `See:`, then the pointer, and on a choose or decide
    point the `— If unanswered:` clause after it, so three parts or four, any
    of which may carry the ` — ` separator, as a plan's task headings do; a
