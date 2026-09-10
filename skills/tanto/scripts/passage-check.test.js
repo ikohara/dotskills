@@ -285,6 +285,11 @@ function makeRepo(files) {
       },
     );
   git("init", "-q");
+  // Written into the fixture repository's own config, not just passed to
+  // this helper's own git invocations, so that the script under test --
+  // which runs its own `git diff` without this `-c` flag -- inherits it too,
+  // instead of falling through to the host's global `core.autocrlf`.
+  git("config", "core.autocrlf", "false");
   for (const [name, content] of Object.entries(files)) {
     fs.mkdirSync(path.dirname(path.join(dir, name)), { recursive: true });
     fs.writeFileSync(path.join(dir, name), content, "utf8");
@@ -449,11 +454,37 @@ test("diff reports a removed line that falls outside every fenced block", () => 
   assert.match(result.out, /zeta/);
 });
 
+test("diff de-duplicates a created path the plan declares twice, exempting it once", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  fs.writeFileSync(path.join(repo.dir, "tmp/fixture.md"), "gamma\n", "utf8");
+  fs.writeFileSync(path.join(repo.dir, "tmp/made.md"), "anything at all\n", "utf8");
+  repo.git("add", "tmp/made.md");
+  const lines = ["```text", "created: tmp/made.md", "created: tmp/made.md", "```"].concat(REPLACEMENT);
+  const result = runIn(repo.dir, ["diff", "--plan", writePlan(lines), "--base", repo.head]);
+  assert.strictEqual(result.code, 0);
+  assert.match(result.out, /1 path exempt as created/);
+  assert.doesNotMatch(result.out, /2 paths exempt as created/);
+});
+
+test("diff's unresolvable base exits 2 and names the ref", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const result = runIn(repo.dir, ["diff", "--plan", writePlan(REPLACEMENT), "--base", "no-such-ref"]);
+  assert.strictEqual(result.code, 2);
+  assert.match(result.out, /no-such-ref/);
+});
+
 test("verify passes when a task new passage is present exactly once", () => {
   const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
   fs.writeFileSync(path.join(repo.dir, "tmp/fixture.md"), "gamma\n", "utf8");
   const result = runIn(repo.dir, ["verify", "--plan", writePlan(REPLACEMENT), "--task", "91"]);
   assert.strictEqual(result.code, 0);
+});
+
+test("verify exits 2 on a non-numeric --task rather than reporting a false no-passages", () => {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  const result = runIn(repo.dir, ["verify", "--plan", writePlan(REPLACEMENT), "--task", "abc"]);
+  assert.strictEqual(result.code, 2);
+  assert.doesNotMatch(result.out, /no passages/i);
 });
 
 test("verify fails when a new passage is absent, and when it is present twice", () => {
@@ -462,6 +493,13 @@ test("verify fails when a new passage is absent, and when it is present twice", 
   assert.strictEqual(runIn(repo.dir, ["verify", "--plan", file, "--task", "91"]).code, 1);
   fs.writeFileSync(path.join(repo.dir, "tmp/fixture.md"), "gamma\ngamma\n", "utf8");
   assert.strictEqual(runIn(repo.dir, ["verify", "--plan", file, "--task", "91"]).code, 1);
+  // A missing target file is an absent passage, not a crash: without the
+  // read's try/catch fallback this would surface as an uncaught-exception
+  // stack trace instead of a `passage-absent` report.
+  fs.unlinkSync(path.join(repo.dir, "tmp/fixture.md"));
+  const missing = runIn(repo.dir, ["verify", "--plan", file, "--task", "91"]);
+  assert.strictEqual(missing.code, 1);
+  assert.match(missing.out, /passage-absent/);
 });
 
 test("verify checks a task anchor against its after value", () => {

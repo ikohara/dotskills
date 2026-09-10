@@ -730,6 +730,8 @@ function runReplay(values) {
 }
 
 const DIFF_GIT_RE = /^diff --git a\/(.+) b\/(.+)$/;
+const DIFF_MINUS_HEADER_RE = /^--- (a\/|\/dev\/null)/;
+const DIFF_PLUS_HEADER_RE = /^\+\+\+ (b\/|\/dev\/null)/;
 
 /**
  * Every added/removed content line of a `git diff` text, each with the path
@@ -746,7 +748,17 @@ function parseDiffEntries(diffText) {
       currentPath = header[2];
       continue;
     }
-    if (line.startsWith("+++") || line.startsWith("---") || line.startsWith("@@") || line.startsWith("index ")) {
+    // File headers are matched precisely -- `^--- (a/|/dev/null)` and
+    // `^\+\+\+ (b/|/dev/null)` -- rather than by a bare `startsWith("---")`
+    // / `startsWith("+++")`, which would also swallow a removed `---` or an
+    // added `+++` content line (a YAML frontmatter fence, a Markdown
+    // thematic break) as if it were a header.
+    if (
+      DIFF_MINUS_HEADER_RE.test(line) ||
+      DIFF_PLUS_HEADER_RE.test(line) ||
+      line.startsWith("@@") ||
+      line.startsWith("index ")
+    ) {
       continue;
     }
     if (line.startsWith("+")) {
