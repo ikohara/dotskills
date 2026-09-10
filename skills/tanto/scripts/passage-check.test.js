@@ -1,0 +1,273 @@
+const test = require("node:test");
+const assert = require("node:assert");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+const { execFileSync } = require("node:child_process");
+
+const { normalize, parsePlan, lintPlan } = require("./passage-check.js");
+
+const SCRIPT = path.join(__dirname, "passage-check.js");
+
+function plan(lines) {
+  return lines.join("\n") + "\n";
+}
+
+function writePlan(lines) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "passage-check-"));
+  const file = path.join(dir, "plan.md");
+  fs.writeFileSync(file, plan(lines), "utf8");
+  return file;
+}
+
+function run(args) {
+  try {
+    const stdout = execFileSync(process.execPath, [SCRIPT, ...args], {
+      encoding: "utf8",
+    });
+    return { code: 0, out: stdout };
+  } catch (err) {
+    return { code: err.status, out: `${err.stdout || ""}${err.stderr || ""}` };
+  }
+}
+
+const REPLACEMENT = [
+  "### Task 91: a fixture task",
+  "",
+  "**P91.1** `tmp/fixture.md` — replace exactly these 2 lines",
+  "",
+  "```text",
+  "alpha",
+  "beta",
+  "```",
+  "",
+  "**P91.1 →**",
+  "",
+  "```text",
+  "gamma",
+  "```",
+];
+
+const INSERTION = [
+  "### Task 92: another fixture task",
+  "",
+  "**A92.1** `tmp/fixture.md` — `grep -c alpha tmp/fixture.md` — before: 1, after: 1",
+  "",
+  "**P92.2** `tmp/fixture.md` — insert after these 1 lines",
+  "",
+  "```text",
+  "alpha",
+  "```",
+  "",
+  "**P92.2 →**",
+  "",
+  "```text",
+  "delta",
+  "```",
+];
+
+const SWEEP_CLEAN = [
+  "### Task 94: the old-value sweep",
+  "",
+  "**O94.1** `alpha` — gone from `tmp/fixture.md`; P91.1 replaces it",
+];
+
+const SWEEP_TRAPPED = [
+  "### Task 94: the old-value sweep",
+  "",
+  "**O94.1** `gamma` — gone from `tmp/fixture.md`; P91.1 replaces it",
+];
+
+const codes = (lines) => lintPlan(parsePlan(plan(lines))).map((p) => p.code);
+
+test("normalize turns CRLF into LF", () => {
+  assert.strictEqual(normalize("a\r\nb\r\n"), "a\nb\n");
+});
+
+test("a replacement inside a task body parses", () => {
+  const parsed = parsePlan(plan(REPLACEMENT));
+  assert.strictEqual(parsed.blocks.length, 1);
+  const block = parsed.blocks[0];
+  assert.strictEqual(block.id, "P91.1");
+  assert.strictEqual(block.kind, "P");
+  assert.strictEqual(block.task, 91);
+  assert.strictEqual(block.ordinal, 1);
+  assert.strictEqual(block.shape, "replace");
+  assert.strictEqual(block.path, "tmp/fixture.md");
+  assert.strictEqual(block.count, 2);
+  assert.deepStrictEqual(block.old, ["alpha", "beta"]);
+  assert.deepStrictEqual(block.new, ["gamma"]);
+});
+
+test("an insertion parses, and its new block omits the anchor lines", () => {
+  const parsed = parsePlan(plan(INSERTION));
+  const insertion = parsed.blocks.find((b) => b.id === "P92.2");
+  assert.strictEqual(insertion.shape, "insert-after");
+  assert.deepStrictEqual(insertion.old, ["alpha"]);
+  assert.deepStrictEqual(insertion.new, ["delta"]);
+  const anchor = parsed.blocks.find((b) => b.id === "A92.1");
+  assert.strictEqual(anchor.kind, "A");
+  assert.strictEqual(anchor.command, "grep -c alpha tmp/fixture.md");
+  assert.strictEqual(anchor.before, "1");
+  assert.strictEqual(anchor.after, "1");
+});
+
+test("an insert-before lead is read as insert-before", () => {
+  const lines = INSERTION.slice();
+  lines[4] = "**P92.2** `tmp/fixture.md` — insert before these 1 lines";
+  const parsed = parsePlan(plan(lines));
+  assert.strictEqual(parsed.blocks.find((b) => b.id === "P92.2").shape, "insert-before");
+});
+
+test("a global replacement carries its occurrence count", () => {
+  const lines = REPLACEMENT.slice();
+  lines[2] = "**P91.1** `tmp/fixture.md` — replace all 4 occurrences of these 2 lines";
+  const block = parsePlan(plan(lines)).blocks[0];
+  assert.strictEqual(block.shape, "replace-all");
+  assert.strictEqual(block.occurrences, 4);
+  assert.strictEqual(block.count, 2);
+});
+
+test("a singular lead parses, and both number agreements are accepted", () => {
+  const one = REPLACEMENT.slice();
+  one[2] = "**P91.1** `tmp/fixture.md` — replace exactly this 1 line";
+  one.splice(6, 1);
+  const block = parsePlan(plan(one)).blocks[0];
+  assert.strictEqual(block.shape, "replace");
+  assert.strictEqual(block.count, 1);
+  assert.deepStrictEqual(block.old, ["alpha"]);
+  assert.deepStrictEqual(codes(one), []);
+
+  const all = one.slice();
+  all[2] = "**P91.1** `tmp/fixture.md` — replace all 4 occurrences of this 1 line";
+  const globalBlock = parsePlan(plan(all)).blocks[0];
+  assert.strictEqual(globalBlock.shape, "replace-all");
+  assert.strictEqual(globalBlock.occurrences, 4);
+  assert.strictEqual(globalBlock.count, 1);
+
+  const plural = one.slice();
+  plural[2] = "**P91.1** `tmp/fixture.md` — replace exactly these 1 lines";
+  assert.deepStrictEqual(codes(plural), []);
+});
+
+test("an old-value lead parses its needle", () => {
+  const parsed = parsePlan(
+    plan(["### Task 93: the sweep", "", "**O93.1** `Two signals` — gone from `roles/kanri.md`; P93.2 replaces it"]),
+  );
+  const block = parsed.blocks[0];
+  assert.strictEqual(block.kind, "O");
+  assert.strictEqual(block.needle, "Two signals");
+});
+
+test("a lead whose id or path is a placeholder is documentation and is skipped", () => {
+  const parsed = parsePlan(
+    plan([
+      "### Task 1: a fixture task",
+      "",
+      "**P<id>** `<path>` — replace exactly these 1 lines",
+      "",
+      "```text",
+      "alpha",
+      "```",
+    ]),
+  );
+  assert.deepStrictEqual(parsed.blocks, []);
+});
+
+test("a lead outside every task body is not resolved", () => {
+  const parsed = parsePlan(plan(["## Context", ""].concat(REPLACEMENT.slice(2))));
+  assert.deepStrictEqual(parsed.blocks, []);
+});
+
+test("the created list is read from the plan", () => {
+  const parsed = parsePlan(
+    plan(
+      [
+        "```text",
+        "created: skills/tanto/scripts/passage-check.js",
+        "created: skills/tanto/scripts/passage-check.test.js",
+        "```",
+      ].concat(REPLACEMENT),
+    ),
+  );
+  assert.deepStrictEqual(parsed.created, [
+    "skills/tanto/scripts/passage-check.js",
+    "skills/tanto/scripts/passage-check.test.js",
+  ]);
+});
+
+test("a well-formed plan lints clean", () => {
+  assert.deepStrictEqual(codes(REPLACEMENT.concat([""], INSERTION)), []);
+});
+
+test("lint fails when zero task headings were found", () => {
+  assert.deepStrictEqual(codes(["## Context", "", "Nothing here."]), ["no-task-headings"]);
+});
+
+test("lint reports a declared count that disagrees with its block", () => {
+  const lines = REPLACEMENT.slice();
+  lines[2] = "**P91.1** `tmp/fixture.md` — replace exactly these 3 lines";
+  assert.deepStrictEqual(codes(lines), ["count-mismatch"]);
+});
+
+test("lint reports a repeated id", () => {
+  const lines = REPLACEMENT.concat([""], REPLACEMENT.slice(2));
+  assert.ok(codes(lines).includes("duplicate-id"));
+});
+
+test("lint reports an id cited in prose that has no block", () => {
+  const lines = REPLACEMENT.concat(["", "Applied after P91.9, which does not exist."]);
+  const problems = lintPlan(parsePlan(plan(lines)));
+  assert.deepStrictEqual(
+    problems.map((p) => p.code),
+    ["missing-block"],
+  );
+  assert.strictEqual(problems[0].id, "P91.9");
+});
+
+test("lint reports an insertion with no anchor step", () => {
+  const lines = INSERTION.slice(0, 2).concat(INSERTION.slice(4));
+  assert.deepStrictEqual(codes(lines), ["insertion-without-anchor"]);
+});
+
+test("lint reports an anchor that omits a value", () => {
+  const lines = INSERTION.slice();
+  lines[2] = "**A92.1** `tmp/fixture.md` — `grep -c alpha tmp/fixture.md` — before: 1";
+  assert.ok(codes(lines).includes("anchor-missing-value"));
+});
+
+test("a needle occurring outside every new-passage block lints clean", () => {
+  assert.deepStrictEqual(codes(REPLACEMENT.concat([""], SWEEP_CLEAN)), []);
+});
+
+test("lint reports a needle the plan reproduces in its own new-passage text", () => {
+  const problems = lintPlan(parsePlan(plan(REPLACEMENT.concat([""], SWEEP_TRAPPED))));
+  assert.deepStrictEqual(
+    problems.map((p) => p.code),
+    ["needle-in-new-text"],
+  );
+  assert.strictEqual(problems[0].id, "O94.1");
+});
+
+test("lint exits 0 on a clean plan and 1 on a failing one", () => {
+  const clean = writePlan(REPLACEMENT);
+  assert.strictEqual(run(["lint", "--plan", clean]).code, 0);
+  const broken = writePlan(["## Context", "", "Nothing here."]);
+  const result = run(["lint", "--plan", broken]);
+  assert.strictEqual(result.code, 1);
+  assert.match(result.out, /no-task-headings/);
+});
+
+test("an unreadable plan exits 2, not 1", () => {
+  const missing = path.join(os.tmpdir(), "passage-check-absent", "plan.md");
+  assert.strictEqual(run(["lint", "--plan", missing]).code, 2);
+});
+
+test("a CRLF plan parses the same as an LF one", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "passage-check-"));
+  const file = path.join(dir, "plan.md");
+  fs.writeFileSync(file, plan(REPLACEMENT).replace(/\n/g, "\r\n"), "utf8");
+  assert.strictEqual(run(["lint", "--plan", file]).code, 0);
+  const parsed = parsePlan(fs.readFileSync(file, "utf8"));
+  assert.deepStrictEqual(parsed.blocks[0].old, ["alpha", "beta"]);
+});
