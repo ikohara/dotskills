@@ -104,8 +104,17 @@ grep -ci 'mise' CONTRIBUTING.md
 mise --version
 ```
 
-All three read `0`, `0`, and a version **today**; the first two must read
-non-zero before task 1. That each gate reads zero now is what makes it a gate.
+**The plan records no values for these** — Kanri writes what they returned
+into the ledger, because a number written here would be a measurement of a
+world the plan outlives. What belongs here is why each gate is shaped as it
+is: **a gate must be able to read zero before the thing it gates arrives.** A
+word-list gate such as `grep -c 'js\|javascript\|eslint\|oxlint\|biome'`
+returns a count on a tree with no JavaScript linter at all — every hit an
+exclude pattern for a generated file (`package-lock\.json$`,
+`compile_commands\.json$`, `\.(js|css)\.map$`), none of them a linter — and
+would open the gate before the prerequisite landed. A word-list gate matches
+the exclusions; name the tools. The first two must read non-zero before
+task 1.
 
 A fourth check is deferred into task 1, because it cannot run before the file
 exists: `./scripts/lint.sh skills/tanto/scripts/passage-check.js` must show a
@@ -135,18 +144,25 @@ replay-skip: ./scripts/lint.sh — pre-commit needs the repository and its hook 
 replay-skip: mise — the test runner resolves a toolchain and runs the suite in skills/tanto/scripts/, neither of which the applied tree carries
 ```
 
-Measured 2026-09-10 over every `bash` and `console` fence in this plan:
-fourteen command lines begin `./scripts/lint.sh` and nine begin `mise`, so
-these two patterns account for twenty-three of the commands `replay` would
-otherwise run in a directory that is not a repository. `git` and
-`scripts/passage-check.js verify` are skipped by the script's own rule and
-need no declaration.
+These two patterns cover the commands in this plan that `replay` would
+otherwise run in a directory that is not a repository: its own lint and its own
+test runner. No tally is written here, because no command consumes one — the
+plan's own rule, and the third count of mine to have been wrong when nothing
+read it. `git` and `scripts/passage-check.js verify` are skipped by the
+script's own rule and need no declaration.
 
-### Encoding and line endings
+### The tree encoding and line endings this work must preserve
 
-Measured 2026-09-10: `.gitattributes` is `* text=auto` with `eol=lf` for
-`*.sh` and `eol=crlf` for `*.bat` only; `core.autocrlf` is `true`; all nine
-existing target paths are `i/lf w/crlf`, none mixed.
+Measured in this repository on 2026-09-10, and re-measured after the human's
+Biome commit landed the same day: `.gitattributes` carries `* text=auto`, with
+`eol=lf` for `*.sh` and for the JavaScript and JSON family (`*.js`, `*.cjs`,
+`*.mjs`, `*.ts` and their neighbours), and `eol=crlf` for `*.bat`.
+`core.autocrlf` is `true` both locally and globally. Every **Markdown** file
+this plan touches reports `i/lf w/crlf attr/text=auto` under
+`git ls-files --eol` — index LF, working tree CRLF, nothing mixed — and the two
+`.js` files it creates will report `i/lf w/lf attr/text eol=lf`, pinned rather
+than inherited. Both halves are measured, and the second changed under this
+document between one review and the next.
 
 - Read as UTF-8 and normalise CRLF to LF before any comparison, search, or line
   count. A block written LF against a file checked out CRLF never matches, and
@@ -157,9 +173,13 @@ existing target paths are `i/lf w/crlf`, none mixed.
   `git ls-files --eol` decides, before and after — never a grep for a control
   character.
 - The script carries **no shebang** and is always invoked as `node <path>`.
-  Under `text=auto` its working-tree copy is CRLF on Windows, and a shebang
-  ending in CR is not a runnable interpreter path. This is why the plan makes
-  no `.gitattributes` change.
+  The line-ending reason is gone — `.gitattributes` now pins `*.js` to
+  `eol=lf`, which the human landed in the Biome commit of 2026-09-10, so a
+  shebang would work. The rule stands on the remaining one: the runtime text
+  spells the command `node "$TANTO/scripts/passage-check.js"`, and a reader
+  who is setting `$TANTO` needs the interpreter named rather than implied.
+  This plan still makes no `.gitattributes` change; it no longer says none is
+  needed.
 
 ### Rule 11 — the authority for this run's sessions
 
@@ -235,10 +255,17 @@ subagent-driven development asks for.
    git ls-files --eol skills/tanto/scripts/passage-check.js skills/tanto/scripts/passage-check.test.js
    ```
 
-   The nine existing paths read `i/lf w/crlf attr/text=auto`, unchanged from
-   the baseline recorded before task 1. The two created paths read `i/lf w/lf`
-   — a file an implementer has just written is LF in the working tree, and
-   `w/crlf` is what a later *checkout* produces. Neither may read `w/mixed`.
+   For the **nine existing paths**, `i/lf w/crlf attr/text=auto`, unchanged
+   from the baseline recorded before task 1, and never `w/mixed`.
+   For the **two created paths**, `i/lf w/lf attr/text eol=lf` — pinned by
+   `.gitattributes`, not inherited, so a checkout produces LF too. The value
+   was right before the Biome commit and its stated reason was not: it read
+   "a file an implementer has just written is LF, and `w/crlf` is what a later
+   checkout produces", which `eol=lf` now makes false while leaving the value
+   alone — design-4807's rule that an explanation is a second claim beside the
+   number and can be wrong while the number is right. Note the `attr/` field:
+   it reads `attr/text eol=lf`, not `attr/text=auto` as the nine Markdown paths
+   do. `w/mixed` fails either way.
 5. **The boundary check, from the batch B boundary on:**
 
    ```bash
@@ -341,8 +368,9 @@ ending, and use an edit tool that rewrites only the lines you name rather than
 one that rewrites the whole file. `git ls-files --eol` is the command that
 settles any line-ending question; a grep for a control character is not.
 `w/mixed` on any path is a failure. The two files this plan creates are written
-LF and read `i/lf w/lf` in the working tree, because a file just written has
-not been through a checkout.
+LF and read `i/lf w/lf attr/text eol=lf`, because `.gitattributes` pins `*.js`
+to `eol=lf` — the value is pinned rather than inherited from `text=auto`, and
+a checkout produces LF too.
 
 **The block grammar this plan is written in.** Every block has an id of the
 form `<kind><task>.<n>` — kind `P` for a passage, `A` for an anchor step, `O`
@@ -352,7 +380,10 @@ ordinal inside that task. A replacement leads with
 `**P<id> →**`, then the new block. An insertion leads with
 `insert after these <N> lines` or `insert before these <N> lines`. A global
 replacement leads with `replace all <N> occurrences of these <M> lines`, and it
-is the one shape whose old block matches more than once. An anchor step leads
+is the one shape whose old block matches more than once. Wherever a count in a
+lead is 1 the lead reads the singular — `this 1 line`,
+`1 occurrence of this 1 line` — and `lint` accepts both agreements. An anchor
+step leads
 with `**A<id>** <path> — <command> — before: <v>, after: <v>`, both values
 always stated, because an anchor check inverts only when the new passage wholly
 supersedes the needle. An old value the plan contradicts leads with
@@ -516,7 +547,12 @@ Four shapes:
 
 - A **replacement** leads with
   `**P<id>** <path> — replace exactly these <N> lines`, then the old block,
-  then `**P<id> →**`, then the new block.
+  then `**P<id> →**`, then the new block. **When a count is 1 the lead reads
+  the singular** — `this 1 line`, `1 occurrence of this 1 line` — everywhere a
+  count appears in a lead, and `lint` accepts both. It is English and not a
+  second shape: a grammar that admitted only the plural would make `these 1
+  lines` mandatory, and this plan's own first eight blocks would fail `lint`
+  as `malformed-lead`.
 - An **insertion** leads with `insert after these <N> lines` or
   `insert before these <N> lines`, and its new block omits the anchor lines the
   old block names, because an insertion's anchor stays.
@@ -614,8 +650,12 @@ line to stderr.
   `git ls-files --eol` must show the same `i/` and `w/` values before and after
   a task and must never show `w/mixed`.
 - **The script carries no shebang and is always invoked as `node <path>`.**
-  Under `text=auto` its working-tree copy is CRLF on Windows, and a shebang
-  line ending in CR is not a runnable interpreter path.
+  The original reason was that under `text=auto` its working-tree copy would be
+  CRLF on Windows and a shebang line ending in CR is not a runnable interpreter
+  path. That reason is gone — `.gitattributes` now pins `*.js` to `eol=lf`, so
+  a shebang would work. The rule stands on the remaining one: the runtime text
+  spells the command `node "$TANTO/scripts/passage-check.js"`, and a reader who
+  is setting `$TANTO` needs the interpreter named rather than implied.
 
 ### What `replay` treats as a command, and how it compares
 
@@ -852,6 +892,28 @@ test('a global replacement carries its occurrence count', () => {
   assert.strictEqual(block.count, 2);
 });
 
+test('a singular lead parses, and both number agreements are accepted', () => {
+  const one = REPLACEMENT.slice();
+  one[2] = '**P91.1** `tmp/fixture.md` — replace exactly this 1 line';
+  one.splice(6, 1);
+  const block = parsePlan(plan(one)).blocks[0];
+  assert.strictEqual(block.shape, 'replace');
+  assert.strictEqual(block.count, 1);
+  assert.deepStrictEqual(block.old, ['alpha']);
+  assert.deepStrictEqual(codes(one), []);
+
+  const all = one.slice();
+  all[2] = '**P91.1** `tmp/fixture.md` — replace all 4 occurrences of this 1 line';
+  const globalBlock = parsePlan(plan(all)).blocks[0];
+  assert.strictEqual(globalBlock.shape, 'replace-all');
+  assert.strictEqual(globalBlock.occurrences, 4);
+  assert.strictEqual(globalBlock.count, 1);
+
+  const plural = one.slice();
+  plural[2] = '**P91.1** `tmp/fixture.md` — replace exactly these 1 lines';
+  assert.deepStrictEqual(codes(plural), []);
+});
+
 test('an old-value lead parses its needle', () => {
   const parsed = parsePlan(plan([
     '### Task 93: the sweep',
@@ -987,9 +1049,11 @@ transcription would only duplicate.
 ````js
 'use strict';
 
-// No shebang: this file is always invoked as `node <path>`, because its
-// working-tree copy is CRLF under `* text=auto` and a shebang ending in CR is
-// not a runnable interpreter path.
+// No shebang: this file is always invoked as `node <path>`. Not for a
+// line-ending reason -- `.gitattributes` pins `*.js` to `eol=lf` -- but
+// because the runtime text spells the command
+// `node "$TANTO/scripts/passage-check.js"`, and a reader who is setting
+// `$TANTO` needs the interpreter named rather than implied.
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -1015,9 +1079,15 @@ if (require.main === module) {
 }
 ````
 
-Three points the tests pin and the specification states, called out because
+Four points the tests pin and the specification states, called out because
 they are the ones an implementer gets wrong:
 
+- **both number agreements in a lead are accepted.** When a count is 1 the
+  lead reads the singular — `replace exactly this 1 line`,
+  `replace all 4 occurrences of this 1 line` — and the plural with a count of
+  1 parses too. This plan's own first eight blocks are written in the
+  singular, and a parser built to the plural alone would report all eight as
+  `malformed-lead`;
 - a lead is resolved **only** inside a task body — the text under a heading
   matching `^### Task <n>` or `^## Task <n>` — and a lead whose id or path is a
   `<...>` placeholder is documentation and is skipped;
@@ -1059,8 +1129,9 @@ git ls-files --eol skills/tanto/scripts/passage-check.js skills/tanto/scripts/pa
 ````
 
 Expected, quoting the shape and not the column spacing: `i/lf`, `w/lf`,
-`attr/text=auto` for both. `w/crlf` is what a later checkout under `text=auto`
-produces and is not what a just-written file shows; `w/mixed` is a failure
+`attr/text eol=lf` for both — pinned by `.gitattributes`, not inherited, so a
+checkout produces LF too. Note the `attr/` field: it reads `attr/text eol=lf`,
+not `attr/text=auto` as the nine Markdown paths do. `w/mixed` is a failure
 either way.
 
 - [ ] **Step 7: Commit**
@@ -1300,7 +1371,7 @@ git commit --only skills/tanto/scripts/passage-check.js skills/tanto/scripts/pas
 git log -1 --format=%B | grep -c 'Co-Authored-By: Claude'
 ````
 
-Expected: `i/lf w/lf attr/text=auto` for both paths, then `1`.
+Expected: `i/lf w/lf attr/text eol=lf` for both paths, then `1`.
 
 **Done when:** the suite passes on Node 22; `replay` exits `0` on a plan whose
 old passages each match once and whose anchors land on their `after:` values,
@@ -1460,8 +1531,8 @@ git commit --only skills/tanto/scripts/passage-check.js skills/tanto/scripts/pas
 git log -1 --format=%B | grep -c 'Co-Authored-By: Claude'
 ````
 
-Expected: exit 0 with the JavaScript hook `Passed`; `i/lf w/lf attr/text=auto`
-for both paths; then `1`.
+Expected: exit 0 with the JavaScript hook `Passed`;
+`i/lf w/lf attr/text eol=lf` for both paths; then `1`.
 
 **Done when:** the whole suite passes on Node 22; `diff` exits `0` on a tree
 whose added lines the plan quotes and `1` when one is unaccounted for or a
@@ -3650,10 +3721,11 @@ git ls-files --eol skills/tanto/scripts/passage-check.js skills/tanto/scripts/pa
 
 Expected: for the nine existing paths, `i/lf w/crlf attr/text=auto`, unchanged
 from the baseline recorded before batch A; for the two created paths,
-`i/lf w/lf attr/text=auto`. Never `w/mixed` on any of the eleven. The two
-claims are different and are not merged into one table: a file an implementer
-has just written is LF in the working tree, and `w/crlf` is what a later
-checkout under `text=auto` produces.
+`i/lf w/lf attr/text eol=lf` — pinned by `.gitattributes`, not inherited, so a
+checkout produces LF too. Never `w/mixed` on any of the eleven. The two claims
+are different and are not merged into one table: note the `attr/` field, which
+reads `attr/text eol=lf` for the two created paths and `attr/text=auto` for
+the nine Markdown ones.
 
 - [ ] **Step 4: The test suite, on the floor**
 
@@ -3742,8 +3814,9 @@ is recorded.
 38 `P` blocks and 8 `A` blocks; this plan carries all 46 of them, each exactly
 once, plus the 16 `O` blocks of its own old-value sweep — **62 blocks** in
 all. Both figures are lead-line censuses, taken over the spec and over this
-file outside every fenced region, on 2026-09-10 after the re-transcription
-from the corrected spec. The "Where each change lives" table maps every spec
+file outside every fenced region, on 2026-09-10 and re-taken after the third
+re-transcription from the corrected spec. The "Where each change lives" table
+maps every spec
 label to its plan id and its task. The spec's eleven issues each have a task: 7481, 88d3, 10bc and
 f813 in tasks 1 to 3 (the instrument), task 4 (the note that schedules it), and
 tasks 5 and 7 (the seats that run it); d725 in task 10; 12d3 in task 11; 867f
@@ -3792,17 +3865,18 @@ check 7 is what enforces the skill-relative half, and this plan now runs it —
 "How a batch is verified" item 9, and task 14 step 7.
 
 **4. Sizes, per P5.1's own new rule.** Size has two components and they do not
-pick the same task. By **line count** the largest is **task 1**, at 427 lines
+pick the same task. By **line count** the largest is **task 1**, at 458 lines
 and 8 steps: it carries the whole first test file, and three of batch A's four
 tasks build one program. By **block count** the largest is **task 9**, at eight
 blocks — 342 lines and 14 steps — and it is one task because splitting it would
 put P9.3's "run the Handover section" in the tree a boundary before P9.4 and
 P9.5 fix what that section says at a close. Then task 7 at 248 lines and 13
 steps, task 12 at 242 lines and 12 steps, task 2 at 229 lines and 6 steps,
-task 10 at 227 lines and 11 steps, and task 14 at 207 lines and 9 steps. The
-smallest is task 6, at 109 lines and 6 steps. The whole plan is 3873 lines.
-Every task figure here was measured on 2026-09-10, after the second
-re-transcription from the corrected spec: a line count is the span from that
+task 10 at 227 lines and 11 steps, and task 14 at 208 lines and 9 steps. The
+smallest is task 6, at 109 lines and 6 steps. The whole plan is 3949 lines.
+Every task figure here was re-measured on 2026-09-10, after the third
+re-transcription from the corrected spec — the one that answered the human's
+review gate and followed the Biome commit: a line count is the span from that
 task's own heading to the line before the next task's,
 a step count is the number of step checkboxes inside that span, and the file
 total is `wc -l`. **Task 14 is a sweep-and-check task**: its deliverable is

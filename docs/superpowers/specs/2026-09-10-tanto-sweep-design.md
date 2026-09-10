@@ -130,11 +130,16 @@ than from a task of this plan.
 
 ### Encoding and line endings
 
-Measured in this repository on 2026-09-10: `.gitattributes` carries `* text=auto`
-with `eol=lf` for `*.sh` and `eol=crlf` for `*.bat` only, `core.autocrlf` is
-`true` both locally and globally, and every file this plan touches reports
-`i/lf w/crlf` under `git ls-files --eol` — index LF, working tree CRLF, nothing
-mixed. A `.js` file falls under `text=auto` and gets the same treatment.
+Measured in this repository on 2026-09-10, and re-measured after the human's
+Biome commit landed the same day: `.gitattributes` carries `* text=auto`, with
+`eol=lf` for `*.sh` and for the JavaScript and JSON family (`*.js`, `*.cjs`,
+`*.mjs`, `*.ts` and their neighbours), and `eol=crlf` for `*.bat`.
+`core.autocrlf` is `true` both locally and globally. Every **Markdown** file
+this plan touches reports `i/lf w/crlf attr/text=auto` under
+`git ls-files --eol` — index LF, working tree CRLF, nothing mixed — and the two
+`.js` files it creates will report `i/lf w/lf attr/text eol=lf`, pinned rather
+than inherited. Both halves are measured, and the second changed under this
+document between one review and the next.
 
 The script's whole job is to match text the plan quotes against text in a file,
 so this is not a detail:
@@ -155,10 +160,12 @@ so this is not a detail:
   a task and must never show `w/mixed`; that command, not a grep for a control
   character, is what settles a line-ending question.
 - **The script carries no shebang and is always invoked as `node <path>`.**
-  Under `text=auto` its working-tree copy is CRLF on Windows, and a shebang
-  line ending in CR is not a runnable interpreter path. Invoking through `node`
-  sidesteps it and needs no `.gitattributes` change, which this plan therefore
-  does not make.
+  The original reason was that under `text=auto` its working-tree copy would be
+  CRLF on Windows and a shebang line ending in CR is not a runnable interpreter
+  path. That reason is gone — `.gitattributes` now pins `*.js` to `eol=lf`, so
+  a shebang would work. The rule stands on the remaining one: the runtime text
+  spells the command `node "$TANTO/scripts/passage-check.js"`, and a reader who
+  is setting `$TANTO` needs the interpreter named rather than implied.
 
 ## 1. The instrument — `skills/tanto/scripts/passage-check.js`
 
@@ -199,7 +206,12 @@ once and checkable.
 
 - A **replacement** leads with
   `**P<id>** <path> — replace exactly these <N> lines`, then the old block,
-  then `**P<id> →**`, then the new block.
+  then `**P<id> →**`, then the new block. **When a count is 1 the lead reads
+  the singular** — `this 1 line`, `1 occurrence of this 1 line` — everywhere a
+  count appears in a lead, and `lint` accepts both. It is English and not a
+  second shape: a grammar that admitted only the plural would make `these 1
+  lines` mandatory, and this plan's own first eight blocks would fail `lint`
+  as `malformed-lead`.
 - An **insertion** leads with `insert after these <N> lines` or
   `insert before these <N> lines`, and its new block omits the anchor lines the
   old block names, because an insertion's anchor stays. Both directions exist
@@ -1618,14 +1630,20 @@ a flat type and the note that governs the plan's own verification.
   $ mise --version
   ```
 
-  **All three must read `0`, `0`, and a version today**, and the first two must
-  read non-zero before batch A's first task. That each gate reads zero *now* is
-  the property that makes it a gate: a first draft of this bullet used
-  `grep -c 'js\|javascript\|eslint\|oxlint\|biome'`, which returns `3` on
-  today's tree — every hit an exclude pattern for a generated file
-  (`package-lock\.json$`, `compile_commands\.json$`, `\.(js|css)\.map$`), none
-  of them a linter. It would have opened the gate before the prerequisite
-  landed. A word-list gate matches the exclusions; name the tools.
+  **The plan records no values for these.** Kanri runs the three at the batch A
+  prompt and writes what they returned into the ledger; a number written here
+  would be a measurement of a world the plan outlives, and this one aged inside
+  a day — the first gate read `0` when the bullet was written and `3` once the
+  human landed Biome. The first two must read non-zero for batch A to proceed.
+
+  What does belong here is why each gate is shaped the way it is: **a gate must
+  be able to read zero before the thing it gates arrives.** A first draft used
+  `grep -c 'js\|javascript\|eslint\|oxlint\|biome'`, which returned `3` on a
+  tree with no JavaScript linter at all — every hit an exclude pattern for a
+  generated file (`package-lock\.json$`, `compile_commands\.json$`,
+  `\.(js|css)\.map$`), none of them a linter. It would have opened the gate
+  before the prerequisite landed. A word-list gate matches the exclusions; name
+  the tools.
 
   The `mise` prerequisite has two halves and needs both commands: `mise
   --version` tests this machine, and the `CONTRIBUTING.md` entry is the half
@@ -1700,11 +1718,15 @@ and each backed by a command that sweeps the whole tree:
 3. `git ls-files --eol`, in **two** parts, because the two are different
    claims. For the **nine existing paths**, `i/lf w/crlf attr/text=auto`,
    unchanged from the baseline recorded before batch A, and never `w/mixed`.
-   For the **two created paths**, `i/lf w/lf` — a file an implementer has just
-   written is LF in the working tree, and `w/crlf` is what a *checkout* under
-   `text=auto` produces later, not what the plan can observe. Requiring
-   `w/crlf` of them would fail every batch by construction; requiring nothing
-   of them would let a CRLF-written script through. `w/mixed` fails either way.
+   For the **two created paths**, `i/lf w/lf attr/text eol=lf` — pinned by
+   `.gitattributes`, not inherited, so a checkout produces LF too. The value
+   was right before the Biome commit and its stated reason was not: it read
+   "a file an implementer has just written is LF, and `w/crlf` is what a later
+   checkout produces", which `eol=lf` now makes false while leaving the value
+   alone — design-4807's rule that an explanation is a second claim beside the
+   number and can be wrong while the number is right. Note the `attr/` field:
+   it reads `attr/text eol=lf`, not `attr/text=auto` as the nine Markdown paths
+   do. `w/mixed` fails either way.
 4. Every `O` needle of the table above returns its stated disposition over
    `skills/tanto/`, **with the hits printed rather than counted**, and the raw
    count compared with the raw count the table records — a qualifier such as
@@ -1846,10 +1868,12 @@ it is the sharpest available evidence for issue-10bc's premise.
 1. **issue-f2c4**, its own plan (D-1).
 2. **A line-count threshold for a task** — issue-7281 asks for sizes until one
    can be chosen, and this plan records sizes without choosing.
-3. **A `.gitattributes` rule for `*.js`.** Not needed, because the script
-   carries no shebang and is invoked as `node <path>`; if a future script needs
-   one, `eol=lf` for that path is the fix, and it is a configuration change the
-   human owns.
+3. **A `.gitattributes` rule for `*.js`** — no longer deferred, and not this
+   plan's doing. This spec argued it was not needed, because the script carries
+   no shebang and is invoked as `node <path>`. The human added it anyway, in
+   the Biome commit of 2026-09-10, pinning `*.js` and its neighbours to
+   `eol=lf`. The judgment was theirs and the configuration is theirs; the spec
+   records the change because two of its measured facts moved with it.
 4. **Generating a plan's blocks, rather than checking them.** D-6 chose
    invocation over generation for the Verify steps; a generator that emits the
    blocks themselves was not discussed and is not proposed.
