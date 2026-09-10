@@ -113,8 +113,11 @@ holds here unchanged.
 ## Verification when the plan ships documents
 
 subagent-driven-development's dispatch templates assume a test suite. A plan
-that produces Markdown — a skill, a document set, a template pack — has none,
-and its equivalents differ in kind. Substitute these, and say so in every
+that produces Markdown — a skill, a document set, a template pack — usually has
+none, and its equivalents differ in kind. A plan that also ships code has a real
+one, and then both apply: the suite for the code, on the runtime version the
+plan pins, and the substitutes below for everything else. Substitute these, and
+say so in every
 dispatch:
 
 - lint on the changed paths, each named individually — a directory argument
@@ -131,6 +134,39 @@ which is the evidence SDD asks for. A **verification-only task** — one whose
 deliverable is the recorded output of checks and which creates no file —
 inverts the reviewer's standing instruction: tell the reviewer to re-run the
 checks rather than trust the report, because the output is the deliverable.
+
+For a plan that carries passages, run
+`node "$TANTO/scripts/passage-check.js" diff --plan <path> --base <merge base>`
+at every batch boundary, before you report. It prints the added lines of the
+merge-base diff that the plan does not literally quote, and the removed lines
+that fall outside any fenced block; both sets must be empty, or accounted for
+in your report. It needs only the plan and `git`, so unlike an application
+script written into some other session's scratchpad it is still there at the
+last boundary — the one that most needs it (issue-7481).
+
+## A measurement task's dispatch
+
+A task whose deliverable is a **measurement** — run a tool, record what it did
+— has a failure mode that a task which only produces files does not: the
+implementer can stop running the tool and start predicting it, and the
+prediction looks exactly like a real run, because it is built from the same
+brief the reviewer holds. Say this in the dispatch, in so many words:
+
+- every byte written is either what the tool produced or a documented fallback
+  applied from the plan's own blocks, and nothing is written from what the tool
+  was expected to produce;
+- a fallback is a sanctioned outcome, to be named in the report — never
+  something to be ashamed of or to paper over;
+- "execute the procedure directly", where the plan offers it as a fallback
+  route, means **carry it out against the tree**, not predict its output.
+
+Read the report back for the same thing. A measurement that contradicts the
+brief's prediction somewhere is what a real run usually looks like; one that
+confirms every expectation deserves a second look rather than a faster
+approval. Neither half is enforcement — an implementer can always lie — but the
+first removes the ambiguity that made simulating look like compliance, and the
+second gives the reader something to check other than the report's own
+confidence (issue-f2ec).
 
 ## Fix rounds and the Kaiseki trigger
 

@@ -265,6 +265,15 @@ After the last implementation batch is accepted:
    `S-n` table. You dispatch it, not Jisso, so the executor never
    commissions its own final review. Anything else you dispatch takes
    `subagents.default`.
+
+   For a plan that carries passages, give that reviewer the plan, the merge
+   base, and one command —
+   `node "$TANTO/scripts/passage-check.js" replay --plan <path> --base <merge base>`
+   — so
+   that the replay it would otherwise rebuild by hand is the instrument
+   Sekkei and Jisso already ran (issue-7481). Its report says what the replay
+   printed, and the review seat goes to the cross-file contracts and the
+   human-facing questions, which no script judges.
 2. Turn its findings into one more batch prompt — the final batch — and send it
    to Jisso. A fix-wave list is drafted under the same conditions as a plan:
    run each command it specifies once before dispatching it, and compare its
