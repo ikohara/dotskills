@@ -63,11 +63,12 @@ Six things a passage plan's pass needs that a whole-file plan's does not.
    line against the union of the plan's blocks and require zero uncovered lines
    — the second form needs no knowledge of each passage's shape. One trap: an
    insertion's new block omits its anchor, so a naive replace drops it.
-   **Prefer the second form, and treat the first as unavailable by default.**
-   A plan that names the dry run's application script as its replay names a
-   tool that lives in the drafting session's scratchpad: on the context-cost
-   run that script was already gone by the final boundary, which is the
-   boundary that most needs it. The second form needs only the plan and
+   **Both forms are `skills/tanto/scripts/passage-check.js` now** — `replay`
+   is the first and `diff` the second — and the script lives in the
+   repository rather than in a session's scratchpad. That was the defect: on
+   the context-cost run the dry run's application script was already gone by
+   the final boundary, which is the boundary that most needs it (issue-7481).
+   The second form needs only the plan and
    `git diff`, and it measured 443 added lines with **0 unaccounted** across
    thirteen files. Its one caveat is that a plan states some replacements in
    **prose** rather than in a fence — a licensed heading rename, an old line
@@ -383,15 +384,17 @@ ls skills/tanto/SKILL.md skills/tanto/README.md \
   skills/tanto/templates/kaiseki-brief.md \
   skills/tanto/templates/kaiseki-report.md \
   skills/tanto/templates/review-brief.md \
-  skills/tanto/templates/tanto.json 2>&1
+  skills/tanto/templates/tanto.json \
+  skills/tanto/scripts/passage-check.js \
+  skills/tanto/scripts/passage-check.test.js 2>&1
 ```
 
-Expected: all seventeen paths listed, no `No such file or directory`.
+Expected: all nineteen paths listed, no `No such file or directory`.
 
 ## 2. Every in-skill path named by the contract or a role file resolves
 
 ```bash
-grep -oh 'roles/[a-z]*\.md\|templates/[a-z-]*\.md\|templates/tanto\.json\|skills/tanto/[a-z/-]*\.md\|skills/tanto/[a-z/-]*\.json' \
+grep -oh 'roles/[a-z]*\.md\|templates/[a-z-]*\.md\|templates/tanto\.json\|scripts/[a-z.-]*\.js\|skills/tanto/[a-z/-]*\.md\|skills/tanto/[a-z/-]*\.json' \
   skills/tanto/SKILL.md skills/tanto/README.md skills/tanto/roles/*.md \
   | sed 's|^skills/tanto/||' | sort -u \
   | while read -r p; do
@@ -399,8 +402,9 @@ grep -oh 'roles/[a-z]*\.md\|templates/[a-z-]*\.md\|templates/tanto\.json\|skills
     done
 ```
 
-Expected: fifteen `ok` lines — `roles/jisso.md`, `roles/kaiseki.md`,
-`roles/kanri.md`, `roles/sekkei.md`, `templates/batch-prompt.md`,
+Expected: seventeen `ok` lines — `roles/jisso.md`, `roles/kaiseki.md`,
+`roles/kanri.md`, `roles/sekkei.md`, `scripts/passage-check.js`,
+`scripts/passage-check.test.js`, `templates/batch-prompt.md`,
 `templates/batch-report.md`, `templates/bug-report.md`,
 `templates/kaiseki-brief.md`, `templates/kaiseki-report.md`,
 `templates/kanri-handover.md`, `templates/kanri.md`,
