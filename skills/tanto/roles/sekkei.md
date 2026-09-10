@@ -89,7 +89,13 @@ superpowers writing-plans. Then add, yourself:
   tree, not only the files the batch wrote;
 - **how a batch is verified**. For a plan that ships Markdown, that section
   names lint on the changed paths by name, the content greps, a real YAML load
-  of any frontmatter, and a JSON parse of any JSON the plan writes;
+  of any frontmatter, and a JSON parse of any JSON the plan writes; for a plan
+  that ships code, the test command together with the runtime version it is
+  pinned to, so that a version claim is a run and not an assertion; and for a
+  plan that carries passages,
+  `node "$TANTO/scripts/passage-check.js" diff` as the boundary check,
+  which is what makes that check outlive the session that wrote it
+  (issue-7481);
 - when the plan edits this skill's own files, the **boundary from which a
   role may be started or replaced** — where one is *permitted*, as distinct
   from the boundaries where the Batches bullet expects one — stated in Global
@@ -103,8 +109,53 @@ superpowers writing-plans. Then add, yourself:
 
 A plan that carries passages rather than whole files wraps each new passage
 at its destination file's column, chosen when the block is authored, and
-states each passage's shape — a replacement of an old passage, or an
-insertion next to an anchor that stays.
+writes every block in the shape `scripts/passage-check.js` parses — `$TANTO`
+being the skill's own directory, as `SKILL.md` sets it — so that the
+plan is machine-checkable and not only readable:
+
+- a replacement is `**P<task>.<n>** <path> — replace exactly these <N> lines`,
+  the old block, then `**P<task>.<n> →**` and the new block; an insertion says
+  `insert after these <N> lines` and its new block omits the anchor lines,
+  because an insertion's anchor stays;
+- an anchor step is
+  `**A<task>.<n>** <path> — <command> — before: <v>, after: <v>`, both values
+  stated always: an anchor check inverts only when the new passage wholly
+  supersedes the needle, and when the needle is the passage's unchanged
+  opening it still returns `1` after a correct edit;
+- an old value the plan contradicts is
+  `**O<task>.<n>** <needle> — <where it must be gone, or why it may stay>`,
+  one per **entity** the plan changes — for a column added, the sentences that
+  list the columns; for a template added, "There are ten"; for a file renamed,
+  its old name. Write these before the passages, not after, and from the
+  entity rather than from the new text: a set whose cardinality changes is
+  reached by no new term at all, and a rule two role files state in different
+  words needs both spellings as needles. Sweep the files the plan does **not**
+  touch first — a file with a passage gets read anyway. **A needle must span
+  the point where the text changes**: where a passage *inserts* into a phrase,
+  every substring of the old phrase that avoids the insertion point survives
+  the edit and returns the same count afterwards, which reads as "not fixed"
+  or, worse, "already gone". `lint` checks this by searching the plan's own
+  new-passage text for each needle. **Run each needle as you write it** — one
+  that wraps in its target returns `0`, and `0` reads as "already gone".
+  Record the raw count and the disposition of each hit, not one verdict. A
+  sweep for the terms a plan introduces is not a sweep for the prose those
+  terms contradict, and only this one catches the second (issue-10bc).
+
+Each block appears **once**; a later task that needs one cites it by its id and
+does not re-quote it. A count in prose is written only where a command consumes
+it. Every Verify step of a task is one invocation of
+`node "$TANTO/scripts/passage-check.js" verify --plan <path> --task <N>`,
+rather than
+commands you write out: the needles, the anchor values, and the
+line counts are all determined by the blocks, so writing them again only
+creates something that can drift from them (issue-f813).
+
+The plan's Self-Review states the largest task's line count and step count, and
+says whether any task is a **sweep-and-check** shape — one whose deliverable is
+recorded output rather than a file. Size has two components, and the second
+costs on both the implementer's seat and the reviewer's, because a
+verification-only deliverable inverts the reviewer's standing instruction. No
+threshold is set: the sizes are recorded until one can be chosen (issue-7281).
 
 The report and prompt skeletons do **not** go in the plan. The plan says that
 reports and prompts follow the tanto templates, and names nothing else.
