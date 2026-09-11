@@ -16,9 +16,10 @@ structure, or retrofits it onto an existing repository.
   `README` / `AGENTS` / `CLAUDE` (or a doc-system `AGENTS.md`) is kisou-managed,
   re-running migrate **refreshes it toward the current template** — adding
   missing sections and updating diverged fixed-text ones, never touching author
-  free-text or removing author sections. When such a file instead holds real
-  project content, it backs the file up to `.bak` and writes a fresh one (with
-  approval) instead of forcing a merge.
+  free-text or removing author sections; for a doc-system `AGENTS.md` that
+  comparison is made by the bundled `scripts/doc-system-check.js` (Node 22 or
+  later), not by reading. A file that matches no fingerprint is left alone and
+  reported.
 - Never touches `src/` or `tests/`; never runs `git init`; never auto-generates
   script content.
 
@@ -31,7 +32,8 @@ the mode from the target directory's state. It then gathers the needed inputs
 target OS(es), and the `case` convention — `snake_case` or `PascalCase`) and
 proposes a numbered file list before writing. In **migrate** mode it
 enumerates existing files first and only asks about what detection couldn't
-determine.
+determine. Migrate's doc-system refresh needs `node` (22 or later) on the
+path.
 
 ## Layout
 
@@ -39,6 +41,8 @@ determine.
 - `templates/` — the bundled project template: layer-B files
   (`README` / `CONTRIBUTING` / `CLAUDE` / `AGENTS`) plus the `docs/`
   document-management system that `shoroku` fills.
+- `scripts/` — `doc-system-check.js`, the doc-system comparison migrate runs,
+  and its tests (`node --test`).
 
 ## Relationship to shoroku
 
