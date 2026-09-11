@@ -15,4 +15,5 @@ config:
     style: asterisk
 ignores:
   - "docs/superpowers/**"
-  - "skills/**/templates/**"
+  - "skills/tanto/templates/**"
+  - "skills/kisou/templates/*.md"

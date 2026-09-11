@@ -165,6 +165,19 @@ function trimTrailingBlanks(body) {
   return trimmed;
 }
 
+/** `lines` with its leading and trailing blank lines removed; interior blanks stay. */
+function trimBlankEdges(lines) {
+  let start = 0;
+  let end = lines.length;
+  while (start < end && lines[start] === "") {
+    start++;
+  }
+  while (end > start && lines[end - 1] === "") {
+    end--;
+  }
+  return lines.slice(start, end);
+}
+
 /** Two bodies, compared after each has its trailing blank lines removed. */
 function bodiesEqual(a, b) {
   const ta = trimTrailingBlanks(a);
@@ -364,11 +377,17 @@ function collect({ templatesDir, docsDir, kase }) {
     const lineEnding = detectLineEnding(targetRaw);
     const bom = targetRaw.charCodeAt(0) === 0xfeff;
 
-    const targetSections = splitSections(targetRaw).sections;
+    const { preamble: targetPreamble, sections: targetSections } = splitSections(targetRaw);
     const compared = compareSections(templateSections, targetSections);
 
     for (const heading of compared.authorAdded) {
       notes.push(`note: ${printedPath} — author section kept: ${heading}`);
+    }
+
+    const keptPreamble = trimBlankEdges(targetPreamble);
+    if (keptPreamble.length > 0) {
+      const lineWord = keptPreamble.length === 1 ? "line" : "lines";
+      notes.push(`note: ${printedPath} — text before the first heading kept: ${keptPreamble.length} ${lineWord}`);
     }
 
     const missingSet = new Set(compared.missing);

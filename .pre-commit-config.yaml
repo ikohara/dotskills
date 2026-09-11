@@ -24,7 +24,7 @@ repos:
         name: kisou doc-system copies match their templates
         language: system
         pass_filenames: false
-        files: ^(skills/kisou/templates/docs/|docs/AGENTS\.md$|docs/[^/]+/AGENTS\.md$)
+        files: ^(skills/kisou/(templates/docs/|scripts/doc-system-check\.js$)|docs/AGENTS\.md$|docs/[^/]+/AGENTS\.md$)
         entry: node skills/kisou/scripts/doc-system-check.js check --docs docs --case snake_case
 
   - repo: https://github.com/scop/pre-commit-shfmt

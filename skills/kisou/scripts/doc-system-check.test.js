@@ -858,3 +858,37 @@ test("a write failure during apply is exit 2 with no stack trace, not a rethrown
   assert.match(result.err, /^error: cannot write .*: EPERM: operation not permitted\n$/);
   assert.strictEqual(result.err.split("\n").length, 2);
 });
+
+// --- fix wave, task 13 (M-2): the preamble is kept and reported as a note --
+
+test("a preamble above the H1 is kept and reported as a note, and survives an apply", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "notes", "AGENTS.md");
+  const original = read(target);
+  write(target, `A paragraph before the heading.\n\n${original}`);
+
+  const before = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(before.code, 0);
+  assert.strictEqual(
+    before.out,
+    [`note: ${posix(docs)}/notes/AGENTS.md — text before the first heading kept: 1 line`, "0 items, 1 note", ""].join(
+      "\n",
+    ),
+  );
+
+  write(target, read(target).replace("File body.", "File\nbody rewrapped."));
+  const applied = run(["apply", "--items", "1", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(applied.code, 0);
+  const finalText = read(target);
+  assert.ok(finalText.startsWith("A paragraph before the heading.\n\n"));
+  assert.strictEqual(finalText, `A paragraph before the heading.\n\n${original}`);
+
+  const after = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(after.code, 0);
+  assert.strictEqual(
+    after.out,
+    [`note: ${posix(docs)}/notes/AGENTS.md — text before the first heading kept: 1 line`, "0 items, 1 note", ""].join(
+      "\n",
+    ),
+  );
+});
