@@ -4,10 +4,10 @@ title: kisou's refresh has no insertion-position rule for a section it adds
 severity: low
 depends_on: []
 blocks: []
-claimed_by: null
-claimed_at: null
+claimed_by: tanto kisou-refresh (Kanri dotskills-28)
+claimed_at: 2026-09-11T00:43:15Z
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-11
 ---
 
 Found in the requirement-extraction spec review (2026-09-09).

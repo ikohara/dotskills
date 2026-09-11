@@ -2,7 +2,7 @@
 id: "1a2b"
 title: kisou — scaffold and migrate a project's standard structure
 created: 2026-05-28
-updated: 2026-09-09
+updated: 2026-09-11
 ---
 
 ## Purpose
@@ -28,6 +28,8 @@ script files — without re-deriving conventions per project.
 - Uncertainty narrows what migrate proposes, never widens it: the less
   kisou can tell about a file, the less it offers to change, and a file it
   cannot classify is left alone and reported.
+- A migrate proposal is reproducible and derived from the tree: the same tree
+  yields the same proposal (see decision `0590`).
 - Re-running migrate on a project kisou previously set up refreshes it
   toward the current template — picking up template improvements made
   since it was first scaffolded — so kisou-using projects do not freeze at

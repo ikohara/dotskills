@@ -172,6 +172,16 @@ multi-line pattern into OR'd alternatives, so an unflattened multi-line needle
 against a flattened file is a weak any-line match rather than a substring test,
 and returns `1` on text that does not contain the passage at all.
 
+**`grep -c` prints `0` and exits 1, and a Verify step is read by its exit
+code.** The count on stdout and the exit status carry different news: a
+`grep -c` that matches nothing prints exactly the `0` an absence check wants
+and still fails, so a step whose stated expectation is "prints 0" reads as a
+failure to any harness keyed on exit codes rather than on output. Write such a
+check negated — `! grep -q <needle> <file>` — or compare the printed count
+explicitly, so that the step's success and its exit status are the same fact.
+Measured 2026-09-11; the kisou-refresh plan's frontmatter guard is written that
+way.
+
 That mixture is an artifact, not a property, and a plan must not encode it as a
 table. `core.autocrlf=true` is set globally on this machine and `.gitattributes`
 gives `.md` only `* text=auto`, with per-file `eol=` for `*.sh` and `*.bat`

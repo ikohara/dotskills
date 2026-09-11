@@ -4,8 +4,9 @@ title: stateless structural refresh in kisou migrate (no version stamp)
 status: accepted
 supersedes: []
 superseded_by: null
+amended_by: ["0590"]
 created: 2026-06-17
-updated: 2026-06-17
+updated: 2026-09-11
 ---
 
 ## Context

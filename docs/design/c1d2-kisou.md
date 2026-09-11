@@ -2,7 +2,7 @@
 id: "c1d2"
 title: kisou skill — modes, template syntax, case mapping, migrate detection
 created: 2026-05-28
-updated: 2026-09-09
+updated: 2026-09-11
 ---
 
 ## Shape
@@ -31,6 +31,14 @@ paths* before committing — this assumes the project's `lint` script accepts
 file-path arguments (lint only those). Because kisou ships `lint` as an empty
 stub (never auto-generates script content), this is a contract the
 author-filled script must satisfy, not something kisou enforces.
+
+Beside the bundle, the skill ships **one executable**,
+`scripts/doc-system-check.js` — Node 22 or later, standard library only, no
+dependencies. It decides the doc-system half of a migrate: which
+`{docs,Documents}/**/AGENTS.md` files are kisou-managed (by an H1 fingerprint),
+which fixed sections are missing or diverged, and where an added section lands.
+Its numbered report **is** the proposal — not a reading of the files by an
+agent — and `apply --items` writes the items the user accepted.
 
 How the bundle's own Markdown is verified, and by whom:
 
@@ -100,17 +108,24 @@ Then **all TEMPLATE FILL blocks are deleted** before writing.
   (or doc-system `AGENTS.md`) → **refresh toward the current template** — add
   missing sections and update diverged fixed-text ones via shown diff + explicit
   approval, never touching free-text or removing author sections (the upgrade
-  path for older scaffolds); a present **real-content** file → `.bak` + fresh
-  write; `scripts/` → add missing requested scripts, never overwrite; existing
-  doc-system → leave intact, add only around it.
+  path for older scaffolds); a file **no fingerprint matches** → left alone and
+  reported, naming the fingerprint it missed, with nothing proposed for it —
+  `.bak` + fresh write survives only as something the user asks for by naming
+  the file, and kisou never offers it; `scripts/` → add missing requested
+  scripts, never overwrite; a present doc-system → **intact as content,
+  refreshed as structure** — its `none` / `partial` / `full` class says what is
+  absent and nothing more and sets no scope, and a doc-system inside the scope
+  gets the instrument's proposals whatever its class, which for a `full` one
+  level with the templates is zero items.
 
   The refresh compares **section structure against the template** and reads no
   `docs/` content; kisou has no consistency check over what the documents say.
-  Its gate is a per-file fingerprint, and where the fingerprint does not match
-  it falls through to the `.bak`-and-fresh-write branch — which means an
-  unrecognized file is not left alone but replaced, the most destructive of the
-  available outcomes. The rejection has to come from the operator, so a refresh
-  is only as safe as the person answering its prompts. Refreshing a downstream
+  Its gate is a per-file fingerprint — the expanded template's H1 for a
+  doc-system file, applied by the instrument; the heading-set match for a
+  layer-B file, applied by reading — and where no fingerprint matches the file
+  is left alone and reported (decision-0590), so an unrecognized file draws no
+  proposal at all. What still rests on the operator is the layer-B refresh,
+  whose proposals come from a reading rather than a tool. Refreshing a downstream
   copy by hand instead was considered and rejected: it would leave this path
   (decision-281f) unexercised, so the plan runs `kisou migrate` in docs-only
   scope and hand-mirrors only what the refresh misses. Leaving a missed passage
@@ -153,8 +168,10 @@ docs-only scope, after the templates had gained six passages. Measured shape:
   the refresh branch needed no new section, so insertion position went untested
   (issue-f623).
 - Every migrate on **this** repository offers the script slots `scripts/` lacks
-  — `setup`, `run`, `build`, `test`, and `tidy` — since it holds only
-  `bootstrap` and `lint`, so a dogfood here always carries a decline step.
+  — `setup`, `run`, `build`, and `test` — since it holds only `bootstrap` and
+  `lint`, so a dogfood here always carries a decline step. `tidy` is not among
+  them: it is offered only for a clang + CMake project, which in migrate means
+  a `CMakeLists.txt` at the repository root, and this repository has none.
 
 The run is written up in
 `docs/reports/2026-09-09-requirement-extraction-dogfood.md`.

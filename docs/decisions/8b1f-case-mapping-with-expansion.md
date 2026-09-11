@@ -4,8 +4,9 @@ title: "`case` applies to script and dir names via a built-in mapping with abbre
 status: accepted
 supersedes: []
 superseded_by: null
+amended_by: ["47f2"]
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-09-11
 ---
 
 ## Context
