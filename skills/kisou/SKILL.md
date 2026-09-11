@@ -140,17 +140,19 @@ opposite case and mis-set `case`, which then cascades through every
   enumerating each artifact: `{docs,Documents}/AGENTS.md` and each
   `{docs,Documents}/<type>/AGENTS.md` (requirements / design / decisions /
   issues).
-  - **none** (no doc-system artifacts) → install the full doc-system.
+  - **none** (no doc-system artifacts) → all seven targets are absent; each is
+    one of the instrument's `create` items. The class says what is absent and
+    nothing more; it sets no scope.
   - **full** (root `AGENTS.md` + all four per-type files present) → the root
     and the four managed per-type files are present. What is absent —
     `notes/` and `reports/` included, since they sit outside this tally — and
-    what diverged comes from the instrument in the Present branch below,
-    inside whatever scope the user picks. The class says what is absent and
-    nothing more; it sets no scope.
+    what diverged comes from the instrument in the `docs/` doc-system bullet
+    below, inside whatever scope the user picks. The class says what is absent
+    and nothing more; it sets no scope.
   - **partial** (some artifacts present, others missing) → say what is present
     and what is missing, and stop there: what gets proposed comes from the
-    instrument in the Present branch below, inside whatever scope the user
-    picks, exactly as for a `full` doc-system. Surface any
+    instrument in the `docs/` doc-system bullet below, inside whatever scope
+    the user picks, exactly as for a `full` doc-system. Surface any
     non-standard subdirectory under `{docs,Documents}/` (e.g. `superpowers/`, a
     non-standard issue-status dir) as **kept by default**, and note it is
     **exempt from the `<id>-<slug>` naming rules** — its own tool's convention
@@ -160,8 +162,8 @@ opposite case and mis-set `case`, which then cascades through every
     none/partial/full tally (which covers the root `AGENTS.md` + the four
     managed per-type files), so a repo already `full` on the managed four is
     not reclassified `partial` for lacking them. Both are among the seven
-    targets the instrument enumerates in the Present branch below, and an
-    absent one is one of its `create` items; you do not enumerate them.
+    targets the instrument enumerates in the `docs/` doc-system bullet below,
+    and an absent one is one of its `create` items; you do not enumerate them.
 
 After surfacing the detected values for confirmation, **also ask once about
 scripts the repo lacks**: list the slots **Step 2 offers** that the repository
@@ -174,7 +176,9 @@ means there is no source dir), so its absence is never prompted.
 Pick a **scope**: full (layer B + doc-system) or **docs-only** (the case
 `shoroku` delegates here). Then, per artifact:
 
-- **Absent** → create (filled), as in scaffold.
+- **Absent** → for a layer-B file, create (filled), as in scaffold; an absent
+  doc-system file is the instrument's `create` item (see the `docs/` bullet
+  below).
 - **Present** (`README` / `AGENTS.md` / `CLAUDE.md`, or a doc-system
   `AGENTS.md`) → branch on whether the file is **kisou-managed**, i.e. carries a
   template fingerprint:
@@ -241,8 +245,9 @@ Pick a **scope**: full (layer B + doc-system) or **docs-only** (the case
   its diff. An author-added section is kept and reported. Content is never
   touched.
 
-Same interaction as scaffold: numbered proposal → partial-accept (`OK` / `2 と 5
-だけ` / `3 はやめて` / `全部やめ`) → one commit → report. No auto-push.
+Same interaction as scaffold: numbered proposal ending with `Direction?` →
+partial-accept (`OK` / `2 と 5 だけ` / `3 はやめて` / `全部やめ`) → one commit →
+report. No auto-push.
 
 ## Relationship to shoroku
 
@@ -262,4 +267,5 @@ agent-agnostic "Session shoroku" workflow that `shoroku` drives.
 - Do NOT auto-push.
 - Do NOT rename a file to `.bak`, or offer to, unless the user asked for that
   file by name.
-- Do NOT edit an existing `AGENTS.md` / `CLAUDE.md` beyond the approved merge.
+- Do NOT edit an existing `AGENTS.md` / `CLAUDE.md` beyond what the user
+  accepted from the numbered proposal.
