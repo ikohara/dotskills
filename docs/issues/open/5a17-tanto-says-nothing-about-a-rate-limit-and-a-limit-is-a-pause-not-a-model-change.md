@@ -53,3 +53,39 @@ beside rule 6:
 
 This edits `SKILL.md`, so it runs under contract rule 11 — with the
 `.tanto/` move (issue-0b97) or the Keikaku split (issue-3c7a).
+
+**Addendum, 2026-09-11, later the same day.** The resume half needs a
+protocol too. After the opus weekly limit stopped a spec reviewer, the human
+raised the quota and typed `再開` alone in the Sekkei's window; the Sekkei
+asked "resume what?" — it had nothing to bind the word to, and the human had
+to say which dispatch. The same day the human had typed `再開` in Kanri's
+window after an editor restart, where it meant the session-resume of
+`/tanto resume`. So two different acts share one word, and neither is
+defined for a limit.
+
+What the skill needs, beside the pause rule above:
+
+- **The pause leaves a marker.** When a dispatch dies on a limit, the role
+  records in its next line to Kanri (or its report) what died, on which
+  model, and the reset time the message named — `paused: <dispatch> on
+  <family> — resets <time>` — and Kanri records it in the ledger's
+  Measurements. That line is what a resume binds to.
+- **The resume is a line, not a bare word.** The human says the quota is
+  back — by time or by payment — to Kanri, in Kanri's window; Kanri probes
+  the family once with a trivial subagent if it doubts, then sends the
+  paused role `resume: <the dispatch the pause named> — same model`. A
+  human who speaks in the role's window instead says the same thing in
+  words the role can bind (`spec reviewer を再 dispatch`), and the role
+  sends Kanri `human-contact:` as usual. A bare `再開` in a role's window is
+  ambiguous by construction and the role asks — which is correct behavior,
+  and the reason the line form exists.
+- **One word per act.** The session-resume of `/tanto resume` and the
+  resume after a limit are different acts and must not share a word. Which
+  word each gets — and whether the after-a-limit act is a Kanri line, a
+  `/tanto` argument, or something else — is the spec's to choose, together
+  with issue-260c's romaji forms; the human asked that the words be decided
+  at design time, not here. The line shapes above (`paused:`, `resume:`)
+  are the shape of the exchange, not its final vocabulary.
+
+Measured twice on 2026-09-11 (kisou-refresh ledger R-17, R-37, R-38;
+tanto-workspace R-6, R-7).
