@@ -835,6 +835,24 @@ function fencedLineSet(lines) {
  * on a broken invocation -- an unresolvable `base` foremost -- which the
  * caller reports as exit 2.
  */
+/**
+ * The path `git diff` would print for `file`, relative to the repository
+ * root with forward slashes, or null when `file` is absent or lies outside
+ * the repository (a plan written to a temp directory, as the tests do).
+ */
+function repoRelativePath(cwd, file) {
+  if (!file) return null;
+  let top;
+  try {
+    top = execFileSync("git", ["-C", cwd, "rev-parse", "--show-toplevel"], { encoding: "utf8" }).trim();
+  } catch {
+    return null;
+  }
+  const rel = path.relative(path.resolve(top), path.resolve(cwd, file));
+  if (!rel || rel.startsWith("..") || path.isAbsolute(rel)) return null;
+  return rel.split(path.sep).join("/");
+}
+
 function diffPlan(parsed, base, options = {}) {
   const cwd = options.cwd || process.cwd();
 
@@ -857,6 +875,14 @@ function diffPlan(parsed, base, options = {}) {
   const exempt = [...new Set(parsed.created)];
   const createdSet = new Set(exempt);
 
+  // The plan's own path is outside what `diff` checks: no task writes it,
+  // it is Sekkei's under Sekkei's own commit rule, and every answer to a
+  // cold read is an edit to it after the base. Without this, each replaced
+  // line of the plan is an unexplained removal at every later boundary,
+  // because the plan never quotes its own previous text in a fence
+  // (kisou-refresh bug report, 2026-09-11).
+  const planPath = repoRelativePath(cwd, options.planPath);
+
   const quotedLines = new Set(parsed.lines);
   const fenced = fencedLineSet(parsed.lines);
 
@@ -864,6 +890,7 @@ function diffPlan(parsed, base, options = {}) {
   const unexplainedRemoved = [];
   for (const entry of entries) {
     if (entry.path && createdSet.has(entry.path)) continue;
+    if (entry.path && planPath && entry.path === planPath) continue;
     if (entry.kind === "add") {
       if (!quotedLines.has(entry.content)) {
         unaccountedAdded.push({ path: entry.path, content: entry.content });
@@ -898,7 +925,7 @@ function runDiff(values) {
 
   let result;
   try {
-    result = diffPlan(parsed, values.base, { cwd: process.cwd() });
+    result = diffPlan(parsed, values.base, { cwd: process.cwd(), planPath: values.plan });
   } catch (err) {
     process.stderr.write(`error: ${err.message}\n${USAGE}\n`);
     return 2;

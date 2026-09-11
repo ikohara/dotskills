@@ -692,6 +692,20 @@ test("diff exempts a created path and names it in the output", () => {
   assert.match(result.out, /tmp\/made\.md/);
 });
 
+test("diff exempts the plan's own path, so a post-base edit to the plan is not an unexplained removal", () => {
+  // A plan whose base is its own commit is edited after it — every cold-read
+  // answer is such an edit — and the replaced lines never sit in a fence
+  // (kisou-refresh bug report, 2026-09-11).
+  const before = plan(REPLACEMENT.concat(["", "A prose line the cold read will change."]));
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n", "docs/plan.md": before });
+  fs.writeFileSync(path.join(repo.dir, "tmp/fixture.md"), "gamma\n", "utf8");
+  fs.writeFileSync(path.join(repo.dir, "docs/plan.md"), before.replace("will change", "has changed"), "utf8");
+  const result = runIn(repo.dir, ["diff", "--plan", "docs/plan.md", "--base", repo.head]);
+  assert.strictEqual(result.code, 0, result.out);
+  assert.doesNotMatch(result.out, /unexplained-removed/);
+  assert.doesNotMatch(result.out, /unaccounted-added/);
+});
+
 test("diff strips CR before classifying an added line", () => {
   const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
   fs.writeFileSync(path.join(repo.dir, "tmp/fixture.md"), "gamma\r\n", "utf8");
