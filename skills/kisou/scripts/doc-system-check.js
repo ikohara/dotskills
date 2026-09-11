@@ -327,7 +327,7 @@ function collect({ templatesDir, docsDir, kase }) {
         heading: null,
         oldBody: null,
         newBody: null,
-        text: expandedTemplate,
+        text: normalize(expandedTemplate),
         lineEnding: "\n",
         bom: false,
       });
@@ -516,8 +516,14 @@ function main(argv) {
     const other = derived === "PascalCase" ? "snake_case" : "PascalCase";
     const perTypeCount = (k) =>
       targetSet(k).filter((t) => t.type !== "root" && existsExact(values.docs, t.target)).length;
-    const derivedCount = perTypeCount(derived);
-    const otherCount = perTypeCount(other);
+    let derivedCount;
+    let otherCount;
+    try {
+      derivedCount = perTypeCount(derived);
+      otherCount = perTypeCount(other);
+    } catch (err) {
+      return fail(`cannot read --docs ${values.docs}: ${err.message}`);
+    }
     if (derivedCount === 0 && otherCount > 0) {
       return fail(`cannot derive --case from ${base}; pass --case explicitly`);
     }
