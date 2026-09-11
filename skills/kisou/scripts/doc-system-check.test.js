@@ -23,8 +23,25 @@ const SCRIPT = path.join(__dirname, "doc-system-check.js");
 const TEMPLATES = path.join(__dirname, "..", "templates", "docs");
 const TYPES = ["requirements", "design", "decisions", "issues", "notes", "reports"];
 
+// Every temporary directory `tmp()` creates, so this file's own fixtures
+// leave nothing behind under the OS temp dir.
+const tmpDirs = [];
+process.on("exit", () => {
+  for (const dir of tmpDirs) {
+    // Per-entry, so one locked directory does not stop every entry after
+    // it in the array from being attempted too.
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+    } catch {
+      // Best-effort teardown -- see above.
+    }
+  }
+});
+
 function tmp() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "doc-system-check-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "doc-system-check-"));
+  tmpDirs.push(dir);
+  return dir;
 }
 
 function run(args) {
