@@ -158,10 +158,17 @@ therefore always the instrument's `create` item, and "write the bundle" in
 `SKILL.md`'s migrate text means accepting those items; the scaffold mode's
 own copy step is untouched.
 
-When `--case` is omitted and the derived case finds none of the seven
-targets while the other case finds at least one, the tool exits 2 and says to
-pass `--case`, rather than proposing seven creates over an intact doc-system
-whose root is named neither `docs` nor `Documents`.
+When `--case` is omitted and the derived case finds none of the **six
+per-type** targets while the other case finds at least one, the tool exits 2
+and says to pass `--case`, rather than proposing seven creates over an intact
+doc-system whose root is named neither `docs` nor `Documents`.
+
+The count is over six and not seven because the **root** target's path is
+`<docs root>/AGENTS.md` under both conventions — the case affects the type
+directory names, not that file — so the root carries no evidence either way,
+and a rule phrased over all seven could never fire on a doc-system whose root
+file exists. Corrected at the plan stage, 2026-09-11; test case 9's last case
+is what would otherwise have failed.
 
 ### Fingerprint
 
@@ -198,7 +205,18 @@ every line up to the next heading, flat, with no nesting: a `###` under a
 neither a fixed nor an author section, left as they are, not reported.
 
 The section's identity is the heading line's text, exactly; its body is
-compared exactly after the normalization below. The template's headings are
+compared exactly after the normalization below, **except for its trailing
+blank lines, which are excluded from the comparison on both sides**. That
+exclusion was added at the plan stage, 2026-09-11, and the plan carries the
+measurement: a file's last section can never end in a blank line, because the
+normalization reduces trailing newlines to one, so comparing them makes a
+`replace` on a file's last section never converge — a permanently failing
+`check`, and so a permanently failing hook, on a tree nobody can level. It
+also makes deleting a section a divergence in the section before it. The cost
+is that a copy differing from its expanded template only in the count of blank
+lines between two sections is not reported: byte equality is enforced up to
+line endings, a byte-order mark, and inter-section blank-line count. A rewrap
+— the drift issue-acc0 measured — changes none of those. The template's headings are
 the **fixed sections**. A heading in the target that the template does not
 have is an **author-added section**, reported and never written. When a
 heading repeats in the target, the first occurrence is the fixed section and
