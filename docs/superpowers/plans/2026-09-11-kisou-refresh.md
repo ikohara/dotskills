@@ -188,8 +188,8 @@ boundary.
 
 ### `diff`'s base is the plan's own commit, not the merge base
 
-The branch `kisou-refresh` already carries seven commits over `main` before
-this plan's first task: three spec commits, two issue commits Kanri filed, one
+The branch `kisou-refresh` already carries eight commits over `main` before
+this plan's first task: four spec commits, two issue commits Kanri filed, one
 exit-shoroku commit, and one `skills/tanto/` hotfix. `git merge-base main HEAD`
 therefore reaches back past work no task of this plan did, and `diff` would
 report every line of it as unaccounted (issue-909c). **The base is the commit
