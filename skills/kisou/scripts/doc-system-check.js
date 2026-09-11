@@ -570,15 +570,35 @@ function insertSection(targetText, templateSections, heading) {
   return `${lines.join("\n")}\n`;
 }
 
-/** Write one accepted item to disk, keeping the target's line ending and BOM. */
+/** Wrap one fs call for `writeItem`: any failure becomes an `ApplyError`. */
+function writeItemFs(item, fn) {
+  try {
+    return fn();
+  } catch (err) {
+    throw new ApplyError(`cannot write ${posixPath(item.absPath)}: ${err.message}`);
+  }
+}
+
+/**
+ * Write one accepted item to disk, keeping the target's line ending and BOM.
+ *
+ * Each fs call is wrapped through `writeItemFs`: an `EPERM`/`EACCES`/
+ * `EISDIR`/`ENOENT` (or any other write-path failure) becomes an
+ * `ApplyError`, the domain class `runApply` already knows to report as
+ * `error: ...` and exit 2, rather than a plain `Error` that would rethrow
+ * with a stack trace as though it were an internal bug. `insertSection` and
+ * `replaceSectionBody` stay outside the wrap, so a real bug in either still
+ * rethrows with its stack, per the m-1 narrowing.
+ */
 function writeItem(item) {
   if (item.kind === "create") {
-    fs.mkdirSync(path.dirname(item.absPath), { recursive: true });
-    fs.writeFileSync(item.absPath, item.text, "utf8");
+    writeItemFs(item, () => fs.mkdirSync(path.dirname(item.absPath), { recursive: true }));
+    writeItemFs(item, () => fs.writeFileSync(item.absPath, item.text, "utf8"));
     return;
   }
 
-  const targetText = normalize(fs.readFileSync(item.absPath, "utf8"));
+  const targetRaw = writeItemFs(item, () => fs.readFileSync(item.absPath, "utf8"));
+  const targetText = normalize(targetRaw);
   const newText =
     item.kind === "add"
       ? insertSection(targetText, item.templateSections, item.heading)
@@ -591,7 +611,7 @@ function writeItem(item) {
   if (item.bom) {
     out = `﻿${out}`;
   }
-  fs.writeFileSync(item.absPath, out, "utf8");
+  writeItemFs(item, () => fs.writeFileSync(item.absPath, out, "utf8"));
 }
 
 /**

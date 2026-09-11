@@ -833,3 +833,28 @@ test("an add and a replace in the same file converge to identity in either order
     assert.match(after.out, /^0 items, 0 notes$/m);
   }
 });
+
+// --- fix round 1: a write failure in apply is a domain error, not a bug ----
+
+test("a write failure during apply is exit 2 with no stack trace, not a rethrown bug", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "notes", "AGENTS.md");
+  write(target, read(target).replace("File body.", "Changed."));
+  const listed = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.match(listed.out, /^1 item, 0 notes$/m);
+
+  const originalWrite = fs.writeFileSync;
+  fs.writeFileSync = () => {
+    throw Object.assign(new Error("EPERM: operation not permitted"), { code: "EPERM" });
+  };
+  let result;
+  try {
+    result = callMain(["apply", "--items", "1", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  } finally {
+    fs.writeFileSync = originalWrite;
+  }
+  assert.strictEqual(result.code, 2);
+  assert.strictEqual(result.out, "");
+  assert.match(result.err, /^error: cannot write .*: EPERM: operation not permitted\n$/);
+  assert.strictEqual(result.err.split("\n").length, 2);
+});
