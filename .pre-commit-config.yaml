@@ -20,6 +20,13 @@ repos:
         types: [markdown]
         entry: uv run --no-project --with pyyaml python scripts/check_md_frontmatter.py
 
+      - id: kisou-doc-system-check
+        name: kisou doc-system copies match their templates
+        language: system
+        pass_filenames: false
+        files: ^(skills/kisou/templates/docs/|docs/AGENTS\.md$|docs/[^/]+/AGENTS\.md$)
+        entry: node skills/kisou/scripts/doc-system-check.js check --docs docs --case snake_case
+
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.13.1-1
     hooks:
