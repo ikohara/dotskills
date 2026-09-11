@@ -825,17 +825,6 @@ function fencedLineSet(lines) {
 }
 
 /**
- * Classify `git diff <base>` from the side opposite `replay`: every added
- * line outside a `created:` path must be text the plan literally quotes
- * (present as a line anywhere in the plan), and every removed line must fall
- * inside one of the plan's fenced blocks. Needs only the plan and `git` --
- * no scratch tree, no passage application -- so, unlike `replay`, it is
- * still there at the last boundary once the session that wrote the plan is
- * gone. Returns { ok, unaccountedAdded, unexplainedRemoved, exempt }. Throws
- * on a broken invocation -- an unresolvable `base` foremost -- which the
- * caller reports as exit 2.
- */
-/**
  * The path `git diff` would print for `file`, relative to the repository
  * root with forward slashes, or null when `file` is absent or lies outside
  * the repository (a plan written to a temp directory, as the tests do).
@@ -853,6 +842,17 @@ function repoRelativePath(cwd, file) {
   return rel.split(path.sep).join("/");
 }
 
+/**
+ * Classify `git diff <base>` from the side opposite `replay`: every added
+ * line outside a `created:` path must be text the plan literally quotes
+ * (present as a line anywhere in the plan), and every removed line must fall
+ * inside one of the plan's fenced blocks. Needs only the plan and `git` --
+ * no scratch tree, no passage application -- so, unlike `replay`, it is
+ * still there at the last boundary once the session that wrote the plan is
+ * gone. Returns { ok, unaccountedAdded, unexplainedRemoved, exempt }. Throws
+ * on a broken invocation -- an unresolvable `base` foremost -- which the
+ * caller reports as exit 2.
+ */
 function diffPlan(parsed, base, options = {}) {
   const cwd = options.cwd || process.cwd();
 
