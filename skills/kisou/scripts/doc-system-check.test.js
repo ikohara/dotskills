@@ -414,7 +414,7 @@ test("a CRLF copy of the bundle is level", () => {
   expandBundle(docs, "snake_case");
   for (const t of targetSet("snake_case")) {
     const file = path.join(docs, t.target);
-    write(file, read(file).replace(/\n/g, "\r\n"));
+    write(file, read(file).replace(/\r?\n/g, "\r\n"));
   }
   const result = run(["check", "--docs", docs, "--case", "snake_case"]);
   assert.strictEqual(result.code, 0);
