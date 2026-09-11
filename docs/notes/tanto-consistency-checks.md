@@ -182,6 +182,16 @@ explicitly, so that the step's success and its exit status are the same fact.
 Measured 2026-09-11; the kisou-refresh plan's frontmatter guard is written that
 way.
 
+Two `insert after` blocks that name the same anchor land in the **reverse**
+of plan order: `replay` applies passages in the order they are written, and
+each insert-after re-finds the anchor and inserts directly after it, so the
+second block is placed above the first. A required order at one anchor is
+therefore one block, not two — the kisou-refresh plan folded the spec's P6
+and the second half of its P7, which share an anchor and must read in that
+order, into a single `P4.6` for exactly this reason (measured 2026-09-11).
+`lint` does not warn about two insertions sharing an anchor; the author has
+to notice.
+
 That mixture is an artifact, not a property, and a plan must not encode it as a
 table. `core.autocrlf=true` is set globally on this machine and `.gitattributes`
 gives `.md` only `* text=auto`, with per-file `eol=` for `*.sh` and `*.bat`
