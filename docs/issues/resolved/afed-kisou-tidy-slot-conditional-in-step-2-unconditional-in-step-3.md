@@ -4,8 +4,8 @@ title: kisou's tidy slot is conditional in Step 2 and unconditional in Step 3's 
 severity: low
 depends_on: []
 blocks: []
-claimed_by: tanto kisou-refresh (Kanri dotskills-28)
-claimed_at: 2026-09-11T00:43:15Z
+claimed_by: null
+claimed_at: null
 created: 2026-09-09
 updated: 2026-09-11
 ---
@@ -26,3 +26,10 @@ The fix is to state the condition once and have the migrate prompt reference
 it, or to drop the condition and offer `tidy` everywhere as an opt-in.
 
 Related: req-1a2b, design-c1d2, issue-ad1a.
+
+Resolved by the kisou refresh design spec of 2026-09-11, fixed input 6: the
+condition is stated once, in Step 2, as a `CMakeLists.txt` at the repository
+root, and Step 3's migrate prompt refers to it. Measured on 2026-09-11: the
+scripts prompt offered `setup`, `run`, `build`, and `test`, and did not offer
+`tidy`, on that condition (`ls CMakeLists.txt` → none) —
+`docs/reports/2026-09-11-kisou-refresh-dogfood.md`.

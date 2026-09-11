@@ -3,9 +3,11 @@
 A passage plan states its own verification instead of pointing at a
 whole-file diff: an anchor line, an old passage, a new passage, and a grep or
 count that proves the edit landed. This note collects lessons about writing
-that content well — the needles a plan pins, the counts it states, how an
-expectation is worded so a failure is actually possible, and the different
-domains its sweeps cover. Lessons about the scripts and tests that carry out
+that content well — the needles a plan pins, the entity-level sweep that
+runs beside them, the counts it states, how an expectation is worded so a
+failure is actually possible, the different domains its sweeps cover, and the
+recipe a passage task follows on a CRLF host. Lessons about the scripts and
+tests that carry out
 the checking, rather than the plan text that states them, are in
 `docs/notes/reviewing-an-instrument.md`; the mechanical checks a `tanto` plan
 runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
@@ -22,6 +24,20 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   `notify_when_idle: true` while leaving behind the sentence that justified
   it — "because the idle notice is the forced-exit signal" — passes a grep
   for the flag alone; sweep for the reasoning too.
+
+## An entity-level sweep beside the phrase-level one
+
+- A passage plan's `O` needles are the old *phrases*, and a contradiction
+  can survive in a sentence that uses none of them. In the kisou-refresh
+  plan, two sentences of `skills/kisou/SKILL.md` (lines 177 and 143 at the
+  time) still carried the pre-instrument model in words no needle matched;
+  they surfaced in the batch B report, not in the sweep, and the fix wave
+  repaired them.
+- So after the passages land, read each touched file whole for every
+  *entity* the plan changes — who creates a file, who decides scope, what is
+  offered — not only for the phrases the `O` block pins. The phrase sweep is
+  mechanical and finds the closed enumerations; the entity pass is a reading
+  and finds the sentences that restate the old model in new words.
 
 ## Counts
 
@@ -85,3 +101,16 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   stale check in `docs/notes/tanto-consistency-checks.md` rather than in the
   skill itself. A reviewer who does not know the domains differ cannot use
   either sweep to explain the other's result.
+
+## The passage-task recipe on a CRLF host
+
+The recipe that ran without a fix round on this host in the kisou-refresh
+plan, for a Markdown target (batch B) and a YAML one (batch C) alike:
+
+- Read/Edit tools only — never `sed -i` or a heredoc on a CRLF file.
+- The checker (`verify --plan <plan> --task N`) before lint and again after
+  commit, so that a fixer's rewrite between the two shows up as a passage
+  moved.
+- `grep -cF` per anchor before and after the edit, the count from a run.
+- For a YAML target, the hook run by id, because `scripts/lint.sh` given the
+  config path skips it.

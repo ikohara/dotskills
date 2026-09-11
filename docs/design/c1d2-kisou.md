@@ -43,17 +43,30 @@ and text before the first heading, the last reported as a note (decision-19ea).
 Its numbered report **is** the proposal — not a reading of the files by an
 agent — and `apply --items` writes the items the user accepted.
 
+Behaviors the instrument carries that the spec did not name, or that the
+kisou-refresh fix wave added: the preamble — text before the first heading —
+is the fourth exemption, kept through `apply` and reported as a note
+(`text before the first heading kept: <n> line(s)`); `apply` prints the
+check-list numbering on its success and its failure printout alike, so the
+guard against a moved tree reads in the same numbers as the operator's
+`check`; the not-kisou-managed note quotes the heading texts it compared, the
+first heading found and the one expected; a write failure raises `ApplyError`
+and exits 2 with one stderr line; and the `--case` derivation guard resolves
+its six per-type targets by exact-name lookup. Its exported surface also
+carries two members the spec did not name: `applyItems`'s `onApply` callback
+and `collect`'s `bom` field.
+
 How the bundle's own Markdown is verified, and by whom:
 
-- The templates are **not** markdownlint-checked where they live. This
-  repository's `.markdownlint-cli2.yaml` ignores `skills/**/templates/**`, so
-  only the installed copies under `docs/` are linted and a template-only change
-  ships unlinted. Linting a template's Markdown therefore means copying it to a
-  non-ignored path with the `{{…}}` names expanded and running the linter there.
-- Four pre-commit hooks do bind on `skills/**/templates/**` — frontmatter,
-  trailing-whitespace, end-of-file, and mixed-line-ending — because
-  markdownlint-cli2 is the one Markdown hook the configuration gives an ignore.
-  So a template is checked for shape and hygiene but not for Markdown.
+- The docs templates are markdownlint-checked **where they live**. This
+  repository's `.markdownlint-cli2.yaml` ignores `skills/tanto/templates/**`
+  and `skills/kisou/templates/*.md` (the layer-B templates) and lints
+  `skills/kisou/templates/docs/**` in place — 7 files, 0 errors when the ignore
+  was narrowed on 2026-09-11. The hooks that bind on the docs templates are
+  markdownlint, the frontmatter hook, trailing-whitespace, end-of-file,
+  mixed-line-ending, and `kisou-doc-system-check` (below). A layer-B template
+  is still linted only by copying it to a non-ignored path with the `{{…}}`
+  names expanded and running the linter there.
 - The installed `docs/**/AGENTS.md` copies are **agent instruction files** in
   the sense of this repository's own `AGENTS.md`, which forbids editing them
   without explicit human approval. A refresh of them therefore needs a recorded
@@ -179,6 +192,49 @@ docs-only scope, after the templates had gained six passages. Measured shape:
 The run is written up in
 `docs/reports/2026-09-09-requirement-extraction-dogfood.md`.
 
+**Refresh, measured again 2026-09-11.** The kisou-refresh plan ran
+`起草して migrate` on this repository with the refreshed skill, in docs-only
+scope. All seven doc-system copies were classified kisou-managed by the H1 rule
+(issue-e19f). The instrument proposed two `replace` items — the rewrapped H1
+paragraphs of the `notes` and `reports` copies — and `apply` wrote them; the
+sections carrying `<id>` notation compared level once the rewrap was closed,
+so none was read as free text (issue-2bf9). `tidy` was not offered, on the
+detectable condition of no `CMakeLists.txt` at the repository root
+(issue-afed). The class `full` was stated before scope was asked and set no
+scope; the docs-only pick drew the two proposals (issue-f50d). The hook's
+command exited 1 before `apply` and 0 after, and the two copies came level
+(issue-acc0). The one question the run could not answer — where an added
+section lands — is closed by the instrument's suite, test case 5 on the real
+requirements template and the miniature fixtures; the dogfood produced no
+`add` item (issue-f623). The run is written up in
+`docs/reports/2026-09-11-kisou-refresh-dogfood.md`.
+
+## How this repository enforces the invariant
+
+Serves `req-1a2b` — the installed copies stay level with the templates they
+came from.
+
+The invariant the instrument checks — each installed `docs/**/AGENTS.md`
+byte-equal to its expanded template, up to the four exemptions — is enforced
+in this repository by one pre-commit hook, `kisou-doc-system-check`, in
+`.pre-commit-config.yaml`. Its shape: `language: system`,
+`pass_filenames: false`, and one entry,
+`node skills/kisou/scripts/doc-system-check.js check --docs docs --case snake_case`,
+which is the same command for `--all-files` and for a matching commit alike;
+`check`'s exit code is the hook's. Its `files:` regex covers the fourteen
+guarded paths — the seven docs templates and the seven installed copies —
+plus the instrument's own path:
+
+```text
+^(skills/kisou/(templates/docs/|scripts/doc-system-check\.js$)|docs/AGENTS\.md$|docs/[^/]+/AGENTS\.md$)
+```
+
+So a template-body edit fails its own commit unless the copies come level in
+the same commit, and an edit to the instrument re-runs the check on the tree
+it now reads. Measured 2026-09-11: on the level tree `check` exits 0 and the
+hook passes by id; before the dogfood's `apply`, the same command exited 1 on
+the two drifted copies.
+
 ## File output paths
 
 Destination directory names are **case-correct** per `case` (a
@@ -199,3 +255,7 @@ resolved}/`, etc.). The bundle inside this repo is authored in canonical
 - `decision-89da` — partial supersession links; why fixed-section headings in
   the template stay stable.
 - `decision-3544` — notes/reports adopted as flat types.
+- `docs/reports/2026-09-09-requirement-extraction-dogfood.md` — the first
+  measured refresh.
+- `docs/reports/2026-09-11-kisou-refresh-dogfood.md` — the second, through
+  the instrument.

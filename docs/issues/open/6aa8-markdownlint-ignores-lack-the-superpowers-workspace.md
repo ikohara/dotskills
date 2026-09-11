@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-11
 ---
 
 `.markdownlint-cli2.yaml` ignores `docs/superpowers/**` and
@@ -34,3 +34,8 @@ edit here would be overwritten. Linter configuration is also on the
 repository's never-edit-without-approval list, which is why this is an issue
 and not a commit. Related: req-04f5 (tanto's workspace), the kisou / dotrepo
 boundary.
+
+Since 2026-09-11 the ignore list quoted above is three entries, not two —
+`docs/superpowers/**`, `skills/tanto/templates/**`, and
+`skills/kisou/templates/*.md` — and `.superpowers/**` is still not among
+them.

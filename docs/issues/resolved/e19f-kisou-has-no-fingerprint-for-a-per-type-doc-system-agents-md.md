@@ -4,8 +4,8 @@ title: kisou has no template fingerprint for a per-type doc-system AGENTS.md
 severity: medium
 depends_on: []
 blocks: []
-claimed_by: tanto kisou-refresh (Kanri dotskills-28)
-claimed_at: 2026-09-11T00:43:15Z
+claimed_by: null
+claimed_at: null
 created: 2026-09-09
 updated: 2026-09-11
 ---
@@ -54,3 +54,14 @@ The run is written up in
 
 Related: req-1a2b, design-c1d2, decision-281f, issue-ad1a, issue-2bf9,
 issue-f50d.
+
+Resolved by the kisou refresh design spec of 2026-09-11 and its instrument,
+`skills/kisou/scripts/doc-system-check.js`. The fingerprint is one rule
+instead of a list: the expanded template's H1 (`# <type>/ — AGENTS` for a
+per-type copy; the root `# AGENTS.md` with its `## Document management`
+section), applied by the instrument and not by the skill text, so no
+per-type file is left for a `.bak` offer to fall through to. Measured on
+this repository on 2026-09-11: all seven doc-system copies classified
+kisou-managed, none reported as not kisou-managed, no note printed — the
+report's "The six measurements" table, in
+`docs/reports/2026-09-11-kisou-refresh-dogfood.md`.

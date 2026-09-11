@@ -216,3 +216,181 @@ transcript file's size in bytes and its record count, the number of
 wake-ups (turns that re-read the whole context), and the number of
 compactions (harness-produced summaries), as the `tanto` skill defines the
 reading.
+
+## Measurements appended at T2
+
+The rows below were added by the kisou refresh plan's T2 write-out after the
+run. They freeze what the plan's other stages — the spec review, the plan
+review, the batch reports, and the whole-branch review — measured, so that
+later documents can cite one dated record.
+
+### The drift's mechanism and the invariant's cost
+
+- `docs/notes/AGENTS.md` and `docs/reports/AGENTS.md` are the only LF-only
+  Markdown files in the doc-system (the rest are CRLF under `text=auto` plus
+  `autocrlf=true`), and they are exactly the two drifted files: a tool wrote
+  them after checkout, a plausible mechanism for the rewrap (measured at the
+  spec review).
+- The drift issue-acc0 counted (6 and 4 lines) is rewrapping only, content
+  identical. The direction question was moot for these two and was decided
+  anyway (the spec's fixed input 7), because the next drift will not be.
+- The instrument's first run on this repository, at batch A: two `replace`
+  items, both a rewrap of the H1 section's paragraph, nothing else. At the
+  batch B boundary, the same two `replace` items, unchanged by the skill-text
+  edits — 41 lines of output, 6 and 4 wrapped lines.
+- The `node`-absent branch is what makes an unscoped sentence dangerous: a
+  two-authority defect is harmless while the tool works and is the only
+  instruction that fires when it does not. That is the reason for the
+  whole-branch review's M-1 fix.
+
+### What the reviews measured about the instrument's rules
+
+- The dogfood expectation reproduces in twenty lines of Node, independently
+  of the instrument: expanding the seven template `AGENTS.md` with the
+  identity mapping and comparing section by section after BOM, CRLF, and
+  trailing-newline normalization gives five identical, `notes` and `reports`
+  diverged in the H1 section only, and no missing or author-added section
+  (the plan review).
+- A defect in the spec's rules, measured at the plan review: "a section body
+  ends at the blank line before the next heading" plus "trailing newlines
+  reduce to one" makes deleting a file's last section a divergence in the
+  section before it; four fixtures had been built that way. The corollary:
+  with those rules a `replace` of a file's last section never converges when
+  the template body ends in a blank line — a permanently failing hook on a
+  tree nobody can level. The shipped templates do not trigger it; a template
+  edit could. This is the origin of the plan's trailing-blank-line rule and
+  the reason the spec's byte-equality invariant was relaxed, a spec change
+  the human ruled on at the plan gate.
+- A fixture that installs a private miniature bundle but omits `--templates`
+  silently falls back to the real bundle and fails in a later task than the
+  one that wrote it — the worst place for an SDD run.
+- The byte-equality invariant had a fourth exemption nobody had counted: text
+  before the first heading was compared by nothing (a paragraph above the H1
+  gave `0 items, 0 notes`, exit 0), and the spec enumerated three while
+  ruling the fourth into existence three paragraphs apart. Closed by the fix
+  wave's task 13: the preamble is kept through `apply` and reported as a
+  note.
+- `apply`'s guard spoke a different numbering from the operator's `check`,
+  so the only defense against a moved tree was unreadable in the normal
+  partial-acceptance case. Closed by the fix wave's task 11 (m-2).
+- A whitespace-only fingerprint miss was invisible in its own note; the BOM
+  reasoning generalizes to any zero-width difference. Closed by the fix
+  wave's task 11 (m-4).
+
+### Hypotheses rejected
+
+- That the doc-system templates hard-code literal type names inside
+  `{{docs}}/…` paths — every such path is `{{docs}}/{{<type>}}/…` (the spec
+  review).
+- That `replay` staged the plan file — the script only calls
+  `git rev-parse`, `show`, and `diff`; the index mtime moved because
+  `git status` refreshed its stat cache, and the status line (a space, then
+  `A`, then the plan's path) was Sekkei's own `git add -N` (the plan review).
+- That the byte-exact `replace` assertion of task 2 is unsatisfiable — the
+  fixture edits a body in place, so the trailing blank line survives (the
+  plan review).
+- That markdownlint would rewrap the new `SKILL.md` passages and break
+  `diff` — `MD013: false`, and `docs/superpowers/**` is ignored, so the plan
+  is never linted; lint-before-verify stays the order, and the risk is
+  smaller than it looks (the plan review).
+- That the doc-system templates carry layer-B syntax — none of the seven
+  carries an `OPTIONAL` marker or a `TEMPLATE FILL` block, which is what let
+  the instrument skip that syntax (the spec's own candidates).
+
+### The spec and plan stages, measured
+
+- The spec reviewer (`opus`): 24 findings, 40 tool uses, about 12 minutes;
+  the spec grew 737 → 892 lines from its rulings. The parts the spec had
+  measured itself — nine needle counts, seven old-text quotes, the dogfood
+  expectation — were the parts the review found nothing in.
+- The plan side of the fable-spec / opus-plan split, issue-3c7a's account:
+  readings at handshake `317302 B, 39 records, 2 wake-ups` and at
+  `plan committed:` `2992656 B, 983 records, 18 wake-ups`, about 2.7 MB on
+  `opus` against the spec stage's 1.87 MB on `fable`. No information lost to
+  the split was measured: `dialogue.md` was never opened, and every
+  plan-review finding was against the plan's own construction.
+- The plan drafter (`opus`): about 140k tokens, 16 tool uses, 11.4 minutes,
+  2071 lines, 13 `(chosen here)` choices (12 adopted, 1 overruled, 2 of them
+  spec corrections). The plan reviewer (`opus`): about 214k tokens, 52 tool
+  uses, 14 minutes, 16 findings, two of them measured by implementing the
+  rules — 1.5× the drafter's cost.
+- The plan was edited four times after its commit and before any task (two
+  one-line corrections, the base rule twice), each a commit answering a
+  measurement or the cold read. The Handoff's "answer by editing the plan"
+  trickle was expected; `diff`'s intolerance of it was not, and is closed by
+  the hotfix.
+- The estimate that decided A′ over A (about a third of `passage-check.js`)
+  rested on the templates' having no gating syntax; the plan's Self-Review
+  records the actual size for the next estimate.
+
+### Process observations
+
+- The scope split arrived after the first draft and cost nothing at the spec
+  stage, because Step 3's "What the plan must contain" already makes the
+  spec a cold drafter's handover; the split's cost is measured at the plan
+  stage.
+- The four-section design presentation approved every choice and enumerated
+  no edge case. For a spec that ships a script, the review, not the
+  dialogue, is where edge cases surface, and the "Tests the plan must carry"
+  list turns them into deliverables.
+- The branch moved twice under the plan review (a sentence edited mid-read,
+  the `replay-skip:` workaround dropped after the hotfix). A read-only
+  reviewer on a live branch re-measures every quoted line before writing
+  it, or two of sixteen findings would have been stale.
+- Every decision reached `dialogue.md` before the spec, as issue-5e9c asks;
+  the design was presented in four sections, each approved before the next.
+- The drafter's six tasks all carried lint and commit steps; Sekkei's three
+  hand-written ones carried none (blocker 1). Sekkei had modeled them on a
+  `sed -n` excerpt of a tanto-sweep task cut before its lint and commit
+  steps — a model read partially is reproduced partially. The rule, if
+  wanted for `roles/sekkei.md`: read a model task to its Done when.
+- Two limits struck the day. First, five `sonnet` wayaku subagents Sekkei
+  dispatched in parallel all died on HTTP 429 "weekly limit, resets Sep 13
+  10am Asia/Tokyo" — a weekly quota on the weak family, exhausted by
+  fan-out, not issue-9a68's per-minute limit — and the plan gate was
+  answered from the brief alone, the second time a gate has been answered
+  that way. Then the `opus` weekly limit struck another session mid-wave,
+  and the human raised it. Both times the answer was the same dispatch on
+  the same model, not a model change. A passage plan's translatable prose is
+  a fraction of its lines, so section-wise chunking is the right shape for
+  the fan-out.
+- `replay` verified one `grep` on this plan — 51 of 52 commands skipped, all
+  six skip classes firing. `replay`'s yield scales inversely with how much
+  of a plan's verification runs through the toolchain, and Sekkei has no
+  signal about that before the boundary.
+- The R-20 shape: a `node:test` suite's temp directories reaped by a
+  `process.on("exit")` handler in the per-file child process, the pattern
+  `passage-check.test.js` uses with `after()`. This repository has no
+  test-conventions document, and `CONTRIBUTING.md` is repo-root Markdown, so
+  the shape is recorded here.
+
+### Jisso's readings and the batches' shape
+
+| Batch | Bytes | Records | Wake-ups | Compactions | Fix rounds |
+| --- | --- | --- | --- | --- | --- |
+| A | 1533992 | 306 | 7 | 0 | 2 |
+| B | 2103596 | 440 | 9 | 0 | 0 |
+| C | 2735583 | 619 | 12 | 0 | 2 |
+| final (the fix wave) | 3451825 | 870 | 21 | 0 | 1 |
+
+One mid-batch block (R-40, in the wave). Implementers ran on `sonnet`, every
+review on `opus`. No 429 in Jisso's session; the `opus` weekly limit struck
+another session mid-wave and was raised.
+
+The roster's Residency table at this T2, the record of every session of this
+run (issue-40ed's data):
+
+| Role | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans | Noticed |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| kanri | dotskills-28 [152b9d] (born dotskills-ad [34df4d]) | 2026-09-11 | final batch accepted | 5455255 | 2209 | 56 | 0 | 4 | 0 | 0 |
+| kanri | dotskills-c5 [fe6b7a] | 2026-09-10 | handover written (tanto-sweep close); replaced 2026-09-11 | 4249771 | 1457 | 54 | 0 | 5 | 1 | 0 |
+| sekkei | dotskills-2c [bda97a] | 2026-09-11 | spec done (the tanto-workspace fable Sekkei; holding for `main is free`) | 2120044 | 553 | 21 | 0 | — | — | — |
+| jisso | dotskills-0e [a4fe16] | 2026-09-11 | final batch report | 3451825 | 870 | 21 | 0 | — | — | — |
+| sekkei | dotskills-c4 [10e8ed] (born dotskills-0b [d38f29]) | 2026-09-11 | exit write-out committed (the opus plan Sekkei); dead 2026-09-11 | 3320149 | 1156 | 23 | 0 | — | — | — |
+| sekkei | dotskills-8a [3b8143] | 2026-09-11 | exit write-out committed (the fable spec Sekkei); dead 2026-09-11 | 1870290 | 658 | 28 | 0 | — | — | — |
+
+### The wave's boundary
+
+- `diff --plan <wave> --base <pre-wave>` was clean with nothing unaccounted;
+  the `kisou-doc-system-check` hook fired on the instrument's own path; and
+  the seven docs templates linted in place with 0 errors.

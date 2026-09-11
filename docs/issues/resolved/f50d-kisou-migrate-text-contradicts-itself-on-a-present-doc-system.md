@@ -4,8 +4,8 @@ title: kisou's migrate text contradicts itself on a present doc-system, refresh 
 severity: medium
 depends_on: []
 blocks: []
-claimed_by: tanto kisou-refresh (Kanri dotskills-28)
-claimed_at: 2026-09-11T00:43:15Z
+claimed_by: null
+claimed_at: null
 created: 2026-09-09
 updated: 2026-09-11
 ---
@@ -36,3 +36,13 @@ added, diverged fixed-text sections offered for replacement — and the
 per-artifact bullet should say so instead of "add only around it".
 
 Related: req-1a2b, design-c1d2, decision-281f, issue-ad1a, issue-e19f.
+
+Resolved by the kisou refresh design spec of 2026-09-11, fixed input 5: the
+`none` / `partial` / `full` class says what is absent and sets no scope; the
+scope is the user's pick, and a doc-system inside the scope gets the
+instrument's proposals whatever its class. Measured on 2026-09-11: the class
+was `full`, stated before scope was asked; the run did not narrow the scope
+on its own; and the two `replace` items were proposed in the docs-only scope
+the user picked — `docs/reports/2026-09-11-kisou-refresh-dogfood.md`. The fix
+wave's P10.1–P10.4 removed the last sentences in `skills/kisou/SKILL.md`
+that prescribed a scope from the class.

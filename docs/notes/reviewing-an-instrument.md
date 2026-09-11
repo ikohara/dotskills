@@ -5,8 +5,9 @@ suite, its `verify` command — is itself unreviewed code the first time a
 plan relies on it, and it earns the same scrutiny as the work it checks.
 This note collects methods for reviewing that apparatus: what mutation
 testing finds that reading does not, when reconstruction is the only
-complete check, what an unpinned check looks like, and how a script's own
-leaks get caught. Lessons about writing a plan's verification content —
+complete check, what an unpinned check looks like, how a script's own
+leaks get caught, and what narrowing a catch costs. Lessons about writing a
+plan's verification content —
 needles, counts, expectations — are in
 `docs/notes/authoring-a-passage-plan.md`; the mechanical checks a `tanto`
 plan runs against the skill itself are in
@@ -91,3 +92,14 @@ plan runs against the skill itself are in
   another: two exit codes (2 versus 1) moved in opposite directions from the
   same change. Probe each exit path of a cleanup routine separately; do not
   infer one from the other.
+
+## Narrowing a catch
+
+- Narrowing a `catch` to domain error classes requires every raw I/O call on
+  the guarded path to be wrapped into a domain error first. The kisou-refresh
+  fix wave's m-1 narrowed `runApply`'s catch and regressed "a write failure
+  is exit 2" into exit 1 with a stack trace, until `writeItem`'s fs calls
+  were wrapped to raise `ApplyError` (`cannot write <path>: <message>`); one
+  stubbed-EPERM test now pins exit 2 and a one-line stderr. The reviewer's
+  check for such a narrowing is "what does a raw fs error do now?" — walk
+  each raw call under the narrowed catch and name the exit path it takes.

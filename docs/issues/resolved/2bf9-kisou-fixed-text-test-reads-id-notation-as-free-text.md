@@ -4,8 +4,8 @@ title: kisou's fixed-text test reads the docs rules' `<id>` notation as free-tex
 severity: medium
 depends_on: []
 blocks: []
-claimed_by: tanto kisou-refresh (Kanri dotskills-28)
-claimed_at: 2026-09-11T00:43:15Z
+claimed_by: null
+claimed_at: null
 created: 2026-09-09
 updated: 2026-09-11
 ---
@@ -52,3 +52,13 @@ not disproved**.
 Related: req-1a2b, design-c1d2, decision-281f, issue-ad1a (the plan whose
 refresh run exercises this), issue-e19f (the per-type fingerprint), and
 issue-f623 (the insertion position of an added section).
+
+Resolved by the kisou refresh design spec of 2026-09-11, fixed input 4, now
+in `skills/kisou/SKILL.md`: a `<...>` is free text only where a
+`TEMPLATE FILL` block says so, and the doc-system templates carry none, so
+every doc-system section is fixed-text and the `<id>` / `<slug>` / `<status>`
+notation is compared like any other byte. The instrument does the comparing:
+on 2026-09-11 the sections carrying `<id>` in the notes and reports copies
+compared level once the rewrap was closed, and no section was skipped as
+free text — the report's "The six measurements" table, in
+`docs/reports/2026-09-11-kisou-refresh-dogfood.md`.

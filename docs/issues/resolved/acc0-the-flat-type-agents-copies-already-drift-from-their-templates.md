@@ -4,8 +4,8 @@ title: the notes and reports AGENTS.md copies already drift from their templates
 severity: low
 depends_on: []
 blocks: []
-claimed_by: tanto kisou-refresh (Kanri dotskills-28)
-claimed_at: 2026-09-11T00:43:15Z
+claimed_by: null
+claimed_at: null
 created: 2026-09-09
 updated: 2026-09-11
 ---
@@ -55,3 +55,16 @@ the pre-commit hook that plan adds.
 
 Related: req-1a2b, design-c1d2, decision-281f, issue-e19f, issue-da04
 (resolved — the earlier instance of copies drifting from the template).
+
+Resolved by the kisou refresh design spec of 2026-09-11 on all three counts.
+The one-off fix: the dogfood of 2026-09-11 brought the two copies level
+through the instrument's `apply` — both items rewraps of the H1 section's
+paragraph, 6 and 4 lines, content identical
+(`docs/reports/2026-09-11-kisou-refresh-dogfood.md`). The check something
+runs: the `kisou-doc-system-check` pre-commit hook, whose `check` exits 0 on
+a level tree and 1 otherwise, firing on the fourteen guarded paths and on
+the instrument itself. The standing generator: the fix wave's P13.8 narrowed
+the markdownlint ignore so the seven docs templates are linted where they
+live, closing the asymmetry the addendum above recorded. The direction
+question is answered by the spec's fixed input 7 — the template is the
+authority, and a copy is brought toward it.
