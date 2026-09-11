@@ -14,9 +14,9 @@ measurements the kisou refresh design spec of 2026-09-11 set out to resolve.
 
 The trigger was typed as a user would: `起草して migrate` — invoked as the
 `kisou` skill with the argument `migrate`. The skill loaded through
-`$CLAUDE_CONFIG_DIR/skills/kisou`, which resolves to
-`/c/Users/0000105523/devel/dotskills/skills/kisou` (a link into this working
-tree; `SKILL.md` identical in size, 16159 bytes, on both paths) — confirmed by
+`$CLAUDE_CONFIG_DIR/skills/kisou`, which resolves to `skills/kisou` in this
+working tree (a link; `SKILL.md` identical in size, 16159 bytes, on both
+paths) — confirmed by
 `grep -c 'doc-system-check' skills/kisou/SKILL.md` → `4` (floor 2), so the
 branch's own refreshed skill is the one that loaded.
 
@@ -32,15 +32,16 @@ present), a **`full`** doc-system (`docs/AGENTS.md` plus
 non-standard subdir `docs/superpowers/` kept by default, exempt from the
 `<id>-<slug>` naming rules), and `docs/` as the docs root. The run was
 recorded in Jisso's own session, `dotskills-0e [a4fe16]`, HEAD before the run
-`06d3d9e`.
+the commit "docs(issues): tanto says nothing about a rate limit met mid-run,
+and a limit is a pause, never a model change".
 
 ## The proposal, verbatim
 
 Docs-only scope drew no layer-B item, so the instrument's numbers are the
-proposal's, offset 0. Command, with `$KISOU` set in the same call:
-`KISOU="C:/Users/0000105523/.claude-priv/skills/kisou" && node
-"$KISOU/scripts/doc-system-check.js" check --docs docs --case snake_case` →
-exit 1. The proposal, verbatim:
+proposal's, offset 0. Command, with `$KISOU` the loaded skill's directory
+(`$CLAUDE_CONFIG_DIR/skills/kisou`, named above):
+`node "$KISOU/scripts/doc-system-check.js" check --docs docs --case
+snake_case` → exit 1. The proposal, verbatim:
 
 ```text
 1. replace: docs/notes/AGENTS.md — # notes/ — AGENTS
@@ -132,7 +133,7 @@ accept both. Applying them
 | --- | --- | --- | --- |
 | issue-e19f | Are the four per-type copies and the two flat copies classified kisou-managed? | Yes, all six, by the H1 rule | Yes. All seven doc-system copies (the six named plus `docs/AGENTS.md` itself) passed the H1 fingerprint; none was reported as not kisou-managed; no note was printed. |
 | issue-2bf9 | Are the sections that carry `<id>` notation treated as fixed-text? | Yes — the two replacements are in such files, and no section was skipped as free text | Yes. No `<id>`/`<slug>` in a fixed section was read as free text: the two `replace` items above were the only proposals, and the sections carrying `<id>` in the notes and reports copies compared level once the rewrap was closed. |
-| issue-f623 | Where does an added section land? | The run's own evidence | **The run produced no `add` item** — nothing was missing from any of the seven copies, so this question has no answer from the run itself. The evidence is test case 5, quoted below, not the run. |
+| issue-f623 | Where does an added section land? | No `add` item on this tree; the evidence is test case 5, quoted below, not the run | **The run produced no `add` item** — nothing was missing from any of the seven copies, so this question has no answer from the run itself. The evidence is test case 5, quoted below, not the run. |
 | issue-afed | Is `tidy` offered on this repository? | No | No. The scripts prompt (Prompt 2, above) offered `setup`, `run`, `build`, `test` and did not offer `tidy`, on the detectable condition the batch text states: no `CMakeLists.txt` at the repository root (measured directly: `ls CMakeLists.txt` → none). |
 | issue-f50d | Does a `full` doc-system in docs-only scope draw refresh proposals? | Yes, the two above | Yes, the two `replace` items above. The classification was stated as `full` in Prompt 1 before scope was asked at all; the class did not narrow the scope on its own, and the scope (docs-only) was the answer to the separate Prompt 3, asked after the class was already stated. |
 | issue-acc0 | Do the two copies come level, and does the hook's command fail before and pass after? | Yes; the "before" was measured by running the command once before accepting | Yes. Before: `node skills/kisou/scripts/doc-system-check.js check --docs docs --case snake_case` exited **1**, printing the same two-item, 41-line proposal quoted above (`cmp`-identical to the batch's separate sweep-and-check capture). After `apply`, the same command printed `0 items, 0 notes` and exited **0**. `git status --porcelain` showed exactly the two lines quoted below (each a space, then `M`, then the path); `git diff --stat` measured the drift itself: 6 lines (3+/3−) on notes, 4 lines (2+/2−) on reports — wrapped paragraphs only, not a content change. |
