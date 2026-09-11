@@ -758,7 +758,10 @@ things go wrong, both measured at this plan's review:
 template *only* in the number of blank lines between two sections is not
 reported, and byte equality — the invariant of the spec's fixed input 7 — is
 therefore enforced up to line endings, a byte-order mark, **and** inter-section
-blank-line count. The first two exemptions are the spec's; this third one is
+blank-line count, and — counted by the whole-branch review on 2026-09-11 and
+closed by the fix wave — the text before a target's first heading, which the
+section split leaves to a note. The first two exemptions are the spec's, and
+the fourth is the review's; this third one is
 this plan's, and it is the price of convergence. It is not reachable by the
 drift the tool exists to catch: a rewrap changes the words on a line, never the
 count of blank lines between two headings. A section written by `apply` always

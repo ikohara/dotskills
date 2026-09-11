@@ -36,7 +36,10 @@ Beside the bundle, the skill ships **one executable**,
 `scripts/doc-system-check.js` — Node 22 or later, standard library only, no
 dependencies. It decides the doc-system half of a migrate: which
 `{docs,Documents}/**/AGENTS.md` files are kisou-managed (by an H1 fingerprint),
-which fixed sections are missing or diverged, and where an added section lands.
+which fixed sections are missing or diverged, and where an added section lands;
+byte equality with the expanded template is its invariant, up to four
+exemptions — line endings, a byte-order mark, inter-section blank-line count,
+and text before the first heading, the last reported as a note (decision-19ea).
 Its numbered report **is** the proposal — not a reading of the files by an
 agent — and `apply --items` writes the items the user accepted.
 

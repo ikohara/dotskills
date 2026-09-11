@@ -202,7 +202,10 @@ side. A heading inside a fence — the `# POSIX` and `# PowerShell` comments in
 template's body sketch — is body text. A section is its heading line and
 every line up to the next heading, flat, with no nesting: a `###` under a
 `##` is its own section. Lines before the first heading are the preamble:
-neither a fixed nor an author section, left as they are, not reported.
+neither a fixed nor an author section, left as they are, never written, and
+reported as a note when a kisou-managed target has one — the fourth
+exemption below, added by the fix wave of 2026-09-11 after the whole-branch
+review measured that a paragraph above the H1 passed unreported.
 
 The section's identity is the heading line's text, exactly; its body is
 compared exactly after the normalization below, **except for its trailing
@@ -214,8 +217,10 @@ normalization reduces trailing newlines to one, so comparing them makes a
 `check`, and so a permanently failing hook, on a tree nobody can level. It
 also makes deleting a section a divergence in the section before it. The cost
 is that a copy differing from its expanded template only in the count of blank
-lines between two sections is not reported: byte equality is enforced up to
-line endings, a byte-order mark, and inter-section blank-line count. A rewrap
+lines between two sections, or only in text before its first heading, is not
+proposed for replacement: byte equality is enforced up to line endings, a
+byte-order mark, inter-section blank-line count, and the preamble — four
+exemptions, the fourth reported as a note (fix wave, 2026-09-11). A rewrap
 — the drift issue-acc0 measured — changes none of those. The template's headings are
 the **fixed sections**. A heading in the target that the template does not
 have is an **author-added section**, reported and never written. When a
@@ -249,7 +254,9 @@ After the numbered items, notices that are not items and cannot be applied:
 - `note: <path> — author section kept: <heading>` for each author-added
   section;
 - `note: <path> — not kisou-managed: first heading is <text>, expected
-  <text>` for a target that failed the fingerprint.
+  <text>` for a target that failed the fingerprint;
+- `note: <path> — text before the first heading kept: <n> line(s)` for a
+  kisou-managed target with a preamble (fix wave, 2026-09-11).
 
 `check` ends with one summary line, `<n> items, <m> notes`. An item's number
 is the handle `apply` takes, and a `check` on an unchanged tree prints the

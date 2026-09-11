@@ -39,8 +39,12 @@ The template is the source of an installed doc-system copy.
   wanted change goes into the template first and reaches the copy through
   refresh.
 - The invariant is **byte equality** between the copy and the expanded
-  template, enforced up to line endings, a byte-order mark, and the count of
-  blank lines between two sections. The first two exemptions are the spec's;
+  template, enforced up to line endings, a byte-order mark, the count of
+  blank lines between two sections, and the text before a target's first
+  heading — the preamble, which the check reports as a note and never
+  writes; counted by the whole-branch review on 2026-09-11 and corrected
+  here the same day, before this ADR left its branch. The first two
+  exemptions are the spec's, the fourth the review's;
   the third was added at the plan stage on 2026-09-11 and approved by the human
   at the plan's review gate, because comparing trailing blank lines makes a
   `replace` on a file's last section never converge — the trailing-newline
