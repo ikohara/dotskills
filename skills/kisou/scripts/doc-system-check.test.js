@@ -17,6 +17,7 @@ const {
   firstHeading,
   classify,
   compareSections,
+  main,
 } = require("./doc-system-check.js");
 
 const SCRIPT = path.join(__dirname, "doc-system-check.js");
@@ -50,6 +51,33 @@ function run(args) {
     return { code: 0, out };
   } catch (err) {
     return { code: err.status, out: `${err.stdout || ""}${err.stderr || ""}` };
+  }
+}
+
+/**
+ * `main(args)`, in-process, with stdout/stderr captured instead of printed.
+ * For tests that need to monkeypatch a shared module (fs, path) around the
+ * call, since `run()`'s child process cannot see a patch made in this one.
+ */
+function callMain(args) {
+  const origOut = process.stdout.write;
+  const origErr = process.stderr.write;
+  let out = "";
+  let err = "";
+  process.stdout.write = (chunk) => {
+    out += chunk;
+    return true;
+  };
+  process.stderr.write = (chunk) => {
+    err += chunk;
+    return true;
+  };
+  try {
+    const code = main(args);
+    return { code, out, err };
+  } finally {
+    process.stdout.write = origOut;
+    process.stderr.write = origErr;
   }
 }
 
@@ -185,7 +213,7 @@ test("a type copy with a foreign H1 is a note, not an item", () => {
   assert.strictEqual(result.code, 0);
   assert.ok(
     result.out.includes(
-      `note: ${posix(docs)}/requirements/AGENTS.md — not kisou-managed: first heading is # Requirements, expected # requirements/ — AGENTS`,
+      `note: ${posix(docs)}/requirements/AGENTS.md — not kisou-managed: first heading is "# Requirements", expected "# requirements/ — AGENTS"`,
     ),
   );
   assert.match(result.out, /^0 items, 1 note$/m);
@@ -706,4 +734,102 @@ test("a section deleted from the real requirements copy is re-inserted in place"
   const after = run(["check", "--docs", docs, "--case", "snake_case"]);
   assert.strictEqual(after.code, 0);
   assert.match(after.out, /^0 items, 0 notes$/m);
+});
+
+// --- fix wave (m-1, m-2, m-3, m-4, n-1): whole-branch review resolutions ----
+
+test("an internal error in check exits 2, never 1, so the hook does not read it as items existing", () => {
+  const { templates, docs } = fakeInstall();
+  const originalJoin = path.join;
+  path.join = () => {
+    throw new TypeError("boom: simulated internal bug, not a domain error");
+  };
+  let result;
+  try {
+    result = callMain(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  } finally {
+    path.join = originalJoin;
+  }
+  assert.strictEqual(result.code, 2);
+  assert.strictEqual(result.out, "");
+  assert.match(result.err, /^error: /);
+});
+
+test("apply prints the check-list number of each applied item, not a fresh index", () => {
+  const { templates, docs } = fakeInstall();
+  for (const type of ["design", "reports", "notes"]) {
+    write(
+      path.join(docs, type, "AGENTS.md"),
+      read(path.join(docs, type, "AGENTS.md")).replace("File body.", "Changed."),
+    );
+  }
+  const listed = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.match(listed.out, /^3 items, 0 notes$/m);
+  const applied = run(["apply", "--items", "2", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(applied.code, 0);
+  assert.match(applied.out, /^2\. replace: .*notes\/AGENTS\.md — ## File$/m);
+  assert.match(applied.out, /^1 item applied$/m);
+});
+
+test("a mid-run apply failure prints what was already written, and names the vanished item's heading", () => {
+  const { templates, docs } = fakeInstall();
+  const targetA = path.join(docs, "design", "AGENTS.md");
+  const targetB = path.join(docs, "notes", "AGENTS.md");
+  write(targetA, read(targetA).replace("File body.", "Changed A."));
+  write(targetB, read(targetB).replace("File body.", "Changed B."));
+  const listed = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.match(listed.out, /^2 items, 0 notes$/m);
+
+  // Deletes item 2's target right after item 1 is written, so the recomputed
+  // list no longer contains item 2's identity -- a vanished-identity failure
+  // without needing to fabricate a race.
+  const originalWrite = fs.writeFileSync;
+  let calls = 0;
+  fs.writeFileSync = (...args) => {
+    calls++;
+    const result = originalWrite(...args);
+    if (calls === 1) {
+      fs.rmSync(targetB, { force: true });
+    }
+    return result;
+  };
+  let result;
+  try {
+    result = callMain(["apply", "--items", "1,2", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  } finally {
+    fs.writeFileSync = originalWrite;
+  }
+  assert.strictEqual(result.code, 2);
+  assert.match(result.out, /^1\. replace: .*design\/AGENTS\.md — ## File$/m);
+  assert.match(result.err, /^error: item 2 \(replace: .*notes\/AGENTS\.md — ## File\) is no longer available$/m);
+  assert.ok(read(targetA).includes("File body."));
+});
+
+test("a trailing space on the H1 yields a note whose two quoted texts differ visibly", () => {
+  const { templates, docs } = fakeInstall();
+  write(path.join(docs, "requirements", "AGENTS.md"), "# requirements/ — AGENTS \n\nOurs.\n");
+  const result = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(result.code, 0);
+  assert.ok(
+    result.out.includes(
+      `note: ${posix(docs)}/requirements/AGENTS.md — not kisou-managed: first heading is "# requirements/ — AGENTS ", expected "# requirements/ — AGENTS"`,
+    ),
+  );
+});
+
+test("an add and a replace in the same file converge to identity in either order", () => {
+  for (const order of ["1,2", "2,1"]) {
+    const { templates, docs } = fakeInstall();
+    const target = path.join(docs, "reports", "AGENTS.md");
+    const level = read(target);
+    write(target, level.replace("## File\n\nFile body.\n\n", "").replace("Growth body.", "Growth changed."));
+    const listed = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+    assert.match(listed.out, /^2 items, 0 notes$/m);
+    const applied = run(["apply", "--items", order, "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+    assert.strictEqual(applied.code, 0, `order ${order}: ${applied.out}`);
+    assert.strictEqual(read(target), level, `order ${order} did not converge to identity`);
+    const after = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+    assert.strictEqual(after.code, 0);
+    assert.match(after.out, /^0 items, 0 notes$/m);
+  }
 });

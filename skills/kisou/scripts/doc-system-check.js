@@ -177,7 +177,6 @@ function bodiesEqual(a, b) {
 
 /** { missing, diverged, authorAdded } — heading lines. */
 function compareSections(templateSections, targetSections) {
-  const templateHeadingSet = new Set(templateSections.map((s) => s.heading));
   const templateBodyByHeading = new Map();
   for (const s of templateSections) {
     if (!templateBodyByHeading.has(s.heading)) {
@@ -191,7 +190,7 @@ function compareSections(templateSections, targetSections) {
   const authorAdded = [];
 
   for (const s of targetSections) {
-    if (templateHeadingSet.has(s.heading) && !seen.has(s.heading)) {
+    if (templateBodyByHeading.has(s.heading) && !seen.has(s.heading)) {
       seen.add(s.heading);
       matched.add(s.heading);
       if (!bodiesEqual(templateBodyByHeading.get(s.heading), s.body)) {
@@ -354,9 +353,9 @@ function collect({ templatesDir, docsDir, kase }) {
           `note: ${printedPath} — kisou-managed by H1, but the "## Document management" heading is missing; restore it by hand`,
         );
       } else {
-        const foundText = result.found === null ? "(none)" : result.found;
+        const foundText = result.found === null ? "(none)" : `"${result.found}"`;
         notes.push(
-          `note: ${printedPath} — not kisou-managed: first heading is ${foundText}, expected ${result.expected}`,
+          `note: ${printedPath} — not kisou-managed: first heading is ${foundText}, expected "${result.expected}"`,
         );
       }
       continue;
@@ -415,12 +414,17 @@ function collect({ templatesDir, docsDir, kase }) {
   return { items, notes };
 }
 
+/** `<kind>: <path>[ — <heading>]`, the label an item line and a vanished-identity error share. */
+function itemLabel(item) {
+  if (item.kind === "create") {
+    return `create: ${item.path}`;
+  }
+  return `${item.kind}: ${item.path} — ${item.heading}`;
+}
+
 /** One item's numbered line, with no diff blocks: `<n>. <kind>: <path>[ — <heading>]`. */
 function itemLine(index, item) {
-  if (item.kind === "create") {
-    return `${index}. create: ${item.path}`;
-  }
-  return `${index}. ${item.kind}: ${item.path} — ${item.heading}`;
+  return `${index}. ${itemLabel(item)}`;
 }
 
 /** One item's report line(s): the item line, and a `replace`'s diff blocks. */
@@ -452,16 +456,20 @@ function formatReport({ items, notes }) {
   return `${lines.join("\n")}\n`;
 }
 
-/** Run `check`: collect the report and print it. Returns the exit code. */
+/**
+ * Run `check`: collect the report and print it. Returns the exit code.
+ *
+ * Every throw from `collect` — a domain error or an internal bug alike —
+ * becomes `error: ...` on stderr and exit 2: `check`'s exit code is the
+ * pre-commit hook's signal for "items exist" (1), so an internal bug must
+ * never surface as that code.
+ */
 function runCheck({ templatesDir, docsDir, kase }) {
   let result;
   try {
     result = collect({ templatesDir, docsDir, kase });
   } catch (err) {
-    if (err instanceof TemplateError || err instanceof ReadError) {
-      return fail(err.message);
-    }
-    throw err;
+    return fail(err.message);
   }
   process.stdout.write(formatReport(result));
   return result.items.length > 0 ? 1 : 0;
@@ -592,7 +600,9 @@ function writeItem(item) {
  * Validates every number against the initial list before writing anything.
  * Writes in list order, recomputing the list from the tree after every write
  * so the next accepted item is found by identity, not by its old number.
- * `onApply(item)`, if given, is called with each item as it is written.
+ * `onApply({ number, item })`, if given, is called with each item as it is
+ * written, alongside the check-list number the operator gave it — that
+ * number, not a fresh 1-based index, is what a printout owes the operator.
  */
 function applyItems({ templatesDir, docsDir, kase, numbers, onApply }) {
   let state = collect({ templatesDir, docsDir, kase });
@@ -602,7 +612,7 @@ function applyItems({ templatesDir, docsDir, kase, numbers, onApply }) {
     if (!item) {
       throw new ApplyError(`item ${n} does not exist`);
     }
-    return { path: item.path, kind: item.kind, heading: item.heading };
+    return { number: n, path: item.path, kind: item.kind, heading: item.heading };
   });
 
   let count = 0;
@@ -612,12 +622,12 @@ function applyItems({ templatesDir, docsDir, kase, numbers, onApply }) {
       (it) => it.path === identity.path && it.kind === identity.kind && it.heading === identity.heading,
     );
     if (!item) {
-      throw new ApplyError(`item ${identity.kind}: ${identity.path} is no longer available`);
+      throw new ApplyError(`item ${identity.number} (${itemLabel(identity)}) is no longer available`);
     }
     writeItem(item);
     count++;
     if (onApply) {
-      onApply(item);
+      onApply({ number: identity.number, item });
     }
     if (i < identities.length - 1) {
       state = collect({ templatesDir, docsDir, kase });
@@ -627,7 +637,15 @@ function applyItems({ templatesDir, docsDir, kase, numbers, onApply }) {
   return count;
 }
 
-/** Run `apply`: write the accepted items and print what was written. */
+/**
+ * Run `apply`: write the accepted items and print what was written.
+ *
+ * The catch narrows to the three domain error classes: a bad `--items`
+ * number, an unreadable template, or a target that cannot be read all become
+ * `error: ...` and exit 2. Anything else is an internal bug in the writing
+ * path itself and rethrows with its stack, rather than being hidden behind
+ * an `error: ...` line the way a domain error is.
+ */
 function runApply({ templatesDir, docsDir, kase, numbers }) {
   const applied = [];
   let count;
@@ -637,13 +655,19 @@ function runApply({ templatesDir, docsDir, kase, numbers }) {
       docsDir,
       kase,
       numbers,
-      onApply: (item) => applied.push(item),
+      onApply: (entry) => applied.push(entry),
     });
   } catch (err) {
-    return fail(err.message);
+    if (applied.length > 0) {
+      process.stdout.write(`${applied.map(({ number, item }) => itemLine(number, item)).join("\n")}\n`);
+    }
+    if (err instanceof ApplyError || err instanceof TemplateError || err instanceof ReadError) {
+      return fail(err.message);
+    }
+    throw err;
   }
 
-  const lines = applied.map((item, i) => itemLine(i + 1, item));
+  const lines = applied.map(({ number, item }) => itemLine(number, item));
   const word = count === 1 ? "item" : "items";
   lines.push(`${count} ${word} applied`);
   process.stdout.write(`${lines.join("\n")}\n`);
