@@ -281,6 +281,9 @@ function detectLineEnding(raw) {
 class TemplateError extends Error {}
 class ReadError extends Error {}
 
+/** A bad `--items` argument, a number past the list, or a vanished identity. */
+class ApplyError extends Error {}
+
 /** Print `message` to stderr, prefixed `error: `, and return exit code 2. */
 function fail(message) {
   process.stderr.write(`error: ${message}\n`);
@@ -390,6 +393,7 @@ function collect({ templatesDir, docsDir, kase }) {
           text: null,
           lineEnding,
           bom,
+          templateSections,
         });
       } else if (divergedSet.has(s.heading)) {
         items.push({
@@ -402,6 +406,7 @@ function collect({ templatesDir, docsDir, kase }) {
           text: null,
           lineEnding,
           bom,
+          templateSections,
         });
       }
     }
@@ -410,14 +415,17 @@ function collect({ templatesDir, docsDir, kase }) {
   return { items, notes };
 }
 
+/** One item's numbered line, with no diff blocks: `<n>. <kind>: <path>[ — <heading>]`. */
+function itemLine(index, item) {
+  if (item.kind === "create") {
+    return `${index}. create: ${item.path}`;
+  }
+  return `${index}. ${item.kind}: ${item.path} — ${item.heading}`;
+}
+
 /** One item's report line(s): the item line, and a `replace`'s diff blocks. */
 function formatItem(index, item) {
-  const lines = [];
-  if (item.kind === "create") {
-    lines.push(`${index}. create: ${item.path}`);
-  } else {
-    lines.push(`${index}. ${item.kind}: ${item.path} — ${item.heading}`);
-  }
+  const lines = [itemLine(index, item)];
   if (item.kind === "replace") {
     for (const line of item.oldBody) {
       lines.push(line === "" ? "-" : `- ${line}`);
@@ -457,6 +465,189 @@ function runCheck({ templatesDir, docsDir, kase }) {
   }
   process.stdout.write(formatReport(result));
   return result.items.length > 0 ? 1 : 0;
+}
+
+/** "1,2,5" -> [1, 2, 5]. Throws on a field that is not a positive integer. */
+function parseItems(raw) {
+  const numbers = new Set();
+  for (const field of raw.split(",").map((f) => f.trim())) {
+    if (!/^[1-9][0-9]*$/.test(field)) {
+      throw new ApplyError(`--items field ${JSON.stringify(field)} is not a positive integer`);
+    }
+    numbers.add(Number(field));
+  }
+  return [...numbers].sort((a, b) => a - b);
+}
+
+/** `sections`, with the section at `index` replaced by `heading`/`body`, written out. */
+function writeSections(frontmatter, preamble, sections, index, heading, body) {
+  const lines = [...frontmatter, ...preamble];
+  sections.forEach((s, i) => {
+    if (i === index) {
+      lines.push(heading, ...body);
+    } else {
+      lines.push(s.heading, ...s.body);
+    }
+  });
+  return `${lines.join("\n")}\n`;
+}
+
+/** Replace one fixed section's body in `targetText`, by the writing rule. */
+function replaceSectionBody(targetText, heading, newBody) {
+  const { frontmatter, preamble, sections } = splitSections(targetText);
+  const index = sections.findIndex((s) => s.heading === heading);
+  const hasNext = index < sections.length - 1;
+  const trimmed = trimTrailingBlanks(newBody);
+  const body = hasNext ? [...trimmed, ""] : trimmed;
+  return writeSections(frontmatter, preamble, sections, index, heading, body);
+}
+
+/** Insert one template section into a target's lines at the template's place. */
+function insertSection(targetText, templateSections, heading) {
+  const { frontmatter, preamble, sections } = splitSections(targetText);
+  const ti = templateSections.findIndex((s) => s.heading === heading);
+  const templateBody = templateSections[ti].body;
+
+  const presentIndex = (templateHeading) => sections.findIndex((s) => s.heading === templateHeading);
+
+  let insertIndex = sections.length;
+  let anchored = false;
+  for (let i = ti - 1; i >= 0 && !anchored; i--) {
+    const idx = presentIndex(templateSections[i].heading);
+    if (idx !== -1) {
+      insertIndex = idx + 1;
+      anchored = true;
+    }
+  }
+  if (!anchored) {
+    for (let i = ti + 1; i < templateSections.length && !anchored; i++) {
+      const idx = presentIndex(templateSections[i].heading);
+      if (idx !== -1) {
+        insertIndex = idx;
+        anchored = true;
+      }
+    }
+  }
+
+  const hasNext = insertIndex < sections.length;
+  const trimmed = trimTrailingBlanks(templateBody);
+  const body = hasNext ? [...trimmed, ""] : trimmed;
+
+  // The preceding section's raw body is left untouched; when it has no
+  // trailing blank line of its own (the end-of-file case after
+  // normalization), a separating blank line is added before our heading.
+  let leadingBlank = false;
+  if (insertIndex > 0) {
+    const prevBody = sections[insertIndex - 1].body;
+    leadingBlank = prevBody.length === 0 || prevBody[prevBody.length - 1] !== "";
+  }
+
+  const lines = [...frontmatter, ...preamble];
+  sections.forEach((s, i) => {
+    if (i === insertIndex) {
+      if (leadingBlank) {
+        lines.push("");
+      }
+      lines.push(heading, ...body);
+    }
+    lines.push(s.heading, ...s.body);
+  });
+  if (insertIndex === sections.length) {
+    if (leadingBlank) {
+      lines.push("");
+    }
+    lines.push(heading, ...body);
+  }
+
+  return `${lines.join("\n")}\n`;
+}
+
+/** Write one accepted item to disk, keeping the target's line ending and BOM. */
+function writeItem(item) {
+  if (item.kind === "create") {
+    fs.mkdirSync(path.dirname(item.absPath), { recursive: true });
+    fs.writeFileSync(item.absPath, item.text, "utf8");
+    return;
+  }
+
+  const targetText = normalize(fs.readFileSync(item.absPath, "utf8"));
+  const newText =
+    item.kind === "add"
+      ? insertSection(targetText, item.templateSections, item.heading)
+      : replaceSectionBody(targetText, item.heading, item.newBody);
+
+  let out = newText;
+  if (item.lineEnding === "\r\n") {
+    out = out.replace(/\n/g, "\r\n");
+  }
+  if (item.bom) {
+    out = `﻿${out}`;
+  }
+  fs.writeFileSync(item.absPath, out, "utf8");
+}
+
+/**
+ * Write the accepted items. Returns how many were written.
+ *
+ * Validates every number against the initial list before writing anything.
+ * Writes in list order, recomputing the list from the tree after every write
+ * so the next accepted item is found by identity, not by its old number.
+ * `onApply(item)`, if given, is called with each item as it is written.
+ */
+function applyItems({ templatesDir, docsDir, kase, numbers, onApply }) {
+  let state = collect({ templatesDir, docsDir, kase });
+
+  const identities = numbers.map((n) => {
+    const item = state.items[n - 1];
+    if (!item) {
+      throw new ApplyError(`item ${n} does not exist`);
+    }
+    return { path: item.path, kind: item.kind, heading: item.heading };
+  });
+
+  let count = 0;
+  for (let i = 0; i < identities.length; i++) {
+    const identity = identities[i];
+    const item = state.items.find(
+      (it) => it.path === identity.path && it.kind === identity.kind && it.heading === identity.heading,
+    );
+    if (!item) {
+      throw new ApplyError(`item ${identity.kind}: ${identity.path} is no longer available`);
+    }
+    writeItem(item);
+    count++;
+    if (onApply) {
+      onApply(item);
+    }
+    if (i < identities.length - 1) {
+      state = collect({ templatesDir, docsDir, kase });
+    }
+  }
+
+  return count;
+}
+
+/** Run `apply`: write the accepted items and print what was written. */
+function runApply({ templatesDir, docsDir, kase, numbers }) {
+  const applied = [];
+  let count;
+  try {
+    count = applyItems({
+      templatesDir,
+      docsDir,
+      kase,
+      numbers,
+      onApply: (item) => applied.push(item),
+    });
+  } catch (err) {
+    return fail(err.message);
+  }
+
+  const lines = applied.map((item, i) => itemLine(i + 1, item));
+  const word = count === 1 ? "item" : "items";
+  lines.push(`${count} ${word} applied`);
+  process.stdout.write(`${lines.join("\n")}\n`);
+  return 0;
 }
 
 /** Dispatch a subcommand. Returns the process exit code. */
@@ -534,8 +725,19 @@ function main(argv) {
     return runCheck({ templatesDir, docsDir: values.docs, kase });
   }
 
-  // `apply` is implemented in a later task.
-  return fail("apply is not yet implemented");
+  if (values.items === undefined) {
+    return fail("apply requires --items <n,...>");
+  }
+  let numbers;
+  try {
+    numbers = parseItems(values.items);
+  } catch (err) {
+    if (err instanceof ApplyError) {
+      return fail(err.message);
+    }
+    throw err;
+  }
+  return runApply({ templatesDir, docsDir: values.docs, kase, numbers });
 }
 
 module.exports = {
@@ -550,6 +752,8 @@ module.exports = {
   main,
   collect,
   formatReport,
+  parseItems,
+  applyItems,
 };
 
 if (require.main === module) {

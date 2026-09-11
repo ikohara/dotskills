@@ -439,3 +439,254 @@ test("extra trailing newlines are not a divergence", () => {
   const result = run(["check", "--docs", docs, "--case", "snake_case"]);
   assert.strictEqual(result.code, 0);
 });
+
+// --- test case 5: the insertion position -----------------------------------
+
+test("an added section lands after the nearest preceding section present", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "requirements", "AGENTS.md");
+  write(target, read(target).replace("## Body\n\nBody body.\n\n", ""));
+  const applied = run(["apply", "--items", "1", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(applied.code, 0);
+  assert.deepStrictEqual(
+    splitSections(read(target)).sections.map((s) => s.heading),
+    ["# requirements/ — AGENTS", "## File", "## Body", "## Growth"],
+  );
+  const after = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(after.code, 0);
+});
+
+test("applying only the later of two adds anchors it to what is present", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "requirements", "AGENTS.md");
+  write(target, read(target).replace("## Body\n\nBody body.\n\n", "").replace("## Growth\n\nGrowth body.\n", ""));
+  const listed = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.match(listed.out, /^2 items, 0 notes$/m);
+  const applied = run(["apply", "--items", "2", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(applied.code, 0);
+  assert.deepStrictEqual(
+    splitSections(read(target)).sections.map((s) => s.heading),
+    ["# requirements/ — AGENTS", "## File", "## Growth"],
+  );
+});
+
+test("applying both adds in one run lands them in template order", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "requirements", "AGENTS.md");
+  write(target, read(target).replace("## Body\n\nBody body.\n\n", "").replace("## Growth\n\nGrowth body.\n", ""));
+  const applied = run(["apply", "--items", "1,2", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(applied.code, 0);
+  assert.deepStrictEqual(
+    splitSections(read(target)).sections.map((s) => s.heading),
+    ["# requirements/ — AGENTS", "## File", "## Body", "## Growth"],
+  );
+  const after = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(after.code, 0);
+  assert.match(after.out, /^0 items, 0 notes$/m);
+});
+
+test("an add whose only preceding section is the H1 lands directly after it", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "notes", "AGENTS.md");
+  write(target, "# notes/ — AGENTS\n\nIntro.\n\n## Body\n\nBody body.\n\n## Growth\n\nGrowth body.\n");
+  const applied = run(["apply", "--items", "1", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(applied.code, 0);
+  assert.deepStrictEqual(
+    splitSections(read(target)).sections.map((s) => s.heading),
+    ["# notes/ — AGENTS", "## File", "## Body", "## Growth"],
+  );
+});
+
+test("a copy with only its H1 takes every section, in order, at the end", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "notes", "AGENTS.md");
+  write(target, "# notes/ — AGENTS\n\nIntro.\n");
+  const applied = run(["apply", "--items", "1,2,3", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(applied.code, 0);
+  assert.deepStrictEqual(
+    splitSections(read(target)).sections.map((s) => s.heading),
+    ["# notes/ — AGENTS", "## File", "## Body", "## Growth"],
+  );
+});
+
+// --- test case 2, apply side: seven creates yield identity -----------------
+
+test("applying all seven creates yields a level tree", () => {
+  const root = tmp();
+  const templates = fakeTemplates(path.join(root, "templates"));
+  const docs = path.join(root, "docs");
+  const applied = run([
+    "apply",
+    "--items",
+    "1,2,3,4,5,6,7",
+    "--templates",
+    templates,
+    "--docs",
+    docs,
+    "--case",
+    "snake_case",
+  ]);
+  assert.strictEqual(applied.code, 0);
+  assert.match(applied.out, /^7 items applied$/m);
+  const after = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(after.code, 0);
+  assert.match(after.out, /^0 items, 0 notes$/m);
+});
+
+test("a replace restores identity and leaves the rest of the file alone", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "notes", "AGENTS.md");
+  const original = read(target);
+  write(target, original.replace("File body.", "File\nbody rewrapped."));
+  const applied = run(["apply", "--items", "1", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(applied.code, 0);
+  assert.strictEqual(read(target), original);
+});
+
+// --- test case 6, second half: an author section survives an apply ---------
+
+test("an unrelated apply leaves an author section where the author put it", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "design", "AGENTS.md");
+  write(
+    target,
+    read(target)
+      .replace("## Body\n", "## Local conventions\n\nOurs.\n\n## Body\n")
+      .replace("Growth body.", "Growth\nbody rewrapped."),
+  );
+  const applied = run(["apply", "--items", "1", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(applied.code, 0);
+  assert.deepStrictEqual(
+    splitSections(read(target)).sections.map((s) => s.heading),
+    ["# design/ — AGENTS", "## File", "## Local conventions", "## Body", "## Growth"],
+  );
+  const after = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(after.code, 0);
+  assert.match(after.out, /^0 items, 1 note$/m);
+});
+
+// --- test case 8, second half: apply writes the target's line ending -------
+
+test("a CRLF target keeps CRLF after an apply", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "notes", "AGENTS.md");
+  write(target, read(target).replace("File body.", "File\nbody rewrapped.").replace(/\n/g, "\r\n"));
+  const applied = run(["apply", "--items", "1", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(applied.code, 0);
+  const written = read(target);
+  assert.ok(written.includes("\r\n"));
+  assert.strictEqual(written.replace(/\r\n/g, "\n").includes("File body."), true);
+  const after = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(after.code, 0);
+});
+
+// --- test case 8, third part: apply writes the target's BOM back -----------
+
+test("a BOM'd target keeps its BOM after an apply", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "notes", "AGENTS.md");
+  write(target, `﻿${read(target).replace("File body.", "File\nbody rewrapped.")}`);
+  const applied = run(["apply", "--items", "1", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(applied.code, 0);
+  const raw = fs.readFileSync(target, "utf8");
+  assert.strictEqual(raw.charCodeAt(0), 0xfeff);
+  assert.ok(raw.includes("File body."));
+  const after = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(after.code, 0);
+});
+
+// --- test case 9: errors ---------------------------------------------------
+
+test("apply with no --items is exit 2 and writes nothing", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "notes", "AGENTS.md");
+  write(target, read(target).replace("File body.", "Changed."));
+  const before = read(target);
+  const applied = run(["apply", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(applied.code, 2);
+  assert.strictEqual(read(target), before);
+});
+
+test("apply with a number past the list is exit 2 and writes nothing", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "notes", "AGENTS.md");
+  write(target, read(target).replace("File body.", "Changed."));
+  const before = read(target);
+  const applied = run(["apply", "--items", "1,9", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(applied.code, 2);
+  assert.strictEqual(read(target), before);
+});
+
+test("apply cannot reach a note, which has no number", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "requirements", "AGENTS.md");
+  write(target, "# Requirements\n\nOurs.\n");
+  const listed = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.match(listed.out, /^0 items, 1 note$/m);
+  const applied = run(["apply", "--items", "1", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(applied.code, 2);
+  assert.strictEqual(read(path.join(docs, "requirements", "AGENTS.md")), "# Requirements\n\nOurs.\n");
+});
+
+test("a template with a repeated heading is exit 2", () => {
+  const { templates, docs } = fakeInstall();
+  const file = path.join(templates, "notes", "AGENTS.md");
+  write(file, `${read(file)}\n## File\n\nAgain.\n`);
+  const result = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(result.code, 2);
+});
+
+test("a template with no H1 is exit 2", () => {
+  const { templates, docs } = fakeInstall();
+  write(path.join(templates, "notes", "AGENTS.md"), "Just prose.\n");
+  const result = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(result.code, 2);
+});
+
+test("a PascalCase doc-system under a root named Docs needs an explicit case", () => {
+  const root = tmp();
+  const templates = fakeTemplates(path.join(root, "templates"));
+  const docs = path.join(root, "Docs");
+  expandBundle(docs, "PascalCase", templates);
+  const derived = run(["check", "--templates", templates, "--docs", docs]);
+  assert.strictEqual(derived.code, 2);
+  assert.match(derived.out, /--case/);
+  const explicit = run(["check", "--templates", templates, "--docs", docs, "--case", "PascalCase"]);
+  assert.strictEqual(explicit.code, 0);
+});
+
+test("an unknown subcommand and an unknown option are exit 2", () => {
+  const { templates, docs } = fakeInstall();
+  assert.strictEqual(run(["frobnicate", "--docs", docs]).code, 2);
+  assert.strictEqual(run(["check", "--docs", docs, "--nope", "x"]).code, 2);
+  assert.strictEqual(run(["check", "--templates", templates, "--docs", docs, "--case", "camelCase"]).code, 2);
+  assert.strictEqual(run(["check", "--templates", templates, "--docs", docs, "--items", "1"]).code, 2);
+});
+
+// --- test case 5, on the real bundle ---------------------------------------
+// The spec writes case 5 against the shipped `requirements` template, and task
+// 9 quotes it as the evidence that closes issue-f623. The miniature-bundle
+// cases above cover the same three insertion positions; this one makes the
+// evidence a real template rather than a fixture the suite invented.
+
+test("a section deleted from the real requirements copy is re-inserted in place", () => {
+  const docs = path.join(tmp(), "docs");
+  expandBundle(docs, "snake_case");
+  const target = path.join(docs, "requirements", "AGENTS.md");
+  const text = read(target);
+  const start = text.indexOf("## requirements vs issues");
+  const end = text.indexOf("## Growth", start);
+  assert.ok(start > 0 && end > start);
+  write(target, text.slice(0, start) + text.slice(end));
+  const before = run(["check", "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(before.code, 1);
+  assert.match(before.out, /^1\. add: .*requirements\/AGENTS\.md — ## requirements vs issues$/m);
+  assert.strictEqual(run(["apply", "--items", "1", "--docs", docs, "--case", "snake_case"]).code, 0);
+  assert.deepStrictEqual(
+    splitSections(read(target)).sections.map((s) => s.heading),
+    ["# requirements/ — AGENTS", "## File", "## Frontmatter", "## Body", "## requirements vs issues", "## Growth"],
+  );
+  const after = run(["check", "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(after.code, 0);
+  assert.match(after.out, /^0 items, 0 notes$/m);
+});
