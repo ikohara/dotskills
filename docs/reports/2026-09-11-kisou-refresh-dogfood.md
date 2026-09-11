@@ -31,8 +31,8 @@ present), a **`full`** doc-system (`docs/AGENTS.md` plus
 `notes/` and `reports/` copies also present outside the tally; the
 non-standard subdir `docs/superpowers/` kept by default, exempt from the
 `<id>-<slug>` naming rules), and `docs/` as the docs root. The run was
-recorded in Jisso's own session, `dotskills-0e [a4fe16]`, HEAD before the run
-the commit "docs(issues): tanto says nothing about a rate limit met mid-run,
+recorded in Jisso's own session, `dotskills-0e [a4fe16]`; HEAD before the run
+was the commit "docs(issues): tanto says nothing about a rate limit met mid-run,
 and a limit is a pause, never a model change".
 
 ## The proposal, verbatim
