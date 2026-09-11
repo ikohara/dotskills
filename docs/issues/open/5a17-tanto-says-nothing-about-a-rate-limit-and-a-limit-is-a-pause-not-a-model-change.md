@@ -1,0 +1,55 @@
+---
+id: "5a17"
+title: tanto says nothing about a rate limit met mid-run, and the rule it needs is that a limit is a pause, never a model change
+severity: low
+depends_on: []
+blocks: []
+claimed_by: null
+claimed_at: null
+created: 2026-09-11
+updated: 2026-09-11
+---
+
+tanto's model selection is configuration, checked at the edges: `tanto.json`'s
+`sessions.<role>` is advisory and read once, at a role's start and at Kanri's
+handshake check; `subagents.<kind>` is effective and goes into every
+dispatch's `model` (contract rule 6); rule 9 caps strong-model sessions at
+two at once. Nothing in `SKILL.md` or the role files says what a session does
+when a rate limit is met while a batch, a review, or a translation is
+running — not the per-minute 429 that issue-9a68 measures between
+strong-model sessions, and not a weekly quota on one family.
+
+The gap showed on 2026-09-11, in the kisou-refresh run: five parallel
+`sonnet` subagents dispatched for a translation all died on HTTP 429
+"weekly limit, resets Sep 13 10am (Asia/Tokyo)". Kanri had no text to rule
+from and wrote R-17 for the run — on a 429 that names a weekly limit, no
+retry loop; commit nothing half-done; write the report with the event under
+Rulings needed; idle — and probed the family with one trivial subagent
+before the next dispatch. The same day, in another repository's run, a
+session that resumed after a limit had dropped its model a family
+(`sonnet` to `haiku`) to continue, which the human called out: a resume
+after a limit means the quota came back, by time or by payment, so the
+degradation was unnecessary — a limit is a quota event, not a quality one.
+
+What the skill needs, in one paragraph under "The expected-model config" or
+beside rule 6:
+
+- **A limit is a pause, never a model change.** No role switches its own
+  session model on a limit, and no dispatch is retried on a lower family;
+  the models are what `tanto.json` says until the human changes the file.
+- **The procedure**: on a 429 that names a weekly or daily quota, the
+  dispatching role stops retrying, commits nothing half-done, records the
+  event (the family, the message's reset time, what was lost) in its report
+  or in a line to Kanri, and idles; Kanri records it in the ledger's
+  Measurements table and tells the human the reset time. On a per-minute
+  429, one retry after the message's interval, then the same.
+- **Resuming** is the human's word (the quota is back, or they raised it):
+  the same dispatch, the same model, from where it stopped; Kanri may probe
+  the family with one trivial subagent first, as R-17 did.
+- **What is not detected**: a session that changes its own model mid-run
+  with `/model` is invisible to the skill, because the model check runs
+  only at the start and at the handshake; the rule above is protocol, not
+  enforcement.
+
+This edits `SKILL.md`, so it runs under contract rule 11 — with the
+`.tanto/` move (issue-0b97) or the Keikaku split (issue-3c7a).
