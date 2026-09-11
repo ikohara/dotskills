@@ -179,7 +179,6 @@ lines.
 created: skills/kisou/scripts/doc-system-check.js
 created: skills/kisou/scripts/doc-system-check.test.js
 created: docs/reports/2026-09-11-kisou-refresh-dogfood.md
-created: docs/superpowers/plans/2026-09-11-kisou-refresh.md
 ```
 
 The third is the dogfood report task 9 writes. It is listed for the same
@@ -187,38 +186,50 @@ reason as the other two: without it, every line of a file this plan
 deliberately creates reads as an unaccounted added line at the batch C
 boundary.
 
-**The fourth is this plan itself**, and it is listed for a different reason.
-`diff` compares the whole working tree against the base and has no exemption
-for the plan's own path, so every edit to this file after its commit — the
-count corrected below, and every answer Sekkei gives Kanri's cold read by
-editing the plan, which is how the Handoff says questions are answered — reads
-as `unexplained-removed` lines at every later boundary. Measured 2026-09-11,
-on the first edit after the plan's commit: two such lines, both of them this
-file's old text. A `created:` path is exempt in both directions, which is what
-the plan's own path needs: no task writes it, so nothing in it is a
-deliverable `diff` should be checking. The exemption is this plan's
-workaround; the missing rule is `skills/tanto/`'s and is reported separately.
+The plan's own path is **not** listed, and for one commit it was. `diff` had
+no exemption for the plan file, so the first edit to this plan after its
+commit read as two `unexplained-removed` lines — and every answer Sekkei gives
+Kanri's cold read by editing the plan would have done the same at every later
+boundary. Reported, and fixed on this branch the same day in "fix(tanto): diff
+exempts the plan's own path, so a post-base plan edit is not an unexplained
+removal"; the workaround was removed once the fix was measured. A reader of the branch's history will see the line come
+and go; this is why.
 
-### `diff`'s base is the plan's own commit, not the merge base
+### `diff`'s base is the last commit before task 1, not the merge base
 
-The branch `kisou-refresh` already carries eight commits over `main` before
-this plan's first task: four spec commits, two issue commits Kanri filed, one
-exit-shoroku commit, and one `skills/tanto/` hotfix. `git merge-base main HEAD`
-therefore reaches back past work no task of this plan did, and `diff` would
-report every line of it as unaccounted (issue-909c). **The base is the commit
-that adds this plan**, resolved from the tree rather than written down as a
-hash:
+The branch `kisou-refresh` already carries commits over `main` that no task
+of this plan wrote — the spec and its amendments, issue filings, an exit
+shoroku, two `skills/tanto/` hotfixes, the plan itself and its own
+corrections — and more may land before task 1 begins, because Kanri files
+and hotfixes on this branch while Jisso is absent. `git merge-base main HEAD`
+reaches back past all of it, and `diff` would report every line as
+unaccounted (issue-909c).
+
+**The base is the parent of task 1's first commit** — the commit that adds
+the instrument — resolved from the tree rather than written down as a hash:
 
 ```bash
-git log --diff-filter=A --format=%H -1 -- docs/superpowers/plans/2026-09-11-kisou-refresh.md
+git log --diff-filter=A --format=%H -1 -- skills/kisou/scripts/doc-system-check.js
 ```
 
-Expected: one 40-character commit hash — the plan's own commit, which is the
-last commit on the branch before task 1.
+Expected: one 40-character commit hash, task 1's commit; its parent, written
+`<that hash>^`, is the base. **Before task 1 has committed, the command prints
+nothing** and there is no `diff` to run — batch A is not checked this way, and
+the first `diff` is at the batch B boundary, by which time the value exists.
 
-Every `diff` invocation in this plan passes that value as `--base`. A later
-commit that edits the plan does not move it: `--diff-filter=A` names the
-commit that **added** the file.
+Every `diff` invocation in this plan passes that parent as `--base`. It is
+stable in both directions that matter: a commit landing before task 1 —
+another hotfix, another filing — falls inside the base and is not reported;
+a fix round that later edits the instrument does not move it, because
+`--diff-filter=A` names the commit that **added** the file. A commit landing
+**between** batches that no task wrote is reported, and should be: that is
+`diff` doing its job, and its explanation is Kanri's, in the ledger.
+
+This replaced a first form, "the commit that adds this plan", on 2026-09-11,
+before task 1: a `skills/tanto/` hotfix landed after the plan's commit and
+before any task, and `diff` against the plan's commit reported the hotfix's
+every line. The plan's commit is a fixed point in the history; "before
+task 1" is the moving one this rule actually wants.
 
 ### The commands `replay` does not run
 
@@ -318,7 +329,7 @@ Three batches, nine tasks.
 | Batch | Tasks | Delivers | Stop conditions at the boundary |
 | --- | --- | --- | --- |
 | A | 1 expansion, the target set, the fingerprint, the section split; 2 `check`; 3 `apply --items` and the insertion position | the instrument and its tests | the tests pass under `mise x node@22 -- node --test 'skills/kisou/scripts/*.test.js'`, with the resolved version recorded; `./scripts/lint.sh` on both `.js` paths shows a **JavaScript hook running**, not `(no files to check) Skipped`; `check --docs docs --case snake_case` exits **1 with two items** on this repository |
-| B | 4 `SKILL.md`, P4.1–P4.11; 5 `README.md`, P5.1–P5.3; 6 the sweep-and-check on this repository's seven copies | the skill text level with the spec | `passage-check.js diff` clean against the plan's own commit; the `description` frontmatter line loads as YAML and carries no `: `; `grep -c 'doc-system-check' skills/kisou/SKILL.md` ≥ 2 and `skills/kisou/README.md` ≥ 1; `check` still exits 1 with the same two items, recorded verbatim in the batch report |
+| B | 4 `SKILL.md`, P4.1–P4.11; 5 `README.md`, P5.1–P5.3; 6 the sweep-and-check on this repository's seven copies | the skill text level with the spec | `passage-check.js diff` clean against the last commit before task 1; the `description` frontmatter line loads as YAML and carries no `: `; `grep -c 'doc-system-check' skills/kisou/SKILL.md` ≥ 2 and `skills/kisou/README.md` ≥ 1; `check` still exits 1 with the same two items, recorded verbatim in the batch report |
 | C | 7 the dogfood; 8 the hook, the `CONTRIBUTING.md` line; 9 the dogfood report | this repository level, with the check wired | `check --docs docs --case snake_case` exits **0**; `uv tool run pre-commit run kisou-doc-system-check --all-files` passes; `grep -c 'kisou-doc-system-check' .pre-commit-config.yaml` = 1; `passage-check.js diff` clean; every `O` needle at its stated disposition, hits printed |
 
 **The spec's nine test cases, and where they land.** The spec allocates them
@@ -400,16 +411,18 @@ evidence subagent-driven development asks for.
    failure.
 
 5. **The boundary check, from the batch B boundary on** — both options are
-   required, and the base is the plan's own commit, never the merge base:
+   required, and the base is the parent of task 1's first commit, never the
+   merge base:
 
    ```bash
-   TANTO=skills/tanto && node "$TANTO/scripts/passage-check.js" diff --plan docs/superpowers/plans/2026-09-11-kisou-refresh.md --base "$(git log --diff-filter=A --format=%H -1 -- docs/superpowers/plans/2026-09-11-kisou-refresh.md)"
+   TANTO=skills/tanto && node "$TANTO/scripts/passage-check.js" diff --plan docs/superpowers/plans/2026-09-11-kisou-refresh.md --base "$(git log --diff-filter=A --format=%H -1 -- skills/kisou/scripts/doc-system-check.js)^"
    ```
 
    Expected: every passage block applied exactly, no unaccounted added line,
-   no unexplained removed line, and the two `created:` paths named as
-   exempted. Batch A is not checked this way: it carries no passages, and its
-   two files are the exemption.
+   no unexplained removed line, and the three `created:` paths named as
+   exempted. Batch A is not checked this way: it carries no passages, its two
+   files are the exemption, and the base does not resolve until task 1 has
+   committed.
 
 6. **The content greps**, each stated by the task that lands it:
    `grep -c 'doc-system-check' skills/kisou/SKILL.md` ≥ 2 and
