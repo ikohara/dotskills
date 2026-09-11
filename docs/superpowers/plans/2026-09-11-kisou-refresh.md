@@ -179,12 +179,25 @@ lines.
 created: skills/kisou/scripts/doc-system-check.js
 created: skills/kisou/scripts/doc-system-check.test.js
 created: docs/reports/2026-09-11-kisou-refresh-dogfood.md
+created: docs/superpowers/plans/2026-09-11-kisou-refresh.md
 ```
 
 The third is the dogfood report task 9 writes. It is listed for the same
 reason as the other two: without it, every line of a file this plan
 deliberately creates reads as an unaccounted added line at the batch C
 boundary.
+
+**The fourth is this plan itself**, and it is listed for a different reason.
+`diff` compares the whole working tree against the base and has no exemption
+for the plan's own path, so every edit to this file after its commit — the
+count corrected below, and every answer Sekkei gives Kanri's cold read by
+editing the plan, which is how the Handoff says questions are answered — reads
+as `unexplained-removed` lines at every later boundary. Measured 2026-09-11,
+on the first edit after the plan's commit: two such lines, both of them this
+file's old text. A `created:` path is exempt in both directions, which is what
+the plan's own path needs: no task writes it, so nothing in it is a
+deliverable `diff` should be checking. The exemption is this plan's
+workaround; the missing rule is `skills/tanto/`'s and is reported separately.
 
 ### `diff`'s base is the plan's own commit, not the merge base
 
