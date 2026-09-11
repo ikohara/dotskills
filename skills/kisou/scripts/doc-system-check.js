@@ -9,6 +9,9 @@
 // and a reader who is setting `$KISOU` needs the interpreter named rather
 // than implied.
 
+// biome-ignore lint/suspicious/noRedundantUseStrict: CommonJS script, not an ES module
+"use strict";
+
 const fs = require("node:fs");
 const path = require("node:path");
 const { parseArgs } = require("node:util");
