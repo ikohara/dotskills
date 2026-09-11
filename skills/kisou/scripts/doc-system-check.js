@@ -254,8 +254,11 @@ function existsExact(baseDir, relTarget) {
     let entries;
     try {
       entries = fs.readdirSync(dir);
-    } catch {
-      return false;
+    } catch (err) {
+      if (err.code === "ENOENT" || err.code === "ENOTDIR") {
+        return false;
+      }
+      throw err;
     }
     if (!entries.includes(segment)) {
       return false;
@@ -265,17 +268,30 @@ function existsExact(baseDir, relTarget) {
   return true;
 }
 
+/** The line ending the raw text's first line uses: "\r\n" or "\n". */
+function detectLineEnding(raw) {
+  const idx = raw.indexOf("\n");
+  if (idx > 0 && raw[idx - 1] === "\r") {
+    return "\r\n";
+  }
+  return "\n";
+}
+
+/** A template with no H1, or a target that exists and cannot be read. */
+class TemplateError extends Error {}
+class ReadError extends Error {}
+
 /** Print `message` to stderr, prefixed `error: `, and return exit code 2. */
 function fail(message) {
   process.stderr.write(`error: ${message}\n`);
   return 2;
 }
 
-/** Run `check`: resolve the seven targets, print notes and the summary line. */
-function runCheck({ templatesDir, docsDir, kase }) {
+/** Walk the seven targets. Returns { items, notes }. */
+function collect({ templatesDir, docsDir, kase }) {
   const targets = targetSet(kase);
+  const items = [];
   const notes = [];
-  const itemCount = 0; // no item kind exists yet; a later task adds them
 
   for (const t of targets) {
     const templatePath = path.join(templatesDir, t.template);
@@ -283,18 +299,38 @@ function runCheck({ templatesDir, docsDir, kase }) {
     try {
       templateRaw = fs.readFileSync(templatePath, "utf8");
     } catch (err) {
-      return fail(`cannot read template ${posixPath(templatePath)}: ${err.message}`);
+      throw new ReadError(`cannot read template ${posixPath(templatePath)}: ${err.message}`);
     }
 
     const expandedTemplate = expandTemplate(templateRaw, kase);
     const templateSections = splitSections(expandedTemplate).sections;
     const badTemplate = templateError(templateSections);
     if (badTemplate) {
-      return fail(`template ${posixPath(templatePath)} ${badTemplate}`);
+      throw new TemplateError(`template ${posixPath(templatePath)} ${badTemplate}`);
     }
 
-    if (!existsExact(docsDir, t.target)) {
-      // No item kind exists yet; a later task turns this into `create`.
+    const printedPath = reportPath(docsDir, t.target);
+    const absPath = path.resolve(path.join(docsDir, t.target));
+
+    let exists;
+    try {
+      exists = existsExact(docsDir, t.target);
+    } catch (err) {
+      throw new ReadError(`cannot read ${posixPath(path.join(docsDir, t.target))}: ${err.message}`);
+    }
+
+    if (!exists) {
+      items.push({
+        kind: "create",
+        path: printedPath,
+        absPath,
+        heading: null,
+        oldBody: null,
+        newBody: null,
+        text: expandedTemplate,
+        lineEnding: "\n",
+        bom: false,
+      });
       continue;
     }
 
@@ -303,10 +339,9 @@ function runCheck({ templatesDir, docsDir, kase }) {
     try {
       targetRaw = fs.readFileSync(targetPath, "utf8");
     } catch (err) {
-      return fail(`cannot read ${posixPath(targetPath)}: ${err.message}`);
+      throw new ReadError(`cannot read ${posixPath(targetPath)}: ${err.message}`);
     }
 
-    const printedPath = reportPath(docsDir, t.target);
     const isRoot = t.type === "root";
     const result = classify(targetRaw, expandedTemplate, isRoot);
 
@@ -324,21 +359,104 @@ function runCheck({ templatesDir, docsDir, kase }) {
       continue;
     }
 
+    const lineEnding = detectLineEnding(targetRaw);
+    const bom = targetRaw.charCodeAt(0) === 0xfeff;
+
     const targetSections = splitSections(targetRaw).sections;
     const compared = compareSections(templateSections, targetSections);
+
     for (const heading of compared.authorAdded) {
       notes.push(`note: ${printedPath} — author section kept: ${heading}`);
     }
-    // `compared.missing` and `compared.diverged` become items in a later task.
+
+    const missingSet = new Set(compared.missing);
+    const divergedSet = new Set(compared.diverged);
+    const targetBodyByHeading = new Map();
+    for (const s of targetSections) {
+      if (!targetBodyByHeading.has(s.heading)) {
+        targetBodyByHeading.set(s.heading, s.body);
+      }
+    }
+
+    for (const s of templateSections) {
+      if (missingSet.has(s.heading)) {
+        items.push({
+          kind: "add",
+          path: printedPath,
+          absPath,
+          heading: s.heading,
+          oldBody: null,
+          newBody: s.body,
+          text: null,
+          lineEnding,
+          bom,
+        });
+      } else if (divergedSet.has(s.heading)) {
+        items.push({
+          kind: "replace",
+          path: printedPath,
+          absPath,
+          heading: s.heading,
+          oldBody: targetBodyByHeading.get(s.heading),
+          newBody: s.body,
+          text: null,
+          lineEnding,
+          bom,
+        });
+      }
+    }
   }
 
-  for (const note of notes) {
-    process.stdout.write(`${note}\n`);
+  return { items, notes };
+}
+
+/** One item's report line(s): the item line, and a `replace`'s diff blocks. */
+function formatItem(index, item) {
+  const lines = [];
+  if (item.kind === "create") {
+    lines.push(`${index}. create: ${item.path}`);
+  } else {
+    lines.push(`${index}. ${item.kind}: ${item.path} — ${item.heading}`);
   }
-  const itemWord = itemCount === 1 ? "item" : "items";
+  if (item.kind === "replace") {
+    for (const line of item.oldBody) {
+      lines.push(line === "" ? "-" : `- ${line}`);
+    }
+    for (const line of item.newBody) {
+      lines.push(line === "" ? "+" : `+ ${line}`);
+    }
+  }
+  return lines;
+}
+
+/** The whole stdout of `check`, summary line included. */
+function formatReport({ items, notes }) {
+  const lines = [];
+  items.forEach((item, i) => {
+    lines.push(...formatItem(i + 1, item));
+  });
+  for (const note of notes) {
+    lines.push(note);
+  }
+  const itemWord = items.length === 1 ? "item" : "items";
   const noteWord = notes.length === 1 ? "note" : "notes";
-  process.stdout.write(`${itemCount} ${itemWord}, ${notes.length} ${noteWord}\n`);
-  return 0;
+  lines.push(`${items.length} ${itemWord}, ${notes.length} ${noteWord}`);
+  return `${lines.join("\n")}\n`;
+}
+
+/** Run `check`: collect the report and print it. Returns the exit code. */
+function runCheck({ templatesDir, docsDir, kase }) {
+  let result;
+  try {
+    result = collect({ templatesDir, docsDir, kase });
+  } catch (err) {
+    if (err instanceof TemplateError || err instanceof ReadError) {
+      return fail(err.message);
+    }
+    throw err;
+  }
+  process.stdout.write(formatReport(result));
+  return result.items.length > 0 ? 1 : 0;
 }
 
 /** Dispatch a subcommand. Returns the process exit code. */
@@ -362,6 +480,9 @@ function main(argv) {
   const { positionals, values } = parsed;
   const subcommand = positionals[0];
   if (subcommand !== "check" && subcommand !== "apply") {
+    return fail(USAGE);
+  }
+  if (positionals.length > 1) {
     return fail(USAGE);
   }
   if (!values.docs) {
@@ -421,6 +542,8 @@ module.exports = {
   classify,
   compareSections,
   main,
+  collect,
+  formatReport,
 };
 
 if (require.main === module) {

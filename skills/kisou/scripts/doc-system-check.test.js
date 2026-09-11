@@ -294,3 +294,148 @@ test("a copy whose fenced block holds a hash line stays level", () => {
   assert.strictEqual(result.code, 0);
   assert.match(result.out, /^0 items, 0 notes$/m);
 });
+
+// --- test case 2: absent ---------------------------------------------------
+
+test("an empty docs root is seven create items", () => {
+  const root = tmp();
+  const templates = fakeTemplates(path.join(root, "templates"));
+  const docs = path.join(root, "docs");
+  fs.mkdirSync(docs, { recursive: true });
+  const result = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(result.code, 1);
+  assert.match(result.out, /^1\. create: .*\/AGENTS\.md$/m);
+  assert.match(result.out, /^7\. create: .*\/reports\/AGENTS\.md$/m);
+  assert.match(result.out, /^7 items, 0 notes$/m);
+});
+
+test("a docs root that does not exist is seven create items, not an error", () => {
+  const root = tmp();
+  const templates = fakeTemplates(path.join(root, "templates"));
+  const docs = path.join(root, "absent");
+  const result = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(result.code, 1);
+  assert.match(result.out, /^7 items, 0 notes$/m);
+  assert.strictEqual(fs.existsSync(docs), false);
+});
+
+test("a docs path that is a file is exit 2", () => {
+  const root = tmp();
+  const templates = fakeTemplates(path.join(root, "templates"));
+  const file = path.join(root, "docs.md");
+  write(file, "not a directory\n");
+  const result = run(["check", "--templates", templates, "--docs", file, "--case", "snake_case"]);
+  assert.strictEqual(result.code, 2);
+});
+
+// --- test case 4: diverged, with its printed text asserted -----------------
+
+test("a rewrapped section is one replace item, printed as two blocks", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "notes", "AGENTS.md");
+  write(target, read(target).replace("File body.", "File\nbody rewrapped."));
+  const result = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(result.code, 1);
+  assert.strictEqual(
+    result.out,
+    [
+      `1. replace: ${posix(docs)}/notes/AGENTS.md — ## File`,
+      "-",
+      "- File",
+      "- body rewrapped.",
+      "-",
+      "+",
+      "+ File body.",
+      "+",
+      "1 item, 0 notes",
+      "",
+    ].join("\n"),
+  );
+});
+
+test("items are ordered by file, then by the template's section order", () => {
+  const { templates, docs } = fakeInstall();
+  for (const type of ["reports", "design"]) {
+    const target = path.join(docs, type, "AGENTS.md");
+    write(target, read(target).replace("Growth body.", "Changed.").replace("File body.", "Also changed."));
+  }
+  const result = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  const items = result.out.split("\n").filter((l) => /^\d+\. /.test(l));
+  assert.deepStrictEqual(items, [
+    `1. replace: ${posix(docs)}/design/AGENTS.md — ## File`,
+    `2. replace: ${posix(docs)}/design/AGENTS.md — ## Growth`,
+    `3. replace: ${posix(docs)}/reports/AGENTS.md — ## File`,
+    `4. replace: ${posix(docs)}/reports/AGENTS.md — ## Growth`,
+  ]);
+});
+
+test("a missing fixed section is an add item", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "issues", "AGENTS.md");
+  write(target, read(target).replace("## Body\n\nBody body.\n\n", ""));
+  const result = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(result.code, 1);
+  assert.strictEqual(
+    result.out,
+    [`1. add: ${posix(docs)}/issues/AGENTS.md — ## Body`, "1 item, 0 notes", ""].join("\n"),
+  );
+});
+
+// --- test case 6, first half: author sections ------------------------------
+
+test("an author-added section is a note and no item", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "design", "AGENTS.md");
+  write(target, read(target).replace("## Body\n", "## Local conventions\n\nOurs.\n\n## Body\n"));
+  const result = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(result.code, 0);
+  assert.strictEqual(
+    result.out,
+    [`note: ${posix(docs)}/design/AGENTS.md — author section kept: ## Local conventions`, "0 items, 1 note", ""].join(
+      "\n",
+    ),
+  );
+});
+
+test("a repeated heading compares the first and notes the second", () => {
+  const { templates, docs } = fakeInstall();
+  const target = path.join(docs, "notes", "AGENTS.md");
+  write(target, `${read(target)}\n## File\n\nA second one.\n`);
+  const result = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(result.code, 0);
+  assert.ok(result.out.includes(`note: ${posix(docs)}/notes/AGENTS.md — author section kept: ## File`));
+  assert.match(result.out, /^0 items, 1 note$/m);
+});
+
+// --- test case 8, first half: encoding and line endings --------------------
+
+test("a CRLF copy of the bundle is level", () => {
+  const docs = path.join(tmp(), "docs");
+  expandBundle(docs, "snake_case");
+  for (const t of targetSet("snake_case")) {
+    const file = path.join(docs, t.target);
+    write(file, read(file).replace(/\n/g, "\r\n"));
+  }
+  const result = run(["check", "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(result.code, 0);
+  assert.match(result.out, /^0 items, 0 notes$/m);
+});
+
+test("a copy with a BOM is level", () => {
+  const docs = path.join(tmp(), "docs");
+  expandBundle(docs, "snake_case");
+  const file = path.join(docs, "reports", "AGENTS.md");
+  write(file, `﻿${read(file)}`);
+  const result = run(["check", "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(result.code, 0);
+  assert.match(result.out, /^0 items, 0 notes$/m);
+});
+
+test("extra trailing newlines are not a divergence", () => {
+  const docs = path.join(tmp(), "docs");
+  expandBundle(docs, "snake_case");
+  const file = path.join(docs, "issues", "AGENTS.md");
+  write(file, `${read(file)}\n\n`);
+  const result = run(["check", "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(result.code, 0);
+});
