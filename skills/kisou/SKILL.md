@@ -14,6 +14,17 @@ clobbering it. `kisou` owns the bundled template end to end, including the
 to this skill folder). Do not restate the template's contents here — read and
 copy from the bundle.
 
+The doc-system half of migrate runs one executable,
+`scripts/doc-system-check.js` beside the templates, on **Node 22 or later**,
+standard library only. Invoke it as
+`node "$KISOU/scripts/doc-system-check.js" <subcommand>`, with `$KISOU` set to
+this skill's own directory in the same tool call as the command. When `node`
+is not on the path, say so and do not run the doc-system half of that migrate:
+it is not replaced by reading the files yourself, because a comparison the
+tool did not make is not a comparison — uncertainty narrows what migrate
+proposes, never widens it. Scaffold needs nothing; it writes the templates as
+they are.
+
 ## Scope
 
 - **Produces:** `README.md`, `CONTRIBUTING.md`, `CLAUDE.md`, a slim top-level
@@ -34,8 +45,10 @@ copy from the bundle.
 In a single pass, collect all template placeholders (`<project-name>`,
 `<overview>`, tech stack, etc.), the **script selection** (which of `setup`,
 `run`, `scripts/build`, `scripts/test`, `scripts/lint`, and `scripts/tidy` the
-project needs — offer `scripts/tidy` (clang-tidy) only for clang + CMake
-projects; `scripts/bootstrap` is always created), the **`dirs` selection** (which
+project needs — offer `scripts/tidy` (clang-tidy) only for a clang + CMake
+project, which in migrate means a `CMakeLists.txt` at the repository root, and
+this is the one place that condition is stated; `scripts/bootstrap` is always
+created), the **`dirs` selection** (which
 optional structural dirs the project has — `src` and/or `tests`; kisou
 itself never creates these but the templates reference them), the **target
 OS(es)** (`windows` and/or `unix` — pick one or both), and the **`case`
@@ -128,11 +141,16 @@ opposite case and mis-set `case`, which then cascades through every
   `{docs,Documents}/<type>/AGENTS.md` (requirements / design / decisions /
   issues).
   - **none** (no doc-system artifacts) → install the full doc-system.
-  - **full** (root `AGENTS.md` + all four per-type files present) → leave
-    intact; treat the migrate scope as **layer-B only** unless the user asks
-    otherwise. It is still a refresh target (see the Present branch below).
-  - **partial** (some artifacts present, others missing) → list what is present
-    vs. missing and propose adding **only the missing** pieces. Surface any
+  - **full** (root `AGENTS.md` + all four per-type files present) → the root
+    and the four managed per-type files are present. What is absent —
+    `notes/` and `reports/` included, since they sit outside this tally — and
+    what diverged comes from the instrument in the Present branch below,
+    inside whatever scope the user picks. The class says what is absent and
+    nothing more; it sets no scope.
+  - **partial** (some artifacts present, others missing) → say what is present
+    and what is missing, and stop there: what gets proposed comes from the
+    instrument in the Present branch below, inside whatever scope the user
+    picks, exactly as for a `full` doc-system. Surface any
     non-standard subdirectory under `{docs,Documents}/` (e.g. `superpowers/`, a
     non-standard issue-status dir) as **kept by default**, and note it is
     **exempt from the `<id>-<slug>` naming rules** — its own tool's convention
@@ -140,14 +158,15 @@ opposite case and mis-set `case`, which then cascades through every
     and are not part of the present/missing tally.
   - **`notes/` and `reports/`** are standard flat types but sit **outside** the
     none/partial/full tally (which covers the root `AGENTS.md` + the four
-    managed per-type files). On any migrate, enumerate
-    `{docs,Documents}/{notes,reports}/AGENTS.md` too and offer each **absent**
-    one as a create — a refresh addition — so a repo already `full` on the
-    managed four is not reclassified `partial` for lacking them.
+    managed per-type files), so a repo already `full` on the managed four is
+    not reclassified `partial` for lacking them. Both are among the seven
+    targets the instrument enumerates in the Present branch below, and an
+    absent one is one of its `create` items; you do not enumerate them.
 
 After surfacing the detected values for confirmation, **also ask once about
-scripts the repo lacks**: list the not-yet-present slots (`setup` / `run` /
-`build` / `test` / `lint` / `tidy`) and let the user opt into any. A script
+scripts the repo lacks**: list the slots **Step 2 offers** that the repository
+lacks — `tidy` among them only under Step 2's clang + CMake condition — and
+let the user opt into any. A script
 expresses **intent** ("the project should have this"), so absence is a prompt,
 not a silent decline. `dirs`, by contrast, is a **fact** (an absent `src/`
 means there is no source dir), so its absence is never prompted.
@@ -162,35 +181,65 @@ Pick a **scope**: full (layer B + doc-system) or **docs-only** (the case
   - `CLAUDE.md` — the `@AGENTS.md` pointer plus the "All project instructions
     live in `AGENTS.md`" body.
   - `AGENTS.md` — the `@CONTRIBUTING.md or read …` pointer line.
-  - `{docs,Documents}/AGENTS.md` — the type path table plus the "Document
-    management" heading.
+  - `{docs,Documents}/**/AGENTS.md` — the root and every `<type>/AGENTS.md`:
+    the H1 the expanded template gives it (`# AGENTS.md`, together with the
+    `## Document management` heading, for the root; `# <type>/ — AGENTS` for
+    a type). This is a test `scripts/doc-system-check.js` applies, not you.
   - any layer-B file whose heading set substantially matches the template (the
     prior "stub-shaped" test), or that still has `<...>` placeholders.
 
   **Kisou-managed** → **refresh toward the current template**. This is the
   upgrade path for a repo scaffolded by an older kisou: re-running migrate picks
-  up template changes — no separate mode or trigger. Compare the file's
-  structure against what the current template would produce for the detected
-  inputs, and propose (always as numbered items, never a silent auto-merge):
+  up template changes — no separate mode or trigger. For a **layer-B** file,
+  compare its structure against what the current template would produce for
+  the detected inputs, and propose — always as numbered items, never a silent
+  auto-merge:
   - a **missing** fixed section / block → add it, template-filled;
-  - a **diverged fixed-text section** — one whose template body has **no
-    `<...>` free-text** (e.g. AGENTS `## Language`, the `docs/AGENTS.md`
-    document-management rules) → show the diff and propose replacing the stale
-    body.
+  - a **diverged fixed-text section** — one whose body differs from the
+    template's, fixed text being what the paragraph below defines (e.g. AGENTS
+    `## Language`, `CLAUDE.md`'s pointer body) → show the diff and propose
+    replacing the stale body.
 
   Never flag a **free-text section** (template body carrying `<...>` for the
   author to fill, e.g. README `## Tech stack`) — the author owns it and
   staleness cannot be told from an intentional edit. Never propose **deleting**
   an author-added section. Refresh is additive / updating only.
 
-  **Not kisou-managed** (real project content: custom headings / prose, no
-  fingerprint) → do not attempt a merge. With approval, rename the original to
-  `<file>.bak` and write a fresh template-filled file, then tell the author to
-  graft the wanted sections back by hand. The `.bak` keeps this non-destructive.
+  A `<...>` marks author free text **only** where the template's own
+  `<!-- TEMPLATE FILL ... -->` block says to replace `<...>` with content.
+  Every other `<...>` — `<id>`, `<slug>`, `<type>-<id>`, a frontmatter
+  example's `title: <topic title>` — is notation the rule text uses, and its
+  section is fixed-text. The doc-system templates carry no `TEMPLATE FILL`
+  block, so every section of a doc-system `AGENTS.md` is fixed-text and this
+  free-text test is a layer-B test.
+
+  For a doc-system `AGENTS.md` the comparison is not yours. Run
+  `node "$KISOU/scripts/doc-system-check.js" check --docs <root> --case <case>`
+  with the detected values, `$KISOU` set to this skill's directory in the same
+  tool call. Its items go into the proposal as one contiguous block at the
+  **end** of the numbered list, in the tool's order, renumbered to follow the
+  layer-B items; keep the offset you added and, after the user's answer, pass
+  `apply --items` the accepted numbers **minus that offset**. The tool's notes
+  go after the list, unnumbered. `apply` writes the accepted items and nothing
+  else. It places an added section where the template places it — after the
+  nearest preceding fixed section the file has, else before the nearest
+  following one, else at the end — and it leaves an author-added section where
+  the author put it. There is one authority per file: the instrument for
+  `{docs,Documents}/**/AGENTS.md`, your own reading for layer B.
+
+  **Not kisou-managed** (no fingerprint matches) → **leave it alone and report
+  it**: name the file, say which fingerprint it missed, and propose nothing
+  for it. Renaming a file to `<file>.bak` and writing a fresh template-filled
+  one is an operation the user asks for by naming the file; kisou never offers
+  it. Uncertainty narrows the proposal.
 - **`scripts/`** → add only the missing requested scripts as empty files; never
   overwrite an existing script.
-- **`docs/` doc-system** → write the bundle if absent; if already present, leave
-  it intact and add only around it.
+- **`docs/` doc-system** → the instrument's report is the proposal, whether the
+  doc-system is absent or present: an absent file is a `create` item (all
+  seven, for a `none` doc-system — that is "write the bundle"), a missing
+  fixed section an `add`, a diverged fixed-text section a `replace` shown with
+  its diff. An author-added section is kept and reported. Content is never
+  touched.
 
 Same interaction as scaffold: numbered proposal → partial-accept (`OK` / `2 と 5
 だけ` / `3 はやめて` / `全部やめ`) → one commit → report. No auto-push.
@@ -211,4 +260,6 @@ agent-agnostic "Session shoroku" workflow that `shoroku` drives.
 - Do NOT overwrite an existing file in migrate mode without showing the diff and
   getting approval.
 - Do NOT auto-push.
+- Do NOT rename a file to `.bak`, or offer to, unless the user asked for that
+  file by name.
 - Do NOT edit an existing `AGENTS.md` / `CLAUDE.md` beyond the approved merge.
