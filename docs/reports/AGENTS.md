@@ -5,8 +5,8 @@ measurement run, audit. It is **dated and frozen**: it preserves what was true
 at investigation time so later docs can cite it, and is not rewritten as the
 project moves on.
 
-A *flat* type (like `notes/`): no `<id>`, no frontmatter — the file-name date is
-the identity.
+A *flat* type (like `notes/`): no `<id>`, no frontmatter — the file-name
+date is the identity.
 
 ## Rules
 

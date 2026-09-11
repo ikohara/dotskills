@@ -2,9 +2,9 @@
 
 A `note` is a **maintained reference** on **one** concern — a registry,
 glossary, mapping table, cheat sheet. It is *living* (updated in place), the
-opposite of `reports/` (dated, frozen). It is **not** a scratchpad or session
-log; non-curated content does not belong here (see "Not a scratch space" in
-`docs/AGENTS.md`).
+opposite of `reports/` (dated, frozen). It is **not** a scratchpad or
+session log; non-curated content does not belong here (see "Not a scratch
+space" in `docs/AGENTS.md`).
 
 A *flat* type (like `reports/`): no `<id>`, no frontmatter — the slug is the
 identity.
