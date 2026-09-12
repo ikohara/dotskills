@@ -21,14 +21,14 @@ taking over mid-plan must not create a second ledger.
    own `name [ref]`, and say your start line: the config file and default keys,
    your `name [ref]`, and your bare name as the address.
 2. Make sure `.tanto/.gitignore` exists and holds `*`, and
-   `.tanto/.markdownlint-cli2.yaml` exists and holds the two lines `config:`
-   and `default: false`. Write each only when it is absent and never
-   overwrite either: the first keeps everything under `.tanto/` untracked
-   without touching the repository's own `.gitignore`, the second keeps the
-   editor's markdownlint quiet on files the commit path never lints
-   (issue-6aa8). Nothing else writes these two files for you; the SDD skill's
-   `sdd-workspace` writes its own ignore file in its own workspace on every
-   run, and that is no longer your concern.
+   `.tanto/.markdownlint-cli2.yaml` exists and holds `config:` with
+   `default: false` indented two spaces beneath it. Write each only when it is
+   absent and never overwrite either: the first keeps everything under
+   `.tanto/` untracked without touching the repository's own `.gitignore`, the
+   second keeps the editor's markdownlint quiet on files the commit path never
+   lints (issue-6aa8). Nothing else writes these two files for you; the SDD
+   skill's `sdd-workspace` writes its own ignore file in its own workspace on
+   every run, and that is no longer your concern.
 3. If `.tanto/roster.md` is absent, this is the bootstrap: create it
    from `templates/roster.md` with your row first — its Transcript column
    your own transcript path, since you send no handshake — and a Residency
