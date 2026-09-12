@@ -67,9 +67,14 @@ from PowerShell or `cmd`.
 
 ### Models
 
-From `tanto.json`. The personal file at `$CLAUDE_CONFIG_DIR/tanto.json` sets
-only `sessions.sekkei = "opus"` for this topic's plan stage; every `subagents`
-key is a built-in default.
+From `tanto.json`, and from its `subagents` keys alone. **Every `subagents` key
+this run uses is a built-in default**; nothing in the personal file at
+`$CLAUDE_CONFIG_DIR/tanto.json` overrides one, so the table below holds for
+every batch. The `sessions.<role>` keys are a different mechanism — advisory,
+checked only by a session's own start sequence and Kanri's handshake — and they
+are the human's to place and remove as a stage needs them. They change during a
+run, and a sentence here naming their current value would be false by the next
+boundary, so this section names none.
 
 | Dispatch | Model |
 | --- | --- |
