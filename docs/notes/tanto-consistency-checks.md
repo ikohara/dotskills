@@ -708,6 +708,25 @@ changes, not when `tanto` does.
 
 A presence invariant belongs beside this absence check: every inline command in runtime text names an interpreter or is executable. Removing a repo-specific prefix from an invocation is not the same edit as making the command runnable — one fix satisfied the absence check above and still left five commands with no interpreter, because nothing here checks that what remains actually runs.
 
+The allowlist this skill's own layout leaves behind (issue-3f6a, 2026-09-12):
+
+```bash
+grep -rn '\.superpowers/sdd' skills/tanto docs/notes/tanto-consistency-checks.md | grep -vc 'sdd/<plan-basename>/'
+grep -rn 'plan-basename' skills/tanto docs/notes/tanto-consistency-checks.md | grep -vc 'sdd/<plan-basename>/'
+```
+
+Expected: `3` and `1`. The filter drops the SDD skill's own ledger,
+`.superpowers/sdd/<plan-basename>/progress.md`, which any prompt, report or
+brief may name; what survives the filter is the skill's `README.md` bullet on
+what `sdd-workspace` owns, `SKILL.md`'s sentence on the one artifact tanto
+reads there, and this note's own prose about the two untracked trees. A rise
+in either number is a new spelling of the layout tanto retired — read the
+lines, not the count, to see where.
+
+This subsection is inside its own sweep, so every line of it that names either
+needle also carries `sdd/<plan-basename>/` and is filtered out. A standing
+check written into the file it checks must not move its own numbers.
+
 ## 8. The frontmatter and the JSON parse
 
 ```bash
