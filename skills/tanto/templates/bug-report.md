@@ -1,16 +1,21 @@
 # Bug report — <the symptom in one line, in the reporter's words>
 
-Written from the tanto skill's `templates/bug-report.md` by whoever noticed the
-defect, saved anywhere untracked under the reporter's own repository's
-`.superpowers/sdd/` (whose `.gitignore` holds `*`; create it if absent), and
-sent to the intake as one line,
-`bug-report: <absolute path>`. The intake Kanri copies it to
-`.superpowers/sdd/inbox/<YYYY-MM-DD>-<slug>.md` and fills Triage in the copy.
+Written from the tanto skill's `templates/bug-report.md` by whoever noticed
+the defect, saved anywhere untracked under the reporter's own repository's
+`.tanto/` (whose `.gitignore` holds `*` and whose `.markdownlint-cli2.yaml`
+holds `config:` / `default: false`; create both if absent), and sent to the
+intake as one line, `bug-report: <absolute path>`, the intake's bare name —
+the `<name>` before the bracket of the `Name [ref]` column — read from the
+first data row of the target workspace's `.tanto/roster.md` and checked
+against `ListAgents`, or given by the human when that roster is absent or
+the name is not listed. The intake Kanri copies it to
+`.tanto/inbox/<YYYY-MM-DD>-<slug>.md` and fills Triage in the copy.
 
 ## Send to
 
-<The intake's bare name, as the human gave it. Leave it blank if the report was
-never sent, so the file still says where it was meant to go.>
+<The intake's bare name, as read from the target roster's first data row, or
+as the human gave it. Leave it blank if the report was never sent, so the
+file still says where it was meant to go.>
 
 ## Symptom
 

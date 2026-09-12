@@ -1,6 +1,6 @@
 # Kaiseki brief <n> — task <N>
 
-Written by Kanri at `.superpowers/sdd/<plan-basename>/kaiseki-<n>-brief.md`.
+Written by Kanri at `.tanto/<topic>/kaiseki-<n>-brief.md`.
 Read it first, then start.
 
 ## Symptom
@@ -18,7 +18,7 @@ Read it first, then start.
 ## Task
 
 - Task number — <N>
-- Batch report — <.superpowers/sdd/<plan-basename>/batch-<X>-report.md>
+- Batch report — <.tanto/<topic>/batch-<X>-report.md>
 - SDD ledger — <.superpowers/sdd/<plan-basename>/progress.md>
 - WIP commit — <the subject of the commit holding the failing state>
 - Branch — <branch>
@@ -35,6 +35,6 @@ Kanri first.>
 
 ## Report
 
-Write `.superpowers/sdd/<plan-basename>/kaiseki-<n>.md` from the tanto
-skill's `templates/kaiseki-report.md`, then send `<kanri-address>` one line
-with its path.
+Write `.tanto/<topic>/kaiseki-<n>.md` from the tanto skill's
+`templates/kaiseki-report.md`, then send `<kanri-address>` one line with its
+path.

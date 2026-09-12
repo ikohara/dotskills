@@ -1,6 +1,6 @@
 # tanto roster archive
 
-Kept by Kanri at `.superpowers/sdd/roster-archive.md`, next to the roster.
+Kept by Kanri at `.tanto/roster-archive.md`, next to the roster.
 Kanri is the only writer, and writes it at a plan close: the roster rows whose
 status is `dead`, `replaced`, or `refused`, each with its last Residency
 reading, and the closed plan's Events lines move here, so that the roster

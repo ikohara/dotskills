@@ -1,9 +1,8 @@
-# Conductor ledger — <topic, then the plan basename after the move>
+# Conductor ledger — <topic>
 
 Kept by Kanri. Sekkei, Jisso, and Kaiseki read it; none of them writes it.
-Lives at `.superpowers/sdd/<topic>/kanri.md` until the plan is committed, then
-moves to `.superpowers/sdd/<plan-basename>/kanri.md` next to Jisso's own
-`progress.md`. The move is recorded in the roster's Events list.
+Lives at `.tanto/<topic>/kanri.md` from the topic's opening to the plan's
+close, and never moves.
 
 ## Progress
 
@@ -12,10 +11,10 @@ being waited on, "handover written", or "closed">
 
 ## Plan
 
-- Spec — <path under docs/superpowers/specs/, or "not yet written">
-- Plan — <path under docs/superpowers/plans/, or "not yet written">
+- Spec — <the spec's path, or "not yet written">
+- Plan — <the plan's path, or "not yet written">
 - Branch — <branch name, cut from main by Sekkei>
-- Topic directory — <.superpowers/sdd/<topic>/, kept after the ledger moves>
+- Topic directory — <.tanto/<topic>/>
 - SDD ledger — <.superpowers/sdd/<plan-basename>/progress.md, written by Jisso>
 - Hotfixes since the previous plan — <the hotfix lines copied from the roster's
   Events since the previous plan closed, one per line, or "none">

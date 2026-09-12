@@ -1,8 +1,8 @@
 # Review brief — <spec or plan> — <topic>
 
 Written by the brief writer Kanri dispatches, at
-`.superpowers/sdd/<topic>/review-brief-spec.md` or `review-brief-plan.md`,
-next to the review reports and untracked under `.superpowers/sdd/.gitignore`.
+`.tanto/<topic>/review-brief-spec.md` or `review-brief-plan.md`, next to the
+review reports and untracked under `.tanto/.gitignore`.
 Every part of the brief is written in the chat's language, which the dispatch
 names, the headings included; this template is the English source the writer
 renders. The form markers are the exception and stay exactly as they are

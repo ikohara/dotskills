@@ -1,6 +1,6 @@
 # Batch <X> report — tasks <N> to <M>
 
-- Plan — <path under docs/superpowers/plans/>
+- Plan — <the plan's path>
 - Plan commit — <the plan commit's subject line>
 - Branch — <branch>, base <base commit subject>, head <head commit subject>
 - SDD ledger — <.superpowers/sdd/<plan-basename>/progress.md>

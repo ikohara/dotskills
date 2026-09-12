@@ -1,6 +1,6 @@
 # tanto roster
 
-Kept by Kanri at `.superpowers/sdd/roster.md`. Kanri is the only writer.
+Kept by Kanri at `.tanto/roster.md`. Kanri is the only writer.
 
 ## Keeping rule
 
@@ -72,9 +72,9 @@ At a plan close the closed plan's lines move to `roster-archive.md`, so this
 list holds the current run.
 
 - <YYYY-MM-DD HH:MM> — <one line: a handshake accepted, or refused and why; a
-  session declared dead and what was verified; the conductor ledger moved from
-  .superpowers/sdd/<topic>/ to .superpowers/sdd/<plan-basename>/; a VS Code
-  restart and which roles were recreated; resumed: <old name> → <new name>;
+  session declared dead and what was verified; the plan landed and the SDD
+  ledger's path recorded; a VS Code restart and which roles were recreated;
+  resumed: <old name> → <new name>;
   a handover written by <name> [<ref>];
   a handover accepted by <name> [<ref>] from <name> [<ref>]; an exit shoroku
   committed by <name> [<ref>], or not run and what was lost; a bug report

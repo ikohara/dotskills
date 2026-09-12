@@ -1,9 +1,9 @@
 # tanto Kanri handover
 
-Written by the outgoing Kanri at `.superpowers/sdd/kanri-handover.md`, next to
-the roster and untracked under `.superpowers/sdd/.gitignore`. The successor
-reads it, acts on it, and deletes it. Everything not listed below is a pointer
-to the roster and the ledgers, never a copy.
+Written by the outgoing Kanri at `.tanto/kanri-handover.md`, next to the
+roster and untracked under `.tanto/.gitignore`. The successor reads it, acts
+on it, and deletes it. Everything not listed below is a pointer to the roster
+and the ledgers, never a copy.
 
 ## Why
 
@@ -12,7 +12,7 @@ to the roster and the ledgers, never a copy.
 ## In flight
 
 - Plan — <the plan basename, or "none">
-- Ledger — <.superpowers/sdd/<plan-basename>/kanri.md, or "none">
+- Ledger — <.tanto/<topic>/kanri.md, or "none">
 - Batch state — <"batch <X> accepted, batch <Y> prompt not sent", or "between
   plans, last plan closed <YYYY-MM-DD>">
 - Agents of this session still running — <label and what it was to deliver,

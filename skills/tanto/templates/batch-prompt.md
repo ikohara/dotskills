@@ -1,8 +1,8 @@
 # Batch <X> — tasks <N> to <M>
 
-Guard — this prompt belongs to the tanto workspace
-`.superpowers/sdd/<plan-basename>/` in `<repo path>` on branch `<branch>`. If
-that is not your workspace, reply `not me` to `<kanri-address>` and stop.
+Guard — this prompt belongs to the tanto workspace `.tanto/<topic>/` in
+`<repo path>` on branch `<branch>`. If that is not your workspace, reply
+`not me` to `<kanri-address>` and stop.
 
 ## Previous batch verdict
 
@@ -17,10 +17,10 @@ where they are, anything the previous batch parked that these tasks touch.>
 
 ## Setup on resume
 
-- Plan — <path under docs/superpowers/plans/>
-- Spec — <path under docs/superpowers/specs/>
+- Plan — <the plan's path>
+- Spec — <the spec's path>
 - SDD ledger — <.superpowers/sdd/<plan-basename>/progress.md>
-- Conductor ledger, read only — <.superpowers/sdd/<plan-basename>/kanri.md>
+- Conductor ledger, read only — <.tanto/<topic>/kanri.md>
 - Kanri — <name> [<ref>]
 - Branch — <branch>, base is the commit with subject <commit subject>
 - <Only after a replacement: "resume batch <X> from task <N>". Otherwise drop
@@ -47,7 +47,7 @@ boundary, write the report and go idle.
 
 ## Report
 
-Write `.superpowers/sdd/<plan-basename>/batch-<X>-report.md` from the tanto
-skill's `templates/batch-report.md`, then send `<kanri-address>` one line with
-its path. Kanri reads these sections first, in this order — For Kanri, Rulings,
+Write `.tanto/<topic>/batch-<X>-report.md` from the tanto skill's
+`templates/batch-report.md`, then send `<kanri-address>` one line with its
+path. Kanri reads these sections first, in this order — For Kanri, Rulings,
 Questions for the human, Deviations from the plan.
