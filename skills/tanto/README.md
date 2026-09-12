@@ -46,8 +46,11 @@ one implementation plan.
   application, and the first-party skills assume `node` the same way.
 - **The superpowers plugin**, for brainstorming, writing-plans,
   subagent-driven-development, systematic-debugging, and
-  requesting-code-review. Sekkei and Jisso invoke them directly, and the SDD
-  skill's `sdd-workspace` script owns `.superpowers/sdd/`.
+  requesting-code-review. Sekkei and Jisso invoke them directly. The SDD
+  skill's `sdd-workspace` script owns `.superpowers/sdd/`; tanto's own state
+  lives under `.tanto/`, which it ignores and lint-silences itself, and the
+  spec and the plan are wherever Kanri's orders line says, by default the
+  superpowers convention.
 - **A `kisou`-style `docs/` system** in the target repo, for the `shoroku`
   write-out at T0, T1, and T2. Without `docs/AGENTS.md` the adopted candidates
   have nowhere to land.

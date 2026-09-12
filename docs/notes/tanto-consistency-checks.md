@@ -361,10 +361,11 @@ hopeful one.
 
 **Two traps of this host.** Set `PYTHONIOENCODING=utf-8` for any Python that
 prints a plan's text: the default here is cp932 and a single em dash kills a
-measurement script mid-run. And the SDD workspace under `.superpowers/sdd/` is
-**untracked** — its `.gitignore` is `*`, nothing under it has ever been
-committed — so the repository's "no commit hashes, no user-specific paths in
-tracked content" rule does not bind a report or a ledger there. Two reviewers
+measurement script mid-run. And the SDD workspace under `.superpowers/sdd/`
+and tanto's own under `.tanto/` are **untracked** — each carries a
+`.gitignore` of `*`, nothing under either has ever been committed — so the
+repository's "no commit hashes, no user-specific paths in tracked content"
+rule does not bind a report or a ledger there. Two reviewers
 independently read it the other way. The rule binds what a shoroku write-out
 **lifts out of** that workspace into `docs/`, which is the check worth making.
 
@@ -757,8 +758,10 @@ heredoc plus a pipeline — with `unexpected EOF while looking for matching
 '''`, whatever the content; write the same commands to a script file with the
 Write tool and run it by path. Recursive deletion is denied to the session, so
 a dry run takes a fresh scratch directory per run rather than clearing one.
-And the editor's markdownlint reports on files under `.superpowers/` — a plan
-draft, a brief — are advisory: the commit path ignores that directory.
+And the editor's markdownlint reports on files under `.superpowers/` are
+advisory: the commit path ignores that directory, and `.tanto/`, where a
+brief or a draft now lives, carries its own configuration that turns every
+rule off.
 
 Trailing whitespace and the final newline are the two things markdownlint
 does not check and the hooks fix silently:
