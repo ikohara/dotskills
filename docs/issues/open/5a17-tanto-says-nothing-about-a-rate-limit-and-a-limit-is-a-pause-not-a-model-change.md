@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-12
 ---
 
 tanto's model selection is configuration, checked at the edges: `tanto.json`'s
@@ -89,3 +89,16 @@ What the skill needs, beside the pause rule above:
 
 Measured twice on 2026-09-11 (kisou-refresh ledger R-17, R-37, R-38;
 tanto-workspace R-6, R-7).
+
+**The weekly case, 2026-09-12** (from the tanto-workspace spec Sekkei's exit
+shoroku). The opus limit that stopped the spec reviewer named a reset two
+days out, so the pause it imposed was longer than the plan stage it fell in:
+a rule that says "pause" has to allow that the pause outlives the run, and
+the role holding it idles with its work in hand (here the gated draft) rather
+than finishing by another route. The remedy that ended the pause was the
+human raising the quota — a purchase, outside anything the skill can describe
+or detect — and the resume was Kanri's one trivial probe of the family
+followed by the identical dispatch on the identical model, which ran to
+completion (tanto-workspace R-6, R-7). So the rule's three parts hold for a
+weekly limit as for a per-minute one, with one addition: the pause has no
+upper bound the skill can state, and only the human's word ends it.

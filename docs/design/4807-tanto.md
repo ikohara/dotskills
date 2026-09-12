@@ -2,7 +2,7 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-09-10
+updated: 2026-09-12
 ---
 
 ## Purpose and shape
@@ -410,7 +410,13 @@ The side channel runs the other way too, through a file rather than a message:
 the spec dialogue happens in Sekkei's window under a standing grant, and its
 words reach Kanri through `dialogue.md`, not through Sekkei's summary of them.
 That is what lets Kanri's T1 reading be mechanical and what gives the brief
-writer the human's own answers to select from.
+writer the human's own answers to select from. One step of Sekkei's own
+belongs between the last design section and the spec: sweep every settled
+option for a "when" or "who" that rode inside the option text unexamined —
+in the tanto-workspace dialogue of 2026-09-11 the answer "move live state
+only" carried "at the close" inside it, accepted with the option, and only
+when set beside the boundary answer did the gap show and need a question of
+its own.
 
 Sekkei may write under its two directories at any time, which is what lets it
 draft the next plan while the current one's batches run, but it **commits** only
@@ -575,8 +581,12 @@ pre-read the design rejects and would contaminate the cold read. A failing form
 is dispatched once more; a second failure is sent as it stands with one line to
 the human. Kanri never edits the brief, and answers Sekkei `brief: <path>`. A
 point that misreads the document is caught by the human's answer or by Kanri's
-cold read after the commit. decision-ace0 holds the reasoning and the
-alternatives that were rejected.
+cold read after the commit. The one-line-per-point shape also catches a wrong
+claim that a multi-bullet design section's `OK` passes: on 2026-09-11 an
+assertion inherited from an issue body reached the gate unchecked inside a
+section the human had accepted whole, and the brief's own decide point on it
+drew the correction. decision-ace0 holds the reasoning and the alternatives
+that were rejected.
 
 ## The batch contracts
 
@@ -939,7 +949,12 @@ rather than whole files.
   session** with the question "which of your obligations does this touch",
   before the spec review rather than instead of it. The role checks the clause
   it is asked about and does not re-derive the rule against its own lifecycle
-  obligations, so the review still has to run.
+  obligations, so the review still has to run. Measured yield on 2026-09-11
+  (tanto-workspace): four additions from Kanri's reading of its own passages,
+  and three passages Jisso found in its role file that the spec had missed —
+  in a file with zero spellings of the path being changed, because the
+  entity, "the workspace", was named by no path at all (issue-10bc's lesson
+  in a new form).
 - **A plan that edits the note governing its own verification licenses its own
   omission.** Legitimate when the spec ratified it at plan review and the
   pre-edit baseline skipped the same check for the same reason — and a pattern
