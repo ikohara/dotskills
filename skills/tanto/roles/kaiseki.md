@@ -23,15 +23,22 @@ carries the brief path, or `no brief, stop`.
 
 **Standalone.** `/tanto kaiseki` with no address — no roster, no handshake, no
 batch loop. Ask the human for the symptom and the reproduction, and write your
-report to `.superpowers/sdd/kaiseki/kaiseki-<n>.md`, creating that directory if
-it is absent, and `.superpowers/sdd/.gitignore` holding `*` if that is absent
-too, so the report stays untracked. Everything else below is the same, with two
-additions. Before the
-human closes the session, run `shoroku` in its ordinary session mode, with the
-human answering `Direction?`, and commit once — there is no Kanri to rule for
-you. And when the human asks for a defect to be reported to another repository,
-write the report from `templates/bug-report.md` and send it to the address the
-human gives, or leave it as a file for the human.
+report to `.tanto/kaiseki/kaiseki-<n>.md`, creating that directory if it is
+absent, and, if they are absent too, `.tanto/.gitignore` holding `*` and
+`.tanto/.markdownlint-cli2.yaml` holding the two lines `config:` and
+`default: false`, the second indented two spaces, so
+the report stays untracked and unflagged. Everything else below is the same,
+with two additions. Before the human closes the session, run `shoroku` in its
+ordinary session mode, with the human answering `Direction?`, and commit once —
+there is no Kanri to rule for you. And when the human asks for a defect to be
+reported to another repository, write the report from
+`templates/bug-report.md`, read the intake's bare name — the `<name>` before
+the bracket of the `Name [ref]` column — from the first data row of that
+repository's `.tanto/roster.md`, the human giving you the workspace's path,
+check the name against `ListAgents`, and send `bug-report: <absolute path>`
+to it; when that roster is absent or the name is not listed, ask the human
+for the address, and a report you still cannot send stays a file the human
+carries.
 
 ## The run
 
@@ -65,7 +72,7 @@ Attached, your exit is `SKILL.md`'s "Session exit" applied to you. Your
 candidates are this case's **Shoroku candidates** section plus every "Other
 defects observed" item tagged `blocks this task: no`. On Kanri's
 `exit: propose your shoroku; write it to <path>`, write them to
-`.superpowers/sdd/<plan-basename>/exit-kaiseki-<n>-proposal.md`; on its
+`.tanto/<topic>/exit-kaiseki-<n>-proposal.md`; on its
 `exit: direction at <path>`, apply the accepted subset under `docs/` per
 `docs/AGENTS.md`, lint, commit once by explicit path in the slot Kanri gives
 you, and answer `exit write-out committed: <subject> — <reading>` or
@@ -76,7 +83,7 @@ you, and answer `exit write-out committed: <subject> — <reading>` or
 Write `kaiseki-<n>.md` at the path the brief names, from the tanto skill's
 `templates/kaiseki-report.md` — attached, `<n>` is the number in the brief's
 filename; standalone, it is `1`, or one more than the highest `kaiseki-<n>.md`
-already in `.superpowers/sdd/kaiseki/`. Attached, before the line, run the
+already in `.tanto/kaiseki/`. Attached, before the line, run the
 self-check of `SKILL.md`'s Resuming — one `ListAgents`; a name that is not your
 row's means you were resumed, and the handshake goes first; standalone, there
 is no roster and no self-check. Then send Kanri one line with

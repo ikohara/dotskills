@@ -43,9 +43,10 @@ ledger, changed only by "What tanto overrides" below.
 A batch is the task range Kanri's prompt names. Execute those tasks, then
 **stop and idle** — do not start the next task. At the boundary:
 
-1. Write `batch-<X>-report.md` in the workspace from the tanto skill's
-   `templates/batch-report.md`, taking your own reading (`SKILL.md`, "The
-   transcript reading") into its `- Transcript — <reading>` line.
+1. Write `batch-<X>-report.md` in the topic directory, `.tanto/<topic>/`, from
+   the tanto skill's `templates/batch-report.md`, taking your own reading
+   (`SKILL.md`, "The transcript reading") into its `- Transcript — <reading>`
+   line.
 2. Before the line, run the self-check of `SKILL.md`'s Resuming — one
    `ListAgents`; a name that is not your row's means you were resumed, and the
    handshake goes first. Then send Kanri one line with that path.
@@ -211,7 +212,7 @@ text, these win.
 | --- | --- | --- |
 | SDD Setup — work in an isolated worktree | work in this tree on the shared branch | Kanri verifies in place and the human watches; every batch prompt restates it |
 | SDD — continuous execution, stopping only for the four classes | stop at each batch boundary and idle | the boundary is Kanri's ruling and lifecycle checkpoint; every batch prompt restates it |
-| SDD Finish — delete the workspace once the final review is clean | never delete it | it holds the conductor ledger, the reports, and the T2 source; nobody deletes it at the close, and the topic directory beside it stays on the same terms (issue-12d3) |
+| SDD Finish — delete the workspace once the final review is clean | never delete it | it holds the SDD ledger; nobody deletes it at the close, and `.tanto/<topic>/`, which holds the conductor ledger, the reports, and the T2 source, stays on the same terms (issue-12d3) |
 | SDD Finish — collect "Rulings I made" into the final message, then run finishing-a-development-branch | put every ruling in each batch report's Rulings section, and never run finishing-a-development-branch | you talk to Kanri only, reports are read from files, and the merge decision is the human's, put by Kanri |
 | SDD Model Selection — scale the tier per dispatch, final review on the most capable model | use the `tanto.json` kinds, with one `reviewer` key for every review and never the top family | the personal file sets the tiers, and a top-family subagent is what rate-limited a real run |
 | SDD fix loop — five rounds, then the breaker | unchanged, plus the Kaiseki trigger at round 2 with an unknown cause, and again whenever an implementer returns blocked with an unknown cause at any round | root cause before more fixing |
@@ -241,9 +242,10 @@ is split, and Kanri answers `Direction?` through a file.
 
 **Propose.** On Kanri's T2 prompt, run `shoroku` in file mode over the
 conductor ledger, inline in this session, up to the proposal. Write the
-numbered list to `shoroku-proposal.md` in the workspace **instead of printing
-it**, seeded by the conductor ledger's adopted `S-n` rows and extended from
-your own context. Then send Kanri one line with the path, and idle.
+numbered list to `shoroku-proposal.md` in the topic directory,
+`.tanto/<topic>/`, **instead of printing it**, seeded by the conductor
+ledger's adopted `S-n` rows and extended from your own context. Then send
+Kanri one line with the path, and idle.
 
 **Apply.** Kanri answers with the path of `shoroku-direction.md`, which rules
 on every item — accept, reject, or accept with an edit. Apply the accepted
@@ -254,8 +256,9 @@ the direction file did not accept.
 **Your exit** is this same procedure under the exit file names, run at the
 boundary where Kanri replaces you or where the plan ends; at plan end, T2 *is*
 that exit. Kanri sends `exit: propose your shoroku; write it to <path>`, the
-path being `exit-jisso-<X>-proposal.md` in the workspace with `<X>` the batch
-letter, and answers item by item in `exit-jisso-<X>-direction.md` beside it.
+path being `exit-jisso-<X>-proposal.md` in the topic directory,
+`.tanto/<topic>/`, with `<X>` the batch letter, and answers item by item in
+`exit-jisso-<X>-direction.md` beside it.
 Apply, lint, commit once by explicit path in the slot Kanri gives you, and
 answer `exit write-out committed: <subject> — <reading>` or
 `exit write-out: nothing accepted — <reading>`. Any write-out — this one, T2,

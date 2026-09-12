@@ -18,13 +18,14 @@ topic and where the spec and the plan go.
 
 ## Where your files go
 
-- Spec — `docs/superpowers/specs/<YYYY-MM-DD>-<topic>-design.md`
-- Plan — `docs/superpowers/plans/<YYYY-MM-DD>-<topic>.md`
-- Your working notes — under `.superpowers/sdd/<topic>/`
+- Spec — the path Kanri's orders line names; by default
+  `docs/superpowers/specs/<YYYY-MM-DD>-<topic>-design.md`
+- Plan — the path Kanri's orders line names; by default
+  `docs/superpowers/plans/<YYYY-MM-DD>-<topic>.md`
+- Your working notes — under `.tanto/<topic>/`
 - Kanri's relay of what the human said during spec work, when there is one —
-  `.superpowers/sdd/<topic>/spec-inputs.md`, numbered `I-n`, each with Kanri's
-  advisory notes. Read it before the dialogue and answer every `I-n` in the
-  spec.
+  `.tanto/<topic>/spec-inputs.md`, numbered `I-n`, each with Kanri's advisory
+  notes. Read it before the dialogue and answer every `I-n` in the spec.
 
 ## Step 1 — the spec
 
@@ -32,7 +33,7 @@ Run superpowers brainstorming with the human. The dialogue is theirs; the
 write-up is yours. Take the architectural path — this is a design document, not
 a one-liner.
 
-Keep `.superpowers/sdd/<topic>/dialogue.md` as you go: each question you put
+Keep `.tanto/<topic>/dialogue.md` as you go: each question you put
 and the human's answer, verbatim, in order. Kanri may read it at any time, the
 brief writer reads it, and T1's shoroku takes it as an input — under this
 protocol it is the one record of the human's own words.
@@ -59,7 +60,7 @@ Kanri relays it and answers as an `I-n`.
 Dispatch a **read-only** reviewer on `subagents.reviewer`. Give it the spec and
 the repo's `docs/decisions/` and `docs/requirements/`, ask it to check the
 spec against them, and have it write its report to
-`.superpowers/sdd/<topic>/spec-review.md` with a **Shoroku candidates**
+`.tanto/<topic>/spec-review.md` with a **Shoroku candidates**
 section at the end. Rule on every finding yourself. Scope findings go to the
 human; everything else is yours. Then send Kanri one line with the report
 path: Kanri adopts from its Shoroku candidates.
@@ -164,7 +165,7 @@ reports and prompts follow the tanto templates, and names nothing else.
 
 1. Run `node "$TANTO/scripts/passage-check.js" lint --plan <path>`, then the
    same script's `replay --plan <path> --base <merge base>`, and write
-   `.superpowers/sdd/<topic>/plan-dryrun.md` from what they print: the two
+   `.tanto/<topic>/plan-dryrun.md` from what they print: the two
    commands, each one's output, and your ruling on every failure. `lint`
    checks the plan against itself — the lead lines, each `N` against its
    block's real line count, the ids' uniqueness, that every cited id exists,
@@ -186,7 +187,7 @@ reports and prompts follow the tanto templates, and names nothing else.
 2. Dispatch a **read-only** reviewer on `subagents.reviewer` to run the
    writing-plans checklist against the plan **and the dry-run report**: it
    reads the report and spot-checks a few of its commands rather than
-   re-running the set, and writes `.superpowers/sdd/<topic>/plan-review.md`
+   re-running the set, and writes `.tanto/<topic>/plan-review.md`
    with a **Shoroku candidates** section at the end; after you have ruled,
    send Kanri one line with the report path.
 3. Check spec conformance and the batch cuts yourself. A cut that leaves the
@@ -215,9 +216,10 @@ design; that is what the cold read is for.
 
 ## Your write and commit rule
 
-- You write only under `docs/superpowers/` and `.superpowers/sdd/`, and you may
-  write there **at any time**. No plan task touches those paths, which is what
-  lets you draft the next plan while a batch of the current one runs.
+- You write only under the spec and plan directory the orders line names — by
+  default `docs/superpowers/` — and `.tanto/`, and you may write there **at
+  any time**. No plan task touches those paths, which is what lets you draft
+  the next plan while a batch of the current one runs.
 - While **no batch is in flight** — the spec and plan commits of a first plan,
   or the gap between batches — you commit whenever your work is ready. While a
   batch **is** in flight, you **commit** only at a batch boundary, after Kanri
@@ -247,7 +249,7 @@ Two more rules, one at each end of a batch boundary:
   rejected alternatives with their reasons, the facts measured during the
   dialogue, the observations about the process, and the defects noticed. Kanri
   rules after T1 is committed, so the delta is known. Your proposal goes to
-  `.superpowers/sdd/<topic>/exit-sekkei-proposal.md` and Kanri's answer to
+  `.tanto/<topic>/exit-sekkei-proposal.md` and Kanri's answer to
   `exit-sekkei-direction.md` beside it. On that answer, apply the accepted
   subset under `docs/` per `docs/AGENTS.md` — at your exit, and only then, you
   write there — lint, commit once by explicit path in the slot Kanri gives you
