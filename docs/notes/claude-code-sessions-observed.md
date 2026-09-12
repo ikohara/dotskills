@@ -24,6 +24,48 @@ typed before `/tanto`, which the session answers at the cost of one turn, or
 `/rename` before `/tanto`, which the skill's rule 10 leaves to the human. The
 human chose to leave the titles as they are.
 
+## A subagent's effort is its own; its thinking is the session's
+
+Verified against the Claude Code documentation (`sub-agents.md`,
+`model-config.md`, `settings-reference.md`) on 2026-09-12, when the tanto role
+matrix was being redrawn around cost.
+
+- An agent definition (`.claude/agents/*.md`, or the user's `~/.claude/agents/`)
+  has an `effort` frontmatter field — `low`, `medium`, `high`, `xhigh`, `max`,
+  the levels the model accepts — that overrides the session's effort for that
+  subagent. Absent, the subagent inherits the session's effort **whatever
+  `model` the dispatch names**: a `sonnet` translator dispatched from a
+  `fable` session at `xhigh` runs at `xhigh`. So a per-kind effort means a
+  per-kind agent definition; the dispatch's `model` parameter alone cannot
+  set it.
+- There is no per-subagent thinking setting. A subagent inherits the
+  session's thinking configuration; the docs say so in as many words.
+- Fable 5.1 cannot turn thinking off. Opus 5 and Sonnet 5 use adaptive
+  reasoning, so their thinking amount follows the effort level rather than a
+  budget (`MAX_THINKING_TOKENS` fixes a budget only for the 4.6 family). For
+  the Claude 5 family, effort is the one dial.
+- Session-level controls: `/effort <level>` or `effortLevel` in
+  `settings.json` (per model under `modelSettings.<id>.effortLevel`);
+  thinking by `alwaysThinkingEnabled` or the Option+T / Alt+T toggle.
+
+## A branch tip can be amended without a checkout
+
+Used on 2026-09-12, when the human asked for an observation to be dropped
+from the exit-shoroku commit at `main`'s tip while the shared working tree
+was checked out on `tanto-workspace` under the plan Sekkei — a checkout
+would have moved the tree under another role. The whole edit runs on
+objects: a temporary index (`GIT_INDEX_FILE` pointing into the scratchpad),
+`git read-tree <old commit>`, the changed file hashed with `git hash-object
+-w` and placed with `git update-index --cacheinfo`, `git write-tree`,
+`git commit-tree <tree> -p <parent> -F <message>` with the old commit's
+author name, email, and date exported, and `git update-ref refs/heads/main
+<new> <old>` with the old tip as the expected value. Two things the hooks
+would have done are done by hand: the changed file is linted in the
+scratchpad with the pre-commit cache's markdownlint-cli2 and the
+repository's config, and the new blob's line endings are compared with the
+old blob's (`git show <rev>:<path>`, both LF here). A branch that forks below
+the amended commit needs no rebase; one that forks above it does.
+
 ## A session never appears in its own listing
 
 `ListAgents` prints the calling session on its own first line ("This session
