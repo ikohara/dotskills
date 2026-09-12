@@ -1,6 +1,9 @@
 # Design: tanto-cost — the top family bought in one-shots, the resident seats on the cheaper families, and the write-outs done from files
 
-Sekkei `dotskills-a0 [95cfbe]`, 2026-09-13. Written from spec input I-1
+Sekkei `dotskills-a0 [95cfbe]`, 2026-09-13; the file is dated 2026-09-12,
+the day the topic opened and Kanri's orders line fixed the path, as
+issue-3c7a records for a spec whose gate falls on a later day. Written from
+spec input I-1
 (`.tanto/2026-09-12-cost-discussion.md`, the human's cost discussion with
 the previous Kanri, four passes) and from the spec dialogue Q-1 to Q-12
 (`.tanto/tanto-cost/dialogue.md`). Kanri's ruling R-1 in
@@ -19,8 +22,8 @@ the config, the instruments, and the vocabulary that the change needs.
 
 What lands, at a glance:
 
-- seven roles instead of four — Kikaku (企画), Keikaku (計画), and Joshu
-  (助手) join Kanri, Sekkei, Jisso, and Kaiseki — with a model **and an
+- seven roles instead of four — Kikaku (企画), Keikaku (計画), and Hosa
+  (補佐) join Kanri, Sekkei, Jisso, and Kaiseki — with a model **and an
   effort** per role, checked at the handshake and named in every create
   request;
 - twelve subagent kinds named `<object>.<act>`, each with a model and an
@@ -46,23 +49,31 @@ These are settled. Nothing below re-argues them; the plan inherits them
 whole. Each names the dialogue question that settled it and the
 requirement it serves.
 
-1. **The scope is the seven items of R-1 plus Joshu and all three
+1. **The scope is the seven items of R-1 plus Hosa and all three
    instruments of issue-2e52** (Q-1, A): the role matrix with Kanri on
    `sonnet` and Kikaku and Keikaku new; the ADR inverting decision-9a3a;
    the ADR turning the adoption rule into a human-checked recommendation;
    issue-2e52's `sections`, `frame`, and `boundary`; issue-5a17's and
    issue-260c's vocabulary; issue-ac9d; issue-2872; and, riding on the
    matrix, `tanto.json` widened to `{model, effort}` and the agent
-   definitions that carry a kind's effort. One plan rewrites every role
+   definitions that carry a kind's effort. issue-3c7a is taken whole —
+   the split, the two-deep pipeline written down, the draft rule, the
+   re-send rule, and the exit suffix — because I-1 names the split "the
+   core of it" and the matrix has a Keikaku row; Kanri's R-1 wording lists
+   the matrix and not the issue, and the review asked that the widening
+   be said (spec review, scope finding 1). One plan rewrites every role
    file once, so rule 11's boundary is crossed once. Serves req-04f5,
    "Model discipline" and "A session's cost is measured, not guessed".
 
-2. **A role's effort is checked as its model is, warn only** (Q-2, measured):
-   the transcript's `assistant` records carry `"effort"` and
+2. **A role's effort is checked as its model is — twice, warn only** (Q-2,
+   measured): the transcript's `assistant` records carry `"effort"` and
    `"perTurnEffort"`, so a role reads its own effort from the last such
-   record of the file it already takes its reading from, sends it in the
-   handshake as `effort=<level>`, and Kanri compares it with
-   `sessions.<role>.effort`. Nothing switches an effort. Every create
+   record of the file it already takes its reading from, compares it with
+   `sessions.<role>.effort` at `/tanto <role>` in its own start line —
+   Kanri included, which sends no handshake — and sends it in the
+   handshake as `effort=<level>` for Kanri's second check, as
+   decision-08bc has the model checked at both points. Nothing switches an
+   effort. Every create
    request names `/model` and `/effort` before `/tanto`, because the human
    forgets the effort more often than the model. Serves req-04f5, "Model
    discipline".
@@ -130,22 +141,25 @@ requirement it serves.
    issue-5a17 measured. Resolves issue-260c and issue-5a17's vocabulary
    half.
 
-9. **Kikaku and Joshu are seats outside the lifecycle** (Q-6, seven
+9. **Kikaku and Hosa are seats outside the lifecycle** (Q-6, seven
    points confirmed): each has a roster row and a role file, is opened by
    the human and never requested by Kanri, has no exit shoroku, and is
    `/clear`ed by the human; Kanri reminds the human to `/clear` a Kikaku
-   or Joshu, or to delete a Kaiseki after its exit shoroku, in its next
+   or Hosa, or to delete a Kaiseki after its exit shoroku, in its next
    line whenever such a session has reported and gone idle. Kikaku's
    output is `.tanto/kikaku/<YYYY-MM-DD>-<slug>.md` and one line
-   `decision: <path>`; Joshu edits tracked files only in a slot Kanri
+   `decision: <path>`; Hosa edits tracked files only in a slot Kanri
    gives. Serves req-04f5, "The human is interrupted only at defined
    checkpoints" — the human asked for the reminder — and "Kanri is
    resident, but its context cost does not grow with its tenure".
 
-10. **The chores seat is 助手 Joshu** (Q-7, after 庶務 was chosen and then
-    revised): "a place to hand small jobs you can forget right away". It
-    takes the human's ad-hoc small work and Kanri's issue filings and note
-    updates when it is live. The shoroku write-outs are not its work
+10. **The chores seat is 補佐 Hosa** (Q-7, where 庶務 shomu was chosen over
+    書記, 司書, 総務, 助手, and 保守; then revised by the human to 助手 joshu
+    and, after the spec commit, to 補佐 hosa): "a place to hand small jobs
+    you can forget right away". It takes the human's ad-hoc small work and
+    Kanri's issue filings and note updates when it is live; the hotfix
+    lane's edits it makes only as Kanri's hand, in Kanri's slot, under
+    Kanri's ruling (section 2.4). The shoroku write-outs are not its work
     (input 13).
 
 11. **Keikaku owns the plan; the boundary is the spec review accepted;
@@ -216,7 +230,7 @@ requirement it serves.
 
 18. **Rule 9 counts top-family sessions and exempts Kikaku as
     human-paced** (Q-6, point 7): Sekkei pauses while Kaiseki is active,
-    as today; Keikaku and Joshu on the cheaper families do not count; the
+    as today; Keikaku and Hosa on the cheaper families do not count; the
     human does not talk to Kikaku while Sekkei and Kaiseki are both
     active, until issue-9a68 measures otherwise.
 
@@ -235,6 +249,16 @@ requirement it serves.
     role text on disk, until the boundary the plan names — expected to be
     the final boundary, since every file of the skill changes.
 
+21. **This run's plan is written by this Sekkei, and Keikaku begins with the
+    next topic** (spec review, finding 4 and scope finding 2; the human
+    decides at the review): the skill on disk has no `keikaku` id, and
+    rule 11 forbids creating a further role before the plan's boundary,
+    which is the final one. So this Sekkei runs today's Step 3 and Step 4
+    and the handoff, and this run's Kanri dispatches the brief and rules
+    on the exits as today. The alternative — relaxing rule 11's boundary
+    for one role — was not taken: a session started on a half-edited skill
+    is the failure rule 11 exists for.
+
 ## 1. The role matrix
 
 ### 1.1 Sessions
@@ -251,14 +275,16 @@ or `effortLevel`; the create request says which.
 | Keikaku (計画) | sonnet | high | the plan; `lint` and `replay` catch the mechanics, the `fable` review the contracts |
 | Jisso (実装) | sonnet | xhigh | the SDD orchestration and the fix-round decisions; the first measurement (I-1, third pass, Q1) |
 | Kaiseki (解析) | fable | xhigh | on demand, short-lived |
-| Joshu (助手) | sonnet | medium | the human's small chores and Kanri's filings |
+| Hosa (補佐) | sonnet | medium | the human's small chores and Kanri's filings |
 
 ### 1.2 Subagents
 
 One-shot and effective: the `model` goes into every dispatch, the `effort`
 into the agent definition the roles generate (section 3.3). Kinds are
-`<object>.<act>`, English, never equal to a skill name except the one key
-that is one on purpose.
+`<object>.<act>`, English, with two single-word exceptions: `default`, the
+kind every role falls back to, and `shoroku`, the one key that is a skill
+name on purpose; their files are `tanto-default.md` and
+`tanto-shoroku.md`.
 
 | Kind | Model | Effort | Dispatcher | Definition file |
 | --- | --- | --- | --- | --- |
@@ -273,7 +299,7 @@ that is one on purpose.
 | `branch.review` | fable | high | Kanri, the whole-branch review | `tanto-branch-review.md` |
 | `brief.write` | fable | high | the document's author — Sekkei for the spec, Keikaku for the plan | `tanto-brief-write.md` |
 | `shoroku` | opus | medium | Kanri, the recommend and the apply halves | `tanto-shoroku.md` |
-| `default` | sonnet | medium | every role — Kaiseki's exploration, Joshu's one-offs, anything else | `tanto-default.md` |
+| `default` | sonnet | medium | every role — Kaiseki's exploration, Hosa's one-offs, anything else | `tanto-default.md` |
 
 `shoroku` is a skill-name key in the sense decision-9a3a defined and nothing
 used until now: "run that skill in a subagent on that model". It moves from
@@ -284,9 +310,12 @@ it.
 
 Under 1.2 the top family runs in: the cold read, the plan review (one or
 two), the spec brief and the plan brief, and the whole-branch review — five
-to seven per plan, each reading once. The recommender runs two to four
-times per plan on `opus`. That count, against the five-hour Fable limit, is
-the number the first measured run watches (section 8.4).
+to six per plan, each reading once. The `shoroku` kind runs twice per
+stage — recommend and apply — at T1, T2, and every exit (Sekkei, Keikaku,
+Jisso, Kanri, a Kaiseki when there is one), so ten to fourteen dispatches
+per plan on `opus`, plus T0's two on `main`. Both counts are counted as
+dispatches by kind, not as stages (section 8.4), and the Fable count
+against the five-hour limit is the number the first measured run watches.
 
 ### 1.4 The second measurement
 
@@ -313,7 +342,7 @@ discussion like I-1 belongs, instead of Kanri's window.
 - **Work.** Brainstorm with the human, superpowers style, on whatever the
   human brings. Kikaku reads the repository, `docs/`, and `.tanto/`; it
   writes only under `.tanto/kikaku/`, never under `docs/`, and never
-  messages Sekkei, Keikaku, Jisso, Kaiseki, or Joshu.
+  messages Sekkei, Keikaku, Jisso, Kaiseki, or Hosa.
 - **Output.** When something is decided, write
   `.tanto/kikaku/<YYYY-MM-DD>-<slug>.md` from `templates/kikaku-decision.md`
   — sections: The human's words, verbatim; What was decided; What Kanri
@@ -377,40 +406,45 @@ the boundary reply's plan half.
   spec brief are in `dialogue.md` and the edits they asked for are
   committed or in the draft. Sekkei sends Kanri
   `spec accepted: <spec path> — <reading>`; Kanri sends `exit:`.
-- **Exit.** `exit-sekkei`, no suffix. The proposal's first line says what
-  it excludes (the spec, the spec review, and T1); the items are the
-  dialogue's rejected alternatives, the facts measured, the observations,
-  and the defects noticed. Once the proposal is on disk, Kanri asks the
-  human to delete the session (section 5.3).
+- **Exit.** `exit-sekkei`, no suffix. T1 has not run when Sekkei exits, so
+  the proposal's first line says what it excludes — the spec, the spec
+  review, and the dialogue, which T1 reads for itself — and the items are
+  the dialogue's rejected alternatives, the facts measured, the
+  observations, and the defects noticed. Once the proposal is on disk and
+  its recommendation written, Kanri asks the human to delete the session
+  (section 5.3).
 
-### 2.4 Joshu (助手)
+### 2.4 Hosa (補佐)
 
 A place to hand small jobs you can forget right away.
 
-- **Start.** `/tanto joshu [<address>]`; with no address it reads the
+- **Start.** `/tanto hosa [<address>]`; with no address it reads the
   roster's first data row. Model check, handshake; Kanri answers with its
   address and one line, "tracked files only in a slot I give". Kanri never
-  requests a Joshu.
-- **Whose work.** The human's, handed directly in Joshu's window under a
-  standing grant named in Kanri's answer — Joshu sends Kanri
+  requests a Hosa.
+- **Whose work.** The human's, handed directly in Hosa's window under a
+  standing grant named in Kanri's answer — Hosa sends Kanri
   `chore: <one line>` when it takes one, so that Kanri knows what is in
   hand without a `human-contact:` for each; and Kanri's, sent as
   `chore: <what> — <paths> — slot: now | at the next boundary` — the issue
-  filings of the bug intake, note updates, the hotfix lane's edits when
-  Kanri prefers not to hold them. When no Joshu is live, Kanri does its own
-  chores as today.
+  filings of the bug intake, note updates, and the hotfix lane's edits
+  when Kanri prefers not to hold them — for those, Hosa is Kanri's hand:
+  the lane's conditions, the ruling `R-n`, and the commit subject stay
+  Kanri's, and decision-2f36's "one role that edits source outside a plan"
+  reads as one ruling with one hand (the fourth ADR amends that clause).
+  When no Hosa is live, Kanri does its own chores as today.
 - **The slot.** Untracked work and `.tanto/` any time. A tracked edit
-  waits: Joshu sends `slot-needed: <what> — <paths>` and idles; Kanri
+  waits: Hosa sends `slot-needed: <what> — <paths>` and idles; Kanri
   answers `slot: now — commit and report` or `slot: at the next boundary`
   under the hotfix lane's rule — between batches or between plans, never on
-  a file the in-flight plan lists. Joshu commits once by explicit path
+  a file the in-flight plan lists. Hosa commits once by explicit path
   with the trailer and answers `committed <subject> — <reading>`. Kanri
   verifies the diff as for any commit.
-- **Not Joshu's.** The shoroku write-outs (section 5). Joshu never writes
+- **Not Hosa's.** The shoroku write-outs (section 5). Hosa never writes
   a recommendation, a direction, or an `S-n` row.
 - **Lifecycle.** A roster row, no topic; no create, delete, replace, or
   exit shoroku; `/clear`ed by the human, re-handshakes as new, the old row
-  `cleared`. Joshu is on `sonnet` and does not count under rule 9.
+  `cleared`. Hosa is on `sonnet` and does not count under rule 9.
 
 ### 2.5 Kaiseki (解析), unchanged except its exit and its dispatch key
 
@@ -433,7 +467,7 @@ always counted.
     "keikaku": { "model": "sonnet", "effort": "high" },
     "jisso": { "model": "sonnet", "effort": "xhigh" },
     "kaiseki": { "model": "fable", "effort": "xhigh" },
-    "joshu": { "model": "sonnet", "effort": "medium" }
+    "hosa": { "model": "sonnet", "effort": "medium" }
   },
   "subagents": {
     "task.implement": { "model": "sonnet", "effort": "high" },
@@ -513,7 +547,12 @@ during a session is not visible to that session (Fixed input 6); whether a
 new session sees a file written moments before it starts is expected from
 the harness's documentation and not yet measured; whether `perTurnEffort` or
 `effort` is the field that follows a `/effort` change is not yet measured,
-and the handshake reads `perTurnEffort` with `effort` as the fallback.
+and the handshake reads `perTurnEffort` with `effort` as the fallback; and
+whether a definition's `effort:` key is honored by a dispatch is documented
+(I-1, second pass, from `sub-agents.md`) and not yet measured here — the
+dogfood dispatches one probe on a definition with `effort: low` and reads
+the effort field of that subagent's own transcript, so that the effort half
+of this design is a measurement and not an assertion.
 
 ## 4. The handshake, the roster, and the create request
 
@@ -525,21 +564,29 @@ handshake role=<role> name=<name [ref]> cwd=<path> model=<model id> effort=<leve
 
 `effort=` is read from the transcript: the last record of `type`
 `assistant`, its `perTurnEffort` field, or its `effort` field when the
-first is absent; `unknown` when the transcript is unavailable. Kanri's
-check 1 compares `model=` with `sessions.<role>.model` and `effort=` with
-`sessions.<role>.effort`; a mismatch of either is reported to the human in
-one line and the handshake still gets its row when only the effort differs
-— the effort is the human's to change with `/effort` in that window, and
-the roster records what runs. A model mismatch is refused as today.
+first is absent; `unknown` when the transcript is unavailable. The same
+read is the effort half of the start sequence's model check, in every
+role's own start line, Kanri's included. Kanri's check 1 compares `model=`
+with `sessions.<role>.model` and `effort=` with `sessions.<role>.effort`; a
+mismatch of either is reported to the human in one line and the handshake
+still gets its row when only the effort differs — the effort is the
+human's to change with `/effort` in that window, and the roster records
+what runs. A model mismatch is refused as today.
 
 ### 4.2 The roster
 
 Columns: Role, Topic, Name `[ref]`, cwd, Model, Effort, Branch, Mode,
 Started, Status, Transcript. Topic is the topic word Kanri's orders line
-gave that session, or `—` for Kanri, Kikaku, Joshu, and a standalone
-Kaiseki. Status gains `cleared` for a Kikaku or Joshu row replaced by a
-re-handshake after `/clear`. The keeping rule "one live session per role"
-becomes "one live session per role and topic; Kanri, Kikaku, and Joshu one
+gave that session, or `—` for Kanri, Kikaku, Hosa, and a standalone
+Kaiseki. Status gains `cleared` for a Kikaku or Hosa row replaced by a
+re-handshake after `/clear`: a handshake whose `transcript=` matches no row
+and whose role is Kikaku or Hosa writes a new row and marks the old one
+`cleared`, and a handshake whose name is already in the roster with a
+different transcript is read the same way — I-1 says `/clear` starts a new
+transcript, and whether it also changes the name is a dogfood measurement
+(Deferred items), so the rule keys on the transcript, which the skill
+already treats as the identity. The keeping rule "one live session per role"
+becomes "one live session per role and topic; Kanri, Kikaku, and Hosa one
 each". The Residency table gains the Topic column too, since two Sekkei
 rows may be live. The Events list gains `cleared: <old name> → <new name>`
 and `decision: <path> received from <name>`.
@@ -557,19 +604,22 @@ carries the model and the effort before the command, in this order:
 5. /tanto <role> <name>
 ```
 
+Line 5 carries after the command what the Create table's third column
+names for that role — the plan path and the branch for Jisso, the topic for
+Sekkei, the topic and the spec path for Keikaku — as today's requests do.
 The Create table gains two rows and loses none: "the spec review is
 accepted → create Keikaku, `/tanto keikaku <name>`, the topic, the spec
-path"; and a row saying that Kikaku and Joshu are opened by the human and
+path"; and a row saying that Kikaku and Hosa are opened by the human and
 never requested. The Sekkei row's "or no plan is in flight" widens to "or
 every open topic has passed its spec stage", so that a second topic's
 Sekkei may be created while the first is in its plan stage or its batches.
 
 ### 4.4 The reminder
 
-Whenever a Kikaku, Joshu, or Kaiseki row is `live` and that session has
+Whenever a Kikaku, Hosa, or Kaiseki row is `live` and that session has
 reported to Kanri and gone idle, Kanri's next line to the human — a
 boundary report, a create or delete request, any line — ends with
-`— /clear <name>'s window` for Kikaku and Joshu, or
+`— /clear <name>'s window` for Kikaku and Hosa, or
 `— delete <name> after its exit shoroku` for Kaiseki. Kanri writes
 `idle since <HH:MM>` in that row's Status so that the reminder is not
 forgotten across a wake-up; the human asked for it explicitly (I-1, fourth
@@ -580,24 +630,35 @@ pass).
 One flow at every stage — T0, T1, T2, and every exit — in four steps. The
 stage word is `t0`, `t1`, `t2`, or `exit-<role>[-<suffix>]`.
 
+Between stages nothing is adopted. A batch report's Shoroku candidates
+section, a Kaiseki report's `blocks this task: no` items, and a review
+report's candidates are copied into the ledger's `S-n` table at the
+boundary with Adopted `pending` and Stage `t2` — the bookkeeping Kanri
+already does, minus the ruling — and T2's proposal, which Jisso seeds from
+that table as today, is where they are recommended and checked. The
+Adopted column's values become `pending`, `yes`, and `no`; `escalated` has
+no meaning once every item reaches the human.
+
 ### 5.1 The four steps
 
 1. **Candidates.** The session that holds them writes them, and only this
    step needs a resident context. T0: the input document — a Kikaku
-   decision file, or a file like I-1. T1: the spec itself, whose
-   Requirements and Deferred items sections are the candidates; nothing is
-   copied. T2: `.tanto/<topic>/shoroku-proposal.md`, written by Jisso from
+   decision file, or a file like I-1. T1: the spec itself, whose four
+   sections Requirements, The ADRs, Deferred items, and Shoroku candidates
+   from this spec work are the candidates; nothing is copied. T2: `.tanto/<topic>/shoroku-proposal.md`, written by Jisso from
    the conductor ledger's adopted rows and its own context, as today.
    Exit: `.tanto/<topic>/exit-<role>[-<suffix>]-proposal.md`, or
    `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md`.
 2. **Recommend.** Kanri dispatches the `shoroku` kind in the skill's
    recommend mode (section 5.4) over the candidate file — for T1, over the
-   spec with the two section names — with `docs/` as the baseline, and
+   spec with the four section names — with `docs/` as the baseline, and
    names the output: `.tanto/<topic>/<stage>-recommendation.md`, or
    `.tanto/t0-recommendation.md` and Kanri's own exit at `.tanto/`. The
    file lists every item once, in three groups — recommended adopt,
-   recommended reject, unsure — each item with its destination, its one-line
-   reason, and for a `design` entry the `req-<id>` it serves; a requirement
+   recommended reject, unsure — each item quoted in full from its source
+   (so that the file stands alone as the apply's input), with its
+   destination, its one-line reason, and for a `design` entry the
+   `req-<id>` it serves; a requirement
    or ADR item carries the original wording followed by a reference
    translation in the chat's language, as req-04f5 requires of an
    escalation.
@@ -611,7 +672,7 @@ stage word is `t0`, `t1`, `t2`, or `exit-<role>[-<suffix>]`.
    the whole list, grouped, and answers by exception. This is the ADR of
    section 13.2.
 4. **Apply.** Kanri dispatches the `shoroku` kind in apply mode with the
-   proposal, the direction, and the commit subject — `docs: T<n> shoroku
+   recommendation, the direction, and the commit subject — `docs: T<n> shoroku
    for <topic>`, `docs: exit shoroku for <role>[ at <suffix>]`, the same
    prefixes the whole-branch review package excludes — in a slot of the
    commit window under the hotfix lane's rule. The subagent writes the
@@ -640,11 +701,13 @@ the pending apply in the ledger's Progress line.
 - **Kanri**: T0 and T1 stop being "propose to yourself, apply yourself";
   they are steps 2 to 4 over the input document and over the spec. Kanri's
   own exit is steps 1 to 4 with Kanri writing the proposal and the human
-  checking as at every stage; the apply subagent commits before the
-  handover file is written. Kanri writes under `docs/` only through the
-  intake's filings and the hotfix lane, and hands those to Joshu when one
+  checking as at every stage, so Kanri's exit now has a recommendation and
+  a direction file like every other — "no direction file, because it rules
+  on itself" goes; the apply subagent commits before the handover file is
+  written. Kanri writes under `docs/` only through the
+  intake's filings and the hotfix lane, and hands those to Hosa when one
   is live.
-- **Joshu**: not involved.
+- **Hosa**: not involved.
 
 ### 5.3 The exit, shortened
 
@@ -652,11 +715,20 @@ Kanri sends `exit: propose your shoroku; write it to <path>`; the session
 writes the proposal, runs the resume self-check, and answers
 `exit proposal: <path> — <reading>`; Kanri checks that the file exists and
 opens with the exclusion line and a numbered list — `sections` on it, not
-a read — and asks the human, as a numbered list, to delete the session.
-Steps 2 to 4 of 5.1 then run without it. A session that has stopped
-answering is treated as today: a forced exit, an Events line saying what
-was lost. The one-boundary cost Jisso paid for another session's exit
-shrinks to the time the proposal takes.
+a read — and dispatches the recommender (step 2) at once. When the
+recommendation is on disk, Kanri reads its `unsure` group by `sections`:
+an item there that says the candidate could not be read as written is one
+question back to the session, one line, answered by a rewrite of the
+proposal; otherwise Kanri asks the human, as a numbered list, to delete the
+session. The session idles through one subagent run and no longer through
+the human's check and the apply. Steps 3 and 4 then run without it, and
+the human's check works on the recommendation's full quotation of each
+item, which is what the session would have been asked about — its
+judgment was spent writing the proposal, and the file holds it (I-2,
+point 1). A session that has stopped answering is treated as today: a
+forced exit, an Events line saying what was lost. The one-boundary cost
+Jisso paid for another session's exit shrinks to the proposal and one
+recommender run.
 
 ### 5.4 The `shoroku` skill's two halves
 
@@ -672,15 +744,27 @@ files":
   entry, and the original-plus-translation for a requirement or ADR item
   when the chat's language differs from the item's. It does not wait for
   `Direction?` and writes nothing under `docs/`.
-- **Apply mode.** Invoked with a proposal path, a direction path, and a
-  commit subject. Applies the accepted subset per the per-type
-  `AGENTS.md`, lints the changed paths by name, commits once by explicit
-  path, and reports the paths and the subject. It writes nothing the
-  direction did not accept, and it never runs without a direction file.
+- **Apply mode.** Invoked with a recommendation path, a direction path,
+  and a commit subject — the recommendation quotes every item in full, so
+  no third file is needed, and at T1, where the candidates are sections of
+  the spec, it is the only proposal there is. Applies the accepted subset
+  per the per-type `AGENTS.md`, lints the changed paths by name, commits
+  once by explicit path, and reports the paths and the subject. It writes
+  nothing the direction did not accept, and it never runs without a
+  direction file.
 - Both halves are the ordinary session flow split at `Direction?`; a
   session mode run is unchanged. The direction parsing already in the skill
   — `OK`, `2 と 5 だけ`, `3 はやめて`, an edit — is what a caller writes into
   the direction file, one line per item or one `OK`.
+- Two of the skill's Prohibited actions are re-scoped so that the halves
+  are not forbidden by the file that defines them: "Do NOT start a shoroku
+  run without explicit user confirmation" gains "— in session mode; in
+  recommend mode the caller's dispatch is the run's start and nothing is
+  written under `docs/`, and in apply mode the direction file is the
+  confirmation, written from the human's answers"; "Do NOT write outside
+  `docs/`" gains "— except the recommendation file a caller names in
+  recommend mode". The Soft nudge's "Never start a run without explicit
+  confirmation" gains the same session-mode qualifier.
 
 The shoroku README's "What it does" gains one bullet naming the two
 halves. req-3c4d gains one bullet at T1 (section 12).
@@ -691,10 +775,16 @@ The author dispatches the brief writer: Sekkei for `review-brief-spec.md`,
 Keikaku for `review-brief-plan.md`, on `brief.write`, from
 `templates/review-brief.md`, naming what today's `roles/kanri.md` Human
 access step 5 names — the document, its inputs, the output path, the
-template, and the chat's language. The author runs the form check that step
-5 describes, verbatim, and dispatches once more on a failure; a second
-failure sends the brief as it stands with one line to the human. The author
-never edits the brief.
+template, and the chat's language. The form check that step 5 describes —
+eight headings in order, the four tags, the three or four parts of a
+point, the `— If unanswered:` clause, the pointers as verbatim headings —
+moves as it stands into `SKILL.md` under a new heading "The brief's form",
+in the Messages section, so that it has one copy the two authors cite;
+the author runs it, dispatches once more on a failure, and on a second
+failure sends the brief as it stands with one line to the human. The
+author never edits the brief. `templates/review-brief.md`'s two mentions
+of Sekkei as the one who "asks for it on its own line" and "states the
+recommendation with the brief" read "the author".
 
 `review-ready: <document path>; brief: <brief path>` is then one line to
 Kanri, sent before the human is asked; Kanri records it in the ledger's
@@ -747,9 +837,14 @@ unaccounted lines, each read for its pass or fail lines and the failing
 output only; `git status` and the commit trailers are the first two checks
 `boundary` prints. Reports are read by `sections`, in the order the batch
 prompt already prescribes — For Kanri, Rulings, Questions for the human,
-Deviations from the plan, Shoroku candidates — and never whole. The batch
-prompt's Models line restates the four kinds Jisso dispatches by name and
-family.
+Deviations from the plan, Shoroku candidates — and never whole. The
+measurement check of issue-f2ec stays: when a batch carried a measurement
+task, Kanri also names the Tasks and Verification sections in the same
+`sections` call and reads them for an outcome that contradicts the brief's
+prediction, since a report that confirms every expectation deserves a
+second look; the check reads named sections, not the file (I-2, point 3).
+The batch prompt's Models line restates the four kinds Jisso dispatches by
+name and family.
 
 ## 8. The instruments
 
@@ -845,10 +940,11 @@ rule and the procedure of issue-5a17:
 
 The Invocation table gains the row `ふっき`, `復帰`, `fukki` → `fukki`,
 keeps `resume` as an accepted alias of the same id, and gains the rows for
-`きかく` / `企画` / `kikaku`, `けいかく` / `計画` / `keikaku`, and `じょしゅ` /
-`助手` / `joshu`. The unknown-word sentence lists eight ids. The
+`きかく` / `企画` / `kikaku`, `けいかく` / `計画` / `keikaku`, and `ほさ` /
+`補佐` / `hosa`. The unknown-word sentence lists eight ids. The
 frontmatter's `argument-hint` becomes
-`kanri | sekkei | keikaku | jisso | kaiseki | kikaku | joshu | fukki`, and
+`kanri | sekkei | keikaku | jisso | kaiseki | kikaku | hosa | fukki | resume`
+— every accepted argument, the alias included (issue-260c) — and
 the description names the seven roles; the description must not contain a
 colon followed by a space. "Resuming" and every `/tanto resume` mention
 read `/tanto fukki` with `resume` named once as the alias. The English
@@ -867,7 +963,7 @@ verb, not the argument.
   flight).
 - Rule 9 reads: at most two top-family sessions active at once, Kikaku
   excepted as human-paced — Sekkei pauses while Kaiseki is active; Keikaku
-  and Joshu on the cheaper families do not count.
+  and Hosa on the cheaper families do not count.
 - The Sekkei ∥ Jisso stage of issue-3c7a is written down: the next topic's
   Sekkei drafts during the current topic's batches (Create table); its
   reviewer is told the in-flight paths are out of scope (orders line); the
@@ -875,6 +971,22 @@ verb, not the argument.
 - A peer that receives `kanri-address:` re-sends its last unanswered line
   to the new address; the handover file's In flight section lists the
   peers the outgoing Kanri had not answered (issue-3c7a's re-send rule).
+- The handover with two open ledgers (I-2, point 2): the trigger is
+  checked at the boundaries of the topic whose batches are in flight and
+  between plans, as today; "the plan close" is that topic's close; a topic
+  in its spec or plan stage neither fires nor blocks a handover, since its
+  Sekkei or Keikaku holds nothing Kanri must wait for beyond an unanswered
+  line, which the re-send rule covers. The handover file's In flight
+  section carries one block — Plan, Ledger, Batch state — per open ledger,
+  and Live peers lists every peer of every open topic with its Topic; the
+  successor sends `kanri-address:` to all of them.
+- Rule 4, "One set of roles per repo", reads "one Kanri, one Kikaku, and
+  one Hosa per repo; one Sekkei, one Keikaku, one Jisso, and one Kaiseki
+  per topic; a session is bound to its cwd".
+- decision-6dea extends without amendment: a Keikaku whose reading shows a
+  compaction is replaced at its next commit as a Sekkei is; a Kikaku or
+  Hosa whose reading shows one is `/clear`ed by the human on Kanri's
+  reminder, its output being already on disk or committed.
 
 ## 11. The files, and what changes in each
 
@@ -887,7 +999,7 @@ level; the plan's blocks are the wording.
 - Frontmatter: `description` (seven roles, no `: `), `argument-hint`
   (section 9.2).
 - "The roles" table: seven rows; Count per topic for Sekkei and Keikaku;
-  Kikaku and Joshu rows saying "opened by the human"; Kanri's Owns column
+  Kikaku and Hosa rows saying "opened by the human"; Kanri's Owns column
   loses "the T0 and T1 write-outs" and gains "the recommendations and the
   directions"; Sekkei's Owns is the spec and its review; Keikaku's the
   plan, its dry run, and its review. "never the other three" → "never the
@@ -902,18 +1014,18 @@ level; the plan's blocks are the wording.
   `subagent_type` from the definitions, when this session sees them".
 - "Handshake and roster": the handshake line of 4.1; the roster columns
   of 4.2; the sentence about Jisso waiting names Keikaku too; Kikaku and
-  Joshu with no address read the roster's first row.
+  Hosa with no address read the roster's first row.
 - "Resuming": `fukki`.
 - "Messages": the boundary reply names Sekkei and Keikaku; the
   `review-ready:` paragraph is rewritten to section 6; the bug-report
   paragraph unchanged.
 - "Human access": four standing grants — Sekkei's spec dialogue, Keikaku's
-  plan dialogue, Kaiseki's debugging conversation, Joshu's chores; Kikaku's
+  plan dialogue, Kaiseki's debugging conversation, Hosa's chores; Kikaku's
   counterpart is the human by definition.
 - "Session exit": section 5 — the four steps, the exit line
   `exit proposal: <path> — <reading>`, the stage words, the file pattern
   with `exit-keikaku` and no suffix for Sekkei or Keikaku, the deletion
-  after the proposal, no `exit write-out committed:`; Kikaku and Joshu have
+  after the proposal, no `exit write-out committed:`; Kikaku and Hosa have
   no exit shoroku.
 - "Artifacts": rows for `.tanto/kikaku/<date>-<slug>.md`,
   `.tanto/<topic>/coldread.md`, `.tanto/<topic>/spec-draft.md`,
@@ -922,41 +1034,83 @@ level; the plan's blocks are the wording.
   dispatch; the templates sentence counts thirteen and names
   `kikaku-decision.md` and `agent.md`; the script sentence names the seven
   subcommands and the roles that run them.
-- "Rules": rule 5 loses the exit-shoroku exception and gains Keikaku,
-  Kikaku (`.tanto/kikaku/` only), and Joshu (a slot); rule 6 names the
-  definitions; rule 9 as section 10; rule 11 unchanged.
-- "Now read your role file": seven lines.
+- "The transcript reading": the effort read of 4.1 joins the section — one
+  more line in the shell block, printing `effort=<level>`, which the
+  handshake and the start line take; the reading itself stays four
+  figures.
+- "The expected-model config": "No skill uses this today; skill-name keys
+  are personal additions and are not in the built-in defaults" → "`shoroku`
+  is the one built-in skill-name key; any other is a personal addition";
+  "An omitted `model` inherits the session's model, which on a Kanri,
+  Sekkei, or Kaiseki session is the strongest family" → "which on a
+  Sekkei, Kikaku, or Kaiseki session is the strongest family" (the same
+  sentence in `roles/sekkei.md`).
+- "Messages": the new heading "The brief's form" (section 6); "One boss.
+  Only Kanri messages Jisso. Sekkei and Kaiseki never do" and "Kanri is the
+  only session that sends to Jisso, Sekkei, or Kaiseki" enumerate the
+  seven.
+- "Session exit": "Kanri's exit has a proposal file but no direction file,
+  because it rules on itself" goes (5.2); "Jisso idles through another
+  session's exit; the cost is one boundary" → "the proposal and one
+  recommender run".
+- "Artifacts": the plan's Writer is Keikaku; the ledger's readers are the
+  six; the script sentence's "run by Sekkei in place of an agent dry run"
+  → "run by Keikaku", and "`roles/sekkei.md` and `roles/jisso.md` name its
+  subcommands" → "`roles/keikaku.md`, `roles/jisso.md`, and
+  `roles/kanri.md`".
+- "Workspace": "Sekkei cuts the branch from `main` before the spec commit"
+  → "Sekkei, or Keikaku when the spec was a draft, cuts the branch from
+  `main` before the first commit".
+- "Rules": rule 4 as section 10; rule 5 loses the exit-shoroku exception
+  and gains Keikaku, Kikaku (`.tanto/kikaku/` only), and Hosa (a slot);
+  rule 6 names the definitions; rule 9 as section 10; rule 11's "Jisso at
+  the plan's landing, Sekkei before it" → "Keikaku before it, Sekkei
+  before that", the rest unchanged.
+- "Now read your role file": seven lines, and "Read exactly one. The other
+  three are not yours" → "the other six".
 
 ### 11.2 `skills/tanto/roles/kanri.md`
 
 Start (the definitions, the start line, step 5's topic rule, the roster
-columns); On a handshake (effort, topic, Kikaku's and Joshu's answers,
+columns); On a handshake (effort, topic, Kikaku's and Hosa's answers,
 Keikaku's orders line, the Sekkei orders line's draft and out-of-scope
 sentences); When the plan lands (the `plan.coldread` dispatch, `frame` in
 place of the `awk`, T1 as section 5); The batch loop (step 2 as 7.3, step
 3's adoption sentence to the recommender, step 6's reminder of 4.4, step 7's
-slots naming the apply subagent and Joshu, step 8's Models line); The
+slots naming the apply subagent and Hosa, step 8's Models line); The
 final batch (`branch.review`, T2 as section 5); The Kaiseki branch (its
 exit as 5.3); Handover (In flight lists the unanswered peers; the exit
 shoroku as section 5; the Models line of the handover template); Shoroku
 (the section rewritten to section 5 whole — the adoption rule paragraph
 replaced by the recommendation and the human's check); Bug intake (filing
-through Joshu when live; `paused:` / `continue:` bookkeeping under a new
+through Hosa when live; `paused:` / `continue:` bookkeeping under a new
 "Limits" heading); Human access (step 5 removed — the brief is the
 author's; the grants of 11.1); Session lifecycle (the Create table of 4.3,
-the Replace table with Keikaku rows and "cleared" for Kikaku and Joshu,
+the Replace table with Keikaku rows and "cleared" for Kikaku and Hosa,
 the Delete table with Sekkei at the spec review accepted and Keikaku at
-the plan's landing, the deletion after the proposal; Readings unchanged;
-Recovery with `fukki` and the seven roles).
+the plan's landing, the deletion after the recommendation; a Keikaku
+compaction row and a Kikaku-or-Hosa compaction row per section 10;
+Readings unchanged; Recovery with `fukki` and the seven roles). Also: the
+batch loop's "A report that conflicts with the plan or the spec is a
+cold-read question to Sekkei" → Keikaku, and "You stay out of `docs/` at
+T2 — Jisso is the writer there" → "the apply subagent is the writer at
+every stage"; "Cold-read the spec whole and the plan's frame" → the
+dispatch of 7.1; the Handover's Timing and In flight per section 10.
 
 ### 11.3 `skills/tanto/roles/sekkei.md`, `roles/keikaku.md`
 
-Sekkei as 2.3; Keikaku as 2.2, a new file whose Step 3, Step 4, Handoff,
-write rule, and Models table are today's Sekkei text moved and re-keyed
-(`plan.draft`, `plan.review`, `brief.write`, `default`), plus the branch
-and spec commit of a draft, the plan brief's dispatch, and its exit.
+Sekkei as 2.3 — its opening "You own the spec, the plan, and the review of
+both" → "the spec and its review"; its grant "the spec and plan dialogue"
+→ "the spec dialogue"; "At most two strong-model sessions run at once" as
+rule 9 reads now; "Kanri rules after T1 is committed, so the delta is
+known" → the exclusion of 2.3; the Models table re-keyed to `spec.review`,
+`brief.write`, `default`. Keikaku as 2.2, a new file whose Step 3, Step 4,
+Handoff, write rule, and Models table are today's Sekkei text moved and
+re-keyed (`plan.draft`, `plan.review`, `brief.write`, `default`), plus the
+branch and spec commit of a draft, the plan brief's dispatch, and its
+exit.
 
-### 11.4 `skills/tanto/roles/kikaku.md`, `roles/joshu.md`
+### 11.4 `skills/tanto/roles/kikaku.md`, `roles/hosa.md`
 
 New files as 2.1 and 2.4, each short: who it talks to, how it starts,
 what it writes and where, its lines to Kanri, what it never does, and that
@@ -974,15 +1128,24 @@ otherwise unchanged.
 
 ### 11.6 The templates
 
-`roster.md` (columns, statuses, keeping rule, Residency Topic column,
-Events forms); `kanri.md` (the adoption paragraph replaced; the
-placeholders `(no batch yet)` and `(no candidate yet)`, issue-2872, and
-the same in `roster.md`'s candidates table; Measurements' three fixed rows
-of 8.4 and the `paused:` rows); `kanri-handover.md` (In flight's unanswered
-peers; the Models line re-keyed); `batch-prompt.md` (the Models line
+`roster.md` (columns, statuses, keeping rule, Residency header row with
+Topic, the `refused` sentence, Events forms); `kanri.md` (the adoption
+paragraph replaced; the Adopted column's values `pending`, `yes`, `no`; the
+placeholder rows — today `| <A> | <1-4> | <planned, …` and `| S-1 | <the
+report or session …` in `kanri.md`, `| S-1 | <the triage, …` in `roster.md`
+— replaced by the distinct rows `| (no batch yet) | | | | | |` and
+`| (no candidate yet) | | | | | | |` with the angle-bracket guidance moved
+to the prose above each table, so that a scripted fill keyed on the
+placeholder is unambiguous (issue-2872; the `(none yet)` form the issue
+quotes is what a Kanri wrote, not what the template holds); the readers
+line "Sekkei, Jisso, and Kaiseki read it" → the six; Measurements' three
+fixed rows of 8.4 and the `paused:` rows); `kanri-handover.md` (In flight
+per open ledger and the unanswered peers; the Models line re-keyed);
+`batch-prompt.md` (the Models line
 re-keyed: `task.implement`, `task.review-spec` and `task.review-quality`,
 `task.escalate`, each with family and definition name); `review-brief.md`
-(the header sentence of section 6); `tanto.json` (section 3.1 in full);
+(the header sentence and the two Sekkei mentions of section 6);
+`tanto.json` (section 3.1 in full);
 new `kikaku-decision.md` and `agent.md`. `batch-report.md`,
 `bug-report.md`, `kaiseki-brief.md`, `kaiseki-report.md`, and
 `roster-archive.md` are unchanged.
@@ -995,13 +1158,17 @@ Section 8's three subcommands and their tests; the usage line.
 
 Seven roles; the seats the human opens; the brief written by the author's
 dispatch; `fukki`; the Layout list with seven role files and thirteen
-templates; the Relationship paragraph — "who fills it" becomes the
-recommend-check-apply flow at every stage; the design list gains this
+templates; the script bullet naming seven subcommands; the Relationship
+paragraph — "who fills it" becomes the recommend-check-apply flow at every
+stage, and "Composes, without editing them, … and `shoroku`" / "None of
+those skills is edited" → "superpowers is used as it is; `shoroku`'s two
+halves are its own feature, which tanto calls"; the design list gains this
 spec's name and the tanto-workspace spec's.
 
 ### 11.9 `skills/shoroku/SKILL.md` and `skills/shoroku/README.md`
 
-Section 5.4.
+Section 5.4, the re-scoped prohibitions included; the README's "What it
+does" bullet; and `docs/design/e3f4-shoroku.md`'s Workflow section at T2.
 
 ### 11.10 `docs/notes/tanto-consistency-checks.md`
 
@@ -1045,7 +1212,7 @@ already covers:
   written after it have their vocabulary fixed.
 - **C** — `roles/kanri.md`.
 - **D** — `roles/sekkei.md` narrowed, `roles/keikaku.md`, `roles/kikaku.md`,
-  `roles/joshu.md`, `templates/kikaku-decision.md`.
+  `roles/hosa.md`, `templates/kikaku-decision.md`.
 - **E** — `roles/jisso.md`, `roles/kaiseki.md`, the remaining templates,
   `README.md`.
 - **F** — `skills/shoroku/SKILL.md` and its README,
@@ -1067,15 +1234,27 @@ this list, each needle spanning the point where the text changes, each run
 as it is written.
 
 1. **Four roles.** `SKILL.md`'s roles table (four rows), "never the other
-   three", "list those five ids", the frontmatter's `argument-hint`, the
-   README's role sentence, the Recovery section's "Sekkei only if a spec or
-   plan is in progress", every "Sekkei, Jisso, and Kaiseki" enumeration in
-   the role files and templates, req-04f5's Purpose paragraph (T1).
-2. **Sekkei owns the plan.** `SKILL.md` roles table; `roles/sekkei.md`
-   Steps 3 and 4 and Handoff; `roles/kanri.md` "When the plan lands"
-   ("Sekkei sends you one line, `plan committed:`"), the Delete table's
-   Sekkei row, the Replace table; `templates/kanri.md`'s "Branch — cut
-   from main by Sekkei"; the batch loop's step 7(c).
+   three", "Read exactly one. The other three are not yours", "list those
+   five ids", the frontmatter's `argument-hint`, the README's role
+   sentence, the Recovery section's "Sekkei only if a spec or plan is in
+   progress", every "Sekkei, Jisso, and Kaiseki" and "Jisso, Sekkei, or
+   Kaiseki" enumeration in `SKILL.md` ("One boss", "Kanri is the only
+   session that sends to", the ledger's Artifacts row), the role files,
+   and the templates (`templates/kanri.md`'s readers line), req-04f5's
+   Purpose paragraph (T1).
+2. **Sekkei owns the plan.** `SKILL.md` roles table, the Artifacts rows
+   whose Writer is Sekkei for the plan and the dry run, the script sentence
+   "run by Sekkei in place of an agent dry run" and "`roles/sekkei.md` and
+   `roles/jisso.md` name its subcommands", the Workspace's "Sekkei cuts
+   the branch"; `roles/sekkei.md` "You own the spec, the plan, and the
+   review of both", "the spec and plan dialogue", Steps 3 and 4 and
+   Handoff, "At most two strong-model sessions run at once";
+   `roles/kanri.md` "When the plan lands" ("Sekkei sends you one line,
+   `plan committed:`"), "a cold-read question to Sekkei", the Delete
+   table's Sekkei row, the Replace table; `templates/kanri.md`'s "Branch —
+   cut from main by Sekkei"; `templates/review-brief.md`'s "Sekkei asks
+   for it on its own line" and "the recommendation Sekkei states with the
+   brief"; the batch loop's step 7(c).
 3. **The five kinds.** `implementer`, `reviewer`, `drafter`, `escalation`,
    `default` as `subagents.<kind>` in `SKILL.md`, `roles/*.md`,
    `templates/batch-prompt.md`, `templates/kanri-handover.md`; "The fixed
@@ -1094,20 +1273,25 @@ as it is written.
 6. **The adoption rule.** `SKILL.md` Session exit ("the adoption rule is
    that requirement and ADR items ... go to the human, and Kanri decides
    the rest"), `roles/kanri.md` "The adoption rule" and every "per the
-   adoption rule", `templates/kanri.md`'s adoption paragraph,
-   `roles/jisso.md`'s overrides row ("Kanri answering as the human's
-   delegate"), the batch loop's step 3.
+   adoption rule", "Every report has a mandatory Shoroku candidates
+   section. Adopt or reject each candidate at the batch boundary",
+   `templates/kanri.md`'s adoption paragraph, `roles/jisso.md`'s overrides
+   row ("Kanri answering as the human's delegate"), the batch loop's step
+   3.
 7. **The session writes its own exit.** `SKILL.md` Session exit ("the
-   session applies the accepted subset ... commits once"), every
+   session applies the accepted subset ... commits once"), "Jisso idles
+   through another session's exit; the cost is one boundary", every
    `exit write-out committed:` and `exit write-out: nothing accepted`
    (SKILL.md, kanri.md, sekkei.md, jisso.md, kaiseki.md), rule 5's
    exception clause, the Delete table's "after its exit shoroku is
    committed", `roles/jisso.md` "Apply." and "Your exit is this same
    procedure", `roles/kaiseki.md` Tree discipline's exit paragraph,
    req-04f5 (T1).
-8. **Kanri writes T0 and T1.** `roles/kanri.md` "T0 and T1" ("propose to
-   yourself, apply the adoption rule ... make one commit"), "You may write
-   under `docs/` at both"; the README's "Kanri at T0 and T1, Jisso at T2".
+8. **Kanri writes T0 and T1, Jisso writes T2.** `roles/kanri.md` "T0 and
+   T1" ("propose to yourself, apply the adoption rule ... make one
+   commit"), "You may write under `docs/` at both", "You stay out of
+   `docs/` at T2 — Jisso is the writer there"; the README's "Kanri at T0
+   and T1, Jisso at T2".
 9. **The frame is an `awk` keyed on `### Task`.** `roles/kanri.md` "The
    frame command"; issue-ac9d.
 10. **Reports are read whole.** `roles/kanri.md` batch loop step 3 "Read
@@ -1124,15 +1308,20 @@ as it is written.
     Human access step 3.
 15. **The roster columns.** `SKILL.md` "Columns are role, name `[ref]`,
     cwd, model, branch, mode, started, status, transcript";
-    `templates/roster.md` header row; statuses "one of `live`, `dead`,
-    `replaced`, `refused`"; "One live session per role".
+    `templates/roster.md` header row and the Residency header row;
+    statuses "one of `live`, `dead`, `replaced`, `refused`"; "`refused`
+    records a handshake that got no row — a duplicate role, or a model
+    that did not match" (a topic's second Sekkei is not a duplicate); "One
+    live session per role".
 16. **Eleven templates.** `SKILL.md` "There are eleven"; the README's
     Layout list.
 17. **Four subcommands.** The usage line
     `<lint|replay|diff|verify>`; the README's script bullet; `SKILL.md`'s
     "its subcommands" sentence.
-18. **The placeholders.** `templates/kanri.md` and `templates/roster.md`
-    `(none yet)`-shaped rows; issue-2872.
+18. **The placeholders.** `templates/kanri.md`'s `| <A> | <1-4> |` row and
+    `| S-1 | <the report or session` row, `templates/roster.md`'s
+    `| S-1 | <the triage,` row; issue-2872. `(none yet)` is not in any
+    template and is no needle.
 19. **Kanri opens a topic only when no plan is in flight.**
     `roles/kanri.md` Start step 5.
 20. **Rule 9 counts strong-model sessions.** `SKILL.md` rule 9 and rule 2
@@ -1141,19 +1330,49 @@ as it is written.
     `roles/kanri.md` "Check `model=` against `sessions.<role>`".
 22. **The create request carries the command only.** `roles/kanri.md`
     Session lifecycle's opening paragraph and the Create table.
-23. **`Shomu`.** Nowhere in the tree; the word appears in
-    `.tanto/2026-09-12-cost-discussion.md`, which is untracked, and must
-    not enter the skill.
+23. **The rejected seat names.** `Shomu`, `shomu`, `Joshu`, `joshu` appear
+    nowhere under `skills/`, `docs/notes/`, or `docs/design/`; this spec
+    and the dialogue carry them as the record of the choice, and the sweep
+    is over the skill and the living docs, not over `docs/superpowers/`.
+24. **The skill-name key is personal only.** `SKILL.md` "No skill uses
+    this today; skill-name keys are personal additions and are not in the
+    built-in defaults".
+25. **An omitted model inherits the strongest family on Kanri.** `SKILL.md`
+    "which on a Kanri, Sekkei, or Kaiseki session is the strongest family";
+    `roles/sekkei.md` Models "An omitted model inherits your session's,
+    which is the strongest family".
+26. **Kanri's exit has no direction file.** `SKILL.md` Session exit and
+    Artifacts ("no direction file, because it rules on itself");
+    `roles/kanri.md` "You have no second session to rule on you, so you
+    rule on yourself".
+27. **One set of roles per repo.** `SKILL.md` rule 4.
+28. **The reading is the only thing read from the transcript.** `SKILL.md`
+    "The transcript reading" — the shell block and "four figures".
+29. **tanto edits none of the skills it composes.** `README.md` "Composes,
+    without editing them" and "None of those skills is edited";
+    req-04f5 "Composes without modifying" (T1).
+30. **Sekkei's exit delta assumes T1 has run.** `roles/sekkei.md` "Kanri
+    rules after T1 is committed, so the delta is known".
+31. **Kanri does the cold read itself.** `roles/kanri.md` "Cold-read the
+    spec whole and the plan's frame".
+32. **shoroku never runs unconfirmed and never writes outside `docs/`.**
+    `skills/shoroku/SKILL.md` Soft nudge "Never start a run without
+    explicit confirmation", Prohibited actions "Do NOT start a shoroku run
+    without explicit user confirmation" and "Do NOT write outside `docs/`".
+33. **The Adopted column's `escalated`.** `templates/kanri.md` and
+    `templates/roster.md` "`<yes, no, or escalated>`".
+34. **Rule 11's starting roles.** `SKILL.md` rule 11 "Jisso at the plan's
+    landing, Sekkei before it".
 
 ## Requirements
 
 For T1, by the flow of section 5 once it exists, and by Kanri as today
 until then.
 
-- req-04f5, Purpose: seven roles, one sentence each for the three new
-  ones; the split's reason — "judgment stays on the strongest model, long
-  output goes to a cheaper one" gains "and a session that waits holds a
-  cheap context".
+- req-04f5, Purpose: the sentence that names the roles names seven, as
+  it names four today; the split's reason — "judgment stays on the
+  strongest model, long output goes to a cheaper one" gains "and a session
+  that waits holds a cheap context".
 - req-04f5, "Kanri is resident, but its context cost does not grow with
   its tenure": unchanged; served by sections 5 and 7.
 - req-04f5, "The human is interrupted only at defined checkpoints": the
@@ -1161,9 +1380,20 @@ until then.
   decision" becomes "the shoroku recommendation at each stage, answered by
   exception".
 - req-04f5, "Model discipline": "Every role runs on an expected model" →
-  "an expected model and effort"; the definitions sentence — "and every
-  subagent kind carries its effort in a definition the skill writes for
-  it".
+  "an expected model and effort", and "gets an explicit model" → "an
+  explicit model and effort". How the effort reaches a subagent is
+  design.
+- req-04f5, "The human's counterpart is Kanri": gains "Kikaku, the seat
+  the human opens to think in, is the exception: its counterpart is the
+  human by definition, and what it decides reaches Kanri as a file."
+- req-04f5, "Composes without modifying": "superpowers, the `kisou`
+  document system, and `shoroku` are used as they are; every override
+  tanto needs is written into tanto's own files" → "superpowers is used as
+  it is, and every override tanto needs of it is written into tanto's own
+  files; a capability tanto needs of a skill this repository ships —
+  `kisou`, `shoroku` — is added to that skill as a feature of its own, for
+  every caller, never as a tanto special case." (spec review, finding 8;
+  the human's confirmation is the gate.)
 - req-04f5, "Docs are kept current as part of the flow": the last two
   sentences become "Every planned exit of a session, in any role, carries
   its own shoroku before the human closes it: the session lists its
@@ -1182,9 +1412,14 @@ until then.
 - req-04f5, Out of scope: "Custom subagent definitions" is removed; "How
   the personal model config reaches the user's config directory" stays and
   gains "and the agent definitions it generates beside it".
-- req-3c4d, new bullet: "A caller may take the proposal as a file with a
-  recommendation per item and answer `Direction?` through a file; the
-  apply runs from those two files and commits once."
+- req-3c4d, the proposal bullet reworded rather than joined by a new
+  one: "Present a single numbered proposal grouped by destination file.
+  In session mode, end with `Direction?` and wait for partial-accept input
+  (`OK` / `2 と 5 だけ` / `3 はやめて` / `全部やめ` etc.); for a caller that
+  answers through files, write the proposal to the file it names, each
+  item with a recommendation — adopt, reject, or unsure — and read the
+  direction from a second file, applying and committing once from the
+  two."
 
 ## The ADRs
 
@@ -1205,11 +1440,21 @@ are ADRs or design.
    extends its model check on the same terms (checked twice, warn only,
    never switched) and the ADR says so.
 2. **Adoption is a recommendation the human checks by exception, and the
-   write-out is applied from files by a dispatched subagent** — supersedes
-   decision-1f5f: the manager no longer answers `Direction?` as the human's
-   delegate; the `shoroku` skill's recommend half proposes and groups, the
-   human answers `OK` or the exceptions, Kanri writes the direction, and
-   the skill's apply half commits. Options: (a) the human answers every
+   write-out is applied from files by a dispatched subagent** — amends
+   decision-1f5f and decision-d831 (spec review, findings 1 and 2). From
+   1f5f it replaces the adoption rule — the manager no longer answers
+   `Direction?` as the human's delegate — and keeps the propose-and-apply
+   split through files, which it generalizes to every stage, and the
+   one-boss rejection of option (c). From d831 it replaces four clauses —
+   the exiting session applies and commits, Kanri rules as the delegate,
+   Kanri verifies the diff before the delete request, an attached Kaiseki
+   commits its exit subset — and keeps the decision itself, that every
+   planned exit carries its own shoroku with a proposal on disk before the
+   deletion. 1f5f's standing `amended_by: ["ace0"]` is untouched: 1f5f
+   stays accepted, so the amendment keeps its base. The `shoroku` skill's
+   recommend half proposes and groups, the human answers `OK` or the
+   exceptions, Kanri writes the direction, and the skill's apply half
+   commits. Options: (a) the human answers every
    item cold (1f5f's rejected option), (b) the manager decides all but two
    kinds (1f5f), (c) a recommendation the human checks by exception, (d)
    each role dispatches its own recommender (rejected: a fable context
@@ -1223,16 +1468,31 @@ are ADRs or design.
    context isolation, not Kanri's hand; the two hops and Kanri's copy of
    the brief go. The rest of ace0 — the brief's form, its language, the
    human's answers as the confirmation — stands.
-4. **The spec and the plan are two roles, and the boundary is the spec
-   review accepted** (issue-3c7a's decision, rejected alternative: a
-   mid-session `/model` switch, whose thinking blocks an older model cannot
-   read; a shared Sekkei across topics, decision-f496). Consequence: a
-   Sekkei drafting during another topic's batches commits nothing, and
-   Keikaku makes the branch's first commits.
+4. **Three seats join the roles — Keikaku, Kikaku, and Hosa — the spec and
+   the plan are two roles, and the boundary is the spec review accepted**
+   (issue-3c7a's decision; rejected alternatives: a mid-session `/model`
+   switch, whose thinking blocks an older model cannot read; a shared
+   Sekkei across topics, decision-f496; a tanto-own recommender template
+   instead of a `shoroku` feature). Amends decision-2f36's consequence
+   "Kanri becomes the one role that edits source outside a plan": the
+   hotfix lane stays one ruling, Kanri's, and Hosa may be its hand in
+   Kanri's slot. Consequences: a Sekkei drafting during another topic's
+   batches commits nothing, and Keikaku makes the branch's first commits;
+   Kikaku and Hosa have no lifecycle and are `/clear`ed; decision-6dea
+   extends to Keikaku without amendment.
 5. **A limit is a pause, never a model change** (issue-5a17; rejected
    alternative: continue on a lower family, measured once in another
    repository and called out by the human). Consequence: a pause may
    outlive the run, and only the human's word ends it.
+
+The frontmatter bookkeeping the decisions rules require is part of T1's
+apply: the new ids appended to `amended_by` on decision-9a3a, decision-1f5f,
+decision-d831, decision-ace0, and decision-2f36 with their `updated:`
+bumped; no ADR is superseded, so no `status` flips. issue-3c7a's "first
+measurement is Sekkei on `fable` and Keikaku on `opus`" is replaced by the
+matrix's Keikaku on `sonnet`, because I-1's matrix, written a day later
+with the cost data in view, supersedes the issue's earlier guess; the
+fourth ADR says so.
 
 ## What the plan must contain
 
@@ -1257,7 +1517,7 @@ are ADRs or design.
   own first measurement of the instrument.
 - Passages in the block grammar for every file that changes in part, `W`
   blocks with `created:` declarations for the five new files
-  (`roles/keikaku.md`, `roles/kikaku.md`, `roles/joshu.md`,
+  (`roles/keikaku.md`, `roles/kikaku.md`, `roles/hosa.md`,
   `templates/kikaku-decision.md`, `templates/agent.md`; `SKILL.md` and
   `roles/kanri.md` are rewritten in passages, not whole, because their
   unchanged text is most of them), and the `O` blocks of "Old values" —
@@ -1269,6 +1529,12 @@ are ADRs or design.
 - The dogfood task's `human-needed:` line for the new-session check, and
   its measurement discipline (issue-f2ec): what the harness listed, not
   what it was expected to list.
+- The T1 list for Kanri: the requirement edits of "Requirements", the five
+  ADRs with their frontmatter bookkeeping, the six issues to move to
+  `resolved/` (section "Issues this design closes"), and the Deferred
+  items as new issues.
+- The "The brief's form" section of `SKILL.md` as a passage moved verbatim
+  from `roles/kanri.md`, so that the form check has one copy.
 - Nothing about the report or prompt skeletons beyond "follow the tanto
   templates".
 
@@ -1281,18 +1547,17 @@ The commands the plan's How a batch is verified section carries, so that
 ./scripts/lint.sh <changed paths, each by name>
 node --test skills/tanto/scripts/passage-check.test.js
 node -e 'const t=require("./skills/tanto/templates/tanto.json");const r=Object.keys(t.sessions),k=Object.keys(t.subagents);if(r.length!==7||k.length!==12)process.exit(1);for(const m of [t.sessions,t.subagents])for(const v of Object.values(m))if(!v.model||!v.effort)process.exit(1);console.log("tanto.json ok",r.length,k.length)'
-grep -c '^| ' skills/tanto/templates/tanto.json; true
 grep -rn -E 'subagents\.(implementer|reviewer|drafter|escalation)\b' skills/tanto | wc -l
 grep -rn 'exit write-out' skills/tanto | wc -l
 grep -rn 'Shomu' skills/tanto skills/shoroku docs/notes | wc -l
 grep -n 'argument-hint' skills/tanto/SKILL.md
-grep -c -E '^\| (Kanri|Sekkei|Keikaku|Jisso|Kaiseki|Kikaku|Joshu) \(' skills/tanto/SKILL.md
+grep -c -E '^\| (Kanri|Sekkei|Keikaku|Jisso|Kaiseki|Kikaku|Hosa) \(' skills/tanto/SKILL.md
 node skills/tanto/scripts/passage-check.js 2>&1 | head -n 1
 ```
 
 Expected: lint clean; the tests pass; `tanto.json ok 7 12`; the old-kind
 count `0`; `exit write-out` count `0`; `Shomu` count `0`; the
-`argument-hint` line with eight words; the roles table count `7`; the
+`argument-hint` line with nine words; the roles table count `7`; the
 usage line naming seven subcommands. The consistency note's checks 1 to 9
 run as one task in batch F, and the YAML loads of both `SKILL.md`
 frontmatters use the real parser the note names.
@@ -1305,30 +1570,53 @@ frontmatters use the real parser the note names.
   applied.
 - issue-9a68's rate-limit measurement; rule 9's exemption for Kikaku
   stands until it is measured.
-- issue-4eef's `rewritten:` and `exempt:` declarations for `diff`; Joshu's
+- issue-4eef's `rewritten:` and `exempt:` declarations for `diff`; Hosa's
   filings do not remove the noise floor by themselves, and the plan's
-  batches file nothing under `docs/`.
+  batches write under `docs/` only the consistency note, which the plan
+  quotes.
 - Any change to the superpowers skills, to `passage-check.js`'s existing
   four subcommands beyond the usage line, or to the `kisou` document
   system.
 - A `wayaku` step: none exists in tanto (I-1, third pass, Q5), and the
   translator's model is `wayaku`'s own concern.
-- Kikaku's, Joshu's, and Keikaku's readings as a replacement threshold
+- Kikaku's, Hosa's, and Keikaku's readings as a replacement threshold
   (issue-40ed) — they are recorded like every reading and decided later.
+
+## Issues this design closes
+
+Moved to `docs/issues/resolved/` at this plan's T2, per the intake's rule
+that the plan whose T2 lands the fix moves them: issue-3c7a (the split,
+the pipeline, the draft rule, the re-send rule, the exit suffix — whole),
+issue-2e52 (the three instruments), issue-5a17 (the limit rule and its
+vocabulary), issue-260c (`fukki`, the alias, the `argument-hint`),
+issue-ac9d (`frame` keyed on `^##+ Task`), issue-2872 (the placeholders).
+issue-6a29 and issue-4eef stay open (Out of scope); issue-9a68 stays open
+and rule 9's Kikaku exemption is what it will measure.
 
 ## Answers to the spec inputs
 
 - **I-1** — the scope is taken whole (Fixed input 1) with the fourth
   pass's additions: the `/clear` reminder (4.4), `/clear` for Kikaku and
-  Joshu and delete for Kaiseki (2.1, 2.4, 2.5), the kind name
+  Hosa and delete for Kaiseki (2.1, 2.4, 2.5), the kind name
   `candidates.recommend` superseded by the `shoroku` skill-name key (Fixed
   input 3), the resume vocabulary (9.2), and the T1 wording rule (section
   "Requirements"). The recommender's family is `opus` per the third pass's
-  Q2 and the human's correction in Q-2. Shomu became Joshu (Q-7). I-1's
+  Q2 and the human's correction in Q-2. Shomu became Joshu and then Hosa (Q-7 and the human's word after the spec commit). I-1's
   "Kanri's assessment" is followed in every point but one: the brief
   writers stay on `fable` for the first measurement (Fixed input 4), and
   the brief is the author's dispatch (section 6), which I-1 did not
   consider.
+- **I-2** — Kanri's three points on its own obligations, answered in the
+  text: (1) the deletion request follows the recommendation, not the
+  proposal, and an `unsure` item that says the candidate could not be read
+  is one question back to the session before it goes (5.3); (2) the
+  handover with two open ledgers — the trigger keyed on the batch-bearing
+  topic, the In flight block per ledger, `kanri-address:` to every peer
+  (section 10); (3) issue-f2ec's measurement check survives as a `sections`
+  read of the Tasks and Verification sections for a batch that carried a
+  measurement (7.3). The passing remark — where the create request's
+  per-role extras attach — is answered in 4.3: line 5 carries them after
+  the command.
 
 ## Deferred items
 
@@ -1338,10 +1626,12 @@ Each becomes an issue at T1, one to one.
    differ by repository, and a project overlay of `tanto.json` cannot
    carry an effort** — `blocks: ["6a29"]`; issue-6a29 gains the new id in
    `depends_on`.
-2. **Whether a new session sees an agent definition written moments before
-   it starts, and which transcript field follows a `/effort` change** —
-   two measurements the plan's dogfood makes; the issue closes with the
-   dogfood report or records what was found.
+2. **Four harness measurements the plan's dogfood makes** — whether a new
+   session sees an agent definition written moments before it starts;
+   which transcript field follows a `/effort` change; whether a
+   definition's `effort:` key is honored by a dispatch that names it;
+   whether `/clear` changes a session's name as well as its transcript.
+   The issue closes with the dogfood report or records what was found.
 3. **`boundary` runs the plan's fenced blocks and not the repo-specific
    leftovers check** (stray processes, temp directories) that loop step 2
    names in prose; a plan that needs one writes it as a fenced block.
@@ -1354,12 +1644,60 @@ Each becomes an issue at T1, one to one.
    that reports at the end of a day gets its reminder the next morning; a
    reminder line sent on its own was rejected as a wake-up that costs more
    than the miss.
+7. **`docs/decisions/AGENTS.md` says nothing about what an amendment means
+   once its base is retired** (spec review, candidate 2) — a gap in the
+   document system, parallel to the one decision-7e21 filed; not exercised
+   here, since no ADR is superseded.
+8. **A composed skill's prohibitions are where a per-file change list does
+   not look** (spec review, candidate 4) — the consistency note's check 3
+   could extend to "every prohibition of a composed skill that a change
+   relaxes"; deferred to the note's next revision.
+9. **The tanto skill names one ADR in its text** (spec review, candidate 3)
+   — every other decision reaches the skill as unattributed prose, so an
+   ADR change is found only by a sentence sweep; a candidate for
+   design-4807's notation section, deferred.
 
 ## The reviews this spec has had, and what each found
 
-(filled after Step 2 — the spec review on `spec.review`'s family, `opus`,
-under today's key `subagents.reviewer`, and the brief on `subagents.reviewer`
-as today's Kanri dispatches it)
+**The spec review** (2026-09-13, `opus` under today's `subagents.reviewer`,
+read-only; report at `.tanto/tanto-cost/spec-review.md`, 29 findings, 27
+missed old values, 5 scope findings, 6 shoroku candidates). Sekkei's
+rulings, all applied in the text unless said otherwise:
+
+- Blockers 1 and 2: decision-d831 was contradicted and unnamed, and 1f5f
+  was superseded where the rules say amend — the second ADR now amends
+  both and keeps what stands (section "The ADRs").
+- Blocker 3: I-2 arrived after the commit and is answered ("Answers to the
+  spec inputs").
+- Blocker 4: this run's own Keikaku cannot exist — Fixed input 21, put to
+  the human at the review.
+- 5 to 20 accepted: the bookkeeping; decision-2f36 amended by the fourth
+  ADR; decision-6dea extended (section 10); "Composes without modifying"
+  and "The human's counterpart is Kanri" proposed for edit
+  ("Requirements"); shoroku's prohibitions re-scoped (5.4); req-3c4d's
+  bullet reworded; the dispatch counts (1.3); T1's four sections and the
+  apply's inputs (5.1, 5.4); the form check moved to `SKILL.md` (6); the
+  boundary candidates' `pending` row (5); the effort checked twice
+  (Fixed input 2, 4.1); the nonsense command removed; the definition's
+  `effort:` made a measurement (3.3).
+- 21 to 29 accepted: the two single-word kinds named (1.2); issue-3c7a's
+  first-measurement deviation stated ("The ADRs"); `resume` added to the
+  `argument-hint` (9.2); an "Issues this design closes" section; Out of
+  scope corrected; old value 23 rewritten; `/clear`'s effect on the name
+  made a measurement (4.2); this section filled; the date line.
+- The 27 missed old values are folded into the list — entities 1, 2, 6, 7,
+  8, 15, 18 widened, entities 24 to 34 added.
+- Scope findings 1 to 5 go to the human through the brief: the issue-3c7a
+  widening (Fixed input 1), this run's Keikaku (Fixed input 21), the
+  shoroku edit against "Composes without modifying", the ADR set, and the
+  two requirement edits the reviewer read as design (dropped from
+  "Requirements": the definitions sentence and the role count).
+- The review's six shoroku candidates are Kanri's to adopt from the report;
+  three became Deferred items 7 to 9.
+
+**Kanri's I-2** (2026-09-13, `sonnet`, from `roles/kanri.md` on disk):
+three obligations the design had not accounted for, all answered
+("Answers to the spec inputs").
 
 ## Shoroku candidates from this spec work
 
@@ -1383,7 +1721,7 @@ here.
 5. Rejected: each role dispatching its own recommender — the parent's
    family, the hops, the commissioner (Q-2).
 6. Rejected: 庶務 shomu, 書記 shoki, 司書 shisho, 総務 soumu, 保守 hoshu for
-   the chores seat (Q-7): 助手 joshu chosen because the seat's essence is a
+   the chores seat (Q-7): 補佐 hosa chosen because the seat's essence is a
    place for small jobs one forgets at once, and 庶務 read as corporate.
 7. Rejected: `/tanto saikai` as the session-resume word (Q-5) — 再開 is the
    word the human types after a limit, and the two acts must not share
