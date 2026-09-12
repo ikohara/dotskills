@@ -44,3 +44,18 @@ caller among the peers. Two consequences for a run, both seen on 2026-09-10:
 The listing also shows sessions of every other repository on the machine,
 with no cwd; a roster row is the only way to tell a run's own sessions from
 the rest, and a session with no row gets nothing.
+
+## A peer's resume seen from the sender, and the mistaken window
+
+Observed 2026-09-12, at the second editor restart of the kisou-refresh run.
+
+- **A resume is visible from the sender's side.** A `SendMessage` to a
+  peer's pre-restart address fails with `ENOINBOX … the peer process may
+  have restarted`; Kanri learned of the restart from two such failures
+  before its own `ListAgents` name check — a second signal beside the name.
+- **Windows are told apart only by `name [ref]`, which the tab does not
+  show.** The human spoke to Jisso's window believing it was Kanri's, twice
+  in one day; the `human-contact:` line absorbed both exchanges, and one of
+  them became a spec input (tanto-workspace I-2). The tab title comes from
+  the first prompt (above), which for a tanto role is `/tanto <role> …` and
+  so does name the role — but only while the tab is wide enough to show it.

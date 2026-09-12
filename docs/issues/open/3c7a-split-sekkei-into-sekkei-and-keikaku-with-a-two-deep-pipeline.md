@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-12
 ---
 
 The human's decisions of 2026-09-10, taken in Kanri's window during the
@@ -81,6 +81,23 @@ kisou-refresh run (2026-09-11) used `exit-sekkei-spec` and
 would otherwise write the same file. So the split defines the suffix rule —
 or the roles' own names do (`exit-sekkei`, `exit-keikaku`), which needs no
 suffix at all — and the Artifacts table follows whichever it is.
+
+**A second topic's Sekkei during another plan's batches, measured
+2026-09-11 to 2026-09-12.** The tanto-workspace Sekkei was created while
+kisou-refresh's batch C ran on the one shared tree. It could cut no branch
+and place no file under `docs/` (Jisso's boundary check needs a clean tree),
+so its spec was drafted, reviewed by its reviewer, briefed, and gated by the
+human in the workspace (`spec-draft.md`; kisou-refresh's Kanri ruled it as
+tanto-workspace R-4), and committed on its own branch, cut from `main`, only
+after the other plan's merge — the same day, with the text unchanged. The
+cost: one `main is free` line from Kanri and a spec whose file date is the
+gate's day, not the commit's. What the shared tree still broke: the second
+Sekkei's reviewer saw the other plan's in-flight files and reported them,
+which the orders line had to pre-empt. So the two-deep pipeline this issue
+asks for already runs at the spec stage on one tree; what the plan stage
+needs, and the spec stage does not, is a second worktree — the boundary
+between "draft in the workspace" and "commit on a branch" is where the
+worktree requirement of the exit shoroku of 2026-09-11 starts to bind.
 
 Related: req-04f5, decision-b6cb, decision-f496, decision-5c8e, design-4807,
 issue-9a68, issue-40ed, the dogfood report of 2026-09-10.
