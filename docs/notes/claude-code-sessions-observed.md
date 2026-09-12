@@ -66,6 +66,23 @@ repository's config, and the new blob's line endings are compared with the
 old blob's (`git show <rev>:<path>`, both LF here). A branch that forks below
 the amended commit needs no rebase; one that forks above it does.
 
+## Check file-overlap before choosing rebase versus merge for a diverged topic branch
+
+Used on 2026-09-12, at the tanto-workspace plan's close: `main` had gained one
+commit not on the topic branch (another Kanri's own exit shoroku, filed while
+the topic branch was checked out elsewhere), so a plain fast-forward was not
+available and the merge decision — rebase-then-fast-forward, or a merge
+commit — was the human's to make. Before presenting the choice,
+`git show --stat --name-only <main's extra commit>` against the topic
+branch's own commit list showed the two sets of changed paths were completely
+disjoint, so either choice was conflict-free; this is worth checking (a cheap
+`git log`/`git show --stat` comparison) before recommending or executing
+either option, since a rebase that hits a conflict is a different, riskier
+conversation than one that cannot. After a rebase, `git diff <old
+tip>..<branch>` should be empty except for the rebased-onto commit's own
+changes — confirms the rewritten history carries the identical tree content,
+not merely the identical commit count.
+
 ## A session never appears in its own listing
 
 `ListAgents` prints the calling session on its own first line ("This session

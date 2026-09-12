@@ -508,6 +508,15 @@ window. The loop is a new interrupt class, outside req-04f5's checkpoint list,
 and it was accepted because the alternative is acting on words the human did not
 say.
 
+**A handover file's own summary of a referenced input is not a substitute for
+reading that input.** Measured on 2026-09-12: the successor Kanri answered a
+question about the next topic's scope from the handover's one-line pointer to
+a spec-input file, and understated what the file itself already settled — the
+human corrected it, and the file, read whole, confirmed the correction. The
+handover file is a pointer, never a copy, precisely so that its reader goes to
+the source; treating the pointer's own gloss as the source is the failure
+mode this guards against.
+
 Timing is a boundary only: a batch accepted and the next prompt not yet sent, or
 between plans. The outgoing Kanri writes its own exit shoroku first, then the
 handover file from its template, sets the ledger's progress line or a roster
@@ -770,6 +779,15 @@ T2 is split, because the executor holds the context the write-out needs and
 cannot talk to the human: the executor proposes to a file, Kanri answers item by
 item in a second file, and the executor applies the accepted subset and commits
 once. The reasoning and the alternatives are decision-1f5f.
+
+**A T2 proposal that classifies a candidate against an existing open issue is
+a claim to verify, not to accept on its framing.** Measured on 2026-09-12: the
+executor proposed appending a finding to an existing issue and flagged its own
+uncertainty; Kanri read that issue's actual body — not only the proposal's
+one-line description of it — and directed a new issue instead, because the
+two problems shared a surface but differed in the moment they arise and the
+shape of their fix. The executor's uncertainty was the signal to read the
+source rather than rule from the proposal alone.
 
 **Every planned session exit carries its own shoroku** — decision-d831 — using
 that same split for the roles that cannot reach the human, and Kanri's direct
