@@ -20,10 +20,16 @@ taking over mid-plan must not create a second ledger.
 1. Read `tanto.json` as `SKILL.md` describes, run `ListAgents` once for your
    own `name [ref]`, and say your start line: the config file and default keys,
    your `name [ref]`, and your bare name as the address.
-2. Make sure `.superpowers/sdd/.gitignore` exists and holds `*`. The SDD
-   skill's `sdd-workspace` script writes the same line on every run; you are
-   only running first.
-3. If `.superpowers/sdd/roster.md` is absent, this is the bootstrap: create it
+2. Make sure `.tanto/.gitignore` exists and holds `*`, and
+   `.tanto/.markdownlint-cli2.yaml` exists and holds the two lines `config:`
+   and `default: false`. Write each only when it is absent and never
+   overwrite either: the first keeps everything under `.tanto/` untracked
+   without touching the repository's own `.gitignore`, the second keeps the
+   editor's markdownlint quiet on files the commit path never lints
+   (issue-6aa8). Nothing else writes these two files for you; the SDD skill's
+   `sdd-workspace` writes its own ignore file in its own workspace on every
+   run, and that is no longer your concern.
+3. If `.tanto/roster.md` is absent, this is the bootstrap: create it
    from `templates/roster.md` with your row first — its Transcript column
    your own transcript path, since you send no handshake — and a Residency
    row carrying today's date, your own reading, and zero counts, then go to step 5.
@@ -33,10 +39,10 @@ taking over mid-plan must not create a second ledger.
    plans, or a recovery whose last ledger says closed — open the topic. Take
    it from whatever the human said the next work is — an issue id, a
    sentence, a name — derive a kebab-case slug of one to three words, check
-   that no `.superpowers/sdd/<slug>/`, no
-   `docs/superpowers/specs/*-<slug>-design.md`, and no branch `<slug>`
-   exists (`ls -d`, the glob, and `git branch --list <slug>`), state the
-   slug in your reply, and create `.superpowers/sdd/<topic>/kanri.md` from
+   that no `.tanto/<slug>/`, no spec for that slug at the default spec
+   location (`docs/superpowers/specs/*-<slug>-design.md`), and no branch
+   `<slug>` exists (`ls -d`, the glob, and `git branch --list <slug>`), state
+   the slug in your reply, and create `.tanto/<topic>/kanri.md` from
    `templates/kanri.md`, where the `<topic>` is that slug. Never ask the
    human for the word; when the human has not yet said what the next work is,
    wait for that (step 6). Until the orders line has gone to Sekkei the human
@@ -48,7 +54,7 @@ taking over mid-plan must not create a second ledger.
 
 ### The five cases
 
-**Handover** — `.superpowers/sdd/kanri-handover.md` exists. In order: read the
+**Handover** — `.tanto/kanri-handover.md` exists. In order: read the
 handover and the ledger it names, and `progress.md` if a plan is in flight;
 from `ListAgents`, note whether the old Kanri is still listed; rewrite the
 roster — your own row first with status `live` and your own transcript path
@@ -120,9 +126,8 @@ Dispatch nothing to a session that has no accepted roster row.
 
 When the human gives you scope input during spec work, relay it to Sekkei as a
 file, not as a paraphrase: append a numbered `I-n` item with your advisory note
-to `.superpowers/sdd/<topic>/spec-inputs.md`, then send Sekkei one line with
-that path. That file stays in the topic directory as the spec-phase record even
-after the ledger moves.
+to `.tanto/<topic>/spec-inputs.md`, then send Sekkei one line with that path.
+That file stays in the topic directory as the spec-phase record.
 
 ## When the plan lands
 
@@ -158,7 +163,7 @@ Then, in this order.
    first step, Batches, How a batch is verified, the sweeps, and the
    Self-Review — as the frame command above prints it. The steps' commands
    and their outputs you take on Sekkei's dry-run report,
-   `.superpowers/sdd/<topic>/plan-dryrun.md`, which the plan-committed line
+   `.tanto/<topic>/plan-dryrun.md`, which the plan-committed line
    names, and a passage block you need you read from the plan by its id, on
    demand — never the report whole, which is larger than the frame; plus one
    command of your own that checks every anchor the plan names against the
@@ -171,16 +176,16 @@ Then, in this order.
    batch prompts rather than the role text on disk, and the boundary the plan
    names for a role start or replacement (contract rule 11); every batch
    prompt and a handover file then carry it.
-2. Move the ledger from `.superpowers/sdd/<topic>/` to
-   `.superpowers/sdd/<plan-basename>/kanri.md`, note the move in the roster's
-   Events list, and name the topic directory in the moved ledger's Plan
-   section. Only the ledger moves.
+2. Record in the ledger's Plan section the plan's path and the SDD ledger's,
+   `.superpowers/sdd/<plan-basename>/progress.md`, which Jisso's
+   `sdd-workspace` run will create, and note the landing in the roster's
+   Events list. Nothing moves: the ledger stays at `.tanto/<topic>/kanri.md`.
 3. Do the T1 write-out — see "Shoroku" below.
 4. Ask the human to create Jisso, as the Create table below prescribes.
 5. On Jisso's handshake, reply with the orders line. Then write batch A's
    prompt from `templates/batch-prompt.md`, with
    `First batch, no previous verdict.` in its previous-batch-verdict section,
-   save it as `.superpowers/sdd/<plan-basename>/batch-A-prompt.md`, and send
+   save it as `.tanto/<topic>/batch-A-prompt.md`, and send
    the same text, without an idle subscription.
 6. Enter the batch loop below at step 1.
 
@@ -246,7 +251,7 @@ Per batch, in this order.
 8. Write the next batch prompt from `templates/batch-prompt.md`, carrying the
    rulings the next tasks inherit and the concrete model families from
    `tanto.json`. Save it as
-   `.superpowers/sdd/<plan-basename>/batch-<X>-prompt.md` and send the same
+   `.tanto/<topic>/batch-<X>-prompt.md` and send the same
    text, without an idle subscription.
 
 Steps 4, 6, and 7 are everything that needs Jisso idle or the index free, and
@@ -287,7 +292,7 @@ After the last implementation batch is accepted:
    run each command it specifies once before dispatching it, and compare its
    output with what the list expects. There is no second fix wave.
 3. When the final batch is accepted, send Jisso one line —
-   `T2: propose the shoroku write-out; write it to .superpowers/sdd/<plan-basename>/shoroku-proposal.md`
+   `T2: propose the shoroku write-out; write it to .tanto/<topic>/shoroku-proposal.md`
    — then verify the write-out as you verify any batch, and put the merge
    decision to the human.
    Residual load-bearing findings reach the human in that merge question, and
@@ -303,7 +308,7 @@ is the classification rule.
    committed as a WIP commit.
 2. Classify. Known cause — rule and send Jisso back to work. Unknown — ask the
    human to create Kaiseki; after its handshake, write
-   `.superpowers/sdd/<plan-basename>/kaiseki-<n>-brief.md` from
+   `.tanto/<topic>/kaiseki-<n>-brief.md` from
    `templates/kaiseki-brief.md`, its Human access line filled — the debugging
    conversation in Kaiseki's window until its report is written, unless you
    judge otherwise — and send its path, without an idle subscription. If the
@@ -424,8 +429,8 @@ you read it.
 
 ### The handover file
 
-`.superpowers/sdd/kanri-handover.md`, next to the roster, untracked under
-`.superpowers/sdd/.gitignore`, copied from `templates/kanri-handover.md`. Its
+`.tanto/kanri-handover.md`, next to the roster, untracked under
+`.tanto/.gitignore`, copied from `templates/kanri-handover.md`. Its
 sections are Why, In flight, Live peers, Open questions for the human, Rulings
 the next batch inherits, Residency, Next step, Not reconstructed, and Commands
 for the human. Everything else is a pointer to the roster and the ledgers,
@@ -444,7 +449,7 @@ never a copy.
    is once the merge decision is executed — on `main` after a merge, on the
    plan's branch only when the human declined the merge (decision-b6cb).
    **Between plans** it is one act too, and the commit lands on `main`.
-2. Write `.superpowers/sdd/kanri-handover.md` from its template.
+2. Write `.tanto/kanri-handover.md` from its template.
 3. **At a batch boundary**, set the ledger's Progress line to "handover
    written". **At a plan close** that line already says "closed", which the
    delete table's row keys on, so leave it and record "handover written by
@@ -509,13 +514,13 @@ T2 is split because Jisso holds the context the write-out needs and cannot talk
 to the human.
 
 1. **Jisso proposes.** You send that line; Jisso writes the numbered list to
-   `.superpowers/sdd/<plan-basename>/shoroku-proposal.md` and sends you one
+   `.tanto/<topic>/shoroku-proposal.md` and sends you one
    line.
 2. **You direct.** Rule on every item per the adoption rule, record the rulings
    in the `S-n` table, ask the human the escalated items,
    original then reference translation, and write the answer **item by item**
    — accept, reject, or accept with an edit — to
-   `.superpowers/sdd/<plan-basename>/shoroku-direction.md`, with the roster's
+   `.tanto/<topic>/shoroku-direction.md`, with the roster's
    Residency rows of this run appended for the dogfood report's Measurements
    table — the readings the archive will hold, kept under `docs/reports/`
    (issue-40ed). Then send Jisso one line with that path.
@@ -534,8 +539,7 @@ file pattern `exit-<role>[-<suffix>]`; these are your steps.
 1. At the boundary where the exit falls, send that session
    `exit: propose your shoroku; write it to <path>`, without an idle
    subscription, as with every other line you send. The path is
-   `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-proposal.md`, or
-   the topic directory for Sekkei.
+   `.tanto/<topic>/exit-<role>[-<suffix>]-proposal.md`.
 2. Rule on every item per the adoption rule, record the rulings in the `S-n`
    table with Stage `exit:<role>[-<suffix>]`, ask the human the escalated
    items, original then reference translation, and write the answer item by
@@ -562,7 +566,7 @@ yourself: propose from the ledger and the roster rather than from recollection,
 escalate to the human in this session, write, lint, commit once, and mark the
 rows `exit:kanri-<YYYY-MM-DD>-<name>`, `<name>` being your own bare name. There
 is a proposal file,
-`.superpowers/sdd/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md`, and no direction
+`.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md`, and no direction
 file. It is step 1 of the Handover above.
 
 **Between plans** there is no ledger, so record candidates in the roster's
@@ -581,18 +585,25 @@ repository's intake.
 ### Intake
 
 On `bug-report: <path>`, or on the human's own words, copy the file to
-`.superpowers/sdd/inbox/<YYYY-MM-DD>-<slug>.md`, the slug kebab-case derived by
-you from the Symptom, creating `inbox/` under the existing `.gitignore`. When
+`.tanto/inbox/<YYYY-MM-DD>-<slug>.md`, the slug kebab-case derived by you
+from the Symptom, creating `inbox/` if it is absent. When
 the human reports in chat, write their words into the skeleton yourself. From
 then on read only the copy: the reporter's own file may vanish. The inbox is
 the log — the Triage section is appended to the copy, and copies are never
 deleted. Every receipt and every send is one line in the roster's Events.
 
-The intake's address is the human's to supply. No session outside this
-repository can learn your name — `ListAgents` shows no cwd, the roster is per
-repository, and the skill's runtime text never names its source location — so
-the human, who alone sees both repositories, tells the reporter the bare name
-your start line and your residency line print. A report the reporter cannot
+The intake's address is read, not relayed. A reporter that knows this
+workspace's path reads the first data row of `<workspace>/.tanto/roster.md`
+— your row — and takes the bare `<name>` before the bracket of its
+`Name [ref]` column as your address; the human supplies the path where the
+reporter does not know it, which is the one thing only the human, who sees
+both repositories, can tell it. A resume gives you a new name and the row
+follows only when you rewrite it, so a reporter checks the name against
+`ListAgents` before sending and asks the human for the address when it is
+not listed, or when the roster is absent. You write the roster; a reporter
+only reads it, and that read, outside the reporter's own working directory,
+may draw a harness permission prompt in the reporter's window outside auto
+mode — the harness's, not a protocol failure. A report the reporter cannot
 send stays a file the human pastes to you as `bug-report: <path>`.
 
 ### Triage — five outcomes
@@ -617,7 +628,7 @@ in the roster's Events when no plan is open. Exactly one of:
    its path back to you, and the report re-enters triage as a known cause.
 4. **Hotfix** — a one-line fix. See "The hotfix lane" below.
 5. **Relay** — a spec is in progress and the report is in its scope. Append it
-   to `.superpowers/sdd/<topic>/spec-inputs.md` as the next `I-n` with your
+   to `.tanto/<topic>/spec-inputs.md` as the next `I-n` with your
    note, and send Sekkei one line — the existing relay, reused.
 
 Redirect, the Kaiseki request, and the relay may happen whenever you read the
@@ -661,9 +672,15 @@ batch is next, it takes the issue outcome and waits.
 
 You are also a reporter: a Kanri in another repository is where a defect in
 this repository's skills is often noticed. On the human's request, write the
-report from `templates/bug-report.md`, ask the human for the intake address if
-it was not given, send `bug-report: <absolute path>` to that bare name, and
-record the send in the roster's Events.
+report from `templates/bug-report.md`; read the intake's bare name — the
+`<name>` before the bracket of the `Name [ref]` column — from the first data
+row of `<target workspace>/.tanto/roster.md`, asking the human for the
+workspace's path if you do not know it, and expecting, outside auto mode, a
+harness permission prompt in your window for a read outside your working
+directory; check that the name is in `ListAgents`, and ask the human for the
+address when it is not, or when that roster is absent; send
+`bug-report: <absolute path>` to that bare name; and record the send in the
+roster's Events.
 
 ## Human access
 
@@ -694,7 +711,7 @@ lines, and these are your steps.
    dispatch the review brief on `subagents.reviewer`, a read-only subagent,
    naming in the dispatch: the document's path; its inputs, for a spec also
    `spec-inputs.md` and `dialogue.md`, for a plan also the spec; the output,
-   `.superpowers/sdd/<topic>/review-brief-spec.md` or `review-brief-plan.md`;
+   `.tanto/<topic>/review-brief-spec.md` or `review-brief-plan.md`;
    the template, `templates/review-brief.md`; and the chat's language, which
    is the language of the human's own messages to you (`dialogue.md` is the
    reference if the two windows differ). Check the brief's form, not the
@@ -771,10 +788,10 @@ normally by your successor, because the close hands the role over
 (decision-b6cb), and by you when the human declines that handover. Your only
 exit is the Handover section above.
 
-Neither `.superpowers/sdd/<plan-basename>/` nor the topic directory beside it is
-deleted at the close, and you ask the human about neither. After T2 the two have
-the same standing: untracked, local to one machine, and useful only for a later
-re-read (issue-12d3).
+Neither `.tanto/<topic>/` nor the SDD workspace
+`.superpowers/sdd/<plan-basename>/` is deleted at the close, and you ask the
+human about neither. After T2 the two have the same standing: untracked,
+local to one machine, and useful only for a later re-read (issue-12d3).
 
 ### Readings
 
