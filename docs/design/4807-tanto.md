@@ -1281,6 +1281,39 @@ conventions, measured during the same run:
   exactly why the check is a prefix grep and not an equality test, and the
   dispatch should ask for only what the check tests.
 
+The third passage plan — tanto-workspace, sixteen files and 71 passages — added
+two more, and both are about how such a plan is **written** rather than how it
+is checked:
+
+- **A passage plan may be drafted by one drafter per destination file, in
+  parallel, with Sekkei writing the frame and assembling.** The convention
+  reads "dispatch a drafter", singular, and the plural is the shape that
+  scales: five `subagents.drafter` dispatches at once, each given one file set,
+  one line range of the spec, and one output file under the topic directory;
+  Sekkei wrote the Global Constraints, the Batches section, the verification
+  section, the boundary, the sweep task and the Self-Review, and concatenated
+  the six task sections into the plan. `lint` was clean on the first assembly
+  and `replay` exited 0 on the first run — no occurrence-count failure across
+  the 71 passages, no anchor failure across the 16 anchors — and the five
+  independently written sections needed no reconciliation. What makes that
+  possible is not longer prompts but **one written conventions file every
+  drafter reads**: the block grammar, the destination wrap column, the
+  uniqueness check as a runnable command, the rule that a task carries no `O`
+  block and no hand-written grep, the step skeleton, and the facts a drafter
+  must not re-derive. The invariants go in that file; the prompts carry only
+  what differs per file. One hazard comes with the shape: **after the plan
+  commit the fragment files are dead.** The committed plan is the artifact, and
+  every later edit — a review ruling, a cold-read answer — must be made there,
+  so the fragments are either deleted or never re-assembled from.
+- **A task's `Done when:` is a second copy of its steps' `Expected:`, and an
+  edit to one silently falsifies the other.** The same structure as a hunk
+  count's explanation: a second claim that can be wrong while the first is
+  right. In this run a step was rewritten from a range-based sweep to an
+  extraction of the plan's own new-passage text, its expected output changed
+  from "nothing" to two numbers, and the gate below still said "prints
+  nothing" — the plan review's only blocker. An author who edits a command
+  re-reads the gate.
+
 Three alternatives were weighed and rejected while these conventions were
 derived, and the reasons are worth keeping. A **bounded** handover wait was
 rejected because the harness gives no signal to bound it by, so a bound would be
