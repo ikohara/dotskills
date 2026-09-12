@@ -4,8 +4,8 @@ title: the topic word is the plan basename, one directory and no ledger move
 severity: low
 depends_on: []
 blocks: []
-claimed_by: "tanto-workspace plan (Kanri dotskills-b4)"
-claimed_at: 2026-09-12T05:15:00Z
+claimed_by: null
+claimed_at: null
 created: 2026-09-08
 updated: 2026-09-12
 ---
@@ -38,6 +38,18 @@ consistency note. A plan that makes this change names, per rule 11, the
 boundary from which a role may be started or replaced, and must not rename
 its own workspace mid-run.
 
+Resolved by the tanto-workspace plan (2026-09-12) — but by a different
+mechanism than the one proposed here. This issue asked for a `<date>-<slug>`
+topic word so that the topic directory and the plan's workspace would become
+one name; what landed is a flat `.tanto/<topic>/` namespace with the **bare**
+slug and no date prefix, uniqueness enforced by the existing-directory check at
+Kanri's Start step 5 rather than by date-qualifying the slug (issue-59c9 notes
+what that check does not cover). The underlying problem is fully resolved: one
+directory per topic from the topic's opening to the plan's close, no ledger
+move at landing, and the asymmetry issue-12d3 ruled on is gone. The specific
+mechanism proposed here is not the one used.
+
 Related: issue-c7e1 (Kanri derives the topic word; resolved by the
 boundary-rules plan), issue-4ac3 (the skill edited in place), design-4807
-(the roster and the conductor ledger).
+(the roster and the conductor ledger), issue-59c9,
+`docs/reports/2026-09-12-tanto-workspace-dogfood.md`.

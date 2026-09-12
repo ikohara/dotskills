@@ -660,6 +660,10 @@ which is what this column now checks for.
 
 The pass condition is that **every line carrying an `idle` field ends `idle 0`**, not that every line of the output does — most lines this check prints carry no `idle` field at all. A naive count of lines not ending `idle 0` over the whole output always reads as a failure: one run counted 48 such lines and read the tree as broken, when only sixteen lines carried an `idle` field in the first place and all sixteen ended `idle 0`. Filter to the lines carrying the field before counting.
 
+A routing string is pinned **per copy**, and the number of copies changes when a plan gives the string a new home. After the tanto-workspace plan of 2026-09-12 the cross-role string `bug-report: <absolute path>` has four copies — `SKILL.md`, `roles/kanri.md`, `roles/kaiseki.md` and `templates/bug-report.md` — where the checks above pin two files. Extend the check as the copies grow: a pinned check that names fewer files than the string has copies keeps passing while the copy it does not name drifts.
+
+The review brief's **form** check joins each wrapped point with its continuation lines before grepping for the point's tag, its `See:` and its `— If unanswered:`. Those fields belong to a point, not to a line, and most points wrap — so a line-based check fails every one of them and says nothing about the form.
+
 ## 7. The strings that must be absent
 
 ```bash
@@ -719,13 +723,21 @@ Expected: `3` and `1`. The filter drops the SDD skill's own ledger,
 `.superpowers/sdd/<plan-basename>/progress.md`, which any prompt, report or
 brief may name; what survives the filter is the skill's `README.md` bullet on
 what `sdd-workspace` owns, `SKILL.md`'s sentence on the one artifact tanto
-reads there, and this note's own prose about the two untracked trees. A rise
-in either number is a new spelling of the layout tanto retired — read the
-lines, not the count, to see where.
+reads there, and this note's own prose about the two untracked trees — that is
+the `3`. The `1` is a different thing and not a retired spelling at all: it is
+this note's own wording invariant about the two forms of a plan's basename
+(line 685). A rise in the first number is a new spelling of the layout tanto
+retired; a rise in the second is a new mention of that invariant. Read the
+lines, not the count, either way.
 
 This subsection is inside its own sweep, so every line of it that names either
 needle also carries `sdd/<plan-basename>/` and is filtered out. A standing
-check written into the file it checks must not move its own numbers.
+check written into the file it checks must not move its own numbers — or it
+counts its own text, and its expected value is wrong the moment it is written.
+Measured when this subsection landed: of its nineteen added lines, four name a
+needle and all four carry the filter's substring, so the filtered counts held
+at `3` and `1` — while the *unfiltered* per-file counts for this file rose from
+1 and 1 to 3 and 5, which is the same fact seen from the other side.
 
 ## 8. The frontmatter and the JSON parse
 
@@ -815,4 +827,18 @@ A deferral recorded per task — "no test pins a last-section replace" — is a 
 
 ## 12. A fix wave in the block grammar
 
-A whole-branch review's fixes are dispatched as a wave Kanri writes in the plan's own block grammar, a wave file with one task per finding group, so the wave earns the plan's instrument: `lint` and `replay` before dispatch, `verify --plan <wave> --task N` per task, and `diff --plan <wave> --base <pre-wave>` clean at the boundary. The tanto-sweep plan's fix wave was the first instance (`docs/reports/2026-09-10-tanto-sweep-dogfood.md`); the kisou-refresh plan's wave of 2026-09-11 was the second, and the shape held — six commits, one fix round the wave did not anticipate, and one mid-batch amendment (R-40: an approved `files:` line at 132 columns against the repository's yamllint `max: 120`) resolved by one message each way, Jisso's ruling request with the equivalent factored form proposed and Kanri's `amended:` after the block was rewritten and the wave's `lint` re-run, with `verify --task 13` clean against the amended wave. After a wave, `verify --plan <plan> --task N` on the original plan reports the tasks the wave superseded as `passage-absent`, correctly — see `docs/notes/reviewing-an-instrument.md`.
+A whole-branch review's fixes are dispatched as a wave Kanri writes in the plan's own block grammar, a wave file with one task per finding group, so the wave earns the plan's instrument: `lint` and `replay` before dispatch, `verify --plan <wave> --task N` per task, and `diff --plan <wave> --base <pre-wave>` clean at the boundary. The tanto-sweep plan's fix wave was the first instance (`docs/reports/2026-09-10-tanto-sweep-dogfood.md`); the kisou-refresh plan's wave of 2026-09-11 was the second, and the shape held — six commits, one fix round the wave did not anticipate, and one mid-batch amendment (R-40: an approved `files:` line at 132 columns against the repository's yamllint `max: 120`) resolved by one message each way, Jisso's ruling request with the equivalent factored form proposed and Kanri's `amended:` after the block was rewritten and the wave's `lint` re-run, with `verify --task 13` clean against the amended wave. After a wave, `verify --plan <plan> --task N` on the original plan reports the tasks the wave superseded as `passage-absent`, correctly — see `docs/notes/reviewing-an-instrument.md`. A passage the controller re-authors mid-run by a recorded ruling, with no wave, produces the same reading for a different reason and with no marker to tell the two apart (issue-7c28).
+
+## 13. Scheduling these checks without drift
+
+Schedule a check by **extracting this note's own fenced block and piping it to `bash`**, never by copying the commands into a plan. A copy is a second source that drifts from the first the moment either is edited, and the drift is silent because both still run. Measured in the tanto-workspace plan, whose task 6 ran checks 6 and 7 out of this file rather than from a transcription: check 6's thirty-two values came back identical in the working tree and in the applied tree.
+
+## 14. A verification-only task inverts the reviewer's instruction
+
+A task whose deliverable is **recorded output** — a sweep that creates no file, whose failure condition is "it changed a tracked file" — inverts the standing rule that a reviewer does not re-run what the implementer already ran. Here the report *is* the artifact, so a reviewer who trusts it verifies nothing at all, and the risk it is the control for is specific: an implementer working from a brief that states expected values can stop running the commands and start predicting them, and a prediction is indistinguishable from a real run because it is built from the same brief. Tell that reviewer to re-run every command and compare. Measured in the tanto-workspace plan: task 6's reviewer re-ran all twelve steps and reproduced every one, including the three longest transcripts, which were the easiest to have fabricated.
+
+A corollary for the dispatch: say in it that output differing from the brief's expectation is the normal shape of a real run, and that a report in which every number confirms the brief earns a second look rather than a faster approval.
+
+## 15. Work assigned by section name drifts; quote the heading
+
+Assigning a write-out by section name — "the `Bug intake` section of the design entry" — fails when the destination's headings differ from the source's, which they routinely do: a design entry and `SKILL.md` describe the same mechanism under different words. Quote the heading text, or give a line number, so the assignment names a place that exists in the file it is addressed to.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-10
+updated: 2026-09-12
 ---
 
 Observed by the context-cost plan review (2026-09-09). In that plan task 1 is
@@ -84,3 +84,20 @@ each) while every later batch is passage edits, which are cheap — the ten
 passage tasks (5, 6, 7, 8, 9, 10, 11, 12, 13, 15) took zero fix rounds
 between them, across 60-odd blocks. A plan that front-loads its executable
 work should expect its first batch to cost as much as the rest combined.
+
+A data point against the sweep-and-check shape's expected cost, from the
+tanto-workspace run (2026-09-12). The context-cost run had measured that shape
+at 1.93x the median implementer and 1.39x the median reviewer, and the plan
+warned that its task 6 — a twelve-step whole-tree sweep that modifies nothing
+— would cost more than its line count suggests. It did not: 84k tokens in the
+implementer seat and 85k in the reviewer's, against that plan's per-task spread
+of 71k-171k and 73k-99k. The sweep came in at about the cost of a mid-sized
+passage task in **both** seats, even though its reviewer was told to re-run all
+twelve steps rather than trust the report.
+
+One reading, offered as a hypothesis rather than a finding: the earlier
+multiplier may track a sweep task's **uncertainty** — how much the agent has to
+discover about where to look — rather than its step count, and this plan's task
+6 carried every command it needed, with expected values, in its brief. If that
+holds, the variable this issue wants is not "is it a sweep" but "how much does
+the task have to find out before it can start".

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-10
+updated: 2026-09-12
 ---
 
 Measured in the tanto-sweep run (2026-09-10, batch A). Both the spec and the
@@ -31,5 +31,19 @@ command names the glob, not the directory, everywhere it appears — in the
 spec's Verification section, the plan's "Done when" lines, and every task's
 Verify step alike.
 
+Confirmed again in the tanto-workspace run (2026-09-12), on both Node versions
+this host carries: `node --test skills/tanto/scripts/` fails identically under
+`mise x node@22` (v22.23.2) and under bare `node` (v24.16.0), with
+`Cannot find module '…\skills\tanto\scripts'`. The file form
+(`node --test skills/tanto/scripts/passage-check.test.js`) runs the suite —
+63 tests, 63 pass — at the pinned floor and at v24 alike.
+
+The sharper part of this occurrence is the dating. This issue was filed
+2026-09-10; the tanto-workspace spec was written 2026-09-11 and its plan
+2026-09-12, both **after** it, and both scheduled the directory form anyway —
+once in the spec's Verification section and three times in the plan. The
+failure was then rediscovered at the batch boundary by the session running the
+check. See issue-ea3c for the general gap this is one of two instances of.
+
 Related: req-04f5, design-4807 (the test-suite command), the tanto-sweep
-spec and plan of 2026-09-10.
+spec and plan of 2026-09-10, issue-ea3c.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-12
 ---
 
 Measured in the kisou-refresh fix wave (2026-09-11, task 13). The wave's
@@ -31,5 +31,33 @@ target has a linter beyond markdownlint, run that linter on the block's new
 text (for YAML, the line length is a one-line check) before dispatch, or
 declare in the plan that the block's text has been checked and how.
 
+**This issue's scope is wider than its own text says.** The paragraph above
+excludes markdownlint — "a block whose target has a linter beyond markdownlint"
+— on the assumption that a Markdown block is already covered by the checks a
+passage plan runs. It is not. `lint` and `replay` validate the block grammar
+and the anchors; neither runs markdownlint over a block's **new text**, so a
+Markdown block meets its linter for the first time at the commit, exactly as a
+YAML one does.
+
+Measured in the tanto-workspace run (2026-09-12), twice in one plan. Blocks
+`P2.1` (`roles/kanri.md`) and `P3.8` (`roles/kaiseki.md`) each spelled a YAML
+line as the inline code span `` `  default: false` ``, with two leading spaces
+that are load-bearing content. `MD038`'s `--fix` strips leading space inside a
+code span and then reports zero errors, so the text that reaches the commit is
+not the text the plan carries and the passage can never match — and the plan's
+own note beside `P3.8` insisted the span "carries its two leading spaces". Both
+blocks had to be re-authored by a controller ruling, putting the indentation in
+prose, and both report `passage-absent` for the life of the plan (issue-7c28).
+The counter-case confirms the mechanism: `skills/**/templates/**` is in this
+repository's markdownlint ignore list, and the identical span landed byte-exact
+in a template.
+
+So the fix generalizes: for each block, run the **destination's own** lint
+configuration over the block's new text before dispatch — not the repository's
+default, since the ignore list is what decides whether markdownlint sees the
+file at all.
+
 Related: req-04f5, design-4807 (rule 11; `lint` and `replay`), the kisou
-refresh dogfood report at `docs/reports/2026-09-11-kisou-refresh-dogfood.md`.
+refresh dogfood report at `docs/reports/2026-09-11-kisou-refresh-dogfood.md`,
+`docs/notes/authoring-a-passage-plan.md` ("A block must survive its
+destination's linter"), issue-7c28, issue-ea3c.

@@ -301,6 +301,26 @@ and **`review-brief-plan.md`**, beside the review reports in the same directory,
 are the brief writer's, written from `templates/review-brief.md` in the chat's
 language; Kanri reads them for form and the human reads them through Sekkei.
 
+**The tree keeps itself quiet.** An untracked agent tree silences the editor's
+markdownlint entirely by carrying its own `.markdownlint-cli2.yaml` holding
+`config:` and, indented two spaces beneath it, `default: false` — no change to
+the repository's root configuration and no addition to its `ignores`. With a
+`.gitignore` of `*` beside it, the directory is invisible to git and to the
+linter at once, and neither of the repository's own configuration files is
+touched, which is what keeps the arrangement inside the never-edit-without-
+approval rule. The shape is reusable for any untracked workspace; it sidesteps
+issue-6aa8 rather than resolving it, since `.superpowers/**` is still absent
+from the root `ignores` and that file is out of a tanto plan's scope.
+
+**Why one directory per topic, and not two.** The two-place scheme this
+replaced — a topic directory before the plan landed, a plan-basename directory
+after — existed because no plan basename is known while the spec is being
+written. The answer was not to move the ledger at landing but to keep the topic
+slug as the sole key for the whole run and to record the SDD skill's own
+ledger path inside the conductor ledger's Plan section, where a reader needs it
+anyway. The move disappears, and the topic word names exactly one directory
+from the topic's opening to the plan's close.
+
 ## Kanri's loop, with its entry and its side channel
 
 The loop has three parts, and the first two are what a steady-state description
@@ -552,6 +572,20 @@ of 2026-09-12 is one — the lane is closed for the whole skill, and a report
 against it takes the issue outcome or the whole-branch review's fix wave; that
 plan is also the one that makes bug reports easier to deliver.
 
+**The intake address became readable rather than relayed.** A reporter that
+knows the target repository's path reads the intake's bare name from the first
+data row of that repository's `.tanto/roster.md` — Kanri's row by construction,
+since the roster is written with it first — and checks the name against
+`ListAgents` before sending. The human's residual job shrinks from "tell the
+reporter Kanri's name", which only the human could know, to "tell the reporter
+which repository", which the reporter often knows already. The failure path is
+named rather than hidden: a resumed Kanri has a new name and its row is
+rewritten only when it notices, so a name absent from `ListAgents` sends the
+reporter back to the human, which is the route that existed before. The
+alternative, a per-user registry file, was not built — it adds a second address
+book beside the roster and a second staleness rule, and it remains the live
+option if the human's remaining step is ever worth removing too.
+
 ## Human access
 
 By default a role has no human access. A role addresses the human directly only
@@ -705,6 +739,18 @@ that record and touch no tracked byte, so the fix rounds produce no commits and
 the scoped re-review has no diff to read. Point that re-review at the
 deliverable itself, and tell it that the **empty** diff is one of the things it
 confirms.
+
+**A controller's ruling is handed to the review seat to judge, not to accept.**
+When Jisso rules on a conflict between the plan and the tree, the dispatch that
+follows states the ruling, the measurement behind it, and — in as many words —
+that disagreement is in scope and will not be treated as out of bounds. The two
+alternatives are both worse: ruling silently spends a review seat rediscovering
+a question already answered, and telling the reviewer not to flag the point is
+pre-judging, which the reviewer's own template forbids the dispatcher from
+doing. Measured three times in the tanto-workspace run — two task reviews and
+the fix wave's re-review — each reviewer agreed with the ruling independently,
+and one weighed three alternatives before doing so, which is evidence the seat
+was genuinely free to disagree rather than merely told it was.
 
 ## Shoroku staging, session exits, and the adoption rule
 
@@ -1063,6 +1109,28 @@ boundary rather than by the plan's own instruments.
   plan states some replacements in prose rather than in a fence, so three
   removals were accounted for by prose and a fence-only reconstruction must
   expect them.
+- **`diff` is unscoped by path, so its base is the plan's, not the branch's.**
+  The instrument runs `git diff <base>` with no pathspec and exempts only the
+  paths a plan declares `created:` plus the plan's own file, so every added line
+  of every commit after the base is its subject — including commits no task of
+  the plan wrote. On a branch that already carries a spec commit and an exit
+  shoroku, the merge base therefore reports those commits' lines as unaccounted
+  at every boundary. The base that works is **the parent of the plan's own first
+  commit**, derived rather than written down — a hash in tracked content goes
+  stale at the first rebase — and derivable only because no earlier commit
+  touches the plan's subject directory. Kanri records the resolved value at the
+  first boundary and every later prompt carries it; a re-derivation that yields
+  a different hash, or nothing, is a stop rather than a recompute, because a
+  base that moves silently turns the check into one that passes for the wrong
+  reason.
+- **The `created:` route was weighed for this and rejected.** Declaring the
+  spec's path and the known shoroku paths as `created:` would let `diff` keep
+  the merge base and shrink the hand-triage to the paths nobody can name in
+  advance. It is the wrong trade: `created:` exempts a **path**, so it exempts
+  every change to that path — including one the plan should have caught — and a
+  shoroku commit's paths are chosen at the moment it is written, so an exemption
+  list that is right at the landing is wrong at the close. A triage rule stated
+  once and applied by eye is weaker per line but does not go quietly wrong.
 - **A "where each change lives" table drifts in both directions, and a sweep
   catches only one.** It lists the passage that *defines* a line and misses
   the passages that *quote* it — six of nine misses in one spec, nine found by

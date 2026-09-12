@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-10
+updated: 2026-09-12
 ---
 
 A passage plan is checked by `lint`, by `replay`, by `diff`, by the dry run,
@@ -54,3 +54,22 @@ gets the plan's instrument for free by being written in the plan's own
 grammar, rather than needing a separate instrument aimed at fix waves as
 such. No fix is proposed here either — this is a second data point, not a
 resolution.
+
+A third data point, and a different flavor, from the tanto-workspace run
+(2026-09-12): it is not only the wave's **code** that is uninstrumented, but
+the controller's **prose**. That wave's two findings were dispatched with their
+replacement text written out verbatim in the dispatch, so the implementer
+landed the controller's own wording byte-for-byte. Nothing reviewed that
+wording before it reached the tree — the re-review sees it only after it is
+committed — and it carried a defect: an `Expected:` paragraph that accounted
+for one of a check's two counts and left the other unexplained, which the
+re-review then caught and the controller parked, since a final batch allows no
+second wave.
+
+The cheap mitigation, short of instrumenting waves: a dispatch that specifies
+exact prose marks it as a **draft the implementer may improve**, rather than as
+text to transcribe. A block of code specified verbatim is a specification; a
+paragraph of prose specified verbatim is an unreviewed edit wearing a
+specification's clothes.
+
+Related: `docs/notes/tanto-consistency-checks.md` section 12.

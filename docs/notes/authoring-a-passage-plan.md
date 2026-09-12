@@ -24,6 +24,14 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   `notify_when_idle: true` while leaving behind the sentence that justified
   it — "because the idle notice is the forced-exit signal" — passes a grep
   for the flag alone; sweep for the reasoning too.
+- No needle enters a plan without a non-zero `grep -cF` on the file it names,
+  run by the plan's author. A needle taken from prose that wraps in its target
+  measures 0 and passes vacuously — it reads as "already gone" when it was
+  never findable.
+- The absence sweep's expected counts are computed from the plan's **new**
+  texts, not from the old tree. A replacement can reintroduce the needle it was
+  written to remove, and a count derived from the tree before the edit would
+  not notice.
 
 ## An entity-level sweep beside the phrase-level one
 
@@ -52,6 +60,22 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   under `text=auto`. Split a line-ending invariant into existing paths, which
   must hold their pre-edit value unchanged, and new paths, which must read
   `w/lf` and never `w/mixed`.
+- Passage coverage is verified completely and cheaply by comparing per-file
+  needle counts in the working tree against the same counts inside the plan's
+  own old blocks: if the plan's blocks account for every hit the tree carries,
+  no passage is missing.
+- A multi-line old block is checked as a **substring** — a Node one-liner, CRLF
+  normalized, count exactly 1. `grep -c` is line-based and cannot do it, so a
+  multi-line block checked by grep is not checked.
+- A sweep records the **before**-count at the base as well as the after-count at
+  head, or it has measured an absence that may always have been there. In the
+  tanto-workspace run the task-6 reviewer counted all twenty `O` needles on the
+  pre-plan tree and found every one non-zero and equal to the plan's own block
+  list; without that half, nineteen zeroes at head prove nothing.
+- Where a check exists in both a filtered and a raw form, the filtered form is
+  the invariant and the raw per-file count is only a snapshot: any later edit
+  that legitimately adds the needle to a swept file invalidates the raw one
+  while the filtered one still holds.
 
 ## Expectations
 
@@ -84,6 +108,32 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   `W` block shipped implemented in three functions with zero tests and zero
   call sites. A plan that specifies more grammar than it exercises says so,
   and mandates the tests that exercise it.
+- `replay`'s `DIFFERS` is a literal string comparison of a command's output
+  against the `Expected:` **paragraph**, so an expectation written as prose
+  reports `DIFFERS` even when it is fully satisfied. Shape an `Expected:` to one
+  short line wherever a machine verdict is wanted, and accept that prose leaves
+  a human ruling to make: of the six `DIFFERS` in the tanto-workspace plan's
+  whole-branch review, five were semantic passes adjudicated by hand.
+
+## A block must survive its destination's linter
+
+A block is written against the file it lands in, and that file's linter runs
+with `--fix` before the commit. A block the linter rewrites can never match.
+
+- **Never put a leading space inside an inline code span** in a file
+  markdownlint lints. `MD038`'s `--fix` strips it and then reports zero errors,
+  so the passage is unlandable and the failure looks like a missing passage.
+  Measured twice in the tanto-workspace plan (`roles/kanri.md`,
+  `roles/kaiseki.md`), with the counter-case that `skills/**/templates/**` is
+  ignored by this repository's configuration and the identical span lands
+  byte-exact there.
+- Where indentation is **load-bearing content** rather than formatting, prose
+  has to carry it, because a code span cannot: `config:` with an unindented
+  `default: false` is two top-level keys, and markdownlint-cli2 discards the
+  second — the file silences nothing.
+- So the plan-time check is a `--fix` dry run of every new-passage block against
+  the **destination's own** lint configuration, not against the repository's
+  default. The same gap for non-Markdown targets is issue-f851.
 
 ## The instrument's domains
 
@@ -101,6 +151,13 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   stale check in `docs/notes/tanto-consistency-checks.md` rather than in the
   skill itself. A reviewer who does not know the domains differ cannot use
   either sweep to explain the other's result.
+- `diff` counts an added line as *accounted* when the plan quotes that line
+  **anywhere**, not only where a passage lands it. Measured in the
+  tanto-workspace fix wave: nineteen lines were added to a note and only
+  thirteen read as `unaccounted-added`, because the plan's own Verification
+  section quotes verbatim the two commands the new text carries. A line can
+  therefore be accounted for by the prose that specified it rather than by a
+  block that lands it.
 
 ## The passage-task recipe on a CRLF host
 

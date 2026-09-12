@@ -4,8 +4,8 @@ title: the bug-report route needs no human relay, Kanri registers its address pe
 severity: low
 depends_on: []
 blocks: []
-claimed_by: "tanto-workspace plan (Kanri dotskills-b4)"
-claimed_at: 2026-09-12T05:15:00Z
+claimed_by: null
+claimed_at: null
 created: 2026-09-07
 updated: 2026-09-12
 ---
@@ -65,7 +65,19 @@ reporter does when the repository that ships the skill has no live Kanri
 serves a cross-repository progress view (issue-3ca4) and so should carry more
 than the address.
 
+Resolved by the tanto-workspace plan (2026-09-12) on route 1 alone, not the
+route this issue recommended. It proposed route 2 — a per-user registry file —
+as primary, with route 1 (resolve the skill link, read the roster) as fallback.
+What landed is route 1 only: the sender reads the intake's bare name from the
+first data row of the target repository's `.tanto/roster.md`, which is Kanri's
+row by construction, and checks it against `ListAgents` before sending; the
+human supplies only the workspace path, where the sender does not already know
+it. The core ask — no human relay for the **address** — is met. Route 2's
+registry, and its open questions about cross-repository shape, were not built
+and remain a live design alternative if the human's one remaining step is ever
+worth removing too.
+
 Related: issue-e5a2 (the report that travelled this route), decision-73c3
 (addressing by born name; a registry is an address book beyond one
 repository), design-4807 (Bug intake), req-04f5 (the human's interrupt
-budget).
+budget), `docs/reports/2026-09-12-tanto-workspace-dogfood.md`.

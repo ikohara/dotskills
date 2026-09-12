@@ -4,8 +4,8 @@ title: the markdownlint ignores lack .superpowers/**, so the editor flags untrac
 severity: low
 depends_on: []
 blocks: []
-claimed_by: "tanto-workspace plan (Kanri dotskills-b4)"
-claimed_at: 2026-09-12T05:15:00Z
+claimed_by: null
+claimed_at: null
 created: 2026-09-09
 updated: 2026-09-12
 ---
@@ -39,3 +39,16 @@ Since 2026-09-11 the ignore list quoted above is three entries, not two —
 `docs/superpowers/**`, `skills/tanto/templates/**`, and
 `skills/kisou/templates/*.md` — and `.superpowers/**` is still not among
 them.
+
+The tanto-workspace plan (2026-09-12) is **not** the plan that resolves this.
+It gives the new `.tanto/` tree a same-shaped fix of its own — an
+in-directory `.markdownlint-cli2.yaml` holding `config:` and, indented two
+spaces beneath it, `default: false`, written by whichever role finds it absent
+— which silences the editor for that tree without touching any repository
+configuration. That is a reusable shape, and design-4807 records it. But this
+issue's actual complaint is that `.superpowers/**` is missing from the
+repository's **root** `.markdownlint-cli2.yaml` `ignores`, and that file is a
+linter configuration: out of a tanto plan's scope, never edited without
+explicit approval, and (per this issue's own text) belonging in dotrepo's
+template rather than here. The SDD workspace is still flagged by the editor;
+only the new tree is quiet.
