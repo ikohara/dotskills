@@ -102,7 +102,7 @@ family — the exact failure this rule prevents.
 ## Handshake and roster
 
 Sekkei and Jisso started with no address on the command line read the first
-data row of `.superpowers/sdd/roster.md`, which is Kanri's own row, for it.
+data row of `.tanto/roster.md`, which is Kanri's own row, for it.
 Kaiseki with no address is standalone and does not shake hands; an attached
 Kaiseki always receives the address on the command line.
 
@@ -132,7 +132,7 @@ path Jisso cannot start without. Sekkei and Kaiseki start reading while they
 wait — the human is in the room, and the reply arrives as a
 `<cross-session-message>`.
 
-The roster lives at `.superpowers/sdd/roster.md`, is written only by Kanri from
+The roster lives at `.tanto/roster.md`, is written only by Kanri from
 `templates/roster.md`, and has Kanri's row first. Columns are role, name
 `[ref]`, cwd, model, branch, mode, started, status, transcript. `ListAgents`
 shows name, `[ref]`, kind, and start time — not the cwd, the model, or the
@@ -154,7 +154,7 @@ role; the handshake carries those.
 - **Kanri's address** reaches a role in one of three ways, in this order of
   precedence: the `kanri-address:` line below; the second argument of
   `/tanto <role> <address>`, pasted by the human from Kanri's request; the
-  first data row of `.superpowers/sdd/roster.md`.
+  first data row of `.tanto/roster.md`.
 - **Every other role's address** is known only to Kanri, from the handshake,
   and Kanri is the only session that sends to Jisso, Sekkei, or Kaiseki. A
   reply copies the envelope's `from` into `to` and needs no name at all.
@@ -213,10 +213,9 @@ directory the environment does not name, a read the session is not permitted
 A session whose reading shows a compaction it has not yet reported writes
 every item its summary attributes to the human — "the human said", "ruled",
 "saw", "confirmed" — one per line, to
-`.superpowers/sdd/<plan-basename>/compaction-<role>-<n>.md` (the topic
-directory for Sekkei; `<n>` one more than the highest such file for that
-role, so that a second compaction or a replaced session does not overwrite
-the first), names the file in its next line to Kanri as
+`.tanto/<topic>/compaction-<role>-<n>.md` (`<n>` one more than the highest
+such file for that role, so that a second compaction or a replaced session
+does not overwrite the first), names the file in its next line to Kanri as
 `compacted: <path>`, and until Kanri answers `confirmed: <path>` acts on
 none of those items beyond finishing the task in hand. Two sessions have no
 Kanri to answer: Kanri itself, whose own case is its handover file, and a
@@ -292,7 +291,7 @@ the session's context, which is what a resume preserves.
 - Before the human reviews a spec or a plan, Sekkei sends Kanri
   `review-ready: <path>`. Kanri dispatches the **review brief** on
   `subagents.reviewer` — a read-only subagent that writes
-  `.superpowers/sdd/<topic>/review-brief-spec.md` or `review-brief-plan.md`
+  `.tanto/<topic>/review-brief-spec.md` or `review-brief-plan.md`
   from `templates/review-brief.md`, in the chat's language — checks its form,
   and answers `brief: <path>`. Sekkei puts the brief's text verbatim in its
   review request, with both paths. The human's answers to the brief's points
@@ -304,9 +303,20 @@ the session's context, which is what a resume preserves.
 
 A defect noticed in a skill goes to the Kanri of the repository that ships that
 skill, as a **bug report**: a file written from `templates/bug-report.md` and
-one line, `bug-report: <absolute path>`. Kanri is the intake, and the human
-supplies the intake's address. A defect that surfaces in a spec dialogue
-reaches Kanri as an `I-n` in `spec-inputs.md`, not as a bug report.
+one line, `bug-report: <absolute path>`. Kanri is the intake, and its address
+is read from the target workspace's roster: the sender reads the first data
+row of `<workspace>/.tanto/roster.md` and takes the bare `<name>` before the
+bracket of its `Name [ref]` column, the human supplying the workspace's path
+where the sender does not know it; the sender checks that name against
+`ListAgents` before sending, and asks the human for the address when the
+roster is absent — a workspace not yet migrated, or an older skill — or the
+name is not listed, since a resumed Kanri carries a new name until it
+rewrites its row. The roster is Kanri's to write and the sender's only to
+read; the read is of a file outside the sender's own working directory, and
+outside auto mode the harness may put a permission prompt for it in the
+sender's window — the harness's own prompt, like the model-mismatch stop, and
+not a failure of the route. A defect that surfaces in a spec dialogue reaches
+Kanri as an `I-n` in `spec-inputs.md`, not as a bug report.
 
 Kanri answers a bug report with one line, in one of five forms:
 `triage: issue-<id>`, `triage: redirect — <one line>`,
@@ -385,11 +395,10 @@ The file pattern is `exit-<role>[-<suffix>]`, with the suffix the batch letter
 for Jisso (`exit-jisso-B`, a Jisso leaving at batch B's boundary), the case
 number for Kaiseki (`exit-kaiseki-1`), absent for Sekkei (`exit-sekkei`), and
 the date and the bare name for Kanri (`exit-kanri-<YYYY-MM-DD>-<name>`); the
-conductor ledger's Stage values mirror it. The files live where the role's
-other files live: Jisso's and
-an attached Kaiseki's under `.superpowers/sdd/<plan-basename>/`, Sekkei's under
-`.superpowers/sdd/<topic>/`, Kanri's own next to the roster. Kanri's exit has a
-proposal file but no direction file, because it rules on itself.
+conductor ledger's Stage values mirror it. The files live in the topic
+directory, `.tanto/<topic>/`, for Jisso, Sekkei, and an attached Kaiseki, and
+next to the roster, at `.tanto/`, for Kanri. Kanri's exit has a proposal file
+but no direction file, because it rules on itself.
 
 The write-out commit's subject begins with `docs: exit shoroku` or
 `docs: T<n> shoroku` — `docs: exit shoroku for jisso at B`,
@@ -400,28 +409,29 @@ review package excludes.
 
 | Path | Writer | Readers | Content |
 | --- | --- | --- | --- |
-| `docs/superpowers/specs/<date>-<topic>-design.md` | Sekkei | Kanri, Jisso | the spec; committed |
-| `docs/superpowers/plans/<date>-<topic>.md` | Sekkei | Kanri, Jisso | the plan; committed; carries Global Constraints, a Batches section, and how a batch is verified |
-| `.superpowers/sdd/roster.md` | Kanri | all roles | one row per role |
-| `.superpowers/sdd/roster-archive.md` | Kanri | Kanri | from `templates/roster-archive.md`; the roster's dead, replaced, and refused rows with their last readings, and the closed plans' Events lines, appended at each plan close |
-| `.superpowers/sdd/kanri-handover.md` | the outgoing Kanri | the successor Kanri | the handover; deleted by the successor once accepted |
-| `.superpowers/sdd/inbox/<date>-<slug>.md` | Kanri | Kanri | a bug report received, with its Triage section |
-| `.superpowers/sdd/<topic>/kanri.md`, then `.superpowers/sdd/<plan-basename>/kanri.md` | Kanri | Sekkei, Jisso, Kaiseki | the conductor ledger |
-| `.superpowers/sdd/<topic>/spec-inputs.md` (optional) | Kanri | Sekkei | scope inputs the human gave Kanri during spec work, numbered `I-n`, each with Kanri's advisory notes |
-| `.superpowers/sdd/<topic>/dialogue.md` | Sekkei | Kanri, the brief writer, T1 | the spec dialogue: each question Sekkei put and the human's answer, verbatim, in order |
-| `.superpowers/sdd/<topic>/review-brief-spec.md`, `.superpowers/sdd/<topic>/review-brief-plan.md` | the brief writer Kanri dispatches | Kanri, then the human through Sekkei | the review brief, from `templates/review-brief.md`, in the chat's language |
-| `.superpowers/sdd/<topic>/plan-dryrun.md` | Sekkei | the plan reviewer, Kanri | from `lint` and `replay` — the two commands, each one's output, and Sekkei's ruling on every failure |
-| `.superpowers/sdd/<plan-basename>/batch-<X>-prompt.md` | Kanri | Jisso, human | the same text as the `SendMessage`, so the human can paste it if the message did not arrive |
-| `.superpowers/sdd/<plan-basename>/batch-<X>-report.md` | Jisso | Kanri | fixed skeleton |
-| `.superpowers/sdd/<plan-basename>/kaiseki-<n>-brief.md` | Kanri | Kaiseki | fixed skeleton |
-| `.superpowers/sdd/<plan-basename>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
-| `.superpowers/sdd/<plan-basename>/shoroku-proposal.md` | Jisso | Kanri | the T2 proposal, written to a file instead of printed |
-| `.superpowers/sdd/<plan-basename>/shoroku-direction.md` | Kanri | Jisso | Kanri's answer to that proposal, item by item |
-| `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-proposal.md`, or the topic directory for Sekkei, or `.superpowers/sdd/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md` | the exiting session | Kanri | the exit shoroku proposal |
-| `.superpowers/sdd/<plan-basename>/exit-<role>[-<suffix>]-direction.md`, or the topic directory for Sekkei | Kanri | the exiting session | Kanri's answer, item by item |
-| `.superpowers/sdd/<plan-basename>/compaction-<role>-<n>.md`, or the topic directory for Sekkei | the compacted session | Kanri, or the human for Kanri itself and a standalone Kaiseki | every item a compaction summary attributes to the human, one per line, rewritten with the human's answers |
-| `.superpowers/sdd/<plan-basename>/progress.md` | Jisso, through the SDD skill | Kanri | the SDD ledger; Kanri reads it and never writes it |
-| `.superpowers/sdd/.gitignore` holding `*` | the SDD skill's `sdd-workspace` script, or Kanri at start when it runs first | git | keeps everything above untracked, so nothing is ever staged |
+| the spec, at the path the orders line names — by default `docs/superpowers/specs/<date>-<topic>-design.md` | Sekkei | Kanri, Jisso | the spec; committed |
+| the plan, at the path the orders line names — by default `docs/superpowers/plans/<date>-<topic>.md` | Sekkei | Kanri, Jisso | the plan; committed; carries Global Constraints, a Batches section, and how a batch is verified |
+| `.tanto/roster.md` | Kanri | all roles; a bug-report sender, its first data row | one row per role |
+| `.tanto/roster-archive.md` | Kanri | Kanri | from `templates/roster-archive.md`; the roster's dead, replaced, and refused rows with their last readings, and the closed plans' Events lines, appended at each plan close |
+| `.tanto/kanri-handover.md` | the outgoing Kanri | the successor Kanri | the handover; deleted by the successor once accepted |
+| `.tanto/inbox/<date>-<slug>.md` | Kanri | Kanri | a bug report received, with its Triage section |
+| `.tanto/<topic>/kanri.md` | Kanri | Sekkei, Jisso, Kaiseki | the conductor ledger; it never moves |
+| `.tanto/<topic>/spec-inputs.md` (optional) | Kanri | Sekkei | scope inputs the human gave Kanri during spec work, numbered `I-n`, each with Kanri's advisory notes |
+| `.tanto/<topic>/dialogue.md` | Sekkei | Kanri, the brief writer, T1 | the spec dialogue: each question Sekkei put and the human's answer, verbatim, in order |
+| `.tanto/<topic>/review-brief-spec.md`, `.tanto/<topic>/review-brief-plan.md` | the brief writer Kanri dispatches | Kanri, then the human through Sekkei | the review brief, from `templates/review-brief.md`, in the chat's language |
+| `.tanto/<topic>/plan-dryrun.md` | Sekkei | the plan reviewer, Kanri | from `lint` and `replay` — the two commands, each one's output, and Sekkei's ruling on every failure |
+| `.tanto/<topic>/batch-<X>-prompt.md` | Kanri | Jisso, human | the same text as the `SendMessage`, so the human can paste it if the message did not arrive |
+| `.tanto/<topic>/batch-<X>-report.md` | Jisso | Kanri | fixed skeleton |
+| `.tanto/<topic>/kaiseki-<n>-brief.md` | Kanri | Kaiseki | fixed skeleton |
+| `.tanto/<topic>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
+| `.tanto/<topic>/shoroku-proposal.md` | Jisso | Kanri | the T2 proposal, written to a file instead of printed |
+| `.tanto/<topic>/shoroku-direction.md` | Kanri | Jisso | Kanri's answer to that proposal, item by item |
+| `.tanto/<topic>/exit-<role>[-<suffix>]-proposal.md`, or `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md` | the exiting session | Kanri | the exit shoroku proposal |
+| `.tanto/<topic>/exit-<role>[-<suffix>]-direction.md` | Kanri | the exiting session | Kanri's answer, item by item |
+| `.tanto/<topic>/compaction-<role>-<n>.md` | the compacted session | Kanri, or the human for Kanri itself and a standalone Kaiseki | every item a compaction summary attributes to the human, one per line, rewritten with the human's answers |
+| `.tanto/kaiseki/kaiseki-<n>.md` | a standalone Kaiseki | the human | its report, outside any run |
+| `.superpowers/sdd/<plan-basename>/progress.md` | Jisso, through the SDD skill | Kanri | the SDD ledger; Kanri reads it and never writes it; the one artifact tanto reads under `.superpowers/` |
+| `.tanto/.gitignore` holding `*`, and `.tanto/.markdownlint-cli2.yaml` holding `config:` / `default: false` | Kanri at start, a standalone Kaiseki, or a bug-report writer — whichever finds them absent first; never overwritten | git; the editor's markdownlint | keeps everything above untracked, so nothing is ever staged, and keeps the editor quiet on files the commit path never lints |
 | `$CLAUDE_CONFIG_DIR/tanto.json` | the user | every role at start, Kanri at each handshake | the personal expected-model config |
 
 Templates are copied and filled, never restated in prose. There are eleven:
@@ -445,10 +455,12 @@ path at the filesystem root. It is never invoked bare —
 the file carries no shebang, so `node` is part of the command and not
 decoration.
 
-No `<plan-basename>` exists before the plan is committed, so the conductor
-ledger starts under `.superpowers/sdd/<topic>/` and Kanri moves it to
-`.superpowers/sdd/<plan-basename>/kanri.md` when the plan lands. Only the
-ledger moves; the topic directory stays as the spec-phase record.
+`.tanto/<topic>/` is created by Kanri when the topic opens — its first file is
+the conductor ledger — and holds every per-topic file from then to the plan's
+close; nothing in it moves when the plan lands. The SDD ledger is the one
+artifact tanto reads under `.superpowers/sdd/`: the SDD skill writes it
+there, and the conductor ledger's Plan section and every batch prompt name
+its path.
 
 ## Rules
 
@@ -460,12 +472,13 @@ ledger moves; the topic directory stays as the spec-phase record.
 4. One set of roles per repo. A session is bound to its cwd — CLAUDE.md,
    memory, and permissions all come from it.
 5. Kanri does not edit tracked files while a batch runs, and writes under
-   `docs/` only while Jisso is idle or absent. Sekkei writes only under
-   `docs/superpowers/` and `.superpowers/sdd/`, at any time, and, while a batch
-   is in flight, commits only at a batch boundary Kanri has verified; while no
-   batch is in flight it commits whenever its work is ready. Kaiseki edits only
-   to instrument and leaves the tree clean. Neither writes under the `docs/`
-   document-management tree outside `docs/superpowers/`, except the accepted subset of its own exit shoroku, at its exit.
+   `docs/` only while Jisso is idle or absent. Sekkei writes only under the
+   spec and plan directory the orders line names — by default
+   `docs/superpowers/` — and `.tanto/`, at any time, and, while a batch is in
+   flight, commits only at a batch boundary Kanri has verified; while no batch
+   is in flight it commits whenever its work is ready. Kaiseki edits only to
+   instrument and leaves the tree clean. Neither writes under the `docs/`
+   document-management tree outside that directory, except the accepted subset of its own exit shoroku, at its exit.
 6. Every subagent dispatch names a `model` from `tanto.json`; none omits it.
 7. Small batches of three or four tasks. Each boundary is a ruling checkpoint
    and a lifecycle checkpoint.
@@ -521,11 +534,11 @@ the merge decision is the human's. **No worktree by default** — Kanri verifies
 the tree in place and the human can watch it. Every batch prompt restates that
 as a Kanri directive.
 
-`.superpowers/sdd/<plan-basename>/` outlives the SDD run, and so does the topic
-directory beside it. Jisso never deletes either, and nothing asks the human to
-delete either: after T2 the two have the same standing — untracked, local to one
-machine, useful only for a later re-read — and disk is the only cost
-(issue-12d3).
+`.tanto/<topic>/` outlives the plan, and so does the SDD workspace
+`.superpowers/sdd/<plan-basename>/`. Jisso never deletes either, and nothing
+asks the human to delete either: after T2 the two have the same standing —
+untracked, local to one machine, useful only for a later re-read — and disk
+is the only cost (issue-12d3).
 
 ## Now read your role file
 
