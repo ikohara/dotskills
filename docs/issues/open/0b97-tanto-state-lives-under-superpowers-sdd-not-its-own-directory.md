@@ -4,10 +4,10 @@ title: tanto keeps its own state under `.superpowers/sdd/`, coupling it to super
 severity: medium
 depends_on: []
 blocks: []
-claimed_by: null
-claimed_at: null
+claimed_by: "tanto-workspace plan (Kanri dotskills-b4)"
+claimed_at: 2026-09-12T05:15:00Z
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-12
 ---
 
 tanto composes superpowers skills but is not meant to depend on them: another

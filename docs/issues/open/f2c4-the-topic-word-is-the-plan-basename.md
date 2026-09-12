@@ -4,10 +4,10 @@ title: the topic word is the plan basename, one directory and no ledger move
 severity: low
 depends_on: []
 blocks: []
-claimed_by: null
-claimed_at: null
+claimed_by: "tanto-workspace plan (Kanri dotskills-b4)"
+claimed_at: 2026-09-12T05:15:00Z
 created: 2026-09-08
-updated: 2026-09-08
+updated: 2026-09-12
 ---
 
 Under `tanto` a topic word names five places: the topic directory

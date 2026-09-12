@@ -4,10 +4,10 @@ title: the markdownlint ignores lack .superpowers/**, so the editor flags untrac
 severity: low
 depends_on: []
 blocks: []
-claimed_by: null
-claimed_at: null
+claimed_by: "tanto-workspace plan (Kanri dotskills-b4)"
+claimed_at: 2026-09-12T05:15:00Z
 created: 2026-09-09
-updated: 2026-09-11
+updated: 2026-09-12
 ---
 
 `.markdownlint-cli2.yaml` ignores `docs/superpowers/**` and

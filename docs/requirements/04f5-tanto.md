@@ -2,7 +2,7 @@
 id: "04f5"
 title: tanto — multi-session orchestration of one implementation plan in Claude Code
 created: 2026-09-06
-updated: 2026-09-11
+updated: 2026-09-12
 ---
 
 ## Purpose
@@ -58,7 +58,10 @@ artifacts.
   when the fix is small and no batch is in flight, sends it where it belongs
   when it is not this repository's, or asks for a root-cause pass when the
   cause is unknown. The reporter learns the outcome in one line, and no
-  report waits for the next plan to be heard.
+  report waits for the next plan to be heard. Two workspaces running this
+  skill report defects to each other through the skill itself: a reporter
+  that knows the target workspace's path finds the intake's address in that
+  workspace, and asks the human only when that address is stale.
 - **Model discipline.** Every role runs on an expected model, and a mismatch is
   reported to the human and never switched silently (decision-08bc). Every
   subagent a role dispatches gets an explicit model from a personal config that
@@ -68,6 +71,14 @@ artifacts.
   is in the repository's workspace, so any session can be replaced or recreated
   and the run continues from disk. A message between sessions carries one line
   and a path, nothing that would be lost with the session.
+- **tanto's own state lives in its own directory.** Everything a role writes
+  for tanto sits in one directory of tanto's own inside the workspace, apart
+  from the directories of the skills tanto composes. That directory is kept
+  out of version control and out of the editor's linting by files tanto
+  writes there itself, so the repository's own configuration is never edited
+  for it. The artifacts of the composed skills stay where those skills put
+  them and are reached by the path Kanri names, so that a spec or a plan
+  written by another skill changes nothing in tanto.
 - **A session resumed under a new name rejoins the run as easily as
   possible.**
 - **A session's cost is measured, not guessed.** Every role reads its own

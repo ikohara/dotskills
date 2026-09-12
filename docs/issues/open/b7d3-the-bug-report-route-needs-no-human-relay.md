@@ -4,10 +4,10 @@ title: the bug-report route needs no human relay, Kanri registers its address pe
 severity: low
 depends_on: []
 blocks: []
-claimed_by: null
-claimed_at: null
+claimed_by: "tanto-workspace plan (Kanri dotskills-b4)"
+claimed_at: 2026-09-12T05:15:00Z
 created: 2026-09-07
-updated: 2026-09-07
+updated: 2026-09-12
 ---
 
 `SKILL.md`'s bug-report route ends with "Kanri is the intake, and the human

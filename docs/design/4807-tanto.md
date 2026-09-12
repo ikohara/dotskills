@@ -120,6 +120,19 @@ premise conditionally, because `SKILL.md` ships to hosts where the skill is
 installed as a copy and the hazard does not arise there. decision-5c8e holds the
 reasoning and the alternative that was rejected.
 
+The boundary that ADR defines — "the first boundary at which every file the
+plan touches agrees with every other" — is read as **every file a session
+loads**: `SKILL.md`, the role files, and the templates. A README or a note is
+read by people and by a plan's verification commands, never loaded by a
+session, so a session started while those two still carry the old wording is
+not half-instructed. The tanto-workspace plan of 2026-09-12 named batch A's
+boundary on that reading, with the README and the consistency note in batch B;
+the human chose to record the narrowing here rather than amend decision-5c8e,
+on the precedent of the creation clause above. A permitted boundary is
+nominal unless the state the new text names exists at that boundary, which is
+why that plan's migration of tanto's own state runs at the same boundary, as a
+Kanri directive under the prompts' authority.
+
 Measured on 2026-09-09, during the review-brief plan: rule 11's creation
 clause was crossed once, knowingly, by the human — a Sekkei for the next topic
 was created during batch A while a task was editing `SKILL.md` — and no defect
@@ -533,7 +546,11 @@ and never on a file the in-flight plan lists in its file structure. In the lane
 Kanri edits the skill file directly, lints, commits once by explicit path, and
 records a ruling; no issue is filed, because the commit is the durable record, so
 its subject names the symptom. Hotfixes are carried forward into the next plan's
-ledger so they reach the documents once.
+ledger so they reach the documents once. While a plan that lists every file of
+`skills/tanto/` in its file structure is in flight — the tanto-workspace plan
+of 2026-09-12 is one — the lane is closed for the whole skill, and a report
+against it takes the issue outcome or the whole-branch review's fix wave; that
+plan is also the one that makes bug reports easier to deliver.
 
 ## Human access
 
