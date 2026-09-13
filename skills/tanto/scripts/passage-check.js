@@ -1154,6 +1154,162 @@ function runSections(values, headings) {
   return missing.length > 0 ? 1 : 0;
 }
 
+const TASK_TEXT_RE = /^Task (\d+)\b/;
+const STEP_LINE_RE = /^- \[ \] \*\*Step/;
+
+/**
+ * Every task heading in the plan -- any heading of depth two or more whose
+ * text is `Task`, a space and a number (issue-ac9d: a plan's tasks are not
+ * always three hashes deep, and a rule that stops at the word `Task` alone
+ * would also take the `## Tasks` heading every plan carries above them).
+ * Each entry's `end` is the index one past the task's own body -- the next
+ * heading at that depth or shallower, or the end of the plan -- and
+ * `stepStart` is the index of the task's first `- [ ] **Step` line within
+ * that body, or -1 when the task carries no step region.
+ */
+function planTasks(lines, inFence) {
+  const tasks = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (inFence[i]) continue;
+    const heading = headingOf(lines[i]);
+    if (!heading || heading.depth < 2) continue;
+    const m = heading.text.match(TASK_TEXT_RE);
+    if (!m) continue;
+    const end = sectionEnd(lines, inFence, i);
+    let stepStart = -1;
+    for (let j = i + 1; j < end; j++) {
+      if (inFence[j]) continue;
+      if (STEP_LINE_RE.test(lines[j])) {
+        stepStart = j;
+        break;
+      }
+    }
+    tasks.push({ number: Number(m[1]), headingIndex: i, end, stepStart });
+  }
+  return tasks;
+}
+
+/**
+ * The default frame: every line outside a step region, each region replaced
+ * by one `[steps: <n> lines]` line counting the region's own lines,
+ * including its first `- [ ] **Step` line. What the `awk` this replaces
+ * printed, on every plan whose tasks it recognized (issue-ac9d).
+ */
+function renderDefault(lines, tasks) {
+  const regions = tasks
+    .filter((t) => t.stepStart !== -1)
+    .map((t) => ({ start: t.stepStart, end: t.end }))
+    .sort((a, b) => a.start - b.start);
+  const output = [];
+  let i = 0;
+  let r = 0;
+  while (i < lines.length) {
+    if (r < regions.length && i === regions[r].start) {
+      output.push(`[steps: ${regions[r].end - regions[r].start} lines]`);
+      i = regions[r].end;
+      r++;
+      continue;
+    }
+    output.push(lines[i]);
+    i++;
+  }
+  return output;
+}
+
+const FRAME_STAGE1_SECTIONS = ["Global Constraints", "Batches", "How a batch is verified", "Self-Review"];
+
+/**
+ * Stage 1: every heading line of the plan, plus the whole body of each of
+ * the four fixed sections the plan carries, in document order and each line
+ * once. A section the plan does not carry is silently absent.
+ */
+function renderStage1(lines, inFence) {
+  const include = new Set();
+  for (let i = 0; i < lines.length; i++) {
+    if (inFence[i]) continue;
+    if (headingOf(lines[i])) include.add(i);
+  }
+  for (const name of FRAME_STAGE1_SECTIONS) {
+    const start = findSection(lines, inFence, name);
+    if (start === -1) continue;
+    const end = sectionEnd(lines, inFence, start);
+    for (let i = start; i < end; i++) include.add(i);
+  }
+  return [...include].sort((a, b) => a - b).map((i) => lines[i]);
+}
+
+/**
+ * Stage 2: each task's heading through the line before its first step, then
+ * one `[steps: <n> lines]` line. A task with no step region prints its head
+ * alone.
+ */
+function renderStage2(lines, tasks) {
+  const output = [];
+  for (const task of tasks) {
+    const headEnd = task.stepStart !== -1 ? task.stepStart : task.end;
+    for (let i = task.headingIndex; i < headEnd; i++) output.push(lines[i]);
+    if (task.stepStart !== -1) output.push(`[steps: ${task.end - task.stepStart} lines]`);
+  }
+  return output;
+}
+
+/**
+ * Read a plan the way Kanri's cold read does (spec 8.2): the default output
+ * collapses every task's step region to its line count; `stage` 1 or 2 reads
+ * a coarser or finer frame; `task` reads one task whole, taking precedence
+ * over `stage`. Returns { output, found }: `found` is false only when `task`
+ * named a number no task heading carries, in which case `output` is empty.
+ */
+function framePlan(text, options = {}) {
+  const stage = options.stage ?? null;
+  const task = options.task ?? null;
+  const { lines } = toLines(normalize(text));
+  const inFence = fenceFlags(lines);
+  const tasks = planTasks(lines, inFence);
+
+  if (task !== null) {
+    const found = tasks.find((t) => t.number === task);
+    if (!found) return { output: [], found: false };
+    return { output: lines.slice(found.headingIndex, found.end), found: true };
+  }
+  if (stage === 1) return { output: renderStage1(lines, inFence), found: true };
+  if (stage === 2) return { output: renderStage2(lines, tasks), found: true };
+  return { output: renderDefault(lines, tasks), found: true };
+}
+
+/** `frame --plan <path> [--stage 1|2] [--task <N>]`. Returns the exit code. */
+function runFrame(values) {
+  if (!values.plan) {
+    process.stderr.write(`${USAGE}\n`);
+    return 2;
+  }
+  let stage = null;
+  if (values.stage !== undefined) {
+    stage = Number(values.stage);
+    if (stage !== 1 && stage !== 2) {
+      process.stderr.write(`invalid --stage '${values.stage}'\n${USAGE}\n`);
+      return 2;
+    }
+  }
+  const task = values.task !== undefined ? Number(values.task) : null;
+  let text;
+  try {
+    text = fs.readFileSync(values.plan, "utf8");
+  } catch (err) {
+    process.stderr.write(`error reading plan: ${err.message}\n${USAGE}\n`);
+    return 2;
+  }
+  const result = framePlan(text, { stage, task });
+  if (task !== null && !result.found) {
+    process.stderr.write(`no such task in the plan: ${task}\n${USAGE}\n`);
+    return 2;
+  }
+  if (result.output.length > 0) {
+    console.log(result.output.join("\n"));
+  }
+  return 0;
+}
+
 /** Dispatch a subcommand. Returns the process exit code. */
 function main(argv) {
   let parsed;
@@ -1166,6 +1322,7 @@ function main(argv) {
         base: { type: "string" },
         task: { type: "string" },
         file: { type: "string" },
+        stage: { type: "string" },
       },
     });
   } catch (err) {
@@ -1189,12 +1346,15 @@ function main(argv) {
   if (subcommand === "sections") {
     return runSections(parsed.values, parsed.positionals.slice(1));
   }
+  if (subcommand === "frame") {
+    return runFrame(parsed.values);
+  }
 
   process.stderr.write(`${USAGE}\n`);
   return 2;
 }
 
-module.exports = { normalize, parsePlan, lintPlan, replayPlan, diffPlan, verifyTask, sectionsOf, main };
+module.exports = { normalize, parsePlan, lintPlan, replayPlan, diffPlan, verifyTask, sectionsOf, framePlan, main };
 
 if (require.main === module) {
   process.exit(main(process.argv.slice(2)));

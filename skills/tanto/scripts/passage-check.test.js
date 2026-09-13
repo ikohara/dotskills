@@ -1042,3 +1042,190 @@ test("sections exits 2 when no heading is named, and when the file cannot be rea
   const missing = run(["sections", "--file", path.join(os.tmpdir(), "passage-check-absent", "report.md"), "Rulings"]);
   assert.strictEqual(missing.code, 2);
 });
+
+const { framePlan } = require("./passage-check.js");
+
+// Tasks at three hashes under a `## Tasks` heading, as the plans in
+// `docs/superpowers/plans/` are written, with a fenced block inside a step
+// region whose own `##` line must neither end the region nor the task.
+//
+// The `## Tasks` heading is a trap, and it is here on purpose: a rule written
+// as `^##+ Task` alone matches it, and `## Tasks` would then be a depth-2
+// task swallowing Task 1's steps and Task 2's heading whole. Fix the rule,
+// never this fixture.
+const FRAME_PLAN = [
+  "# A fixture plan",
+  "",
+  "## Global Constraints",
+  "",
+  "Commit by explicit path.",
+  "",
+  "## Batches",
+  "",
+  "| Batch | Tasks |",
+  "",
+  "## How a batch is verified",
+  "",
+  "Run the linter.",
+  "",
+  "## Tasks",
+  "",
+  "### Task 1: the first task",
+  "",
+  "Head prose for task 1.",
+  "",
+  "- [ ] **Step 1: do the thing**",
+  "",
+  "```bash",
+  "echo one",
+  "## not a heading, inside a fence",
+  "```",
+  "",
+  "Expected: `one`",
+  "",
+  "### Task 2: the second task",
+  "",
+  "Head prose for task 2.",
+  "",
+  "- [ ] **Step 1: do the other thing**",
+  "",
+  "Prose inside the step.",
+  "",
+  "## Self-Review",
+  "",
+  "Nothing to review.",
+];
+
+// A `## Task` heading at two hashes (issue-ac9d), a step region that runs to
+// the end of the file, and only one of the four stage-1 sections.
+const FRAME_SHALLOW = [
+  "# A shallow fixture plan",
+  "",
+  "## Global Constraints",
+  "",
+  "Only this section.",
+  "",
+  "## Task 1: a task at two hashes",
+  "",
+  "Head prose only.",
+  "",
+  "- [ ] **Step 1: the only step**",
+  "",
+  "Body of the step.",
+];
+
+test("frame prints everything outside the step regions, each region replaced by its line count", () => {
+  const result = run(["frame", "--plan", writePlan(FRAME_SHALLOW)]);
+  assert.strictEqual(result.code, 0);
+  assert.strictEqual(
+    result.out,
+    [
+      "# A shallow fixture plan",
+      "",
+      "## Global Constraints",
+      "",
+      "Only this section.",
+      "",
+      "## Task 1: a task at two hashes",
+      "",
+      "Head prose only.",
+      "",
+      "[steps: 3 lines]",
+      "",
+    ].join("\n"),
+  );
+});
+
+test("a task heading at three hashes is a task too, and a fenced block inside a step region is skipped whole", () => {
+  const result = run(["frame", "--plan", writePlan(FRAME_PLAN)]);
+  assert.strictEqual(result.code, 0);
+  // 9 lines, not the 4 a fence-blind reader would stop at: the `##` line
+  // inside the fence ends neither the region nor the task.
+  assert.match(result.out, /\[steps: 9 lines\]/);
+  assert.match(result.out, /\[steps: 4 lines\]/);
+  assert.doesNotMatch(result.out, /echo one/);
+  assert.doesNotMatch(result.out, /not a heading, inside a fence/);
+  assert.match(result.out, /## Self-Review/);
+  assert.match(result.out, /Head prose for task 2\./);
+});
+
+test("a task heading is `Task` followed by a space and a number, so `## Tasks` is not one", () => {
+  // Were `## Tasks` read as a task, stage 2 would print its head -- which
+  // contains Task 1's heading -- and one count for it, so the heading lines
+  // of the output are the discriminator, not the counts.
+  const stage2 = framePlan(plan(FRAME_PLAN), { stage: 2 });
+  assert.deepStrictEqual(
+    stage2.output.filter((line) => /^#/.test(line)),
+    ["### Task 1: the first task", "### Task 2: the second task"],
+  );
+  assert.deepStrictEqual(
+    stage2.output.filter((line) => line.startsWith("[steps:")),
+    ["[steps: 9 lines]", "[steps: 4 lines]"],
+  );
+});
+
+test("frame --stage 1 prints the headings and the four fixed sections, and no task body", () => {
+  const result = run(["frame", "--plan", writePlan(FRAME_PLAN), "--stage", "1"]);
+  assert.strictEqual(result.code, 0);
+  assert.match(result.out, /Commit by explicit path\./);
+  assert.match(result.out, /\| Batch \| Tasks \|/);
+  assert.match(result.out, /Run the linter\./);
+  assert.match(result.out, /Nothing to review\./);
+  assert.match(result.out, /### Task 1: the first task/);
+  assert.match(result.out, /### Task 2: the second task/);
+  assert.doesNotMatch(result.out, /Head prose for task 1\./);
+  assert.doesNotMatch(result.out, /\[steps:/);
+});
+
+test("frame --stage 2 prints each task's head and its step count, and nothing else", () => {
+  const result = run(["frame", "--plan", writePlan(FRAME_PLAN), "--stage", "2"]);
+  assert.strictEqual(result.code, 0);
+  assert.strictEqual(
+    result.out,
+    [
+      "### Task 1: the first task",
+      "",
+      "Head prose for task 1.",
+      "",
+      "[steps: 9 lines]",
+      "### Task 2: the second task",
+      "",
+      "Head prose for task 2.",
+      "",
+      "[steps: 4 lines]",
+      "",
+    ].join("\n"),
+  );
+});
+
+test("frame --task <N> prints that task whole, its steps and fences included", () => {
+  const result = run(["frame", "--plan", writePlan(FRAME_PLAN), "--task", "1"]);
+  assert.strictEqual(result.code, 0);
+  assert.match(result.out, /- \[ \] \*\*Step 1: do the thing\*\*/);
+  assert.match(result.out, /echo one/);
+  assert.doesNotMatch(result.out, /\[steps:/);
+  assert.doesNotMatch(result.out, /### Task 2/);
+  assert.doesNotMatch(result.out, /## Global Constraints/);
+});
+
+test("a plan missing one of the stage-1 sections prints what it has", () => {
+  const result = run(["frame", "--plan", writePlan(FRAME_SHALLOW), "--stage", "1"]);
+  assert.strictEqual(result.code, 0);
+  assert.match(result.out, /Only this section\./);
+  assert.match(result.out, /## Task 1: a task at two hashes/);
+  assert.doesNotMatch(result.out, /Self-Review/);
+  assert.doesNotMatch(result.out, /Head prose only\./);
+});
+
+test("frame exits 2 on a --task no heading carries and on a --stage outside 1 and 2", () => {
+  const file = writePlan(FRAME_PLAN);
+  const missing = run(["frame", "--plan", file, "--task", "9"]);
+  assert.strictEqual(missing.code, 2);
+  assert.match(missing.out, /no such task in the plan: 9/);
+  assert.match(missing.out, /Usage:/);
+  const badStage = run(["frame", "--plan", file, "--stage", "3"]);
+  assert.strictEqual(badStage.code, 2);
+  assert.match(badStage.out, /invalid --stage '3'/);
+
+  assert.deepStrictEqual(framePlan(plan(FRAME_PLAN), { task: 9 }), { output: [], found: false });
+});
