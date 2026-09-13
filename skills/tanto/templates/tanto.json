@@ -1,15 +1,25 @@
 {
   "sessions": {
-    "kanri": "fable",
-    "sekkei": "fable",
-    "jisso": "opus",
-    "kaiseki": "fable"
+    "kikaku": { "model": "fable", "effort": "xhigh" },
+    "kanri": { "model": "sonnet", "effort": "high" },
+    "sekkei": { "model": "fable", "effort": "high" },
+    "keikaku": { "model": "sonnet", "effort": "high" },
+    "jisso": { "model": "sonnet", "effort": "xhigh" },
+    "kaiseki": { "model": "fable", "effort": "xhigh" },
+    "hosa": { "model": "sonnet", "effort": "medium" }
   },
   "subagents": {
-    "implementer": "sonnet",
-    "reviewer": "opus",
-    "drafter": "opus",
-    "escalation": "opus",
-    "default": "sonnet"
+    "task.implement": { "model": "sonnet", "effort": "high" },
+    "task.escalate": { "model": "opus", "effort": "high" },
+    "task.review-spec": { "model": "opus", "effort": "medium" },
+    "task.review-quality": { "model": "opus", "effort": "medium" },
+    "plan.draft": { "model": "opus", "effort": "high" },
+    "plan.review": { "model": "fable", "effort": "high" },
+    "plan.coldread": { "model": "fable", "effort": "high" },
+    "spec.review": { "model": "opus", "effort": "high" },
+    "branch.review": { "model": "fable", "effort": "high" },
+    "brief.write": { "model": "fable", "effort": "high" },
+    "shoroku": { "model": "opus", "effort": "medium" },
+    "default": { "model": "sonnet", "effort": "medium" }
   }
 }
