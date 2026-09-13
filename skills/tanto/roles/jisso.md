@@ -86,30 +86,46 @@ whose cause you cannot name, at any round, is the Kaiseki trigger below.
 
 ## Models
 
-Every dispatch names a `model` taken from `tanto.json`. None omits it — an
-omitted model inherits your session's.
+Every dispatch names `subagent_type: tanto-<object>-<act>` and
+`model: <family>` together — the model from `tanto.json`, the effort from the
+definition that name resolves to. None omits the model; an omitted model
+inherits your session's. The one exception is a kind your start line reported
+as not visible to this session: that dispatch names `model` alone.
 
-| The skill says | tanto key |
+| The skill says | tanto kind |
 | --- | --- |
-| implementer, cheap or standard model, fix rounds 1-3 | `subagents.implementer` |
-| task reviewer, scoped re-review, final whole-branch review on the most capable available model | `subagents.reviewer`, and the whole-branch review is Kanri's dispatch and not yours |
-| fix rounds 4-5, one tier above the implementer that got stuck | `subagents.escalation` |
-| the plan drafter | `subagents.drafter`, which is Sekkei's dispatch and not yours |
-| the spec reviewer, the plan reviewer | `subagents.reviewer`, also Sekkei's |
-| the review brief writer | `subagents.reviewer`, Kanri's dispatch and not yours |
-| anything else — an ad-hoc search, a one-off exploration | `subagents.default` |
+| implementer, fix rounds 1-3 | `task.implement`, sonnet — `subagent_type: tanto-task-implement` |
+| task reviewer, the spec-compliance half | `task.review-spec`, opus — `subagent_type: tanto-task-review-spec` |
+| task reviewer, the code-quality half, and the scoped re-review | `task.review-quality`, opus — `subagent_type: tanto-task-review-quality` |
+| fix rounds 4-5, one tier above the implementer that got stuck | `task.escalate`, opus — `subagent_type: tanto-task-escalate` |
+| the final whole-branch review | `branch.review`, which is Kanri's dispatch and not yours |
+| the plan drafter, the plan reviewer | `plan.draft` and `plan.review`, which are Keikaku's and not yours |
+| the spec reviewer | `spec.review`, Sekkei's |
+| the review brief writer | `brief.write`, the document's author's |
+| anything else — an ad-hoc search, a one-off exploration | `default`, sonnet — `subagent_type: tanto-default` |
 
-One key for every review is deliberate: no `tanto` subagent runs on the top
-family. Every batch prompt restates the concrete families as compaction
-insurance — trust the prompt over your recollection.
+The families named are the built-in defaults; what a dispatch takes is the
+merged `tanto.json`. Your reviews and your escalation sit a family above your
+implementers on purpose: a one-shot is what the stronger family is bought
+for, and a resident session is what must not hold one. Every batch prompt
+restates the concrete families as compaction insurance — trust the prompt
+over your recollection.
+
+A limit is a pause, never a cheaper dispatch. Follow `SKILL.md`'s limit rule:
+on a 429 that names a weekly or daily quota, no retry on a lower family,
+nothing half-done committed, `paused: <dispatch> on <family> — resets <time>`
+to Kanri — or into your report's Rulings needed when a report is due — and
+idle with the work in hand; a per-minute 429 gets one retry, then the same.
 
 ## Your subagent layer
 
-The built-in Agent tool with the `model` from `tanto.json`. No custom
-`.claude/agents` definitions. The prompts are subagent-driven-development's own
-templates — `implementer-prompt.md`, `task-reviewer-prompt.md`, and
-`re-review-prompt.md`. Implementers never dispatch subagents; that SDD rule
-holds here unchanged.
+The agent definitions you wrote at your start are the layer: one file per
+kind, each carrying that kind's effort and nothing else, which is why the
+definition carries the effort and the dispatch carries the model. They are
+protocol, not prompts — the prompts are still subagent-driven-development's
+own templates, `implementer-prompt.md`, `task-reviewer-prompt.md`, and
+`re-review-prompt.md`, which nothing here replaces or edits. Implementers
+never dispatch subagents; that SDD rule holds here unchanged.
 
 ## Verification when the plan ships documents
 
@@ -177,7 +193,7 @@ confidence (issue-f2ec).
 
 The SDD fix loop is unchanged: five rounds per task, rounds 1-3 resume the
 original implementer, rounds 4-5 dispatch a fresh implementer on
-`subagents.escalation`, and the breaker adjudicates at five. `tanto` adds one
+`task.escalate`, and the breaker adjudicates at five. `tanto` adds one
 condition on top:
 
 > When round 2's re-review still leaves a finding open **and you cannot name
@@ -195,10 +211,15 @@ its regression test land as follow-up commits, and finishing squashes them.
 Nothing is amended.
 
 Kanri answers with one of two things. `fix per kaiseki-<n>.md` means resume
-task N, apply that report's minimal fix, add its regression test, and set the
-fix-round counter back to zero. `continue the SDD rounds` means the human
-declined to create Kaiseki: resume at round 3 with the resumed implementer and
-send rounds 4-5 to `subagents.escalation`.
+task N, read that report by its `sections` and not whole — it has a fixed
+skeleton, so name what you need — apply its minimal fix, add its regression
+test, and set the fix-round counter back to zero. `continue the SDD rounds`
+means the human declined to create Kaiseki: resume at round 3 with the
+resumed implementer and send rounds 4-5 to `task.escalate`.
+
+A review report is the exception to that reading: read one whole. Its worth
+is the argument it makes, and a finding you skipped is a finding you did not
+fix.
 
 While Kaiseki works this tree, you idle.
 
@@ -214,9 +235,9 @@ text, these win.
 | SDD — continuous execution, stopping only for the four classes | stop at each batch boundary and idle | the boundary is Kanri's ruling and lifecycle checkpoint; every batch prompt restates it |
 | SDD Finish — delete the workspace once the final review is clean | never delete it | it holds the SDD ledger; nobody deletes it at the close, and `.tanto/<topic>/`, which holds the conductor ledger, the reports, and the T2 source, stays on the same terms (issue-12d3) |
 | SDD Finish — collect "Rulings I made" into the final message, then run finishing-a-development-branch | put every ruling in each batch report's Rulings section, and never run finishing-a-development-branch | you talk to Kanri only, reports are read from files, and the merge decision is the human's, put by Kanri |
-| SDD Model Selection — scale the tier per dispatch, final review on the most capable model | use the `tanto.json` kinds, with one `reviewer` key for every review and never the top family | the personal file sets the tiers, and a top-family subagent is what rate-limited a real run |
+| SDD Model Selection — scale the tier per dispatch, final review on the most capable model | dispatch the `tanto.json` kinds of Models above, each by `subagent_type` and `model` | the personal file sets the families and the definitions the efforts, and the whole-branch review is Kanri's dispatch |
 | SDD fix loop — five rounds, then the breaker | unchanged, plus the Kaiseki trigger at round 2 with an unknown cause, and again whenever an implementer returns blocked with an unknown cause at any round | root cause before more fixing |
-| `shoroku` — propose in chat, wait for the human's `Direction?`, never start without their explicit confirmation | propose and receive direction as files, with Kanri answering as the human's delegate | you do not talk to the human unless Kanri grants it, and adoption is a Kanri ruling by design |
+| `shoroku` — propose in chat, wait for the human's `Direction?`, never start without their explicit confirmation | write the proposal to a file and stop there; a dispatched recommender reads it and the human checks the recommendation by exception | you do not talk to the human unless Kanri grants it, and every item reaches the human that way |
 | SDD task reviewer prompt — "Do not re-run the suite to confirm their report" | for a verification-only task, tell the reviewer to re-run the checks | the recorded output is the deliverable, so a reviewer that trusts the report verifies nothing |
 
 ## The final batch
@@ -227,7 +248,8 @@ one more batch prompt. For that batch:
 1. Dispatch **one** fix subagent with the complete findings list — never one
    fixer per finding.
 2. Run **exactly one** scoped re-review of the fix wave, on
-   `subagents.reviewer`, with subagent-driven-development's re-review prompt.
+   `task.review-quality`, with subagent-driven-development's re-review
+   prompt.
 3. Adjudicate residuals in the SDD ledger as the breaker prescribes — park with
    a ruling, or rule on the load-bearing ones and record what you decided.
 4. Report. There is no second fix wave; residual load-bearing findings reach
@@ -235,33 +257,26 @@ one more batch prompt. For that batch:
 
 ## T2 and the exit — the shoroku write-out
 
-You hold the context this write-out needs — the SDD ledger's rulings, parked
+You hold the context this proposal needs — the SDD ledger's rulings, parked
 findings, and deferred minors, plus everything the batch reports compressed —
-and you do not talk to the human unless Kanri grants it. So the `shoroku` run
-is split, and Kanri answers `Direction?` through a file.
+and you do not talk to the human unless Kanri grants it. So you write the
+proposal and stop there: the recommendation, the human's check, and the apply
+are dispatched work of Kanri's, and none of it waits on you.
 
 **Propose.** On Kanri's T2 prompt, run `shoroku` in file mode over the
 conductor ledger, inline in this session, up to the proposal. Write the
 numbered list to `shoroku-proposal.md` in the topic directory,
 `.tanto/<topic>/`, **instead of printing it**, seeded by the conductor
-ledger's adopted `S-n` rows and extended from your own context. Then send
-Kanri one line with the path, and idle.
+ledger's adopted `S-n` rows whose Written column says `no` — so nothing is
+proposed twice — and extended from your own context. Then send Kanri one line
+with the path, and idle.
 
-**Apply.** Kanri answers with the path of `shoroku-direction.md`, which rules
-on every item — accept, reject, or accept with an edit. Apply the accepted
-subset per the repo's `docs/AGENTS.md` and the per-type `docs/<type>/AGENTS.md`
-files, lint the changed paths, make **one** commit, and report. Write nothing
-the direction file did not accept.
-
-**Your exit** is this same procedure under the exit file names, run at the
-boundary where Kanri replaces you or where the plan ends; at plan end, T2 *is*
-that exit. Kanri sends `exit: propose your shoroku; write it to <path>`, the
-path being `exit-jisso-<X>-proposal.md` in the topic directory,
-`.tanto/<topic>/`, with `<X>` the batch letter, and answers item by item in
-`exit-jisso-<X>-direction.md` beside it.
-Apply, lint, commit once by explicit path in the slot Kanri gives you, and
-answer `exit write-out committed: <subject> — <reading>` or
-`exit write-out: nothing accepted — <reading>`. Any write-out — this one, T2,
-or a later
-one — takes only the adopted `S-n` rows whose Written column says `no`, so
-nothing is written twice.
+**Your exit** is that same proposal under the exit file names, written at the
+boundary where Kanri replaces you or where the plan ends; at plan end, T2
+*is* that exit. Kanri sends
+`exit: propose your shoroku; write it to <path>`, the path being
+`exit-jisso-<X>-proposal.md` in the topic directory, `.tanto/<topic>/`, with
+`<X>` the batch letter. Write it, run the self-check of `SKILL.md`'s
+Resuming, and answer `exit proposal: <path> — <reading>`. Then idle: you
+apply nothing and commit nothing at your exit, and your deletion follows the
+proposal.
