@@ -2,17 +2,20 @@
 id: "04f5"
 title: tanto — multi-session orchestration of one implementation plan in Claude Code
 created: 2026-09-06
-updated: 2026-09-12
+updated: 2026-09-13
 ---
 
 ## Purpose
 
 A Claude Code skill that lets one person run an implementation plan through
 several interactive Claude Code sessions with distinct responsibilities:
-Kanri (管理) manages, Sekkei (設計) designs, Jisso (実装) implements, and
-Kaiseki (解析) finds root causes. The split exists so that judgment stays on
-the strongest model, long output goes to a cheaper one, and scope stays with
-the human, without any one session's context having to hold the whole run.
+Kanri (管理) manages, Sekkei (設計) designs the spec, Keikaku (計画)
+writes the plan, Jisso (実装) implements, Kaiseki (解析) finds root
+causes, Kikaku (企画) is where the human thinks about what comes next,
+and Hosa (補佐) takes the small jobs. The split exists so that judgment
+stays on the strongest model, long output goes to a cheaper one, a
+session that waits holds a cheap context, and scope stays with the human,
+without any one session's context having to hold the whole run.
 It formalizes a practice that worked by hand (kuchidome M1 and M2, 2026-09-05
 and 2026-09-06). How it is built now is design-4807; that entry originates in
 the tanto design of 2026-09-06, kept with the project's superpowers working
@@ -37,20 +40,23 @@ artifacts.
   and never a decision left to the human. When the reset happens is a
   recorded decision, not a requirement.
 - **The human is interrupted only at defined checkpoints.** The spec dialogue;
-  one OK before the plan is committed; batch boundaries, and there only for the
-  stop classes of subagent-driven development, a scope or spec change, and a
-  shoroku item that adds to or changes a requirement or a decision; and the
-  merge decision. Beyond those, the human is asked only for what only the
-  human can do: create or retire a session when Kanri requests it, confirm
-  the items a compaction summary attributes to the human, and settle a
-  triage or handover question Kanri cannot decide alone. Everything else is
-  a ruling a role records in a file.
+  one OK before the plan is committed; batch boundaries, and there only for
+  the stop classes of subagent-driven development and a scope or spec change;
+  the shoroku recommendation at each stage, answered by exception — `OK` as
+  recommended, or the items that go the other way; and the merge decision.
+  Beyond those, the human is asked only for what only the human can do:
+  create or retire a session when Kanri requests it, confirm the items a
+  compaction summary attributes to the human, and settle a triage or handover
+  question Kanri cannot decide alone. Everything else is a ruling a role
+  records in a file.
 - **The human's counterpart is Kanri.** A role addresses the human directly
   only for what needs the human's eyes or hands, such as a visual check in a
   browser or a GUI, an OS dialog, or a credential, and only after Kanri has
   judged it necessary and granted it for that scope; the harness's own
   prompts are outside this rule. The human may still speak to any session,
-  and that session answers and tells Kanri in one line.
+  and that session answers and tells Kanri in one line. Kikaku, the seat the
+  human opens to think in, is the exception: its counterpart is the human by
+  definition, and what it decides reaches Kanri.
 - **Trouble reports reach the repository's Kanri, and Kanri answers them.**
   What a human notices while using a skill, and what another repository's
   run suspects is a defect in a skill this repository ships, has one intake:
@@ -62,11 +68,12 @@ artifacts.
   skill report defects to each other through the skill itself: a reporter
   that knows the target workspace's path finds the intake's address in that
   workspace, and asks the human only when that address is stale.
-- **Model discipline.** Every role runs on an expected model, and a mismatch is
-  reported to the human and never switched silently (decision-08bc). Every
-  subagent a role dispatches gets an explicit model from a personal config that
-  overlays built-in defaults (decision-9a3a), so no long-output work lands on
-  the strongest model by accident.
+- **Model discipline.** The human decides which model, and how much effort,
+  each seat and each kind of subagent runs on. A session that runs on
+  something else is reported to the human and never switched silently
+  (decision-08bc); a subagent never inherits a model or an effort by
+  accident, so no long-output work lands on the strongest model
+  (decision-9a3a).
 - **State lives in files, not in sessions.** Everything a role needs to resume
   is in the repository's workspace, so any session can be replaced or recreated
   and the run continues from disk. A message between sessions carries one line
@@ -81,6 +88,10 @@ artifacts.
   written by another skill changes nothing in tanto.
 - **A session resumed under a new name rejoins the run as easily as
   possible.**
+- **A run is affordable to keep running.** The sessions that wait — the
+  conductor, the executor between batches, a planner between reviews —
+  hold the cheap families' contexts; the strongest model is used where it
+  reads once and answers, and its runs per plan are counted.
 - **A session's cost is measured, not guessed.** Every role reads its own
   transcript at its boundaries, the roster keeps the readings of the current
   run, and the archive keeps them across runs.
@@ -91,19 +102,17 @@ artifacts.
   boundary is a checkpoint for rulings and for the sessions' lifecycle.
 - **Docs are kept current as part of the flow.** Excerpting into the project's
   `docs/` happens at staged points of the run, not as an afterthought, and the
-  human sees only the items that change what the project must do or why.
-  Every planned exit of a session, in any role, carries its own shoroku
-  before the human closes it: the session lists its candidates, Kanri rules
-  on them and escalates what the human owns, and the session that raised
-  them writes out the accepted ones. An exit forced by a failure is the
-  exception, and the record says what was lost.
-- **Composes without modifying.** superpowers, the `kisou` document system, and
-  `shoroku` are used as they are; every override tanto needs is written into
-  tanto's own files.
+  human confirms what lands without having to read every item cold. Every
+  planned exit of a session, in any role, carries its own shoroku before the
+  human closes it, so that nothing a session learned is lost with it. An exit
+  forced by a failure is the exception, and the record says what was lost.
+- **Composes without modifying.** The skills tanto composes — superpowers, the
+  `kisou` document system, `shoroku`, and the like — are used as they are;
+  every override tanto needs is written into tanto's own files.
 - **The human reviews through a brief of the judgment points.** Before the
-  human reads a spec or a plan, a third party Kanri dispatches writes a brief,
-  in the chat's language, of only the points that need the human's judgment,
-  each with a pointer into the document. The human's answers to those points
+  human reads a spec or a plan, a third party that shares no context with the
+  author writes a brief, in the chat's language, of only the points that need
+  the human's judgment, each with a pointer into the document. The human's answers to those points
   are the confirmation the review asks for, and the human reads the document
   where a point sends them. The human's own words in the spec dialogue are
   kept as a record, so that Kanri and the write-outs read them rather than a
@@ -120,6 +129,6 @@ artifacts.
 ## Out of scope
 
 - Changes to the superpowers skills.
-- How the personal model config reaches the user's config directory.
-- Custom subagent definitions.
+- How the personal model config, and the agent definitions tanto generates
+  beside it, reach the user's config directory.
 - A progress view across repositories.

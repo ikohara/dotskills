@@ -2,12 +2,12 @@
 id: "6a29"
 title: tanto reads tanto.json from the personal config directory only, so one repository cannot pin a role's model without touching every other repository's runs
 severity: medium
-depends_on: []
+depends_on: ["cae3"]
 blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-13
 ---
 
 `skills/tanto/SKILL.md` names one location for the expected-model config:

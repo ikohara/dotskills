@@ -2,7 +2,7 @@
 id: "3c4d"
 title: shoroku — excerpt sessions, memory, or files into a project's docs
 created: 2026-05-28
-updated: 2026-09-09
+updated: 2026-09-13
 ---
 
 ## Purpose
@@ -29,9 +29,12 @@ time.
 - A need the user states that the system does not meet yet is proposed
   as **two** fragments, a requirement and an issue, never as one issue
   alone; the requirement outlives the fix, and the issue closes with it.
-- Present a single numbered proposal grouped by destination file. End
-  with `Direction?` and wait for partial-accept input (`OK` / `2 と 5
-  だけ` / `3 はやめて` / `全部やめ` etc.).
+- Present a single numbered proposal grouped by destination file. In
+  session mode, end with `Direction?` and wait for partial-accept input
+  (`OK` / `2 と 5 だけ` / `3 はやめて` / `全部やめ` etc.); for a caller that
+  answers through files, write the proposal to the file it names, each item
+  with a recommendation — adopt, reject, or unsure — and read the direction
+  from a second file, applying and committing once from the two.
 - The proposal names, per `design` entry, the requirement it serves or
   says it serves none, and asks about a design section that serves no
   requirement and a requirement bullet no design serves; the check runs
