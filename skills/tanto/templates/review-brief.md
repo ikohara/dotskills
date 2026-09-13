@@ -1,6 +1,6 @@
 # Review brief — <spec or plan> — <topic>
 
-Written by the brief writer Kanri dispatches, at
+Written by the brief writer the document's author dispatches, at
 `.tanto/<topic>/review-brief-spec.md` or `review-brief-plan.md`, next to the
 review reports and untracked under `.tanto/.gitignore`.
 Every part of the brief is written in the chat's language, which the dispatch
@@ -27,8 +27,8 @@ confirm or nothing that goes unmentioned counts as confirmed. A point tagged
 choose or decide needs its own line; when it goes unanswered, what the point
 names after `— If unanswered:` is what it selects, so that you see before
 answering what your silence will choose. A choose or decide point carrying no
-such clause is a defective brief: it stays open, and Sekkei asks for it on its
-own line rather than reading a default into it.
+such clause is a defective brief: it stays open, and the author asks for it on
+its own line rather than reading a default into it.
 Example:
 
     all OK
@@ -50,7 +50,7 @@ one line each. For a spec, section 5's body is the single rendered line
 
 Every point tagged **choose** or **decide** ends with `— If unanswered: <what>`
 after the pointer. For a **decide** point it names the document's own answer
-where one exists, and otherwise the recommendation Sekkei states with the
+where one exists, and otherwise the recommendation the author states with the
 brief; for a **choose** point it names one of the options the point lists. The
 clause is the writer's, it is rendered in the chat's language like the rest of
 the point, and the marker `— If unanswered:` itself is a form marker and stays

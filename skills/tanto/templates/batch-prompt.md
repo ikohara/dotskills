@@ -29,9 +29,11 @@ where they are, anything the previous batch parked that these tasks touch.>
 ## Rulings to carry into dispatches
 
 - R-<n> — <the ruling, one line> — applies to tasks <N and M>
-- Models, restated here so they survive compaction — implementers on
-  <the subagents.implementer family>, every review on <the subagents.reviewer
-  family>, fix rounds 4-5 on <the subagents.escalation family>. Every dispatch
+- Models, restated here so they survive compaction — the task implementation
+  on `task.implement` (sonnet, `tanto-task-implement.md`); the per-task
+  reviews on `task.review-spec` and `task.review-quality` (opus,
+  `tanto-task-review-spec.md` and `tanto-task-review-quality.md`); fix rounds
+  4-5 on `task.escalate` (opus, `tanto-task-escalate.md`). Every dispatch
   names its model. None omits it.
 - No worktree. Kanri directive, human-approved — work in this tree on
   <branch>.
