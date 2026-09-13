@@ -642,31 +642,39 @@ dialogue, given in Kanri's orders line, and an attached Kaiseki's debugging
 conversation, written into its brief. A standalone Kaiseki has no Kanri and the
 human in the room is its counterpart, so the term does not apply.
 
-**The review brief** is the one piece of human-facing work Kanri produces rather
-than relays, and it sits in this section because it is what the human reads
-before the review gate. On `review-ready: <path>` from Sekkei — sent before each
-spec and plan review, a batch in flight or not — Kanri dispatches a **read-only**
-subagent on `subagents.reviewer` with five inputs: the document's path; what to
-read beside it (for a spec, `spec-inputs.md` and `dialogue.md`; for a plan, the
-spec); the output path; the template; and the chat's language, which is the
-language of the human's own messages to Kanri. The writer writes the brief file
-and nothing else, so it takes no commit slot and disturbs no implementer. A
-handover that is due is the one exception: Timing's wait forbids every new
-subagent, so the successor dispatches the writer from the handover's Next step,
-and a writer still running when a handover is written is listed under In flight.
+**The review brief** is dispatched by the document's own author — Sekkei for
+the spec, Keikaku for the plan — never by Kanri; this amends decision-ace0's
+dispatcher clause, since the third-party property the design wants comes from
+the subagent's own context isolation, not from whose hand does the
+dispatching. On the document's own review gate the author dispatches a
+**read-only** subagent on `brief.write` with five inputs: the document's path;
+what to read beside it (for a spec, `spec-inputs.md` and `dialogue.md`; for a
+plan, the spec); the output path, `review-brief-spec.md` or
+`review-brief-plan.md`; the template; and the chat's language, which is the
+language of the human's own messages. The writer writes the brief file and
+nothing else, so it takes no commit slot and disturbs no implementer.
 
-Kanri then checks the brief's **form**, never its content: eight headings — the
-title, the how-to-answer section, the five numbered sections, and the unsettled
-section — present and in that order, the headings themselves in the chat's
-language; every point opening with one of the four tags, and every unsettled line
-saying whether an answer is needed; every point in its three parts, the two
-before `See:` and the pointer after it, which may itself carry the ` — `
-separator as a plan's task headings do; and every pointer the document's own
-heading text, verbatim and untranslated. `grep '^#'` on the document for its
-headings is the **whole** read Kanri makes — reading its prose would be the
-pre-read the design rejects and would contaminate the cold read. A failing form
-is dispatched once more; a second failure is sent as it stands with one line to
-the human. Kanri never edits the brief, and answers Sekkei `brief: <path>`. A
+The author then checks the brief's **form**, never its content: eight
+headings — the title, the how-to-answer section, the five numbered sections,
+and the unsettled section — present and in that order, the headings
+themselves in the chat's language; every point opening with one of the four
+tags, and every unsettled line saying whether an answer is needed; every point
+in its three parts, the two before `See:` and the pointer after it, which may
+itself carry the ` — ` separator as a plan's task headings do; and every
+pointer the document's own heading text, verbatim and untranslated.
+`grep '^#'` on the document for its headings is the **whole** read the author
+makes — reading its prose would be the pre-read the design rejects. A failing
+form is dispatched once more; a second failure is sent as it stands with one
+line to the human. The author never edits the brief.
+
+The author then sends Kanri one line, `review-ready: <document path>;
+brief: <brief path>`, which waits for nothing: Kanri records it in the
+ledger's Session events and does nothing else — no reply, no
+idle-until-brief wait, and no copy of the brief in Kanri's own context. This
+removed two message hops and the resident-context copy the earlier design
+paid for at every review; the handover concern the earlier design carried (a
+writer still running when a handover is written, listed under In flight) now
+belongs to whichever session is the document's own author, not to Kanri. A
 point that misreads the document is caught by the human's answer or by Kanri's
 cold read after the commit. The one-line-per-point shape also catches a wrong
 claim that a multi-bullet design section's `OK` passes: on 2026-09-11 an
