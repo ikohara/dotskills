@@ -77,6 +77,37 @@ overlaps surface in the proposal and the user accepts or rejects per item.
 Everything else — classification, proposal, partial-accept, single commit — is
 identical to session mode.
 
+### Recommend and apply — the two halves for a caller that answers `Direction?` through files
+
+A caller that cannot answer in the chat — an orchestrator running this skill
+in a subagent, say — gets the same workflow in two halves, split where
+session mode waits at `Direction?`. A session-mode run is unchanged by this
+section.
+
+**Recommend mode.** Invoked with a source — a file, or a file and the names
+of the sections to read — and an output path. Run the workflow up to the
+proposal and write the proposal to that path instead of printing it: the
+numbered items in three groups, **recommended adopt** / **recommended
+reject** / **unsure**, each item quoted in full from its source so that the
+file stands alone as the apply's input, and each carrying its destination, a
+one-line reason, the `req-<id>` pairing for a `design` entry, and — for a
+requirement or ADR item — the original wording followed by a reference
+translation in the chat's language. Do not wait for `Direction?`, and write
+nothing under `docs/`.
+
+**Apply mode.** Invoked with a recommendation path, a direction path, and a
+commit subject. The recommendation quotes every item in full, so no third
+file is read: where the candidates were sections of the source document, the
+recommendation is the only proposal there is. Apply the accepted subset per
+the per-type `AGENTS.md`, lint the changed paths by name, make **one** commit
+by explicit path with the subject you were given, and report the paths and
+the subject. Write nothing the direction did not accept, and never run
+without a direction file.
+
+The direction file carries the directions this skill already parses — `OK`,
+`2 と 5 だけ`, `3 はやめて`, an edit — one line per item, or one `OK` for the
+whole list.
+
 ## Empty / minimal input
 
 If the source has nothing substantive to excerpt, report `nothing to shoroku`
@@ -87,13 +118,19 @@ and exit. **Never invent content.**
 When a session is winding down (completion utterances, a recent `git commit`, a
 topic transition, or many turns with substantive edits), you **may** suggest a
 shoroku run — **once per session at most**. If the user declines, stay quiet
-for the rest of the session. Never start a run without explicit confirmation.
+for the rest of the session. Never start a run without explicit confirmation
+— in session mode; in recommend and apply mode the caller's dispatch is the
+start, and the direction file is the confirmation.
 
 ## Prohibited actions
 
-- Do NOT start a shoroku run without explicit user confirmation.
+- Do NOT start a shoroku run without explicit user confirmation — in session
+  mode; in recommend mode the caller's dispatch is the run's start and
+  nothing is written under `docs/`, and in apply mode the direction file is
+  the confirmation, written from the human's answers.
 - Do NOT restate the document format in this file — defer to `AGENTS.md`.
-- Do NOT write outside `docs/`. `shoroku` no longer installs or edits
+- Do NOT write outside `docs/` — except the recommendation file a caller
+  names in recommend mode. `shoroku` no longer installs or edits
   `AGENTS.md`; setting up the system is `kisou`'s job.
 - Do NOT rewrite an `accepted` ADR body — only its `status` / supersede and
   amend links.

@@ -16,6 +16,11 @@ maintains the agent-agnostic document-management system that governs them.
 - On a trigger, excerpts the current **session** (default) or **memory**
   (explicit) into those docs: classify → numbered proposal → you partially
   accept → one git commit.
+- For a caller that answers through files — an orchestrator running the skill
+  in a subagent — the same workflow splits into two halves at `Direction?`:
+  **recommend** writes the numbered proposal, each item marked adopt, reject,
+  or unsure, to a path the caller names; **apply** reads that file with a
+  direction file and makes the one commit.
 
 ## Usage
 
