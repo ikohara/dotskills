@@ -60,3 +60,15 @@ this reason" — a declaration that would let the check stay meaningful after
 a plan lands, the same shape as issue-4eef's `rewritten:` idea from the
 other direction (an unquoted-but-intended change, rather than a
 quoted-then-corrected one).
+
+2026-09-14 — the principle behind this issue, recorded at the run's T2.
+**A plan's ability to repair its own text is decided by which instrument
+happens to cover the path, not by how bad the defect is.** The six
+passages above were broken deliberately because the fixes were right and
+the paths were covered; earlier in the same run the same class of defect
+was fixed without cost in a `created:` path that no instrument compares,
+and was left unfixed in two passage-carrying files precisely because they
+are compared. That is why this issue exists rather than a set of repairs:
+coverage, not severity, chose the outcome in every one of those cases.
+`docs/reports/2026-09-14-tanto-cost-dogfood.md`, section 6, states it in
+full for a reader of the report.

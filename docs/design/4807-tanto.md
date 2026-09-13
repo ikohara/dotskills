@@ -2,23 +2,30 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-09-12
+updated: 2026-09-14
 ---
 
 ## Purpose and shape
 
-`tanto` (担当, "take charge of") runs implementation plans through up to four
+`tanto` (担当, "take charge of") runs implementation plans through up to seven
 interactive Claude Code sessions on the same repository, the same working tree,
-and the same branch. Kanri (管理) manages, Sekkei (設計) designs, Jisso (実装)
-implements, Kaiseki (解析) finds root causes. req-04f5 states what the skill
-must do for its user; this entry states how it is built.
+and the same branch. Kanri (管理) manages, Sekkei (設計) designs the spec,
+Keikaku (計画) writes the plan, Jisso (実装) implements, Kaiseki (解析) finds
+root causes, Kikaku (企画) is where the human thinks about what comes next, and
+Hosa (補佐) takes the small jobs. req-04f5 states what the skill must do for its
+user; this entry states how it is built.
+
+Five of the seven are lifecycle roles, created and deleted around a plan.
+**Kikaku and Hosa are seats outside the lifecycle**: the human opens each one
+directly, Kanri never requests one, neither carries an exit shoroku, and each is
+`/clear`ed rather than deleted, its roster row marked `cleared`.
 
 The human is the only actor who creates or deletes a session, and Kanri is the
 only role that asks. Every request is a numbered list carrying the exact command
 the human pastes. Kanri exists once per repository and is **resident across
 plans** — decision-de63 — so a plan's end is a boundary like any other and the
-next topic opens under the same roster. The other three roles are optional and
-Kaiseki is on demand, so it costs nothing while no bug is open.
+next topic opens under the same roster. The other six are optional, and Kaiseki
+is on demand, so it costs nothing while no bug is open.
 
 All roles share one tree and one branch — **no worktree by default**. Kanri
 verifies the tree in place and the human can watch it, and the price is a write
@@ -226,7 +233,27 @@ Two maps and two mechanisms, recorded in full as decision-9a3a.
 the handshake, and nothing ever switches a session's model. `subagents.<kind>`
 is **effective**: its value goes into the `model` parameter of every subagent
 that role dispatches, and no dispatch omits it — an omitted model inherits the
-session's, which on three of the four roles is the strongest family.
+session's, which on three of the seven roles is the strongest family.
+
+**A kind carries an effort as well as a model, and the two bind by different
+routes.** The twelve kinds are named `<object>.<act>`, and each role renders one
+agent definition per kind at its start, into `~/.claude/agents/tanto-<object>-<act>.md`
+(the `.` becoming a `-`; `$CLAUDE_CONFIG_DIR/agents/` when that variable is
+set). The definition carries the kind's `effort` and no `model`: the family
+comes from the dispatch's own `model` parameter, which takes precedence, while
+the effort comes from the file. A dispatch therefore names
+`subagent_type: tanto-<object>-<act>` and `model: <family>` together.
+
+The effort half is **measured-unconfirmed**, and this entry states that rather
+than asserting it works. The 2026-09-14 dogfood dispatched a probe on a
+definition carrying `effort: low` and read that subagent's own transcript: the
+dispatch resolved and the model bound, but the transcript records
+`perTurnEffort: null` and no `effort` key at all. The evidence leans negative —
+the same record writes the model down twice and the effort never — but it cannot
+separate "the harness ignored the key" from "it honored it without recording
+it". The instrument was wrong for the question: settling it needs a behavioral
+probe, a task whose output differs by effort level, not a transcript-field read.
+See `docs/reports/2026-09-14-tanto-cost-dogfood.md`, section 8.
 
 The skill ships built-in defaults, one value per fixed key, derived from the
 family ladder. A personal file overlays them key by key, so a partial file is
@@ -648,6 +675,23 @@ section the human had accepted whole, and the brief's own decide point on it
 drew the correction. decision-ace0 holds the reasoning and the alternatives
 that were rejected.
 
+**A decision the human makes between `review-ready:` and `brief:` is invisible
+to the writer by construction**, because the writer reads `dialogue.md` and that
+window is not yet in it. It happened once, on 2026-09-13: the human decided in
+Kanri's window that a second Sekkei on `opus` would write the plan, after
+`review-ready:` had been sent and before `brief:` arrived, so the brief's point
+1.2 asked a question already answered. The cost was one sentence of explanation
+before the brief, and no rule is needed — but the habit that avoids it is to
+note such a decision before the brief is put to the human, and to ask for a new
+brief only when it changes a judgment point.
+
+**A `decide` point may close by its own default, and that is the design
+working.** The plan brief of the tanto-cost run carried two: the human answered
+one and left the other untouched, so its `— If unanswered:` clause decided it —
+the first time in this repository a `decide` has closed by default rather than
+by an answer. The clause is a decision mechanism, not a fallback for an
+unanswered question.
+
 ## The batch contracts
 
 A **batch prompt** carries a guard line naming the workspace it belongs to, the
@@ -770,15 +814,23 @@ the executor is created, files the requirements and issues the spec produced.
 T2, after the final batch, records the design, the rulings, and the dogfood
 report.
 
-Adoption is a Kanri ruling at every stage. Kanri escalates to the human only two
-kinds of item — one that adds to or changes a requirement or an ADR, and one it
-cannot classify or is unsure about — and decides everything else itself, with the
-human seeing the result in the commit.
+Every stage runs the same four steps: the session that holds the candidates
+**writes** them to a file; Kanri dispatches the `shoroku` kind in recommend mode
+to produce a **recommendation**, each item grouped as recommended adopt,
+recommended reject, or unsure; the human **checks** it by exception, answering
+`OK` or naming the items that go the other way; and Kanri writes the direction
+and dispatches the `shoroku` kind again to **apply** and commit in a slot.
+Adoption is therefore a recommendation the human checks rather than a ruling
+Kanri makes as their delegate — the amendment to decision-1f5f, which holds the
+original reasoning and the alternatives.
 
-T2 is split, because the executor holds the context the write-out needs and
-cannot talk to the human: the executor proposes to a file, Kanri answers item by
-item in a second file, and the executor applies the accepted subset and commits
-once. The reasoning and the alternatives are decision-1f5f.
+**The writer of a write-out is a dispatched subagent, not the session that
+raised the candidates.** No session applies the accepted subset of its own
+proposal, at any stage or at any exit. Two things follow: a session is
+**deletable as soon as its proposal is on disk**, which is what lets an exit
+stop waiting for its own write-out; and the clerical work of applying
+frontmatter rules never runs on a resident context of the strongest family,
+which is the cost this shape exists to avoid.
 
 **A T2 proposal that classifies a candidate against an existing open issue is
 a claim to verify, not to accept on its framing.** Measured on 2026-09-12: the
@@ -872,6 +924,16 @@ plan says they follow the skill's templates and names nothing else.
 A plan that carries **complete file contents in fenced blocks** turns each task
 into transcription plus verification, and lets a reviewer check plan alignment
 by extracting the blocks and diffing rather than by judgment.
+
+**Parallel drafters share one working tree, and the fan-out needs a stated
+rule.** Twelve drafters wrote the tanto-cost plan at once, and two collided:
+one overwrote another's scratch file mid-validation, and one wrote 959 lines of
+a `docs/notes/` file over `skills/tanto/SKILL.md` — the live skill every session
+of that run reads. It surfaced only because a third drafter reported that its
+checks had to run against the `HEAD` blob; `git checkout --` restored the file
+and every affected count was re-measured against the restored tree. The rule the
+shape needs: a drafter writes its own output path and its own scratch directory
+and nothing else, and the author verifies `git status` before assembling.
 
 The alternative is a plan that carries **passages**: for each edit an anchor
 line that occurs once, the old passage verbatim, and the new passage verbatim.
