@@ -58,7 +58,7 @@ from a batch report's Shoroku candidates, a Kaiseki report's
 `pending` and Stage `t2`, and stays `pending` until the stage that recommends
 it. At every stage Kanri dispatches the `shoroku` kind to write
 `<stage>-recommendation.md`, which lists every item once in three groups —
-recommended adopt, recommended reject, unsure — tells the human that path and
+recommended adopt, recommended reject, unsure; tells the human that path and
 the three counts; and writes `<stage>-direction.md` from the human's answer,
 and these rows with it, Adopted `yes` or `no` as the direction says and Stage
 the stage word. No item is put to the human apart from the rest and none is
