@@ -759,11 +759,11 @@ in the roster's Events when no plan is open. Exactly one of:
 1. **Issue** — a defect in a skill this repository ships, larger than a
    one-line fix, or with an unknown cause the human does not want a Kaiseki
    for. File it under `docs/issues/open/` per `docs/issues/AGENTS.md`, with the
-   report's symptom and reproduction; issues are yours under the adoption rule,
-   and the human sees the commit. The issue is then the tracker: `claimed_by`
-   when a plan picks it up, `git mv` to `resolved/` at the T2 of the plan that
-   lands the fix. A plan's spec names the issues it resolves, and that plan's
-   T2 moves them.
+   report's symptom and reproduction; the triage is your ruling, so the filing
+   is yours to order, and the human sees the commit. The issue is then the
+   tracker: `claimed_by` when a plan picks it up, `git mv` to `resolved/` at
+   the T2 of the plan that lands the fix. A plan's spec names the issues it
+   resolves, and that plan's T2 moves them.
 2. **Redirect** — the problem belongs elsewhere: dotrepo, superpowers, Claude
    Code, or the reporter's own repository. One line back, nothing written.
 3. **Kaiseki** — the cause is unknown and worth a root-cause pass. Ask the
@@ -777,7 +777,10 @@ in the roster's Events when no plan is open. Exactly one of:
    note, and send Sekkei one line — the existing relay, reused.
 
 Redirect, the Kaiseki request, and the relay may happen whenever you read the
-report. Filing an issue and the hotfix touch tracked files and wait for the
+report. Filing an issue and the hotfix touch tracked files. When a Hosa is
+live, hand the filing to it as
+`chore: <what> — <paths> — slot: now | at the next boundary`, and the slot you
+name places it; when none is live, the filing is your own and waits for the
 commit window at loop step 7, or for a gap between plans. When no plan is open,
 triage on arrival.
 
@@ -800,18 +803,21 @@ the report came from. The commit lands on the branch the tree is on — the plan
 branch between batches, `main` between plans — and is never pushed. A hotfix on
 a plan branch is named in your merge question.
 
+A live Hosa may be your hand in the lane when you would rather not hold the
+edit: send it the `chore:` line with the paths and the slot. The lane's
+conditions, the ruling `R-n`, and the commit subject stay yours.
+
 So that hotfixes reach `docs/` once, carry them forward: when you create a new
 topic's ledger, copy the hotfix lines recorded in the roster's Events since the
 previous plan into the ledger's "Hotfixes since the previous plan" line, and at
-T2 name that line in the shoroku direction so Jisso's dogfood report carries
-them.
+T2 name that line in the direction so the dogfood report carries them.
 
 A fix to a file the in-flight plan rewrites takes one of three paths. If a task
-that rewrites the file is still ahead, it is a cold-read question to Sekkei,
-which edits the plan's fenced block so that the task delivers the fix. If every
-rewriting task has run and only the final batch remains, the fix joins the
-whole-branch review's single fix wave. If neither Sekkei is live nor the final
-batch is next, it takes the issue outcome and waits.
+that rewrites the file is still ahead and Keikaku is still live, it is a
+cold-read question to Keikaku, which edits the plan's fenced block so that the
+task delivers the fix. If every rewriting task has run and only the final batch
+remains, the fix joins the whole-branch review's single fix wave. If neither
+holds, it takes the issue outcome and waits.
 
 ### Reporting from the other side
 
@@ -826,6 +832,27 @@ directory; check that the name is in `ListAgents`, and ask the human for the
 address when it is not, or when that roster is absent; send
 `bug-report: <absolute path>` to that bare name; and record the send in the
 roster's Events.
+
+### Limits
+
+A limit is a pause, never a model change — `SKILL.md` carries the rule, and
+this is the bookkeeping it leaves to you.
+
+1. On `paused: <dispatch> on <family> — resets <time>`, sent as a line or
+   written in a report's Rulings needed, record it as a row of the ledger's
+   Measurements table — the dispatch, the family, and the reset time — and
+   tell the human that reset time in your next line. The pause has no upper
+   bound this skill can state; only the human's word ends it.
+2. When the human says, in your window and in any words, that the quota is
+   back, you may probe the family once with a trivial `default` subagent, and
+   then send the paused role
+   `continue: <the dispatch the pause named> — same model`. The role
+   re-dispatches identically from where it stopped; no model and no effort
+   changes at either end.
+3. With no `paused:` marker in Measurements to bind the continuation to, ask
+   the human what to continue. A human who says it in the role's own window
+   instead is answered there, and that exchange reaches you as
+   `human-contact:` like any other.
 
 ## Human access
 
@@ -842,45 +869,23 @@ lines, and these are your steps.
    `<name> [<ref>]`; 2. do `<what>`; 3. come back here. The role's exchange
    ends with `human-access: done — <what the human did or decided>`; note that
    line in the ledger's Session events.
-3. Two standing grants are yours to give without a request: Sekkei's spec and
-   plan dialogue, in its orders line at the handshake; an attached Kaiseki's
-   debugging conversation, in the Human access section of its brief.
+3. Four standing grants are yours to give without a request: Sekkei's spec
+   dialogue and Keikaku's plan dialogue, each in that role's orders line at
+   the handshake; an attached Kaiseki's debugging conversation, in the Human
+   access section of its brief; and Hosa's chores, in the line you answer its
+   handshake with. Kikaku needs none — the human is its counterpart by
+   definition, and you never message it.
 4. A `human-contact:` line from a peer is information — the human spoke in
    that window unprompted and the peer answered. Record it in Session events;
    it grants nothing beyond that exchange.
-5. On `review-ready: <path>` from Sekkei — at any time, a batch in flight or
-   not, because the writer reads only and writes one untracked file; unless a
-   handover is due, in which case the successor dispatches it from the
-   handover's Next step, and a writer still running when a handover is
-   written on the human's word is listed under In flight like any agent —
-   dispatch the review brief on `subagents.reviewer`, a read-only subagent,
-   naming in the dispatch: the document's path; its inputs, for a spec also
-   `spec-inputs.md` and `dialogue.md`, for a plan also the spec; the output,
-   `.tanto/<topic>/review-brief-spec.md` or `review-brief-plan.md`;
-   the template, `templates/review-brief.md`; and the chat's language, which
-   is the language of the human's own messages to you (`dialogue.md` is the
-   reference if the two windows differ). Check the brief's form, not the
-   document: eight headings — the title, the how-to-answer section, the five
-   numbered sections, and the unsettled section — present and in that order,
-   the headings themselves in the chat's language (for a spec, section 5's
-   body is the one line the template gives, rendered); every point opening
-   with one of the four tags — confirm, choose, decide, nothing — and every
-   unsettled line saying whether an answer is needed, and a decide line among
-   them carrying the `— If unanswered:` clause after that; every point in its
-   parts — the two before `See:`, then the pointer, and on a choose or decide
-   point the `— If unanswered:` clause after it, so three parts or four, any
-   of which may carry the ` — ` separator, as a plan's task headings do; a
-   choose or decide point without that clause failing the check; every pointer
-   the
-   document's own heading text, verbatim and untranslated, so that
-   `grep '^#'` on the document matches it. Dispatch once more if the form
-   fails; if it fails again, send the brief as it stands and tell the human
-   in one line. Never edit it, and do not read the document's prose to
-   validate it — `grep '^#'` for its headings is the whole read you make;
-   a point that misreads the document is caught by the human's answer or by
-   your cold read, which stays where it is. Then send Sekkei `brief: <path>`.
-   The human answers in Sekkei's window under the standing grant; the answers
-   reach you through `dialogue.md` and the document.
+
+A `review-ready: <document path>; brief: <brief path>` line asks nothing of
+you. The brief is the document author's — Sekkei dispatches the spec brief,
+Keikaku the plan brief, each checking its form against `SKILL.md`'s "The
+brief's form" — and the human answers in that author's window under its
+standing grant, the answers reaching you through `dialogue.md` and the
+document. Record the line in the ledger's Session events and do nothing else.
+Your cold read stays where it is.
 
 The harness's own prompts — a permission dialog, the model-mismatch stop —
 reach the human in the peer's window and are outside this rule.
@@ -888,9 +893,23 @@ reach the human in the peer's window and are outside this rule.
 ## Session lifecycle
 
 The human is the only actor who can create or delete a session, and you are the
-only role that asks. Every request is a numbered list, one line per item,
-carrying the exact command the human will run in the new session, with your own
-bare name as your start line printed it in place of `<name>`.
+only role that asks. Every create request is this numbered list, which the
+human can paste, with your own bare name as your start line printed it in place
+of `<name>`:
+
+```text
+1. Open a new session in <repo path>.
+2. /model <family>
+3. /effort <level>
+4. Make sure the session is in auto mode.
+5. /tanto <role> <name>
+```
+
+Line 5 carries, after the command, what the Create table's third column names
+for that role. The family and the level are `sessions.<role>` from
+`tanto.json`, and they come before the command because the human forgets the
+effort more often than the model. A delete request is a numbered list of its
+own, one line per item.
 
 ### Create
 
@@ -898,8 +917,10 @@ bare name as your start line printed it in place of `<name>`.
 | --- | --- | --- |
 | bootstrap | nothing; the human opens a session and runs `/tanto kanri` | — |
 | a plan is committed and your cold read has no open questions | create Jisso | `/tanto jisso <name>`, the plan path, the branch |
-| the first batch of the current plan is accepted, or no plan is in flight | create Sekkei for the next spec, if there is one; the human may decline | `/tanto sekkei <name>`, the topic if known |
+| the spec review is accepted | create Keikaku | `/tanto keikaku <name>`, the topic, the spec path |
+| the first batch of the current plan is accepted, or every open topic has passed its spec stage | create Sekkei for the next spec, if there is one; the human may decline | `/tanto sekkei <name>`, the topic if known |
 | Jisso reports the Kaiseki trigger with an unknown cause | create Kaiseki | `/tanto kaiseki <name>`; the brief follows the handshake |
+| — | nothing; Kikaku and Hosa are opened by the human and never requested by you | — |
 
 ### Replace
 
@@ -908,10 +929,13 @@ bare name as your start line printed it in place of `<name>`.
 | Jisso is gone — not in `ListAgents`, `SendMessage` errors, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers); ask the human to delete the dead session and create a new Jisso; the next prompt says `resume batch X from task N`; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
 | Jisso context decay — its reading shows a compaction, two consecutive batches needed escalation, or a report says compaction lost rulings | at the batch boundary, ask the human to delete and create; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
 | Sekkei's reading shows a compaction | at its next commit — a verified boundary, or, with no batch in flight, when its work is ready — run "Exit shoroku", then ask the human to delete and create; the dialogue, the drafts, and the reviews on disk are the recovery point, and the new Sekkei takes the spec inputs and `dialogue.md` as its own |
+| Keikaku's reading shows a compaction | at its next commit, as for Sekkei (decision-6dea): run "Exit shoroku", then ask the human to delete and create; the spec, `dialogue.md`, and the plan draft on disk are the recovery point, and the new Keikaku takes them as its own |
+| a Kikaku's or a Hosa's reading shows a compaction | neither is replaced: remind the human to `/clear` that window, mark the row `cleared`, and let the next `/tanto kikaku` or `/tanto hosa` handshake write a new row — what the session produced is already on disk or committed |
 | Kaiseki's reading shows a compaction | at its report: the report as it stands is the recovery point; run "Exit shoroku", then ask the human to delete it and, if the case is open, create a new Kaiseki with the same brief |
 | Jisso has carried the batches the plan expects of one session | replace it at the next boundary, exit shoroku first |
 | A handover trigger fired at a boundary | run the Handover section; the successor asks for your deletion |
-| Sekkei is gone before the plan is committed | ask the human to create a new Sekkei; the spec and plan drafts on disk are the recovery point; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
+| Sekkei is gone before the spec review is accepted | ask the human to create a new Sekkei; the spec or its draft, the spec inputs, and `dialogue.md` on disk are the recovery point; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
+| Keikaku is gone before the plan is committed | ask the human to create a new Keikaku; the spec on the branch and the plan draft on disk are the recovery point; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
 | Kaiseki is gone before its report | verify `git status` is clean, and revert stray instrumentation if it is not; ask the human to create a new Kaiseki; the brief and the WIP commit are the recovery point; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
 
 Never replace mid-batch on suspicion. Wait for the boundary, or confirm the
@@ -921,9 +945,10 @@ session is dead first — uncommitted work may be in the tree.
 
 | When | Say |
 | --- | --- |
-| the plan is committed, the cold-read questions are answered, and the human does not want a next spec now | Sekkei is done; delete it after its exit shoroku is committed — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
-| Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; delete it after its exit shoroku is committed, or keep it if more of the same bug is expected |
-| the final batch is accepted, T2 is written, leftovers are clean, and the human has executed the merge decision | Jisso is done; delete it after its exit shoroku is committed, which at plan end is T2 |
+| the spec review is accepted and the human's answers to the spec brief are in `dialogue.md` | Sekkei is done; ask for its deletion once the recommendation over its exit proposal is on disk — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
+| the plan has landed and the cold read is answered, or the human does not want the plan now | Keikaku is done; ask for its deletion once the recommendation over its exit proposal is on disk; a Keikaku is never reused across topics (decision-f496) |
+| Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; ask for its deletion once the recommendation over its exit proposal is on disk, or keep it if more of the same bug is expected |
+| the final batch is accepted, T2's proposal is written, leftovers are clean, and the human has executed the merge decision | Jisso is done; ask for its deletion once the recommendation over that proposal is on disk, T2 being its exit |
 | Jisso is deleted and the ledger's Progress line says closed | this plan is closed; mark `dead` the rows of the sessions deleted at this close, move the dead, replaced, and refused rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet, fill the ledger's Measurements fixed row, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
 
 The role is resident; the session that carries it is not. A plan's end is a
@@ -960,10 +985,11 @@ severity-high issue is filed on such a claim alone.
 ### Recovery after a VS Code restart
 
 Every window is resumed at once rather than recreated, and the human types
-`/tanto resume` in your window first — the Resumed Kanri case above — and then
+`/tanto fukki` in your window first — the Resumed Kanri case above — and then
 in each other window, in any order; no address is pasted. Mark `dead` only a
 row whose session neither `ListAgents` lists nor re-handshakes by the time the
 human says the windows are done. Verify the tree if a batch was in flight, then
 ask for the roles still missing, in this order: Jisso only if a batch is in
-flight, Kaiseki only if a bug is open, Sekkei only if a spec or plan is in
-progress.
+flight, Kaiseki only if a bug is open, Keikaku only if a plan is in progress,
+Sekkei only if a spec is in progress. Kikaku and Hosa you do not ask for: they
+are the human's to reopen, and your part is the reminder.
