@@ -42,3 +42,16 @@ takes it to mean.
 Related: issue-860b (what `boundary` runs, and what it cannot reach),
 issue-ebd9 and issue-1d95 (`replay`'s skip rules over the same fence set),
 issue-2d69 (the skip list `boundary` would inherit).
+
+**2026-09-13, the same run's Sekkei, after the fix.** The tanto-cost plan's
+verification section was rewritten because of this defect: the seven commands
+that had sat indented inside numbered list items became paragraphs with
+top-level fences, `diff` and the pinned-Node test run moved out of the fenced
+set entirely, and the plan now states the column-0 rule for any fence a later
+revision adds. The fix was then verified rather than assumed, by simulating
+`extractCommandFences` against the final plan — **four checks extracted, and
+none of them removed by a `replay-skip` pattern** — which is the measurement
+this issue's own fix should reproduce from the other side. Two things the
+workaround does not buy: a plan author must know the rule (nothing reports an
+indented fence, in `lint` or anywhere else), and every plan already committed
+in `docs/superpowers/plans/` still carries its checks in a list.

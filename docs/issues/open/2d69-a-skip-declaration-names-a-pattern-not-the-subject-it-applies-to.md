@@ -45,3 +45,20 @@ Related: issue-ebd9 (the auto-skip rule, and the plan-path pattern),
 issue-1d95 (skip granularity is the fence), issue-2f17 (the first-word
 classification), issue-c841 (the fences `boundary` can see at all),
 issue-860b (what `boundary` runs).
+
+**2026-09-13, the same run's Sekkei, on the plan's own first draft.** The
+filename-shaped pattern this issue warns about was not hypothetical: the
+tanto-cost plan's first `replay-skip` list carried
+`2026-09-12-tanto-cost.md`, written to keep one sweep of the plan's own text
+out of the scratch tree, and the plan review measured it removing `verify` and
+`diff` from the boundary as well — five of the section's seven checks skipped
+in total, counting the `uv run`, `mise x node@22` and `node --test` patterns
+beside it. Both patterns were then deleted: what the filename pattern was
+there to protect was already covered by the `.tanto/` pattern, and dropping
+`uv run` turned the frontmatter load into a check that runs in **both**
+subjects, since the applied tree does carry the two `SKILL.md` blobs. The plan
+now narrows every marker to the task-step commands and leans on `replay`'s
+built-in `git` and `verify` skips, which `boundary` does not inherit, for the
+two checks that must run in one subject and not the other. That narrowing is a
+plan author's workaround, not a fix: it has to be redone, by hand and
+correctly, in every plan that declares a skip.

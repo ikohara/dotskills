@@ -47,3 +47,17 @@ Filed separately for that reason.
 
 Under contract rule 11. Related: issue-7c11, issue-d0f4, issue-87fd (the
 count-in-prose signal this one relies on).
+
+**2026-09-13, the same run's Sekkei, at the drafting stage.** The concrete
+instance, found before the plan review ran and recorded as the run's dry-run
+failure 4: `O22.45`'s needle was written `<lint|replay|diff|verify> --plan` —
+the old usage line of `passage-check.js` itself, whose first character is an
+angle bracket because that is how the usage line spells its subcommand list.
+The lead parsed, the block vanished, and the sweep ran **63 of the plan's 64
+needles**. Nothing in `lint` or `replay` said so; the only signal was
+`replay` printing "63 residual `O` needles swept" against a prose count of 64,
+noticed because the plan states its own block counts. The needle was re-cut to
+begin at `lint`, which costs the opening bracket and works. The general shape
+is worth keeping beside the fix: the needles most likely to start with `<` are
+exactly the ones taken from a usage line, a template placeholder row or a
+`<path>` form — the machine-readable text a plan most often contradicts.
