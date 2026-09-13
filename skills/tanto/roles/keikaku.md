@@ -89,9 +89,13 @@ writing-plans. Then add, yourself:
   `node "$TANTO/scripts/passage-check.js" diff` as the boundary check,
   which is what makes that check outlive the session that wrote it
   (issue-7481). Write this section knowing that Kanri's `boundary --plan
-  <path>` runs its fenced `bash` and `console` blocks verbatim, each against
-  the `Expected:` paragraph after it: every check in it is a command that
-  runs unattended, or it is not a check;
+  <path>` runs its fenced `bash` and `console` blocks verbatim and judges
+  each by its **exit status alone** — the `Expected:` paragraph is for the
+  human reading the output, and `boundary` never compares against it. Every
+  fence needs three properties: it opens at column 0; it exits non-zero when
+  it fails (a `for` loop's status is its last iteration's and a `printf`
+  loop's is always 0, so neither can fail without `|| exit 1`); and it is not
+  matched by a `replay-skip` pattern, which `boundary` honors too;
 - when the plan edits this skill's own files, the **boundary from which a
   role may be started or replaced** — where one is *permitted*, as distinct
   from the boundaries where the Batches bullet expects one — stated in Global

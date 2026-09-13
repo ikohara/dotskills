@@ -594,8 +594,8 @@ they are recommended and checked.
    `.tanto/<topic>/shoroku-proposal.md`, written by Jisso. An exit:
    `.tanto/<topic>/exit-<role>[-<suffix>]-proposal.md`, or
    `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md` for your own.
-2. **Recommend.** Dispatch the `shoroku` kind in the skill's recommend mode
-   over the candidate file — for T1, over the spec with the four section names
+2. **Recommend.** Dispatch `subagent_type: tanto-shoroku` in the skill's
+   recommend mode over the candidate file — for T1, over the spec with the four section names
    — with `docs/` as the baseline, and name the output:
    `.tanto/<topic>/<stage>-recommendation.md`, or
    `.tanto/t0-recommendation.md`, and your own exit at `.tanto/`. The file
@@ -612,7 +612,7 @@ they are recommended and checked.
    the `S-n` rows in the ledger: Stage the stage word, Adopted from the human's
    answer. No item is escalated apart from the rest and none is decided by you
    alone; the human sees the whole list, grouped, and answers by exception.
-4. **Apply.** Dispatch the `shoroku` kind in apply mode with the
+4. **Apply.** Dispatch `subagent_type: tanto-shoroku` in apply mode with the
    recommendation, the direction, and the commit subject —
    `docs: T<n> shoroku for <topic>` or
    `docs: exit shoroku for <role>[ at <suffix>]` — in a slot of the commit
@@ -679,9 +679,10 @@ the file pattern `exit-<role>[-<suffix>]`; these are your steps.
    `.tanto/<topic>/exit-<role>[-<suffix>]-proposal.md`. The session writes it,
    runs its resume self-check, and answers
    `exit proposal: <path> — <reading>`.
-2. Check the file's form, not its judgment: `sections` on it rather than a
-   read, for the exclusion line it opens with and the numbered list under it.
-   Then dispatch the recommender at once — step 2 above.
+2. Check the file's form, not its judgment: a direct read, since the
+   proposal carries no headings for `sections` to select by, for the
+   exclusion line it opens with and the numbered list under it. Then
+   dispatch the recommender at once — step 2 above.
 3. When the recommendation is on disk, read its `unsure` group with
    `sections`. An item there saying the candidate could not be read as written
    is one question back to the session, one line, answered by a rewrite of the

@@ -87,8 +87,9 @@ section.
 **Recommend mode.** Invoked with a source — a file, or a file and the names
 of the sections to read — and an output path. Run the workflow up to the
 proposal and write the proposal to that path instead of printing it: the
-numbered items in three groups, **recommended adopt** / **recommended
-reject** / **unsure**, each item quoted in full from its source so that the
+numbered items grouped under three `##` headings, in this exact
+text — `## recommended adopt`, `## recommended reject`, `## unsure` —
+each item quoted in full from its source so that the
 file stands alone as the apply's input, and each carrying its destination, a
 one-line reason, the `req-<id>` pairing for a `design` entry, and — for a
 requirement or ADR item — the original wording followed by a reference

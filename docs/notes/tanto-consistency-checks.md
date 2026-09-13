@@ -660,14 +660,14 @@ differs by role:
 - `SKILL.md` — "the plan's Global Constraints, Kanri's orders line, and the
   batch prompts"
 - `roles/kanri.md` — "the constraints, your orders line, and the batch prompts"
-- `roles/sekkei.md` — "the constraints, Kanri's orders line, and the batch
+- `roles/keikaku.md` — "the constraints, Kanri's orders line, and the batch
   prompts"
 
 So no full-string check can pin all three. Pin the common substring instead, and
 add the absence check that makes a number disagreement visible:
 
 ```bash
-for f in skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/sekkei.md; do
+for f in skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/keikaku.md; do
   printf '%s -> %s\n' "$f" "$(tr -d '\r' < "$f" | tr '\n' ' ' | tr -s ' ' | grep -cF 'orders line, and the batch prompts')"
 done
 grep -rn 'orders lines' skills/tanto/

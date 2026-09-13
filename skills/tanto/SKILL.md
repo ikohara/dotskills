@@ -198,7 +198,9 @@ handshake role=<role> name=<name [ref]> cwd=<path> model=<model id> effort=<leve
 
 `effort=` is read from this session's own transcript: the last record of
 `type` `assistant`, its `perTurnEffort` field, or its `effort` field when
-that one is absent; `unknown` when the transcript is unavailable. The same
+`perTurnEffort` is absent or is not a quoted string — a `null` value is
+present and unreadable, and falls through the same way; `unknown` when the
+transcript is unavailable. The same
 read is the effort half of the start sequence's model check. Kanri compares
 `model=` with `sessions.<role>.model` and `effort=` with
 `sessions.<role>.effort`; a mismatch of either is one line to the human, and
@@ -300,9 +302,12 @@ e=$(grep '"type":"assistant"' "$T" | tail -n 1 | grep -oE '"(perTurnEffort|effor
   reworded one reads as `0`, and a compaction the session notices for itself
   is still the signal it always was.
 - **Effort** is not one of the four figures. It is the last `assistant`
-  record's `perTurnEffort`, or its `effort` when that field is absent — the
-  `sort -r` puts `perTurnEffort` first when the record carries both — and
-  `unknown` when the transcript is unavailable or has neither. The start
+  record's `perTurnEffort`, or its `effort` when `perTurnEffort` is absent or
+  is not a quoted string: the pattern matches only a quoted value, so a
+  `perTurnEffort` of `null` falls through to `effort`, and the `sort -r`
+  puts `perTurnEffort` first when the record carries both as strings — and
+  `unknown` when the transcript is unavailable or has neither in a readable
+  form. The start
   sequence's check and the handshake's `effort=` take it; the reading itself
   travels without it.
 
@@ -532,8 +537,9 @@ The lines, each sent without an idle subscription, like every other tanto line.
 Kanri sends `exit: propose your shoroku; write it to <path>`; the session
 writes the proposal, runs the resume self-check, and answers
 `exit proposal: <path> — <reading>`. Kanri checks that the file exists and
-opens with the exclusion line and a numbered list — `sections` on it, not a
-read — and dispatches the recommender at once. When the recommendation is on
+opens with the exclusion line and a numbered list — a direct read, since the
+proposal carries no headings for `sections` to select by — and
+dispatches the recommender at once. When the recommendation is on
 disk, Kanri reads its `unsure` group by `sections`: an item there saying the
 candidate could not be read as written is one question back to the session,
 one line, answered by a rewrite of the proposal; otherwise Kanri asks the
