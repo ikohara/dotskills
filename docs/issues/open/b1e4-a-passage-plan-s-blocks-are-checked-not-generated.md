@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-10
+updated: 2026-09-13
 ---
 
 Deferred by the tanto-sweep spec (`docs/superpowers/specs/2026-09-10-tanto-sweep-design.md`,
@@ -42,3 +42,18 @@ than a guess.
 Related: issue-7481 (the instrument), issue-f813 (each block once, cited by
 id), issue-88d3 (the count and anchor halves the instrument closes),
 design-4807 (the passage-plan conventions), req-04f5.
+
+**2026-09-13 — a second instance, and it is a task's inputs rather than the
+plan's leads.** The plan reviewer of the tanto-cost run found it in
+`docs/superpowers/plans/2026-09-12-tanto-cost.md`; recorded in
+`.tanto/tanto-cost/plan-review.md`, "Shoroku candidates", under the lead
+"**A hand-typed needle file is a second copy of the plan.**" Task 22 asks an
+implementer to retype **64 needles** into a scratch file in order to sweep for
+them, and a one-line `node -e` over `parsePlan` produces exactly those 64 —
+the plan already holds them, in machine-readable form, by the convention this
+issue is about. So the authoring-half question recorded above is not only
+about leads: it reaches any **sweep-and-check task whose inputs the plan
+already carries**, where the input is unambiguous and the generator is one
+line. The general rule the reviewer proposes for the conventions file — a
+task extracts its inputs from the plan rather than re-entering them — is the
+cheap half of the generation question, and does not wait on a block generator.

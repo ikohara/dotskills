@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-12
+updated: 2026-09-13
 ---
 
 `skills/tanto/roles/kanri.md`, "When the plan lands", gives Kanri an `awk`
@@ -28,3 +28,17 @@ The first is the smaller change and does not constrain the drafter.
 Related: issue-2e52 (a staged frame — the first stage would have made the
 depth matter less), issue-7281 (task size, which the frame command's step
 counts feed). Under contract rule 11.
+
+**2026-09-13 — the widened pattern needs a word boundary: `^##+ Task` matches
+`## Tasks`.** Found by the plan reviewer of the tanto-cost run, which
+implements this fix as a `frame` subcommand; recorded in
+`.tanto/tanto-cost/plan-review.md`, "Shoroku candidates", under the lead
+"**`^##+ Task` matches `## Tasks`.**" Measured over this repository's plan
+corpus: **two of thirteen plans carry a `## Tasks` or `## Task` heading**, and
+in both it sits inside a fence today — so a fence-blind `frame` would mis-frame
+them and the fence-aware one the tanto-cost plan builds will not. The corpus
+fact outlives the fence-awareness, though: the regex wants a word boundary
+(`^##+ Task\b`, or a following digit) either way, since nothing stops the next
+plan from writing an unfenced `## Tasks` heading. Cited here rather than filed
+separately because it is the same command and the same pattern this issue
+proposes widening.

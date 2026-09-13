@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-13
 ---
 
 A plan's `W` block declares a whole new file whose bytes must land as
@@ -53,3 +53,17 @@ appended test blocks, token-identical but not byte-identical to the plan's).
 Under contract rule 11, with tests: the Keikaku split (issue-3c7a) or the
 small tanto items after it. Related: issue-7c11 and issue-2f17, the two
 other instrument defects of 2026-09-11.
+
+**2026-09-13 — a third subcommand blind to `W` blocks: `lint`.** The plan
+reviewer of the tanto-cost run found it while reading
+`docs/superpowers/plans/2026-09-12-tanto-cost.md`; recorded in
+`.tanto/tanto-cost/plan-review.md`, "Shoroku candidates", under the lead
+"**`lint`'s `needle-in-new-text` rule does not read `W` blocks.**" The rule
+builds the plan's "own new text" at `skills/tanto/scripts/passage-check.js:365`
+by filtering `b.kind === "P"`, so a needle that reappears in a **created**
+file's whole text is not refused. The hole is closed in practice for a plan
+that also runs `replay`, whose residual sweep does cover `W` paths — but the
+two checks then disagree about what the plan's own new text is, and `lint` is
+the cheap one people run alone. One-word fix, in the same family as the
+`verify` and `diff` gaps above: whatever defines "a `W` block is text the plan
+commits to" has to hold in all three subcommands at once.
