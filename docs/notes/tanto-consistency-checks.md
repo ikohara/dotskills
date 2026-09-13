@@ -381,7 +381,8 @@ Adding a check is an edit to this file.
   When the cache is absent, read the installed skills by hand and record
   `superpowers 6.3.0, cache absent, checked by hand` with the results.
 - **`shoroku` in this repository**, at `skills/shoroku/SKILL.md`.
-- **Nineteen skill files, eleven of them templates**, as check 1 lists them.
+- **Twenty-four skill files, thirteen of them templates**, as check 1 lists
+  them.
 
 These two numbers are a **structural count**, the kind design-4807 calls a
 task-time check rather than an invariant: every plan that adds a template edits
@@ -398,7 +399,9 @@ says so and the batch that repairs them names the count it restores. This paragr
 ```bash
 ls skills/tanto/SKILL.md skills/tanto/README.md \
   skills/tanto/roles/kanri.md skills/tanto/roles/sekkei.md \
-  skills/tanto/roles/jisso.md skills/tanto/roles/kaiseki.md \
+  skills/tanto/roles/keikaku.md skills/tanto/roles/jisso.md \
+  skills/tanto/roles/kaiseki.md skills/tanto/roles/kikaku.md \
+  skills/tanto/roles/hosa.md \
   skills/tanto/templates/roster.md skills/tanto/templates/kanri.md \
   skills/tanto/templates/roster-archive.md \
   skills/tanto/templates/kanri-handover.md \
@@ -408,12 +411,16 @@ ls skills/tanto/SKILL.md skills/tanto/README.md \
   skills/tanto/templates/kaiseki-brief.md \
   skills/tanto/templates/kaiseki-report.md \
   skills/tanto/templates/review-brief.md \
+  skills/tanto/templates/kikaku-decision.md \
+  skills/tanto/templates/agent.md \
   skills/tanto/templates/tanto.json \
   skills/tanto/scripts/passage-check.js \
   skills/tanto/scripts/passage-check.test.js 2>&1
 ```
 
-Expected: all nineteen paths listed, no `No such file or directory`.
+Expected: all twenty-four paths listed, no `No such file or directory`.
+Seven role files, thirteen templates, two scripts, the contract and the
+skill's own `README.md`.
 
 ## 2. Every in-skill path named by the contract or a role file resolves
 
@@ -426,12 +433,14 @@ grep -oh 'roles/[a-z]*\.md\|templates/[a-z-]*\.md\|templates/tanto\.json\|script
     done
 ```
 
-Expected: seventeen `ok` lines — `roles/jisso.md`, `roles/kaiseki.md`,
-`roles/kanri.md`, `roles/sekkei.md`, `scripts/passage-check.js`,
-`scripts/passage-check.test.js`, `templates/batch-prompt.md`,
-`templates/batch-report.md`, `templates/bug-report.md`,
-`templates/kaiseki-brief.md`, `templates/kaiseki-report.md`,
-`templates/kanri-handover.md`, `templates/kanri.md`,
+Expected: twenty-two `ok` lines — `roles/hosa.md`, `roles/jisso.md`,
+`roles/kaiseki.md`, `roles/kanri.md`, `roles/keikaku.md`,
+`roles/kikaku.md`, `roles/sekkei.md`, `scripts/passage-check.js`,
+`scripts/passage-check.test.js`, `templates/agent.md`,
+`templates/batch-prompt.md`, `templates/batch-report.md`,
+`templates/bug-report.md`, `templates/kaiseki-brief.md`,
+`templates/kaiseki-report.md`, `templates/kanri-handover.md`,
+`templates/kanri.md`, `templates/kikaku-decision.md`,
 `templates/review-brief.md`, `templates/roster-archive.md`,
 `templates/roster.md`, and `templates/tanto.json`, whose relative order for the
 two roster paths is the locale's and is not part of this check —
@@ -453,15 +462,27 @@ templates/kanri-handover.md skills/tanto/roles/kanri.md
 templates/bug-report.md skills/tanto/roles/kanri.md
 templates/batch-prompt.md skills/tanto/roles/kanri.md
 templates/kaiseki-brief.md skills/tanto/roles/kanri.md
-templates/review-brief.md skills/tanto/roles/kanri.md
+templates/review-brief.md skills/tanto/roles/sekkei.md
+templates/review-brief.md skills/tanto/roles/keikaku.md
 templates/batch-report.md skills/tanto/roles/jisso.md
 templates/kaiseki-report.md skills/tanto/roles/kaiseki.md
+templates/kikaku-decision.md skills/tanto/roles/kikaku.md
 templates/tanto.json skills/tanto/SKILL.md
+templates/agent.md skills/tanto/roles/kanri.md
+templates/agent.md skills/tanto/roles/sekkei.md
+templates/agent.md skills/tanto/roles/keikaku.md
+templates/agent.md skills/tanto/roles/jisso.md
+templates/agent.md skills/tanto/roles/kaiseki.md
+templates/agent.md skills/tanto/roles/kikaku.md
+templates/agent.md skills/tanto/roles/hosa.md
 MAP
 ```
 
-Expected: eleven `ok` lines, no `UNCITED`. Eight of the eleven are Kanri's,
-because Kanri copies eight of the templates itself.
+Expected: twenty `ok` lines, no `UNCITED`. Eight of the twenty are Kanri's —
+seven templates Kanri copies itself, plus the agent definition, which every
+role renders at its start and which therefore takes one row per role. The
+review brief has two readers because the document's author dispatches it:
+Sekkei for the spec, Keikaku for the plan.
 
 ## 4. The superpowers and shoroku sentences the skill overrides still exist
 
@@ -538,15 +559,13 @@ grep -c '^## Residency$' skills/tanto/templates/roster.md
 grep -c '^## Shoroku candidates$' skills/tanto/templates/roster.md
 grep -cF -- '- Kanri — ' skills/tanto/templates/batch-prompt.md
 grep -c '| Written |' skills/tanto/templates/kanri.md
-grep -cF 'except the accepted subset of its own exit shoroku, at its exit' skills/tanto/SKILL.md
-grep -cF 'no commit but its exit shoroku' skills/tanto/SKILL.md
 grep -cF 'nothing to commit' skills/tanto/roles/sekkei.md
 grep -cF 'nothing to commit' skills/tanto/roles/kanri.md
 grep -cF 'nothing to commit' skills/tanto/SKILL.md
 grep -cF 'human-needed:' skills/tanto/SKILL.md
 grep -cF 'the human by grant' skills/tanto/SKILL.md
-grep -cF '| Role | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans | Noticed |' skills/tanto/templates/roster.md
-grep -cF '| Role | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans | Noticed |' skills/tanto/templates/kanri-handover.md
+grep -cF '| Role | Topic | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans | Noticed |' skills/tanto/templates/roster.md
+grep -cF '| Role | Topic | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans | Noticed |' skills/tanto/templates/kanri-handover.md
 grep -cF '| S-n | Source | Candidate | Destination | Adopted | Stage | Written |' skills/tanto/templates/roster.md
 grep -cF '| S-n | Source | Candidate | Destination | Adopted | Stage | Written |' skills/tanto/templates/kanri.md
 grep -cF 'bug-report: <absolute path>' skills/tanto/SKILL.md
@@ -556,22 +575,43 @@ grep -cF 'compacted: <path>' skills/tanto/SKILL.md
 grep -cF 'compacted: <path>' skills/tanto/roles/kanri.md
 grep -cF 'confirmed: <path>' skills/tanto/SKILL.md
 grep -cF 'confirmed: <path>' skills/tanto/roles/kanri.md
+grep -cF 'cleared: <old name> → <new name>' skills/tanto/templates/roster.md
+grep -cF 'decision: <path> received from <name>' skills/tanto/templates/roster.md
 ```
 
 Expected, one number per line, in order: `2`, `1`, `1`, `3`, `1`, `1`, `1`,
-`1`, `5`, `3`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `3`, `1`,
+`1`, `5`, `3`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `3`, `1`, `1`, `1`,
 `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`. The fourth is `3` because
 `SKILL.md` spells `kanri-address:` three times: the handshake section's
 handover form, the Resuming section's resumed form, and the `<kanri-address>`
-blank's own paragraph. The six `1`s before the last five pin the three
+blank's own paragraph. The six `1`s at positions 20 to 25 pin the three
 cross-file pairs — the Residency table header, the seven-column `S-n` header,
 and the bug-report line — each copy once, so that a change to one copy shows
-up as a mismatch. The last five pin the strings the reading and the compaction
+up as a mismatch. The Residency header carries the Topic column because the
+roster does, and the two copies of it gain the column together or the pair
+goes loud. The five after them pin the strings the reading and the compaction
 rule route on: the handshake's `transcript=` blank in the contract, and
 `compacted:` and `confirmed:` in the contract and in Kanri's role file. The
+last two pin the roster's two new Events forms. The
 `--` before the
 `- Kanri` pattern is required: without it `grep` reads the leading `-` as an
 option.
+
+The line forms the new seats and the limit rule route on, each exactly once
+in the contract:
+
+```bash
+for s in 'decision: <path>' 'chore: <one line>' 'chore: <what> — <paths> — slot: now | at the next boundary' 'slot-needed: <what> — <paths>' 'slot: now — commit and report' 'slot: at the next boundary' 'paused: <dispatch> on <family> — resets <time>' 'continue: <dispatch> — same model' 'exit proposal: <path> — <reading>' 'spec accepted: <spec path> — <reading>'; do
+  printf '%s -> %s\n' "$s" "$(grep -cF "$s" skills/tanto/SKILL.md)"
+done
+```
+
+Expected: ten lines, each ending `-> 1`. Two of the ten are `chore:` forms
+and two are `slot:` forms, because each of those lines has a form the sender
+writes and a form Kanri writes, and a prefix grep cannot tell one from the
+other — the rule at the head of this check. These are the contract's copies
+only; a role file that repeats a form is pinned where that file's own rows
+are.
 
 The five triage answers, each exactly once in the contract:
 
@@ -640,23 +680,30 @@ was singular in seven of eight occurrences across the skill, six task reviews
 read the passage carrying the plural, and only a whole-branch pass that could
 see all three copies at once caught it.
 
-The two lines of the review brief, and the idle subscription no tanto line
-carries any more, each on one line where it occurs, counted raw over every
-Markdown file of the skill so that a stray copy fails the check:
+The review brief's notice, and the idle subscription no tanto line carries
+any more, each on one line where it occurs, counted raw over every Markdown
+file of the skill so that a stray copy fails the check:
 
 ```bash
 for f in skills/tanto/SKILL.md skills/tanto/README.md skills/tanto/roles/*.md skills/tanto/templates/*.md; do
-  printf '%s review-ready %s brief %s idle %s\n' "$f" "$(grep -cF 'review-ready: <' "$f")" "$(grep -cF 'brief: <path>' "$f")" "$(grep -cF 'notify_when_idle: true' "$f")"
+  printf '%s notice %s idle %s\n' "$f" "$(grep -cF 'review-ready: <document path>; brief: <brief path>' "$f")" "$(grep -cF 'notify_when_idle: true' "$f")"
 done
 ```
 
-Expected: `skills/tanto/SKILL.md review-ready 1 brief 1 idle 0`,
-`skills/tanto/roles/kanri.md review-ready 1 brief 1 idle 0`,
-`skills/tanto/roles/sekkei.md review-ready 2 brief 2 idle 0`, and every other
-line ending `review-ready 0 brief 0 idle 0`. Every `idle` figure reads `0`
-since 2026-09-10: no tanto line carries a subscription, the `exit:` lines
-included (issue-d725). Any nonzero figure is a subscription reintroduced,
-which is what this column now checks for.
+Expected: `skills/tanto/SKILL.md notice 1 idle 0`,
+`skills/tanto/roles/kanri.md notice 1 idle 0`,
+`skills/tanto/roles/keikaku.md notice 1 idle 0`,
+`skills/tanto/roles/sekkei.md notice 1 idle 0`, and every other line ending
+`notice 0 idle 0`. The notice carries the document and the brief on one
+line and waits for nothing, so its copies are the author that sends it and
+the Kanri that receives it; the set of files carrying it is a structural
+count in the sense of "Versions these checks assume", not an invariant, and
+the batch that changes the set names the figures it restores. One column
+counts the whole notice rather than two counting its halves, because a head
+grep matches the literal and the placeholder alike. Every `idle` figure
+reads `0` since 2026-09-10: no tanto line carries a subscription, the
+`exit:` lines included (issue-d725). Any nonzero figure is a subscription
+reintroduced, which is what this column now checks for.
 
 The pass condition is that **every line carrying an `idle` field ends `idle 0`**, not that every line of the output does — most lines this check prints carry no `idle` field at all. A naive count of lines not ending `idle 0` over the whole output always reads as a failure: one run counted 48 such lines and read the tree as broken, when only sixteen lines carried an `idle` field in the first place and all sixteen ended `idle 0`. Filter to the lines carrying the field before counting.
 
@@ -676,19 +723,55 @@ tr -d '\r' < skills/tanto/roles/kaiseki.md | tr '\n' ' ' | tr -s ' ' | sed 's/\*
 tr -d '\r' < skills/tanto/roles/kaiseki.md | tr '\n' ' ' | tr -s ' ' | sed 's/\*\*//g' | grep -o 'never write under `docs/` yourself'
 grep -nF 'Kaiseki itself never writes under' skills/tanto/roles/kanri.md
 grep -rn 'skills/tanto/' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
+grep -rnE 'subagents\.(implementer|reviewer|drafter|escalation)\b' skills/tanto
+grep -rnE 'exit write.out' skills/tanto
+grep -rn -iE 'sho[m]u|jos[h]u' skills/tanto skills/shoroku docs/notes
+grep -rnE '#{3} Task' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
 grep -rnE '\b[0-9a-f]{7,40}\b' skills/tanto/
 ```
 
-Expected: no output from the first nine (each exits 1). The sixth and
+Expected: no output from the first thirteen (each exits 1). The sixth and
 seventh flatten the file first and strip `**`, because their pre-images
 — `You **do not commit**` with its bold markers, and
 ``never write under `docs/` yourself`` across a line break — would never
-have matched a raw line. The tenth is read, not counted: no line may be
+have matched a raw line. The tenth through the thirteenth are the strings
+retired when the seats and the kinds were recut, and all four are written as
+regular expressions rather than as the literals they forbid, for two reasons
+that hold permanently: the rejected-seat sweep runs over `docs/notes/` and so
+over this file, and a standing check written into the file it checks must not
+count its own text; and a plan that removes a string refuses that string in
+its own new passages, so a literal here would fail the plan that installs the
+check rather than the tree it checks. The tenth pins the four subagent keys
+that are gone — `default` survives as one of the twelve kinds and is not
+swept. The eleventh pins the retired wording for a session committing its own
+exit shoroku. The twelfth pins the two rejected seat names, over the skill,
+`shoroku`, and this directory, which is the scope the choice was recorded
+against; the spec and the dialogue under `docs/superpowers/` keep them as the
+record and are deliberately outside it. The thirteenth pins a frame command
+keyed on a depth-three task heading: `frame` matches a task heading at any
+depth (issue-ac9d), so no runtime text carries that pattern any more, and the
+row names the contract, `roles/` and `templates/` rather than `skills/tanto`
+because the script's own code and its test fixtures carry that heading by
+design. The fourteenth is read, not counted: no line may be
 an actual commit hash. Tracked content carries commit subjects, never
 hashes, and `<sha7>` inside a template blank is a placeholder, not a
 hash. `<plan>` is checked because `<plan-basename>` is the only correct
 form; runtime text is skill-relative, so only the skill's `README.md`
 and this note may name `skills/tanto/`. This is a deliberate asymmetry, not an oversight: the skill's `README.md` may name `skills/tanto/` because it documents this repository's layout, which is precisely what runtime text must not depend on.
+
+The invocation line is read rather than counted, for the second reason above:
+the value it must no longer carry cannot be written here.
+
+```bash
+grep -n 'argument-hint' skills/tanto/SKILL.md
+```
+
+Expected: one line, whose value reads
+`kanri | sekkei | keikaku | jisso | kaiseki | kikaku | hosa | fukki | resume`
+— nine arguments, every one the contract accepts, the alias included
+(issue-260c). The line is unique in the file, so reading it settles both
+halves at once: the nine-argument value is there, and the four-role value it
+replaced is not.
 
 The one wording invariant that must be **present**:
 
@@ -743,13 +826,25 @@ at `3` and `1` — while the *unfiltered* per-file counts for this file rose fro
 
 ```bash
 uv run --no-project --with pyyaml python -c "import yaml;t=open('skills/tanto/SKILL.md',encoding='utf-8').read().split('---')[1];d=yaml.safe_load(t);print(sorted(d));print('BAD' if ': ' in d['description'] else 'ok')"
-uv run --no-project python -c "import json;json.load(open('skills/tanto/templates/tanto.json'));print('json ok')"
+node -e 'const t=require("./skills/tanto/templates/tanto.json");const r=Object.keys(t.sessions),k=Object.keys(t.subagents);if(r.length!==7||k.length!==12)process.exit(1);for(const m of [t.sessions,t.subagents])for(const v of Object.values(m))if(!v.model||!v.effort)process.exit(1);console.log("tanto.json ok",r.length,k.length)'
+uv run --no-project --with pyyaml python -c "import yaml,sys;t=open(sys.argv[1],encoding='utf-8').read().split('---')[1];d=yaml.safe_load(t);print(sorted(d));print('BAD' if ': ' in d['description'] else 'ok')" skills/tanto/templates/agent.md
+uv run --no-project --with pyyaml python -c "import yaml,sys;t=open(sys.argv[1],encoding='utf-8').read().split('---')[1];d=yaml.safe_load(t);print(sorted(d),d['effort'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/tanto-task-implement.md"
 ```
 
-Expected: `['argument-hint', 'description', 'name']`, then `ok`, then
-`json ok`. A colon followed by a space anywhere in the `description` value
-breaks frontmatter parsing silently, which is what the second line prints
-`BAD` for. When `--with pyyaml` cannot fetch PyYAML, fall back to
+Expected: `['argument-hint', 'description', 'name']`, then `ok`; then
+`tanto.json ok 7 12`; then `['description', 'effort', 'name']` and `ok`;
+then `['description', 'effort', 'name'] high`. A colon followed by a space
+anywhere in a `description` value
+breaks frontmatter parsing silently, which is what the `BAD` branch prints
+for, and it is run against the agent template as well as the contract
+because the rendered definition is a frontmatter file the harness parses.
+The second line is a parse and two assertions in one: the twelve kinds, the
+seven roles, and `model` and `effort` on every entry of both maps, which is
+what makes a half-widened config fail here rather than at a dispatch. The
+fourth line reads a **rendered** definition, which exists only where a role
+has already generated one; where the directory is empty, record
+`definitions not generated on this host` and let the dogfood settle it.
+When `--with pyyaml` cannot fetch PyYAML, fall back to
 `sed -n 's/^description: //p' skills/tanto/SKILL.md | grep -c ': '`, expect
 `0`, and record the fallback.
 
@@ -842,3 +937,23 @@ A corollary for the dispatch: say in it that output differing from the brief's e
 ## 15. Work assigned by section name drifts; quote the heading
 
 Assigning a write-out by section name — "the `Bug intake` section of the design entry" — fails when the destination's headings differ from the source's, which they routinely do: a design entry and `SKILL.md` describe the same mechanism under different words. Quote the heading text, or give a line number, so the assignment names a place that exists in the file it is addressed to.
+
+## 16. The usage line names every subcommand
+
+```bash
+node skills/tanto/scripts/passage-check.js 2>&1 | head -n 1
+node skills/tanto/scripts/passage-check.js 2>&1 | head -n 1 | grep -oE 'lint|replay|diff|verify|sections|frame|boundary' | sort -u | wc -l
+```
+
+Expected: the script's usage line, then `7`. The first line is read, not
+matched: the wording belongs to the script, and a plan that rewords it is not
+wrong for doing so. The second is the check. A subcommand the script
+implements and the usage line omits is invisible to every reader who has only
+the usage line, and a role that never learns of it keeps doing the work by
+hand — which is the whole reason the three new ones were added. `sort -u`
+before the count so a name the line spells twice is counted once.
+
+This check is numbered after the lessons above rather than beside checks 1 to
+9 because the numbers here are cited by plans; renumbering a check would make
+every earlier citation point at something else. A plan that schedules the
+mechanical set schedules checks 1 to 9 and this one.
