@@ -495,47 +495,71 @@ Before the human deletes a session in the normal flow, the session's **exit
 shoroku** runs. The shoroku stages are T0 (decisions, on `main` before Sekkei
 exists), T1 (requirements and issues, after the plan commit), and T2
 (everything else, after the final batch); `R-n` numbers Kanri's rulings and
-`S-n` its shoroku candidates, both in the conductor ledger; the adoption rule
-is that requirement and ADR items, and any item Kanri cannot classify or is
-unsure about, go to the human, and Kanri decides the rest.
-It is the T2 split applied to that session: the session writes
-its candidates as a numbered list to `exit-<role>[-<suffix>]-proposal.md`;
-Kanri rules per the adoption rule, escalates requirement and ADR items to the
-human, and answers item by item in `exit-<role>[-<suffix>]-direction.md`; the
-session applies the accepted subset per `docs/AGENTS.md`, lints, commits once
-by explicit path in the slot Kanri gives it, and sends Kanri one line. Kanri
-verifies the diff as for any batch, marks the `S-n` rows written, and only then
-asks the human to delete the session. An exit whose candidates carry no
-requirement or ADR item asks the human nothing; the human sees the delete
-request and the commit. Candidates are what is not yet in any file — a rejected
-alternative and its reason, a fact measured, a defect noticed, an observation
-about the run — never a restatement of a spec, a plan, a report, or a ledger.
-Kanri's own exit and a standalone Kaiseki have no second session to rule; each
-role file says how.
+`S-n` its shoroku candidates, both in the conductor ledger. The stage word is
+`t0`, `t1`, `t2`, or `exit-<role>[-<suffix>]`.
+
+Every stage runs the same four steps, and an exit is that flow applied to one
+session:
+
+1. **Candidates.** The session that holds them writes them as a numbered
+   list, opening with the line that says what the proposal excludes; an exit
+   writes `exit-<role>[-<suffix>]-proposal.md`. Only this step needs a
+   resident context.
+2. **Recommend.** Kanri dispatches the `shoroku` kind over that file and
+   names the output, `<stage>-recommendation.md`: every item once, quoted in
+   full, in three groups — recommended adopt, recommended reject, unsure —
+   each with its destination and its one-line reason.
+3. **Check.** Kanri gives the human the path and the three counts in one
+   line; the human answers by exception; Kanri writes `<stage>-direction.md`
+   beside the recommendation, item by item, with the `S-n` rows in the
+   conductor ledger.
+4. **Apply.** Kanri dispatches the `shoroku` kind again, in apply mode, with
+   the recommendation, the direction, and the commit subject; that subagent
+   writes the accepted subset per `docs/AGENTS.md`, lints the changed paths,
+   and commits once by explicit path in a slot. No session applies the
+   accepted subset of its own proposal. Kanri verifies the diff as for any
+   commit and marks the `S-n` rows written.
+
+Nothing is adopted between stages, and no item is decided by Kanri alone: the
+human sees the whole recommendation, grouped, at every stage. Candidates are
+what is not yet in any file — a rejected alternative and its reason, a fact
+measured, a defect noticed, an observation about the run — never a
+restatement of a spec, a plan, a report, or a ledger. Kikaku and Hosa have no
+exit shoroku; the human `/clear`s those windows instead. A standalone Kaiseki
+has no Kanri, and its role file says how.
 
 The lines, each sent without an idle subscription, like every other tanto line.
-Kanri sends
-`exit: propose your shoroku; write it to <path>`; the session answers with one
-line and the path; Kanri sends `exit: direction at <path>`; the session answers
-`exit write-out committed: <subject> — <reading>` or
-`exit write-out: nothing accepted — <reading>`. A session that has stopped
+Kanri sends `exit: propose your shoroku; write it to <path>`; the session
+writes the proposal, runs the resume self-check, and answers
+`exit proposal: <path> — <reading>`. Kanri checks that the file exists and
+opens with the exclusion line and a numbered list — `sections` on it, not a
+read — and dispatches the recommender at once. When the recommendation is on
+disk, Kanri reads its `unsure` group by `sections`: an item there saying the
+candidate could not be read as written is one question back to the session,
+one line, answered by a rewrite of the proposal; otherwise Kanri asks the
+human, as a numbered list, to delete the session. The session idles through
+one subagent run, and steps 3 and 4 run without it — the human's check works
+on the recommendation's full quotation of each item, which is what the
+session would have been asked about. A session that has stopped
 answering is past answering, and Kanri learns it the way it learns of a missing
 batch report — the human says the session is gone, or Kanri's window wakes for
 another reason and the answer has not arrived. Kanri then treats the exit as
 forced — the roster's Events line says the exit shoroku did not run and what
 was lost, as far as Kanri knows — asks the human to delete it, and continues.
-Jisso idles through another session's exit; the cost is one boundary.
+Jisso idles through the proposal and one recommender run, not through a
+boundary.
 
 The file pattern is `exit-<role>[-<suffix>]`, with the suffix the batch letter
 for Jisso (`exit-jisso-B`, a Jisso leaving at batch B's boundary), the case
-number for Kaiseki (`exit-kaiseki-1`), absent for Sekkei (`exit-sekkei`), and
-the date and the bare name for Kanri (`exit-kanri-<YYYY-MM-DD>-<name>`); the
-conductor ledger's Stage values mirror it. The files live in the topic
-directory, `.tanto/<topic>/`, for Jisso, Sekkei, and an attached Kaiseki, and
-next to the roster, at `.tanto/`, for Kanri. Kanri's exit has a proposal file
-but no direction file, because it rules on itself.
+number for Kaiseki (`exit-kaiseki-1`), absent for Sekkei (`exit-sekkei`) and
+for Keikaku (`exit-keikaku`), and the date and the bare name for Kanri
+(`exit-kanri-<YYYY-MM-DD>-<name>`); the conductor ledger's Stage values mirror
+it. The files live in the topic directory, `.tanto/<topic>/`, for Jisso,
+Sekkei, Keikaku, and an attached Kaiseki, and next to the roster, at
+`.tanto/`, for Kanri. Kanri's own exit has a recommendation and a direction
+file like every other, with the human checking as at every stage.
 
-The write-out commit's subject begins with `docs: exit shoroku` or
+The apply subagent's commit subject begins with `docs: exit shoroku` or
 `docs: T<n> shoroku` — `docs: exit shoroku for jisso at B`,
 `docs: T2 shoroku for <topic>` — which is the fixed prefix the whole-branch
 review package excludes.
@@ -544,43 +568,50 @@ review package excludes.
 
 | Path | Writer | Readers | Content |
 | --- | --- | --- | --- |
-| the spec, at the path the orders line names — by default `docs/superpowers/specs/<date>-<topic>-design.md` | Sekkei | Kanri, Jisso | the spec; committed |
-| the plan, at the path the orders line names — by default `docs/superpowers/plans/<date>-<topic>.md` | Sekkei | Kanri, Jisso | the plan; committed; carries Global Constraints, a Batches section, and how a batch is verified |
+| the spec, at the path the orders line names — by default `docs/superpowers/specs/<date>-<topic>-design.md` | Sekkei | Kanri, Keikaku, Jisso | the spec; committed by Sekkei, or by the Keikaku created after the merge when it was a draft |
+| `.tanto/<topic>/spec-draft.md` | Sekkei | the spec reviewer, Kanri, Keikaku | the spec while another topic's batch is in flight; nothing is committed and no branch is cut until Keikaku commits it at its final path |
+| the plan, at the path the orders line names — by default `docs/superpowers/plans/<date>-<topic>.md` | Keikaku | Kanri, Jisso | the plan; committed; carries Global Constraints, a Batches section, and how a batch is verified |
 | `.tanto/roster.md` | Kanri | all roles; a bug-report sender, its first data row | one row per role |
 | `.tanto/roster-archive.md` | Kanri | Kanri | from `templates/roster-archive.md`; the roster's dead, replaced, and refused rows with their last readings, and the closed plans' Events lines, appended at each plan close |
 | `.tanto/kanri-handover.md` | the outgoing Kanri | the successor Kanri | the handover; deleted by the successor once accepted |
 | `.tanto/inbox/<date>-<slug>.md` | Kanri | Kanri | a bug report received, with its Triage section |
-| `.tanto/<topic>/kanri.md` | Kanri | Sekkei, Jisso, Kaiseki | the conductor ledger; it never moves |
+| `.tanto/kikaku/<YYYY-MM-DD>-<slug>.md` | Kikaku | Kanri | one decision from the human's consultation, from `templates/kikaku-decision.md`; named to Kanri as `decision: <path>`, and from there a T0 input, an `I-n`, or an `S-n` source |
+| `.tanto/<topic>/kanri.md` | Kanri | Sekkei, Keikaku, Jisso, Kaiseki, Kikaku, Hosa | the conductor ledger; it never moves |
 | `.tanto/<topic>/spec-inputs.md` (optional) | Kanri | Sekkei | scope inputs the human gave Kanri during spec work, numbered `I-n`, each with Kanri's advisory notes |
 | `.tanto/<topic>/dialogue.md` | Sekkei | Kanri, the brief writer, T1 | the spec dialogue: each question Sekkei put and the human's answer, verbatim, in order |
-| `.tanto/<topic>/review-brief-spec.md`, `.tanto/<topic>/review-brief-plan.md` | the brief writer Kanri dispatches | Kanri, then the human through Sekkei | the review brief, from `templates/review-brief.md`, in the chat's language |
-| `.tanto/<topic>/plan-dryrun.md` | Sekkei | the plan reviewer, Kanri | from `lint` and `replay` — the two commands, each one's output, and Sekkei's ruling on every failure |
+| `.tanto/<topic>/review-brief-spec.md`, `.tanto/<topic>/review-brief-plan.md` | the brief writer the document's author dispatches | the author, then the human; Kanri by the path in `review-ready:` | the review brief, from `templates/review-brief.md`, in the chat's language |
+| `.tanto/<topic>/plan-dryrun.md` | Keikaku | the plan reviewer, Kanri | from `lint` and `replay` — the two commands, each one's output, and Keikaku's ruling on every failure |
+| `.tanto/<topic>/coldread.md` | the `plan.coldread` subagent Kanri dispatches | Kanri, by `sections` | the cold read of the committed plan: a numbered list of open questions, or `none`; Kanri sends Keikaku one line per question |
 | `.tanto/<topic>/batch-<X>-prompt.md` | Kanri | Jisso, human | the same text as the `SendMessage`, so the human can paste it if the message did not arrive |
 | `.tanto/<topic>/batch-<X>-report.md` | Jisso | Kanri | fixed skeleton |
 | `.tanto/<topic>/kaiseki-<n>-brief.md` | Kanri | Kaiseki | fixed skeleton |
 | `.tanto/<topic>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
-| `.tanto/<topic>/shoroku-proposal.md` | Jisso | Kanri | the T2 proposal, written to a file instead of printed |
-| `.tanto/<topic>/shoroku-direction.md` | Kanri | Jisso | Kanri's answer to that proposal, item by item |
-| `.tanto/<topic>/exit-<role>[-<suffix>]-proposal.md`, or `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md` | the exiting session | Kanri | the exit shoroku proposal |
-| `.tanto/<topic>/exit-<role>[-<suffix>]-direction.md` | Kanri | the exiting session | Kanri's answer, item by item |
+| `.tanto/<topic>/shoroku-proposal.md` | Jisso | Kanri, the recommender | the T2 proposal, written to a file instead of printed |
+| `.tanto/<topic>/exit-<role>[-<suffix>]-proposal.md`, or `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md` | the exiting session | Kanri, the recommender | the exit shoroku proposal, opening with the line that says what it excludes |
+| `.tanto/<topic>/<stage>-recommendation.md`, or `.tanto/t0-recommendation.md` and Kanri's own exit at `.tanto/` | the `shoroku` recommender Kanri dispatches | Kanri, the human, the apply subagent | every candidate once, quoted in full, in three groups — recommended adopt, recommended reject, unsure — each with its destination and its one-line reason |
+| `.tanto/<topic>/<stage>-direction.md`, beside the recommendation | Kanri, from the human's answer | the apply subagent | what the human accepted, item by item; the apply never runs without it |
 | `.tanto/<topic>/compaction-<role>-<n>.md` | the compacted session | Kanri | every item a compaction summary attributes to the human, one per line, rewritten with the human's answers |
 | `.tanto/kaiseki/kaiseki-<n>.md` | a standalone Kaiseki | the human | its report, outside any run |
 | `.superpowers/sdd/<plan-basename>/progress.md` | Jisso, through the SDD skill | Kanri | the SDD ledger; Kanri reads it and never writes it; the one artifact tanto reads under `.superpowers/` |
 | `.tanto/.gitignore` holding `*`, and `.tanto/.markdownlint-cli2.yaml` holding `config:` / `default: false` | Kanri at start, a standalone Kaiseki, or a bug-report writer — whichever finds them absent first; never overwritten | git; the editor's markdownlint | keeps everything above untracked, so nothing is ever staged, and keeps the editor quiet on files the commit path never lints |
 | `$CLAUDE_CONFIG_DIR/tanto.json` | the user | every role at start, Kanri at each handshake | the personal expected-model config |
+| `~/.claude/agents/tanto-*.md`, or `$CLAUDE_CONFIG_DIR/agents/` when that variable is set | every role at its start, from the merged config | the harness, at the next session start | one definition per kind, from `templates/agent.md`; a definition is dispatchable only from the sessions started after it was written |
 
-Templates are copied and filled, never restated in prose. There are eleven:
+Templates are copied and filled, never restated in prose. Thirteen of them:
 `templates/roster.md`, `templates/roster-archive.md`, `templates/kanri.md`,
 `templates/kanri-handover.md`, `templates/bug-report.md`,
 `templates/batch-prompt.md`, `templates/batch-report.md`,
 `templates/kaiseki-brief.md`, `templates/kaiseki-report.md`,
-`templates/review-brief.md`, and `templates/tanto.json`.
+`templates/review-brief.md`, `templates/tanto.json`,
+`templates/kikaku-decision.md`, and `templates/agent.md`.
 
 The skill also ships one executable, `scripts/passage-check.js`: the instrument
-a plan that carries passages checks itself with, run by Sekkei in place of an
-agent dry run, by Jisso at every batch boundary, and by the whole-branch
-reviewer. It is Node with no dependencies, its tests are beside it and run by
-`node --test`, and `roles/sekkei.md` and `roles/jisso.md` name its
+a plan that carries passages checks itself with, run by Keikaku in place of an
+agent dry run, by Jisso at every batch boundary, by Kanri at every boundary it
+rules on, and by the whole-branch reviewer. Its seven subcommands are `lint`,
+`replay`, `diff`, `verify`, `sections`, `frame`, and `boundary`. It is Node
+with no dependencies, its tests are beside it and run by `node --test`, and
+`roles/keikaku.md`, `roles/jisso.md`, and `roles/kanri.md` name its
 subcommands. Its path is written skill-relative, like every other path in
 this skill, and the role files spell the runnable form `$TANTO`: set it to the
 skill's own directory, which the harness names when it invokes the skill,
@@ -600,27 +631,35 @@ its path.
 ## Rules
 
 1. One boss: only Kanri messages Jisso.
-2. Files between the strong-model sessions: the spec, the plan, the conductor
-   ledger, the spec inputs, and the Kaiseki reports are the only channel.
+2. Files between the sessions: the spec, the plan, the conductor ledger, the
+   spec inputs, the Kaiseki reports, and the shoroku recommendations and
+   directions are the only channel. Every role is on it, not only the ones on
+   the top family — Keikaku and Hosa hand over files as the others do.
 3. State in files, not in memory: the roster and the ledgers. Memory holds at
    most a pointer to them.
-4. One set of roles per repo. A session is bound to its cwd — CLAUDE.md,
-   memory, and permissions all come from it.
+4. One Kanri, one Kikaku, and one Hosa per repo; one Sekkei, one Keikaku, one
+   Jisso, and one Kaiseki per topic. A session is bound to its cwd —
+   CLAUDE.md, memory, and permissions all come from it.
 5. Kanri does not edit tracked files while a batch runs, and writes under
-   `docs/` only while Jisso is idle or absent. Sekkei writes only under the
-   spec and plan directory the orders line names — by default
+   `docs/` only while Jisso is idle or absent. Sekkei and Keikaku write only
+   under the spec and plan directory the orders line names — by default
    `docs/superpowers/` — and `.tanto/`, at any time, and, while a batch is in
-   flight, commits only at a batch boundary Kanri has verified; while no batch
-   is in flight it commits whenever its work is ready. Kaiseki edits only to
-   instrument and leaves the tree clean. Neither writes under the `docs/`
-   document-management tree outside that directory, except the accepted subset of its own exit shoroku, at its exit.
-6. Every subagent dispatch names a `model` from `tanto.json`; none omits it.
+   flight, commit only at a batch boundary Kanri has verified; while no batch
+   is in flight each commits whenever its work is ready. Kikaku writes under
+   `.tanto/kikaku/` and nowhere else.
+   Hosa edits a tracked file only in a slot Kanri gives, and commits it there.
+   Kaiseki edits only to instrument and leaves the tree clean. None of these
+   five writes under the `docs/` document-management tree.
+6. Every subagent dispatch names a `model` from `tanto.json`; none omits it,
+   and it names a `subagent_type` from the definitions at
+   `~/.claude/agents/tanto-<object>-<act>.md` when this session sees them.
 7. Small batches of three or four tasks. Each boundary is a ruling checkpoint
    and a lifecycle checkpoint.
 8. Fix rounds stop at the Kaiseki trigger when the cause is unknown; root cause
    before more fixing.
-9. At most two strong-model sessions active at once: Sekkei pauses while
-   Kaiseki is active.
+9. At most two top-family sessions active at once, Kikaku excepted as
+   human-paced: Sekkei pauses while Kaiseki is active; Keikaku and Hosa, on
+   the cheaper families, do not count.
 10. No `tanto` session is renamed after it has started under `/tanto` — Kanri
     included, from its start line onward. A rename changes the name the listing
     shows and the envelope's `from-name`, the ref does not change, and the old
@@ -644,8 +683,8 @@ its path.
     from the tree; and a further role needed before the boundary — Kaiseki
     — is a Kanri ruling, recorded as `R-n`, made with the half-edited skill
     in view. The roles that start the plan — Jisso at the plan's landing,
-    Sekkei before it — read the skill as it stands then, and the authority
-    sentence above is what covers them.
+    Keikaku before it, Sekkei before that — read the skill as it stands then,
+    and the authority sentence above is what covers them.
 
 ## The four SDD stop classes
 
@@ -663,8 +702,9 @@ reach the human, and they reach the human through Kanri.
 
 ## Workspace
 
-All roles share one working tree and one branch. Sekkei cuts the branch from
-`main` before the spec commit, named after the topic; Jisso continues on it;
+All roles share one working tree and one branch. Sekkei, or Keikaku when the
+spec was a draft, cuts the branch from `main` before the first commit, named
+after the topic; Jisso continues on it;
 the merge decision is the human's. **No worktree by default** — Kanri verifies
 the tree in place and the human can watch it. Every batch prompt restates that
 as a Kanri directive.
