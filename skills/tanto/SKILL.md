@@ -180,19 +180,31 @@ cannot see is dispatched with `model` alone, and its effort is the session's.
 
 ## Handshake and roster
 
-Sekkei and Jisso started with no address on the command line read the first
-data row of `.tanto/roster.md`, which is Kanri's own row, for it.
+A Sekkei, Keikaku, or Jisso started with no address on the command line reads
+the first data row of `.tanto/roster.md`, which is Kanri's own row, for it,
+and so do a Kikaku and a Hosa, whose address argument is optional because the
+human opens them and Kanri never requests them.
 Kaiseki with no address is standalone and does not shake hands; an attached
 Kaiseki always receives the address on the command line.
 
 Send Kanri exactly one message:
 
 ```text
-handshake role=<role> name=<name [ref]> cwd=<path> model=<model id> branch=<branch> mode=<auto|unknown> transcript=<absolute path|unavailable>
+handshake role=<role> name=<name [ref]> cwd=<path> model=<model id> effort=<level|unknown> branch=<branch> mode=<auto|unknown> transcript=<absolute path|unavailable>
 ```
 
 `name [ref]` is what `ListAgents` prints for this session on its first line
 ("This session is `<name> [<ref>]`").
+
+`effort=` is read from this session's own transcript: the last record of
+`type` `assistant`, its `perTurnEffort` field, or its `effort` field when
+that one is absent; `unknown` when the transcript is unavailable. The same
+read is the effort half of the start sequence's model check. Kanri compares
+`model=` with `sessions.<role>.model` and `effort=` with
+`sessions.<role>.effort`; a mismatch of either is one line to the human, and
+the handshake still gets its roster row when only the effort differs — the
+effort is the human's to change with `/effort` in that window, and the roster
+records what runs. A model mismatch is refused, as today.
 
 `mode=` is what you can see about your own permission mode — `auto` when your
 system prompt says auto mode is active, otherwise `unknown`. It is advisory,
@@ -206,16 +218,22 @@ reported and Kanri's warning stays keyed on the absence of `auto` (measured
 reading", so that Kanri can record it and, where its session may read that
 path, verify a reading it doubts.
 
-Jisso then **waits** for Kanri's reply. It carries the plan path and the ledger
-path Jisso cannot start without. Sekkei and Kaiseki start reading while they
-wait — the human is in the room, and the reply arrives as a
-`<cross-session-message>`.
+Jisso and Keikaku then **wait** for Kanri's reply. It carries the plan path
+and the ledger path Jisso cannot start without, and the topic, the spec path,
+and the plan path Keikaku cannot start without. Sekkei, Kikaku, Hosa, and
+Kaiseki start reading while they wait — the human is in the room, and the
+reply arrives as a `<cross-session-message>`.
 
 The roster lives at `.tanto/roster.md`, is written only by Kanri from
-`templates/roster.md`, and has Kanri's row first. Columns are role, name
-`[ref]`, cwd, model, branch, mode, started, status, transcript. `ListAgents`
-shows name, `[ref]`, kind, and start time — not the cwd, the model, or the
-role; the handshake carries those.
+`templates/roster.md`, and has Kanri's row first. Columns are Role, Topic,
+Name `[ref]`, cwd, Model, Effort, Branch, Mode, Started, Status, and
+Transcript. Topic is the topic word Kanri's orders line gave that session, or
+`—` for Kanri, Kikaku, Hosa, and a standalone Kaiseki. Status is `live`,
+`dead`, `replaced`, `refused`, or `cleared`, the last for a Kikaku or Hosa
+row that a re-handshake after a `/clear` has replaced. The keeping rule is
+one live session per role and topic; Kanri, Kikaku, and Hosa one each.
+`ListAgents` shows name, `[ref]`, kind, and start time — not the cwd, the
+model, or the role; the handshake carries those.
 
 ### The address
 
@@ -235,8 +253,11 @@ role; the handshake carries those.
   `/tanto <role> <address>`, pasted by the human from Kanri's request; the
   first data row of `.tanto/roster.md`.
 - **Every other role's address** is known only to Kanri, from the handshake,
-  and Kanri is the only session that sends to Jisso, Sekkei, or Kaiseki. A
-  reply copies the envelope's `from` into `to` and needs no name at all.
+  and Kanri is the only session that sends to Sekkei, Keikaku, Jisso,
+  Kaiseki, or Hosa. Kikaku is the human's seat: it sends Kanri a
+  `decision: <path>` line and Kanri answers, but Kanri never addresses it
+  first. A reply copies the envelope's `from` into `to` and needs no name at
+  all.
 
 Kanri's address is the first data row of the roster. A message whose first line
 is `kanri-address: <name> [<ref>] — handover accepted; the roster's first row is rewritten`
@@ -318,7 +339,8 @@ transcript marks the resume (measured 2026-09-09). Its old address is dead
 from then on. The transcript path the handshake carried is the identity that
 survives, and the roster's Transcript column holds it.
 
-`/tanto resume`, typed by the human in a window, and the self-check every
+`/tanto fukki`, typed by the human in a window — `resume` is an accepted
+alias of the same id — and the self-check every
 role runs at each of its boundaries are the same act: run `ListAgents` once;
 find the roster row whose Transcript column is this session's own transcript
 path; if the name the listing prints for this session is that row's, nothing
@@ -334,23 +356,23 @@ happened. If it differs, this session was resumed:
 - Kanri rewrites the roster's first data row with its new name and `[ref]`,
   and sends `kanri-address: <name> [<ref>] — resumed; the roster's first row is rewritten`
   to every live peer whose name `ListAgents` still lists. A peer not listed
-  was resumed too, and re-handshakes on its own `/tanto resume`, finding the
+  was resumed too, and re-handshakes on its own `/tanto fukki`, finding the
   new first row.
 
 After an editor restart, which resumes every window at once, the human types
-`/tanto resume` in Kanri's window first and then in each other window, in any
+`/tanto fukki` in Kanri's window first and then in each other window, in any
 order; no address is pasted. A session whose path matches no row is not a
-resumed role: `/tanto resume` says so and stops, and the human runs
+resumed role: `/tanto fukki` says so and stops, and the human runs
 `/tanto <role> <address>` there as for a new session.
 
-`/tanto resume` reads this file and nothing else. The role file is already in
+`/tanto fukki` reads this file and nothing else. The role file is already in
 the session's context, which is what a resume preserves.
 
 ## Messages
 
-- One boss. Only Kanri messages Jisso. Sekkei and Kaiseki never do — inbound
-  messages queue and drain in order, and a second boss interleaves
-  instructions.
+- One boss. Only Kanri messages Jisso; Sekkei, Keikaku, Kaiseki, Kikaku, and
+  Hosa never do — inbound messages queue and drain in order, and a second
+  boss interleaves instructions.
 - A message is one line plus a path. Report bodies, rulings, briefs, and plans
   live in files: a message dies with the session, a file survives compaction
   and a VS Code restart.
@@ -370,19 +392,22 @@ the session's context, which is what a resume preserves.
 - Never poll `ListAgents`; never send "are you done". Check the listing only
   when an expected signal did not arrive.
 - A reply copies the incoming message's `from` into `to`.
-- At a batch boundary Kanri has verified, Sekkei answers in one line,
-  `committed <subject>` or `nothing to commit`, each with its reading appended
-  after ` — `; Kanri sends the next batch prompt only after that reply, or,
-  when the reply is overdue, after the notice of a subscription made then.
-- Before the human reviews a spec or a plan, Sekkei sends Kanri
-  `review-ready: <path>`. Kanri dispatches the **review brief** on
-  `subagents.reviewer` — a read-only subagent that writes
-  `.tanto/<topic>/review-brief-spec.md` or `review-brief-plan.md`
-  from `templates/review-brief.md`, in the chat's language — checks its form,
-  and answers `brief: <path>`. Sekkei puts the brief's text verbatim in its
-  review request, with both paths. The human's answers to the brief's points
-  are the confirmation that review asks for; the document is what the points
-  point into, and the human reads it where a point sends them.
+- At a batch boundary Kanri has verified, Sekkei or Keikaku answers in one
+  line, `committed <subject>` or `nothing to commit`, each with its reading
+  appended after ` — `; Kanri sends the next batch prompt only after that
+  reply, or, when the reply is overdue, after the notice of a subscription
+  made then.
+- Before the human reviews a spec or a plan, the document's author dispatches
+  the **review brief** on `brief.write` — a read-only subagent that writes
+  `.tanto/<topic>/review-brief-spec.md` for Sekkei, or `review-brief-plan.md`
+  for Keikaku, from `templates/review-brief.md`, in the chat's language —
+  checks its form against "The brief's form" below, and sends Kanri one line,
+  `review-ready: <document path>; brief: <brief path>`, which waits for
+  nothing: Kanri records it in the ledger's Session events and does nothing
+  else. The author puts the brief's text verbatim in its review request, with
+  both paths. The human's answers to the brief's points are the confirmation
+  that review asks for; the document is what the points point into, and the
+  human reads it where a point sends them.
 - Permission boundaries are per session. Never ask a peer for work that was
   denied in your own session or would be blocked there. Blocked work goes to
   Kanri, which rules on human access.
@@ -409,17 +434,41 @@ Kanri answers a bug report with one line, in one of five forms:
 `triage: kaiseki requested`, `triage: hotfix — <commit subject>`, and
 `triage: relayed as I-<n>`.
 
+### The brief's form
+
+The document's author checks the brief's form, not the document: eight
+headings — the title, the how-to-answer section, the five numbered sections,
+and the unsettled section — present and in that order, the headings
+themselves in the chat's language (for a spec, section 5's body is the one
+line the template gives, rendered); every point opening with one of the four
+tags — confirm, choose, decide, nothing — and every unsettled line saying
+whether an answer is needed, and a decide line among them carrying the
+`— If unanswered:` clause after that; every point in its parts — the two
+before `See:`, then the pointer, and on a choose or decide point the
+`— If unanswered:` clause after it, so three parts or four, any of which may
+carry the ` — ` separator, as a plan's task headings do; a choose or decide
+point without that clause failing the check; every pointer the document's own
+heading text, verbatim and untranslated, so that `grep '^#'` on the document
+matches it. Dispatch once more if the form fails; if it fails again, send the
+brief as it stands and tell the human in one line. Never edit it, and do not
+read the document's prose to validate it — `grep '^#'` for its headings is
+the whole read you make; a point that misreads the document is caught by the
+human's answer or by Kanri's cold read, which stays where it is.
+
 ## Human access
 
 The human's counterpart is Kanri. By default a role has no human access:
 Jisso and an attached Kaiseki never address the human unless granted, and a
 role addresses the human directly only for what needs the human's eyes or
 hands — a visual check in a browser or a GUI, an OS dialog, a credential — and
-only after Kanri has judged it necessary and granted it for that scope. Two
-standing grants exist: Sekkei's spec and plan dialogue, given at its creation
-and named in Kanri's orders line; and an attached Kaiseki's debugging
-conversation, written in its brief. A standalone Kaiseki has no Kanri, and the
-human in the room is its counterpart.
+only after Kanri has judged it necessary and granted it for that scope. Four
+standing grants exist: Sekkei's spec dialogue and Keikaku's plan dialogue,
+each given at that session's creation and named in Kanri's orders line; an
+attached Kaiseki's debugging conversation, written in its brief; and Hosa's
+chores, named in Kanri's answer to its handshake. Kikaku needs no grant: it
+is the human's own seat, and the human in that window is its counterpart by
+definition. A standalone Kaiseki has no Kanri, and the human in the room is
+its counterpart.
 
 The request is one line to Kanri,
 `human-needed: <what the human must do> — <why no other way> — <where: this window>`,
