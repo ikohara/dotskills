@@ -935,3 +935,110 @@ test("one directory whose removal fails does not stop the rest of the teardown l
   // the loop keeps going past lockedDir's failure instead of aborting on it.
   assert.ok(!fs.existsSync(goodRepo.dir));
 });
+
+const { sectionsOf } = require("./passage-check.js");
+
+// A report skeleton: two depth-2 sections with a deeper one inside the first,
+// which is what every tanto report, brief and proposal looks like.
+const REPORT = [
+  "# Batch A report",
+  "",
+  "Preamble prose no reader names.",
+  "",
+  "## For Kanri",
+  "",
+  "The batch landed.",
+  "",
+  "### Deviations from the plan",
+  "",
+  "None.",
+  "",
+  "## Rulings",
+  "",
+  "One ruling needed.",
+  "",
+  "## Questions for the human",
+  "",
+  "Nothing blocking.",
+];
+
+test("sections prints a section's heading and body down to the next heading of the same depth", () => {
+  const file = writePlan(REPORT);
+  const result = run(["sections", "--file", file, "Rulings"]);
+  assert.strictEqual(result.code, 0);
+  assert.strictEqual(result.out, "## Rulings\n\nOne ruling needed.\n\n");
+});
+
+test("a deeper heading is body, and a deeper section ends at the next shallower heading", () => {
+  const file = writePlan(REPORT);
+  const whole = run(["sections", "--file", file, "For Kanri"]);
+  assert.strictEqual(whole.code, 0);
+  assert.match(whole.out, /### Deviations from the plan/);
+  assert.match(whole.out, /None\./);
+  assert.doesNotMatch(whole.out, /## Rulings/);
+
+  const deeper = run(["sections", "--file", file, "Deviations from the plan"]);
+  assert.strictEqual(deeper.code, 0);
+  assert.strictEqual(deeper.out, "### Deviations from the plan\n\nNone.\n\n");
+});
+
+test("sections prints the named sections in the order the arguments give, not the file's", () => {
+  const file = writePlan(REPORT);
+  const result = run(["sections", "--file", file, "Questions for the human", "Rulings"]);
+  assert.strictEqual(result.code, 0);
+  assert.ok(
+    result.out.indexOf("## Questions for the human") < result.out.indexOf("## Rulings"),
+    "expected the argument order, not the document order",
+  );
+});
+
+test("a name that matches no heading exits 1 after the rest is printed, naming it on stderr", () => {
+  const file = writePlan(REPORT);
+  const result = run(["sections", "--file", file, "Rulings", "Shoroku candidates", "Questions for the human"]);
+  assert.strictEqual(result.code, 1);
+  assert.match(result.out, /^no section Shoroku candidates$/m);
+  assert.match(result.out, /One ruling needed\./);
+  assert.match(result.out, /Nothing blocking\./);
+
+  const direct = sectionsOf(fs.readFileSync(file, "utf8"), ["Rulings", "Shoroku candidates"]);
+  assert.deepStrictEqual(direct.missing, ["Shoroku candidates"]);
+  assert.deepStrictEqual(direct.output, ["## Rulings", "", "One ruling needed.", ""]);
+});
+
+// `run` above concatenates the two streams, so it cannot tell a `no section`
+// line written to stdout from one written to stderr -- the distinction spec
+// 8.1 makes, and the one that matters: a caller is reading the printed
+// sections out of stdout, and an error line there lands inside the body it is
+// reading.
+const { spawnSync } = require("node:child_process");
+
+function runStreams(args) {
+  const result = spawnSync(process.execPath, [SCRIPT, ...args], { encoding: "utf8" });
+  return { code: result.status, stdout: result.stdout, stderr: result.stderr };
+}
+
+test("the no-section line goes to stderr, never into the stdout a caller is reading", () => {
+  const file = writePlan(REPORT);
+  const result = runStreams(["sections", "--file", file, "Rulings", "Shoroku candidates"]);
+  assert.strictEqual(result.code, 1);
+  assert.match(result.stderr, /^no section Shoroku candidates$/m);
+  assert.doesNotMatch(result.stdout, /no section/);
+  assert.strictEqual(result.stdout, "## Rulings\n\nOne ruling needed.\n\n");
+});
+
+test("the heading text is matched exactly and trimmed, never as a substring", () => {
+  const file = writePlan(REPORT);
+  const result = run(["sections", "--file", file, "Kanri"]);
+  assert.strictEqual(result.code, 1);
+  assert.match(result.out, /no section Kanri/);
+  assert.strictEqual(run(["sections", "--file", file, "  For Kanri  "]).code, 0);
+});
+
+test("sections exits 2 when no heading is named, and when the file cannot be read", () => {
+  const file = writePlan(REPORT);
+  const noHeading = run(["sections", "--file", file]);
+  assert.strictEqual(noHeading.code, 2);
+  assert.match(noHeading.out, /Usage:/);
+  const missing = run(["sections", "--file", path.join(os.tmpdir(), "passage-check-absent", "report.md"), "Rulings"]);
+  assert.strictEqual(missing.code, 2);
+});

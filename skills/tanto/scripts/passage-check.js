@@ -1055,6 +1055,105 @@ function runVerify(values) {
   return result.ok ? 0 : 1;
 }
 
+const HEADING_RE = /^(#{1,6}) +(.*)$/;
+
+/** A line's heading depth and trimmed text, or null when it is not a heading. */
+function headingOf(line) {
+  const m = line.match(HEADING_RE);
+  if (!m) return null;
+  return { depth: m[1].length, text: m[2].trim() };
+}
+
+/** Every line that lies inside a fenced block, at any backtick count. */
+function fenceFlags(lines) {
+  const inFence = new Array(lines.length).fill(false);
+  let fenceLen = 0;
+  for (let i = 0; i < lines.length; i++) {
+    if (fenceLen === 0) {
+      const open = lines[i].match(/^(`{3,})/);
+      if (open) {
+        fenceLen = open[1].length;
+        inFence[i] = true;
+      }
+      continue;
+    }
+    inFence[i] = true;
+    if (/^`{3,}$/.test(lines[i]) && lines[i].length >= fenceLen) {
+      fenceLen = 0;
+    }
+  }
+  return inFence;
+}
+
+/** The index of the first heading whose text is `name`, or -1. */
+function findSection(lines, inFence, name) {
+  for (let i = 0; i < lines.length; i++) {
+    if (inFence[i]) continue;
+    const heading = headingOf(lines[i]);
+    if (heading && heading.text === name) return i;
+  }
+  return -1;
+}
+
+/** The index one past the section headed at `start`. */
+function sectionEnd(lines, inFence, start) {
+  const depth = headingOf(lines[start]).depth;
+  for (let i = start + 1; i < lines.length; i++) {
+    if (inFence[i]) continue;
+    const heading = headingOf(lines[i]);
+    if (heading && heading.depth <= depth) return i;
+  }
+  return lines.length;
+}
+
+/**
+ * Each named heading's line and body down to the next heading of the same or
+ * higher depth, in the order `headings` gives. Returns { output, missing }:
+ * `output` is the lines to print, in argument order; `missing` is every name
+ * that heads no section.
+ */
+function sectionsOf(text, headings) {
+  const { lines } = toLines(normalize(text));
+  const inFence = fenceFlags(lines);
+
+  const output = [];
+  const missing = [];
+  for (const name of headings) {
+    const trimmedName = name.trim();
+    const start = findSection(lines, inFence, trimmedName);
+    if (start === -1) {
+      missing.push(trimmedName);
+      continue;
+    }
+    const end = sectionEnd(lines, inFence, start);
+    output.push(...lines.slice(start, end));
+  }
+  return { output, missing };
+}
+
+/** `sections --file <path> <heading> [<heading>...]`. Returns the exit code. */
+function runSections(values, headings) {
+  if (!values.file || headings.length === 0) {
+    process.stderr.write(`${USAGE}\n`);
+    return 2;
+  }
+  let text;
+  try {
+    text = fs.readFileSync(values.file, "utf8");
+  } catch (err) {
+    process.stderr.write(`error reading file: ${err.message}\n${USAGE}\n`);
+    return 2;
+  }
+  const { output, missing } = sectionsOf(text, headings);
+  if (output.length > 0) {
+    console.log(output.join("\n"));
+  }
+  for (const name of missing) {
+    process.stderr.write(`no section ${name}\n`);
+  }
+  return missing.length > 0 ? 1 : 0;
+}
+
 /** Dispatch a subcommand. Returns the process exit code. */
 function main(argv) {
   let parsed;
@@ -1066,6 +1165,7 @@ function main(argv) {
         plan: { type: "string" },
         base: { type: "string" },
         task: { type: "string" },
+        file: { type: "string" },
       },
     });
   } catch (err) {
@@ -1086,12 +1186,15 @@ function main(argv) {
   if (subcommand === "verify") {
     return runVerify(parsed.values);
   }
+  if (subcommand === "sections") {
+    return runSections(parsed.values, parsed.positionals.slice(1));
+  }
 
   process.stderr.write(`${USAGE}\n`);
   return 2;
 }
 
-module.exports = { normalize, parsePlan, lintPlan, replayPlan, diffPlan, verifyTask, main };
+module.exports = { normalize, parsePlan, lintPlan, replayPlan, diffPlan, verifyTask, sectionsOf, main };
 
 if (require.main === module) {
   process.exit(main(process.argv.slice(2)));
