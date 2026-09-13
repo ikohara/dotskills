@@ -1268,9 +1268,9 @@ function framePlan(text, options = {}) {
   const tasks = planTasks(lines, inFence);
 
   if (task !== null) {
-    const found = tasks.find((t) => t.number === task);
-    if (!found) return { output: [], found: false };
-    return { output: lines.slice(found.headingIndex, found.end), found: true };
+    const match = tasks.find((t) => t.number === task);
+    if (!match) return { output: [], found: false };
+    return { output: lines.slice(match.headingIndex, match.end), found: true };
   }
   if (stage === 1) return { output: renderStage1(lines, inFence), found: true };
   if (stage === 2) return { output: renderStage2(lines, tasks), found: true };
