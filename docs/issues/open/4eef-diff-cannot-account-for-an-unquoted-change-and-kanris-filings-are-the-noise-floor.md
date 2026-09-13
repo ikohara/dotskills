@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-13
 ---
 
 Two measurements from the kisou-refresh run (2026-09-11), both about what
@@ -40,3 +40,15 @@ files between plans rather than during one.
 Related: req-04f5, design-4807 (rule 11; the `created:` declaration), the
 kisou refresh dogfood report at
 `docs/reports/2026-09-11-kisou-refresh-dogfood.md`.
+
+**2026-09-13, the tanto-cost run's batch A — the removed side of the same
+gap.** `diff`'s rule names an accepted set only for **added** lines on
+`skills/tanto/scripts/passage-check.js` (Global Constraints); it says
+nothing about removed ones. Task 3 split `runShell` into `runShellResult`
+plus a one-line wrapper, a mandated but unquoted refactor, and produced nine
+`unexplained-removed` lines with no rule to accept them — only a paragraph
+of prose in the batch report accounts for them
+(`.tanto/tanto-cost/batch-A-report.md`, "The nine removed lines, accounted
+for"). A `rewritten:` declaration, covering both the added and the removed
+side of a mandated-but-unquoted change, is exactly what this instance needs
+too.
