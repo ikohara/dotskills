@@ -1,7 +1,7 @@
 ---
 name: tanto
-description: Use when the user starts or joins a tanto multi-session orchestration run in Claude Code, invoked as `/tanto <role>`, `担当して <role>`, or `tantoして <role>`, where the role word is kanri (管理), sekkei (設計), jisso (実装), or kaiseki (解析) in hiragana, kanji, or romaji. Drives one implementation plan through separate interactive sessions that message each other, composing superpowers brainstorming, writing-plans, subagent-driven development, systematic-debugging, and the shoroku write-out. Claude Code only, because it needs ListAgents and SendMessage.
-argument-hint: kanri | sekkei | jisso | kaiseki
+description: Use when the user starts or joins a tanto multi-session orchestration run in Claude Code, invoked as `/tanto <role>`, `担当して <role>`, or `tantoして <role>`, where the role word is kanri (管理), sekkei (設計), keikaku (計画), jisso (実装), kaiseki (解析), kikaku (企画), or hosa (補佐) in hiragana, kanji, or romaji. Drives one implementation plan through separate interactive sessions that message each other, composing superpowers brainstorming, writing-plans, subagent-driven development, systematic-debugging, and the shoroku write-out. Claude Code only, because it needs ListAgents and SendMessage.
+argument-hint: kanri | sekkei | keikaku | jisso | kaiseki | kikaku | hosa | fukki | resume
 ---
 
 # tanto
@@ -15,16 +15,19 @@ repository and the same branch; the sessions address each other by name with
 and `SendMessage` to address them. No other Agent Skills host provides both.
 
 This file is the shared contract. Every role reads it, then reads exactly one
-`roles/<role>.md` — never the other three.
+`roles/<role>.md` — never the other six.
 
 ## The roles
 
-| Role | Count per repo | Owns | Talks to |
+| Role | Count | Owns | Talks to |
 | --- | --- | --- | --- |
-| Kanri (管理) | exactly 1 | roster, conductor ledger, batch prompts, rulings, shoroku adoption and the T0 and T1 write-outs, the exit directions, the bug intake, lifecycle requests | human, Sekkei, Jisso, Kaiseki |
-| Sekkei (設計) | 0 or 1 | spec, plan, spec and plan review | Kanri; the human by grant |
-| Jisso (実装) | 0 or 1 | the SDD run, batch reports, commits, the T2 shoroku proposal and write-out | Kanri; the human by grant |
-| Kaiseki (解析) | 0 or 1, on demand | root-cause reports; never a fix; no commit but its exit shoroku | Kanri; the human by grant |
+| Kanri (管理) | exactly 1 | roster, conductor ledger, batch prompts, rulings, the recommendations and the directions, the bug intake, lifecycle requests | human, Sekkei, Keikaku, Jisso, Kaiseki, Hosa; Kikaku at its handshake only |
+| Sekkei (設計) | 0 or 1 per topic | the spec and its review | Kanri; the human by grant |
+| Keikaku (計画) | 0 or 1 per topic | the plan, its dry run, and its review | Kanri; the human by grant |
+| Jisso (実装) | 0 or 1 | the SDD run, batch reports, commits, the T2 shoroku proposal | Kanri; the human by grant |
+| Kaiseki (解析) | 0 or 1, on demand | root-cause reports; never a fix; no commit | Kanri; the human by grant |
+| Kikaku (企画) | 0 or 1, opened by the human | the consultation, and the decision files under `.tanto/kikaku/` | the human; Kanri, one `decision:` line |
+| Hosa (補佐) | 0 or 1, opened by the human | the human's small chores and Kanri's filings, each in a slot Kanri gives | the human; Kanri |
 
 ## Invocation
 
@@ -36,13 +39,16 @@ Normalize the role word to its romaji id before anything else.
 | --- | --- |
 | `かんり`, `管理`, `kanri` | `kanri` |
 | `せっけい`, `設計`, `sekkei` | `sekkei` |
+| `けいかく`, `計画`, `keikaku` | `keikaku` |
 | `じっそう`, `実装`, `jisso` | `jisso` |
 | `かいせき`, `解析`, `kaiseki` | `kaiseki` |
-| `resume` | `resume` |
+| `きかく`, `企画`, `kikaku` | `kikaku` |
+| `ほさ`, `補佐`, `hosa` | `hosa` |
+| `ふっき`, `復帰`, `fukki`; `resume` as an accepted alias | `fukki` |
 
-Any other word: say the role is unknown, list those five ids, and stop.
+Any other word: say the role is unknown, list those eight ids, and stop.
 
-`/tanto resume` skips the start sequence — no model check, no first
+`/tanto fukki` skips the start sequence — no model check, no first
 handshake — and runs "Resuming" below.
 
 The optional second argument is Kanri's address, pasted by the human from
@@ -544,7 +550,10 @@ is the only cost (issue-12d3).
 
 - `kanri` → `roles/kanri.md`
 - `sekkei` → `roles/sekkei.md`
+- `keikaku` → `roles/keikaku.md`
 - `jisso` → `roles/jisso.md`
 - `kaiseki` → `roles/kaiseki.md`
+- `kikaku` → `roles/kikaku.md`
+- `hosa` → `roles/hosa.md`
 
-Read exactly one. The other three are not yours.
+Read exactly one. The other six are not yours.
