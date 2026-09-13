@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-13
+updated: 2026-09-14
 ---
 
 Found by the tanto-cost run's batch D task 15 reviewer (2026-09-13),
@@ -36,3 +36,12 @@ that made markdownlint unsuitable here — would close it without reopening
 issue-6aa8's original problem.
 
 Related: issue-6aa8 (the ignore rule this gap is a consequence of).
+
+**2026-09-14, the same run's batch E — measured why it matters.** Sixteen
+tasks passed `verify` on its first run; task 17's did not, failing on a
+transcription slip in `templates/kanri.md` (an em-dash typed for a
+semicolon), caught only because `verify` ran. The file is exactly the
+class this issue is about — a template `markdownlint` never reads — so
+`verify` was the *only* effective check for it. The dispatches for tasks
+18 and 19 were changed to run `verify` before the commit as well as after,
+specifically because of this.

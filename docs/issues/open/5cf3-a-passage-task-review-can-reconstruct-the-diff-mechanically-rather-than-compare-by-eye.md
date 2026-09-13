@@ -7,8 +7,9 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-13
+updated: 2026-09-14
 ---
+
 
 Found by a task reviewer during the tanto-cost run's batch B (2026-09-13),
 recorded in `.tanto/tanto-cost/batch-B-report.md`, "Rulings" and "Shoroku
@@ -38,3 +39,14 @@ Destination: `roles/keikaku.md`'s drafting conventions (the seat that will
 own plan-writing rules under this design), or `docs/notes/tanto-consistency-checks.md`
 as the standard scope check for a passage-task review. Either place makes it
 the default rather than a reviewer's private habit.
+
+**2026-09-14, the same run's batch E — the method had a hole, closed
+without being asked.** Every review from task 6 through task 16
+reconstructed from the **task brief** under `.superpowers/sdd/`, a derived,
+gitignored artifact that could in principle have been edited to match a
+mistake, making the proof circular. Task 17's reviewer noticed, parsed the
+`O`/`P` pairs out of the **tracked plan** instead, confirmed the brief's
+blocks matched the plan's, and reconstructed from the plan; tasks 18 and 19
+did the same once the dispatch said so explicitly. The convention this
+issue asks for should say so in this exact form: reconstruct from the
+tracked plan, and check the brief against it — not the other way around.
