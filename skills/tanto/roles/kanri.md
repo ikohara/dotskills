@@ -176,45 +176,36 @@ never send to Kikaku: it is the human's seat, not yours.
 
 ## When the plan lands
 
-Sekkei sends you one line,
+Keikaku sends you one line,
 `plan committed: <plan path>; dryrun: <dry-run path> — <reading>`, naming the
 plan and the dry-run report.
 
-The frame command, from the repository root, with `P` the plan path:
+Your own reading of the plan is its stage 1 frame, from the repository root:
 
 ```bash
-awk '{
-  if (s) {
-    if (f) {
-      if (match($0, /^`+/) && RLENGTH == k && $0 ~ /^`+[ \t]*$/) f = 0
-      n++; next
-    }
-    if ($0 ~ /^##/) { s = 0; print "[steps: " n " lines]" }
-    else {
-      if (match($0, /^`{3,}/)) { f = 1; k = RLENGTH }
-      n++; next
-    }
-  }
-  if ($0 ~ /^### Task/) t = 1; else if ($0 ~ /^## /) t = 0
-  if (t && $0 ~ /^- \[ \] \*\*Step/) { s = 1; n = 1; next }
-  print
-} END { if (s) print "[steps: " n " lines]" }' "$P"
+node "$TANTO/scripts/passage-check.js" frame --plan <plan path> --stage 1
 ```
+
+That prints the headings, Global Constraints, the Batches table, How a batch
+is verified, and the Self-Review — what the batch prompts and the boundary
+need, and nothing else. `--stage 2` prints each task's head and its step
+count; `--task <N>` prints one task whole, which is how you read a passage
+block by its id, on demand. You never read the plan whole.
 
 Then, in this order.
 
-1. Cold-read the spec whole and the plan's **frame** — everything outside the
-   task steps: Global Constraints, File structure, each task's head down to its
-   first step, Batches, How a batch is verified, the sweeps, and the
-   Self-Review — as the frame command above prints it. The steps' commands
-   and their outputs you take on Sekkei's dry-run report,
+1. **The cold read is a dispatch, not your reading.** Dispatch the
+   `plan.coldread` kind — `subagent_type: tanto-plan-coldread`, with the
+   model `tanto.json` gives it — naming: the spec path; the plan path; the
+   frame, as `frame --stage 1` and `--stage 2` print it; the dry-run report,
    `.tanto/<topic>/plan-dryrun.md`, which the plan-committed line
-   names, and a passage block you need you read from the plan by its id, on
-   demand — never the report whole, which is larger than the frame; plus one
-   command of your own that checks every anchor the plan names against the
-   tree; a plan that has no dry-run report is read whole.
-   Send Sekkei one line per open question. Wait for its pointer: it answers by
-   editing the plan or the spec, never by explaining in a message. If the plan
+   names; one command of your own that checks every anchor the plan names
+   against the tree; and the output path, `.tanto/<topic>/coldread.md`. The
+   subagent reads the spec whole and the frame, spot-checks the dry-run
+   report, and writes a numbered list of open questions, or `none`. Read that
+   file by `sections`, send Keikaku one line per question, and wait for its
+   pointer: it answers by editing the plan or the spec, never by explaining in
+   a message — the spec is on the branch and Sekkei is gone. If the plan
    edits this skill's own files,
    record as `R-n`, before any batch prompt or subagent is dispatched, that
    the run's sessions follow the constraints, your orders line, and the
@@ -225,7 +216,10 @@ Then, in this order.
    `.superpowers/sdd/<plan-basename>/progress.md`, which Jisso's
    `sdd-workspace` run will create, and note the landing in the roster's
    Events list. Nothing moves: the ledger stays at `.tanto/<topic>/kanri.md`.
-3. Do the T1 write-out — see "Shoroku" below.
+3. Run T1: the four steps of "Shoroku" below, whose candidates are the spec's
+   own four sections — Requirements, The ADRs, Deferred items, and Shoroku
+   candidates from this spec work. Nothing is copied; the recommender reads
+   those four sections of the spec by name.
 4. Ask the human to create Jisso, as the Create table below prescribes.
 5. On Jisso's handshake, reply with the orders line. Then write batch A's
    prompt from `templates/batch-prompt.md`, with
@@ -246,24 +240,46 @@ Per batch, in this order.
    the batch has gone quiet, or when your window wakes for anything else and
    the report has not arrived. Say in your boundary line to the human which
    signal you are waiting for, so that the human is that detector.
-2. **Verify the tree before reading the report.** `git status` clean; the
-   commits and their trailers as claimed; the plan file in the state this batch
-   should have left it; repo-specific leftovers such as stray processes or temp
-   directories; a spot check of the claimed tests. You verify in place — there
-   is no worktree.
-3. Read the report. For each item under "Rulings needed": a **known cause** you
+2. **Verify the tree before reading the report**, with two commands:
+
+   ```bash
+   node "$TANTO/scripts/passage-check.js" boundary --plan <plan path>
+   node "$TANTO/scripts/passage-check.js" diff --plan <plan path> --base <merge base>
+   ```
+
+   `boundary` runs the plan's own verification list in order, `git status`
+   clean and the commits' trailers being the first two checks it prints;
+   `diff` accounts for the branch's changed lines against the passages the
+   plan carries. Read each for its pass or fail lines and the failing output
+   only. What no command knows about you check yourself: repo-specific
+   leftovers such as stray processes or temp directories, and a spot check of
+   the claimed tests. You verify in place — there is no worktree.
+3. Read the report **by its sections**, never whole, in the order the batch
+   prompt prescribes — For Kanri, Rulings, Questions for the human, Deviations
+   from the plan, Shoroku candidates — with one call:
+
+   ```bash
+   node "$TANTO/scripts/passage-check.js" sections --file <path> <heading> [<heading>...]
+   ```
+
+   For each item under "Rulings needed": a **known cause** you
    rule on yourself, recorded as `R-n` in the ledger with what it costs if
    wrong and which later tasks inherit it; an **unknown cause** opens the
    Kaiseki branch below; a **scope or spec change** goes to the human. Then
-   adopt or reject each shoroku candidate per the adoption rule, and update the
-   ledger's `S-n` table, its Batches row, and its Progress line.
+   copy each shoroku candidate into the ledger's `S-n` table with Adopted
+   `pending` and Stage `t2` — bookkeeping, not a ruling: nothing is adopted
+   between stages, and the recommendation and the human's check at T2 rule on
+   the whole list at once — and update the ledger's Batches row and its
+   Progress line.
 
    A **measurement** report — one whose deliverable is what a tool actually did
    — is read for whether its outcome **contradicts** the brief's prediction. A
    real run usually does, somewhere; a report that confirms every expectation
    deserves a second look rather than a faster approval, because a
    reconstruction is built from the same brief the prediction came from
-   (issue-f2ec).
+   (issue-f2ec). When the batch carried a measurement task, name that report's
+   Tasks and Verification sections in the same `sections` call and read them
+   for the contradiction: named sections, not the file.
 4. **Triage any bug report that arrived during the batch**, per "Bug intake"
    below: rule on each, and send the redirects, the Kaiseki requests, and the
    relays now. An issue to file or a hotfix to make waits for the commit window
@@ -276,26 +292,46 @@ Per batch, in this order.
    handover trigger has fired, in which case the successor makes it from the
    handover's Next step. If a delete or a replace of a live, coherent session
    is due, or a handover trigger has fired, run the proposal half of "Exit
-   shoroku" now: send the `exit:` lines, rule on the proposals, write the
-   directions. Delete requests wait for step 7.
+   shoroku" now: send the `exit:` lines, check each proposal and dispatch its
+   recommender, and write the direction once the human has answered. Delete
+   requests wait for step 7.
+
+   Whenever a Kikaku, Hosa, or Kaiseki row is `live` and that session has
+   reported to you and gone idle, your next line to the human — this
+   boundary's report, a create or delete request, any line — ends with
+   `— /clear <name>'s window` for a Kikaku or Hosa, or
+   `— delete <name> after its exit shoroku` for a Kaiseki. Write
+   `idle since <HH:MM>` in that row's Status, so that the reminder is not
+   forgotten across a wake-up.
 7. **The commit window.** One committer at a time, in this order, Jisso idle
-   throughout. (a) Each exiting session applies its direction and commits; you
-   verify the diff and only then ask the human to delete that session. (b) Your
+   throughout. (a) The apply subagent's slot: for each stage whose direction
+   is written, dispatch the `shoroku` kind in apply mode with the
+   recommendation, the direction, and the commit subject, and verify its
+   commit as you verify any — `git status` clean, the diff's paths those the
+   direction names, lint on them. The session whose shoroku it is has already
+   been deleted; it waits for nothing. (b) Your
    own edits — the hotfix, the issues from step 4, and your own exit shoroku
-   when a handover is due — each committed by you in its turn. (c) Tell Sekkei
+   when a handover is due — each committed by you in its turn, or handed to a
+   live Hosa as `chore: <what> — <paths> — slot: now | at the next boundary`,
+   which Hosa commits here and answers `committed <subject> — <reading>`; the
+   ruling and the commit subject stay yours, and you verify the diff.
+   (c) Tell Sekkei or Keikaku
    the boundary is verified, naming any Kaiseki create or delete since the
-   last boundary, then wait for Sekkei's one-line reply —
+   last boundary, then wait for the one-line reply —
    `committed <subject> — <reading>` or `nothing to commit — <reading>`;
    subscribe to its idle only
    when the reply is overdue, and record in the ledger's Session events if a
-   notice came without a reply; skip (c) when Sekkei is not live. If a
+   notice came without a reply; skip (c) when neither is live. If a
    handover is due, the window ends, after the wait Timing prescribes, with
-   steps 2 to 4 of "The handover, in a plan and between plans" — the exit
-   shoroku was step 6's proposal and slot (b)'s commit — and the loop stops
+   steps 2 to 4 of "The handover, in a plan and between plans" — your exit
+   shoroku was step 6's proposal and slot (a)'s commit — and the loop stops
    here; the next prompt is the successor's.
 8. Write the next batch prompt from `templates/batch-prompt.md`, carrying the
-   rulings the next tasks inherit and the concrete model families from
-   `tanto.json`. Save it as
+   rulings the next tasks inherit and, on its Models line, the four kinds
+   Jisso dispatches — `task.implement`, `task.review-spec`,
+   `task.review-quality`, and `task.escalate` — each with the family
+   `tanto.json` gives it and the definition name that family is dispatched
+   with, so that the prompt still says them after a compaction. Save it as
    `.tanto/<topic>/batch-<X>-prompt.md` and send the same
    text, without an idle subscription.
 
@@ -305,7 +341,7 @@ unstaged change in the tree while they run, so nobody edits a tracked file
 outside its own slot of the window, you included.
 
 A report that conflicts with the plan or the spec is a cold-read question to
-Sekkei, sent as one line; Sekkei answers by editing the plan or the spec and
+Keikaku, sent as one line; Keikaku answers by editing the plan or the spec and
 sending back a pointer. If the spec itself moves, that is a numbered question
 to the human.
 
@@ -313,22 +349,24 @@ to the human.
 
 After the last implementation batch is accepted:
 
-1. Dispatch the whole-branch review yourself, on `subagents.reviewer`, with
+1. Dispatch the whole-branch review yourself, on the `branch.review` kind —
+   `subagent_type: tanto-branch-review` — with
    superpowers' `requesting-code-review` reviewer prompt
    (`skills/requesting-code-review/code-reviewer.md` inside the superpowers
    plugin), a review package over the merge base, and a pointer to the SDD
    ledger's parked and deferred-minor lines, and ask for a **Shoroku
-   candidates** section at the end of its report; adopt from it into the
-   `S-n` table. You dispatch it, not Jisso, so the executor never
-   commissions its own final review. Anything else you dispatch takes
-   `subagents.default`.
+   candidates** section at the end of its report; copy its candidates into the
+   `S-n` table with Adopted `pending` and Stage `t2`, as you do a batch
+   report's. You dispatch it, not Jisso, so the executor never
+   commissions its own final review. Anything else you dispatch takes the
+   `default` kind.
 
    For a plan that carries passages, give that reviewer the plan, the merge
    base, and one command —
    `node "$TANTO/scripts/passage-check.js" replay --plan <path> --base <merge base>`
    — so
    that the replay it would otherwise rebuild by hand is the instrument
-   this run already built and used — Sekkei for `lint` and `replay`, Jisso
+   this run already built and used — Keikaku for `lint` and `replay`, Jisso
    for `diff` at every boundary (issue-7481). Its report says what the replay
    printed, and the review seat goes to the cross-file contracts and the
    human-facing questions, which no script judges.
@@ -336,9 +374,11 @@ After the last implementation batch is accepted:
    to Jisso. A fix-wave list is drafted under the same conditions as a plan:
    run each command it specifies once before dispatching it, and compare its
    output with what the list expects. There is no second fix wave.
-3. When the final batch is accepted, send Jisso one line —
+3. When the final batch is accepted, run T2: the four steps of "Shoroku"
+   below, whose first step is Jisso's. Send it one line —
    `T2: propose the shoroku write-out; write it to .tanto/<topic>/shoroku-proposal.md`
-   — then verify the write-out as you verify any batch, and put the merge
+   — and the recommendation, the human's check, and the apply follow as at
+   every other stage. Then put the merge
    decision to the human.
    Residual load-bearing findings reach the human in that merge question, and
    so does any hotfix you took on this branch.
