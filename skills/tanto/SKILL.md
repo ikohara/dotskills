@@ -61,11 +61,21 @@ Two steps, in this order, before any role work.
 
 ### 1. Model check
 
-Read the expected-model config below and compare `sessions.<role>` with your
-own model id, which your system prompt states. A value matches when it is a
-substring of that id. On a mismatch, tell the human what was expected and what
-is running, ask them to run `/model <family>` and then `/tanto` again, and
-stop. The check warns only. Never switch a model.
+Read the expected-model config below and compare `sessions.<role>.model` with
+your own model id, which your system prompt states; a configured family
+matches when it occurs inside that id. On a mismatch, tell the human what was
+expected and what is running, ask them to run `/model <family>` and then
+`/tanto` again, and stop.
+
+Then read your own effort as "The transcript reading" below says, and compare
+it with `sessions.<role>.effort`. Say both results in your start line —
+Kanri's own start line included, though Kanri sends no handshake. Every other
+role reads the same field again for its handshake, so Kanri checks the effort
+a second time, as it checks the model.
+
+The effort check warns only, and `unknown` is not a mismatch. Never switch a
+model, and never switch an effort: the effort is the human's to change with
+`/effort` in that window, and the roster records what runs.
 
 ### 2. Handshake
 
@@ -75,35 +85,98 @@ instead. Every other role does the handshake below.
 ## The expected-model config
 
 `$CLAUDE_CONFIG_DIR/tanto.json`, or `~/.claude/tanto.json` when that variable
-is unset. Two maps, two mechanisms.
+is unset. Two maps, two mechanisms. Every value is
+`{ "model": <family>, "effort": <level> }`, or a bare string, which means that
+model with the effort from the defaults.
 
-- `sessions.<role>` is **advisory**. The model check above and Kanri's
-  handshake check compare against it. Nothing switches a session's model.
-- `subagents.<kind>` is **effective**. Its value goes into the `model`
-  parameter of every subagent that role dispatches. The fixed kinds are
-  `implementer`, `reviewer`, `drafter`, `escalation`, and `default`.
+- `sessions.<role>` is **advisory**. The checks above and Kanri's handshake
+  check compare against it. Nothing switches a session's model or its effort.
+- `subagents.<kind>` is **effective**. Its `model` goes into the `model`
+  parameter of every subagent that role dispatches, and its `effort` into the
+  agent definition below. The twelve kinds are `task.implement`,
+  `task.escalate`, `task.review-spec`, `task.review-quality`, `plan.draft`,
+  `plan.review`, `plan.coldread`, `spec.review`, `branch.review`,
+  `brief.write`, `shoroku`, and `default`.
 - A key inside `subagents` whose name is a **skill name** means "run that skill
   in a subagent on that model instead of inline". When the key is absent, the
-  skill runs inline on the session's model. No skill uses this today;
-  skill-name keys are personal additions and are not in the built-in defaults.
+  skill runs inline on the session's model. `shoroku` is the one built-in
+  skill-name key; any other is a personal addition.
+
+The effort vocabulary is the harness's — `low`, `medium`, `high`, `xhigh`,
+`max` — and the family vocabulary is the Agent tool's.
 
 The skill ships built-in defaults at `templates/tanto.json`, derived from the
 family ladder `fable > opus > sonnet > haiku` (as of 2026-09). Read the
-personal file and overlay it on the defaults **key by key**, at the granularity
-`sessions.<role>` and `subagents.<kind>`. A partial personal file is complete;
-an absent file is the case where every key is a default.
+personal file and overlay it on the defaults **field by field**: a personal
+`{"effort":"medium"}` under `subagents.task.implement` changes that effort and
+keeps the default model. A partial personal file is complete; an absent file
+is the case where every key is a default. A key that names no role and no
+kind — an older file's, for instance — is reported in your start line as
+`unknown key <name>, ignored` and otherwise ignored.
 
-Then check that `subagents.escalation` sits above `subagents.implementer` on
-that ladder — SDD's fix rounds 4-5 are an escalation only if it does.
+Then check that `subagents.task.escalate` sits above
+`subagents.task.implement` on that ladder — SDD's fix rounds 4-5 are an
+escalation only if it does.
 
-Say once, in your start line, which file you read and which keys came from the
-defaults, or `no tanto.json at <path>, all keys built-in defaults`, and add the
-escalation-ladder result if the check failed. This is information, not a
-warning.
+A kind's effort cannot ride in a dispatch; it rides in an agent definition,
+which the harness reads when a session starts. So, after reading the merged
+config and before any other work, write for each of the twelve kinds the file
+`~/.claude/agents/tanto-<object>-<act>.md` — the kind's name with its `.`
+turned into a `-`, under `$CLAUDE_CONFIG_DIR/agents/` when that variable is
+set — from `templates/agent.md`, when the file is absent or its content
+differs from what the template renders. A file that already matches is left
+alone.
 
-**Every subagent dispatch names a `model`.** An omitted `model` inherits the
-session's model, which on a Kanri, Sekkei, or Kaiseki session is the strongest
-family — the exact failure this rule prevents.
+The rendered file is `name`, a `description` saying the seat is dispatched by
+name through `subagent_type` and is never to be selected from that
+description, and `effort`, over one paragraph telling the subagent to follow
+the prompt of the dispatch that named it. It carries no `model` and no
+`tools`: the dispatch's own `model` parameter binds the family and takes
+precedence over a definition's by the Agent tool's contract, and the prompts
+assume every tool. The description is protocol against the harness's
+proactive agent selection, not enforcement.
+
+Then read your own system prompt's list of available agent types and count
+the twelve names in it. A definition written during a session is not visible
+to that session, so the first session on a machine that writes them
+dispatches without them; from then on a dispatch names its kind as
+`subagent_type: tanto-<object>-<act>`.
+
+Say once, in your start line, which file you read; which keys came from the
+defaults, at the granularity of a field, or `no tanto.json at <path>, all
+keys built-in defaults`; the ladder result if the check failed; and
+`agents: <n> current, <m> written, <k> not visible to this session`, with the
+kinds named when `<k>` is above zero. This is information, not a warning: the
+human is told once and the session carries on.
+
+**Every subagent dispatch names a `model`**, and a `subagent_type` from the
+definitions when this session sees them. An omitted `model` inherits the
+session's model, which on a Sekkei, Kikaku, or Kaiseki session is the
+strongest family — the exact failure this rule prevents. A kind this session
+cannot see is dispatched with `model` alone, and its effort is the session's.
+
+**A limit is a pause, never a model change.**
+
+- No role switches its own session model or effort on a limit, and no
+  dispatch is retried on a lower family; the models are what `tanto.json`
+  says until the human changes the file.
+- On a 429 that names a weekly or daily quota: stop retrying, commit nothing
+  half-done, send Kanri `paused: <dispatch> on <family> — resets <time>` (or
+  write it in the report's Rulings needed when a report is due), and idle
+  with the work in hand. On a per-minute 429: one retry after the interval
+  the message names, then the same.
+- Kanri records the line in the ledger's Measurements table and tells the
+  human the reset time. The pause has no upper bound this skill can state;
+  only the human's word ends it.
+- When the human says, in Kanri's window and in any words, that the quota is
+  back, Kanri may probe the family once with a trivial `default` subagent and
+  then sends `continue: <dispatch> — same model`, the dispatch being the one
+  the `paused:` line named; the role re-dispatches identically from where it
+  stopped. With no `paused:` marker to bind to, Kanri asks the human what to
+  continue. A human who speaks in the role's window instead is answered and
+  reported as `human-contact:`; a bare 再開 there is ambiguous by
+  construction, and the role asks.
+- Not detected: a `/model` or `/effort` change mid-run; the rule is protocol.
 
 ## Handshake and roster
 
@@ -190,6 +263,7 @@ b=$(wc -c < "$T"); r=$(wc -l < "$T")
 w=$(grep '"type":"user"' "$T" | grep -vc '"tool_result"')
 c=$(grep '"type":"user"' "$T" | grep -v '"tool_result"' | grep -Ec '"(content|text)":"This session is being continued from a previous conversation')
 echo "transcript: $b B, $r records, $w wake-ups, $c compactions"
+e=$(grep '"type":"assistant"' "$T" | tail -n 1 | grep -oE '"(perTurnEffort|effort)":"[a-z]+"' | sort -r | head -n 1 | cut -d'"' -f4); echo "effort=${e:-unknown}"
 ```
 
 - **Bytes** and **records** are the file's size and its line count, one JSON
@@ -204,6 +278,12 @@ echo "transcript: $b B, $r records, $w wake-ups, $c compactions"
   tool output and in this file. The phrase is the harness's and may change: a
   reworded one reads as `0`, and a compaction the session notices for itself
   is still the signal it always was.
+- **Effort** is not one of the four figures. It is the last `assistant`
+  record's `perTurnEffort`, or its `effort` when that field is absent — the
+  `sort -r` puts `perTurnEffort` first when the record carries both — and
+  `unknown` when the transcript is unavailable or has neither. The start
+  sequence's check and the handshake's `effort=` take it; the reading itself
+  travels without it.
 
 The line the command prints is the reading, and it travels as it is: appended
 after ` — ` to the boundary and exit lines the roles already send, and written
