@@ -52,3 +52,20 @@ typing a number, would close this class of drift for good.
 Related: R-30 (the ten-form check, the same run's largest instance of this
 pattern), issue-e18b, issue-2e19, issue-a5e9 (the same "a hand-maintained
 count or list drifts from the tree" shape at other sites this run found).
+
+**2026-09-14, the whole-branch review — the open question this issue
+leaves.** The review corroborated R-30 and sharpened it into a decision
+nobody has made yet: the ten-form check's five forms that live only in
+role files (`chore:`, both `slot:` forms, `spec accepted:`) could be
+**added** to `SKILL.md`'s `## Messages` register — where every other
+cross-role line form already lives, including `paused:`, `continue:`,
+`exit proposal:`, `human-needed:`, `review-ready:`, `bug-report:`, and all
+five `triage:` forms — instead of correcting the check's file list to
+point at the role files that actually carry them. Kanri's own resolution
+(R-30) is to correct the check, not the register: these five are
+Hosa-specific or Sekkei-specific protocol detail, not contract-wide
+vocabulary the way the existing `## Messages` register's entries are,
+and moving them to `SKILL.md` would state role-specific mechanics in the
+one file meant to hold only what every role shares. A future plan that
+touches this check should settle this explicitly rather than assume
+either answer.
