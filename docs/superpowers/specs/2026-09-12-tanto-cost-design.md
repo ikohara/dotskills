@@ -249,15 +249,24 @@ requirement it serves.
     role text on disk, until the boundary the plan names — expected to be
     the final boundary, since every file of the skill changes.
 
-21. **This run's plan is written by this Sekkei, and Keikaku begins with the
-    next topic** (spec review, finding 4 and scope finding 2; the human
-    decides at the review): the skill on disk has no `keikaku` id, and
-    rule 11 forbids creating a further role before the plan's boundary,
-    which is the final one. So this Sekkei runs today's Step 3 and Step 4
-    and the handoff, and this run's Kanri dispatches the brief and rules
-    on the exits as today. The alternative — relaxing rule 11's boundary
-    for one role — was not taken: a session started on a half-edited skill
-    is the failure rule 11 exists for.
+21. **This run's plan is written by a second Sekkei on `opus`, created
+    after this Sekkei exits at the spec review accepted, and Keikaku
+    begins with the next topic** (spec review, finding 4 and scope finding
+    2; the human decided on 2026-09-13 and told Kanri): the skill on disk
+    has no `keikaku` id, and rule 11 forbids creating a further role before
+    the plan's boundary, which is the final one — but a replacement Sekkei
+    is not a further role, and today's Sekkei text carries Step 3 and Step
+    4. So this `fable` Sekkei exits once the spec review is accepted, the
+    human writes `sessions.sekkei = "opus"` into the personal `tanto.json`
+    for the handshake as kisou-refresh did (issue-6a29's workaround), the
+    `opus` Sekkei takes `dialogue.md`, the spec inputs, and the spec as its
+    own and runs today's Step 3 and Step 4 and the handoff, and this run's
+    Kanri dispatches the brief and rules on the exits as today. This is
+    the split of issue-3c7a run by hand one last time, and its readings
+    are the last measurement of a Sekkei that writes a plan. The
+    alternative — relaxing rule 11's boundary for one role — was not
+    taken: a session started on a half-edited skill is the failure rule 11
+    exists for.
 
 ## 1. The role matrix
 
@@ -1222,10 +1231,11 @@ already covers:
   line, have the human open one new session and report whether its
   available agent types list the twelve names.
 
-This run's own sessions — this Sekkei, the Keikaku and Jisso to come, and
-Kanri `dotskills-2d` on `sonnet` — run on the skill as it stands today: the
-brief is still Kanri's dispatch, the exits still write out themselves, and
-the kinds are still the five. The batch prompts say so.
+This run's own sessions — this Sekkei, the `opus` Sekkei that writes the
+plan (Fixed input 21), the Jisso to come, and Kanri `dotskills-2d` on
+`sonnet` — run on the skill as it stands today: the brief is still Kanri's
+dispatch, the exits still write out themselves, and the kinds are still the
+five. The batch prompts say so.
 
 ## Old values this plan contradicts
 
@@ -1366,60 +1376,96 @@ as it is written.
 
 ## Requirements
 
-For T1, by the flow of section 5 once it exists, and by Kanri as today
-until then.
+Settled with the human in the dialogue on 2026-09-13, verbatim, in two
+rounds (W-1 to W-10; the second round rewrote W-3, W-4, W-5, W-7, and W-8 so
+that each states the need and not its mechanism). T1 copies these texts;
+nothing here is reworded at T1. The wording below is the English that goes
+into the files.
 
-- req-04f5, Purpose: the sentence that names the roles names seven, as
-  it names four today; the split's reason — "judgment stays on the
-  strongest model, long output goes to a cheaper one" gains "and a session
-  that waits holds a cheap context".
-- req-04f5, "Kanri is resident, but its context cost does not grow with
-  its tenure": unchanged; served by sections 5 and 7.
-- req-04f5, "The human is interrupted only at defined checkpoints": the
-  clause "a shoroku item that adds to or changes a requirement or a
-  decision" becomes "the shoroku recommendation at each stage, answered by
-  exception".
-- req-04f5, "Model discipline": "Every role runs on an expected model" →
-  "an expected model and effort", and "gets an explicit model" → "an
-  explicit model and effort". How the effort reaches a subagent is
-  design.
-- req-04f5, "The human's counterpart is Kanri": gains "Kikaku, the seat
-  the human opens to think in, is the exception: its counterpart is the
-  human by definition, and what it decides reaches Kanri as a file."
-- req-04f5, "Composes without modifying": "superpowers, the `kisou`
-  document system, and `shoroku` are used as they are; every override
-  tanto needs is written into tanto's own files" → "superpowers is used as
-  it is, and every override tanto needs of it is written into tanto's own
-  files; a capability tanto needs of a skill this repository ships —
-  `kisou`, `shoroku` — is added to that skill as a feature of its own, for
-  every caller, never as a tanto special case." (spec review, finding 8;
-  the human's confirmation is the gate.)
-- req-04f5, "Docs are kept current as part of the flow": the last two
-  sentences become "Every planned exit of a session, in any role, carries
-  its own shoroku before the human closes it: the session lists its
-  candidates before it goes, and the accepted ones reach `docs/` before
-  the run's record closes. An exit forced by a failure is the exception,
-  and the record says what was lost." The writer is design.
-- req-04f5, "The human reviews through a brief of the judgment points": "a
-  third party Kanri dispatches" → "a third party that shares no context
-  with the author".
-- req-04f5, new bullet, **"A run is affordable to keep running."** The
-  sessions that wait — the conductor, the executor between batches, a
-  planner between reviews — hold the cheap families' contexts; the
-  strongest model is used where it reads once and answers, and its runs
-  per plan are counted. Because the human's own limit budget, not the
-  model's quality, is what stopped the runs of 2026-09-11.
-- req-04f5, Out of scope: "Custom subagent definitions" is removed; "How
-  the personal model config reaches the user's config directory" stays and
-  gains "and the agent definitions it generates beside it".
-- req-3c4d, the proposal bullet reworded rather than joined by a new
-  one: "Present a single numbered proposal grouped by destination file.
-  In session mode, end with `Direction?` and wait for partial-accept input
-  (`OK` / `2 と 5 だけ` / `3 はやめて` / `全部やめ` etc.); for a caller that
-  answers through files, write the proposal to the file it names, each
-  item with a recommendation — adopt, reject, or unsure — and read the
-  direction from a second file, applying and committing once from the
-  two."
+**req-04f5, Purpose** — the sentence that names the roles, and the split's
+reason:
+
+> Kanri (管理) manages, Sekkei (設計) designs the spec, Keikaku (計画)
+> writes the plan, Jisso (実装) implements, Kaiseki (解析) finds root
+> causes, Kikaku (企画) is where the human thinks about what comes next,
+> and Hosa (補佐) takes the small jobs. The split exists so that judgment
+> stays on the strongest model, long output goes to a cheaper one, a
+> session that waits holds a cheap context, and scope stays with the human,
+> without any one session's context having to hold the whole run.
+
+**req-04f5, "The human is interrupted only at defined checkpoints."** — the
+clause on batch boundaries and after:
+
+> ... batch boundaries, and there only for the stop classes of
+> subagent-driven development and a scope or spec change; the shoroku
+> recommendation at each stage, answered by exception — `OK` as
+> recommended, or the items that go the other way; and the merge decision.
+
+**req-04f5, "The human's counterpart is Kanri."** — one sentence appended:
+
+> Kikaku, the seat the human opens to think in, is the exception: its
+> counterpart is the human by definition, and what it decides reaches
+> Kanri.
+
+**req-04f5, "Model discipline."** — the bullet whole:
+
+> **Model discipline.** The human decides which model, and how much effort,
+> each seat and each kind of subagent runs on. A session that runs on
+> something else is reported to the human and never switched silently
+> (decision-08bc); a subagent never inherits a model or an effort by
+> accident, so no long-output work lands on the strongest model
+> (decision-9a3a).
+
+**req-04f5, "Docs are kept current as part of the flow."** — the bullet's
+body whole:
+
+> Excerpting into the project's `docs/` happens at staged points of the
+> run, not as an afterthought, and the human confirms what lands without
+> having to read every item cold. Every planned exit of a session, in any
+> role, carries its own shoroku before the human closes it, so that nothing
+> a session learned is lost with it. An exit forced by a failure is the
+> exception, and the record says what was lost.
+
+**req-04f5, "The human reviews through a brief of the judgment points."** —
+one phrase:
+
+> a third party that shares no context with the author writes a brief
+
+**req-04f5, "Composes without modifying."** — the bullet's body, the heading
+unchanged:
+
+> The skills tanto composes — superpowers, the `kisou` document system,
+> `shoroku`, and the like — are used as they are; every override tanto
+> needs is written into tanto's own files.
+
+The recommend and apply halves of `shoroku` are `shoroku`'s own requirement
+(below), so this bullet and section 5.4 do not meet.
+
+**req-04f5, new bullet:**
+
+> **A run is affordable to keep running.** The sessions that wait — the
+> conductor, the executor between batches, a planner between reviews —
+> hold the cheap families' contexts; the strongest model is used where it
+> reads once and answers, and its runs per plan are counted.
+
+**req-04f5, Out of scope:** "Custom subagent definitions." is removed; "How
+the personal model config reaches the user's config directory." becomes:
+
+> How the personal model config, and the agent definitions tanto generates
+> beside it, reach the user's config directory.
+
+**req-3c4d, the proposal bullet:**
+
+> Present a single numbered proposal grouped by destination file. In
+> session mode, end with `Direction?` and wait for partial-accept input
+> (`OK` / `2 と 5 だけ` / `3 はやめて` / `全部やめ` etc.); for a caller that
+> answers through files, write the proposal to the file it names, each item
+> with a recommendation — adopt, reject, or unsure — and read the direction
+> from a second file, applying and committing once from the two.
+
+The writer of a write-out, the definitions that carry an effort, and the
+count of roles are design; they go to design-4807 at T2 and to the ADRs'
+Consequences.
 
 ## The ADRs
 
@@ -1669,8 +1715,8 @@ rulings, all applied in the text unless said otherwise:
   both and keeps what stands (section "The ADRs").
 - Blocker 3: I-2 arrived after the commit and is answered ("Answers to the
   spec inputs").
-- Blocker 4: this run's own Keikaku cannot exist — Fixed input 21, put to
-  the human at the review.
+- Blocker 4: this run's own Keikaku cannot exist — Fixed input 21; the
+  human decided the same day: a second Sekkei on `opus` writes the plan.
 - 5 to 20 accepted: the bookkeeping; decision-2f36 amended by the fourth
   ADR; decision-6dea extended (section 10); "Composes without modifying"
   and "The human's counterpart is Kanri" proposed for edit
@@ -1698,6 +1744,16 @@ rulings, all applied in the text unless said otherwise:
 **Kanri's I-2** (2026-09-13, `sonnet`, from `roles/kanri.md` on disk):
 three obligations the design had not accounted for, all answered
 ("Answers to the spec inputs").
+
+**The review gate** (2026-09-13; brief at `.tanto/tanto-cost/review-brief-spec.md`,
+written by the `opus` brief writer Kanri dispatched, in Japanese): `all OK`;
+1.2 → the plan is written by a second Sekkei on `opus` after this Sekkei
+exits (Fixed input 21); the unsettled decide → the fourth and fifth are
+ADRs, five in all; and the requirement wording settled in the dialogue in
+two rounds and carried verbatim in "Requirements". The human's own
+question in the second round — "what is the user's requirement here?" —
+is what produced issue-c9df, filed by Kanri the same day from Sekkei's
+draft.
 
 ## Shoroku candidates from this spec work
 
