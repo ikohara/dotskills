@@ -80,7 +80,7 @@ writing-plans. Then add, yourself:
   a planned replacement is expected, if any. A stop condition worded as a
   property of the whole tree is backed by a command that sweeps the whole
   tree, not only the files the batch wrote;
-- **how a batch is verified**. For a plan that ships Markdown, that section
+- **How a batch is verified**. For a plan that ships Markdown, that section
   names lint on the changed paths by name, the content greps, a real YAML load
   of any frontmatter, and a JSON parse of any JSON the plan writes; for a plan
   that ships code, the test command together with the runtime version it is
