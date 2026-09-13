@@ -1229,3 +1229,157 @@ test("frame exits 2 on a --task no heading carries and on a --stage outside 1 an
 
   assert.deepStrictEqual(framePlan(plan(FRAME_PLAN), { task: 9 }), { output: [], found: false });
 });
+
+const { boundaryPlan } = require("./passage-check.js");
+
+// A repository whose HEAD carries a Co-Authored-By trailer, so that the
+// trailer check the fixture plan supplies as its own first command has
+// something to find. `boundary` runs in the working tree, so unlike `replay`
+// it never skips a git command.
+function boundaryRepo() {
+  const repo = makeRepo({ "tmp/fixture.md": "alpha\nbeta\n" });
+  repo.git("commit", "--allow-empty", "-qm", "base\n\nCo-Authored-By: Claude <noreply@anthropic.com>");
+  return repo;
+}
+
+// The bash fences before the heading and under the next section of the same
+// depth are the region bounds: `boundary` must run neither.
+const BOUNDARY_PLAN = REPLACEMENT.concat([
+  "",
+  "```bash",
+  "echo before-the-section",
+  "```",
+  "",
+  "## How a batch is verified",
+  "",
+  "```bash",
+  "git log -1 --format=%B | grep -c Co-Authored-By",
+  "```",
+  "",
+  "Expected: `1`",
+  "",
+  "```bash",
+  "echo boundary-second-check",
+  "```",
+  "",
+  "Expected: `boundary-second-check`",
+  "",
+  "## Self-Review",
+  "",
+  "```bash",
+  "echo outside-the-section",
+  "```",
+]);
+
+// A two-line command whose output text differs from the command text, so
+// that "printed once" and "the first line only" are both measurable.
+const BOUNDARY_FAILING = REPLACEMENT.concat([
+  "",
+  "## How a batch is verified",
+  "",
+  "```bash",
+  "printf 'boundary-output-%s\\n' once",
+  "exit 3",
+  "```",
+  "",
+  "Expected: `nothing in particular`",
+]);
+
+const BOUNDARY_NO_EXPECTATION = REPLACEMENT.concat(["", "## How a batch is verified", "", "```bash", "true", "```"]);
+
+const BOUNDARY_SKIPPED = [
+  "```text",
+  "replay-skip: echo skip-marker — deliberately flaky in this fixture",
+  "```",
+].concat(REPLACEMENT, [
+  "",
+  "## How a batch is verified",
+  "",
+  "```bash",
+  "echo skip-marker and other words",
+  "```",
+  "",
+  "Expected: `does not matter`",
+]);
+
+test("boundary runs git status first, then each fence under the heading and none outside it", () => {
+  const repo = boundaryRepo();
+  const result = runIn(repo.dir, ["boundary", "--plan", writePlan(BOUNDARY_PLAN)]);
+  assert.strictEqual(result.code, 0, result.out);
+  assert.match(result.out, /^pass 1: git status --porcelain$/m);
+  assert.match(result.out, /^pass 2: git log -1 --format=%B \| grep -c Co-Authored-By$/m);
+  assert.match(result.out, /^pass 3: echo boundary-second-check$/m);
+  assert.doesNotMatch(result.out, /before-the-section/);
+  assert.doesNotMatch(result.out, /outside-the-section/);
+});
+
+test("boundary names a failing check by number and first line, prints its output once, and exits 1", () => {
+  const repo = boundaryRepo();
+  const result = runIn(repo.dir, ["boundary", "--plan", writePlan(BOUNDARY_FAILING)]);
+  assert.strictEqual(result.code, 1);
+  const failLine = result.out.split("\n").find((line) => line.startsWith("fail 2: "));
+  assert.strictEqual(failLine, "fail 2: printf 'boundary-output-%s\\n' once");
+  assert.strictEqual(result.out.split("boundary-output-once").length - 1, 1);
+});
+
+test("boundary exits 2 on a plan it cannot read and on one with no How a batch is verified heading", () => {
+  const repo = boundaryRepo();
+  const missing = path.join(os.tmpdir(), "passage-check-absent", "plan.md");
+  assert.strictEqual(runIn(repo.dir, ["boundary", "--plan", missing]).code, 2);
+  const noHeading = runIn(repo.dir, ["boundary", "--plan", writePlan(REPLACEMENT)]);
+  assert.strictEqual(noHeading.code, 2);
+  assert.match(noHeading.out, /How a batch is verified/);
+});
+
+test("boundary fails check 1 on a dirty working tree and still runs the checks after it", () => {
+  const repo = boundaryRepo();
+  fs.writeFileSync(path.join(repo.dir, "tmp/untracked.md"), "dirt\n", "utf8");
+  const result = runIn(repo.dir, ["boundary", "--plan", writePlan(BOUNDARY_PLAN)]);
+  assert.strictEqual(result.code, 1);
+  assert.match(result.out, /^fail 1: git status --porcelain$/m);
+  assert.match(result.out, /tmp\/untracked\.md/);
+  assert.match(result.out, /^pass 3: echo boundary-second-check$/m);
+});
+
+test("boundary honors a replay-skip marker and does not number the skipped block as a check", () => {
+  const repo = boundaryRepo();
+  const result = runIn(repo.dir, ["boundary", "--plan", writePlan(BOUNDARY_SKIPPED)]);
+  assert.strictEqual(result.code, 0, result.out);
+  assert.match(result.out, /^skipped: echo skip-marker and other words — deliberately flaky in this fixture$/m);
+  assert.doesNotMatch(result.out, /pass 2:/);
+});
+
+test("boundaryPlan carries each fence's Expected paragraph, and null where the plan states none", () => {
+  const repo = boundaryRepo();
+  const stated = boundaryPlan(parsePlan(fs.readFileSync(writePlan(BOUNDARY_PLAN), "utf8")), { cwd: repo.dir });
+  assert.strictEqual(stated.checks.length, 3);
+  assert.strictEqual(stated.checks[2].expectation, "Expected: `boundary-second-check`");
+
+  const bare = boundaryPlan(parsePlan(fs.readFileSync(writePlan(BOUNDARY_NO_EXPECTATION), "utf8")), { cwd: repo.dir });
+  assert.strictEqual(bare.ok, true);
+  assert.strictEqual(bare.checks.length, 2);
+  assert.strictEqual(bare.checks[1].expectation, null);
+  assert.strictEqual(bare.checks[1].status, "pass");
+});
+
+// A command that exits non-zero while printing exactly what its Expected
+// paragraph states: `replay` would call this a MATCH, and `boundary` must
+// still call it a failure.
+const BOUNDARY_MATCHING_FAILURE = REPLACEMENT.concat([
+  "",
+  "## How a batch is verified",
+  "",
+  "```bash",
+  "echo boundary-matching-output; exit 1",
+  "```",
+  "",
+  "Expected: boundary-matching-output",
+]);
+
+test("boundary fails a check whose output matches its Expected paragraph but whose command exits non-zero", () => {
+  const repo = boundaryRepo();
+  const result = runIn(repo.dir, ["boundary", "--plan", writePlan(BOUNDARY_MATCHING_FAILURE)]);
+  assert.strictEqual(result.code, 1);
+  assert.match(result.out, /^fail 2: echo boundary-matching-output; exit 1$/m);
+  assert.match(result.out, /boundary-matching-output/);
+});

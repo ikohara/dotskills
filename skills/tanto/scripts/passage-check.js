@@ -10,7 +10,8 @@ const path = require("node:path");
 const { execFileSync, spawnSync } = require("node:child_process");
 const { parseArgs } = require("node:util");
 
-const USAGE = "Usage: passage-check.js <lint|replay|diff|verify> --plan <path> [--base <ref>] [--task <N>]";
+const USAGE =
+  "Usage: passage-check.js <lint|replay|diff|verify|sections|frame|boundary> [--plan <path>] [--file <path>] [--base <ref>] [--task <N>] [--stage 1|2] [<heading>...]";
 
 // A lead's id-body is either `<task>.<ordinal>` or a `<...>` placeholder.
 const ID_BODY = "(\\d+\\.\\d+|<[^>]*>)";
@@ -530,16 +531,21 @@ function firstWord(command) {
 
 /**
  * Run a shell command in Git Bash, capturing both stdout and stderr on
- * every outcome. `execSync`'s stdout-only return value leaves a succeeding
- * command's stderr with nowhere to go but the parent's own stderr -- pure
- * noise, out of order and detached from the fence it belongs to -- so this
- * uses `spawnSync` instead, whose result exposes both streams regardless of
- * exit status, and concatenates them the way a caught `execSync` failure
- * already would.
+ * every outcome, plus the process's own exit status. `execSync`'s
+ * stdout-only return value leaves a succeeding command's stderr with
+ * nowhere to go but the parent's own stderr -- pure noise, out of order and
+ * detached from the fence it belongs to -- so this uses `spawnSync`
+ * instead, whose result exposes both streams regardless of exit status,
+ * and concatenates them the way a caught `execSync` failure already would.
  */
-function runShell(command, cwd) {
+function runShellResult(command, cwd) {
   const result = spawnSync("bash", ["-c", command], { cwd, encoding: "utf8" });
-  return `${result.stdout || ""}${result.stderr || ""}`;
+  return { output: `${result.stdout || ""}${result.stderr || ""}`, status: result.status };
+}
+
+/** `runShellResult`'s output alone, for a caller that never needs the status. */
+function runShell(command, cwd) {
+  return runShellResult(command, cwd).output;
 }
 
 /**
@@ -1310,6 +1316,102 @@ function runFrame(values) {
   return 0;
 }
 
+/**
+ * The plan's own verification list, run at a batch boundary (spec 8.3):
+ * `git status --porcelain` first, as check 1 -- passing when its own
+ * trimmed output is empty, the one check whose exit status is not what
+ * decides it -- then every fenced `bash`/`console` block under the plan's
+ * How a batch is verified heading, numbered from 2 in document order.
+ * Unlike `replay`, this runs in the working tree rather than a scratch
+ * copy, so only a `replay-skip:` marker is honored; there is no git command
+ * or `verify` invocation to exempt for a tree that is not a git repository,
+ * because this one is. Returns { ok, checks, skipped }: `checks` is
+ * { n, command, expectation, output, status }, `status` one of `"pass"`
+ * and `"fail"`; `skipped` is { command, reason }; `ok` is true when every
+ * check passed. Throws when the plan carries no How a batch is verified
+ * heading, which the CLI wrapper reports as exit 2.
+ */
+function boundaryPlan(parsed, options = {}) {
+  const cwd = options.cwd || process.cwd();
+  const inFence = fenceFlags(parsed.lines);
+  const start = findSection(parsed.lines, inFence, "How a batch is verified");
+  if (start === -1) {
+    throw new Error("the plan carries no How a batch is verified heading");
+  }
+  const end = sectionEnd(parsed.lines, inFence, start);
+  const fences = extractCommandFences(parsed.lines.slice(start, end));
+  const skipPatterns = extractReplaySkipPatterns(parsed.lines);
+
+  const checks = [];
+  const skipped = [];
+
+  const statusOutput = runShell("git status --porcelain", cwd);
+  checks.push({
+    n: 1,
+    command: "git status --porcelain",
+    expectation: null,
+    output: statusOutput,
+    status: statusOutput.trim() === "" ? "pass" : "fail",
+  });
+
+  let n = 2;
+  for (const fence of fences) {
+    const skip = skipPatterns.find((s) => fence.command.includes(s.pattern));
+    if (skip) {
+      skipped.push({ command: fence.command, reason: skip.reason });
+      continue;
+    }
+    const { output, status } = runShellResult(fence.command, cwd);
+    checks.push({
+      n,
+      command: fence.command,
+      expectation: fence.expectation,
+      output,
+      status: status === 0 ? "pass" : "fail",
+    });
+    n++;
+  }
+
+  return { ok: checks.every((c) => c.status === "pass"), checks, skipped };
+}
+
+/** `boundary --plan <path>`. Returns the process exit code. */
+function runBoundary(values) {
+  if (!values.plan) {
+    process.stderr.write(`${USAGE}\n`);
+    return 2;
+  }
+  let text;
+  try {
+    text = fs.readFileSync(values.plan, "utf8");
+  } catch (err) {
+    process.stderr.write(`error reading plan: ${err.message}\n${USAGE}\n`);
+    return 2;
+  }
+  const parsed = parsePlan(text);
+
+  let result;
+  try {
+    result = boundaryPlan(parsed, { cwd: process.cwd() });
+  } catch (err) {
+    process.stderr.write(`error: ${err.message}\n${USAGE}\n`);
+    return 2;
+  }
+
+  for (const s of result.skipped) {
+    console.log(`skipped: ${s.command} — ${s.reason}`);
+  }
+  for (const check of result.checks) {
+    const firstLine = check.command.split("\n")[0];
+    console.log(`${check.status} ${check.n}: ${firstLine}`);
+    if (check.status === "fail") {
+      console.log(check.output);
+    }
+  }
+
+  return result.ok ? 0 : 1;
+}
+
 /** Dispatch a subcommand. Returns the process exit code. */
 function main(argv) {
   let parsed;
@@ -1349,12 +1451,26 @@ function main(argv) {
   if (subcommand === "frame") {
     return runFrame(parsed.values);
   }
+  if (subcommand === "boundary") {
+    return runBoundary(parsed.values);
+  }
 
   process.stderr.write(`${USAGE}\n`);
   return 2;
 }
 
-module.exports = { normalize, parsePlan, lintPlan, replayPlan, diffPlan, verifyTask, sectionsOf, framePlan, main };
+module.exports = {
+  normalize,
+  parsePlan,
+  lintPlan,
+  replayPlan,
+  diffPlan,
+  verifyTask,
+  sectionsOf,
+  framePlan,
+  boundaryPlan,
+  main,
+};
 
 if (require.main === module) {
   process.exit(main(process.argv.slice(2)));
