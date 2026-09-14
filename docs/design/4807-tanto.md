@@ -509,10 +509,10 @@ reason that only applies while an implementer exists.
 
 ## Handover
 
-Kanri is resident, so its only exit is a handover — decision-de63. Three
+Kanri is resident, so its only exit is a handover — decision-de63. Four
 signals fire one, checked at every boundary: at loop step 6 while a plan is in
 flight, and between plans at the start of every turn. **The plan close** is the
-ordinary one of the three — decision-b6cb: after T2, the merge decision, the
+ordinary one of the four — decision-b6cb: after T2, the merge decision, the
 peers' deletion, and the archive move, the handover runs without a threshold
 and without asking, because the close is the moment with nothing in flight and
 the record complete, and a resident session's per-turn cost is its age, so the
@@ -523,7 +523,16 @@ itself and is the mid-plan case — a human who says "continue" at a plan close
 declines that close's handover the way this section already describes, which a
 mid-plan compaction never gets asked. State lives in files, so a compaction
 loses nothing a successor cannot read back; it is the harness's own evidence
-that the session has grown long. The token figure the harness prints is
+that the session has grown long. And the **context ceiling crossed** —
+decision-eee2, the fourth signal — which fires on the reading's own token
+figure, a derived baseline plus a chosen number of batches of measured
+consumption. The last two are the gated pair: both the ceiling crossing and
+the noticed compaction fire only when the human's last turn in Kanri's own
+window is inside the presence window, because a handover written to an empty
+room stalls the run until someone returns to create the successor. A crossing
+that finds the human away is recorded as deferred; when the human returns and
+declines it, `declined` is terminal for that plan and the crossing is not put
+to them again. The token figure the harness prints is
 deliberately not used — its unit is not documented as the context window. A
 count threshold for **replacing a peer** is deferred as issue-40ed's other half
 — its handover half closed with decision-b6cb — and the Residency counters
@@ -574,6 +583,20 @@ The successor reads the handover, rewrites the roster, sends every live peer the
 `kanri-address:` line, deletes the handover file so a stale one cannot start a
 false handover, and asks the human to delete the old session.
 
+**A topic's spec or plan stage takes the in-plan procedure and the
+between-plans timing.** Two rules used to pick which handover procedure follows
+a "present" verdict — one keyed on whether a batch is in flight, the other on
+whether a ledger is open — and they disagreed exactly in the case the ceiling
+signal makes real: a topic open and a ledger open, but no batch dispatched yet.
+The single rule is **whether a ledger is open**: with one open, the in-plan
+procedure runs, because the ledger is the state a successor inherits and it
+exists before the first batch does. *When* Kanri checks is the other half, and
+there the spec/plan stage counts as **between plans** — the check falls at the
+start of every turn rather than at loop step 6, which is what Timing's own
+boundary list admits. One rule for which procedure, the other for when; they
+are not in competition because they answer different questions. This resolves
+gap 2 of issue-1a9a.
+
 **A due handover waits for what the session still owns.** The handover file is
 written only after every background agent the session dispatched has returned,
 and after every commit line it promised a peer at that boundary has been sent
@@ -600,6 +623,26 @@ session's second day; it waited for the session's own background agent to return
 before writing the file, and the successor's Handover case then ran as
 specified, with the human deleting the old session afterwards. The numbers are
 in `docs/reports/2026-09-07-kanri-lifecycle-dogfood.md`.
+
+**Sekkei's and Keikaku's away-from-boundary escapes are symmetric**, and both
+generalize to any session-level cause: a role that is not at a boundary when
+its exit shoroku would be due says so and continues, whatever the cause — the
+human not wanting the plan now, a decision still open, a peer's work not
+landed. The generality is the rule; the specific cause is never the test. They
+were not symmetric at first only because the plan that landed them wrote the
+two roles' bullets in independent passages, and Keikaku's named one cause where
+Sekkei's named the class.
+
+**"Waiting for nothing but its deletion" lives with the Live peers, and
+nowhere else.** The rule has one site by design: the handover's Live peers
+listing, which is where a successor reads what each peer is doing and therefore
+the only place the distinction changes an action. A second copy was drafted
+beside the five exit cases and deliberately not landed, because the cases
+enumerate *when* a session exits and this is a fact about a session's state
+after its exit lines are answered. A later reader who finds it absent from the
+five cases should not restore it there. The nearby disagreement between
+`templates/handover.md`'s Live peers placement and `roles/kanri.md`'s
+(issue-f5d8) is a separate matter and is not resolved by this.
 
 ## Bug intake
 
@@ -853,6 +896,16 @@ and dispatches the `shoroku` kind again to **apply** and commit in a slot.
 Adoption is therefore a recommendation the human checks rather than a ruling
 Kanri makes as their delegate — the amendment to decision-1f5f, which holds the
 original reasoning and the alternatives.
+
+The check arrives in the chat's language at the check step, and the reason it
+had to is a fact about the text rather than about the checker: the measured
+cost was the protocol text itself, so a later reader must not try to make a
+slow check faster by giving the checking session a stronger model. What is
+being checked serves two readers at once — the apply subagent, which quotes the
+recommendation in full and needs it in the repository's language, and the
+human, who only has to decide — which is the same reader/input split the review
+brief already makes, and the reason a single file doing both duties reads
+slowly. issue-c17a holds the deferred full form of that split.
 
 **The writer of a write-out is a dispatched subagent, not the session that
 raised the candidates.** No session applies the accepted subset of its own

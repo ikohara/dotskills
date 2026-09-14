@@ -114,6 +114,14 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   short line wherever a machine verdict is wanted, and accept that prose leaves
   a human ruling to make: of the six `DIFFERS` in the tanto-workspace plan's
   whole-branch review, five were semantic passes adjudicated by hand.
+- A **missing script path** is not a spawn failure. `node path/that/does/not/exist.js`
+  starts node, which reports `MODULE_NOT_FOUND` on stderr and exits `1`, so
+  `result.status` is `1` — not `null`. `null` is what a spawn that never ran at
+  all would give. A verification item or test written against `status === null`
+  to prove "the script is absent" therefore passes vacuously, and keeps passing
+  once the script exists and merely fails. (Distinct from issue-235b, which is
+  a `MODULE_NOT_FOUND` from the `node --test <directory>` form — same message,
+  different cause.)
 
 ## A block must survive its destination's linter
 
@@ -178,3 +186,10 @@ plan, for a Markdown target (batch B) and a YAML one (batch C) alike:
 - `grep -cF` per anchor before and after the edit, the count from a run.
 - For a YAML target, the hook run by id, because `scripts/lint.sh` given the
   config path skips it.
+- **A check that joins lines must strip `\r` first.** Every file under
+  `skills/tanto` has CRLF endings, so a needle assembled by joining two or more
+  source lines carries a `\r` at each join and matches nothing. Measured on the
+  `tanto-context-ceiling` spec review: six of its eight "Old values" needles
+  read as missing until the reader stripped `\r` before joining — six false
+  absences in one pass, all from this alone. The single-line `grep -cF` case is
+  unaffected, which is exactly why the failure is easy to miss.

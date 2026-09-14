@@ -54,3 +54,12 @@ keeps — untracked, unmentioned by `git status`, gone with the clone, and
 dependent on a session remembering to set it. The rule lives in that plan
 today and reaches `roles/sekkei.md` through a rule-11 plan. The path-scope
 half of the gap is untouched by this.
+
+2026-09-14 — the `tanto-context-ceiling` run hit the untouched half at **all
+five** of its own boundaries. The plan named its base commit by the resolvable
+form above, so the base half held; what `diff` reported at every boundary was
+still the whole branch's added lines rather than the plan's declared paths, and
+Kanri ruled it held each time (that run's ledger, R-22). Five boundaries in one
+run, each needing a human-side ruling to dismiss, is the datapoint that keeps
+this issue alive: the base-commit workaround does not shrink the noise at all
+once a branch carries the run's own docs and issue commits alongside the plan's.

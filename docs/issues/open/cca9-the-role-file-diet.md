@@ -12,7 +12,7 @@ updated: 2026-09-14
 
 `roles/kanri.md` at 62 KB and `SKILL.md` at 47 KB are 15 to 27k of every
 seat's 72 to 83k baseline; a diet in passage-check form, `kanri.md` first, is
-a candidate for `tanto-sweep-2` and lowers every ceiling at the same N.
+carried by a small topic of its own and lowers every ceiling at the same N.
 
 The byte and token figures are issue-40ed's, from the 2026-09-14 token
 measurement: a tanto seat's fixed load at its first turn is 72 to 83k, of
@@ -25,5 +25,13 @@ changing N.
 
 Deferred out of the `tanto-context-ceiling` spec at Q7, over doing `kanri.md`
 alone there and over a topic of its own before sweep-2. It is `open` rather
-than `deferred` because it is actionable now and already has a named home:
-issue-c17a is the other `tanto-sweep-2` candidate.
+than `deferred` because it is actionable now and already has a named home: a
+small topic of its own, which is the carrier a later Kikaku decision settled
+on rather than folding the diet into a sweep.
+
+2026-09-14 — measured, confirming the figures above are current:
+`skills/tanto/SKILL.md` 46,856 B, `skills/tanto/roles/kanri.md` 62,516 B, and
+`skills/tanto/scripts/passage-check.js` 49,748 B. The third file is new to
+this measurement: it is not part of a seat's fixed baseline the way the first
+two are, but it is the largest single file a passage-carrying plan's seats
+read, and it is the same diet's natural third subject.

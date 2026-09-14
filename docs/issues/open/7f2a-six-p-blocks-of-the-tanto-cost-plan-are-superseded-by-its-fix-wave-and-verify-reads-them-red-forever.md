@@ -72,3 +72,20 @@ are compared. That is why this issue exists rather than a set of repairs:
 coverage, not severity, chose the outcome in every one of those cases.
 `docs/reports/2026-09-14-tanto-cost-dogfood.md`, section 6, states it in
 full for a reader of the report.
+
+2026-09-14 — a second instance, and the first at a plan's own close. The
+`tanto-context-ceiling` run's post-plan fix wave corrected text pinned by its
+own `P`-block passages, breaking `verify`/`diff` parity in exactly the way
+recorded above. Two things this instance adds:
+
+- **It is by design, not by accident.** A fix wave that runs after the plan
+  has closed can only correct pinned text by diverging from it. Any run that
+  ends with a fix wave over `P`-block paths will reproduce this, so it is a
+  property of the shape rather than a fault of either plan.
+- **The protocol says nothing about what `verify` and `diff` mean after a
+  plan's close.** The tanto-cost run met this after the fact; this run met it
+  at its own close, with the instruments still being run at the closing
+  boundary and reading red for reasons that are correct. The missing rule —
+  when the checks stop being meaningful, and what a closing boundary should do
+  with a red they cannot fix — is what a `superseded:` declaration, or an
+  explicit "the plan's passages are frozen at close" statement, would supply.

@@ -130,6 +130,13 @@ Together these say that "the session noticed a compaction" is a very late
 signal on a 1M-window model — it does not fire until roughly 967k — while the
 `usage` sum is available at every single turn.
 
+The sum is also available on a session's **first** turn, which is not obvious
+and was doubted: the harness writes the `assistant` record carrying a
+`tool_use` *before* the tool runs, so a script invoked from that first turn
+finds its own turn's `usage` already in the transcript. A reading taken at a
+session's own Start is therefore a real baseline, not an empty or half-written
+one.
+
 ## `origin.kind` tells the human's turns from a peer's
 
 Measured 2026-09-14 over the transcripts under this project's directory in the
@@ -150,6 +157,16 @@ It is what makes a presence gate possible at all: a rule can compare the last
 `human` record's timestamp against a window and act on the verdict. The same
 field, read from another session's transcript path, would widen the verdict
 beyond one window (issue-bf89).
+
+**One case is unmeasured: the compaction summary's own record.** What
+`origin.kind` a compaction summary carries is not known, because all twelve
+transcripts of the run that built this gate carry 0 compactions. If it reads as
+`human`, then every compaction silently extends a presence window's "present"
+verdict by its full length past the moment the human actually left — an hour,
+on the current setting — which would be wrong in exactly the situation the gate
+exists for. The measurement that settles it is small and cannot be
+manufactured: read `origin.kind` off the summary record of the first transcript
+that actually shows a compaction.
 
 ## A subagent cannot locate its own transcript
 

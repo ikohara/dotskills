@@ -69,3 +69,33 @@ and moving them to `SKILL.md` would state role-specific mechanics in the
 one file meant to hold only what every role shares. A future plan that
 touches this check should settle this explicitly rather than assume
 either answer.
+
+**2026-09-14, the `tanto-context-ceiling` run — measured evidence, and one
+deferred addition.** Three findings from that run's batches and its T2, all
+about check 6 and all of this issue's kind:
+
+- **Four of check 6's strings never existed in `SKILL.md` at all**, before
+  this plan or after it: `chore: <one line>`, both `slot:` forms, and
+  `slot-needed:`. Measured at the branch's base commit and at its tip — zero
+  occurrences at both — so these are not a count that drifted, they are a file
+  list that was wrong when written. This is the evidence the open question
+  above lacked: the choice is not between a stale count and a fresh one, it is
+  between correcting the check's file list to the role files that actually
+  carry these forms and adding the forms to `SKILL.md`'s `## Messages`
+  register.
+- **The loop's own "ten end `-> 1`" framing is stale independently of any
+  plan.** Measured the same way: `decision: <path>` reads `2` at both the base
+  and the tip, not `1`, and there are **5** pre-existing zero-count strings,
+  not 4. The prose that frames the loop is therefore wrong about the shape of
+  its own expectations, not only about individual numbers — which is a harder
+  failure to notice than a single stale count, since nothing in the loop's
+  output contradicts the framing.
+- **A deferred addition to check 6: a `grep -cF` pin for the batch-D carrier
+  line.** That run's batch D proved the line `coldread answered: <pointer, one
+  per question, or none>; exit proposal: <path> — <reading>` byte-identical
+  across `SKILL.md`, `roles/keikaku.md` and `roles/kanri.md` — a cross-file
+  contract that no standing check guards once that run's own stop condition is
+  history. A pin beside the Residency-header pins was drafted and deliberately
+  skipped in the fix wave, because adding a position to check 6 renumbers
+  every position after it and the run had live expectations keyed to those
+  numbers. **Trigger: whenever check 6 is next safely renumbered.**

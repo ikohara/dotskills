@@ -47,8 +47,14 @@ on the human's presence, and the exit proposal written unasked" (2026-09-14).
 - **The derived ceiling, gated on the human's presence (chosen).** The same
   derivation, with the handover or replacement firing at the next boundary
   only when the human's last turn in Kanri's own window is inside the presence
-  window; otherwise the crossing is recorded as deferred and re-checked at
-  every later boundary, and the plan close hands over as it already does.
+  window; otherwise the crossing is recorded as deferred, and the plan close
+  hands over as it already does.
+- **Re-checking a deferred crossing at every later boundary the human is
+  present and declining (rejected).** The deferral would have no terminal
+  state: each later boundary would re-fire the exit shoroku, paying a full
+  recommender run and a human check for an answer the human had already given.
+  Rejected for that cost; the terminal `declined` state below is what replaced
+  it.
 - **A protocol hard ceiling above the soft one (rejected in the dialogue, Q3).**
   Kanri would hand over regardless of presence and the run would stall,
   keeping the state in a handover file rather than in a compaction summary and
@@ -81,6 +87,14 @@ here.
   rather than two, the third (`ceiling`) effective like `subagents`. The
   key-by-key overlay onto built-in defaults, the defaults living in the skill,
   and the personal file outside the repository all stand.
+
+**A deferred handover's deferral ends when the human, present, declines it.**
+The `declined` state is terminal for this plan: the exit shoroku does not
+re-fire at later boundaries, and the crossing is not put to the human again.
+This matches a declined plan-close handover, which is not re-asked either. The
+alternative — re-checking at every boundary while the human is present and
+declining — was rejected as paying a full recommender run and a human check for
+an answer already given.
 
 The ceiling itself is a measured baseline plus a chosen number of batches of
 measured consumption, and Kanri and Jisso are its subjects; the other roles

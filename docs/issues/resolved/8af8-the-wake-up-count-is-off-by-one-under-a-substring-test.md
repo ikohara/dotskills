@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-14
 ---
 
 Deferred by the context-cost design (2026-09-09, its Deferred items). The
@@ -32,3 +32,16 @@ substring test drifts further; the remedy is a parse behind the same
 `transcript:` line, with the grep kept as the fallback.
 
 Related: req-04f5, issue-e5a2, issue-40ed, design-4807.
+
+**Resolved 2026-09-14 by the `tanto-context-ceiling` plan.** The caveat this
+issue records was retired twice over, by two different things, and it is worth
+keeping both straight. First **by measurement**: issue-e5a2's reading showed
+the grep-only pipeline and a real JSON parse agreeing exactly, so "may be off
+by one" was already false rather than merely unverified — it was not simply
+superseded by a better instrument. Then **by the instrument itself**: task 4
+of this plan rewrote `SKILL.md`'s description of the reading to describe
+`reading.js`'s actual per-record JSON parse, so the substring test the issue is
+about is no longer what ships. The "take it up if" condition — a threshold read
+from the wake-up figure with a margin finer than one — is now moot for the same
+reason: the figure comes from a parse, and the remedy this issue proposed is
+what landed.
