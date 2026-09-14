@@ -29,7 +29,25 @@ taking over mid-plan must not create a second ledger.
    own `model` and `effort` against `sessions.kanri`, since you send no
    handshake and this line is the only place your own two values are checked,
    a mismatch of either being one line to the human and nothing switched; and
-   your `name [ref]`, with your bare name as the address.
+   your `name [ref]`, with your bare name as the address. Then locate your own
+   transcript as `SKILL.md`'s "The transcript reading" says and take the
+   reading with the backstop, quoting its line in the same start line:
+
+   ```bash
+   node "$TANTO/scripts/reading.js" "$T" --role kanri --backstop
+   ```
+
+   When the backstop's verdict is `below`, add one more line to the human, in
+   the chat's language: auto-compact would fire before your handover, and
+   `/autocompact <value>` — `<value>` being the ceiling plus two more of
+   `ceiling.kanri.per_batch`, rounded up to the nearest 50000, about 350000 at
+   the defaults — would leave two batches between the ceiling and the
+   compaction, room for one deferral and the boundary after it. It is a
+   recommendation and not a lifecycle request: the human sets the window or
+   does not, the roster records nothing about it, and nothing re-checks it
+   mid-run, because the human can change it in any window at any time and you
+   would not see it. The skill never sets `autoCompactWindow` itself, here or
+   anywhere.
 2. Make sure `.tanto/.gitignore` exists and holds `*`, and
    `.tanto/.markdownlint-cli2.yaml` exists and holds `config:` with
    `default: false` indented two spaces beneath it. Write each only when it is
@@ -67,7 +85,12 @@ taking over mid-plan must not create a second ledger.
    `.tanto/<topic>/kanri.md`, its own Progress line, and its own Batches
    table, and the roster's Topic column says which session belongs to which;
    a topic whose ledger already exists is named by the handover or the
-   roster's Events and is not opened again.
+   roster's Events and is not opened again. As you create the ledger, take
+   your own reading and write its `context=` figure into the Measurements
+   per-boundary row as that topic's opening entry: your context grows through
+   the spec and plan stages with no batch boundary to record it, and this
+   entry and the one at the plan's landing are what make that growth a
+   measured figure rather than a hole in the table.
 6. Do the T0 write-out if an input document with decided items exists (see
    "Shoroku"). Then wait for the human and for handshakes. When no next work
    has been named between plans, add to your line to the human a suggestion
@@ -221,7 +244,10 @@ Then, in this order.
 2. Record in the ledger's Plan section the plan's path and the SDD ledger's,
    `.superpowers/sdd/<plan-basename>/progress.md`, which Jisso's
    `sdd-workspace` run will create, and note the landing in the roster's
-   Events list. Nothing moves: the ledger stays at `.tanto/<topic>/kanri.md`.
+   Events list. Take your own reading again and add its `context=` figure to
+   the Measurements per-boundary row as that topic's landing entry, beside the
+   opening one, with the delta between them. Nothing moves: the ledger stays
+   at `.tanto/<topic>/kanri.md`.
 3. Run T1: the four steps of "Shoroku" below, whose candidates are the spec's
    own four sections — Requirements, The ADRs, Deferred items, and Shoroku
    candidates from this spec work. Nothing is copied; the recommender reads
@@ -987,10 +1013,14 @@ local to one machine, and useful only for a later re-read (issue-12d3).
 
 Every role sends its reading with its boundary and exit lines, and Jisso's
 and Kaiseki's reports carry it; copy each into that role's Residency row at
-loop step 6, with the boundary it was read at. A reading you doubt — a
-session whose report lost a ruling with `0 compactions`, or one that sent
-`unavailable` — you may verify with the same pipeline on the path its
-handshake carried, when that path is one your session may read; a read
+loop step 6, with the boundary it was read at and the `context=` figure in the
+Context column. A reading you doubt — a
+session whose report lost a ruling with `0 compactions`, one whose ceiling
+line decides a replacement, or one that sent
+`unavailable` — you may verify by running `node "$TANTO/scripts/reading.js"`
+yourself on the path that role's Transcript column holds, with `--role jisso`
+when it is Jisso's ceiling line you are checking, and only when that path is
+one your session may read; a read
 that is denied or fails leaves the self-report standing, marked
 `(unverified)`. Never ask a peer to read a transcript for you.
 
