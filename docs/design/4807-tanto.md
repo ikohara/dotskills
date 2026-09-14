@@ -304,7 +304,17 @@ the path each role's handshake carried, and it is the identity that survives a
 resume, so a handshake whose `transcript=` matches a row is that row's session
 resumed and rewrites the row in place. Kanri sends no handshake, so Kanri writes
 its own cell — at the bootstrap and again in the Handover case; that gap is what
-the whole-branch review found and the fix wave closed.
+the whole-branch review found and the fix wave closed. That identity was
+exercised whole on 2026-09-14, when a profile switch — an editor-wide restart
+that moved the personal Claude Code configuration directory — landed mid-topic.
+Within about an hour every peer of the topic in flight was back: four roster
+rows across four roles, each resumed or freshly created under a new name, and
+no work was lost. The ledger, the roster and the already-committed write-outs
+carried every fact forward, and the only thing any successor needed was its own
+re-handshake — state in files rather than in memory, tested by the exact
+disruption the rule exists for. The same window disrupted other tanto runs on
+sibling repositories of the same machine, whose bug reports converged on closely
+related findings and reached this repository's intake within the same hour.
 
 Between plans there is no
 ledger, so the roster also carries a Shoroku candidates table with the ledger's

@@ -132,3 +132,14 @@ quoted above (89% of a day's usage) is a **cost** attribution, not evidence of
 a documented quality cliff, and any ceiling at that value is the human's
 chosen operating ceiling rather than Anthropic's view. The ceiling itself and
 how it is derived are the `tanto-context-ceiling` topic's work.
+
+What the second row of that table cannot say, 2026-09-14: the shape of the
+tenure it measures. That Kanri spanned one full T0 shoroku stage, one full
+spec-writing cycle including the document author's own exit shoroku, four
+bug-report triages arriving from two sibling repositories, and one resume across
+the profile-switch event — and ran zero batches and closed zero plans, because
+the topic never reached its implementation stage before the handover that ends
+the tenure. The bearing on this issue is plain: a handover-timing threshold read
+only off the batch-count and plan-count columns would never have fired for this
+tenure, since both stayed at zero from its first turn to its last. The whole
+cost sat in spec-stage and intake work, which the existing counters do not see.
