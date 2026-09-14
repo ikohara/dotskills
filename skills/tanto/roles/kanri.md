@@ -318,12 +318,21 @@ Per batch, in this order.
    at step 7.
 5. Report one line to the human. Ask numbered questions only for the four SDD
    stop classes and for a scope or spec change.
-6. **Check the lifecycle tables and the handover trigger.** Rewrite the
-   roster's Residency row from your own reading and from the readings the peers
-   sent. If a create request is due, make it, unless a
+6. **Check the lifecycle tables and the handover trigger.** Take your own
+   reading with `--role kanri`, read Jisso's ceiling line from its report's
+   header beside the Transcript line, and rewrite
+   the roster's Residency rows from both, each `context=` figure into that
+   row's Context column. A verdict of `over` on your own ceiling line is
+   handover signal 4; a verdict of `over` on Jisso's is a Replace symptom.
+   Either one is gated on `--presence`, run on your own transcript at this
+   check, and an `absent` verdict defers it rather than firing it. Write the
+   Measurements per-boundary entry from the two readings, and a Measurements
+   deferrals entry for anything deferred here.
+   If a create request is due, make it, unless a
    handover trigger has fired, in which case the successor makes it from the
    handover's Next step. If a delete or a replace of a live, coherent session
-   is due, or a handover trigger has fired, run the proposal half of "Exit
+   is due, or a handover trigger has fired and is not deferred, run the
+   proposal half of "Exit
    shoroku" now: send the `exit:` lines, check each proposal and dispatch its
    recommender, and write the direction once the human has answered. Delete
    requests wait for step 7.
@@ -625,9 +634,14 @@ the next batch inherits, Residency, Next step, Not reconstructed, and Commands
 for the human. Everything else is a pointer to the roster and the ledgers,
 never a copy.
 
-In flight carries one block — Plan, Ledger, Batch state — **per open ledger**,
+In flight carries one block — Plan, Ledger, Batch state, Deferred — **per open
+ledger**,
 so that a topic still in its spec or plan stage is handed over together with
-the topic whose batches were in flight. Live peers lists every peer of every
+the topic whose batches were in flight. Deferred is the ledger's Progress
+clause, verbatim, when a handover or a Jisso replacement stands deferred on the
+ceiling and the human's absence, and `none` otherwise: the successor re-checks
+it at its own first check, where a `present` verdict runs what this session
+could not. Live peers lists every peer of every
 open topic, each with its Topic and what it is waiting for, and marks the ones
 whose last line you had not answered: the successor sends `kanri-address:` to
 all of them, and each answers by re-sending its last unanswered line.
@@ -1037,6 +1051,7 @@ own, one line per item.
 | --- | --- |
 | Jisso is gone — not in `ListAgents`, `SendMessage` errors, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers); ask the human to delete the dead session and create a new Jisso; the next prompt says `resume batch X from task N`; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
 | Jisso context decay — its reading shows a compaction, two consecutive batches needed escalation, or a report says compaction lost rulings | at the batch boundary, ask the human to delete and create; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
+| Jisso's ceiling line says `over` | run `--presence` on your own transcript at that boundary. `present` — run "Exit shoroku" and ask the human to delete and create, the next prompt saying `resume batch X from task N` as for any replacement. `absent` — defer: write the ledger's Progress clause `Jisso replacement deferred (absent, context=<n>, since batch <X>)`, a roster Events line of the same shape as a deferred handover's, and the batch prompt's one-line notice, then re-check at the next boundary. Never at the final batch's boundary: Jisso exits after T2 in any case. The row above it stays — a plan that names the batch count one session should carry still binds — and this row is the measured form of the same idea; a replaced Jisso's baseline is its own first turn, so the ceiling resets with the seat, and the SDD ledger and the batch reports are the recovery point as for any replacement |
 | Sekkei's reading shows a compaction | at its next commit — a verified boundary, or, with no batch in flight, when its work is ready — run "Exit shoroku", then ask the human to delete and create; the dialogue, the drafts, and the reviews on disk are the recovery point, and the new Sekkei takes the spec inputs and `dialogue.md` as its own |
 | Keikaku's reading shows a compaction | at its next commit, as for Sekkei (decision-6dea): run "Exit shoroku", then ask the human to delete and create; the spec, `dialogue.md`, and the plan draft on disk are the recovery point, and the new Keikaku takes them as its own |
 | a Kikaku's or a Hosa's reading shows a compaction | neither is replaced: remind the human to `/clear` that window, mark the row `cleared`, and let the next `/tanto kikaku` or `/tanto hosa` handshake write a new row — what the session produced is already on disk or committed |
