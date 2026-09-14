@@ -144,9 +144,9 @@ out of this plan's own passages rather than colliding with them: `5c84d68`
 mitigations, lint-scope wording") touches `skills/tanto/SKILL.md`,
 `roles/jisso.md`, `roles/kanri.md`, `roles/keikaku.md`, and
 `templates/kanri.md` — five of the fifteen paths in the File structure table.
-Measured 2026-09-14: `git log --format=%H --reverse main..HEAD -- <the fifteen
-paths, the two created ones included>` returns exactly that one hash, and
-nothing else.
+Measured 2026-09-14: `git log --format=%H --reverse main..HEAD -- <the
+fifteen modified paths, plus the two created ones — seventeen in all>`
+returns exactly that one hash, and nothing else.
 
 The tanto-cost run's derivation — the parent of the **first** commit in the
 range — assumed no commit touched those paths before task 1, which does not
@@ -190,13 +190,12 @@ replay-skip: ./scripts/lint.sh — pre-commit needs the repository and its hook 
 replay-skip: mise x node@22 — the test suite is run against the real repository's Node toolchain, not a scratch tree
 replay-skip: node --test — the applied tree carries the instrument's blobs but not its node_modules or its runner's cwd assumptions, and a real test run's TAP output is not the kind of text a prose Expected: paragraph can quote verbatim
 replay-skip: .tanto/ — the topic's state is the working tree's, and an applied copy of the plan's blobs has no such directory
-replay-skip: <your own transcript path> — the transcript is the running session's own, unavailable to a scratch-tree replay
-replay-skip: <kanri's transcript> — both transcript paths are the run's own sessions', unavailable to a scratch-tree replay
+replay-skip: from the batch A prompt — the concrete transcript path or paths these commands take are values only Kanri's batch A prompt supplies at dispatch time, unavailable to a scratch-tree replay
 replay-skip: /tmp/tanto-checks.sh — the note's own checks read the whole skill's current file set and need the real git repository, neither of which the applied tree provides
 ```
 
 **A pattern that names a filename matches almost every command a plan runs,
-and that is the shape to avoid** — none of the seven above does: each matches
+and that is the shape to avoid** — none of the six above does: each matches
 only the command class it names. The dogfood commit's
 `docs/reports/<date>-tanto-context-ceiling-dogfood.md` fence is already caught
 by the `./scripts/lint.sh` pattern, since that fence opens with a lint
@@ -248,7 +247,14 @@ the half-edited-skill case rule 11 exists for. So:
 bound by the ceiling rule until this plan lands.** Task 17's dogfood measures
 the five figures on their transcripts from the batch that lands the script
 (batch A, once task 3 commits) onward — the run that builds the instrument is
-also its first subject, per the spec's own section 8.
+also its first subject, per the spec's own section 8. **The two points spec
+5.2 asks for at the topic's opening and the plan's landing are `absent` for
+this run, and that is accepted, not a gap to fill.** The instrument does not
+exist until task 3 commits in batch A, after both moments; the dogfood's
+section 1 records them as `absent` — the same rule task 17 step 1 already
+states for any pre-A boundary — rather than a post-hoc figure Kanri computes
+by hand from its own transcript, which no later run would repeat and which
+`reading.js` has no switch for deriving.
 
 ### The workspace
 
@@ -338,7 +344,7 @@ verified.
 
 | Batch | Tasks | Delivers | Stop conditions at the boundary |
 | --- | --- | --- | --- |
-| A | 1 `templates/tanto.json`'s `ceiling` map; 2 `scripts/reading.test.js` (created); 3 `scripts/reading.js` (created) | the instrument and its config, tested — nothing else names the script yet | `verify --task 1..3` clean (task 1 reports its passage, tasks 2 and 3 report `no passages` — the two `W` blocks, not `P`); `node --test skills/tanto/scripts/reading.test.js` — 13/13 pass; the `tanto.json` JSON-parse check prints `tanto.json ok 3 4`; `node skills/tanto/scripts/reading.js <a real transcript>` prints its five-figure line; `diff --base <the resolved base>` clean, the two created paths exempt; lint clean on the three changed paths |
+| A | 1 `templates/tanto.json`'s `ceiling` map; 2 `scripts/reading.test.js` (created); 3 `scripts/reading.js` (created) | the instrument and its config, tested — nothing else names the script yet | `verify --task 1..3` clean (task 1 reports its passage, tasks 2 and 3 report `no passages` — the two `W` blocks, not `P`); `node --test skills/tanto/scripts/reading.test.js` — 13/13 pass; the `tanto.json` JSON-parse check prints `tanto.json ok 3 4`; `node skills/tanto/scripts/reading.js <Jisso's own transcript, from the batch A prompt>` prints its five-figure line; `diff --base <the resolved base>` clean, the two created paths exempt; lint clean on the three changed paths |
 | B | 4 `SKILL.md`'s "The transcript reading"; 5 `SKILL.md`'s config section and Artifacts; 6 the four templates' reading slots and columns | the reading and the config, as every role reads them | `verify --task 4..6` clean; `diff` clean under the base rule; lint clean; `SKILL.md`'s frontmatter loads through a real YAML parser (no `: ` in `description`); the Residency header row identical across `templates/roster.md` and `templates/kanri-handover.md`, which both copy it verbatim (P6.2/P6.6, cited again at task 15) — `templates/roster-archive.md`'s Sessions table is a different row, with `Model`, `Branch`, `Started`, `Ended`, and `Status` columns Residency does not carry (O6.2, P6.4) |
 | C | 7 Kanri's backstop, its two measurement points, and Readings; 8 the fourth signal, the presence gate, the deferred state; 9 loop step 6, the Replace row, the handover's Deferred line; 10 `roles/jisso.md` and the three templates the rule fills | the ceiling rule, whole and self-consistent in `roles/kanri.md` and `roles/jisso.md` | `verify --task 7..10` clean; `diff` clean under the base rule; lint clean; `node skills/tanto/scripts/reading.js <transcript> --role kanri --presence --backstop` prints all five lines the spec's Verification names |
 | D | 11 `SKILL.md`'s "Session exit"; 12 `roles/sekkei.md` and `roles/keikaku.md`; 13 the Kanri sites and the `coldread.md` Artifacts row | the exit proposal written unasked, in `SKILL.md` and all three role files it touches | `verify --task 11..13` clean; `diff` clean under the base rule; lint clean; the carrier line `coldread answered: <pointer, one per question, or none>; exit proposal: <path> — <reading>` byte-identical across `SKILL.md`, `roles/keikaku.md`, and `roles/kanri.md` |
@@ -388,10 +394,10 @@ Every fence below, and every fence a later revision adds under this heading,
 has three properties: it opens at column 0 (an indented fence is invisible to
 both `boundary` and `replay`); it exits non-zero when it fails (a loop's
 status is its last iteration's, so each one below carries `|| exit 1`); and it
-is not matched by any of Global Constraints' seven `replay-skip:` patterns —
+is not matched by any of Global Constraints' six `replay-skip:` patterns —
 checked directly, not asserted: of the two fenced checks below, neither
 contains `./scripts/lint.sh`, `mise x node@22`, `node --test`, `.tanto/`,
-`<your own transcript path>`, `<kanri's transcript>`, or `/tmp/tanto-checks.sh`.
+`from the batch A prompt`, or `/tmp/tanto-checks.sh`.
 **The instrument's own tests are deliberately not a fence here for exactly
 this reason**: a fence reading `node --test …` would be silently skipped by
 the `node --test` pattern declared for the task steps' own test runs, and a
@@ -465,9 +471,10 @@ TANTO=skills/tanto && for t in <this boundary's task numbers>; do node "$TANTO/s
 ```
 
 Expected: `task <n>: verify clean` for every task that carries a `P`
-passage, and `task <n>: no passages` for tasks 1 to 3 and 16 to 17 — a
-result, not a failure, since 2 and 3 are whole-file `W` blocks `verify` has
-nothing pre-existing to measure against and 16 and 17 write nothing. Not a
+passage — task 1 included, whose one passage lands in `templates/tanto.json`
+— and `task <n>: no passages` for tasks 2, 3, 16, and 17 — a result, not a
+failure, since 2 and 3 are whole-file `W` blocks `verify` has nothing
+pre-existing to measure against and 16 and 17 write nothing. Not a
 fence, for the same reason lint is not one: the range differs per batch, a
 fence cannot carry a placeholder, and this is the value this plan's own text
 does not fix in advance — Kanri names it from the Batches table at each
@@ -1577,7 +1584,7 @@ pinned floor is a run and not an assertion.
 - [ ] **Step 3: Run the instrument on a real transcript**
 
 ```bash
-T="<your own transcript path>" && TANTO=skills/tanto && node "$TANTO/scripts/reading.js" "$T" --role kanri --presence --backstop
+T="<Jisso's own transcript path, from the batch A prompt>" && TANTO=skills/tanto && node "$TANTO/scripts/reading.js" "$T" --role kanri --presence --backstop
 ```
 
 Expected: five lines, in this order — `transcript: … context=<n>`,
@@ -1587,11 +1594,19 @@ Expected: five lines, in this order — `transcript: … context=<n>`,
 Record the five lines in the batch report's Verification section: this is a
 **smoke test** — that the script runs at all against a real session's file on
 this host, where a synthetic fixture cannot show that the `usage` object is
-where it expects it — and nothing more. It is not task 17's own measurement:
-the transcript named here is this `task.implement` dispatch's own, which is
-neither Kanri's nor Jisso's, and the dogfood's baselines come from "How a
-batch is verified"'s own instrument runs, on Kanri's and Jisso's transcripts,
-at every boundary from this batch on.
+where it expects it — and nothing more, so the file need not be a fresh one;
+the `--role kanri` here names which ceiling to compute, not whose transcript
+this is. **A `task.implement` dispatch has no rule for finding its own
+transcript path** — a subagent's file lives at
+`<projects dir>/<parent session id>/subagents/agent-<id>.jsonl`, and the
+subagent does not know its own `<id>` — so the batch A prompt hands this step
+a concrete path, and Jisso's own, from the roster's Transcript column for
+this run's Jisso row, is the natural one: it is real, it is already on disk
+before batch A's own boundary, and no other value in reach of the prompt is
+better attested. It is not task 17's own measurement, whichever transcript
+runs here: the dogfood's baselines come from "How a batch is verified"'s own
+instrument runs, on Kanri's and Jisso's transcripts, at every boundary from
+this batch on.
 
 - [ ] **Step 4: Lint**
 
@@ -4683,9 +4698,33 @@ structure states the rule that accepts them at this one path and nowhere else.
 
 **This run's own Kanri and Jisso predate the instrument.** They read the skill as
 it stood when the plan landed: they take the four-figure reading and the ceiling
-rule does not bind them. So the figures below are gathered by **running the new
-script on their transcripts** from the batch that lands it — batch A — onward,
-which is how a run that predates its own instrument fills this table.
+rule does not bind them. So the per-batch figures below come from the ledger's
+own Measurements rows, which Kanri has been filling by hand from batch A on
+(per "How a batch is verified"), not from a fresh run of the script here —
+this is how a run that predates its own instrument still fills this table.
+
+**This report is written mid-batch E, before batch E's own boundary and
+before the plan's actual close — both later events this task cannot wait
+for.** Two consequences follow, and both are stated as facts of the report's
+timing rather than worked around:
+
+- Batch E's own row of the per-batch table is not yet available: Kanri's
+  by-hand instrument run for batch E happens at batch E's *boundary*, which is
+  after this task's own commit lands. Section 1's table therefore runs through
+  batch D's row, "as of task 17's own writing", and says so; it is not
+  reopened to add the missing row once the boundary produces it — the
+  ledger's Measurements table is where that row lives, permanently, and a
+  `docs/reports/` file is a dated, frozen investigation, not a place edited
+  after the fact.
+- The plan's actual close — merge, T2, Jisso's exit — is a separate, later
+  event this plan's tasks do not reach. Section 3's share is therefore this
+  task's own `--share` run, over the sessions recorded in the roster so far,
+  not the close-time figure spec 5.1 describes; and the Account & Usage
+  figure is not asked here at all. Task 13 already lands Kanri's own ask of it
+  **at the actual close** (the Delete table's plan-close row); a `task.implement`
+  dispatch cannot idle for that answer, and asking twice for the same figure
+  serves nobody. Section 3 says where the real figure will be, once known:
+  the ledger's Measurements table, not this file.
 
 **Files:**
 
@@ -4694,57 +4733,61 @@ which is how a run that predates its own instrument fills this table.
 
 #### Steps
 
-- [ ] **Step 1: Gather the per-batch figures**
+- [ ] **Step 1: Gather the per-batch figures already recorded**
+
+Read the ledger's Measurements per-boundary row (filled by Kanri from batch A
+on, per "How a batch is verified"'s hand-run instrument commands — binding on
+this run from A regardless of whether `roles/kanri.md`'s own text carries it
+yet, Rule 11) for the topic's opening, the plan's landing, and batches A
+through D. The figures for boundaries before batch A come from the
+four-figure readings in the roster's Residency rows, which carry no
+`context=` and are recorded as absent rather than guessed — accepted for this
+run (Global Constraints), since the instrument does not exist until this
+batch. No fence: this step reads files Kanri has already written, not a fresh
+transcript.
+
+- [ ] **Step 2: Run the share, as of this task's own writing**
 
 ```bash
-TANTO=skills/tanto && for T in <kanri's transcript> <jisso's transcript>; do node "$TANTO/scripts/reading.js" "$T"; done
+TANTO=skills/tanto && node "$TANTO/scripts/reading.js" --share <every transcript path the roster names for this topic, from the batch A prompt onward>
 ```
 
-Expected: two reading lines — this run of the fence is the *last* one, at the
-plan's close; the deltas are the point, and a transcript read only at the
-close gives one number and no delta. The figures for the boundaries already
-passed come from the ledger's Measurements per-boundary row, which Kanri has
-been filling from batch A on, per "How a batch is verified"'s own hand-run
-instrument commands — a Kanri directive this plan states directly, and so
-binding on this run from A regardless of whether `roles/kanri.md`'s own text
-carries it yet (Rule 11); the ones for boundaries before batch A come from the
-four-figure readings in the roster's Residency rows, which carry no
-`context=` and are recorded as absent rather than guessed.
-
-- [ ] **Step 2: Ask the human for the one figure only the human can read**
-
-Send Kanri one line: `human-needed: the Account & Usage view's share of the
-day's usage at contexts over 150k, for the day this plan closed`. It is one
-line at a checkpoint the human is already at — the plan close — and silence is
-an answer: the report records a blank and says so. The target is 30% or less,
-against 74% measured on 2026-09-14 and 89% on 2026-09-09.
+Expected: one `share: <pct>% ...` line. This is the proxy **as of now**, not
+the plan-close figure spec 5.1 describes — that run happens later, over the
+roster as it stands at the actual close, and is Kanri's own act, recorded in
+the ledger. Name here which sessions this run covered and which paths, if
+any, were skipped as unreadable (spec 1.7's `--share` form).
 
 - [ ] **Step 3: Write the report, with these five sections and no fewer**
 
 The report **must** carry all five. A plan that runs under this skill and whose
 dogfood omits section 1 has not run the dogfood.
 
-1. **Per-batch consumption.** A table with one row per batch boundary of this
-   run: batch letter, Kanri's `context=` at that boundary, Jisso's `context=`
-   from its report, and each one's delta from the previous boundary. The first
-   row is the two baselines. **Before batch A's row, two rows for Kanri alone**:
-   its context at this topic's opening and at the plan's landing, so that the
-   spec-and-plan-stage growth is a measured figure and not a gap. A boundary
-   that follows a seat change — a Kanri handover, a Jisso replacement — records
-   the successor's baseline in place of a delta, and the mean is taken over
-   same-seat deltas only. The last line of the section states the mean delta
-   per role over the batch rows, which is the measured `per_batch` for each,
-   and the spec-and-plan-stage growth as its own figure.
-2. **The ceiling as it ran.** The ceiling each of the two computed at its first
-   check; every boundary's verdict; every presence verdict taken; every
-   deferral, and the boundary at which the handover or the replacement ran, or
-   the close arrived first.
-3. **The share.** The proxy `reading.js --share` computed at the close, the
-   Account & Usage figure if the human gave one, and the two side by side
-   against 74%. Say which sessions the proxy ran over and which paths it
-   skipped; the two figures are compared, not equated, since the account view
-   counts every other workspace and every subagent, whose transcripts no roster
-   names.
+1. **Per-batch consumption, through batch D.** A table with one row per batch
+   boundary of this run so far: batch letter, Kanri's `context=` at that
+   boundary, Jisso's `context=` from its report, and each one's delta from the
+   previous boundary. The first row is the two baselines. **Before batch A's
+   row, two rows for Kanri alone**: its context at this topic's opening and at
+   the plan's landing (`absent` for this run — accepted, Global Constraints),
+   so that the spec-and-plan-stage growth is a measured figure and not a gap.
+   A boundary that follows a seat change — a Kanri handover, a Jisso
+   replacement — records the successor's baseline in place of a delta, and
+   the mean is taken over same-seat deltas only. The last line of the section
+   states the mean delta per role over the rows so far, which is the measured
+   `per_batch` for each, and the spec-and-plan-stage growth as its own figure.
+   **Batch E's own row is not in this table**: it is recorded only in the
+   ledger's Measurements table, at batch E's boundary, after this report has
+   already committed.
+2. **The ceiling as it ran, through this point.** The ceiling each of the two
+   computed at its first check; every boundary's verdict so far; every
+   presence verdict taken; every deferral, and the boundary at which the
+   handover or the replacement ran, if either did before now.
+3. **The share, as of this report.** Step 2's proxy, the sessions it ran over
+   and any it skipped, against 74%; **not** the Account & Usage figure, which
+   is Kanri's own ask at the plan's actual close (task 13) and is recorded in
+   the ledger's Measurements table when it arrives, not in this frozen file.
+   Say so in these words, so a reader does not take this section's number for
+   the close-time one spec 5.1 describes.
 4. **The backstop line** Kanri's start printed, its verdict, and whether the
    human changed the window after the recommendation.
 5. **What the harness listed.** Whether the sessions started during this run
@@ -4806,6 +4849,11 @@ silence under `docs/requirements/`, `docs/decisions/`, `docs/issues/` and
   its final boundary — amending decision-d831 and decision-ce83 for those two
   roles only. The human decides at the review whether the second is an ADR or
   design.
+- **One follow-up sentence in `roles/kanri.md`.** P8.3 (task 8) replaces the
+  future-ADR sentence in "The trigger" with a pointer at `tanto.json`'s
+  `ceiling` map and decision-b6cb, because the first ADR above does not exist
+  until T1 lands it. Once it does, point that same sentence at the new ADR by
+  its id — a one-line edit, cold-read item 7.
 - **Two issues closed**, each moved to `resolved/` with a resolution line
   naming the spec: **issue-40ed**, whose replacement half closes here for Jisso
   with the token instrument, the resolution line saying that the measuring
@@ -4881,12 +4929,16 @@ file, and tasks 2 and 3 each create one.
 
 **Placeholder scan.** No task carries "TBD", "similar to task N", "add
 appropriate error handling", or a step that says what to do without showing how.
-Three values are deliberately written as angle-bracket placeholders and are
-filled at run time rather than by this plan: `<your own transcript path>` in
-task 3's step 3 and task 17's step 1, because the path is the running session's;
-`<date>` in task 17, because the report is named for the day it is written; and
-the transcript list in task 13's `--share` passage, because it is the roster's
-at the close. Each is named in prose where it appears.
+Four values are deliberately written as angle-bracket placeholders and are
+filled at run time rather than by this plan, none of them by the dispatched
+subagent's own guess: `<Jisso's own transcript path, from the batch A
+prompt>` in task 3's step 3 and the Batches table's batch A row, and `<every
+transcript path the roster names for this topic, from the batch A prompt
+onward>` in task 17's step 2, because a subagent has no rule for finding its
+own transcript and the batch A prompt is what supplies a concrete value, cold
+read item 4; `<date>` in task 17, because the report is named for the day it
+is written; and the transcript list in task 13's `--share` passage, because
+it is the roster's at the close. Each is named in prose where it appears.
 
 **Type consistency.** The line spellings are the plan's interface, and they were
 checked across tasks: `context=<n>` in the reading, the roster's Context column,
