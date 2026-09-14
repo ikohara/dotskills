@@ -381,7 +381,7 @@ Adding a check is an edit to this file.
   When the cache is absent, read the installed skills by hand and record
   `superpowers 6.3.0, cache absent, checked by hand` with the results.
 - **`shoroku` in this repository**, at `skills/shoroku/SKILL.md`.
-- **Twenty-four skill files, thirteen of them templates**, as check 1 lists
+- **Twenty-six skill files, thirteen of them templates**, as check 1 lists
   them.
 
 These two numbers are a **structural count**, the kind design-4807 calls a
@@ -415,11 +415,13 @@ ls skills/tanto/SKILL.md skills/tanto/README.md \
   skills/tanto/templates/agent.md \
   skills/tanto/templates/tanto.json \
   skills/tanto/scripts/passage-check.js \
-  skills/tanto/scripts/passage-check.test.js 2>&1
+  skills/tanto/scripts/passage-check.test.js \
+  skills/tanto/scripts/reading.js \
+  skills/tanto/scripts/reading.test.js 2>&1
 ```
 
-Expected: all twenty-four paths listed, no `No such file or directory`.
-Seven role files, thirteen templates, two scripts, the contract and the
+Expected: all twenty-six paths listed, no `No such file or directory`.
+Seven role files, thirteen templates, four scripts, the contract and the
 skill's own `README.md`.
 
 ## 2. Every in-skill path named by the contract or a role file resolves
@@ -433,10 +435,11 @@ grep -oh 'roles/[a-z]*\.md\|templates/[a-z-]*\.md\|templates/tanto\.json\|script
     done
 ```
 
-Expected: twenty-two `ok` lines — `roles/hosa.md`, `roles/jisso.md`,
+Expected: twenty-four `ok` lines — `roles/hosa.md`, `roles/jisso.md`,
 `roles/kaiseki.md`, `roles/kanri.md`, `roles/keikaku.md`,
 `roles/kikaku.md`, `roles/sekkei.md`, `scripts/passage-check.js`,
-`scripts/passage-check.test.js`, `templates/agent.md`,
+`scripts/passage-check.test.js`, `scripts/reading.js`,
+`scripts/reading.test.js`, `templates/agent.md`,
 `templates/batch-prompt.md`, `templates/batch-report.md`,
 `templates/bug-report.md`, `templates/kaiseki-brief.md`,
 `templates/kaiseki-report.md`, `templates/kanri-handover.md`,
@@ -564,8 +567,8 @@ grep -cF 'nothing to commit' skills/tanto/roles/kanri.md
 grep -cF 'nothing to commit' skills/tanto/SKILL.md
 grep -cF 'human-needed:' skills/tanto/SKILL.md
 grep -cF 'the human by grant' skills/tanto/SKILL.md
-grep -cF '| Role | Topic | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans | Noticed |' skills/tanto/templates/roster.md
-grep -cF '| Role | Topic | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans | Noticed |' skills/tanto/templates/kanri-handover.md
+grep -cF '| Role | Topic | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Context | Batches | Plans | Noticed |' skills/tanto/templates/roster.md
+grep -cF '| Role | Topic | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Context | Batches | Plans | Noticed |' skills/tanto/templates/kanri-handover.md
 grep -cF '| S-n | Source | Candidate | Destination | Adopted | Stage | Written |' skills/tanto/templates/roster.md
 grep -cF '| S-n | Source | Candidate | Destination | Adopted | Stage | Written |' skills/tanto/templates/kanri.md
 grep -cF 'bug-report: <absolute path>' skills/tanto/SKILL.md
@@ -943,17 +946,56 @@ Assigning a write-out by section name — "the `Bug intake` section of the desig
 ```bash
 node skills/tanto/scripts/passage-check.js 2>&1 | head -n 1
 node skills/tanto/scripts/passage-check.js 2>&1 | head -n 1 | grep -oE 'lint|replay|diff|verify|sections|frame|boundary' | sort -u | wc -l
+node skills/tanto/scripts/reading.js 2>&1 | head -n 1
+node skills/tanto/scripts/reading.js 2>&1 | head -n 1 | grep -oE '\-\-role|\-\-presence|\-\-backstop|\-\-share|\-\-now|\-\-config|\-\-settings' | sort -u | wc -l
+grep -cF 'scripts/reading.js' skills/tanto/SKILL.md skills/tanto/README.md
 ```
 
-Expected: the script's usage line, then `7`. The first line is read, not
-matched: the wording belongs to the script, and a plan that rewords it is not
-wrong for doing so. The second is the check. A subcommand the script
+Expected: the first script's usage line, then `7`; the second script's usage
+line, naming **both** its forms on that one line, then `7`; then one
+`<path>:<n>` line per file with `<n>` at least `1`. The usage lines are read,
+not
+matched: the wording belongs to each script, and a plan that rewords one is not
+wrong for doing so. The counts are the check. A subcommand or a switch the
+script
 implements and the usage line omits is invisible to every reader who has only
 the usage line, and a role that never learns of it keeps doing the work by
-hand — which is the whole reason the three new ones were added. `sort -u`
-before the count so a name the line spells twice is counted once.
+hand — which is the whole reason the three new subcommands were added.
+`sort -u`
+before the count so a name the line spells twice is counted once. The last
+command is the presence check between the contract's executables paragraph,
+which must name both scripts, and the README's Layout, which must list both: a
+zero on either side is the drift this check exists for. `reading.js` spells its
+usage over one line for exactly this reason — a `head -n 1` that showed only
+the first of two forms would pass while hiding half the interface.
 
 This check is numbered after the lessons above rather than beside checks 1 to
 9 because the numbers here are cited by plans; renumbering a check would make
 every earlier citation point at something else. A plan that schedules the
 mechanical set schedules checks 1 to 9 and this one.
+
+## 17. The reading's fifth figure is in every place a reading lands
+
+```bash
+grep -rc 'context=' skills/tanto/SKILL.md skills/tanto/roles/kanri.md \
+  skills/tanto/roles/jisso.md skills/tanto/templates/batch-report.md \
+  skills/tanto/templates/roster.md skills/tanto/templates/roster-archive.md \
+  skills/tanto/templates/kanri-handover.md skills/tanto/templates/kanri.md
+grep -rlF 'context=' skills/tanto | sort
+```
+
+Expected: a nonzero count on each of the eight files named, and a file list
+that is those eight plus `skills/tanto/scripts/reading.js` and
+`skills/tanto/scripts/reading.test.js`, and nothing else. The spelling
+`context=` is the one the reading itself prints, which is why the sweep is for
+that and not for the word "context": a template that gained a Context column
+whose paragraph spells the figure another way is invisible to this check and to
+the reader who greps for it. A file in the list that is not one of the ten is a
+place a reading landed that no design names — report it rather than adding it
+here.
+
+This check does not count itself: its subject is `skills/tanto`, and this note
+lives under `docs/`. That is deliberate, and it is the standing trap the
+paragraph under "Versions these checks assume" describes — a check written into
+the file it checks moves its own numbers, and its expected value is wrong the
+moment it is written.
