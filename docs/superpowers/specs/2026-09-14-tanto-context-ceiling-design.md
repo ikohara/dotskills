@@ -140,7 +140,7 @@ requirement bullet of req-04f5 it serves, or says that none does.
 
 ```bash
 node "$TANTO/scripts/reading.js" <transcript> [--role kanri|jisso] [--presence] [--backstop]
-node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]
+node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...] [--config <path>]
 ```
 
 `$TANTO` is the skill's own directory, set in the same tool call as the
@@ -170,7 +170,8 @@ of `$CLAUDE_CONFIG_DIR/tanto.json` or `~/.claude/tanto.json`, and
 `--settings <path>` names the settings file the backstop reads in place of
 `$CLAUDE_CONFIG_DIR/settings.json` or `~/.claude/settings.json`. All three
 exist for the tests and for a Kanri verifying a peer's reading; the role
-files never pass them.
+files never pass them. The `--share` form takes `--config` for the
+threshold and ignores `--now` and `--settings`.
 
 ### 1.2 The five figures
 
@@ -291,13 +292,24 @@ A transcript path that does not exist or cannot be read prints
 `transcript: unavailable — <one line why>` as the first line, `effort=unknown`
 as the second, and no ceiling, presence, or backstop line; exit code 0,
 because the reading's unavailable form is a value the roles send, not a
-failure. A missing or unparsable `tanto.json` at the config path is the
+failure. A missing ceiling line is no signal — Kanri treats it as `under`
+and records `unavailable` where the verdict would go; a missing presence
+line reads as `absent`, the conservative side, as 1.4 says for a record
+with no `origin`; and the Ceiling slot of a batch report carries
+`unavailable` when Jisso's script printed no ceiling line. A session on
+which `node` itself will not run sends the same `unavailable` form with
+the reason, as `SKILL.md` already provides for a transcript that is not
+where it says; the four-figure shell pipeline is not kept as a fallback,
+because two instruments that can disagree are worse than one that says
+it could not read. In the `--share` form a path that cannot be read is
+skipped and the `<k> transcripts` figure counts only the ones read, with
+the skipped paths named after it in parentheses. A missing or unparsable `tanto.json` at the config path is the
 all-defaults case, as for the two maps that exist; a personal file whose
 `ceiling` map carries a key that names no role and no field is ignored
 and named on `stderr` as `unknown key ceiling.<name>, ignored`, which the
 start line reports. A usage error — no transcript and no `--share`,
-`--backstop` without `--role`, an unknown switch — prints the usage line
-and exits 2. Nothing else exits non-zero: `over`, `absent`, and `below`
+`--backstop` without `--role`, a `--role` value that is not `kanri` or
+`jisso`, an unknown switch — prints the usage line and exits 2. Nothing else exits non-zero: `over`, `absent`, and `below`
 are words the roles read, and a script that failed on them would make the
 roles' next step a guess about why.
 
@@ -325,9 +337,18 @@ removes at teardown. The cases, one `test` each:
    neither, with both verdicts;
 7. the share line over two fixtures, with the threshold from `--config`;
 8. the unavailable form and exit 0 on a missing path; exit 2 on
-   `--backstop` without `--role`;
+   `--backstop` without `--role` and on `--role sekkei`;
 9. a fixture whose last line is a half-written record: counted in records,
-   the reading otherwise intact.
+   the reading otherwise intact;
+10. `context=0` on a fixture with no `assistant` record carrying `usage`;
+11. a `--config` file that is missing, and one that is not JSON: the
+    all-defaults case, the ceiling line computed from the template's
+    values;
+12. a `--config` file with `ceiling.sekkei` and `ceiling.kanri.window`:
+    both ignored, each named on `stderr` as
+    `unknown key ceiling.<name>, ignored`, the ceiling line unchanged;
+13. `--share` over one readable fixture and one missing path: the readable
+    one counted, `1 transcripts`, the missing path named.
 
 The tests are the specification of the figures; the prose above is what
 the roles read. The fixtures are synthetic so that no real transcript —
@@ -377,7 +398,9 @@ same instrument without anyone moving a threshold.
 
 Every role's start line already says which config file it read and which
 keys came from the defaults; the `ceiling` map's fields join that report
-on the same terms, and an unknown key under it is reported as
+on the same terms, in every role, because the config report is the start
+sequence's in `SKILL.md` and no role file restates it — so no role file
+changes for this, and an unknown key under the map is reported as
 `unknown key ceiling.<name>, ignored`.
 
 Kanri's start line — step 1 of `roles/kanri.md`'s Start — gains the
@@ -453,10 +476,14 @@ reader sees it:
   and at the check where it finally runs, the ordinary
   `handover written by` line, whose Events entry names where the deferral
   began;
-- the next batch prompt's "previous batch verdict" section carries one
-  line, `Kanri's handover is deferred — the ceiling is crossed and the human
+- the next batch prompt's "Previous batch verdict" section carries one
+  line, `Kanri's handover is deferred since <batch X | the spec stage | the plan stage> — the ceiling is crossed and the human
   is absent; this batch runs under the same Kanri`, so that the prompt file
-  the human may paste says what the run's state is.
+  the human may paste says what the run's state is. A deferred Jisso
+  replacement (3.3) gets the same line in the same section,
+  `Your replacement is deferred since batch <X> — your ceiling is crossed and the human is absent; run this batch and report as usual`,
+  because Jisso is the seat that reads the prompt and the one whose report
+  showed the crossing.
 
 A deferral counts nothing in the Residency row's Noticed column — that
 column is compactions the session noticed, and a crossed ceiling is not
@@ -495,14 +522,19 @@ handover does.
 Kanri may verify a Jisso reading it doubts by running `reading.js` on the
 path the roster's Transcript column holds, when that path is one its
 session may read — the Readings rule as it stands, with the script in
-place of the pipeline. It never asks Jisso to read a transcript for it.
+place of the pipeline; a read that is denied or fails leaves the
+self-report standing, marked `(unverified)`. It never asks Jisso to read a
+transcript for it.
 
 ### 3.4 The roles that only measure
 
-Sekkei, Keikaku, Kaiseki, Kikaku, and Hosa run `reading.js` with no
-`--role` and send the five-figure reading where they send the reading
-today: the boundary reply, the report lines, the exit line, the Kaiseki
-report's Transcript slot. Their Residency rows gain the context column
+Sekkei, Keikaku, Kaiseki, and Hosa run `reading.js` with no `--role` and
+send the five-figure reading where they send the reading today: the
+boundary reply (Hosa's `committed <subject> — <reading>` included), the
+report lines, the exit line, the Kaiseki report's Transcript slot. Kikaku
+sends no reading today and gains no site: its Residency row's reading
+columns stay blank, as they are, since it is the human's seat and its
+cost is the human's own pacing. The Residency rows gain the context column
 (section 7.6) and nothing acts on it: Sekkei and Keikaku end with their
 document, Kaiseki with its report, Kikaku and Hosa are the human's and are
 `/clear`ed. The Replace table's compaction rows for these roles stand as
@@ -524,6 +556,20 @@ own case is its handover file, and the human's words are in the ledger
 and the dialogue files, not in the summary. A compaction the human is
 present for hands over at that boundary as it does now. The Noticed column
 counts it either way.
+
+This gate on signal 3 amends decision-6dea for **Kanri only**, and it is
+a point the brief puts to the human, because the dialogue did not: 6dea
+made a compaction a replacement condition on the ground that "a summary
+standing in place of the conversation is itself the loss, and its size
+cannot be known from inside". The alternative is to leave signal 3
+ungated: a Kanri that compacts while the human is away writes its
+handover file from the ledger and the roster — not from the summary —
+and stops, and the run stalls until the human returns, paying no more
+context and running on no summary. The spec recommends the gate, on the
+same ground as Q1: idle costs nothing but a stalled run costs the time the
+human was away, and state lives in files. The peers' compaction rows in
+the Replace table are not gated in either case: a peer's replacement
+falls at its next commit or report, which is human-paced already.
 
 After a compaction the reading's `context=` is small and the ceiling
 verdict is `under`; the compactions figure is `1` and the Noticed column
@@ -562,14 +608,23 @@ any predecessor the Events' handover lines name — each transcript path
 taken from its roster or archive row. A refused handshake has no row and
 no transcript, and is not in the list; rows of another plan that a shared
 roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not
-of this topic and are left out (I-3, gap B). Kanri records the share line
-in the ledger's Measurements table (5.3), with the list of names it ran
-over. The target is **30% or less**, the
+of this topic and are left out (I-3, gap B). The run happens **before**
+the close's archive move, while every row still carries its Transcript
+column — the Delete table's plan-close row is reordered to say so — and
+over the paths Kanri's session may read: a path that is denied,
+`unavailable`, or on another host is skipped and named, as 1.7 says, so
+that the Readings rule stands — a peer's transcript is read by Kanri
+only where it may, and never by asking the peer. Kanri records the share
+line in the ledger's Measurements table (5.3), with the list of names it
+ran over and the ones skipped. The target is **30% or less**, the
 human's, from the Kikaku consultation, against 74% on 2026-09-14 (and 89%
 on 2026-09-09, on issue-40ed). Kanri asks the human one line at the same
 close, in the chat's language, for the Account & Usage view's own figure
 for the day, and records it beside the proxy; the human answers or does
-not, and a blank is a blank.
+not, and a blank is a blank. The close is already a checkpoint at which
+the human is asked (the merge decision), the figure is one only the human
+can read, and silence is an answer, so the line is not a new
+interruption; "Requirements" says so in the checkpoint bullet.
 
 The share is an indicator of cost, not of quality (I-1): it measures how
 often a large context is woken. The levers are the ceiling (the largest),
@@ -590,10 +645,13 @@ as fixed sections:
    boundary — with the first row the two baselines, and, before batch A's
    row, two rows for Kanri alone: its context at the topic's opening and
    at the plan's landing, so that the spec-and-plan-stage growth (I-3,
-   gap A) is a measured figure and not a gap in the table. The last line
-   of the section states the mean delta per role over the batch rows,
-   which is the measured `per_batch` for each, and the spec-and-plan-stage
-   growth as its own figure.
+   gap A) is a measured figure and not a gap in the table. A boundary that
+   follows a seat change — a Kanri handover, a Jisso replacement — records
+   the successor's baseline in place of a delta, and the mean is taken
+   over same-seat deltas only. The last line of the section states the
+   mean delta per role over the batch rows, which is the measured
+   `per_batch` for each, and the spec-and-plan-stage growth as its own
+   figure.
 2. **The ceiling as it ran**: the ceiling each of the two computed at its
    first check, every boundary's verdict, every presence verdict taken,
    every deferral and the boundary at which the handover or replacement
@@ -670,6 +728,19 @@ Kanri's `exit:` line, because there the trigger is Kanri's ruling and not
 a boundary Keikaku can see. The "Your exit shoroku" bullet is rewritten
 accordingly.
 
+This carrier line is a departure from I-2's literal text, which put the
+clause on `plan committed:` "once the cold read is answered" — two
+moments that are one line apart in the words and a dispatch apart in the
+run — and it changes the cold read's message shape from one line per
+question to one numbered message, because Keikaku cannot otherwise know
+which per-question line is the last. The brief puts it to the human as a
+choice. The alternative: the clause rides on `plan committed:` itself,
+before the cold read, and every cold-read edit is answered with an
+incremental `exit-keikaku-2` proposal (6.4); the cold read's per-question
+lines stay as they are. That is closer to the input's words and touches
+one site fewer; it costs a second proposal and a second recommender run
+whenever the cold read finds anything, which it usually does.
+
 ### 6.3 Kanri
 
 `roles/kanri.md` changes in four places:
@@ -679,11 +750,17 @@ accordingly.
   `coldread answered:` line, checks each pointer against the tree as it
   checks a pointer today, and takes the exit proposal's path from the same
   line.
-- "Exit shoroku", step 1: for Sekkei and Keikaku the proposal arrives
-  named in their report line and no `exit:` is sent; step 2's form check
-  and the recommender dispatch follow at once. For Jisso, Kaiseki, and
-  Kanri's own exit, step 1 stands as written — Jisso and an attached
-  Kaiseki are Kanri-paced, and Kanri's own is the Handover's step 1.
+- "Exit shoroku", step 1: for Sekkei and Keikaku **at their own final
+  boundary** the proposal arrives named in their report line and no
+  `exit:` is sent; step 2's form check and the recommender dispatch follow
+  at once. For every other exit — Jisso, an attached Kaiseki, Kanri's own,
+  and a Sekkei or Keikaku exited away from its final boundary (a
+  compaction in its reading, decision-6dea; a replacement from the Replace
+  table; the human not wanting the plan now) — step 1 stands as written
+  and the `exit:` line is sent, so both role files keep the line for that
+  case.
+- The batch loop, step 6: "send the `exit:` lines" becomes "send the
+  `exit:` lines to the sessions whose proposal is not already named".
 - The Delete table's Sekkei row: "the spec review is accepted, the human's
   answers are in `dialogue.md`, and the `spec accepted:` line named the
   exit proposal"; the Keikaku row: "the `coldread answered:` line named
@@ -762,7 +839,9 @@ already have read it.
   report's header.
 - "Replace": the Jisso ceiling row of 3.3.
 - "Delete": the Sekkei and Keikaku rows of 6.3; the plan-close row gains
-  the `--share` run and the one-line question to the human (5.1).
+  the `--share` run and the one-line question to the human (5.1), placed
+  **before** the archive move in the row's order, since the move drops the
+  Transcript paths the run reads.
 - "When the plan lands" and "Exit shoroku": 6.3.
 - "Readings": `reading.js` in place of "the same pipeline", and the
   verification of a peer's reading by running it on the roster's path.
@@ -788,13 +867,16 @@ the script; no rule changes.
 - `templates/batch-report.md`: the Ceiling slot (3.3).
 - `templates/roster.md` and `templates/roster-archive.md`: a `Context`
   column after `Compactions` in the Residency and Sessions tables, holding
-  the reading's `context=` figure; the paragraph under each names it.
+  the reading's `context=` figure; the paragraph under each names it by
+  that spelling, `context=`, which is what the Verification grep counts;
+  the archive's paragraph on dropped columns lists Transcript among them,
+  since it is dropped today and the sentence does not say so.
 - `templates/kanri.md`: the three Measurements rows (5.3) and the Progress
   line's deferred clause named in the section's guidance.
-- `templates/kanri-handover.md`: the Residency section carries the
-  five-figure reading, and In flight carries the deferred clause when one
-  stands, so that the successor knows the ceiling was crossed and why the
-  handover waited.
+- `templates/kanri-handover.md`: the Residency section's table — the
+  roster's row copied verbatim — gains the same `Context` column, and In
+  flight carries the deferred clause when one stands, so that the
+  successor knows the ceiling was crossed and why the handover waited.
 - `templates/batch-prompt.md`: the one-line deferral notice in the
   previous-batch-verdict section, when a deferral stands (3.2).
 
@@ -806,21 +888,38 @@ New, per section 1. `passage-check.js` is untouched.
 
 The Layout section lists the second script and its tests; the Usage
 section's sentence on the reading names five figures and the ceiling in
-one line. After the `SKILL.md` edits, the README is reviewed for drift, as
-the repository's rule requires.
+one line; the Prerequisites bullet on Node — "Only a plan that carries
+passages needs it ... everything else in the skill is Markdown" — is
+rewritten, because every role now runs `reading.js` at every boundary,
+and a session without `node` sends the `unavailable` form (1.7). After
+the `SKILL.md` edits, the README is reviewed for drift, as the
+repository's rule requires.
 
 ### 7.9 `docs/notes/tanto-consistency-checks.md`
 
 One check added: the reading's five-figure form appears in exactly the
 places that carry a reading — a grep of `context=` across `skills/tanto`
-against the list of lines and slots this spec names — and one check
-amended: the executables sentence in `SKILL.md` names both scripts and the
-Layout in the README agrees.
+against the list of lines and slots this spec names. Three structural
+sites amended, as the note's own rule for a plan that adds a script
+requires: the "twenty-four skill files, thirteen of them templates"
+bullet and check 1's path list and expected count become twenty-six
+files, with `scripts/reading.js` and `scripts/reading.test.js` listed;
+check 2's expected `ok` count becomes twenty-four. Both counts are
+confirmed by running the commands, per check 2's own warning
+(issue-9d84), not copied from here. And one check amended: the
+executables sentence in `SKILL.md` names both scripts and the Layout in
+the README agrees.
 
 ## 8. The boundary, the batch cut, and rule 11
 
-Every file the skill ships changes except `passage-check.js` and its test,
-and a session started mid-plan reads whatever is on disk (rule 11). The
+The files that change: `SKILL.md`; five role files (`kanri.md`,
+`jisso.md`, `sekkei.md`, `keikaku.md`, `kaiseki.md` — `kikaku.md` and
+`hosa.md` carry no reading pointer and are untouched); seven templates
+(`tanto.json`, `batch-report.md`, `roster.md`, `roster-archive.md`,
+`kanri.md`, `kanri-handover.md`, `batch-prompt.md`); the README; and two
+new scripts. `passage-check.js`, its test, and the six other templates do
+not change. A session started mid-plan reads whatever is on disk
+(rule 11). The
 plan names in Global Constraints and in Batches the authority sentence —
 the run's sessions follow the constraints, Kanri's orders line, and the
 batch prompts, not the role text on disk — and the boundary from which a
@@ -866,11 +965,15 @@ One per entity the plan changes; the plan's `O` blocks are written from
 this list, each needle spanning the point where the text changes, each run
 as it is written.
 
-1. **Four figures.** `SKILL.md`'s "The **reading** is four figures", the
-   pipeline block, "the figures are compared with each other across
-   sessions, never with a token count"; `templates/roster.md`'s
-   "`unavailable` stands in the four figures"; the README's reading
-   sentence; `roles/kanri.md`'s "Readings" ("the same pipeline").
+1. **Four figures.** `SKILL.md`'s "The **reading** is four figures" (a
+   sentence that wraps across two lines in the file, so its `O` block
+   spans the wrap and no single-line grep sees it), "**Effort** is not one
+   of the four figures", the pipeline block, "the figures are compared
+   with each other across sessions, never with a token count";
+   `templates/roster.md`'s "`unavailable` stands in the four figures"; the
+   README's reading sentence and its Prerequisites bullet "Only a plan
+   that carries passages needs it"; `roles/kanri.md`'s "Readings" ("the
+   same pipeline").
 2. **Three signals.** `roles/kanri.md`'s "Three signals fire a handover",
    "not a threshold on the reading, because the plan close arrives first
    in practice and no number was needed", and "the data a threshold for
@@ -885,10 +988,11 @@ as it is written.
    `exit: propose your shoroku; write it to <path>`; the session writes
    the proposal"; `roles/sekkei.md`'s "Kanri answers with `exit:`" and its
    "Your exit shoroku" bullet's "Before the human deletes you, Kanri
-   sends"; `roles/keikaku.md`'s "Kanri sends `exit: propose your shoroku
-   ...` at the plan's landing, once the cold read is answered";
-   `roles/kanri.md`'s "Exit shoroku" step 1 and the Delete table's Sekkei
-   and Keikaku rows.
+   sends"; `roles/keikaku.md`'s "Kanri sends
+   `exit: propose your shoroku; write it to <path>` at the plan's landing,
+   once the cold read is answered" (wrapped across three lines in the
+   file); `roles/kanri.md`'s "Exit shoroku" step 1, the Delete table's
+   Sekkei and Keikaku rows, and loop step 6's "send the `exit:` lines".
 6. **The cold read answered one line per question.** `roles/kanri.md`'s
    "send Keikaku one line per question, and wait for its pointer";
    `roles/keikaku.md`'s "sends you its questions, one line each".
@@ -927,6 +1031,13 @@ running" gains one sentence:
 > A seat whose remaining act is its own exit does not wait for a line that
 > asks for it.
 
+**req-04f5, the checkpoint bullet** — "The human is interrupted only at
+defined checkpoints" gains one clause in its list of what the human is
+asked beyond the checkpoints:
+
+> ... and give, at a plan close, a figure only the human's own account
+> view shows, answerable with silence.
+
 ## The ADRs
 
 Decided in the dialogue; written at T1 with the requirements. The human
@@ -936,9 +1047,15 @@ decides at the review whether the second is an ADR or design.
    gated on the human's presence, with the harness's auto-compact window
    as the backstop** — amends decision-de63 (the two signals become
    four; "not a batch or plan count" stands, and the reading's token figure
-   is the instrument 40ed asked for) and decision-b6cb (the plan close
+   is the instrument 40ed asked for), decision-b6cb (the plan close
    stays the ordinary trigger, and a ceiling crossing hands over at an
-   earlier boundary only when the human is present). Options: a fixed
+   earlier boundary only when the human is present), decision-6dea for
+   Kanri only (its noticed compaction is gated on presence; the peers'
+   rows stand — or not, as the human answers the brief, 3.5), and
+   decision-9a3a in one part (`tanto.json` carries three maps, the third
+   effective like `subagents`; the overlay, the defaults in the skill,
+   and the personal file outside stand). T1 puts the `amended_by`
+   bookkeeping on all four. Options: a fixed
    150k; a derived ceiling with a handover regardless of presence; the
    derived ceiling gated on presence (chosen); a protocol hard ceiling
    above it (rejected, Q3). Consequences: the ceiling moves when
@@ -990,7 +1107,12 @@ decides at the review whether the second is an ADR or design.
   Usage figure.
 - The T1 list for Kanri: the requirement edits of "Requirements", the two
   ADRs with their frontmatter bookkeeping, the issues of "Issues this
-  design closes", and the Deferred items as new issues.
+  design closes", the Deferred items as new issues, and the
+  `docs/design/4807-tanto.md` sections that go stale — the `tanto.json`
+  paragraph ("Two maps and two mechanisms"), the reading paragraph ("the
+  four figures of that session's latest reading"), the Handover section,
+  and "Shoroku staging, session exits, and the adoption rule" — each
+  rewritten to this spec's sections 2, 1, 3, and 6.
 - The T2 candidate for the `per_batch` defaults (5.2), named so the
   recommender sees it.
 - Nothing about the report or prompt skeletons beyond "follow the tanto
@@ -1015,9 +1137,11 @@ node skills/tanto/scripts/reading.js "$T" --role kanri --presence --backstop | w
 ```
 
 Expected: lint clean; both test files pass; `tanto.json ok 3 4`; the three
-old-value counts `0`; a `context=` count of at least one in each of the four
-files; the usage line naming both forms; five lines from the last command
-on any real transcript `$T`. The consistency note's checks run as one task
+old-value counts `0` — the `four figures` grep sees the two single-line
+sites, and the wrapped `SKILL.md` sentence is checked by its `O` block; a
+`context=` count of at least one in each of the four files; the usage line
+naming both forms; five lines from the last command on any real
+transcript `$T`. The consistency note's checks run as one task
 in batch E.
 
 ## Out of scope
@@ -1081,6 +1205,28 @@ Each becomes an issue at T1, one to one.
    other roles' windows, readable from the roster's transcript paths,
    would sharpen the presence verdict; not done, because the one window
    is enough for the rule and every further read is a cost.
+
+## The reviews this spec has had, and what each found
+
+1. **Kanri's passage check** (I-3, 2026-09-14): two gaps, both taken —
+   the spec-stage check and the share's session list (3.1, 5.1).
+2. **The `spec.review` reviewer** (`.tanto/tanto-context-ceiling/spec-review.md`,
+   opus, 2026-09-14): 24 findings. Two `scope`, put to the human in the
+   brief — F-2, the presence gate on the compaction signal against
+   decision-6dea (3.5); F-4, Keikaku's carrier line and the cold read's
+   message shape against I-2's words (6.2). Twenty-two `design`, all
+   taken: F-1 (ADR 1 amends 9a3a), F-3 and F-22 (the share runs before
+   the archive move, over readable paths), F-5 (the checkpoint bullet),
+   F-6 (the true file set in section 8), F-7 and F-8 (the "Old values"
+   needles), F-9 and F-10 (the `Context` column in three templates), F-11
+   (`--config` on `--share`), F-12 (Kikaku sends no reading), F-13 (every
+   role reports the `ceiling` keys through the start sequence), F-14 and
+   F-15 (missing lines and an unknown `--role`), F-16 (deltas across a
+   seat change), F-17 and F-18 (the `exit:` line kept for non-final exits
+   and loop step 6 named), F-19 (the consistency note's counts), F-20
+   (design-4807 at T1), F-21 (the README's Node bullet and a missing
+   `node`), F-23 (four more tests), F-24 (Jisso's deferral notice). Its
+   eight shoroku candidates go to Kanri from the report's own section.
 
 ## Shoroku candidates from this spec work
 
