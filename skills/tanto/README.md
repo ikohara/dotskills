@@ -20,9 +20,16 @@ one implementation plan.
   batch prompts and reports, Kaiseki briefs and reports. A message is one line
   plus a path, because a message dies with the session and a file does not.
   Every session also measures its own context from its own transcript — bytes,
-  records, wake-ups, compactions — and sends that reading with the lines it
+  records, wake-ups, compactions, and the turn's context in tokens — and sends
+  that reading with the lines it
   already sends, so the roster holds what the current run costs and its archive
   holds what earlier runs cost.
+- Holds **Kanri** and **Jisso** under a context ceiling derived from that last
+  figure — each seat's own measured baseline plus a chosen number of batches of
+  measured consumption — and hands the one over or replaces the other at the
+  next boundary once it is crossed, but only while the human is there to create
+  the successor; otherwise the crossing is recorded as deferred and the run
+  continues to the plan close, which hands over in any case.
 - Takes bug reports about the skills this repository ships: a report is a file
   and one line to Kanri, which triages it into an issue, a redirect, a
   root-cause session, a one-line hotfix, or an input to a spec in progress.
@@ -46,9 +53,13 @@ one implementation plan.
   `SendMessage` to address them by name. Unlike `kisou`, `shoroku`, and
   `wayaku`, it is not host-agnostic and does not run on other Agent Skills
   hosts.
-- **Node 22 or newer on `PATH`**, for `scripts/passage-check.js`. Only a plan
-  that carries passages needs it, and only at the moments that check such a
-  plan; everything else in the skill is Markdown. Claude Code is itself a Node
+- **Node 22 or newer on `PATH`**, for `scripts/passage-check.js` and
+  `scripts/reading.js`. Every role runs the second at every boundary and every
+  exit, so it is no longer needed only by a plan that carries passages; a
+  session on which `node` will not run sends
+  `transcript: unavailable — <one line why>` in place of its reading and
+  carries on, which costs the run its cost signal and nothing else. Claude Code
+  is itself a Node
   application, and the first-party skills assume `node` the same way.
 - **The superpowers plugin**, for brainstorming, writing-plans,
   subagent-driven-development, systematic-debugging, and
@@ -124,7 +135,11 @@ it to the run; no address is pasted, and Kanri's window goes first.
 - `scripts/passage-check.js` — the instrument a plan that carries passages
   checks itself with: `lint`, `replay`, `diff`, `verify`, `sections`,
   `frame`, and `boundary`, with `scripts/passage-check.test.js` beside it.
-  Node, no dependencies, invoked as `node <path>`.
+- `scripts/reading.js` — the instrument every role measures itself with: the
+  five-figure reading of one transcript, with the ceiling, presence and
+  backstop lines on request, and a `--share` form over several transcripts
+  that Kanri runs at the plan close, with `scripts/reading.test.js` beside it.
+- Both scripts are Node, no dependencies, invoked as `node <path>`.
 
 ## Relationship to kisou, shoroku, and superpowers
 

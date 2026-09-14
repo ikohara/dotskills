@@ -98,8 +98,11 @@ them:
   write out yourself at your exit.
 - **Tree state on exit.** Name the WIP commit by its subject, say whether
   instrumentation was removed, confirm `git status` is clean, and take your own
-  reading (`SKILL.md`, "The transcript reading") into the section's
-  `- Transcript — <reading>` line.
+  reading — `node "$TANTO/scripts/reading.js" "$T"`, both set in the same tool
+  call, as `SKILL.md`'s "The transcript reading" says — into the section's
+  `- Transcript — <reading>` line. You pass no `--role`: the ceiling replaces
+  Kanri and Jisso only, and every other role measures the five figures, sends
+  them, and is replaced on none of them.
 
 "Cannot reproduce" is still a report. Write it, say exactly what you tried, and
 let Kanri decide whether Jisso reruns or the human is asked about the
