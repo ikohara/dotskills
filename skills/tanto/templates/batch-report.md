@@ -5,6 +5,7 @@
 - Branch — <branch>, base <base commit subject>, head <head commit subject>
 - SDD ledger — <.superpowers/sdd/<plan-basename>/progress.md>
 - Transcript — <reading>
+- Ceiling — <the ceiling line, ending `context=<n> <under|over>`>
 
 ## Tasks
 

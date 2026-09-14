@@ -9,13 +9,18 @@ is rewritten here; rows and lines are appended in the order they arrive.
 
 ## Sessions
 
-| Role | Name [ref] | Model | Branch | Started | Ended | Status | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans | Noticed |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| <role> | <name> [<ref>] | <model id> | <branch> | <YYYY-MM-DD> | <YYYY-MM-DD> | <dead, replaced, or refused> | <last boundary> | <n> | <n> | <n> | <n> | <n or —> | <m or —> | <k or —> |
+| Role | Name [ref] | Model | Branch | Started | Ended | Status | Read at | Bytes | Records | Wake-ups | Compactions | Context | Batches | Plans | Noticed |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| <role> | <name> [<ref>] | <model id> | <branch> | <YYYY-MM-DD> | <YYYY-MM-DD> | <dead, replaced, or refused> | <last boundary> | <n> | <n> | <n> | <n> | context=<n> | <n or —> | <m or —> | <k or —> |
 
 An archive row is the roster's status row for that session joined with its
-last Residency row; the cwd and Mode columns are dropped, Started keeps the
-date and drops the time, Ended is the date the row's status changed.
+last Residency row; the Topic, cwd, Effort, Mode and Transcript columns are
+dropped, Started keeps the date and drops the time, Ended is the date the
+row's status changed. Transcript is dropped because the file it names is
+local to one machine and outlives nothing; the plan close therefore runs
+`reading.js --share` over those paths **before** this move, while they are
+still in the roster. Context keeps the reading's `context=<n>` figure, and it
+is the one column of this table a later design will be read from.
 
 ## Events
 

@@ -55,9 +55,9 @@ successor sends `kanri-address:` to all of them.
 
 Kanri's Residency row from the roster, verbatim, with its last reading.
 
-| Role | Topic | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans | Noticed |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| kanri | — | <name> [<ref>] | <YYYY-MM-DD> | <boundary or plan close> | <n> | <n> | <n> | <n> | <n> | <m> | <k> |
+| Role | Topic | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Context | Batches | Plans | Noticed |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| kanri | — | <name> [<ref>] | <YYYY-MM-DD> | <boundary or plan close> | <n> | <n> | <n> | <n> | context=<n> | <n> | <m> | <k> |
 
 - The reading taken when this handover was written — <reading>
 

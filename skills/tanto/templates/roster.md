@@ -44,27 +44,31 @@ row and marks the old one `cleared`.
 
 ## Residency
 
-| Role | Topic | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans | Noticed |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| kanri | — | <name> [<ref>] | <YYYY-MM-DD> | <boundary or plan close> | <n> | <n> | <n> | <n> | <n> | <m> | <k> |
-| <role> | <topic> | <name> [<ref>] | <YYYY-MM-DD> | <boundary> | <n> | <n> | <n> | <n> | — | — | — |
+| Role | Topic | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Context | Batches | Plans | Noticed |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| kanri | — | <name> [<ref>] | <YYYY-MM-DD> | <boundary or plan close> | <n> | <n> | <n> | <n> | context=<n> | <n> | <m> | <k> |
+| <role> | <topic> | <name> [<ref>] | <YYYY-MM-DD> | <boundary> | <n> | <n> | <n> | <n> | context=<n> | — | — | — |
 
 One row per session of the current run, live or not, Kanri's first, rewritten
 in place by Kanri at every boundary and plan close from the readings the
 sessions send (`SKILL.md`, "The transcript reading"): a role's row from its
 latest boundary or exit line, Kanri's own from the reading it takes at the
-trigger check. The last three columns are Kanri's only — batches accepted,
+trigger check. Context holds the reading's fifth figure in the spelling the
+reading itself prints, `context=<n>`, so that a sweep for that spelling finds
+every place a reading lands. Kikaku sends no reading and its reading columns
+stay blank: it is the human's own seat, and its cost is the human's own
+pacing. The last three columns are Kanri's only — batches accepted,
 plans closed, and compactions noticed by the session itself, cumulative since
 its own start; a declined handover leaves Noticed incremented, so the count
 stays a record, and a handover resets Kanri's row to the successor with zero
 counts. A reading Kanri doubted and could not verify carries `(unverified)`
-after its Compactions figure; `unavailable` stands in the four figures when
-the session sent that. At the plan close every row whose session is dead,
+after its Compactions figure; `unavailable` stands in every reading column
+when the session sent that. At the plan close every row whose session is dead,
 replaced, refused, or cleared moves to `roster-archive.md`, joined with its
-status row above, and it is the archive's rows across runs that a threshold
-for replacing a peer will be read from (issue-40ed's other half; the handover
-half closed with decision-b6cb, which made the plan close the ordinary
-trigger).
+status row above, and the archive's Context column across runs is the data any
+later ceiling for the roles that only measure would be read from — Kanri's and
+Jisso's come from `tanto.json`'s `ceiling` map, and issue-40ed's two halves
+closed with decision-b6cb and with that map.
 
 ## Shoroku candidates
 
