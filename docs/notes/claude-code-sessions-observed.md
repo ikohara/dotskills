@@ -104,6 +104,32 @@ The listing also shows sessions of every other repository on the machine,
 with no cwd; a roster row is the only way to tell a run's own sessions from
 the rest, and a session with no row gets nothing.
 
+## A turn's context size is in the transcript, and auto-compact fires near the window's end
+
+Measured 2026-09-14 over the transcripts under
+`~/.claude/projects/c--Users-0000105523-devel-dotskills/`, when the tanto run
+went looking for a context ceiling and found its own readings measured bytes
+rather than tokens, and verified against the Claude Code documentation
+(`code.claude.com/docs/en/model-config.md`).
+
+- **Every `assistant` record carries a `usage` object**, with
+  `input_tokens`, `cache_creation_input_tokens` and `cache_read_input_tokens`
+  among its keys. Their sum is that turn's context size in tokens — the whole
+  prompt the model was sent, cached part included — so a session's context
+  over its life is read off its own transcript with no estimate and no unit
+  question. The key order was stable across the 999 records checked, but the
+  sum does not depend on it.
+- **Auto-compact's default threshold is the model's full context window**, and
+  for the 1M-window models (Sonnet 5, Fable, Opus 4.7 and later) the docs put
+  it at about 967K tokens. The window is configurable three ways:
+  `/autocompact <value>` in a session (the `autoCompactWindow` user setting),
+  the `--autocompact` CLI flag, or the `CLAUDE_CODE_AUTO_COMPACT_WINDOW`
+  environment variable, with a range of 100k to 1M.
+
+Together these say that "the session noticed a compaction" is a very late
+signal on a 1M-window model — it does not fire until roughly 967k — while the
+`usage` sum is available at every single turn.
+
 ## A peer's resume seen from the sender, and the mistaken window
 
 Observed 2026-09-12, at the second editor restart of the kisou-refresh run.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-07
-updated: 2026-09-09
+updated: 2026-09-14
 ---
 
 decision-de63 fires a Kanri handover on two signals only, the human's word
@@ -91,3 +91,44 @@ one day; of its 49 wake-ups about fifteen were the human's turns, twenty peer
 lines, four idle notices from two Sekkei exits (issue-d725), and four subagent
 completions. That session was also the first strong session here to hit the
 usage-credit limit, at the T2 commit line.
+
+A token measurement, 2026-09-14, and a correction to the figures above. Taken
+from the transcripts under
+`~/.claude/projects/c--Users-0000105523-devel-dotskills/`: every `assistant`
+record carries a `usage` object, and the sum of its `input_tokens`,
+`cache_creation_input_tokens` and `cache_read_input_tokens` is that turn's
+context size in tokens — a direct instrument this issue's readings have not
+used (they measure bytes and records; issue-e5a2 chose bytes, and the
+`tokens left` reminder was rejected above for a different reason, that its
+unit is undocumented). The instrument itself is kept in
+`docs/notes/claude-code-sessions-observed.md`. Four sessions of the current
+run, measured that day:
+
+| session | model | first turn | peak | compactions |
+| --- | --- | --- | --- | --- |
+| previous Kanri `dotskills-2d` | claude-sonnet-5 | 77,265 | 949,985 | 0 |
+| current Kanri `dotskills-0b` | claude-sonnet-5 | 82,818 | 129,403 | 0 |
+| Hosa `dotskills-60` | claude-sonnet-5 | 82,824 | 92,958 | 0 |
+| Kikaku `dotskills-6f` | claude-fable-5-1 | 72,014 | 122,011 | 0 |
+
+The previous Kanri's context at the quartiles of its life was 374,704 /
+569,791 / 770,049, and it never compacted — which is the replacement half of
+this issue stated in tokens: nothing in the two signals would have fired
+before 950k. Three figures fall out of the four rows. A tanto seat's fixed
+load is 72 to 83k at its first turn, of which the skill's own text is roughly
+15 to 27k (`SKILL.md` 47 KB, `kanri.md` 62 KB, the other role files 3 to
+18 KB) and the rest is the harness's system prompt, tool definitions,
+superpowers, `CLAUDE.md`, and memory. Kanri's per-batch consumption, from the
+previous Kanri's ~870k of growth across the tanto-cost run's boundaries, is
+roughly 60 to 70k per batch cycle — so a 150k ceiling buys about one batch per
+Kanri life.
+
+The correction: no Anthropic document names 150k as a quality threshold. The
+closest is the engineering post "Effective context engineering for AI agents",
+which describes recall degrading with context as "a performance gradient
+rather than a hard cliff". The 150k figure is the Account & Usage view's cost
+bucket, plus third-party "context rot" commentary — so the ">150k" share
+quoted above (89% of a day's usage) is a **cost** attribution, not evidence of
+a documented quality cliff, and any ceiling at that value is the human's
+chosen operating ceiling rather than Anthropic's view. The ceiling itself and
+how it is derived are the `tanto-context-ceiling` topic's work.

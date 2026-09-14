@@ -2,7 +2,7 @@
 id: "04f5"
 title: tanto — multi-session orchestration of one implementation plan in Claude Code
 created: 2026-09-06
-updated: 2026-09-13
+updated: 2026-09-14
 ---
 
 ## Purpose
@@ -95,6 +95,12 @@ artifacts.
 - **A session's cost is measured, not guessed.** Every role reads its own
   transcript at its boundaries, the roster keeps the readings of the current
   run, and the archive keeps them across runs.
+- **A seat stays under an operating context ceiling the run chooses.** No
+  session is allowed to grow without a bound the run has set for it, so that
+  both what the human pays per wake-up and what the model can still attend to
+  stay inside known limits rather than being discovered after the fact. What
+  the ceiling is, and how it is arrived at, is a recorded decision, not a
+  requirement.
 - **Root cause before more fixing.** When fix rounds fail for a reason nobody
   can name, the strong model leads an interactive root-cause pass; the fix it
   prescribes goes through the ordinary implementation review.
