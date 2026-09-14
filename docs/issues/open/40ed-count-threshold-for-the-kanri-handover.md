@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-07
-updated: 2026-09-14
+updated: 2026-09-15
 ---
 
 decision-de63 fires a Kanri handover on two signals only, the human's word
@@ -152,3 +152,25 @@ arrived as a cross-session message; the Sekkei's next three sends went to
 the new name; nothing was lost or repeated. The first Sekkei-side
 observation, in that repository, that a mid-tenure Kanri handover costs the
 peer session nothing.
+
+A concurrent-topic data point, 2026-09-15, which the rows above do not hold.
+The `dotskills-00` Kanri accepted the handover mid-topic — at the plan-drafting
+stage, on the human's explicit word, not at a plan close — and then ran one
+topic (`tanto-context-ceiling`) through its whole remaining lifecycle: the cold
+read, T1, six batches (five implementation plus one fix wave), a whole-branch
+review, T2, and the merge. It did that while opening and running the early
+stages of two more concurrent topics (`tanto-sweep-2` through its spec
+acceptance and Sekkei's exit; `tanto-project-config` through T0) and serving as
+this repository's bug intake for two sibling repositories (`ellmx`,
+`kuchidome`) throughout, roughly twenty bug reports across the tenure. Batches
+accepted: 6. Plans closed: 1. Compactions noticed: 0. Final reading at its exit
+proposal: `transcript: 7370743 B, 2996 records, 62 wake-ups, 0 compactions`. No
+ceiling instrument existed for Kanri until this very topic's own plan landed it
+partway through the tenure (task 7, batch C); by that instrument's own numbers
+(`docs/reports/2026-09-14-tanto-context-ceiling-dogfood.md`) this Kanri read
+`over` its derived ceiling at every boundary from batch A on, non-binding by
+Rule 11. The bearing here is the shape rather than the counts: one topic's full
+implementation lifecycle, two topics' opening stages, and continuous
+cross-repository intake, all at once, is a heavier tenure than the single-topic
+rows above record, and a threshold read off the batch and plan columns alone
+sees only the one topic's six batches.
