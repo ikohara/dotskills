@@ -121,9 +121,11 @@ Code restart" below.
 
 Four steps, in this order.
 
-1. Check `model=` against `sessions.<role>.model` and `effort=` against
-   `sessions.<role>.effort` from `tanto.json`. A mismatch of either is one
-   line to the human saying which of the two differs and what runs.
+1. Read `tanto.json` at this moment — its presence as much as its content;
+   "it existed when I last checked" is never evidence that it exists now —
+   and check `model=` against `sessions.<role>.model` and `effort=` against
+   `sessions.<role>.effort`. A mismatch of either is one line to the human
+   saying which of the two differs and what runs.
 2. Check the roster and the listing — no live roster row for that role and
    topic, and the
    `name [ref]` the handshake carries appears in `ListAgents`.
@@ -312,7 +314,8 @@ Per batch, in this order.
    is written, dispatch the `shoroku` kind in apply mode with the
    recommendation, the direction, and the commit subject, and verify its
    commit as you verify any — `git status` clean, the diff's paths those the
-   direction names, lint on them. The session whose shoroku it is has already
+   direction names, lint on them (or on the whole repository where the lint
+   script takes no path arguments). The session whose shoroku it is has already
    been deleted; it waits for nothing. (b) Your
    own edits — the hotfix, the issues from step 4, and your own exit shoroku
    when a handover is due — each committed by you in its turn, or handed to a
@@ -609,7 +612,13 @@ they are recommended and checked.
    reason, and for a `design` entry the `req-<id>` it serves; a requirement or
    an ADR item carries the original wording followed by a reference
    translation in the chat's language.
-3. **Check.** Tell the human in one line: the path, and the three counts. The
+3. **Check.** Read the whole recommendation once and tell the human, in one
+   line plus a numbered list under it: the path, the three counts, and then
+   the recommendation's items in the chat's language, grouped as the file
+   groups them — one line per item, its number, its group, its destination, a
+   one-sentence rendering of the candidate, and the one-line reason (the
+   `unsure` group's "could not be read as written" question still comes from
+   its own read by `sections`). The
    human answers as the `shoroku` skill already parses — `OK` for "as
    recommended", or the numbers that go the other way, or an edit — and you
    write `<stage>-direction.md` beside the recommendation, item by item, with
@@ -621,11 +630,13 @@ they are recommended and checked.
    `docs: T<n> shoroku for <topic>` or
    `docs: exit shoroku for <role>[ at <suffix>]` — in a slot of the commit
    window under the hotfix lane's rule. The subagent writes the accepted subset
-   per `docs/AGENTS.md` and the per-type files, lints the changed paths by
-   name, commits once by explicit path with the trailer, and reports the
-   subject. Verify that commit as you verify any — `git status` clean, the
-   diff's paths those the direction names, lint on them — and fill the Written
-   column.
+   per `docs/AGENTS.md` and the per-type files, runs the repository's lint on
+   the changed paths by name — or on the whole repository where the lint
+   script takes no path arguments, which satisfies this step — commits once by
+   explicit path with the trailer, and reports the subject. Verify that commit
+   as you verify any — `git status` clean, the diff's paths those the
+   direction names, lint on them (again, whole-repository if that is what the
+   script does) — and fill the Written column.
 
 Where the commit lands: on the topic's branch for T1, T2, and the exits of
 that topic's sessions; on `main` for T0 and for your own between-plans exit. A
@@ -800,7 +811,8 @@ The lane is open only while no batch is in flight — between batches, where the
 triage is ruled at loop step 4 and the edit and the commit happen in slot (b)
 of step 7's commit window, or between plans — and never on a file the
 in-flight plan lists in its File structure table. In the lane you edit the
-skill file directly, run lint on the changed paths by name and the README drift
+skill file directly, run lint on the changed paths by name — or on the whole
+repository where the lint script takes no path arguments — and the README drift
 review if `SKILL.md` changed, commit once by explicit path with the trailer,
 and record `R-n`. No issue is filed: the commit is the durable record, so its
 subject names the symptom, not only the report's slug, and its body names where

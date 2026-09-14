@@ -138,7 +138,8 @@ say so in every
 dispatch:
 
 - lint on the changed paths, each named individually — a directory argument
-  makes every hook skip and proves nothing;
+  makes every hook skip and proves nothing — or on the whole repository where
+  the repo's lint script takes no path arguments, which satisfies this step;
 - the content greps the plan states: required headings in order, exact strings
   later tasks depend on, strings that must be absent;
 - a real YAML load of any frontmatter, never a regex — a colon followed by a
@@ -205,7 +206,9 @@ condition on top:
 
 A **known** cause continues the SDD rounds; only an unknown one trips this. A
 clean `git status` is the handoff invariant, so the failing state is committed
-rather than left in the tree. The WIP commit is an ordinary commit inside the
+rather than left in the tree — and a modification you find there that this
+task did not make is reported to Kanri, not discarded, on the same rule as
+the implementer table above. The WIP commit is an ordinary commit inside the
 task's range — the SDD completion line still cites `base..head`, the fix and
 its regression test land as follow-up commits, and finishing squashes them.
 Nothing is amended.
@@ -239,6 +242,7 @@ text, these win.
 | SDD fix loop — five rounds, then the breaker | unchanged, plus the Kaiseki trigger at round 2 with an unknown cause, and again whenever an implementer returns blocked with an unknown cause at any round | root cause before more fixing |
 | `shoroku` — propose in chat, wait for the human's `Direction?`, never start without their explicit confirmation | write the proposal to a file and stop there; a dispatched recommender reads it and the human checks the recommendation by exception | you do not talk to the human unless Kanri grants it, and every item reaches the human that way |
 | SDD task reviewer prompt — "Do not re-run the suite to confirm their report" | for a verification-only task, tell the reviewer to re-run the checks | the recorded output is the deliverable, so a reviewer that trusts the report verifies nothing |
+| SDD implementer — clean up anything unexpected in the tree before starting | tell each `task.implement` dispatch to report an unrecognized modification it did not make, one line to you, instead of discarding it | a modification in the shared tree that a session or its subagent did not make is not its to discard (Rule 5); only Kanri decides whether it is stray |
 
 ## The final batch
 

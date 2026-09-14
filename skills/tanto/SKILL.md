@@ -90,7 +90,11 @@ is unset. Two maps, two mechanisms. Every value is
 model with the effort from the defaults.
 
 - `sessions.<role>` is **advisory**. The checks above and Kanri's handshake
-  check compare against it. Nothing switches a session's model or its effort.
+  check compare against it, read at the moment of each comparison — the
+  file's presence as much as its content, since a personal override can be
+  created, edited, or deleted at any time, and "it existed when I last
+  checked" is never evidence that it exists now. Nothing switches a
+  session's model or its effort.
 - `subagents.<kind>` is **effective**. Its `model` goes into the `model`
   parameter of every subagent that role dispatches, and its `effort` into the
   agent definition below. The twelve kinds are `task.implement`,
@@ -153,7 +157,10 @@ human is told once and the session carries on.
 definitions when this session sees them. An omitted `model` inherits the
 session's model, which on a Sekkei, Kikaku, or Kaiseki session is the
 strongest family — the exact failure this rule prevents. A kind this session
-cannot see is dispatched with `model` alone, and its effort is the session's.
+cannot see is dispatched with `model` alone, and its effort is the session's;
+the dispatching role tells the human once per session, in its next line, that
+the dispatched effort came from the session's own effort and not the kind's
+configured one.
 
 **A limit is a pause, never a model change.**
 
@@ -370,7 +377,10 @@ resumed role: `/tanto fukki` says so and stops, and the human runs
 `/tanto <role> <address>` there as for a new session.
 
 `/tanto fukki` reads this file and nothing else. The role file is already in
-the session's context, which is what a resume preserves.
+the session's context, which is what a resume preserves. It also re-runs the
+Start sequence's twelve-definitions write-and-count (a resume can carry a new
+`CLAUDE_CONFIG_DIR`, and re-writing may nudge the harness to re-scan) and says
+the result the same way the Start sequence does.
 
 ## Messages
 
@@ -513,14 +523,19 @@ session:
    names the output, `<stage>-recommendation.md`: every item once, quoted in
    full, in three groups — recommended adopt, recommended reject, unsure —
    each with its destination and its one-line reason.
-3. **Check.** Kanri gives the human the path and the three counts in one
-   line; the human answers by exception; Kanri writes `<stage>-direction.md`
-   beside the recommendation, item by item, with the `S-n` rows in the
-   conductor ledger.
+3. **Check.** Kanri reads the whole recommendation once and gives the human
+   the path, the three counts, and under them the recommendation's items as a
+   numbered list in the chat's language, grouped as the file groups them —
+   one line per item: its number, its group, its destination, a one-sentence
+   rendering of the candidate, and the one-line reason; the human answers by
+   exception; Kanri writes `<stage>-direction.md` beside the recommendation,
+   item by item, with the `S-n` rows in the conductor ledger.
 4. **Apply.** Kanri dispatches the `shoroku` kind again, in apply mode, with
    the recommendation, the direction, and the commit subject; that subagent
-   writes the accepted subset per `docs/AGENTS.md`, lints the changed paths,
-   and commits once by explicit path in a slot. No session applies the
+   writes the accepted subset per `docs/AGENTS.md`, runs the repository's
+   lint on the changed paths — or on the whole repository where the lint
+   script takes no path arguments, which satisfies the step — and commits
+   once by explicit path in a slot. No session applies the
    accepted subset of its own proposal. Kanri verifies the diff as for any
    commit and marks the `S-n` rows written.
 
@@ -654,7 +669,11 @@ its path.
    `.tanto/kikaku/` and nowhere else.
    Hosa edits a tracked file only in a slot Kanri gives, and commits it there.
    Kaiseki edits only to instrument and leaves the tree clean. None of these
-   five writes under the `docs/` document-management tree.
+   five writes under the `docs/` document-management tree. A modification any
+   of these finds in the shared tree that it or its own subagent did not make
+   is not its to discard: it is reported — a `task.implement` subagent tells
+   its role one line, the role tells Kanri one line — and only Kanri decides
+   whether it is stray.
 6. Every subagent dispatch names a `model` from `tanto.json`; none omits it,
    and it names a `subagent_type` from the definitions at
    `~/.claude/agents/tanto-<object>-<act>.md` when this session sees them.
@@ -712,7 +731,10 @@ spec was a draft, cuts the branch from `main` before the first commit, named
 after the topic; Jisso continues on it;
 the merge decision is the human's. **No worktree by default** — Kanri verifies
 the tree in place and the human can watch it. Every batch prompt restates that
-as a Kanri directive.
+as a Kanri directive. A modification in the shared tree that a session or its
+own subagent did not make is not its to discard (Rule 5): it is reported, never
+run through `git checkout --` or `git clean` on its own judgment, and only
+Kanri decides whether it is stray.
 
 `.tanto/<topic>/` outlives the plan, and so does the SDD workspace
 `.superpowers/sdd/<plan-basename>/`. Jisso never deletes either, and nothing

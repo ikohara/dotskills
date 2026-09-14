@@ -73,7 +73,10 @@ and its `model` together, to write the plan from the spec with superpowers
 writing-plans. Then add, yourself:
 
 - the **Global Constraints** section the batch prompts are built from — the
-  repo's `AGENTS.md` rules and the concrete model families from `tanto.json`;
+  repo's `AGENTS.md` rules, the concrete model families from `tanto.json`, and
+  the rule that a modification in the shared tree an implementer did not make
+  is not its to discard: it is reported, not run through `git checkout --` or
+  `git clean`, and only Kanri decides whether it is stray;
 - the **Batches** section — batch id, three or four tasks each, what the batch
   delivers, and the stop conditions at its boundary. Size the batches so that
   one Jisso carries a batch without growing long, and say at which boundaries
@@ -81,7 +84,9 @@ writing-plans. Then add, yourself:
   property of the whole tree is backed by a command that sweeps the whole
   tree, not only the files the batch wrote;
 - **How a batch is verified**. For a plan that ships Markdown, that section
-  names lint on the changed paths by name, the content greps, a real YAML load
+  names lint on the changed paths by name — or on the whole repository where
+  the repo's lint script takes no path arguments, which satisfies this step —
+  the content greps, a real YAML load
   of any frontmatter, and a JSON parse of any JSON the plan writes; for a plan
   that ships code, the test command together with the runtime version it is
   pinned to, so that a version claim is a run and not an assertion; and for a
@@ -207,7 +212,8 @@ reports and prompts follow the tanto templates, and names nothing else.
    boundary as safe for a role start or replacement, grep the plan's own
    new-passage blocks for every term a later batch lands; a boundary is safe
    by that sweep, not by assertion.
-5. Lint the changed paths.
+5. Lint the changed paths — or the whole repository where the repo's lint
+   script takes no path arguments, which satisfies this step.
 6. Dispatch the brief writer yourself, on `brief.write` —
    `subagent_type: tanto-brief-write` with its `model` — from
    `templates/review-brief.md`, naming the plan, its inputs, the output path
