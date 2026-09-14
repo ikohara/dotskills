@@ -399,17 +399,29 @@ any window at any time and the skill would not see it.
 `roles/kanri.md`'s "The trigger" gains a fourth signal:
 
 4. **The ceiling crossed.** At every check — loop step 6 at a boundary,
-   and the start of every turn between plans — take your own reading with
-   `--role kanri`; a verdict of `over` is this signal.
+   and the start of every turn while no batch is in flight, a topic's spec
+   or plan stage included — take your own reading with `--role kanri`; a
+   verdict of `over` is this signal.
+
+The sentence "A topic in its spec or plan stage neither fires the check nor
+blocks it" is narrowed to signals 1 and 3: signal 4 is checked in that
+stage too, at the start of every turn, because Kanri's context grows there
+— a T0 shoroku, a bug-report triage, the handshakes, a resume — with no
+batch boundary to catch it (I-3, gap A). A handover in that stage is safe
+on the Timing section's own terms: nothing is in flight, and a Sekkei or
+Keikaku whose line went unanswered re-sends it to the successor's
+address.
 
 And a gate on signals 3 and 4, in the same section:
 
 > Signals 3 and 4 fire a handover only when the human is present. Run
 > `reading.js` on your own transcript with `--presence` at the check where
-> the signal fired: `present` means the handover runs at this boundary by
-> the in-plan procedure; `absent` means it is **deferred** — record it as
-> 3.2 says, send the next batch prompt, and re-check at every later
-> boundary, where a `present` verdict runs the handover then. The plan
+> the signal fired: `present` means the handover runs at this check — by
+> the in-plan procedure at a boundary, and as between plans when no batch
+> is in flight; `absent` means it is **deferred** — record it as 3.2 says,
+> continue (the next batch prompt at a boundary, the turn's own work
+> otherwise), and re-check at every later check, where a `present` verdict
+> runs the handover then. The plan
 > close (signal 1) hands over regardless, as decision-b6cb made it; the
 > human's word (signal 2) is presence itself.
 
@@ -434,13 +446,13 @@ A deferred handover is written in three places, so a successor or a cold
 reader sees it:
 
 - the ledger's Progress line gains the clause
-  `handover deferred (absent, context=<n>, since batch <X>)`, kept until
-  the handover runs or the plan closes;
+  `handover deferred (absent, context=<n>, since <batch X | the spec stage | the plan stage>)`,
+  kept until the handover runs or the plan closes;
 - a roster Events line,
-  `<date> — handover deferred at batch <X>: ceiling <c> crossed at context=<n>, human absent (last turn <m> min ago)`;
-  and at the boundary where it finally runs, the ordinary
-  `handover written by` line, whose Events entry names the batch the
-  deferral began at;
+  `<date> — handover deferred at <batch X | the spec stage | the plan stage>: ceiling <c> crossed at context=<n>, human absent (last turn <m> min ago)`;
+  and at the check where it finally runs, the ordinary
+  `handover written by` line, whose Events entry names where the deferral
+  began;
 - the next batch prompt's "previous batch verdict" section carries one
   line, `Kanri's handover is deferred — the ceiling is crossed and the human
   is absent; this batch runs under the same Kanri`, so that the prompt file
@@ -543,9 +555,16 @@ compaction summary lost something a handover file would have kept.
 ### 5.1 The share
 
 At every plan close, Kanri runs `reading.js --share` over the transcripts
-of every roster row of the run — live, dead, replaced, and refused alike,
-the Transcript column being the list — and records the share line in the
-ledger's Measurements table (5.3). The target is **30% or less**, the
+**of this topic**: the sessions the ledger's Session events name — every
+handshake accepted for this topic (Sekkei, Keikaku, Jisso, Kaiseki), and
+every Kanri whose tenure overlapped the topic's life, the current one and
+any predecessor the Events' handover lines name — each transcript path
+taken from its roster or archive row. A refused handshake has no row and
+no transcript, and is not in the list; rows of another plan that a shared
+roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not
+of this topic and are left out (I-3, gap B). Kanri records the share line
+in the ledger's Measurements table (5.3), with the list of names it ran
+over. The target is **30% or less**, the
 human's, from the Kikaku consultation, against 74% on 2026-09-14 (and 89%
 on 2026-09-09, on issue-40ed). Kanri asks the human one line at the same
 close, in the chat's language, for the Account & Usage view's own figure
@@ -568,9 +587,13 @@ as fixed sections:
 1. **Per-batch consumption**: a table with one row per batch boundary of
    the run — batch letter, Kanri's `context=` at that boundary, Jisso's
    `context=` from its report, and the delta of each from the previous
-   boundary — with the first row the two baselines. The last line of the
-   section states the mean delta per role, which is the measured
-   `per_batch` for each.
+   boundary — with the first row the two baselines, and, before batch A's
+   row, two rows for Kanri alone: its context at the topic's opening and
+   at the plan's landing, so that the spec-and-plan-stage growth (I-3,
+   gap A) is a measured figure and not a gap in the table. The last line
+   of the section states the mean delta per role over the batch rows,
+   which is the measured `per_batch` for each, and the spec-and-plan-stage
+   growth as its own figure.
 2. **The ceiling as it ran**: the ceiling each of the two computed at its
    first check, every boundary's verdict, every presence verdict taken,
    every deferral and the boundary at which the handover or replacement
@@ -596,15 +619,16 @@ four that exist:
 
 | What | When | Value |
 | --- | --- | --- |
-| Kanri's and Jisso's context at each boundary, and the delta per batch | `<YYYY-MM-DD, each boundary>` | `<batch letter: kanri context=<n> (+<d>), jisso context=<n> (+<d>)>`, one entry per boundary |
-| deferrals: the boundary, the role, the context, and the presence verdict | `<YYYY-MM-DD, the boundary>` | `<batch letter, kanri or jisso, context=<n>, last human turn <m> min ago>`, one entry per deferral, or `none` |
-| the share of usage at context over the threshold, proxy and Account & Usage | `<YYYY-MM-DD, the plan close>` | `<the share line, and the human's figure or blank>` |
+| Kanri's context at the topic's opening and at the plan's landing, then Kanri's and Jisso's at each boundary, with the delta per batch | `<YYYY-MM-DD, each check>` | `<opening: kanri context=<n>; landing: kanri context=<n> (+<d>); batch letter: kanri context=<n> (+<d>), jisso context=<n> (+<d>)>`, one entry per check |
+| deferrals: where, the role, the context, and the presence verdict | `<YYYY-MM-DD, the check>` | `<batch letter or stage, kanri or jisso, context=<n>, last human turn <m> min ago>`, one entry per deferral, or `none` |
+| the share of usage at context over the threshold, proxy and Account & Usage | `<YYYY-MM-DD, the plan close>` | `<the share line, the names it ran over, and the human's figure or blank>` |
 
 The template's paragraph under the table names the three rows and says
-which step fills each: the first at loop step 6 from the two readings, the
-second at any deferral, the third at the close from `--share`. The rows
-are fixed and always present, so that a plan whose Kanri never deferred
-still shows `none`.
+which step fills each: the first at the topic's opening (Start step 5),
+at the plan's landing, and at loop step 6 from the two readings; the
+second at any deferral, in whichever stage; the third at the close from
+`--share`. The rows are fixed and always present, so that a plan whose
+Kanri never deferred still shows `none`.
 
 ## 6. The exit proposal written unasked (I-2)
 
@@ -723,7 +747,12 @@ already have read it.
   plan close arrives first in practice and no number was needed" becomes
   the ceiling of 1.3 and the reason it is derived; the sentence sending
   issue-40ed's other half to a future ADR becomes a pointer at this
-  spec's ADR.
+  spec's ADR; and the sentence "A topic in its spec or plan stage neither
+  fires the check nor blocks it" is narrowed to signals 1 and 3, with
+  signal 4 checked at the start of every turn in that stage (3.1).
+- Start, step 5, and "When the plan lands", step 2: Kanri takes its own
+  reading at the topic's opening and at the plan's landing and writes the
+  Measurements row of 5.3.
 - "Timing": unchanged in its rule; one sentence that a deferred handover
   is not a due one and does not stop the loop.
 - "The residency line": the reading inside it is the five-figure one; no
@@ -1027,6 +1056,12 @@ Each moves to `resolved/` at T1 with a resolution line naming this spec.
   travel into this spec in the fixed inputs and section 1, so the
   instrument is not lost, as R-4 asked.
 - **I-2** — it rides here (fixed input 5), section 6.
+- **I-3** — gap A: signal 4 is checked at the start of every turn while no
+  batch is in flight, the spec and plan stages included, and Kanri's
+  context at the topic's opening and the plan's landing are measured
+  points (3.1, 5.2, 5.3, 7.2); gap B: the share runs over the sessions
+  this topic's ledger names, refused handshakes and other plans' rows
+  excluded (5.1).
 
 ## Deferred items
 
