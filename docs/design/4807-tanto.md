@@ -266,6 +266,18 @@ How the personal file reaches the user's config directory is deliberately out of
 scope: the skill only reads it. That is why the config-deployment item carries
 no issue, unlike the other deferred items of the design work.
 
+**Kanri on `sonnet` has now been measured twice, with the same result.** The
+personal override that put Kanri on `sonnet` first ran across the
+`tanto-workspace` plan (2026-09-12): zero fix rounds, zero parked findings,
+one whole-branch Important finding, caught and fixed. The `tanto-cost` plan
+itself — spec through T2 and the merge, 23 tasks in six batches, one
+whole-branch review, one fix wave — ran under the same `sonnet` Kanri with
+the same qualitative outcome: zero fix rounds of Kanri's own, zero findings
+left unresolved at the close, no compaction noticed across either run. The
+second measurement is on a plan roughly seven times larger by task count
+than the first, which is the direction a model-choice measurement should
+move in before it is trusted.
+
 ## The roster and the conductor ledger
 
 The roster is kept by Kanri at a fixed path, its own row first, one row per role
