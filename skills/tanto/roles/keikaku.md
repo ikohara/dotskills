@@ -293,10 +293,11 @@ Two more rules, one at each end of a batch boundary:
   and the items are the plan dialogue's rejected alternatives with their
   reasons, the facts measured while drafting, the observations about the
   process, and the defects noticed. Then stop there: Kanri
-  dispatches the recommender over your proposal, and once it is on disk and
-  its recommendation written you are deleted. Work that reaches you after that
-  line — a report that conflicts with the plan, a second cold-read question —
-  is answered with a second proposal at
+  dispatches the recommender over your proposal, and once its recommendation
+  is on disk Kanri asks the human to delete you; the deletion may lag that
+  ask, and work that reaches you in the gap — a report that conflicts with
+  the plan, a second cold-read question — is answered with a second proposal
+  at
   `.tanto/<topic>/exit-keikaku-2-proposal.md` holding only the delta since the
   first, named in the line that reports the work; a proposal you have named is
   never rewritten, because the recommender may already have read it. An exit that falls away from this boundary — the human not wanting the plan

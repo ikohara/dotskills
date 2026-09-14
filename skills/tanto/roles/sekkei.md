@@ -150,10 +150,11 @@ Two more rules, one at each end of a batch boundary:
   observations about the process, and the defects noticed. The stage word is
   `exit-sekkei`, no suffix, and the proposal goes to
   `.tanto/<topic>/exit-sekkei-proposal.md`. Then stop
-  there: Kanri dispatches the recommender over your proposal, and once it is
-  on disk and its recommendation written you are deleted. If more work reaches
-  you after that line — a cold-read question that changes the spec, a review
-  answer that changes it — write a second proposal at
+  there: Kanri dispatches the recommender over your proposal, and once its
+  recommendation is on disk Kanri asks the human to delete you; the deletion
+  may lag that ask, and work that reaches you in the gap — a cold-read
+  question that changes the spec, a review answer that changes it — write a
+  second proposal at
   `.tanto/<topic>/exit-sekkei-2-proposal.md` holding only the delta since the
   first, and name it in the line that reports the work; a proposal you have
   named is never rewritten, because the recommender may already have read it.
