@@ -177,9 +177,9 @@ config-directory move" — i.e. that session did **not** see the twelve
 `tanto-*` definitions (0 visible, not 12), and that absence is exactly why
 its two one-shots ran on `model` alone with no `subagent_type`. This is
 corroborated by the conductor ledger's own R-9 (this same config-directory
-symptom, hit firsthand "during Sekkei's exit shoroku dispatch") and by
-R-21, which independently confirms the "twelve agent definitions" gap as a
-harness-level staleness issue this run hit more than once.
+symptom, hit firsthand "during Sekkei's exit shoroku dispatch"). R-21
+records the same class of harness agent-type staleness, reported from
+another session.
 
 For the two Kanri seats — the predecessor (`dotskills-3b`, itself continued
 from `dotskills-2d`/`dotskills-0b`) and the current (`dotskills-00
