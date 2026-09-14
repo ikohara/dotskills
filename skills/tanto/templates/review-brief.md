@@ -43,10 +43,12 @@ one; **decide** — the document left it open, your answer decides it;
 question, in one sentence; the document's answer, in one sentence; and the
 pointer — the document's section heading that answers it, copied as it
 stands in the document and not translated, never a line number; the pointer,
-like the labels and the tags, is not rendered into the chat's language. At
-most five points per section; what does not fit goes to the last section,
-one line each. For a spec, section 5's body is the single rendered line
-`not applicable — a spec`.
+like the labels and the tags, is not rendered into the chat's language. A
+**decide** point whose answer approves an edit to the document names the
+proposed text, or points to where the document quotes it, rather than only
+describing the edit in prose. At most five points per section; what does not
+fit goes to the last section, one line each. For a spec, section 5's body is
+the single rendered line `not applicable — a spec`.
 
 Every point tagged **choose** or **decide** ends with `— If unanswered: <what>`
 after the pointer. For a **decide** point it names the document's own answer
