@@ -85,7 +85,7 @@ instead. Every other role does the handshake below.
 ## The expected-model config
 
 `$CLAUDE_CONFIG_DIR/tanto.json`, or `~/.claude/tanto.json` when that variable
-is unset. Two maps, two mechanisms. Every value is
+is unset. Three maps, three mechanisms. Every value of the first two is
 `{ "model": <family>, "effort": <level> }`, or a bare string, which means that
 model with the effort from the defaults.
 
@@ -105,6 +105,28 @@ model with the effort from the defaults.
   in a subagent on that model instead of inline". When the key is absent, the
   skill runs inline on the session's model. `shoroku` is the one built-in
   skill-name key; any other is a personal addition.
+- `ceiling` is **effective** in the sense `subagents` is: `scripts/reading.js`
+  reads it, and the verdicts `roles/kanri.md` and `roles/jisso.md` act on come
+  out of it. `ceiling.kanri` and `ceiling.jisso` are each
+  `{ "batches": <N>, "per_batch": <tokens> }` — how many batches of measured
+  consumption that seat may grow by above its own measured baseline, and what
+  one batch costs it. `ceiling.presence_minutes` is the window inside which
+  the human's last turn in Kanri's own transcript still counts as present, and
+  `ceiling.share_threshold` the context above which a wake-up's usage counts
+  toward the share Kanri reports at the plan close. A `ceiling.<role>` for any
+  role but those two is an unknown key: Kanri and Jisso are the only seats the
+  ceiling replaces, because they are the two that run a whole plan of batches,
+  and every other role measures and sends the five figures and is replaced on
+  none of them.
+
+The ceilings and the threshold are the **human's operating choice**, not a
+documented quality limit. No Anthropic document names 150000 tokens as a point
+at which a model's recall falls off; the closest describes recall degrading
+with context as a gradient rather than a cliff. 150000 is where the human's own
+account view buckets usage, and what the run is choosing to spend per wake-up.
+Reducing consumption lowers the ceiling at the same `batches`, which is the
+point of deriving it: a shorter role file or a quieter boundary pays off in
+this instrument without anyone moving a threshold.
 
 The effort vocabulary is the harness's — `low`, `medium`, `high`, `xhigh`,
 `max` — and the family vocabulary is the Agent tool's.
@@ -114,9 +136,15 @@ family ladder `fable > opus > sonnet > haiku` (as of 2026-09). Read the
 personal file and overlay it on the defaults **field by field**: a personal
 `{"effort":"medium"}` under `subagents.task.implement` changes that effort and
 keeps the default model. A partial personal file is complete; an absent file
-is the case where every key is a default. A key that names no role and no
-kind — an older file's, for instance — is reported in your start line as
-`unknown key <name>, ignored` and otherwise ignored.
+is the case where every key is a default. The `ceiling` map overlays the same
+way and at the same granularity: a personal
+`{"ceiling": {"kanri": {"batches": 1}}}` sets Kanri's batch count to 1 and
+leaves every other value of all three maps alone. A key that names no role, no
+kind and no ceiling field — an older file's, for instance — is reported in
+your start line as `unknown key <name>, ignored`, or as
+`unknown key ceiling.<name>, ignored` for one under that map, which
+`scripts/reading.js` writes on `stderr` every time it reads the file; either
+way it is otherwise ignored.
 
 Then check that `subagents.task.escalate` sits above
 `subagents.task.implement` on that ladder — SDD's fix rounds 4-5 are an
@@ -652,20 +680,26 @@ Templates are copied and filled, never restated in prose. Thirteen of them:
 `templates/review-brief.md`, `templates/tanto.json`,
 `templates/kikaku-decision.md`, and `templates/agent.md`.
 
-The skill also ships one executable, `scripts/passage-check.js`: the instrument
-a plan that carries passages checks itself with, run by Keikaku in place of an
-agent dry run, by Jisso at every batch boundary, by Kanri at every boundary it
-rules on, and by the whole-branch reviewer. Its seven subcommands are `lint`,
-`replay`, `diff`, `verify`, `sections`, `frame`, and `boundary`. It is Node
-with no dependencies, its tests are beside it and run by `node --test`, and
-`roles/keikaku.md`, `roles/jisso.md`, and `roles/kanri.md` name its
-subcommands. Its path is written skill-relative, like every other path in
+The skill also ships two executables. `scripts/passage-check.js` is the
+instrument a plan that carries passages checks itself with, run by Keikaku in
+place of an agent dry run, by Jisso at every batch boundary, by Kanri at every
+boundary it rules on, and by the whole-branch reviewer; its seven subcommands
+are `lint`, `replay`, `diff`, `verify`, `sections`, `frame`, and `boundary`,
+and `roles/keikaku.md`, `roles/jisso.md` and `roles/kanri.md` name them.
+`scripts/reading.js` is the instrument every role measures itself with, run at
+every boundary and every exit; its two forms are the reading of one transcript
+— with `--role kanri|jisso`, `--presence` and `--backstop` each adding a line,
+and `--now`, `--config` and `--settings` fixing what the tests and a verifying
+Kanri need fixed — and `--share` over several transcripts, which Kanri runs at
+the plan close. Both are Node with no dependencies, and both have their tests
+beside them, run by `node --test`. Their paths are written skill-relative,
+like every other path in
 this skill, and the role files spell the runnable form `$TANTO`: set it to the
 skill's own directory, which the harness names when it invokes the skill,
 **in the same tool call as the command** — shell state does not persist
 between calls, and an unset `$TANTO` makes every one of these commands read a
-path at the filesystem root. It is never invoked bare —
-the file carries no shebang, so `node` is part of the command and not
+path at the filesystem root. Neither is ever invoked bare —
+neither file carries a shebang, so `node` is part of the command and not
 decoration.
 
 `.tanto/<topic>/` is created by Kanri when the topic opens — its first file is
