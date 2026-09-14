@@ -277,57 +277,84 @@ that row.
 ## The transcript reading
 
 Every session can measure its own context from its transcript, the file the
-harness appends to on disk as the session runs. The **reading** is four
+harness appends to on disk as the session runs. The **reading** is five
 figures from that file, taken by the session itself, and it is the only cost
 signal the skill uses. The `tokens left` figure the harness prints is not one:
-its unit is not documented as the context window.
+its unit is not documented as the context window (issue-40ed). The fifth
+figure below is a token count, and a documented one: it is the harness's own
+`usage` accounting for the turn it just billed.
 
 Locate the file from the scratchpad path the system prompt names,
 `<...>/<project slug>/<session id>/scratchpad`: the transcript is
 `<config dir>/projects/<project slug>/<session id>.jsonl`, where the config
-directory is `$CLAUDE_CONFIG_DIR` when set and `~/.claude` otherwise. Then, in
-a POSIX shell with `T` the transcript path:
+directory is `$CLAUDE_CONFIG_DIR` when set and `~/.claude` otherwise. Then,
+with `T` the transcript path and `$TANTO` the skill's own directory, **both
+set in the same tool call as the command**:
 
 ```bash
-b=$(wc -c < "$T"); r=$(wc -l < "$T")
-w=$(grep '"type":"user"' "$T" | grep -vc '"tool_result"')
-c=$(grep '"type":"user"' "$T" | grep -v '"tool_result"' | grep -Ec '"(content|text)":"This session is being continued from a previous conversation')
-echo "transcript: $b B, $r records, $w wake-ups, $c compactions"
-e=$(grep '"type":"assistant"' "$T" | tail -n 1 | grep -oE '"(perTurnEffort|effort)":"[a-z]+"' | sort -r | head -n 1 | cut -d'"' -f4); echo "effort=${e:-unknown}"
+node "$TANTO/scripts/reading.js" "$T"
 ```
 
+That prints two lines always: the reading, then the effort. Three more are
+printed only when asked for, and the sections that ask name the switch:
+`--role kanri|jisso` prints the ceiling line, `--presence` the human line, and
+`--backstop` the auto-compact line, which needs `--role` because its verdict is
+against the ceiling. A second form,
+`node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]`,
+prints the share of usage spent at a large context across several transcripts,
+and Kanri runs it once, at the plan close. Three further switches — `--now`,
+`--config`, `--settings` — fix the clock, the personal config and the settings
+file; they exist for the tests and for a Kanri verifying a peer's reading, and
+no role file passes them.
+
 - **Bytes** and **records** are the file's size and its line count, one JSON
-  record per line.
-- **Wake-ups** are the records of `type: user` that carry no tool result: one
-  per human message, peer message, or idle notice, each the start of a turn
-  that re-reads the whole context. The test is a substring of the line, so
-  the count may be off by one.
+  record per line. A line that does not parse as JSON is counted in records
+  and nowhere else, so a truncated last line written while the harness is
+  mid-write does not fail the reading.
+- **Wake-ups** are the records of `type: user` whose `message.content` is not
+  an array carrying a `tool_result` block: one per human message, peer
+  message, idle notice, or subagent completion, each the start of a turn that
+  re-reads the whole context.
 - **Compactions** are the wake-ups whose text begins with the harness's
-  phrase. The check is on the record type and the text's first characters; a
-  plain grep for the phrase over-counts, because the phrase also appears in
-  tool output and in this file. The phrase is the harness's and may change: a
-  reworded one reads as `0`, and a compaction the session notices for itself
-  is still the signal it always was.
-- **Effort** is not one of the four figures. It is the last `assistant`
-  record's `perTurnEffort`, or its `effort` when `perTurnEffort` is absent or
-  is not a quoted string: the pattern matches only a quoted value, so a
-  `perTurnEffort` of `null` falls through to `effort`, and the `sort -r`
-  puts `perTurnEffort` first when the record carries both as strings — and
-  `unknown` when the transcript is unavailable or has neither in a readable
-  form. The start
+  phrase — `message.content` when it is a string, the first `text` block's
+  text when it is an array. The script parses the record instead of grepping
+  the file, because the phrase also appears in tool output and in this file.
+  The phrase is the harness's and may change: a reworded one reads as `0`, and
+  a compaction the session notices for itself is still the signal it always
+  was.
+- **Context** is the last `assistant` record's `message.usage`, summing
+  `input_tokens`, `cache_creation_input_tokens` and
+  `cache_read_input_tokens`, each taken as `0` when absent, and `0` when no
+  `assistant` record carries a `usage` object. It is that turn's whole prompt
+  in tokens, the cached part included — what the harness billed for that
+  wake-up — and it is the one figure of the five that is a token count.
+- **Effort** is not one of the five figures. It is the last `assistant`
+  record's `perTurnEffort` when that is a string, else its `effort` when that
+  is a string, else `unknown` — so a `perTurnEffort` of `null` falls through
+  to `effort`, and an unavailable transcript reads as `unknown`. The start
   sequence's check and the handshake's `effort=` take it; the reading itself
   travels without it.
 
-The line the command prints is the reading, and it travels as it is: appended
-after ` — ` to the boundary and exit lines the roles already send, and written
-into the batch and Kaiseki reports where their templates have a slot. A
-compaction does not shrink the file, and a tool result is stored at full size,
-so bytes overstate what the context holds; the figures are compared with each
-other across sessions, never with a token count.
+The first line the command prints is the reading, and it travels as it is:
+appended after ` — ` to the boundary and exit lines the roles already send,
+and written into the batch and Kaiseki reports where their templates have a
+slot. A compaction does not shrink the file, and a tool result is stored at
+full size, so bytes overstate what the context holds: bytes and records are
+compared with each other across sessions and with no token count. `context=`
+is the exception, and it is why it was added — it is a token count, it is
+compared with the ceiling `roles/kanri.md` and `roles/jisso.md` derive from
+`tanto.json`'s `ceiling` map, and it is the one figure in this reading that a
+rule acts on.
 
 A session whose transcript is not where this says — another host, a config
 directory the environment does not name, a read the session is not permitted
-— sends `transcript: unavailable — <one line why>` in its place.
+— sends `transcript: unavailable — <one line why>` in its place, which is what
+the script itself prints, at exit 0, followed by `effort=unknown` and no
+further line. That form is a value the roles send, not a failure, and a
+session on which `node` will not run sends it with that as the reason. A
+missing ceiling line is no signal — it is read as `under`, and `unavailable`
+goes where the verdict would; a missing presence line reads as `absent`, which
+is the conservative side. There is no four-figure fallback.
 
 A session whose reading shows a compaction it has not yet reported writes
 every item its summary attributes to the human — "the human said", "ruled",
