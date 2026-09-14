@@ -242,8 +242,9 @@ by explaining in a message. The spec is on the branch and Sekkei is gone, so
 both documents are yours to correct. What you knew and did not write down is
 lost by design; that is what the cold read is for.
 
-That message is your own final boundary, and it is the one boundary you can see
-coming: one message in, one line back. So, after the edits, write your exit
+That message is your own final boundary — the batch boundaries you commit
+at while drafting are another topic's, and this one is yours — and it is
+the one boundary you can see coming: one message in, one line back. So, after the edits, write your exit
 proposal as the bullet below describes, run the self-check of `SKILL.md`'s
 Resuming, and send **one** line carrying every pointer and the proposal:
 
@@ -298,10 +299,10 @@ Two more rules, one at each end of a batch boundary:
   is answered with a second proposal at
   `.tanto/<topic>/exit-keikaku-2-proposal.md` holding only the delta since the
   first, named in the line that reports the work; a proposal you have named is
-  never rewritten, because the recommender may already have read it. When the
-  human does not want the plan now, your exit falls away from this boundary
-  and Kanri sends `exit: propose your shoroku; write it to <path>` as it does
-  for every other role; answer `exit proposal: <path> — <reading>` then.
+  never rewritten, because the recommender may already have read it. An exit that falls away from this boundary — the human not wanting the plan
+  now, a compaction in your reading, a replacement — still arrives as Kanri's
+  `exit: propose your shoroku; write it to <path>`, and you answer
+  `exit proposal: <path> — <reading>` as any other role does.
   You write nothing under `docs/`
   — not at your exit, not ever. A subagent applies the accepted subset in
   Kanri's slot, and your judgment is already in the file.
