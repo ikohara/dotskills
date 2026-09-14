@@ -69,7 +69,11 @@ taking over mid-plan must not create a second ledger.
    a topic whose ledger already exists is named by the handover or the
    roster's Events and is not opened again.
 6. Do the T0 write-out if an input document with decided items exists (see
-   "Shoroku"). Then wait for the human and for handshakes.
+   "Shoroku"). Then wait for the human and for handshakes. When no next work
+   has been named between plans, add to your line to the human a suggestion
+   to open a Kikaku (`/tanto kikaku`) as the place to decide it — a
+   suggestion in your own line, not a lifecycle request and not a roster
+   action.
 
 ### The five cases
 
@@ -806,7 +810,10 @@ a plan branch is named in your merge question.
 
 A live Hosa may be your hand in the lane when you would rather not hold the
 edit: send it the `chore:` line with the paths and the slot. The lane's
-conditions, the ruling `R-n`, and the commit subject stay yours.
+conditions, the ruling `R-n`, and the commit subject stay yours. When a
+filing or a hotfix is pending and the roster has no `live` Hosa row, add to
+your line to the human a suggestion to open one (`/tanto hosa`) — same shape
+as the Kikaku suggestion in "Start".
 
 So that hotfixes reach `docs/` once, carry them forward: when you create a new
 topic's ledger, copy the hotfix lines recorded in the roster's Events since the

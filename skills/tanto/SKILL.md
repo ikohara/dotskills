@@ -1,7 +1,7 @@
 ---
 name: tanto
 description: Use when the user starts or joins a tanto multi-session orchestration run in Claude Code, invoked as `/tanto <role>`, `担当して <role>`, or `tantoして <role>`, where the role word is kanri (管理), sekkei (設計), keikaku (計画), jisso (実装), kaiseki (解析), kikaku (企画), or hosa (補佐) in hiragana, kanji, or romaji. Drives one implementation plan through separate interactive sessions that message each other, composing superpowers brainstorming, writing-plans, subagent-driven development, systematic-debugging, and the shoroku write-out. Claude Code only, because it needs ListAgents and SendMessage.
-argument-hint: kanri | sekkei | keikaku | jisso | kaiseki | kikaku | hosa | fukki | resume
+argument-hint: kanri | sekkei | keikaku | jisso | kaiseki | kikaku | hosa | fukki
 ---
 
 # tanto
@@ -44,7 +44,7 @@ Normalize the role word to its romaji id before anything else.
 | `かいせき`, `解析`, `kaiseki` | `kaiseki` |
 | `きかく`, `企画`, `kikaku` | `kikaku` |
 | `ほさ`, `補佐`, `hosa` | `hosa` |
-| `ふっき`, `復帰`, `fukki`; `resume` as an accepted alias | `fukki` |
+| `ふっき`, `復帰`, `fukki` | `fukki` |
 
 Any other word: say the role is unknown, list those eight ids, and stop.
 
@@ -344,8 +344,7 @@ transcript marks the resume (measured 2026-09-09). Its old address is dead
 from then on. The transcript path the handshake carried is the identity that
 survives, and the roster's Transcript column holds it.
 
-`/tanto fukki`, typed by the human in a window — `resume` is an accepted
-alias of the same id — and the self-check every
+`/tanto fukki`, typed by the human in a window, and the self-check every
 role runs at each of its boundaries are the same act: run `ListAgents` once;
 find the roster row whose Transcript column is this session's own transcript
 path; if the name the listing prints for this session is that row's, nothing
