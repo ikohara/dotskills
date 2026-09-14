@@ -46,7 +46,21 @@ A batch is the task range Kanri's prompt names. Execute those tasks, then
 1. Write `batch-<X>-report.md` in the topic directory, `.tanto/<topic>/`, from
    the tanto skill's `templates/batch-report.md`, taking your own reading
    (`SKILL.md`, "The transcript reading") into its `- Transcript — <reading>`
-   line.
+   line and your own ceiling line — ending `context=<n> <under|over>` — into
+   the `- Ceiling` slot beneath it. One run gives both, with `T` your
+   transcript path and `$TANTO` the skill's own directory, set in the same
+   tool call as the command:
+
+   ```bash
+   node "$TANTO/scripts/reading.js" "$T" --role jisso
+   ```
+
+   You act on neither: Kanri reads the ceiling line with the report's other
+   header lines, and a verdict of `over` there is a Replace symptom on Kanri's
+   side, gated on the human's presence and never your own decision. When the
+   script prints no ceiling line — an unavailable transcript, a `node` that
+   will not run — the Ceiling slot carries `unavailable`, which is a value and
+   not a failure.
 2. Before the line, run the self-check of `SKILL.md`'s Resuming — one
    `ListAgents`; a name that is not your row's means you were resumed, and the
    handshake goes first. Then send Kanri one line with that path.

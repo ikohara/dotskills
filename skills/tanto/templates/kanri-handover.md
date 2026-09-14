@@ -20,6 +20,10 @@ no topic is open. The two lines after the blocks are written once.
   - Ledger — <.tanto/<topic>/kanri.md>
   - Batch state — <"batch <X> accepted, batch <Y> prompt not sent", or "at the
     spec or plan stage, no batches yet">
+  - Deferred — <the ledger's Progress clause, verbatim, when a handover or a
+    Jisso replacement stands deferred on the ceiling and the human's absence;
+    "none" otherwise. The successor re-checks it at its own first check, where
+    a `present` verdict runs what the outgoing session could not.>
 - Peers whose last line this session did not answer — <name> [<ref>] — <the
   line, one per line, or "none">; each re-sends it to the successor's
   `kanri-address:`

@@ -9,6 +9,13 @@ Guard — this prompt belongs to the tanto workspace `.tanto/<topic>/` in
 <One line per point: what Kanri verified in the tree, what was accepted, what
 was returned for rework and why. For the first batch, write "First batch, no
 previous verdict.">
+<When a deferral stands at this boundary, one further line, verbatim — both
+when both stand:
+"Kanri's handover is deferred since <batch X | the spec stage | the plan
+stage> — the ceiling is crossed and the human is absent; this batch runs under
+the same Kanri", and
+"Your replacement is deferred since batch <X> — your ceiling is crossed and
+the human is absent; run this batch and report as usual".>
 
 ## What changes in this batch
 
