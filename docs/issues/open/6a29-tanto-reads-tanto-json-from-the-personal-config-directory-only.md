@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-13
+updated: 2026-09-14
 ---
 
 `skills/tanto/SKILL.md` names one location for the expected-model config:
@@ -41,5 +41,5 @@ subagent on that model" mechanism — is meaningful at the project level.
 
 This is a change to `SKILL.md`'s config section and to every role's start
 sequence, so it belongs to a plan that edits `skills/tanto/` under contract
-rule 11 — the Keikaku split (issue-3c7a) is the natural carrier, since the
-split is what created the need.
+rule 11 — a small topic of its own is the carrier, rather than a rider on a
+plan opened for something else.

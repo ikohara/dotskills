@@ -74,7 +74,12 @@ artifacts.
   something else is reported to the human and never switched silently
   (decision-08bc); a subagent never inherits a model or an effort by
   accident, so no long-output work lands on the strongest model
-  (decision-9a3a).
+  (decision-9a3a). That decision also has a scope: a repository can pin the
+  models its own runs check against without changing the check in the human's
+  other repositories, because the alternative is a personal file written and
+  deleted around every handshake that needs a different model, in every
+  repository the human runs tanto in, where one stale copy silently changes
+  the check everywhere.
 - **State lives in files, not in sessions.** Everything a role needs to resume
   is in the repository's workspace, so any session can be replaced or recreated
   and the run continues from disk. A message between sessions carries one line
