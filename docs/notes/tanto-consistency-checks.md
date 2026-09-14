@@ -612,12 +612,13 @@ done
 Expected: eleven lines. Ten end `-> 1`; two of those ten are `chore:` forms
 and two are `slot:` forms, because each of those lines has a form the sender
 writes and a form Kanri writes, and a prefix grep cannot tell one from the
-other — the rule at the head of this check. The eleventh,
+other — the rule at the head of this check. The remaining one,
 `exit proposal: <path> — <reading>`, ends `-> 3`: that form is both the bare
 answer line a Jisso, Kaiseki, or Kanri exit sends on its own, and the tail
-of each of the two combined report lines above it (`spec accepted: ...` and
-`coldread answered: ...`), so a count of `2` there means one of those two
-seats lost its unasked form. These are the contract's copies only; a role
+of each of the two combined report lines that follow it (`spec accepted:
+...` and `coldread answered: ...`), so a count of `2` there means one of
+those two seats lost its unasked form. These are the contract's copies
+only; a role
 file that repeats a form is pinned where that file's own rows are.
 
 The five triage answers, each exactly once in the contract:
