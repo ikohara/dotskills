@@ -93,8 +93,8 @@ completions. That session was also the first strong session here to hit the
 usage-credit limit, at the T2 commit line.
 
 A token measurement, 2026-09-14, and a correction to the figures above. Taken
-from the transcripts under
-`~/.claude/projects/c--Users-0000105523-devel-dotskills/`: every `assistant`
+from this repository's session transcripts under the user's personal Claude
+Code config directory: every `assistant`
 record carries a `usage` object, and the sum of its `input_tokens`,
 `cache_creation_input_tokens` and `cache_read_input_tokens` is that turn's
 context size in tokens — a direct instrument this issue's readings have not
