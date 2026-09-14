@@ -112,7 +112,7 @@ model with the effort from the defaults.
   consumption that seat may grow by above its own measured baseline, and what
   one batch costs it. `ceiling.presence_minutes` is the window inside which
   the human's last turn in Kanri's own transcript still counts as present, and
-  `ceiling.share_threshold` the context above which a wake-up's usage counts
+  `ceiling.share_threshold` the context above which a turn's usage counts
   toward the share Kanri reports at the plan close. A `ceiling.<role>` for any
   role but those two is an unknown key: Kanri and Jisso are the only seats the
   ceiling replaces, because they are the two that run a whole plan of batches,
