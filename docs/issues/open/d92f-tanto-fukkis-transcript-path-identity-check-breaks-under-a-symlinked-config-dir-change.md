@@ -77,3 +77,18 @@ not a prescribed patch:
 Reporter: `ellmx-fd [05a76d]`, repo `ellmx` (a sibling repository on the same
 machine), 2026-09-14
 (`.tanto/inbox/2026-09-14-fukki-config-dir-mismatch.md`).
+
+## A third data point, 2026-09-14
+
+Measured during the `tanto-context-ceiling` spec work, after an editor
+restart:
+
+- The config directory had moved to `.claude-priv`.
+- The session's transcript existed under **both** config directories at the
+  same size — the same file seen twice, which is the symptom above in its
+  plainest form: the path differs and the file does not.
+- The `agents/` directory under the new config directory held no
+  `tanto-*.md`, so a resumed session's dispatches run without the agent
+  definitions until a fresh session writes them. That half is issue-7c39
+  (resolved); it is recorded here only because both halves were observed in
+  the same event, and a future reader hitting one should expect the other.

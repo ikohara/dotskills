@@ -36,3 +36,8 @@ Keikaku plus its "Exit shoroku" section.
 Not yet scheduled — the topic `tanto-context-ceiling`'s Sekkei decides
 whether it rides there or waits for `tanto-sweep-2` (see that topic's
 `spec-inputs.md` I-2).
+
+The choice itself is now recorded: that Sekkei decided at Q5 that it rides
+with `tanto-context-ceiling`, and decision-d538 holds the decision, its
+options, and its consequences. This issue stays **open** — it tracks the
+change to the sites listed above, which the decision record does not make.

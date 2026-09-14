@@ -130,6 +130,27 @@ Together these say that "the session noticed a compaction" is a very late
 signal on a 1M-window model — it does not fire until roughly 967k — while the
 `usage` sum is available at every single turn.
 
+## `origin.kind` tells the human's turns from a peer's
+
+Measured 2026-09-14 over the transcripts under this project's directory in the
+user's Claude Code config, while the `tanto-context-ceiling` spec was looking
+for a way to tell whether the human was still at the keyboard.
+
+- **Every wake-up record carries `timestamp` and `origin`.** `origin.kind` is
+  one of `human`, `peer`, and `task-notification`; a `peer` origin also
+  carries `name`, `msg_id`, and `body` — the sending session's address, the
+  message's id, and its text.
+- A session can therefore separate the human's turns from a peer's line and
+  from a subagent's completion notice **in its own file**, with no estimate:
+  the last record whose `origin.kind` is `human`, and its timestamp, is the
+  human's last turn in that window.
+
+So "is the human here?" is answerable from a transcript rather than guessed.
+It is what makes a presence gate possible at all: a rule can compare the last
+`human` record's timestamp against a window and act on the verdict. The same
+field, read from another session's transcript path, would widen the verdict
+beyond one window (issue-bf89).
+
 ## A subagent cannot locate its own transcript
 
 Measured 2026-09-14, from the `tanto-context-ceiling` plan's cold read of the

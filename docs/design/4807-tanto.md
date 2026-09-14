@@ -1544,7 +1544,11 @@ confirms a premise has said nothing about the premise.** Before measuring to
 confirm, write down what result would change the answer; if none would, the
 question is wrong and the reading is decoration. This sits beside the related
 failure of recalling a fact about a different host — there the recollection was
-wrong, here it was right and the question was not.
+wrong, here it was right and the question was not. The question form the
+dialogue uses carries the same warning: in the `tanto-context-ceiling` dialogue
+of 2026-09-14 the human's answer to Q1 was a protocol none of the three options
+offered, and it became the design's center — so the options a dialogue puts are
+a prompt, not a menu.
 
 ## What makes a convention bind (req-04f5)
 

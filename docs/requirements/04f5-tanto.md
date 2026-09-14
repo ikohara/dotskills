@@ -46,9 +46,10 @@ artifacts.
   recommended, or the items that go the other way; and the merge decision.
   Beyond those, the human is asked only for what only the human can do:
   create or retire a session when Kanri requests it, confirm the items a
-  compaction summary attributes to the human, and settle a triage or handover
-  question Kanri cannot decide alone. Everything else is a ruling a role
-  records in a file.
+  compaction summary attributes to the human, settle a triage or handover
+  question Kanri cannot decide alone, and give, at a plan close, a figure
+  only the human's own account view shows, answerable with silence.
+  Everything else is a ruling a role records in a file.
 - **The human's counterpart is Kanri.** A role addresses the human directly
   only for what needs the human's eyes or hands, such as a visual check in a
   browser or a GUI, an OS dialog, or a credential, and only after Kanri has
@@ -91,16 +92,20 @@ artifacts.
 - **A run is affordable to keep running.** The sessions that wait — the
   conductor, the executor between batches, a planner between reviews —
   hold the cheap families' contexts; the strongest model is used where it
-  reads once and answers, and its runs per plan are counted.
+  reads once and answers, and its runs per plan are counted. A seat whose
+  remaining act is its own exit does not wait for a line that asks for it.
 - **A session's cost is measured, not guessed.** Every role reads its own
   transcript at its boundaries, the roster keeps the readings of the current
-  run, and the archive keeps them across runs.
+  run, and the archive keeps them across runs. The reading includes the turn's
+  context in tokens, so a cost figure and a ceiling share one instrument.
 - **A seat stays under an operating context ceiling the run chooses.** No
   session is allowed to grow without a bound the run has set for it, so that
   both what the human pays per wake-up and what the model can still attend to
-  stay inside known limits rather than being discovered after the fact. What
-  the ceiling is, and how it is arrived at, is a recorded decision, not a
-  requirement.
+  stay inside known limits rather than being discovered after the fact. The
+  bound is measured in the unit the harness bills — tokens of context per
+  turn — and the run's response to crossing it is timed to the human, since
+  the seat's replacement is the human's act. What the ceiling is, and how it
+  is arrived at, is a recorded decision, not a requirement.
 - **Root cause before more fixing.** When fix rounds fail for a reason nobody
   can name, the strong model leads an interactive root-cause pass; the fix it
   prescribes goes through the ordinary implementation review.
