@@ -143,3 +143,12 @@ the tenure. The bearing on this issue is plain: a handover-timing threshold read
 only off the batch-count and plan-count columns would never have fired for this
 tenure, since both stayed at zero from its first turn to its last. The whole
 cost sat in spec-stage and intake work, which the existing counters do not see.
+
+A data point on the handover's cost itself, 2026-09-14, from
+`C:\Users\0000105523\devel\kuchidome` (tanto, topic `gated-permissions`):
+Kanri changed from `kuchidome-eb` to `kuchidome-0b` between a Sekkei's
+`spec-review:` line and its `review-ready:` line. The `kanri-address:` line
+arrived as a cross-session message; the Sekkei's next three sends went to
+the new name; nothing was lost or repeated. The first Sekkei-side
+observation, in that repository, that a mid-tenure Kanri handover costs the
+peer session nothing.
