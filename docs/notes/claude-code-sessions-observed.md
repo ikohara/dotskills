@@ -130,6 +130,22 @@ Together these say that "the session noticed a compaction" is a very late
 signal on a 1M-window model — it does not fire until roughly 967k — while the
 `usage` sum is available at every single turn.
 
+## A subagent cannot locate its own transcript
+
+Measured 2026-09-14, from the `tanto-context-ceiling` plan's cold read of the
+transcript directory under
+`~/.claude/projects/c--Users-0000105523-devel-dotskills/`.
+
+A subagent's transcript lives at
+`<projects dir>/<parent session id>/subagents/agent-<id>.jsonl`, and the
+subagent does not know its own `<id>`. There is no rule by which a
+`task.implement` dispatch can find its own file.
+
+So any plan that wants a `task.implement` dispatch to read a "real" transcript
+— for a smoke test, or for a context reading — must hand it a concrete path
+the dispatching role already knows (Jisso's own, from the roster). The
+subagent cannot discover one for itself.
+
 ## A peer's resume seen from the sender, and the mistaken window
 
 Observed 2026-09-12, at the second editor restart of the kisou-refresh run.
