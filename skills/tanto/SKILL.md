@@ -602,10 +602,24 @@ restatement of a spec, a plan, a report, or a ledger. Kikaku and Hosa have no
 exit shoroku; the human `/clear`s those windows instead. A standalone Kaiseki
 has no Kanri, and its role file says how.
 
-The lines, each sent without an idle subscription, like every other tanto line.
-Kanri sends `exit: propose your shoroku; write it to <path>`; the session
-writes the proposal, runs the resume self-check, and answers
-`exit proposal: <path> — <reading>`. Kanri checks that the file exists and
+The lines, each sent without an idle subscription, like every other tanto line,
+and in one of two forms. For Jisso, a Kaiseki, and Kanri's own exit, Kanri
+sends `exit: propose your shoroku; write it to <path>`; the session writes the
+proposal, runs the resume self-check, and answers
+`exit proposal: <path> — <reading>`. For a **Sekkei or a Keikaku at its own
+final boundary**, no `exit:` line is sent: that seat writes the proposal
+unasked as the last act of the boundary and names it in the same report line —
+`spec accepted: <spec path>; exit proposal: <path> — <reading>` for Sekkei,
+`coldread answered: <pointer, one per question, or none>; exit proposal: <path> — <reading>`
+for Keikaku — and then idles. Only the timing moves: the proposal is written
+in either flow, the recommender runs once over it, the human's check is on the
+recommendation, and the apply is a subagent's. What the move buys is the gap —
+a seat whose only remaining act is its own exit no longer waits across the
+one-hour prompt-cache TTL for a line that asks for it, and pays no cold read to
+answer (issue-19d4). An exit that falls **away** from that boundary — a
+compaction in the reading, a replacement, the human not wanting the plan now —
+takes the `exit:` line like every other role.
+Kanri checks that the file exists and
 opens with the exclusion line and a numbered list — a direct read, since the
 proposal carries no headings for `sections` to select by — and
 dispatches the recommender at once. When the recommendation is on
