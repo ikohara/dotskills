@@ -41,5 +41,5 @@ Sites: `SKILL.md`'s Workspace section (one shared tree, no worktree by
 default) and Rule 5; `roles/jisso.md`, wherever a `task.implement` subagent
 is told to keep the tree clean of files outside its own task.
 
-Reporter: `ellmx-b5 [d337fe]`, repo `C:\Users\0000105523\devel\ellmx`,
-2026-09-14 (`.tanto/inbox/2026-09-14-shared-tree-held-edit-discarded.md`).
+Reporter: `ellmx-b5 [d337fe]`, repo `ellmx` (a sibling repository on the same
+machine), 2026-09-14 (`.tanto/inbox/2026-09-14-shared-tree-held-edit-discarded.md`).

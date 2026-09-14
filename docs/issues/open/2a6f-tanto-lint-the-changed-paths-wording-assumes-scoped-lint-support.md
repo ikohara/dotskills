@@ -27,5 +27,5 @@ doesn't support scoping, or have tanto check for that support first (e.g.
 whether the wrapper accepts a path / calls `pre-commit run --files`) before
 assuming a scoped lint happened.
 
-Reporter: `ellmx-b5 [d337fe]`, repo `C:\Users\0000105523\devel\ellmx`,
-2026-09-14 (`.tanto/inbox/2026-09-14-lint-scope-wording.md`).
+Reporter: `ellmx-b5 [d337fe]`, repo `ellmx` (a sibling repository on the same
+machine), 2026-09-14 (`.tanto/inbox/2026-09-14-lint-scope-wording.md`).

@@ -16,7 +16,8 @@ changes mid-conversation (for example an editor-wide restart moving it from
 `~/.claude` to a different directory), even when byte-identical
 `tanto-*.md` definition files exist on disk at the new path. Reported:
 after a `/tanto fukki` resume moved `CLAUDE_CONFIG_DIR` from `~/.claude` to
-`C:\Users\0000105523\.claude-priv`, every dispatch naming a `tanto-*`
+a differently-named personal config directory (a profile switch), every
+dispatch naming a `tanto-*`
 `subagent_type` failed immediately, and the harness's "Available agent
 types" listing showed only the six built-in generic agents — none of the
 twelve `tanto-*` kinds — even though the definition files were present,
@@ -42,6 +43,6 @@ identical symptom firsthand during this very run (dispatching the
 `shoroku` kind for Sekkei's exit shoroku after its own config-directory
 move) — corroborating evidence, not a separate incident.
 
-Reporter: `kuchidome-eb [443469]`, repo `C:\Users\0000105523\devel\kuchidome`,
-2026-09-14
+Reporter: `kuchidome-eb [443469]`, repo `kuchidome` (a sibling repository on
+the same machine), 2026-09-14
 (`.tanto/inbox/2026-09-14-agent-type-not-visible-after-config-dir-move.md`).

@@ -39,6 +39,6 @@ decision is re-read at the decision point, not carried from the reader's
 start"; this incident is that bullet's second, sharper recurrence, and
 suggests the general lesson belongs in the skill itself.
 
-Reporter: `kuchidome-eb [443469]`, repo `C:\Users\0000105523\devel\kuchidome`,
-2026-09-14
+Reporter: `kuchidome-eb [443469]`, repo `kuchidome` (a sibling repository on
+the same machine), 2026-09-14
 (`.tanto/inbox/2026-09-14-tanto-json-existence-not-rechecked-at-handshake.md`).
