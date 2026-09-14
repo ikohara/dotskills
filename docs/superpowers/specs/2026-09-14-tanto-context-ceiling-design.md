@@ -491,7 +491,9 @@ one — but the ledger's Measurements table gains a row for it (5.3). When
 the human returns and speaks in Kanri's window, the next boundary's check
 finds `present` and the handover runs; the human's "continue" at that
 boundary declines it as the Handover section already describes, and the
-deferral stands until the next boundary or the close.
+decline ends the deferral for this plan rather than continuing it — the
+human can still call the handover at any check by word (signal 2), and
+signal 1 (the plan close) hands over regardless.
 
 ### 3.3 Jisso: replacement at the boundary
 
