@@ -11,7 +11,10 @@ being waited on, "handover written", or "closed"; plus, while one stands, the
 clause `handover deferred (absent, context=<n>, since <batch X | the spec
 stage | the plan stage>)` or
 `Jisso replacement deferred (absent, context=<n>, since batch <X>)`, kept
-until that handover or replacement runs or the plan closes>
+until that handover or replacement runs or the plan closes; or, once a
+deferred handover's decline is recorded, `handover declined (present,
+context=<n>, at <batch X | the spec stage | the plan stage>)` in its
+place>
 
 ## Plan
 

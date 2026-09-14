@@ -327,17 +327,18 @@ Per batch, in this order.
    stop classes and for a scope or spec change.
 6. **Check the lifecycle tables and the handover trigger.** Take your own
    reading with `--role kanri`, read Jisso's ceiling line from its report's
-   header beside the Transcript line, and rewrite
-   the roster's Residency rows from both, each `context=` figure into that
-   row's Context column. A verdict of `over` on your own ceiling line is
+   header beside the Transcript line, and rewrite the roster's Residency
+   rows — yours from your own reading, Jisso's from its report's, and every
+   other live peer's from the reading its last line carried, as Readings
+   says — each `context=` figure into that row's Context column. A verdict of `over` on your own ceiling line is
    handover signal 4; a verdict of `over` on Jisso's is a Replace symptom.
    Either one is gated on `--presence`, run on your own transcript at this
    check, and an `absent` verdict defers it rather than firing it. Write the
    Measurements per-boundary entry from the two readings, and a Measurements
    deferrals entry for anything deferred here.
    If a create request is due, make it, unless a
-   handover trigger has fired, in which case the successor makes it from the
-   handover's Next step. If a delete or a replace of a live, coherent session
+   handover trigger has fired and is not deferred, in which case the
+   successor makes it from the handover's Next step. If a delete or a replace of a live, coherent session
    is due, or a handover trigger has fired and is not deferred, run the
    proposal half of "Exit
    shoroku" now: send the `exit:` lines to the sessions whose proposal is not
@@ -522,8 +523,10 @@ resumed, and the roster's first row is rewritten before anything else.
 
 **Signals 3 and 4 fire a handover only when the human is present.** Run
 `reading.js` on your own transcript with `--presence` at the check where the
-signal fired. `present` means the handover runs at this check — by the in-plan
-procedure at a boundary, and as between plans when no batch is in flight.
+signal fired. `present` means the handover runs at this check, by whichever procedure the
+open-ledger rule below selects — the in-plan one whenever a ledger is open,
+a topic's spec or plan stage included, and the between-plans one when none
+is.
 `absent` means it is **deferred**: record it as below, continue — the next
 batch prompt at a boundary, the turn's own work otherwise — and re-check at
 every later check, where a `present` verdict runs the handover then. Signal 1,
@@ -555,9 +558,14 @@ is compactions the session noticed, and a crossed ceiling is not one — but the
 ledger's Measurements deferrals row takes an entry for it, naming the stage or
 the batch, the role, the context, and how long ago the human's last turn was.
 When the human returns and speaks in your window, the next check finds
-`present` and the handover runs; a human who says "continue" there declines it
-the way the Handover section already describes, and the deferral stands until
-the next check or the close.
+`present` and the handover runs. A human who says "continue" there declines
+it the way the Handover section already describes, and the decline **ends**
+the deferral rather than continuing it: rewrite the Progress clause to
+`handover declined (present, context=<n>, at <batch X | the spec stage | the plan stage>)`,
+write the Events line the Handover section prescribes, and do not fire
+signal 4 again in this plan — the human has chosen to carry the seat to the
+close, which hands over regardless (signal 1), and can call the handover at
+any check by word (signal 2).
 
 Signals 3 and 4 are the mid-plan cases; signal 2 is any time at all, and a
 human who says "continue" at a plan close declines that close's handover the
@@ -580,20 +588,27 @@ and with that map.
 
 Which procedure follows is decided by whether a ledger is open. A plan close
 has one open until you close it, so it takes the in-plan procedure with the two
-exceptions steps 1 and 3 name.
+exceptions steps 1 and 3 name. In a topic's spec or plan stage, with a ledger
+open and no batch in flight, it is a fresh act like the close's, and its
+commit lands where the tree is — the topic's branch once Sekkei has cut it,
+`main` before that.
 
 ### Timing
 
 Only at a boundary of the topic whose batches are in flight: a batch accepted
 and the next prompt not yet sent, that topic's close once the archive move is
 done, or between plans. Never mid-batch — "never replace mid-batch on
-suspicion" names you too. Another topic's spec or plan stage supplies no
-boundary of this kind and holds no handover of yours. Because the trigger is
+suspicion" names you too. A topic in its spec or plan stage while no batch is in flight counts as
+between plans here: nothing is in flight, and an unanswered line of its
+Sekkei or Keikaku is re-sent to your successor's address. While a batch is
+in flight, another topic's spec or plan stage supplies no boundary of this
+kind and holds no handover of yours. Because the trigger is
 checked before the next prompt is written, a handover that is due stops the
 loop at that point, and the next prompt is the successor's to send. A
 **deferred** handover is not a due one: the ceiling is crossed and the human is
 not there to create your successor, so nothing stops here, the next prompt goes
-out under you, and the deferral is re-checked at the boundary after it.
+out under you, and the deferral is re-checked at the next check — the boundary after
+it, or the next turn while no batch is in flight.
 
 A due handover waits for what this session still owns. Write the handover
 file only after every background agent you dispatched has returned — a
@@ -677,7 +692,8 @@ dispatch, if the recommendation is not already on disk.
    merge (decision-b6cb). **Between plans** it is one act too, and the commit
    lands on `main`.
 2. Write `.tanto/kanri-handover.md` from its template.
-3. **At a batch boundary**, set the ledger's Progress line to "handover
+3. **At a batch boundary**, and in a topic's spec or plan stage, set the
+   ledger's Progress line to "handover
    written". **At a plan close** that line already says "closed", which the
    delete table's row keys on, so leave it and record "handover written by
    `<name> [<ref>]`" as a roster Events line. **Between plans** there is no
@@ -687,9 +703,9 @@ dispatch, if the recommendation is not already on disk.
 
 If the human says "continue" instead of creating the successor, delete the
 handover file, record the declined handover in the roster's Events (the `<k>`
-counter stays), and resume — at loop step 8 at a batch boundary, at the next
-topic's opening after a plan close, or waiting for the next topic between
-plans.
+counter stays), and resume — at loop step 8 at a batch boundary, at the turn's own work
+in a spec or plan stage, at the next topic's opening after a plan close, or
+waiting for the next topic between plans.
 
 ## Shoroku
 
@@ -1072,7 +1088,7 @@ own, one line per item.
 | --- | --- |
 | Jisso is gone — not in `ListAgents`, `SendMessage` errors, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers); ask the human to delete the dead session and create a new Jisso; the next prompt says `resume batch X from task N`; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
 | Jisso context decay — its reading shows a compaction, two consecutive batches needed escalation, or a report says compaction lost rulings | at the batch boundary, ask the human to delete and create; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
-| Jisso's ceiling line says `over` | run `--presence` on your own transcript at that boundary. `present` — run "Exit shoroku" and ask the human to delete and create, the next prompt saying `resume batch X from task N` as for any replacement. `absent` — defer: write the ledger's Progress clause `Jisso replacement deferred (absent, context=<n>, since batch <X>)`, a roster Events line of the same shape as a deferred handover's, and the batch prompt's one-line notice, then re-check at the next boundary. Never at the final batch's boundary: Jisso exits after T2 in any case. The row above it stays — a plan that names the batch count one session should carry still binds — and this row is the measured form of the same idea; a replaced Jisso's baseline is its own first turn, so the ceiling resets with the seat, and the SDD ledger and the batch reports are the recovery point as for any replacement |
+| Jisso's ceiling line says `over` | run `--presence` on your own transcript at that boundary. `present` — run "Exit shoroku" and ask the human to delete and create, the next prompt saying `resume batch X from task N` as for any replacement. `absent` — defer: write the ledger's Progress clause `Jisso replacement deferred (absent, context=<n>, since batch <X>)`, a roster Events line of the same shape as a deferred handover's, and the batch prompt's one-line notice, then re-check at the next boundary. Never at the final batch's boundary: Jisso exits after T2 in any case. The row "Jisso has carried the batches the plan expects of one session" stays — a plan that names the batch count one session should carry still binds — and this row is the measured form of the same idea; a replaced Jisso's baseline is its own first turn, so the ceiling resets with the seat, and the SDD ledger and the batch reports are the recovery point as for any replacement |
 | Sekkei's reading shows a compaction | at its next commit — a verified boundary, or, with no batch in flight, when its work is ready — run "Exit shoroku", then ask the human to delete and create; the dialogue, the drafts, and the reviews on disk are the recovery point, and the new Sekkei takes the spec inputs and `dialogue.md` as its own |
 | Keikaku's reading shows a compaction | at its next commit, as for Sekkei (decision-6dea): run "Exit shoroku", then ask the human to delete and create; the spec, `dialogue.md`, and the plan draft on disk are the recovery point, and the new Keikaku takes them as its own |
 | a Kikaku's or a Hosa's reading shows a compaction | neither is replaced: remind the human to `/clear` that window, mark the row `cleared`, and let the next `/tanto kikaku` or `/tanto hosa` handshake write a new row — what the session produced is already on disk or committed |
@@ -1094,7 +1110,7 @@ session is dead first — uncommitted work may be in the tree.
 | the `coldread answered:` line named the exit proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; ask for its deletion once the recommendation over its exit proposal is on disk; a Keikaku is never reused across topics (decision-f496) |
 | Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; ask for its deletion once the recommendation over its exit proposal is on disk, or keep it if more of the same bug is expected |
 | the final batch is accepted, T2's proposal is written, leftovers are clean, and the human has executed the merge decision | Jisso is done; ask for its deletion once the recommendation over that proposal is on disk, T2 being its exit |
-| Jisso is deleted and the ledger's Progress line says closed | this plan is closed. **First, while every row still carries its Transcript column**, run `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]` over the sessions of **this topic**: every handshake the ledger's Session events accepted for it — Sekkei, Keikaku, Jisso, an attached Kaiseki — and every Kanri whose tenure overlapped it, the current one and any predecessor the Events' handover lines name, each path taken from its roster or archive row. A refused handshake has no row and no transcript and is not in the list; rows of another plan that a shared roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not of this topic and are left out. A path that is denied, `unavailable`, or on another host is skipped and named by the script, and is never read by asking the peer. Record the share line, the sessions it ran over, and the ones it skipped in the Measurements share row; the target is 30% or less. Then ask the human, in one line and in the chat's language, for the Account & Usage view's own figure for the day, and record it beside the proxy — the two are compared, not equated, since that view counts every other workspace and every subagent — and a silence is an answer and a blank. Then mark `dead` the rows of the sessions deleted at this close, move the dead, replaced, and refused rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet, fill the ledger's Measurements fixed rows, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
+| Jisso is deleted and the ledger's Progress line says closed | this plan is closed. **First, while every row still carries its Transcript column**, run `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]` over the sessions of **this topic**: every handshake the ledger's Session events accepted for it — Sekkei, Keikaku, Jisso, an attached Kaiseki — and every Kanri whose tenure overlapped it, the current one and any predecessor the Events' handover lines name, each path taken from its roster or archive row. A refused handshake has no row and no transcript and is not in the list; rows of another plan that a shared roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not of this topic and are left out. A path that is denied, `unavailable`, or on another host is skipped and named by the script, and is never read by asking the peer. Record the share line, the sessions it ran over, and the ones it skipped in the Measurements share row; the target is 30% or less. Then ask the human, in one line and in the chat's language, for the Account & Usage view's own figure for the day, and record it beside the proxy — the two are compared, not equated, since that view counts every other workspace and every subagent — and a silence is an answer and a blank. Then mark `dead` the rows of the sessions deleted at this close, move the dead, replaced, and refused rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet, fill the ledger's remaining Measurements fixed rows, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
 
 The role is resident; the session that carries it is not. A plan's end is a
 boundary like any other for the run, and the next topic starts with a new topic
