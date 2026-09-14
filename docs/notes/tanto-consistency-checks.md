@@ -604,17 +604,21 @@ The line forms the new seats and the limit rule route on, each exactly once
 in the contract:
 
 ```bash
-for s in 'decision: <path>' 'chore: <one line>' 'chore: <what> — <paths> — slot: now | at the next boundary' 'slot-needed: <what> — <paths>' 'slot: now — commit and report' 'slot: at the next boundary' 'paused: <dispatch> on <family> — resets <time>' 'continue: <dispatch> — same model' 'exit proposal: <path> — <reading>' 'spec accepted: <spec path> — <reading>'; do
+for s in 'decision: <path>' 'chore: <one line>' 'chore: <what> — <paths> — slot: now | at the next boundary' 'slot-needed: <what> — <paths>' 'slot: now — commit and report' 'slot: at the next boundary' 'paused: <dispatch> on <family> — resets <time>' 'continue: <dispatch> — same model' 'exit proposal: <path> — <reading>' 'spec accepted: <spec path>; exit proposal: <path> — <reading>' 'coldread answered: <pointer, one per question, or none>; exit proposal: <path> — <reading>'; do
   printf '%s -> %s\n' "$s" "$(grep -cF "$s" skills/tanto/SKILL.md)"
 done
 ```
 
-Expected: ten lines, each ending `-> 1`. Two of the ten are `chore:` forms
+Expected: eleven lines. Ten end `-> 1`; two of those ten are `chore:` forms
 and two are `slot:` forms, because each of those lines has a form the sender
 writes and a form Kanri writes, and a prefix grep cannot tell one from the
-other — the rule at the head of this check. These are the contract's copies
-only; a role file that repeats a form is pinned where that file's own rows
-are.
+other — the rule at the head of this check. The eleventh,
+`exit proposal: <path> — <reading>`, ends `-> 3`: that form is both the bare
+answer line a Jisso, Kaiseki, or Kanri exit sends on its own, and the tail
+of each of the two combined report lines above it (`spec accepted: ...` and
+`coldread answered: ...`), so a count of `2` there means one of those two
+seats lost its unasked form. These are the contract's copies only; a role
+file that repeats a form is pinned where that file's own rows are.
 
 The five triage answers, each exactly once in the contract:
 
