@@ -21,5 +21,11 @@
     "brief.write": { "model": "fable", "effort": "high" },
     "shoroku": { "model": "opus", "effort": "medium" },
     "default": { "model": "sonnet", "effort": "medium" }
+  },
+  "ceiling": {
+    "kanri": { "batches": 2, "per_batch": 65000 },
+    "jisso": { "batches": 2, "per_batch": 65000 },
+    "presence_minutes": 60,
+    "share_threshold": 150000
   }
 }
