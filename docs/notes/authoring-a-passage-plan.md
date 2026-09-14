@@ -131,6 +131,13 @@ with `--fix` before the commit. A block the linter rewrites can never match.
   has to carry it, because a code span cannot: `config:` with an unindented
   `default: false` is two top-level keys, and markdownlint-cli2 discards the
   second — the file silences nothing.
+- **Old and new texts go in fenced `text` blocks, never in code spans**, in a
+  spec or plan that quotes them inline. A passage that itself holds backticks —
+  a `subagent_type:` value, a placeholder — ends a single-backtick span early,
+  and the rest of the line is read as Markdown. Measured on the tanto-sweep-2
+  spec: a first draft written with code spans reported 95 findings (`MD033`,
+  `MD038`) under markdownlint-cli2 with the repository configuration; fencing
+  the same texts as `text` blocks brought it to 0.
 - So the plan-time check is a `--fix` dry run of every new-passage block against
   the **destination's own** lint configuration, not against the repository's
   default. The same gap for non-Markdown targets is issue-f851.

@@ -45,3 +45,12 @@ class this issue is about — a template `markdownlint` never reads — so
 `verify` was the *only* effective check for it. The dispatches for tasks
 18 and 19 were changed to run `verify` before the commit as well as after,
 specifically because of this.
+
+**2026-09-14, tanto-sweep-2's spec phase — a second instance of the same
+pattern.** `.markdownlint-cli2.yaml` also ignores `docs/superpowers/**`, so a
+spec written there is linted by no hook either. It surfaced the same way: the
+spec's first draft carried 95 markdownlint findings (`MD033`, `MD038`) from
+quoting old and new texts in code spans, and nothing at commit time would have
+reported them — they were found only because the author ran the linter by hand
+on a scratch copy. Same shape as the template case above: an ignore entry
+leaves a path that no other hook checks.
