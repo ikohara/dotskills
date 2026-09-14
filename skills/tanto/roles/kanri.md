@@ -232,9 +232,16 @@ Then, in this order.
    against the tree; and the output path, `.tanto/<topic>/coldread.md`. The
    subagent reads the spec whole and the frame, spot-checks the dry-run
    report, and writes a numbered list of open questions, or `none`. Read that
-   file by `sections`, send Keikaku one line per question, and wait for its
-   pointer: it answers by editing the plan or the spec, never by explaining in
-   a message — the spec is on the branch and Sekkei is gone. If the plan
+   file by `sections`, send Keikaku **one message** carrying every question,
+   numbered, or the single line `coldread: none`, and wait for its answer:
+
+   `coldread answered: <pointer, one per question, or none>; exit proposal: <path> — <reading>`
+
+   It answers by editing the plan or the spec, never by explaining in
+   a message — the spec is on the branch and Sekkei is gone. Check each
+   pointer against the tree as you check any pointer, and take Keikaku's exit
+   proposal path from that same line — it wrote the proposal unasked, and no
+   `exit:` goes to it at this boundary. If the plan
    edits this skill's own files,
    record as `R-n`, before any batch prompt or subagent is dispatched, that
    the run's sessions follow the constraints, your orders line, and the
@@ -333,7 +340,10 @@ Per batch, in this order.
    handover's Next step. If a delete or a replace of a live, coherent session
    is due, or a handover trigger has fired and is not deferred, run the
    proposal half of "Exit
-   shoroku" now: send the `exit:` lines, check each proposal and dispatch its
+   shoroku" now: send the `exit:` lines to the sessions whose proposal is not
+   already named — a Sekkei or Keikaku at its own final boundary named it in
+   its report line and is waiting for nothing — check each proposal and
+   dispatch its
    recommender, and write the direction once the human has answered. Delete
    requests wait for step 7.
 
@@ -644,7 +654,10 @@ it at its own first check, where a `present` verdict runs what this session
 could not. Live peers lists every peer of every
 open topic, each with its Topic and what it is waiting for, and marks the ones
 whose last line you had not answered: the successor sends `kanri-address:` to
-all of them, and each answers by re-sending its last unanswered line.
+all of them, and each answers by re-sending its last unanswered line. A Sekkei
+or Keikaku whose last line named an exit proposal is waiting for nothing but
+its deletion, and your successor's first act for it is the recommender
+dispatch, if the recommendation is not already on disk.
 
 ### The handover, in a plan and between plans
 
@@ -796,7 +809,15 @@ the file pattern `exit-<role>[-<suffix>]`; these are your steps.
    subscription, as with every other line you send. The path is
    `.tanto/<topic>/exit-<role>[-<suffix>]-proposal.md`. The session writes it,
    runs its resume self-check, and answers
-   `exit proposal: <path> — <reading>`.
+   `exit proposal: <path> — <reading>`. **Two roles are the exception, at one
+   boundary each**: a Sekkei at its own final boundary names its proposal in
+   its `spec accepted:` line, and a Keikaku at its own names it in its
+   `coldread answered:` line, both unasked and both without being sent
+   anything — for those two, skip this step and go to step 2, whose form check
+   and recommender dispatch follow at once. Every other exit takes the line,
+   this pair included whenever the exit falls elsewhere: a compaction in the
+   reading (decision-6dea), a replacement from the Replace table, or the human
+   not wanting the plan now.
 2. Check the file's form, not its judgment: a direct read, since the
    proposal carries no headings for `sections` to select by, for the
    exclusion line it opens with and the numbered list under it. Then
@@ -1069,11 +1090,11 @@ session is dead first — uncommitted work may be in the tree.
 
 | When | Say |
 | --- | --- |
-| the spec review is accepted and the human's answers to the spec brief are in `dialogue.md` | Sekkei is done; ask for its deletion once the recommendation over its exit proposal is on disk — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
-| the plan has landed and the cold read is answered, or the human does not want the plan now | Keikaku is done; ask for its deletion once the recommendation over its exit proposal is on disk; a Keikaku is never reused across topics (decision-f496) |
+| the spec review is accepted, the human's answers to the spec brief are in `dialogue.md`, and the `spec accepted:` line named the exit proposal | Sekkei is done; ask for its deletion once the recommendation over its exit proposal is on disk — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
+| the `coldread answered:` line named the exit proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; ask for its deletion once the recommendation over its exit proposal is on disk; a Keikaku is never reused across topics (decision-f496) |
 | Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; ask for its deletion once the recommendation over its exit proposal is on disk, or keep it if more of the same bug is expected |
 | the final batch is accepted, T2's proposal is written, leftovers are clean, and the human has executed the merge decision | Jisso is done; ask for its deletion once the recommendation over that proposal is on disk, T2 being its exit |
-| Jisso is deleted and the ledger's Progress line says closed | this plan is closed; mark `dead` the rows of the sessions deleted at this close, move the dead, replaced, and refused rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet, fill the ledger's Measurements fixed row, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
+| Jisso is deleted and the ledger's Progress line says closed | this plan is closed. **First, while every row still carries its Transcript column**, run `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]` over the sessions of **this topic**: every handshake the ledger's Session events accepted for it — Sekkei, Keikaku, Jisso, an attached Kaiseki — and every Kanri whose tenure overlapped it, the current one and any predecessor the Events' handover lines name, each path taken from its roster or archive row. A refused handshake has no row and no transcript and is not in the list; rows of another plan that a shared roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not of this topic and are left out. A path that is denied, `unavailable`, or on another host is skipped and named by the script, and is never read by asking the peer. Record the share line, the sessions it ran over, and the ones it skipped in the Measurements share row; the target is 30% or less. Then ask the human, in one line and in the chat's language, for the Account & Usage view's own figure for the day, and record it beside the proxy — the two are compared, not equated, since that view counts every other workspace and every subagent — and a silence is an answer and a blank. Then mark `dead` the rows of the sessions deleted at this close, move the dead, replaced, and refused rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet, fill the ledger's Measurements fixed rows, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
 
 The role is resident; the session that carries it is not. A plan's end is a
 boundary like any other for the run, and the next topic starts with a new topic
