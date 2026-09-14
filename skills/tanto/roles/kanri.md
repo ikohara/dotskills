@@ -461,12 +461,18 @@ the human is asked about the environment.
 
 ### The trigger
 
-Three signals fire a handover. Check them at the boundaries of the topic whose
+Four signals fire a handover. Check them at the boundaries of the topic whose
 batches are in flight — at loop step 6 — and, between plans, at the start of
-every turn you get, a message or the human speaking. A topic in its spec or
+every turn you get, a message or the human speaking. For signals 1 and 3, a
+topic in its spec or
 plan stage neither fires the check nor blocks it: its Sekkei or Keikaku holds
 nothing you must wait for beyond an unanswered line, which that peer re-sends
-to your successor's address. Run the self-check of `SKILL.md`'s Resuming at the
+to your successor's address. Signal 4 **is** checked in that stage, at the
+start of every turn while no batch is in flight, because your context grows
+there — a T0 shoroku, a bug-report triage, the handshakes, a resume — with no
+batch boundary to catch it; and a handover there is safe on Timing's own
+terms, since nothing is in flight and an unanswered line is re-sent to your
+successor. Run the self-check of `SKILL.md`'s Resuming at the
 same points — one `ListAgents`; a name that is not your row's means you were
 resumed, and the roster's first row is rewritten before anything else.
 
@@ -484,20 +490,74 @@ resumed, and the roster's first row is rewritten before anything else.
    compaction loses nothing the successor cannot read back; it is the harness's
    own signal that the session has grown long, and it is the one signal a
    session can see for itself.
+4. **The ceiling crossed.** At every check — loop step 6 at a boundary, and
+   the start of every turn while no batch is in flight, a topic's spec or plan
+   stage included — take your own reading with `--role kanri` and read its
+   ceiling line. A verdict of `over` is this signal. The ceiling is derived,
+   not configured: your own first turn's context in this transcript, measured
+   from the transcript itself, plus `ceiling.kanri.batches` batches of
+   `ceiling.kanri.per_batch`. It moves when the seat's fixed load moves and
+   when the run's per-batch consumption moves, so a shorter role file or a
+   quieter boundary lowers it without anyone editing a number. A resumed
+   session keeps its transcript and so its baseline.
 
-Signal 3 is the mid-plan case; signal 2 is any time at all, and a human who
-says "continue" at a plan close declines that close's handover the way the
-Handover section already describes. Not the `tokens left` figure the
+**Signals 3 and 4 fire a handover only when the human is present.** Run
+`reading.js` on your own transcript with `--presence` at the check where the
+signal fired. `present` means the handover runs at this check — by the in-plan
+procedure at a boundary, and as between plans when no batch is in flight.
+`absent` means it is **deferred**: record it as below, continue — the next
+batch prompt at a boundary, the turn's own work otherwise — and re-check at
+every later check, where a `present` verdict runs the handover then. Signal 1,
+the plan close, hands over regardless, as decision-b6cb made it; signal 2, the
+human's word, is presence itself. The reason is that a handover is complete
+only when the human creates the successor, and the successor is what sends the
+next batch prompt: a handover written to an empty room stops the run for as
+long as the room is empty, while the batches could have run. Idle costs
+nothing; a stalled run costs the time the human was away. The
+`autoCompactWindow` your start line reported is the net beneath this, and a
+compaction while the human is away is that net doing its work.
+
+A deferred handover is written in three places, so that a successor or a cold
+reader sees it:
+
+- the ledger's Progress line gains the clause
+  `handover deferred (absent, context=<n>, since <batch X | the spec stage | the plan stage>)`,
+  kept until the handover runs or the plan closes;
+- a roster Events line,
+  `<date> — handover deferred at <batch X | the spec stage | the plan stage>: ceiling <c> crossed at context=<n>, human absent (last turn <m> min ago)`;
+  and at the check where it finally runs, the ordinary `handover written by`
+  line, whose Events entry names where the deferral began;
+- the next batch prompt's previous-batch-verdict section carries the one line
+  `templates/batch-prompt.md` holds for it, so that the prompt file the human
+  may paste says what the run's state is.
+
+A deferral counts nothing in the Residency row's Noticed column — that column
+is compactions the session noticed, and a crossed ceiling is not one — but the
+ledger's Measurements deferrals row takes an entry for it, naming the stage or
+the batch, the role, the context, and how long ago the human's last turn was.
+When the human returns and speaks in your window, the next check finds
+`present` and the handover runs; a human who says "continue" there declines it
+the way the Handover section already describes, and the deferral stands until
+the next check or the close.
+
+Signals 3 and 4 are the mid-plan cases; signal 2 is any time at all, and a
+human who says "continue" at a plan close declines that close's handover the
+way the Handover section already describes. Not the `tokens left` figure the
 harness prints in its reminders, whose unit is not documented as the context
-window and whose presence is not guaranteed; and not a threshold on the
-reading, because the plan close arrives first in practice and no number was
-needed. At every check take your own reading (`SKILL.md`, "The transcript
+window and whose presence is not guaranteed: the instrument is the reading's
+own `context=`, the harness's `usage` accounting for the turn it billed, which
+is the token figure issue-40ed asked for. At every check take your own reading
+(`SKILL.md`, "The transcript
 reading") and rewrite your Residency row with it: a compactions figure of `1`
-where you noticed none is signal 3, seen in a file, and counts as noticed. The
-Residency rows, and the archive's rows across runs, are the data a threshold
-for **replacing a peer** will be chosen from, by an ADR, once enough sessions
-have ended (issue-40ed's other half; its handover half closed with
-decision-b6cb).
+where you noticed none is signal 3, seen in a file, and counts as noticed.
+After a compaction your context drops below your own baseline for a turn or
+two and the ceiling verdict reads `under`, which is right: signal 3 is the
+compaction and signal 4 is the growth before it, and one handover answers both
+when it runs. The
+Residency rows, and the archive's Context column across runs, are the data any
+ceiling for the roles that only measure would be chosen from; yours and
+Jisso's are `tanto.json`'s, and issue-40ed's halves closed with decision-b6cb
+and with that map.
 
 Which procedure follows is decided by whether a ledger is open. A plan close
 has one open until you close it, so it takes the in-plan procedure with the two
@@ -511,7 +571,10 @@ done, or between plans. Never mid-batch — "never replace mid-batch on
 suspicion" names you too. Another topic's spec or plan stage supplies no
 boundary of this kind and holds no handover of yours. Because the trigger is
 checked before the next prompt is written, a handover that is due stops the
-loop at that point, and the next prompt is the successor's to send.
+loop at that point, and the next prompt is the successor's to send. A
+**deferred** handover is not a due one: the ceiling is crossed and the human is
+not there to create your successor, so nothing stops here, the next prompt goes
+out under you, and the deferral is re-checked at the boundary after it.
 
 A due handover waits for what this session still owns. Write the handover
 file only after every background agent you dispatched has returned — a
