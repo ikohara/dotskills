@@ -58,7 +58,7 @@ function run(args, extraEnv = {}) {
   delete env.CLAUDE_CODE_AUTO_COMPACT_WINDOW;
   for (const [key, value] of Object.entries(extraEnv)) env[key] = value;
   const result = spawnSync(process.execPath, [SCRIPT, ...args], { encoding: "utf8", env });
-  return { code: result.status, out: result.stdout || "", err: result.stderr || "" };
+  return { code: result.status, out: result.stdout || "", err: result.stderr || "", error: result.error };
 }
 
 function human(timestamp, text) {
@@ -212,7 +212,7 @@ test("the share line weights usage by context across transcripts, with the thres
 
 test("a missing transcript is the unavailable form at exit 0, and a usage error is exit 2", () => {
   const missing = path.join(tmpDir(), "not-here.jsonl");
-  const unavailable = run([missing]);
+  const unavailable = run([missing, "--role", "kanri"]);
   assert.strictEqual(unavailable.code, 0);
   assert.match(unavailable.out, /^transcript: unavailable — .+$/m);
   assert.match(unavailable.out, /^effort=unknown$/m);
