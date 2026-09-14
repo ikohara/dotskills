@@ -235,11 +235,25 @@ Then send Kanri one line naming both, with your reading appended:
 
 ## Handoff
 
-Kanri cold-reads the committed plan and sends you its questions, one line each.
-Answer by **editing the plan or the spec** and sending back a pointer — never
+Kanri cold-reads the committed plan and sends you its questions as **one
+message, numbered** — or the single line `coldread: none`.
+Answer by **editing the plan or the spec** — never
 by explaining in a message. The spec is on the branch and Sekkei is gone, so
 both documents are yours to correct. What you knew and did not write down is
 lost by design; that is what the cold read is for.
+
+That message is your own final boundary, and it is the one boundary you can see
+coming: one message in, one line back. So, after the edits, write your exit
+proposal as the bullet below describes, run the self-check of `SKILL.md`'s
+Resuming, and send **one** line carrying every pointer and the proposal:
+
+```text
+coldread answered: <pointer, one per question, or none>; exit proposal: <path> — <reading>
+```
+
+Then idle. Kanri sends you no `exit:` at this boundary. The `plan committed:`
+line is unchanged and still carries no exit clause: the cold read has not run
+when it is sent, and the human may still not want the plan.
 
 ## Your write and commit rule
 
@@ -269,19 +283,26 @@ Two more rules, one at each end of a batch boundary:
   you were resumed, and the handshake goes first. The authorization lasts until
   you answer or until Kanri's next message, and a commit you did not make
   within that window waits for the next boundary line.
-- **Your exit shoroku.** Kanri sends
-  `exit: propose your shoroku; write it to <path>` at the plan's landing, once
-  the cold read is answered — or earlier, when the human does not want the
-  plan now. The stage word is `exit-keikaku`, no suffix, and the proposal goes
+- **Your exit shoroku.** You write it **unasked**, after the cold-read edits
+  and before the `coldread answered:` line above, and you name it in that same
+  line. The stage word is `exit-keikaku`, no suffix, and the proposal goes
   to `.tanto/<topic>/exit-keikaku-proposal.md`. Your candidates are the
   **delta**: the first line says what the proposal excludes — the plan, the
   dry-run report, and the plan review, which are on disk for anyone to read —
   and the items are the plan dialogue's rejected alternatives with their
   reasons, the facts measured while drafting, the observations about the
-  process, and the defects noticed. Run the self-check of `SKILL.md`'s
-  Resuming, answer `exit proposal: <path> — <reading>`, and stop there: Kanri
+  process, and the defects noticed. Then stop there: Kanri
   dispatches the recommender over your proposal, and once it is on disk and
-  its recommendation written you are deleted. You write nothing under `docs/`
+  its recommendation written you are deleted. Work that reaches you after that
+  line — a report that conflicts with the plan, a second cold-read question —
+  is answered with a second proposal at
+  `.tanto/<topic>/exit-keikaku-2-proposal.md` holding only the delta since the
+  first, named in the line that reports the work; a proposal you have named is
+  never rewritten, because the recommender may already have read it. When the
+  human does not want the plan now, your exit falls away from this boundary
+  and Kanri sends `exit: propose your shoroku; write it to <path>` as it does
+  for every other role; answer `exit proposal: <path> — <reading>` then.
+  You write nothing under `docs/`
   — not at your exit, not ever. A subagent applies the accepted subset in
   Kanri's slot, and your judgment is already in the file.
 

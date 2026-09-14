@@ -100,9 +100,13 @@ in the brief's reply shape. A new brief is written when the human asks for
 one, or when the document's judgment points changed after the answers — a
 fixed input, a rejected alternative, a deferred item — not when its prose did.
 
-Your tenure ends here. When the human's answers are in `dialogue.md` and the
-edits they asked for are committed — or in the draft — send Kanri
-`spec accepted: <spec path> — <reading>`. Kanri answers with `exit:`, and the
+Your tenure ends here, and your exit shoroku is part of it. When the human's
+answers are in `dialogue.md` and the edits they asked for are committed — or
+are in the draft — write your exit proposal as the bullet below describes, run
+the self-check of `SKILL.md`'s Resuming, and send Kanri **one** line naming
+both: `spec accepted: <spec path>; exit proposal: <path> — <reading>`. Then
+idle. Kanri sends you no `exit:` at this boundary; it dispatches the
+recommender at once, and the
 plan is Keikaku's from then on.
 
 ## Your write and commit rule
@@ -135,18 +139,28 @@ Two more rules, one at each end of a batch boundary:
   you were resumed, and the handshake goes first. The authorization lasts until
   you answer or until Kanri's next message, and a commit you did not make
   within that window waits for the next boundary line.
-- **Your exit shoroku.** Before the human deletes you, Kanri sends
-  `exit: propose your shoroku; write it to <path>`. Your candidates are the
+- **Your exit shoroku.** You write it **unasked**, at your own final boundary,
+  as the last act before the `spec accepted:` line above, and you name it in
+  that same line.
+  Your candidates are the
   **delta**. T1 has not run when you exit, so the proposal's first line says
   what it excludes — the spec, the spec review, and the dialogue, which T1
   reads for itself — and the items are the dialogue's rejected alternatives
   with their reasons, the facts measured during the dialogue, the
   observations about the process, and the defects noticed. The stage word is
   `exit-sekkei`, no suffix, and the proposal goes to
-  `.tanto/<topic>/exit-sekkei-proposal.md`. Run the self-check of
-  `SKILL.md`'s Resuming, answer `exit proposal: <path> — <reading>`, and stop
+  `.tanto/<topic>/exit-sekkei-proposal.md`. Then stop
   there: Kanri dispatches the recommender over your proposal, and once it is
-  on disk and its recommendation written you are deleted. You write nothing
+  on disk and its recommendation written you are deleted. If more work reaches
+  you after that line — a cold-read question that changes the spec, a review
+  answer that changes it — write a second proposal at
+  `.tanto/<topic>/exit-sekkei-2-proposal.md` holding only the delta since the
+  first, and name it in the line that reports the work; a proposal you have
+  named is never rewritten, because the recommender may already have read it.
+  An exit that falls away from this boundary — a compaction in your reading, a
+  replacement — still arrives as Kanri's
+  `exit: propose your shoroku; write it to <path>`, and you answer
+  `exit proposal: <path> — <reading>` as any other role does. You write nothing
   under `docs/` — not at your exit, not ever. A subagent applies the accepted
   subset in Kanri's slot, and your judgment is already in the file.
 
