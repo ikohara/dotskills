@@ -490,9 +490,9 @@ nothing you must wait for beyond an unanswered line, which that peer re-sends
 to your successor's address. Signal 4 **is** checked in that stage, at the
 start of every turn while no batch is in flight, because your context grows
 there — a T0 shoroku, a bug-report triage, the handshakes, a resume — with no
-batch boundary to catch it; and a handover there is safe on Timing's own
-terms, since nothing is in flight and an unanswered line is re-sent to your
-successor. Run the self-check of `SKILL.md`'s Resuming at the
+batch boundary to catch it;
+and Timing below admits a handover there, for the reason it gives. Run the
+self-check of `SKILL.md`'s Resuming at the
 same points — one `ListAgents`; a name that is not your row's means you were
 resumed, and the roster's first row is rewritten before anything else.
 
