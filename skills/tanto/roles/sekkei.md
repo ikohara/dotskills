@@ -152,7 +152,7 @@ Two more rules, one at each end of a batch boundary:
   `.tanto/<topic>/exit-sekkei-proposal.md`. Then stop
   there: Kanri dispatches the recommender over your proposal, and once its
   recommendation is on disk Kanri asks the human to delete you; the deletion
-  may lag that ask, and work that reaches you in the gap — a cold-read
+  may lag that ask. If more work reaches you in that gap — a cold-read
   question that changes the spec, a review answer that changes it — write a
   second proposal at
   `.tanto/<topic>/exit-sekkei-2-proposal.md` holding only the delta since the
