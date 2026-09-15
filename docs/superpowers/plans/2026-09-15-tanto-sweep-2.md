@@ -97,8 +97,9 @@ both are named here so that Kanri can rule on the difference.
    because a pre-spec act is ruled **before** Sekkei's spec and that section is
    later than that. P6.3 anchors on that section's own rule-11 ruling sentence
    (`roles/kanri.md`, where rulings-at-landing are written already) — a
-   defensible reading, not the spec's own literal words. Whether the site is
-   right is Kanri's to rule.
+   defensible reading, not the spec's own literal words. Confirmed by Kanri
+   directly, 2026-09-15 (`.tanto/tanto-sweep-2/old-text-check.md` is
+   Keikaku's own record of the re-grep, not itself the ruling).
 
 Two further differences of wrapping, recorded because they change what a block
 quotes but not what it means: `roles/kanri.md`'s step 6 wraps
@@ -141,11 +142,10 @@ run from PowerShell or `cmd`.
   (Windows: `scripts\lint.bat`); this repository's script always takes
   explicit paths — name every one.
 - Commit by explicit path with `git commit --only <paths>`; the index is
-  shared. This plan creates one tracked file inside a task's own passage
-  block, `skills/tanto/templates/shoroku-brief.md` (task 10); that task runs
-  `git add <path>` first — `--only` cannot pick up an untracked path. Task
-  14's dogfood report is a second new file, added the same way, but is not
-  part of the `created:` accounting below (see "The created path").
+  shared. This plan creates two tracked files, each `created:` (see "The
+  created paths"): `skills/tanto/templates/shoroku-brief.md` (task 10) and
+  `docs/reports/2026-09-15-tanto-sweep-2-dogfood.md` (task 14); both tasks
+  run `git add <path>` first — `--only` cannot pick up an untracked path.
 - Every commit message ends with a `Co-Authored-By:` trailer identifying the
   agent. **Every commit fence in this plan was written by the drafter, on
   `opus`, and ends `Co-Authored-By: Claude Opus 5 (1M context)
@@ -230,18 +230,17 @@ throughout, not merely at batch E.
 
 ### `diff`'s base is resolved once, at the plan's landing — not `git merge-base main HEAD`
 
-This branch (`tanto-sweep-2`) carries two commits before task 1: the spec
-commit ("docs: commit tanto-sweep-2 design spec", touching only the spec
-file — none of the seventeen File-structure paths) and, landed on the shared
-checkout after it, Hosa's chore commit ("docs(issues): file issue-a4c7 from
-a kuchidome bug report", touching `docs/issues/open/a4c7-*.md` — also none
-of the seventeen paths, and not this topic's to account for). `diff` diffs
-the **whole repository** against
-its base, with no path scoping beyond `created:` and the plan's own path, so
-neither commit's lines may sit inside the diffed range at any boundary, or
-every one of them reports as `unaccounted-added` forever. `git merge-base
-main HEAD` does **not** exclude them — that resolves to `main`'s own tip,
-before either commit.
+This branch (`tanto-sweep-2`) carries commits before the plan's own that
+touch none of the seventeen File-structure paths — the spec commit ("docs:
+commit tanto-sweep-2 design spec") and, landed on the shared checkout after
+it, Hosa's chore commit ("docs(issues): file issue-a4c7 from a kuchidome bug
+report") were two as this section was drafted; more of the same shared-branch
+kind can land before task 1 and are not this topic's to account for. `diff`
+diffs the **whole repository** against its base, with no path scoping beyond
+`created:` and the plan's own path, so a pre-existing commit's lines may sit
+inside the diffed range at any boundary, or it reports as `unaccounted-added`
+forever. `git merge-base main HEAD` does **not** exclude any of them — that
+resolves to `main`'s own tip, before all of them.
 
 The right base is the **current tip, resolved once, right before task 1's
 first commit** — after which it is a fixed value, not re-derived at each
@@ -255,15 +254,15 @@ git log --format=%H main..HEAD -- skills/tanto/SKILL.md skills/tanto/roles skill
 
 A hash printed here is the base directly — the newest commit on the branch
 that already touches one of these paths, correctly excluded from the diffed
-range. Measured 2026-09-15, before task 1: this instead returns nothing
-(neither pre-existing commit touches these paths), so the resolved base is
-the plain tip, `git rev-parse HEAD`, at that moment Hosa's chore commit.
-**No commit hash is written here** — a hash in tracked content goes stale
-the first rebase — the ledger carries the resolved value, and every `diff`
-call in "How a batch is verified" below is a hand-run check that names it
-explicitly rather than a fence, because the value cannot be re-derived live
-inside a static fence once later tasks' own commits move `HEAD` further.
-**A later re-derivation
+range. If it instead returns nothing (none of the commits before the plan's
+own touch these paths), the resolved base is the plain tip at that moment,
+`git rev-parse HEAD`. **No commit hash is written here** — a hash in tracked
+content goes stale the first rebase — the ledger carries the resolved value
+(R-7 records what this run resolved to, at the plan's own landing), and
+every `diff` call in "How a batch is verified" below is a hand-run check
+that names it explicitly rather than a fence, because the value cannot be
+re-derived live inside a static fence once later tasks' own commits move
+`HEAD` further. **A later re-derivation
 that yields a different hash is a stop, not a recompute**: nothing should
 land on these paths between boundaries while this plan is in flight
 (`SKILL.md` Rule 5).
@@ -305,8 +304,11 @@ with the half-edited skill in view.
 Kanri uses the **interim form** (rendering the whole recommendation itself,
 the 2026-09-14 hotfix) for any shoroku stage that falls before batch D's
 tasks land, and the **full form** (the check brief, checked by `grep`) from
-the first shoroku stage after batch D is accepted. Task 14's dogfood report
-records which form ran at that first stage.
+the first shoroku stage after batch D is accepted. Under this topic's own
+ledger R-4, that first stage is T2 — no interim stage runs before then — so
+Task 14's dogfood report does **not** record which form ran at it (R-5): the
+check-brief-as-run measurement is deferred to T2 itself, per Task 14's own
+note.
 
 ---
 
@@ -324,11 +326,11 @@ is told the batch is verified.
 
 | Batch | Tasks | Delivers | Stop conditions at the boundary |
 | --- | --- | --- | --- |
-| A | 1 `SKILL.md`'s two rules, the cap's five sites, three dispatch sentences; 2 the enumeration and copied-string sweep across six files; 3 checks 20 and 21 in the note | the contract's rules at one number each, and six stale enumerations re-synchronized (check 20's `Fourteen of them:` line reads `0` until batch D lands it) | `verify --task 1..3` clean; `diff --base <the ledger's resolved value>` clean (Kanri, by hand); lint clean on the batch's own changed paths, named individually from File structure (Kanri, by hand); `mise x node@22 -- node --test skills/tanto/scripts/` passes (Kanri, by hand — Global Constraints' `replay-skip`); checks 20 and 21's content greps (`docs/notes/tanto-consistency-checks.md`) print their recorded values, `Fourteen of them:` expected `0` until D (Kanri, by hand) |
-| B | 4 the commit window, the third shoroku dispatch, Hosa's two lines; 5 Timing and the handover template's unanswered mark; 6 the workspace listing, the dispatch tally, the pre-spec closure clause | `roles/kanri.md` and `templates/kanri.md` fully consistent on the commit window, Hosa's channel, Timing, and the two post-merge placements `old-text-check.md` ruled | `verify --task 4..6` clean; `diff --base <the ledger's resolved value>` clean (Kanri, by hand); lint clean on the batch's own changed paths (Kanri, by hand); `mise x node@22 -- node --test skills/tanto/scripts/` passes (Kanri, by hand); `grep -c 'pre-spec' skills/tanto/roles/kanri.md` and a read of `templates/kanri.md`'s Progress placeholder confirm P6.3 and P6.4 landed exactly where `old-text-check.md` ruled (Kanri, by hand) |
-| C | 7 `roles/sekkei.md`'s review gates and the fixed referent; 8 `roles/keikaku.md`, the same plus two drafting conventions; 9 `roles/kikaku.md`'s scope and model rule, and the `shoroku` baseline sentence on both sides | the three authoring/thinking role files under the same review-gate, dialogue, and fixed-referent rules, and Kikaku narrowed to what it actually writes | `verify --task 7..9` clean; `diff --base <the ledger's resolved value>` clean (Kanri, by hand); lint clean on the batch's own changed paths (Kanri, by hand); `mise x node@22 -- node --test skills/tanto/scripts/` passes (Kanri, by hand); the string `git hash-object` present once each in `roles/sekkei.md`, `roles/keikaku.md`, and `templates/review-brief.md`'s `Document:` line — `grep -c 'git hash-object'` → `1 1 1` (Kanri, by hand, one `grep -c`) |
-| D | 10 `templates/shoroku-brief.md` (created), `shoroku`'s recommend mode, the note's four structural counts; 11 `roles/kanri.md`'s check step and Exit shoroku step 3, `SKILL.md`'s "Session exit" whole, and the `Unsure` spelling at every reader; 12 checks 18 and 19, and both READMEs' drift review | the check brief, whole — the one batch that changes behavior. **From this boundary, this run's own Kanri switches to the full check-brief form** (Global Constraints, "the shoroku check-brief switch") | `verify --task 10..12` clean; `diff --base <the ledger's resolved value>` clean except any extra lines in the two READMEs from task 12 Step 5's own drift review, each traceable to that step's record in the batch report (Kanri, by hand); lint clean on the batch's own changed paths (Kanri, by hand); `mise x node@22 -- node --test skills/tanto/scripts/` passes (Kanri, by hand); `git ls-files --eol skills/tanto/templates/shoroku-brief.md` reports `i/lf w/crlf` (Kanri, by hand); checks 18 and 19's content greps print their recorded values, and both READMEs' drift-review finding is recorded in task 12's own batch report (Kanri, by hand) |
-| E | 13 the whole-tree `O` sweep and the note's checks re-run (sweep-and-check); 14 the dogfood report (sweep-and-check) | the proof that no old text or old enumeration survives anywhere in `skills/tanto/`, `skills/shoroku/`, or the consistency note, and the dogfood measurement recorded once a stage has actually run under the full check-brief form (see Task 14's own note on timing — open point, blocking finding 1 of the plan review) | `verify --task 13..14` clean (both report `no passages`, a result and not a failure); `diff --base <the ledger's resolved value>` clean, `docs/reports/2026-09-15-tanto-sweep-2-dogfood.md` reported exempt as `created:` (Kanri, by hand); lint clean on the changed/created paths (Kanri, by hand); all 32 `O` needles at their stated disposition, including O2.4's documented residual (Kanri, by hand); the note's checks 1 to 9 and 16 to 21 re-run with output recorded (Kanri, by hand); `git ls-files --eol docs/reports/2026-09-15-tanto-sweep-2-dogfood.md` reports `i/lf w/crlf` (Kanri, by hand) |
+| A | 1 `SKILL.md`'s two rules, the cap's five sites, three dispatch sentences; 2 the enumeration and copied-string sweep across six files; 3 checks 20 and 21 in the note | the contract's rules at one number each, and six stale enumerations re-synchronized (check 20's `Fourteen of them:` line reads `0` until batch D lands it) | one `verify --task <N>` call per task, 1 to 3, each clean; `diff --base <the ledger's resolved value>` clean (Kanri, by hand); lint clean on the batch's own changed paths, named individually from File structure (Kanri, by hand); `mise x node@22 -- node --test skills/tanto/scripts/` passes (Kanri, by hand — Global Constraints' `replay-skip`); check 20's content grep (`docs/notes/tanto-consistency-checks.md`) prints its recorded values, `Fourteen of them:` expected `0` until D; check 21 is the lesson entry spec 8.4 says carries no `grep` (Kanri, by hand) |
+| B | 4 the commit window, the third shoroku dispatch, Hosa's two lines; 5 Timing and the handover template's unanswered mark; 6 the workspace listing, the dispatch tally, the pre-spec closure clause | `roles/kanri.md` and `templates/kanri.md` fully consistent on the commit window, Hosa's channel, Timing, and the two post-merge placements confirmed against "Open points from the post-merge re-grep" | one `verify --task <N>` call per task, 4 to 6, each clean; `diff --base <the ledger's resolved value>` clean (Kanri, by hand); lint clean on the batch's own changed paths (Kanri, by hand); `mise x node@22 -- node --test skills/tanto/scripts/` passes (Kanri, by hand); `grep -c 'pre-spec' skills/tanto/roles/kanri.md` and a read of `templates/kanri.md`'s Progress placeholder confirm P6.3 and P6.4 landed exactly as "Open points from the post-merge re-grep" describes (Kanri, by hand) |
+| C | 7 `roles/sekkei.md`'s review gates and the fixed referent; 8 `roles/keikaku.md`, the same plus two drafting conventions; 9 `roles/kikaku.md`'s scope and model rule, and the `shoroku` baseline sentence on both sides | the three authoring/thinking role files under the same review-gate, dialogue, and fixed-referent rules, and Kikaku narrowed to what it actually writes | one `verify --task <N>` call per task, 7 to 9, each clean; `diff --base <the ledger's resolved value>` clean (Kanri, by hand); lint clean on the batch's own changed paths (Kanri, by hand); `mise x node@22 -- node --test skills/tanto/scripts/` passes (Kanri, by hand); the string `git hash-object` present once each in `roles/sekkei.md`, `roles/keikaku.md`, and `templates/review-brief.md`'s `Document:` line — `grep -c 'git hash-object'` → `1 1 1` (Kanri, by hand, one `grep -c`) |
+| D | 10 `templates/shoroku-brief.md` (created), `shoroku`'s recommend mode, the note's four structural counts; 11 `roles/kanri.md`'s check step and Exit shoroku step 3, `SKILL.md`'s "Session exit" whole, and the `Unsure` spelling at every reader; 12 checks 18 and 19, and both READMEs' drift review | the check brief, whole — the one batch that changes behavior. **From this boundary, this run's own Kanri switches to the full check-brief form** (Global Constraints, "the shoroku check-brief switch") | one `verify --task <N>` call per task, 10 to 12, each clean; `diff --base <the ledger's resolved value>` clean except any extra lines in the two READMEs from task 12 Step 5's own drift review, each traceable to that step's record in the batch report (Kanri, by hand); lint clean on the batch's own changed paths (Kanri, by hand); `mise x node@22 -- node --test skills/tanto/scripts/` passes (Kanri, by hand); `git ls-files --eol skills/tanto/templates/shoroku-brief.md` reports `i/lf w/crlf` (Kanri, by hand); checks 18 and 19's content greps print their recorded values, and both READMEs' drift-review finding is recorded in task 12's own batch report (Kanri, by hand) |
+| E | 13 the whole-tree `O` sweep and the note's checks re-run (sweep-and-check); 14 the dogfood report (sweep-and-check) | the proof that no old text or old enumeration survives anywhere in `skills/tanto/`, `skills/shoroku/`, or the consistency note, and the dogfood's issues-closed and readings sections (R-5: the check-brief-as-run measurement is deferred to T2, not recorded here) | one `verify --task <N>` call per task, 13 and 14, each clean (both report `no passages`, a result and not a failure); `diff --base <the ledger's resolved value>` clean except (a) the same two READMEs' extra lines from task 12 Step 5 that were already the exception at D's boundary — the base is fixed, so they persist as unaccounted here too, traceable to that step's record — and (b) any figure task 13 Step 6 corrects in `docs/notes/tanto-consistency-checks.md`, traceable to that step's own commit or "nothing to commit" in the batch report; `docs/reports/2026-09-15-tanto-sweep-2-dogfood.md` reported exempt as `created:` (Kanri, by hand); lint clean on the changed/created paths (Kanri, by hand); all 32 `O` needles at their stated disposition, including O2.4's documented residual (Kanri, by hand); the note's checks 1 to 9 and 16 to 20 re-run with output recorded (Kanri, by hand); `git ls-files --eol docs/reports/2026-09-15-tanto-sweep-2-dogfood.md` reports `i/lf w/crlf` (Kanri, by hand) |
 
 **Batch internal order.** A is sequential: task 1 lands the rules and cap
 sites every later task's review reads against, task 2 the enumeration sweep,
@@ -365,8 +367,9 @@ pattern `boundary` also honors would silently remove a check from the fenced
 set (`./scripts/lint.sh` and `mise x node@22` are both declared skip
 patterns in Global Constraints, and the lint and test-suite checks below
 would be silently skipped if fenced here — so they are not fenced) or
-because the command needs a value — a task range, a batch's own changed-path
-list, the `diff` base Global Constraints has Kanri resolve once and record in
+because the command needs a value — a task number (`verify` takes one, never
+a range), a batch's own changed-path list, the `diff` base Global Constraints
+has Kanri resolve once and record in
 the ledger rather than re-derive live inside a fence — no fixed fence can
 carry.
 
@@ -386,10 +389,10 @@ git log --format=%H main..HEAD -- skills/tanto skills/shoroku docs/notes/tanto-c
 ```
 
 Expected: `every commit of this plan carries its trailer`. Scoped to the
-paths this plan writes; the range also catches the two pre-existing commits
-Global Constraints' "`diff`'s base" names (the spec commit and Hosa's chore
-commit), which is not a problem — each carries its own proper trailer and
-this check does not care which commit wrote it, only that every commit in
+paths this plan writes; the range also catches the commits before the
+plan's own that Global Constraints' "`diff`'s base" describes, which is not
+a problem — each carries its own proper trailer and this check does not
+care which commit wrote it, only that every commit in
 range has one.
 
 **What Kanri runs by hand, and why it is not a fence.** `diff --plan
@@ -417,8 +420,10 @@ created (`skills/tanto/templates/shoroku-brief.md` at D,
 w/crlf`. The content greps of `docs/notes/tanto-consistency-checks.md`'s own
 numbered checks that the boundary's own batch lands, named in the Batches
 table's Stop conditions column, each run and its output recorded rather than
-only its exit status read. `verify --plan docs/superpowers/plans/2026-09-15-tanto-sweep-2.md
---task <the batch's task range>`, which needs the range as a value.
+only its exit status read. One `verify --plan
+docs/superpowers/plans/2026-09-15-tanto-sweep-2.md --task <N>` call per task
+of the batch — `verify` takes a single task number, never a range — which
+needs each task's own number as a value.
 
 ---
 
@@ -3037,10 +3042,11 @@ forever; not fenced here for the same reason it is not fenced there, since a
 placeholder value cannot be a literal, runnable command).
 
 Expected: every changed line accounted for by a block of this plan, with
-both `created:` paths recognized (`skills/tanto/templates/shoroku-brief.md`
-and, from task 14, not yet landed) and the two READMEs' extra lines from
-task 12's drift review reported as `unaccounted-added`, each traceable to
-that step's record.
+`skills/tanto/templates/shoroku-brief.md` reported exempt as `created:`
+(the dogfood report's own `created:` path, `docs/reports/2026-09-15-tanto-sweep-2-dogfood.md`,
+does not exist yet — task 14 runs after this one) and the two READMEs' extra
+lines from task 12's drift review reported as `unaccounted-added`, each
+traceable to that step's record.
 
 - [ ] **Step 6: Lint and commit whatever the recorded figures changed**
 
@@ -3081,24 +3087,22 @@ than reasoned to.
 that file's content is recorded output rather than designed text, and nothing in
 the skill changes. It runs **last**.
 
-**Open point, unresolved as this plan is committed — Kanri's to rule
-before this task runs (plan review finding 1).** Spec section 10's E2 assumes
-"the check brief as run at the first stage after batch D is accepted," but no
-shoroku stage the contract schedules (T1 at plan landing, an exit at its own
-boundary, T2 after the final batch) falls between batch D's boundary and this
-task — and this topic's own ledger R-4 additionally consolidates every
-check to this topic's eventual T2, so no interim stage runs at all before
-then. **This task cannot measure a check-brief run that has not happened by
-the time it runs.** Keikaku's recommendation, pending Kanri's ruling: this
+**Settled by Kanri's ruling R-5 (plan review finding 1).** Spec section 10's
+E2 assumed "the check brief as run at the first stage after batch D is
+accepted," but no shoroku stage the contract schedules (T1 at plan landing,
+an exit at its own boundary, T2 after the final batch) falls between batch
+D's boundary and this task — and this topic's own ledger R-4 additionally
+consolidates every check to this topic's eventual T2, so no interim stage
+runs at all before then. **This task cannot measure a check-brief run that
+has not happened by the time it runs.** R-5 adopts Keikaku's option (a): this
 task writes only sections 4 and 5 below (issues closed, the readings), which
 are knowable at batch E's own boundary; sections 1 to 3 (the check brief as
 run, the timing comparison, the `Unsure` read) are recorded instead at T2 —
 the first point in this run a check-brief stage actually happens — as part
 of T2's own write-out or a note in the whole-branch review, not by rewriting
-this report (`docs/reports/` is dated and frozen). If Kanri rules otherwise —
-a stage inserted between D and E, or the dogfood deferred out of the plan
-entirely to a Kanri chore at T2 — this task's steps below are edited to
-match before it runs; the current text implements the recommendation above.
+this report (`docs/reports/` is dated and frozen). The steps below already
+implement R-5; the fallback in Step 1 covers the case a stage runs before
+this task despite R-4.
 
 `docs/reports/<date>-tanto-sweep-2-dogfood.md`, written per
 `docs/reports/AGENTS.md` — a dated, frozen investigation, which is what a

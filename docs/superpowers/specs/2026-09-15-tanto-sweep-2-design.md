@@ -414,10 +414,14 @@ backticks, as the file has it) to zero.
 ### 1.7 The READMEs
 
 `skills/tanto/README.md` and `skills/shoroku/README.md` each get a drift
-review in the task that lands 1.3 and 1.6: the tanto README's template list
-gains `shoroku-brief.md`, and the shoroku README's recommend sentence says the
+review in the task that lands checks 18 and 19 (section 8.1, 8.2), not the
+task that lands 1.3 and 1.6: the tanto README's template list gains
+`shoroku-brief.md`, and the shoroku README's recommend sentence says the
 recommender also writes the check brief when asked. What else drifts is the
-reviewer's to find and the task's to fix.
+reviewer's to find and the task's to fix. (Corrected at Keikaku's cold read,
+2026-09-15: the plan's own cut puts 1.3/1.6's template creation in D1 and the
+two checks with the drift review in D3, matching section 10's own task
+assignment, which this sentence originally missed.)
 
 ## 2. `roles/kanri.md`: the commit window, the handover file, and Timing (issue-7ba4, issue-f5d8, issue-c583, issue-caba)
 
