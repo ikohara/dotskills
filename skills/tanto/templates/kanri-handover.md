@@ -13,7 +13,7 @@ and the ledgers, never a copy.
 
 One block per open ledger, in the order the topics opened, each under its
 topic word; write "none — between plans, last plan closed <YYYY-MM-DD>" when
-no topic is open. The two lines after the blocks are written once.
+no topic is open. The line after the blocks is written once.
 
 - <topic>
   - Plan — <the plan basename, or "not yet written">
