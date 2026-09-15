@@ -583,15 +583,18 @@ session:
    resident context.
 2. **Recommend.** Kanri dispatches the `shoroku` kind over that file and
    names the output, `<stage>-recommendation.md`: every item once, quoted in
-   full, in three groups — recommended adopt, recommended reject, unsure —
-   each with its destination and its one-line reason.
-3. **Check.** Kanri reads the whole recommendation once and gives the human
-   the path, the three counts, and under them the recommendation's items as a
-   numbered list in the chat's language, grouped as the file groups them —
-   one line per item: its number, its group, its destination, a one-sentence
-   rendering of the candidate, and the one-line reason; the human answers by
-   exception; Kanri writes `<stage>-direction.md` beside the recommendation,
-   item by item, with the `S-n` rows in the conductor ledger.
+   full, in three groups — Recommended adopt, Recommended reject, Unsure —
+   each with its destination and its one-line reason. The same dispatch names
+   the brief path, `<stage>-brief.md` beside the recommendation, the template
+   `templates/shoroku-brief.md`, and the chat's language; the recommender
+   writes both files in one run.
+3. **Check.** Kanri checks the brief's form by `grep` — the four headings
+   present and in order, every `###` item heading of the recommendation
+   appearing exactly once after `See:` — dispatches the recommender once more
+   on a failure and pastes the brief as it stands on a second, then gives the
+   human both paths, the three counts, and the brief's text verbatim; the
+   human answers by exception; Kanri writes `<stage>-direction.md` beside the
+   recommendation, item by item, with the `S-n` rows in the conductor ledger.
 4. **Apply.** Kanri dispatches the `shoroku` kind again, in apply mode, with
    the recommendation, the direction, and the commit subject; that subagent
    writes the accepted subset per `docs/AGENTS.md`, runs the repository's
@@ -629,11 +632,12 @@ takes the `exit:` line like every other role.
 Kanri checks that the file exists and
 opens with the exclusion line and a numbered list — a direct read, since the
 proposal carries no headings for `sections` to select by — and
-dispatches the recommender at once. When the recommendation is on
-disk, Kanri reads its `unsure` group by `sections`: an item there saying the
-candidate could not be read as written is one question back to the session,
-one line, answered by a rewrite of the proposal; otherwise Kanri asks the
-human, as a numbered list, to delete the session. The session idles through
+dispatches the recommender at once. When the recommendation and its brief
+are on disk, Kanri reads the brief's `## Unsure` group by `sections`: a line
+there carrying a "could not be read as written" question is one question
+back to the session, one line, answered by a rewrite of the proposal;
+otherwise Kanri asks the human, as a numbered list, to delete the session.
+The session idles through
 one subagent run, and steps 3 and 4 run without it — the human's check works
 on the recommendation's full quotation of each item, which is what the
 session would have been asked about. A session that has stopped
@@ -684,7 +688,8 @@ review package excludes.
 | `.tanto/<topic>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
 | `.tanto/<topic>/shoroku-proposal.md` | Jisso | Kanri, the recommender | the T2 proposal, written to a file instead of printed |
 | `.tanto/<topic>/exit-<role>[-<suffix>]-proposal.md`, or `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md` | the exiting session | Kanri, the recommender | the exit shoroku proposal, opening with the line that says what it excludes |
-| `.tanto/<topic>/<stage>-recommendation.md`, or `.tanto/t0-recommendation.md` and Kanri's own exit at `.tanto/` | the `shoroku` recommender Kanri dispatches | Kanri, the human, the apply subagent | every candidate once, quoted in full, in three groups — recommended adopt, recommended reject, unsure — each with its destination and its one-line reason |
+| `.tanto/<topic>/<stage>-recommendation.md`, or `.tanto/t0-recommendation.md` and Kanri's own exit at `.tanto/` | the `shoroku` recommender Kanri dispatches | Kanri, the human, the apply subagent | every candidate once, quoted in full, in three groups — Recommended adopt, Recommended reject, Unsure — each with its destination and its one-line reason |
+| `.tanto/<topic>/<stage>-brief.md`, or `.tanto/<stage>-brief.md` for T0 and Kanri's own exit | the `shoroku` recommender, in the same dispatch as the recommendation | Kanri, by `grep` for its form and by `sections` for `## Unsure`; the human, verbatim | the check brief, from `templates/shoroku-brief.md`, in the chat's language: one line per item, grouped as the recommendation groups them, each pointing at the item's `###` heading |
 | `.tanto/<topic>/<stage>-direction.md`, beside the recommendation | Kanri, from the human's answer | the apply subagent | what the human accepted, item by item; the apply never runs without it |
 | `.tanto/<topic>/compaction-<role>-<n>.md` | the compacted session | Kanri | every item a compaction summary attributes to the human, one per line, rewritten with the human's answers |
 | `.tanto/kaiseki/kaiseki-<n>.md` | a standalone Kaiseki | the human | its report, outside any run |

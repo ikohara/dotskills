@@ -760,6 +760,8 @@ they are recommended and checked.
 
 ### The four steps
 
+<!-- markdownlint-disable MD038 -->
+
 1. **Candidates.** The session that holds them writes them, and only this step
    needs a resident context. T0: the input document — a Kikaku decision file,
    or a file of that kind. T1: the spec itself, whose four sections
@@ -774,25 +776,36 @@ they are recommended and checked.
    output:
    `.tanto/<topic>/<stage>-recommendation.md`, or
    `.tanto/t0-recommendation.md`, and your own exit at `.tanto/`. The file
-   lists every item once in three groups — recommended adopt, recommended
-   reject, unsure — each item quoted in full from its source, so that the file
+   lists every item once in three groups — Recommended adopt, Recommended
+   reject, Unsure — each item quoted in full from its source, so that the file
    stands alone as the apply's input, with its destination, its one-line
    reason, and for a `design` entry the `req-<id>` it serves; a requirement or
    an ADR item carries the original wording followed by a reference
    translation in the chat's language.
-3. **Check.** Read the whole recommendation once and tell the human, in one
-   line plus a numbered list under it: the path, the three counts, and then
-   the recommendation's items in the chat's language, grouped as the file
-   groups them — one line per item, its number, its group, its destination, a
-   one-sentence rendering of the candidate, and the one-line reason (the
-   `unsure` group's "could not be read as written" question still comes from
-   its own read by `sections`). The
-   human answers as the `shoroku` skill already parses — `OK` for "as
-   recommended", or the numbers that go the other way, or an edit — and you
-   write `<stage>-direction.md` beside the recommendation, item by item, with
-   the `S-n` rows in the ledger: Stage the stage word, Adopted from the human's
-   answer. No item is escalated apart from the rest and none is decided by you
-   alone; the human sees the whole list, grouped, and answers by exception.
+   Name in the same dispatch the brief path —
+   `.tanto/<topic>/<stage>-brief.md`, or `.tanto/<stage>-brief.md` for T0 and
+   your own exit — the template `templates/shoroku-brief.md` in the skill
+   directory, and the chat's language; the recommender writes both files in
+   one run.
+3. **Check.** Check the brief's form, not its judgment, and never by reading
+   the recommendation's prose: `grep -c '^## '` on the brief is `4` and the
+   four headings are `## How to answer`, `## Recommended adopt`,
+   `## Recommended reject`, `## Unsure`, in that order; every `### ` heading
+   of the recommendation appears exactly once in the brief after `See: `, and
+   the brief names no heading the recommendation lacks — count both with
+   `grep -c '^### '` on the recommendation and `grep -cF 'See: <heading>'`
+   on the brief, one line per heading. On a failure dispatch the recommender
+   once more, naming what failed; on a second failure paste the brief as it
+   stands and tell the human in one line what is wrong with it. Then give the
+   human, in one message: the recommendation's path, the brief's path, the
+   three counts, and the brief's text verbatim below them. The human answers
+   as the `shoroku` skill already parses — `OK` for "as recommended", or the
+   numbers that go the other way, or an edit — and you write
+   `<stage>-direction.md` beside the recommendation, item by item, with the
+   `S-n` rows in the ledger: Stage the stage word, Adopted from the human's
+   answer. No item is escalated apart from the rest and none is decided by
+   you alone; the human sees the whole list, grouped, and answers by
+   exception.
 4. **Apply.** Dispatch `subagent_type: tanto-shoroku` in apply mode with the
    recommendation, the direction, and the commit subject —
    `docs: T<n> shoroku for <topic>` or
@@ -805,6 +818,8 @@ they are recommended and checked.
    as you verify any — `git status` clean, the diff's paths those the
    direction names, lint on them (again, whole-repository if that is what the
    script does) — and fill the Written column.
+
+<!-- markdownlint-enable MD038 -->
 
 Where the commit lands: on the topic's branch for T1, T2, and the exits of
 that topic's sessions; on `main` for T0 and for your own between-plans exit. A
@@ -874,11 +889,11 @@ the file pattern `exit-<role>[-<suffix>]`; these are your steps.
    proposal carries no headings for `sections` to select by, for the
    exclusion line it opens with and the numbered list under it. Then
    dispatch the recommender at once — step 2 above.
-3. When the recommendation is on disk, read its `unsure` group with
-   `sections`. An item there saying the candidate could not be read as written
-   is one question back to the session, one line, answered by a rewrite of the
-   proposal. Otherwise ask the human, as a numbered list, to delete the
-   session.
+3. When the recommendation and its brief are on disk, read the brief's
+   `## Unsure` group with `sections`. A line there carrying a "could not be
+   read as written" question is one question back to the session, one line,
+   answered by a rewrite of the proposal. Otherwise ask the human, as a
+   numbered list, to delete the session.
 4. Steps 3 and 4 above then run with the session gone. Record the rows with
    Stage `exit-<role>[-<suffix>]` and fill their Written column from the
    apply's commit subject.
