@@ -42,6 +42,17 @@ them to you:
   in the same shape, so that one file holds the human's own words for the
   whole topic; Kanri may read it at any time, the brief writer reads it, and
   T1's shoroku takes it as an input.
+
+**A decision reaches `dialogue.md` before it reaches any document.** Write the
+turn — the question you put, the human's answer verbatim, and your reading of
+it — and only then edit the spec, the plan, or a block. The case that breaks
+this is the decision that arrives **mid-turn**, in a message answering nothing
+you asked: it has no question to file it under, so file it under the work it
+interrupted, and give it a `D-n` of its own. A decision you acted on and did
+not record is indistinguishable, to every later reader, from one you invented
+— and the reader who finds it is a reviewer filing a scope finding against
+your own document.
+
 - `.tanto/<topic>/spec-inputs.md`, when there is one — the human's scope
   inputs during spec work, numbered `I-n`, each with Kanri's advisory notes.
 - The spec itself, `.tanto/<topic>/spec-review.md`, and
@@ -111,6 +122,18 @@ writing-plans. Then add, yourself:
   sentence that until then the authority for the run's sessions is the
   constraints, Kanri's orders line, and the batch prompts (contract rule
   11).
+- a **named-mechanism** rule for the tasks: a task that introduces or changes
+  a named mechanism — a slot letter, a grant clause, a status word, a section
+  pointer — lists in its own text every other site in the same file, and in
+  the files the plan touches, that names the same mechanism, so that its
+  reviewer checks them together (issue-7ba4 and issue-c30e are what this
+  catches);
+- a **line-ending** rule for the tasks: a task that creates a Markdown file
+  and later checks its line endings writes the restore —
+  `git checkout -- <path>` after the commit, or the repository's equivalent —
+  into the task's own steps, not only into the stop condition, because a
+  created file lands `w/lf` on this host every time (measured five of five in
+  the tanto-cost run).
 
 Name those sections exactly as they are named here, and the Self-Review with
 them: `frame --stage 1` finds them by their headings, and a plan's frame is
@@ -200,13 +223,20 @@ reports and prompts follow the tanto templates, and names nothing else.
    the plan or its How a batch is verified heading is missing: what you are
    checking here is that it finds the section and runs the blocks you meant,
    since the checks themselves pass only once a batch has landed.
-3. Dispatch a **read-only** reviewer on `plan.review`, naming
+3. Dispatch a reviewer on `plan.review` — read files; write exactly one file,
+   the report named below — naming
    `subagent_type: tanto-plan-review` and its `model` together, to run the
    writing-plans checklist against the plan **and the dry-run report**: it
    reads the report and spot-checks a few of its commands rather than
    re-running the set, and writes `.tanto/<topic>/plan-review.md`
    with a **Shoroku candidates** section at the end; after you have ruled,
    send Kanri one line with the report path.
+   Between the reviewer's dispatch and its report, and between the brief
+   writer's dispatch and the human's answers, you do not edit the plan; a
+   change you need waits for the answers and is a further edit before the
+   commit. The reviewer and the brief writer each record, in their file's
+   first lines, the plan's `git hash-object <path>` at the moment they read
+   it, so that a line number in a finding has a fixed referent.
 4. Check spec conformance and the batch cuts yourself. A cut that leaves the
    tree inconsistent at its boundary is a bad cut. When the plan names a
    boundary as safe for a role start or replacement, grep the plan's own
