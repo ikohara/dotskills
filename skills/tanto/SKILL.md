@@ -693,13 +693,14 @@ review package excludes.
 | `$CLAUDE_CONFIG_DIR/tanto.json` | the user | every role at start, Kanri at each handshake | the personal expected-model config |
 | `~/.claude/agents/tanto-*.md`, or `$CLAUDE_CONFIG_DIR/agents/` when that variable is set | every role at its start, from the merged config | the harness, at the next session start | one definition per kind, from `templates/agent.md`; a definition is dispatchable only from the sessions started after it was written |
 
-Templates are copied and filled, never restated in prose. Thirteen of them:
+Templates are copied and filled, never restated in prose. Fourteen of them:
 `templates/roster.md`, `templates/roster-archive.md`, `templates/kanri.md`,
 `templates/kanri-handover.md`, `templates/bug-report.md`,
 `templates/batch-prompt.md`, `templates/batch-report.md`,
 `templates/kaiseki-brief.md`, `templates/kaiseki-report.md`,
-`templates/review-brief.md`, `templates/tanto.json`,
-`templates/kikaku-decision.md`, and `templates/agent.md`.
+`templates/review-brief.md`, `templates/shoroku-brief.md`,
+`templates/tanto.json`, `templates/kikaku-decision.md`, and
+`templates/agent.md`.
 
 The skill also ships two executables. `scripts/passage-check.js` is the
 instrument a plan that carries passages checks itself with, run by Keikaku in

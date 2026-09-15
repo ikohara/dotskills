@@ -381,7 +381,7 @@ Adding a check is an edit to this file.
   When the cache is absent, read the installed skills by hand and record
   `superpowers 6.3.0, cache absent, checked by hand` with the results.
 - **`shoroku` in this repository**, at `skills/shoroku/SKILL.md`.
-- **Twenty-six skill files, thirteen of them templates**, as check 1 lists
+- **Twenty-seven skill files, fourteen of them templates**, as check 1 lists
   them.
 
 These two numbers are a **structural count**, the kind design-4807 calls a
@@ -411,6 +411,7 @@ ls skills/tanto/SKILL.md skills/tanto/README.md \
   skills/tanto/templates/kaiseki-brief.md \
   skills/tanto/templates/kaiseki-report.md \
   skills/tanto/templates/review-brief.md \
+  skills/tanto/templates/shoroku-brief.md \
   skills/tanto/templates/kikaku-decision.md \
   skills/tanto/templates/agent.md \
   skills/tanto/templates/tanto.json \
@@ -420,8 +421,8 @@ ls skills/tanto/SKILL.md skills/tanto/README.md \
   skills/tanto/scripts/reading.test.js 2>&1
 ```
 
-Expected: all twenty-six paths listed, no `No such file or directory`.
-Seven role files, thirteen templates, four scripts, the contract and the
+Expected: all twenty-seven paths listed, no `No such file or directory`.
+Seven role files, fourteen templates, four scripts, the contract and the
 skill's own `README.md`.
 
 ## 2. Every in-skill path named by the contract or a role file resolves
@@ -435,7 +436,7 @@ grep -oh 'roles/[a-z]*\.md\|templates/[a-z-]*\.md\|templates/tanto\.json\|script
     done
 ```
 
-Expected: twenty-four `ok` lines — `roles/hosa.md`, `roles/jisso.md`,
+Expected: twenty-five `ok` lines — `roles/hosa.md`, `roles/jisso.md`,
 `roles/kaiseki.md`, `roles/kanri.md`, `roles/keikaku.md`,
 `roles/kikaku.md`, `roles/sekkei.md`, `scripts/passage-check.js`,
 `scripts/passage-check.test.js`, `scripts/reading.js`,
@@ -445,7 +446,8 @@ Expected: twenty-four `ok` lines — `roles/hosa.md`, `roles/jisso.md`,
 `templates/kaiseki-report.md`, `templates/kanri-handover.md`,
 `templates/kanri.md`, `templates/kikaku-decision.md`,
 `templates/review-brief.md`, `templates/roster-archive.md`,
-`templates/roster.md`, and `templates/tanto.json`, whose relative order for the
+`templates/roster.md`, `templates/shoroku-brief.md`, and
+`templates/tanto.json`, whose relative order for the
 two roster paths is the locale's and is not part of this check —
 and **no** `MISSING` line. A `MISSING` line is either a typo in the reference
 or a file the plan forgot.
@@ -465,6 +467,7 @@ templates/kanri-handover.md skills/tanto/roles/kanri.md
 templates/bug-report.md skills/tanto/roles/kanri.md
 templates/batch-prompt.md skills/tanto/roles/kanri.md
 templates/kaiseki-brief.md skills/tanto/roles/kanri.md
+templates/shoroku-brief.md skills/tanto/roles/kanri.md
 templates/review-brief.md skills/tanto/roles/sekkei.md
 templates/review-brief.md skills/tanto/roles/keikaku.md
 templates/batch-report.md skills/tanto/roles/jisso.md
@@ -481,8 +484,9 @@ templates/agent.md skills/tanto/roles/hosa.md
 MAP
 ```
 
-Expected: twenty `ok` lines, no `UNCITED`. Eight of the twenty are Kanri's —
-seven templates Kanri copies itself, plus the agent definition, which every
+Expected: twenty-one `ok` lines, no `UNCITED`. Nine of the twenty-one are
+Kanri's — eight templates Kanri copies itself, plus the agent definition,
+which every
 role renders at its start and which therefore takes one row per role. The
 review brief has two readers because the document's author dispatches it:
 Sekkei for the spec, Keikaku for the plan.

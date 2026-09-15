@@ -87,16 +87,31 @@ session mode waits at `Direction?`. A session-mode run is unchanged by this
 section.
 
 **Recommend mode.** Invoked with a source — a file, or a file and the names
-of the sections to read — and an output path. Run the workflow up to the
+of the sections to read — an output path, and a baseline, the `docs/` tree an
+item's destination and reason are judged against; and, when the caller wants
+the check brief, a brief path, a template, and a chat language. Run the
+workflow up to the
 proposal and write the proposal to that path instead of printing it: the
 numbered items grouped under three `##` headings, in this exact
-text — `## recommended adopt`, `## recommended reject`, `## unsure` —
+text — `## Recommended adopt`, `## Recommended reject`, `## Unsure` —
 each item quoted in full from its source so that the
-file stands alone as the apply's input, and each carrying its destination, a
+file stands alone as the apply's input, each item under its own `###`
+heading, `### <n> — <title>`, `<n>` being the item's number in the proposal —
+unique across the file, never restarted per group; where the source is not a
+numbered proposal, as at T1, a running number in the order the items are
+written — so that a reader can point at an item by its heading and the
+human's answer names the item by the number the proposal gave it, and each
+carrying its destination, a
 one-line reason, the `req-<id>` pairing for a `design` entry, and — for a
 requirement or ADR item — the original wording followed by a reference
 translation in the chat's language. Do not wait for `Direction?`, and write
 nothing under `docs/`.
+
+When the caller also names a brief path, a template, and a chat language,
+write the check brief from that template at that path, rendered in that
+language, in the same run and from the same judgment: one line per item under
+the same three headings, each ending in `See:` and the item's `###` heading
+verbatim. The brief is the second and last file this mode writes.
 
 **Apply mode.** Invoked with a recommendation path, a direction path, and a
 commit subject. The recommendation quotes every item in full, so no third
