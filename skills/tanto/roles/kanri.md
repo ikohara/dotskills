@@ -169,7 +169,10 @@ Four steps, in this order.
      `orders: plan=<path> ledger=<path> branch=<b>; read roles/jisso.md in the tanto skill directory`.
    - Kaiseki gets the brief path, or `no brief, stop` in a smoke test.
    - Kikaku gets your address and the open topics, if any. Hosa gets your
-     address and one line, "tracked files only in a slot I give". You request
+     address, one line, "tracked files only in a slot I give", and its
+     standing grant,
+     `human-access: granted — the chores the human hands you in your window — until this session ends`.
+     You request
      neither session: the human opens one when there is something to think
      about or a small job to hand off, and its handshake is the first you
      hear of it.
@@ -345,8 +348,9 @@ Per batch, in this order.
    already named — a Sekkei or Keikaku at its own final boundary named it in
    its report line and is waiting for nothing — check each proposal and
    dispatch its
-   recommender, and write the direction once the human has answered. Delete
-   requests wait for step 7.
+   recommender, and write the direction once the human has answered. A delete
+   request goes out as soon as that session's recommendation and brief are on
+   disk ("Exit shoroku", step 3); the apply waits for step 7.
 
    Whenever a Kikaku, Hosa, or Kaiseki row is `live` and that session has
    reported to you and gone idle, your next line to the human — this
@@ -357,17 +361,22 @@ Per batch, in this order.
    forgotten across a wake-up.
 7. **The commit window.** One committer at a time, in this order, Jisso idle
    throughout. (a) The apply subagent's slot: for each stage whose direction
-   is written, dispatch the `shoroku` kind in apply mode with the
+   is written, dispatch `subagent_type: tanto-shoroku` in apply mode with the
    recommendation, the direction, and the commit subject, and verify its
    commit as you verify any — `git status` clean, the diff's paths those the
    direction names, lint on them (or on the whole repository where the lint
    script takes no path arguments). The session whose shoroku it is has already
    been deleted; it waits for nothing. (b) Your
-   own edits — the hotfix, the issues from step 4, and your own exit shoroku
-   when a handover is due — each committed by you in its turn, or handed to a
+   own edits — the hotfix and the issues from step 4 — each committed by you
+   in its turn, or handed to a
    live Hosa as `chore: <what> — <paths> — slot: now | at the next boundary`,
    which Hosa commits here and answers `committed <subject> — <reading>`; the
    ruling and the commit subject stay yours, and you verify the diff.
+   A `slot-needed: <what> — <paths>` from Hosa is answered the moment it
+   arrives: `slot: now — commit and report` when no batch is in flight and the
+   paths are not the in-flight plan's, `slot: at the next boundary` otherwise,
+   the slot being this step at that boundary; Hosa's
+   `committed <subject> — <reading>` is verified here like a chore's.
    (c) Tell Sekkei or Keikaku
    the boundary is verified, naming any Kaiseki create or delete since the
    last boundary, then wait for the one-line reply —
@@ -684,7 +693,7 @@ dispatch, if the recommendation is not already on disk.
    file's "Not reconstructed" section. Verify that commit **before** the
    handover file is written, so that the successor inherits a commit and not a
    pending write-out. At a **batch boundary** this step is loop step 6's
-   proposal and recommendation and step 7's slot (b) apply, already done when
+   proposal and recommendation and step 7's slot (a) apply, already done when
    the window reaches this list. At a **plan close** it is a fresh act, run
    after T2, the merge decision, the peers' deletion and the archive move, and
    its commit lands where the tree is once the merge decision is executed — on
