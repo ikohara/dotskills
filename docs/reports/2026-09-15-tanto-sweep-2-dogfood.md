@@ -1,18 +1,21 @@
 # The tanto-sweep-2 dogfood
 
-This report is written mid-batch E, before the plan's actual close, per
-Kanri's ruling R-5 (plan review finding 1): no shoroku stage the contract
-schedules falls between batch D's boundary and this task, so it covers only
-what is knowable at batch E's own boundary — the twenty-nine issues closed
-and the readings recorded so far.
+tanto-sweep-2 closes twenty-nine issues in the `tanto` skill's prose —
+twenty-eight prose inconsistencies, plus the one feature the human asked
+for, the shoroku check brief. This report is written mid-batch E, before
+the plan's actual close, per Kanri's ruling R-5 (plan review finding 1) —
+the plan-review ruling that deferred the check-brief-as-run measurement to
+T2, since no shoroku stage fell between batch D's boundary and this task —
+so it covers only what is knowable at batch E's own boundary: the
+twenty-nine issues closed and the readings recorded so far.
 
 ## Issues closed
 
 Twenty-nine issues, each traced to the block id(s) that closed it, copied
 directly from the plan's own Self-Review table
 (`docs/superpowers/plans/2026-09-15-tanto-sweep-2.md`). T2 moves each of
-these from `docs/issues/` to `docs/issues/resolved/` — that move is a later
-event and is not done by this report.
+these from `docs/issues/open/` to `docs/issues/resolved/` — that move is a
+later event and is not done by this report.
 
 | Issue | Spec | Block |
 | --- | --- | --- |
@@ -43,6 +46,9 @@ event and is not done by this report.
 | 9627 | 6.7 | P6.3, P6.4 |
 | 4b91 | 1.3, 7 | P9.3, P9.4, P10.5 |
 
+Twenty-six rows cover the twenty-nine ids above; three rows list more than
+one id, comma-separated.
+
 ## The readings
 
 From `.tanto/tanto-sweep-2/kanri.md`, section "Measurements" (read-only):
@@ -53,12 +59,22 @@ From `.tanto/tanto-sweep-2/kanri.md`, section "Measurements" (read-only):
   in the batch C row rather than as a row of its own, and no batch A row
   appears in this section at all.
 - Jisso context at batch C boundary — `dotskills-5f`: `context=453555`
-  (ceiling 202513, over — Replace symptom, deferred by R-7 to batch E).
+  (ceiling 202513, over — Replace symptom, deferred by R-7 — this plan's
+  rule-11 authority ruling that this run's sessions follow the plan's
+  Global Constraints and batch prompts, not the on-disk role-file text,
+  until every task lands — to batch E).
 - Kanri context at batch D boundary — `dotskills-df`: `context=378678`
   (ceiling 215248, over, human present).
 - Jisso context at batch D boundary — `dotskills-5f`: `context=575949`
   (ceiling 202513, over — Replace symptom, still deferred by R-7 to batch
   E's boundary regardless).
+
+Taken together, every batch boundary this plan has reached so far runs
+over its component's ceiling — Kanri as well as Jisso — and Jisso runs the
+furthest over the two: already more than double its own ceiling at batch
+C, and closer to triple by batch D. Between batch C and batch D, Kanri's
+own context grows by more, in both raw and relative terms, than Jisso's
+does over the same span.
 
 These are every batch-boundary `context=` figure the Measurements section
 carries as of this task; no batch A boundary row exists there separately
@@ -79,8 +95,8 @@ history, but nothing has exercised it yet; itself a data point.
 
 No shoroku stage has run since batch D landed — Step 1 of this task's brief
 found no check-brief file under `.tanto/tanto-sweep-2/` or `.tanto/`, and
-this topic's own ledger ruling R-4 consolidates every check to this topic's
-eventual T2 — so the check brief's own first real use (the form check's
+R-4 — this topic's own ledger ruling that consolidates every shoroku check
+to T2 — means the check brief's own first real use (the form check's
 counts, the human's answer, the timing comparison against the 2026-09-14
 interim-form hotfix, and the `Unsure` read) is recorded at T2 instead, not
 here, as part of T2's own write-out or a note in the whole-branch review,
