@@ -174,3 +174,20 @@ implementation lifecycle, two topics' opening stages, and continuous
 cross-repository intake, all at once, is a heavier tenure than the single-topic
 rows above record, and a threshold read off the batch and plan columns alone
 sees only the one topic's six batches.
+
+A coordination-only data point, 2026-09-15, from the next Kanri
+(`dotskills-e9`), whose tenure ran no batch loop of its own: handshakes, a
+cold-read dispatch and its verification, spec-input answers, and bug-report
+triage across two concurrent pre-batch topics (`tanto-sweep-2`,
+`tanto-project-config`). Its first-turn baseline was 72,376 tokens — stated
+here because that figure lives nowhere else on disk than the exit proposal.
+At the plan-landing check for `tanto-sweep-2`, with zero batches run under
+this Kanri, the reading was 321,359 against a derived ceiling of 202,376
+(72,376 + 2 × 65,000, the `per_batch` figure from `tanto.json`): over, on
+coordination overhead alone, before a single batch report had been read. The
+`per_batch` figure is presumably calibrated against a batch loop's own
+per-boundary cost; a tenure spent servicing concurrent pre-batch topics is a
+different cost shape that reaches the same number for a different reason —
+one for whoever calibrates `ceiling.kanri`'s defaults next. The queued
+`tanto-diet` topic is a second reader of this data point, for the reduction
+lever as much as for the threshold.

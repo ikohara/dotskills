@@ -58,3 +58,7 @@ branch-cutter's side (a brief settling window, or an explicit check), or
 both. Related: issue-11db (a different concurrency gap from the same
 no-worktree, concurrent-topics class), `tanto-sweep-2`'s own plan (the
 worked mitigation).
+
+2026-09-15: rewriting `tanto-sweep-2`'s branch history to relocate the
+misplaced issue-a4c7 commit was considered and rejected — the misplacement is
+harmless, and a rewrite costs more in disruption than it removes.
