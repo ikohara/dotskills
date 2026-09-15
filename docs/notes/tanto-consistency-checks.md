@@ -1004,3 +1004,52 @@ lives under `docs/`. That is deliberate, and it is the standing trap the
 paragraph under "Versions these checks assume" describes — a check written into
 the file it checks moves its own numbers, and its expected value is wrong the
 moment it is written.
+
+## 20. The enumerations the second sweep re-synchronized
+
+```bash
+grep -c 'dead, replaced, refused, and cleared' skills/tanto/SKILL.md
+grep -c 'dead, replaced, refused, and cleared' skills/tanto/roles/kanri.md
+grep -rc 'dead, replaced, and refused' skills/tanto/
+grep -cF '`exit-keikaku`' skills/tanto/templates/kanri.md
+grep -cF '`exit-keikaku`' skills/tanto/SKILL.md
+grep -rcF 'continue: <dispatch> — same model' skills/tanto/SKILL.md skills/tanto/roles/kanri.md
+grep -rcF 'task-implement.md' skills/tanto/templates/
+grep -cF 'Fourteen of them:' skills/tanto/SKILL.md
+grep -rcF 'At most one top-family session' skills/tanto/SKILL.md skills/tanto/roles/sekkei.md
+grep -rc 'two top-family' skills/tanto/
+grep -rcF 'third top-family' skills/tanto/
+```
+
+Expected: `1 1`, then `0` on every file of the old enumeration, `1 1`, `1 1`
+for the `continue:` spelling, `0` on every template for the `.md` form, `1`,
+`1 1`, then `0` on every file for the two spellings of the old cap. The five
+sites of the cap are `SKILL.md` rule 9, `roles/sekkei.md`, `roles/keikaku.md`,
+`roles/kikaku.md`, and `templates/kanri.md`'s paragraph under the Measurements
+table; the last two say "one" in their own words, which is why the sweep is for
+the old spellings and not for the new one. A definition file's own name stays
+legitimate outside `skills/tanto/templates/`: check 8 loads one of them as a
+real path under `$CLAUDE_CONFIG_DIR/agents/`, which is what the naming rule
+produces and not what a dispatch passes. The three `.md`/`top-family` lines
+run shorter forms than spec 8.3's own three needles (O2.4 and O1.1/O1.2 name
+the full spec text, cited by id rather than re-quoted here), because `lint`
+forbids a task's new text from containing the very `O` needle that task
+declares; each shortened form here is a superset of the spec's fuller one,
+so nothing the longer form would have caught escapes it.
+
+## 21. A named mechanism is edited at every site that names it
+
+A task that introduces or changes a named mechanism — a slot letter, a grant
+clause, a status word, a section pointer — lists in its own text every other
+site, in the same file and in the files the plan touches, that names the same
+mechanism, so that its reviewer checks them together. No `grep` states this;
+`roles/keikaku.md` Step 3 carries it as a drafting convention, and this entry is
+why it exists.
+
+Two issues of the second sweep are what it catches. issue-7ba4 spanned four
+sites of one slot letter, two of which disagreed with the other two, and no
+single task's review could see the disagreement because the task that changed
+the mechanism did not list the others. issue-c30e was the same shape one file
+apart: Hosa's standing grant is given at the handshake by "Human access" step 3,
+and the handshake step that gives it did not name it. Both survived a spec
+review and a plan review of the wave that introduced them.
