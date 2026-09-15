@@ -770,7 +770,8 @@ they are recommended and checked.
    `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md` for your own.
 2. **Recommend.** Dispatch `subagent_type: tanto-shoroku` in the skill's
    recommend mode over the candidate file — for T1, over the spec with the four section names
-   — with `docs/` as the baseline, and name the output:
+   — with `docs/` as the baseline for destinations and reasons, and name the
+   output:
    `.tanto/<topic>/<stage>-recommendation.md`, or
    `.tanto/t0-recommendation.md`, and your own exit at `.tanto/`. The file
    lists every item once in three groups — recommended adopt, recommended

@@ -73,7 +73,9 @@ Source files are **read-only**: never modify, move, or delete them. Resolve the
 match list (path / glob / directory → file set) and list those files at the
 top of the proposal so the user can confirm the scope before reviewing
 entries. Do **not** deduplicate against existing `docs/<type>/*.md` —
-overlaps surface in the proposal and the user accepts or rejects per item.
+overlaps surface in the proposal and the user accepts or rejects per item; in
+recommend mode the baseline a caller names is what an item's destination and
+reason are judged against, never a filter that drops it.
 Everything else — classification, proposal, partial-accept, single commit — is
 identical to session mode.
 

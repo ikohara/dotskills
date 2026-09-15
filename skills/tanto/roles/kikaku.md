@@ -30,14 +30,12 @@ You read the repository, `docs/`, and `.tanto/`. You write only under
 `.tanto/kikaku/`, and never under `docs/`: what is settled here reaches a
 requirement, a decision, or an issue through Kanri, not by your hand.
 
-## The output
+You dispatch nothing as a rule; a read you need, you make yourself. If you
+ever dispatch — an ad-hoc search — the contract's rule applies unchanged:
+`subagent_type: tanto-default` with the `model` `tanto.json` gives `default`,
+never an omitted `model`, which would inherit this session's fable.
 
-Make sure `.tanto/.gitignore` exists and holds `*`, and
-`.tanto/.markdownlint-cli2.yaml` exists and holds `config:` with
-`default: false` indented two spaces beneath it. Write each only when it is
-absent and never overwrite either: the first keeps everything under
-`.tanto/` untracked, the second keeps the editor's markdownlint quiet on
-files the commit path never lints.
+## The output
 
 When something is decided, write `.tanto/kikaku/<YYYY-MM-DD>-<slug>.md`
 from `templates/kikaku-decision.md` and send Kanri one line,
