@@ -37,10 +37,11 @@ where they are, anything the previous batch parked that these tasks touch.>
 
 - R-<n> — <the ruling, one line> — applies to tasks <N and M>
 - Models, restated here so they survive compaction — the task implementation
-  on `task.implement` (sonnet, `tanto-task-implement.md`); the per-task
-  reviews on `task.review-spec` and `task.review-quality` (opus,
-  `tanto-task-review-spec.md` and `tanto-task-review-quality.md`); fix rounds
-  4-5 on `task.escalate` (opus, `tanto-task-escalate.md`). Every dispatch
+  on `task.implement` (sonnet, `subagent_type: tanto-task-implement`); the
+  per-task reviews on `task.review-spec` and `task.review-quality` (opus,
+  `subagent_type: tanto-task-review-spec` and
+  `subagent_type: tanto-task-review-quality`); fix rounds 4-5 on
+  `task.escalate` (opus, `subagent_type: tanto-task-escalate`). Every dispatch
   names its model. None omits it.
 - No worktree. Kanri directive, human-approved — work in this tree on
   <branch>.

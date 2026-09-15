@@ -50,7 +50,7 @@ Columns: S-n, the row id; Source, the report or session that raised it;
 Candidate, one line; Destination, one of requirements, design, decisions,
 issues, notes, or reports; Adopted, one of `pending`, `yes`, and `no`; Stage,
 the stage word — `t0`, `t1`, `t2`, or `exit-<role>[-<suffix>]`, as in
-`exit-jisso-B`, `exit-sekkei`, `exit-kaiseki-1`, and
+`exit-jisso-B`, `exit-sekkei`, `exit-keikaku`, `exit-kaiseki-1`, and
 `exit-kanri-<YYYY-MM-DD>-<name>`; Written, `no` or the subject of the commit
 that wrote the row out. The placeholder row stays until the first candidate
 arrives.

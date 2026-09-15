@@ -50,10 +50,11 @@ successor sends `kanri-address:` to all of them.
   ruling known only from a compaction summary is marked `(unverified)` on its
   line, and the successor puts it to the human at its first boundary
 - Models the next prompt must restate — the task implementation on
-  `task.implement` (sonnet, `tanto-task-implement.md`); the per-task reviews
-  on `task.review-spec` and `task.review-quality` (opus,
-  `tanto-task-review-spec.md` and `tanto-task-review-quality.md`); fix rounds
-  4-5 on `task.escalate` (opus, `tanto-task-escalate.md`).
+  `task.implement` (sonnet, `subagent_type: tanto-task-implement`); the
+  per-task reviews on `task.review-spec` and `task.review-quality` (opus,
+  `subagent_type: tanto-task-review-spec` and
+  `subagent_type: tanto-task-review-quality`); fix rounds 4-5 on
+  `task.escalate` (opus, `subagent_type: tanto-task-escalate`).
 
 ## Residency
 
