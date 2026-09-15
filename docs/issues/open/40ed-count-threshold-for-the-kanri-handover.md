@@ -221,3 +221,17 @@ two handshakes and a Kikaku decision mixed in) — yet the ceiling still crossed
 after exactly one batch's own verification work layered on one ordinary
 handover accept. A third reader, on the leaner end, for whoever calibrates
 `ceiling.kanri`'s defaults next.
+
+A fourth ceiling data point, 2026-09-15, from the next Kanri (`dotskills-a1`),
+a leaner one. Its ceiling (`context=235458` against a derived `215214`)
+crossed within one boundary mixing a full Kanri handover acceptance (roster
+rewrite, five `kanri-address:` sends), one Kikaku re-handshake reply, one
+bug-report intake (copy plus `received:` reply, no triage under the hold
+policy), one Sekkei exit (form check, a fresh ruling, an 8-item S-n table
+write, no recommender dispatch under R-3's consolidation), and one full batch
+acceptance (`boundary`, `diff`, a `git show` spot-check, a `sections` read,
+ledger updates across two topics). No handshake for a new role and no
+plan-landing cold read this time, yet the ceiling still crossed inside one
+boundary — a data point that the concurrent-topic administrative load
+(handshakes, intake, exits) costs comparably to the batch-verification work
+itself, not just a smaller addition to it.

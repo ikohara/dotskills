@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-11
+updated: 2026-09-15
 ---
 
 Measured at the tanto-sweep run's batch A boundary (2026-09-10), by Kanri.
@@ -63,3 +63,19 @@ Kanri ruled it held each time (that run's ledger, R-22). Five boundaries in one
 run, each needing a human-side ruling to dismiss, is the datapoint that keeps
 this issue alive: the base-commit workaround does not shrink the noise at all
 once a branch carries the run's own docs and issue commits alongside the plan's.
+
+2026-09-15 — a structural source of the base-half noise that the paragraphs
+above do not name, observed by the `tanto-sweep-2` Kanri (`dotskills-a1`) and
+recorded as a forward-looking data point for `passage-check-hardening`,
+alongside S-33/S-36/S-37 in that run's own ledger. R-9, R-10, and R-12 each
+showed the same pattern: the outgoing Kanri's own exit-shoroku commit lands on
+the shared branch after the `diff` base was last resolved but before the next
+batch's first task commit runs, showing as false `unaccounted-added` noise at
+the following boundary. R-12 held stable through batch C's own dispatch (no
+drift that time — that Kanri re-verified the base immediately before sending
+the batch C prompt and it was unchanged). But that Kanri's own exit-shoroku
+commit, landing as part of its handover, reproduces the identical structural
+cause once more: it lands after R-12's base and before batch D's first commit.
+The successor should expect to re-resolve the `diff` base a fourth time at
+batch D's boundary, the same way R-9/R-10/R-12 each did — flagged here rather
+than left to be rediscovered as a fresh surprise.
