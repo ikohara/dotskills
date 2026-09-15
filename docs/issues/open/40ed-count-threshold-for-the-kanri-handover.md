@@ -258,3 +258,16 @@ and a boundary's cost scales with how many topics are open at it, which the
 instrument does not see. A candidate for whoever calibrates `ceiling.kanri`
 next — derive Kanri's ceiling per boundary as a function of the open topics,
 or count an open topic as a batch, rather than raising `per_batch` alone.
+
+A sixth ceiling data point, 2026-09-15, from the next Kanri (`dotskills-4c`):
+`context=258609` against a derived ceiling of `215572` (baseline `85572` +
+2 × `65000`), about 1.20 times, crossed after accepting a handover, one Kikaku
+handshake (`dotskills-fd`), one Hosa resume (`dotskills-b0` → `dotskills-70`),
+and one full batch's own verification — the plan's final batch (E), including
+reading a report with a refuted reviewer Critical finding and four shoroku
+candidates, plus direct hand-verification of `diff`, lint, `node --test`, and
+`git ls-files --eol`. Lighter than the heaviest prior point (the `dotskills-df`
+point, about 1.76 times) but still crossed within a single boundary carrying
+one full-batch verification pass — a data point for whatever follow-up to this
+issue eventually calibrates `ceiling.kanri` against the shape of the work at a
+boundary, not only its count.

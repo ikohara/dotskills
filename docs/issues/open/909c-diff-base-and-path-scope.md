@@ -79,3 +79,22 @@ cause once more: it lands after R-12's base and before batch D's first commit.
 The successor should expect to re-resolve the `diff` base a fourth time at
 batch D's boundary, the same way R-9/R-10/R-12 each did — flagged here rather
 than left to be rediscovered as a fresh surprise.
+
+2026-09-15 — the complement to the paragraph above, observed by the
+`tanto-sweep-2` Kanri (`dotskills-4c`) at the plan's final boundary: where the
+base-drift class keeps reappearing until its queued durable fix (S-33) lands,
+an accepted, traceable `diff` exception can resolve itself without a further
+ruling when a later task's own passage block happens to cover the same lines.
+The one off-plan line in `templates/kanri-handover.md` from task 5 (R-11) and
+the two MD038-suppression comment lines in `roles/kanri.md` from task 11
+(R-17) were both expected, per their own rulings, to persist as accepted
+exceptions at every later boundary through the plan's close — but batch E's
+`diff` came back fully clean, the first clean boundary this plan produced,
+because task 13's whole-tree sweep block happened to declare passage text that
+already included those lines. Neither exception needed re-litigating; `diff`
+simply stopped reporting them. A note for `passage-check-hardening` beside the
+base-drift class: a `diff` exception carried across boundaries is not
+necessarily a standing cost through to the plan's close — a later sweep or
+whole-tree task can absorb it for free — and Kanri's own boundary check should
+not assume an earlier-accepted exception will keep reappearing without
+confirming it directly, the way this boundary's own check did.
