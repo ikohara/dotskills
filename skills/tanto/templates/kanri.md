@@ -112,7 +112,7 @@ the second stage is identified, never written as a compound value.
 
 These seven rows are fixed and always present. Kanri fills the first at the
 plan close from this ledger's Session events, where it writes one line each
-time a third top-family session goes live; the second by counting those same
+time a second top-family session goes live; the second by counting those same
 events' one-shot lines by kind and not by stage, since one kind is dispatched
 at several stages; the third by copying the roster's Residency rows; the
 fourth from what the human pastes. The fifth is filled at the topic's opening

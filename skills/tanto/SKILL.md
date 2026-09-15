@@ -172,7 +172,8 @@ Then read your own system prompt's list of available agent types and count
 the twelve names in it. A definition written during a session is not visible
 to that session, so the first session on a machine that writes them
 dispatches without them; from then on a dispatch names its kind as
-`subagent_type: tanto-<object>-<act>`.
+`subagent_type: tanto-<object>-<act>` — or `tanto-<kind>` for a kind with no
+dot in its name, `tanto-shoroku` and `tanto-default`.
 
 Say once, in your start line, which file you read; which keys came from the
 defaults, at the granularity of a field, or `no tanto.json at <path>, all
@@ -189,6 +190,11 @@ cannot see is dispatched with `model` alone, and its effort is the session's;
 the dispatching role tells the human once per session, in its next line, that
 the dispatched effort came from the session's own effort and not the kind's
 configured one.
+
+A dispatch whose deliverable is a file names the path, says the agent writes
+it in its own turn, and forbids the agent from dispatching agents of its own —
+a subagent that fans out ends its turn with nothing written and a reply that
+reads as progress. The dispatcher verifies the file, not the reply.
 
 **A limit is a pause, never a model change.**
 
@@ -467,7 +473,8 @@ the result the same way the Start sequence does.
   reply, or, when the reply is overdue, after the notice of a subscription
   made then.
 - Before the human reviews a spec or a plan, the document's author dispatches
-  the **review brief** on `brief.write` — a read-only subagent that writes
+  the **review brief** on `brief.write` — a subagent that reads, and writes
+  exactly one file,
   `.tanto/<topic>/review-brief-spec.md` for Sekkei, or `review-brief-plan.md`
   for Keikaku, from `templates/review-brief.md`, in the chat's language —
   checks its form against "The brief's form" below, and sends Kanri one line,
@@ -731,7 +738,10 @@ its path.
    directions are the only channel. Every role is on it, not only the ones on
    the top family — Keikaku and Hosa hand over files as the others do.
 3. State in files, not in memory: the roster and the ledgers. Memory holds at
-   most a pointer to them.
+   most a pointer to them. A role's authority is this file, its role file,
+   Kanri's lines, and the batch prompts; a project memory rule that would add
+   a dispatch or a document is put to Kanri as one line before it is acted
+   on, since the same memory is loaded by every session in the repository.
 4. One Kanri, one Kikaku, and one Hosa per repo; one Sekkei, one Keikaku, one
    Jisso, and one Kaiseki per topic. A session is bound to its cwd —
    CLAUDE.md, memory, and permissions all come from it.
@@ -756,9 +766,11 @@ its path.
    and a lifecycle checkpoint.
 8. Fix rounds stop at the Kaiseki trigger when the cause is unknown; root cause
    before more fixing.
-9. At most two top-family sessions active at once, Kikaku excepted as
-   human-paced: Sekkei pauses while Kaiseki is active; Keikaku and Hosa, on
-   the cheaper families, do not count.
+9. At most one top-family session active at once, Kikaku excepted as
+   human-paced: Sekkei pauses while Kaiseki is active, which is that rule's
+   whole content today; Keikaku and Hosa, on the cheaper families, do not
+   count. A second one under concurrent topics is a Kanri ruling, recorded as
+   `R-n`.
 10. No `tanto` session is renamed after it has started under `/tanto` — Kanri
     included, from its start line onward. A rename changes the name the listing
     shows and the envelope's `from-name`, the ref does not change, and the old

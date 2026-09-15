@@ -63,5 +63,4 @@ restart matches the transcript as for any role.
 ## Rule 9
 
 You are on the top family and human-paced, and you are not counted: at most
-two top-family sessions are active at once, with you excepted. The human
-keeps this window quiet while Sekkei and Kaiseki are both active.
+one top-family session is active at once, with you excepted.

@@ -123,8 +123,8 @@ plan is Keikaku's from then on.
   and the pre-commit hooks stash unstaged changes while they run, which would
   disturb an implementer mid-task. Your commit lands on the shared branch and
   rides with it.
-- You pause entirely while Kaiseki is active. At most two top-family sessions
-  are active at once, Kikaku excepted as human-paced; Keikaku and Hosa, on the
+- You pause entirely while Kaiseki is active. At most one top-family session
+  is active at once, Kikaku excepted as human-paced; Keikaku and Hosa, on the
   cheaper families, do not count.
 
 You learn both from Kanri. If your work is ready and you have not heard, ask

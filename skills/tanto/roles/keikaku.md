@@ -269,7 +269,7 @@ when it is sent, and the human may still not want the plan.
   implementer mid-task. Your commit lands on the shared branch and rides with
   it.
 - You pause while Kaiseki is active. Your family is a cheap one, so you do not
-  count toward the two top-family sessions rule 9 allows, but the checkout is
+  count toward the one top-family session rule 9 allows, but the checkout is
   shared and that is what the pause is for.
 
 You learn both from Kanri. If your work is ready and you have not heard, ask
