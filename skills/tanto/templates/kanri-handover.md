@@ -24,9 +24,6 @@ no topic is open. The two lines after the blocks are written once.
     Jisso replacement stands deferred on the ceiling and the human's absence;
     "none" otherwise. The successor re-checks it at its own first check, where
     a `present` verdict runs what the outgoing session could not.>
-- Peers whose last line this session did not answer — <name> [<ref>] — <the
-  line, one per line, or "none">; each re-sends it to the successor's
-  `kanri-address:`
 - Agents of this session still running — <label and what it was to deliver,
   one per line, or "none">; lost with this session
 
@@ -35,7 +32,9 @@ no topic is open. The two lines after the blocks are written once.
 Every peer of every open topic, with its Topic as the roster carries it; the
 successor sends `kanri-address:` to all of them.
 
-- <role> — <topic> — <name> [<ref>] — <what that session is waiting for>
+- <role> — <topic> — <name> [<ref>] — <what that session is waiting for> —
+  <"answered", or the last line it sent that this session did not answer;
+  that peer re-sends it to the successor's `kanri-address:`>
 
 ## Open questions for the human
 

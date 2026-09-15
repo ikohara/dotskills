@@ -611,8 +611,11 @@ suspicion" names you too. A topic in its spec or plan stage while no batch is in
 between plans here: nothing is in flight, and an unanswered line of its
 Sekkei or Keikaku is re-sent to your successor's address. While a batch is
 in flight, another topic's spec or plan stage supplies no boundary of this
-kind and holds no handover of yours. Because the trigger is
-checked before the next prompt is written, a handover that is due stops the
+kind and holds no handover of yours. That list governs the signals you check
+for yourself — the tenure, a compaction, the ceiling; the human's word,
+signal 2, is obeyed at whichever boundary comes next, of any topic, and is
+never deferred. Because the trigger is checked before the next prompt is
+written, a handover that is due stops the
 loop at that point, and the next prompt is the successor's to send. A
 **deferred** handover is not a due one: the ceiling is crossed and the human is
 not there to create your successor, so nothing stops here, the next prompt goes
