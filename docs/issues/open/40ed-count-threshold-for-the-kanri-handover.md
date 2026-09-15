@@ -205,3 +205,19 @@ point (zero batches, pure coordination), this one shows the ceiling crossed
 with real batch-verification work mixed in — a second reader for whoever
 calibrates `ceiling.kanri`'s defaults next, alongside the prior
 coordination-only figure.
+
+A third ceiling data point, 2026-09-15, from the next Kanri (`dotskills-57`),
+and the leanest one yet. Its ceiling (`context=242840` against a derived
+`202690`) crossed within one continuous window that included: a full handover
+acceptance (roster and two ledgers rewritten, four `kanri-address:` sends),
+opening one new topic (`shoroku-at-close`, its ledger written, R-1 and R-2
+ruled), one Sekkei handshake and orders line, one full batch-B verification
+(boundary, diff at two successive bases since R-10's own re-resolution, lint,
+a `node --test` run, two content-grep checks), and two boundary-verified
+notices sent to live peers. No Kikaku churn and no cross-topic ruling drove
+this crossing — unlike both prior tenures' data points (`dotskills-e9`: zero
+batches, pure coordination; `dotskills-0d`: coordination plus one batch, with
+two handshakes and a Kikaku decision mixed in) — yet the ceiling still crossed
+after exactly one batch's own verification work layered on one ordinary
+handover accept. A third reader, on the leaner end, for whoever calibrates
+`ceiling.kanri`'s defaults next.
