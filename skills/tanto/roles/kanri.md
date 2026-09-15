@@ -57,6 +57,15 @@ taking over mid-plan must not create a second ledger.
    lints (issue-6aa8). Nothing else writes these two files for you; the SDD
    skill's `sdd-workspace` writes its own ignore file in its own workspace on
    every run, and that is no longer your concern.
+   Then list `.tanto/` itself and report in your start line every entry that
+   is none of these: `.gitignore`, `.markdownlint-cli2.yaml`, `roster.md`,
+   `roster-archive.md`, `kanri-handover.md`, `inbox/`, `kikaku/`, `kaiseki/`,
+   one directory per topic the roster or the archive names — open, or closed
+   and kept under the Workspace section's retention rule — and your
+   predecessors' `t0-*` and `exit-kanri-*` files; the human decides what to do
+   with the rest, and an entry the human has once said to keep is listed
+   under the ledger's Rulings and not reported again. Make the same listing
+   at every plan close, in the close's own line.
 3. If `.tanto/roster.md` is absent, this is the bootstrap: create it
    from `templates/roster.md` with your row first — its Topic column `—`,
    because a topic is a peer's; its Model and Effort columns the two values
@@ -251,6 +260,10 @@ Then, in this order.
    batch prompts rather than the role text on disk, and the boundary the plan
    names for a role start or replacement (contract rule 11); every batch
    prompt and a handover file then carry it.
+   A pre-spec act you rule — a diagnosis, a dump analysis, before Sekkei's
+   spec — names its result path in the ruling, and the ledger's Progress line
+   carries `<act> — result: <path> (absent | present)` until the spec cites
+   the file.
 2. Record in the ledger's Plan section the plan's path and the SDD ledger's,
    `.superpowers/sdd/<plan-basename>/progress.md`, which Jisso's
    `sdd-workspace` run will create, and note the landing in the roster's
@@ -339,6 +352,16 @@ Per batch, in this order.
    check, and an `absent` verdict defers it rather than firing it. Write the
    Measurements per-boundary entry from the two readings, and a Measurements
    deferrals entry for anything deferred here.
+   Write a Session events line `dispatch: <kind> on <family>` for every
+   dispatch since the last boundary whose kind `tanto.json` puts on the top
+   family of the ladder — `fable` today, and the merged config decides, not
+   the family a session happens to run on, so an `opus` `shoroku` dispatch
+   does not count while a `fable` `plan.coldread` does: your own
+   `plan.coldread` and `branch.review`, and the ones a peer's line implies —
+   `review-ready:` is one `brief.write`, a plan-review path is one
+   `plan.review`, a spec-review path is one `spec.review` if the config puts
+   it there — and fill the one-shots row at the close by counting those lines
+   by kind.
    If a create request is due, make it, unless a
    handover trigger has fired and is not deferred, in which case the
    successor makes it from the handover's Next step. If a delete or a replace of a live, coherent session

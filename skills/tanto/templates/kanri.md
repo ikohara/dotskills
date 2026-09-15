@@ -14,7 +14,9 @@ stage | the plan stage>)` or
 until that handover or replacement runs or the plan closes; or, once a
 deferred handover's decline is recorded, `handover declined (present,
 context=<n>, at <batch X | the spec stage | the plan stage>)` in its
-place>
+place; and, for each pre-spec act ruled before Sekkei's spec — a diagnosis, a
+dump analysis — the clause `<act> — result: <path> (absent | present)`,
+rewritten to `present` when the file lands and dropped once the spec cites it>
 
 ## Plan
 
