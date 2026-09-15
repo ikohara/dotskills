@@ -12,7 +12,8 @@ labels `Q:`, `A:`, `Serves:`, `Adds or changes:`, `See:`,
 brief selects and renders; it does
 not analyze anew.
 
-Document: <path> — brief written <YYYY-MM-DD> on <model family> for the chat
+Document: <path> — hash <git hash-object of the document as read> — brief
+written <YYYY-MM-DD> on <model family> for the chat
 language <language>. Inputs read: <the document; for a spec also
 spec-inputs.md and dialogue.md; for a plan also the spec>.
 

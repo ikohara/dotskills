@@ -40,6 +40,16 @@ and the human's answer, verbatim, in order. Kanri may read it at any time, the
 brief writer reads it, and T1's shoroku takes it as an input — under this
 protocol it is the one record of the human's own words.
 
+**A decision reaches `dialogue.md` before it reaches any document.** Write the
+turn — the question you put, the human's answer verbatim, and your reading of
+it — and only then edit the spec, the plan, or a block. The case that breaks
+this is the decision that arrives **mid-turn**, in a message answering nothing
+you asked: it has no question to file it under, so file it under the work it
+interrupted, and give it a `D-n` of its own. A decision you acted on and did
+not record is indistinguishable, to every later reader, from one you invented
+— and the reader who finds it is a reviewer filing a scope finding against
+your own document.
+
 When Kanri's orders line says no batch is in flight, cut the branch from
 `main`, named after the topic, **before** the spec commit; everything from
 here rides on that branch. When a batch of another topic **is** in flight,
@@ -60,21 +70,33 @@ the draft.
 
 ## Step 2 — spec review
 
-Before the review, a passage in the spec that rewrites another role's
-procedure goes to that role's session for a check, when that session is live:
+Before the spec commit and before the reviewer is dispatched, a passage in the
+spec that rewrites another role's procedure goes to that role's session for a
+check, when that session is live:
 send Kanri the passage and the question which of its obligations it touches;
 Kanri relays it and answers as an `I-n`.
 
-Dispatch a **read-only** reviewer on `spec.review`, naming
-`subagent_type: tanto-spec-review` and its `model` together. Give it the spec
-and the repo's `docs/decisions/` and `docs/requirements/`, ask it to check the
-spec against them, and have it write its report to
+Dispatch a reviewer on `spec.review` — read files; write exactly one file, the
+report named below — naming
+`subagent_type: tanto-spec-review` and its `model` together. Give it the spec,
+the repo's `docs/decisions/` and `docs/requirements/`, and — as a third input
+— the files the spec's per-file change list touches, with the question which
+sentences in them the design contradicts that the spec's Old values list does
+not name; ask it to check the spec against all three, and have it write its
+report to
 `.tanto/<topic>/spec-review.md` with a **Shoroku candidates** section at the
 end. When a batch of another topic is in flight, tell it — as the orders line
 tells you — that the in-flight plan's paths are out of scope. Rule on every
 finding yourself. Scope findings go to the human; everything else is yours.
 Then send Kanri one line with the report path: Kanri adopts from its Shoroku
 candidates.
+
+Between the reviewer's dispatch and its report, and between the brief writer's
+dispatch and the human's answers, you do not edit the document; a change you
+need waits for the answers and is a further commit, or a further edit to the
+draft. The reviewer and the brief writer each record, in their file's first
+lines, the document's `git hash-object <path>` at the moment they read it, so
+that a line number in a finding has a fixed referent.
 
 Read a report by its sections and never whole —
 `node "$TANTO/scripts/passage-check.js" sections --file <path> <heading>`
