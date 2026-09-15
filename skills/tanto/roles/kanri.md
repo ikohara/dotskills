@@ -760,8 +760,6 @@ they are recommended and checked.
 
 ### The four steps
 
-<!-- markdownlint-disable MD038 -->
-
 1. **Candidates.** The session that holds them writes them, and only this step
    needs a resident context. T0: the input document — a Kikaku decision file,
    or a file of that kind. T1: the spec itself, whose four sections
@@ -787,6 +785,7 @@ they are recommended and checked.
    your own exit — the template `templates/shoroku-brief.md` in the skill
    directory, and the chat's language; the recommender writes both files in
    one run.
+   <!-- markdownlint-disable MD038 -->
 3. **Check.** Check the brief's form, not its judgment, and never by reading
    the recommendation's prose: `grep -c '^## '` on the brief is `4` and the
    four headings are `## How to answer`, `## Recommended adopt`,
@@ -806,6 +805,7 @@ they are recommended and checked.
    answer. No item is escalated apart from the rest and none is decided by
    you alone; the human sees the whole list, grouped, and answers by
    exception.
+   <!-- markdownlint-enable MD038 -->
 4. **Apply.** Dispatch `subagent_type: tanto-shoroku` in apply mode with the
    recommendation, the direction, and the commit subject —
    `docs: T<n> shoroku for <topic>` or
@@ -818,8 +818,6 @@ they are recommended and checked.
    as you verify any — `git status` clean, the diff's paths those the
    direction names, lint on them (again, whole-repository if that is what the
    script does) — and fill the Written column.
-
-<!-- markdownlint-enable MD038 -->
 
 Where the commit lands: on the topic's branch for T1, T2, and the exits of
 that topic's sessions; on `main` for T0 and for your own between-plans exit. A
