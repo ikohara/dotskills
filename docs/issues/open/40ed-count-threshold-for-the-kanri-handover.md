@@ -235,3 +235,26 @@ plan-landing cold read this time, yet the ceiling still crossed inside one
 boundary — a data point that the concurrent-topic administrative load
 (handshakes, intake, exits) costs comparably to the batch-verification work
 itself, not just a smaller addition to it.
+
+A fifth ceiling data point, 2026-09-15, from the next Kanri (`dotskills-df`),
+and the heaviest single-boundary one yet: `context=378678` against a derived
+ceiling of `215248`, crossed within one boundary that mixed a full handover
+acceptance (roster rewrite, four `kanri-address:` sends), two Kikaku decision
+iterations on the same file (the "now" half dropped, then restored after this
+Kanri's own notice), a re-ruling of another topic's held plan (R-9, with a
+full message to that topic's Keikaku), a new Keikaku handshake and its full
+queued-topic orders line, a projection dry-run cold read (dispatch, a
+four-question read, verification of all four answers against the tree), a new
+Kikaku handshake and reply, one mid-batch escalation ruling (R-17), and one
+full batch acceptance (`boundary`, `diff`, lint, two test suites, five content
+checks). No single administrative action stands out as the cost driver — it is
+the sum of ordinary per-topic bookkeeping across three concurrently open
+topics in one boundary. This point crossed its ceiling by about 1.76 times;
+the three earlier points that quote a derived ceiling crossed by between about
+1.09 and 1.37 times (`dotskills-a1`, `dotskills-57`, `dotskills-0d`). That the
+sum of ordinary bookkeeping across three concurrently open topics in one
+boundary is itself the finding: `ceiling.kanri.per_batch` prices one batch,
+and a boundary's cost scales with how many topics are open at it, which the
+instrument does not see. A candidate for whoever calibrates `ceiling.kanri`
+next — derive Kanri's ceiling per boundary as a function of the open topics,
+or count an open topic as a batch, rather than raising `per_batch` alone.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-15
 ---
 
 Observed in the `tanto-sweep-2` spec stage (2026-09-14), while
@@ -39,3 +39,25 @@ concurrency hazard: issue-1096 (a second live Sekkei's spec reviewer reading
 the first topic's draft) and issue-bf75 (a plan moving under review).
 
 A system gap, not a user-stated need, so no paired requirement.
+
+The notifier's side of the same gap, 2026-09-15 (`tanto-sweep-2`). The
+sentence above is written from the *reader's* side — what a live session of
+another topic does when its skill file changes under it. The other half is the
+duty to tell it: in batch C, ruling R-13 told three concurrent-topic peers
+that their own role file was about to change mid-tenure; in batch D, R-16
+applied the identical reasoning to `SKILL.md` itself — the shared contract
+every role reads, not a per-role file — because rule 11's authority sentence
+protects only the editing topic's own sessions and says nothing about a
+concurrent peer reading the same shared file mid-edit.
+
+Rule 11's text, and R-13's own precedent, are phrased around "a role's own
+file". Worth a sentence in `SKILL.md`'s rule 11 or in `roles/kanri.md`'s
+rule-11 handling saying explicitly that a concurrent peer must be notified
+before *any* shared file it reads changes mid-tenure — `SKILL.md` included,
+not only `roles/<role>.md` — so that a future Kanri does not re-derive the
+extension the way this tenure did, twice.
+
+The notice has now run twice under Kanri rulings without incident, so the fix
+on this side is the codification of a working practice, not a new mechanism;
+the reader-side sentence proposed above is its counterpart. One gap, two
+sides, one issue.
