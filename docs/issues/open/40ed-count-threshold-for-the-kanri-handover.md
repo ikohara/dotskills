@@ -191,3 +191,17 @@ different cost shape that reaches the same number for a different reason —
 one for whoever calibrates `ceiling.kanri`'s defaults next. The queued
 `tanto-diet` topic is a second reader of this data point, for the reduction
 lever as much as for the threshold.
+
+A coordination-plus-one-batch data point, 2026-09-15, from the next Kanri
+(`dotskills-0d`). Its ceiling (`context=276206` against `202384`) crossed
+within one continuous window that included: a full handover acceptance
+(roster/ledger rewrites across two open topics), two handshakes (one
+processed as newly-arrived from the predecessor, one a same-name/ref jisso
+re-handshake), one Kikaku decision processed across two ledgers, one Keikaku
+plan-drafted report requiring a cross-topic ruling, and one full batch-A
+verification (boundary, diff, three `verify --task` calls, lint, eleven
+content greps, a `node --test` run). Unlike the prior `dotskills-e9` data
+point (zero batches, pure coordination), this one shows the ceiling crossed
+with real batch-verification work mixed in — a second reader for whoever
+calibrates `ceiling.kanri`'s defaults next, alongside the prior
+coordination-only figure.

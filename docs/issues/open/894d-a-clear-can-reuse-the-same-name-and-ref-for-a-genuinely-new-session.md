@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-15
 ---
 
 After a local `/clear` followed by `/tanto hosa` in this run, `ListAgents`
@@ -40,3 +40,20 @@ repository's own `.tanto/roster.md` Events for 2026-09-14: kikaku
 `dotskills-2b [224104]` → `dotskills-2a [de54ef]`, and hosa
 `dotskills-b0 [27f77c]` → `dotskills-b0 [27f77c]` (same ref, new
 transcript).
+
+A third role type, 2026-09-15: jisso. Previously measured only for kikaku
+and hosa this run. The `dotskills-0d` Kanri's own Jisso handshake arrived
+twice under the identical name and ref `dotskills-5f [c4288d]` — first with
+`effort=high` (a mismatch against `sessions.jisso.effort=xhigh`, flagged to
+the human), then, after the human deleted and recreated the session, again
+under the same name and ref with a wholly different transcript and
+`effort=xhigh` this time. `ListAgents` gave no signal distinguishing the
+two — only the transcript path in the second handshake's own envelope did.
+So the pattern is not particular to a long-lived, human-driven role
+(kikaku/hosa); it reproduces just as readily for a role created and
+destroyed within one boundary. One more thing this case shows: this issue's
+own title says a `/clear` can reuse the same name and ref, but the jisso
+case was not a `/clear` — it was a deletion followed by a new session. The
+title's scope is now known to be too narrow: the pattern is identity reuse
+across any delete-and-recreate, of which `/clear` is one way, not the only
+way.
