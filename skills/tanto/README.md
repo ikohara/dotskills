@@ -129,9 +129,10 @@ it to the run; no address is pasted, and Kanri's window goes first.
 - `templates/` — copy-and-fill skeletons: `roster.md`, `roster-archive.md`,
   `kanri.md` (the conductor ledger), `kanri-handover.md`, `bug-report.md`,
   `batch-prompt.md`, `batch-report.md`, `kaiseki-brief.md`,
-  `kaiseki-report.md`, `review-brief.md`, `tanto.json` (the built-in model
-  and effort defaults), `kikaku-decision.md`, and `agent.md`, the subagent
-  definition every role generates from.
+  `kaiseki-report.md`, `review-brief.md`, `shoroku-brief.md` (the shoroku
+  check brief), `tanto.json` (the built-in model and effort defaults),
+  `kikaku-decision.md`, and `agent.md`, the subagent definition every role
+  generates from.
 - `scripts/passage-check.js` — the instrument a plan that carries passages
   checks itself with: `lint`, `replay`, `diff`, `verify`, `sections`,
   `frame`, and `boundary`, with `scripts/passage-check.test.js` beside it.

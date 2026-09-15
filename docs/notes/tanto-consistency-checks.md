@@ -1009,6 +1009,53 @@ paragraph under "Versions these checks assume" describes — a check written int
 the file it checks moves its own numbers, and its expected value is wrong the
 moment it is written.
 
+## 18. The recommendation's headings, on both sides
+
+```bash
+grep -cF '`## Recommended adopt`, `## Recommended reject`, `## Unsure`' skills/shoroku/SKILL.md
+grep -cF '## Recommended adopt' skills/tanto/templates/shoroku-brief.md
+grep -cF '## Recommended reject' skills/tanto/templates/shoroku-brief.md
+grep -cF '## Unsure' skills/tanto/templates/shoroku-brief.md
+grep -cF 'Recommended adopt, Recommended reject, Unsure' skills/tanto/SKILL.md
+grep -cF 'reject, Unsure —' skills/tanto/roles/kanri.md
+grep -cF 'Recommended adopt, Recommended reject, Unsure' skills/tanto/templates/kanri.md
+grep -rciF 'recommended adopt, recommended reject' skills/tanto/SKILL.md skills/tanto/templates/kanri.md skills/shoroku/SKILL.md
+grep -ci 'reject, unsure' skills/tanto/roles/kanri.md
+grep -c 'reads its `unsure` group' skills/tanto/SKILL.md
+```
+
+Expected: `1 1 1 1 2 1 1`, then the two case-insensitive counts equal to the
+case-sensitive ones above them — `3` summed over the three files, and `1` — a
+lowercase spelling anywhere being the drift issue-e916 named; and `0`, the
+contract's lowercase read of "Session exit" being gone. `roles/kanri.md`'s
+phrase wraps after `recommended`, so its check is on the second line's form, as
+check 6 pins a wrapped line by its own text. `sections` matches heading text
+exactly and is not changed: that exactness is what made the mismatch visible,
+and the fix is on the two sides that spell the heading, never in the matcher.
+The two case-insensitive lines above run shorter phrases than spec 8.1's own
+two needles (one of them O11.3, cited by id rather than re-quoted here):
+`lint`'s rule that a task's new text may not contain the very `O` needle that
+task declares forbids quoting the longer form verbatim, and the shorter form
+is a superset — anything the longer form would catch, this catches too.
+
+## 19. The check brief's form markers
+
+```bash
+grep -c '^## How to answer$' skills/tanto/templates/shoroku-brief.md
+grep -cF 'See:' skills/tanto/templates/shoroku-brief.md
+grep -cF '[adopt | reject | unsure]' skills/tanto/templates/shoroku-brief.md
+grep -cF 'templates/shoroku-brief.md' skills/tanto/SKILL.md
+grep -cF 'templates/shoroku-brief.md' skills/tanto/roles/kanri.md
+grep -cF 'shoroku-brief.md' skills/tanto/README.md
+```
+
+Expected: `1`, a non-zero count, `1`, then non-zero on the three citations —
+the template exists, carries its markers, and is named where it is copied from,
+which is check 3's rule for every other template. The tag line's alternatives
+are written once, in the shape the groups' lines are rendered from; the three
+group sections carry the concrete tag instead, which is why the third count is
+`1` and not `3`.
+
 ## 20. The enumerations the second sweep re-synchronized
 
 ```bash
