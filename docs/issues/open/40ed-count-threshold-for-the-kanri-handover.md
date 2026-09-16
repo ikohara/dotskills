@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-07
-updated: 2026-09-16
+updated: 2026-09-17
 ---
 
 decision-de63 fires a Kanri handover on two signals only, the human's word
@@ -282,3 +282,23 @@ instrument rather than the number: a resumed session's baseline is the same
 transcript's own growth, not a fresh one, so a session that ends close to its
 ceiling hands its successor-by-resume a context that can cross on turn one —
 before any work a batch-shaped or boundary-shaped threshold would see.
+
+An eighth data point, 2026-09-17, from `kuchidome`
+(bug-report-kanri-ceiling-per-batch-underestimates-final-batch), naming a
+different axis than the fifth data point's concurrent-topic finding above:
+`ceiling.kanri`'s flat `per_batch` figure does not distinguish a plan's
+ordinary lettered batches from its structurally heavier *final* one. That
+repository's `residency-retention` plan's own final batch (I) carried two
+full-suite test runs instead of one, a real YAML frontmatter parse across
+every edited document, and a repoint-grep across several directories; a
+Kanri whose own first-turn baseline was `context=78909` crossed its ceiling
+(`208909` = baseline + 2×65,000) at `context=261682` verifying that one
+boundary alone, with no other topic's work interleaved, and the same
+reading's `--presence` check nearly expired (57, then 59, of the 60-minute
+window) during that single boundary. Not urgent — the Replace table's own
+"never at the final batch's boundary" carve-out already prevents a *Jisso*
+replacement from firing wrongly here — but the *Kanri* ceiling has no
+equivalent carve-out. A candidate for whoever calibrates `ceiling.kanri`
+next, alongside the fifth data point's finding: a distinct, larger
+`per_batch` allowance (or an explicit multiplier) for the boundary
+`roles/kanri.md`'s "The final batch" section names.
