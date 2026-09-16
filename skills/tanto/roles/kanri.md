@@ -23,7 +23,7 @@ taking over mid-plan must not create a second ledger.
 1. Read `tanto.json` as `SKILL.md` describes, write the twelve agent
    definitions from the merged config as its start sequence prescribes, run
    `ListAgents` once for your own `name [ref]`, and say your start line: the
-   config file, the keys that came from the defaults, the ladder result if
+   two config files and which fields came from which, the ladder result if
    that check failed, and
    `agents: <n> current, <m> written, <k> not visible to this session`; your
    own `model` and `effort` against `sessions.kanri`, since you send no
@@ -153,8 +153,9 @@ Code restart" below.
 
 Four steps, in this order.
 
-1. Read `tanto.json` at this moment — its presence as much as its content;
-   "it existed when I last checked" is never evidence that it exists now —
+1. Read both `tanto.json` files at this moment — their presence as much as
+   their content; "it existed when I last checked" is never evidence that
+   either exists now —
    and check `model=` against `sessions.<role>.model` and `effort=` against
    `sessions.<role>.effort`. A mismatch of either is one line to the human
    saying which of the two differs and what runs.
