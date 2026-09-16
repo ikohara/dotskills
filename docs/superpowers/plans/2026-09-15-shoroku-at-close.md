@@ -186,15 +186,12 @@ by the ordinary "a modification in the shared tree it did not make is not
 its to discard" rule — the plan's own old texts are stale by design here,
 known in advance, not a stray edit.
 
-**Who, and when.** Keikaku's own deletion (the Delete table's usual
-"`coldread answered:` line named the exit proposal" trigger) is **held**
-until this catch-up is done — Keikaku is the plan's own author and the one
-session that can tell a real mismatch from a guess, and the alternative is
-Kanri or Jisso discovering the gap cold, with no one left who drafted
-against the projection to judge it. Once `tanto-project-config` merges to
-`main` (the human's own merge decision, as for any topic), Kanri sends this
-Keikaku one line — `catch up: tanto-project-config merged, rebase and
-re-anchor` — and Keikaku:
+**Who, and when.** Under R-7, the drafting Keikaku's deletion is not held
+for this catch-up — it exited at the cold-read boundary
+(`coldread answered:`, its exit proposal on disk) like any other Keikaku.
+Once `tanto-project-config` merges to `main` (the human's own merge
+decision), Kanri creates a fresh Keikaku, orders scoped to only this
+section, who:
 
 1. Rebases `shoroku-at-close` onto the new `main` (a rebase, not a merge —
    the branch carries only the spec and plan commits so far, no Jisso work
@@ -210,6 +207,10 @@ re-anchor` — and Keikaku:
    `replay --base main` must print **clean** — the residual gap fully
    closed, not merely "still `tanto-project-config`'s" — before that
    prompt goes out.
+
+Measured result: rebase landed at `425040e`; `lint` and `replay --base main`
+both clean on the first run, no re-anchor needed — this ledger's own `R-n`
+carries the resolved `diff` base.
 
 Keikaku is deleted after that report, under the ordinary Delete table rule,
 once its own exit proposal (below) is on disk.
