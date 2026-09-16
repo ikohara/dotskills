@@ -211,3 +211,21 @@ frequently-dispatched seats off `fable`. Planning that budgets a run against
 the five-hour window is therefore budgeting against the limit that is no
 longer the constraint; what decides whether a `fable` seat is available late in
 a week is the weekly cap alone.
+
+## `git checkout --` on the session's own uncommitted edit can be denied
+
+Observed 2026-09-16, in the `tanto-project-config` run's Batch A, Task 1 fix
+round: an implementer's first attempt at restructuring a test had to be undone,
+and `git checkout -- <path>` was denied by the permission classifier as a
+destructive action — on a file that same session had just modified and had not
+committed.
+
+The working path was to revert by hand: re-edit the file back to its prior
+committed text, read from the committed blob. That worked cleanly, and it costs
+one edit rather than a stall.
+
+The verdict is **not uniform across sessions**. Issue-3d81's reporter had a
+subagent run the same command successfully, in the same repository. So the
+denial is a thing to expect and route around, not a property to rely on either
+way — a session that plans to undo its own edit should assume the revert may
+have to be done by hand.
