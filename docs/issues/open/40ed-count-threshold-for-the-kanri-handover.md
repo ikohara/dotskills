@@ -302,3 +302,20 @@ equivalent carve-out. A candidate for whoever calibrates `ceiling.kanri`
 next, alongside the fifth data point's finding: a distinct, larger
 `per_batch` allowance (or an explicit multiplier) for the boundary
 `roles/kanri.md`'s "The final batch" section names.
+
+A ninth data point, 2026-09-17, from this repository's `shoroku-at-close` run,
+and the first with a *Jisso* and a Kanri reading crossed at the same boundary —
+the plan's very first one. The fresh Jisso (`dotskills-35`) read
+`context=296542` against a derived `210523`, about 1.4×, on batch A alone, its
+first batch ever; the Kanri (`dotskills-1a`) read `context=420475` against
+`210713`, about 2.0×, inclusive of two concurrent topics' coordination load (the
+`seat-lineage` T0 cycle, five bug-report triages, a full `/clear`-and-reconnect
+round, and the branch-checkout race issue-1bff records). The Kanri half is
+another instance of the fifth data point's concurrent-topic finding. The Jisso
+half is new here: this plan — a wholesale rewrite of `roles/kanri.md`'s own
+"Shoroku" section, `SKILL.md`'s definitions paragraph, and several templates —
+costs Jisso well above the flat `ceiling.jisso.per_batch` default on an
+*ordinary early* batch, not only a final one, which is a second and independent
+signal beside the eighth data point's final-batch axis: a plan whose batches
+rewrite large chunks of `roles/kanri.md` costs more per batch than the default
+assumes, whatever the batch letter.
