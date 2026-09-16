@@ -358,10 +358,11 @@ printed only when asked for, and the sections that ask name the switch:
 against the ceiling. A second form,
 `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]`,
 prints the share of usage spent at a large context across several transcripts,
-and Kanri runs it once, at the plan close. Three further switches — `--now`,
-`--config`, `--settings` — fix the clock, the personal config and the settings
-file; they exist for the tests and for a Kanri verifying a peer's reading, and
-no role file passes them.
+and Kanri runs it once, at the plan close. Four further switches — `--now`,
+`--config`, `--project-config`, `--settings` — fix the clock, the personal
+config, the project config and the settings file; they exist for the tests and
+for a Kanri verifying a peer's reading from another working directory, and no
+role file passes them.
 
 - **Bytes** and **records** are the file's size and its line count, one JSON
   record per line. A line that does not parse as JSON is counted in records
@@ -722,6 +723,7 @@ review package excludes.
 | `.superpowers/sdd/<plan-basename>/progress.md` | Jisso, through the SDD skill | Kanri | the SDD ledger; Kanri reads it and never writes it; the one artifact tanto reads under `.superpowers/` |
 | `.tanto/.gitignore` holding `*`, and `.tanto/.markdownlint-cli2.yaml` holding `config:` / `default: false` | Kanri at start, a standalone Kaiseki, or a bug-report writer — whichever finds them absent first; never overwritten | git; the editor's markdownlint | keeps everything above untracked, so nothing is ever staged, and keeps the editor quiet on files the commit path never lints |
 | `$CLAUDE_CONFIG_DIR/tanto.json` | the user | every role at start, Kanri at each handshake | the personal expected-model config |
+| `<cwd>/.claude/tanto.json` | the repository | every role at start, Kanri at each handshake, `scripts/reading.js` | the project expected-model config, overlaid on the personal one; committed or ignored as the repository decides |
 | `~/.claude/agents/tanto-*.md`, or `$CLAUDE_CONFIG_DIR/agents/` when that variable is set | every role at its start, from the merged config | the harness, at the next session start | one definition per kind, from `templates/agent.md`; a definition is dispatchable only from the sessions started after it was written |
 
 Templates are copied and filled, never restated in prose. Fourteen of them:
@@ -742,8 +744,9 @@ and `roles/keikaku.md`, `roles/jisso.md` and `roles/kanri.md` name them.
 `scripts/reading.js` is the instrument every role measures itself with, run at
 every boundary and every exit; its two forms are the reading of one transcript
 — with `--role kanri|jisso`, `--presence` and `--backstop` each adding a line,
-and `--now`, `--config` and `--settings` fixing what the tests and a verifying
-Kanri need fixed — and `--share` over several transcripts, which Kanri runs at
+and `--now`, `--config`, `--project-config` and `--settings` fixing what the
+tests and a verifying Kanri need fixed — and `--share` over several
+transcripts, which Kanri runs at
 the plan close. Both are Node with no dependencies, and both have their tests
 beside them, run by `node --test`. Their paths are written skill-relative,
 like every other path in

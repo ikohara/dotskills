@@ -963,12 +963,12 @@ Assigning a write-out by section name — "the `Bug intake` section of the desig
 node skills/tanto/scripts/passage-check.js 2>&1 | head -n 1
 node skills/tanto/scripts/passage-check.js 2>&1 | head -n 1 | grep -oE 'lint|replay|diff|verify|sections|frame|boundary' | sort -u | wc -l
 node skills/tanto/scripts/reading.js 2>&1 | head -n 1
-node skills/tanto/scripts/reading.js 2>&1 | head -n 1 | grep -oE '\-\-role|\-\-presence|\-\-backstop|\-\-share|\-\-now|\-\-config|\-\-settings' | sort -u | wc -l
+node skills/tanto/scripts/reading.js 2>&1 | head -n 1 | grep -oE '\-\-role|\-\-presence|\-\-backstop|\-\-share|\-\-now|\-\-config|\-\-project-config|\-\-settings' | sort -u | wc -l
 grep -cF 'scripts/reading.js' skills/tanto/SKILL.md skills/tanto/README.md
 ```
 
 Expected: the first script's usage line, then `7`; the second script's usage
-line, naming **both** its forms on that one line, then `7`; then one
+line, naming **both** its forms on that one line, then `8`; then one
 `<path>:<n>` line per file with `<n>` at least `1`. The usage lines are read,
 not
 matched: the wording belongs to each script, and a plan that rewords one is not
@@ -984,6 +984,11 @@ which must name both scripts, and the README's Layout, which must list both: a
 zero on either side is the drift this check exists for. `reading.js` spells its
 usage over one line for exactly this reason — a `head -n 1` that showed only
 the first of two forms would pass while hiding half the interface.
+
+`--config` does not match inside `--project-config` — the text there is
+`t-config`, not a second `--config` — so the two are counted separately, and
+an alternation that named only the shorter one would keep passing while
+covering less of the interface than it used to.
 
 This check is numbered after the lessons above rather than beside checks 1 to
 9 because the numbers here are cited by plans; renumbering a check would make
