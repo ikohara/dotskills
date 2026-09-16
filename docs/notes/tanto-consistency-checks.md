@@ -142,7 +142,7 @@ its own quotations.
 
 **That exclusion is not enough, and the wider scope usually is not wanted.**
 The same plan's write-out lane produces more quotations of the text it removes:
-T1, T2 and every exit shoroku write ADRs, design entries and issue resolutions
+the close of every topic writes ADRs, design entries and issue resolutions
 under `docs/decisions/`, `docs/design/` and `docs/issues/`, and a record whose
 subject is "we stopped saying X" **must** quote X. So a sweep written over
 `skills docs` goes red on a clean skill by construction, and it did — two of

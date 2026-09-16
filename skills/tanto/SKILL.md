@@ -111,10 +111,12 @@ Three maps, three mechanisms. Every value of the first two maps is
   `task.escalate`, `task.review-spec`, `task.review-quality`, `plan.draft`,
   `plan.review`, `plan.coldread`, `spec.review`, `branch.review`,
   `brief.write`, `shoroku.recommend`, `shoroku.apply`, and `default`.
-- A key inside `subagents` whose name is a **skill name** means "run that skill
-  in a subagent on that model instead of inline". When the key is absent, the
-  skill runs inline on the session's model. `shoroku` is the one built-in
-  skill-name key; any other is a personal addition.
+- A key inside `subagents` whose `<object>` is a **skill name** and whose
+  `<act>` is one of that skill's modes means "run that mode of the skill in a
+  subagent on that model instead of inline". When the key is absent, the mode
+  runs inline on the session's model. `shoroku.recommend` and `shoroku.apply`
+  are the two built-in skill-name keys, naming the `shoroku` skill's
+  recommend and apply modes; any other is a personal addition.
 - `ceiling` is **effective** in the sense `subagents` is: `scripts/reading.js`
   reads it, and the verdicts `roles/kanri.md` and `roles/jisso.md` act on come
   out of it. `ceiling.kanri` and `ceiling.jisso` are each
@@ -154,7 +156,10 @@ same way and at the same granularity: a personal
 `{"ceiling": {"kanri": {"batches": 1}}}` sets Kanri's batch count to 1 and
 leaves every other value of all three maps alone. A key that names no role, no
 kind and no ceiling field — an older file's, for instance — is reported in
-your start line as `unknown key <name> in <path>, ignored`, or as
+your start line as `unknown key <name> in <path>, ignored` —
+`subagents.shoroku`, the kind's name before it was split into
+`shoroku.recommend` and `shoroku.apply`, is one such key, and a personal file
+that still carries it sets neither half — or as
 `unknown key ceiling.<name> in <path>, ignored` for one under that map, which
 `scripts/reading.js` writes on `stderr` every time it reads a file; either
 way it is otherwise ignored.
