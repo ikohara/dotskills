@@ -32,6 +32,16 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   texts, not from the old tree. A replacement can reintroduce the needle it was
   written to remove, and a count derived from the tree before the edit would
   not notice.
+- **A mid-sentence insertion changes what a later pronoun resolves to.** Check
+  every pronoun and demonstrative that follows an insertion in the same
+  sentence or paragraph: the new text supplies a nearer noun, and the reference
+  silently re-points to it. Three tasks of one plan hit this shape —
+  an inserted clause left "already been deleted" attached to the wrong subject,
+  an inserted item split a list so a following "these" covered a different set,
+  and an insertion in `skills/shoroku/SKILL.md` left "that path" reading as the
+  brief path instead of the output path. The passage is correct in isolation
+  every time; only the surrounding sentence breaks, which is why no needle and
+  no diff finds it.
 
 ## An entity-level sweep beside the phrase-level one
 
@@ -128,13 +138,25 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
 A block is written against the file it lands in, and that file's linter runs
 with `--fix` before the commit. A block the linter rewrites can never match.
 
-- **Never put a leading space inside an inline code span** in a file
-  markdownlint lints. `MD038`'s `--fix` strips it and then reports zero errors,
-  so the passage is unlandable and the failure looks like a missing passage.
-  Measured twice in the tanto-workspace plan (`roles/kanri.md`,
+- **Never put a leading *or trailing* space inside an inline code span** in a
+  file markdownlint lints. `MD038`'s `--fix` strips it and then reports zero
+  errors, so the passage is unlandable and the failure looks like a missing
+  passage. Measured twice in the tanto-workspace plan (`roles/kanri.md`,
   `roles/kaiseki.md`), with the counter-case that `skills/**/templates/**` is
   ignored by this repository's configuration and the identical span lands
-  byte-exact there.
+  byte-exact there; and twice more in the tanto-sweep-2 run, both of them
+  **trailing**, which is the side the rule originally omitted. The mechanism is
+  the same on both sides and the symmetric form is the trap that makes it easy
+  to miss: a span written with a space on each side of a heading marker, to
+  show the marker as it appears in a heading line, renders with both trimmed,
+  so what the author sees rendered is never what the passage must match.
+- **Plan the suppression up front**, whenever a task or a fix specifies an
+  exact text containing a code span that begins or ends with a space. Decide
+  where the inline suppression comment goes while drafting the block, not after
+  a `BLOCKED` report comes back. The pre-commit hook enforces `--fix` on
+  **every commit attempt**, not only on a standalone `lint` call, so there is
+  no path that lands such a block without the suppression — discovering it late
+  costs a round trip and buys nothing.
 - Where indentation is **load-bearing content** rather than formatting, prose
   has to carry it, because a code span cannot: `config:` with an unindented
   `default: false` is two top-level keys, and markdownlint-cli2 discards the
@@ -166,6 +188,13 @@ with `--fix` before the commit. A block the linter rewrites can never match.
   stale check in `docs/notes/tanto-consistency-checks.md` rather than in the
   skill itself. A reviewer who does not know the domains differ cannot use
   either sweep to explain the other's result.
+- **Rejected alternative, so it is not tried again: do not fence a `diff` call
+  with a literal placeholder value.** It looks runnable — the fence carries a
+  concrete base and a reader can copy it — but the value is fixed at drafting
+  time while the real base is resolved later, so `replay` records `DIFFERS`
+  forever and the fence becomes permanent noise. Point at "How a batch is
+  verified"'s own hand-run instruction instead, which resolves the value at the
+  moment it is needed.
 - `diff` counts an added line as *accounted* when the plan quotes that line
   **anywhere**, not only where a passage lands it. Measured in the
   tanto-workspace fix wave: nineteen lines were added to a note and only

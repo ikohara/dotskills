@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-13
+updated: 2026-09-16
 ---
 
 Found by the tanto-cost run's batch C task reviews (2026-09-13), recorded in
@@ -49,3 +49,14 @@ session is deletable as soon as its proposal is on disk"). Fixing
 
 Related: issue-e18b (the same "can't fix inside this plan" shape, filed the
 same run), design-4807 (the shoroku flow's current-state record).
+
+**2026-09-16, the `tanto-sweep-2` run — the slot half is resolved; the
+sentence's own wording is the remaining tail.** That run's task 4 newly routed
+Kanri's own exit shoroku through **slot (a)**, settling the four-sites-to-two
+question above. What it did not touch is the slot (a) sentence itself: "the
+session whose shoroku it is has already been deleted; it waits for nothing"
+does not literally cover Kanri's own exit-shoroku sub-case, where Kanri applies
+its own shoroku *before* any deletion rather than after. Real but not
+load-bearing — no reader is misrouted, since the slot is now unambiguous — and
+it needs a seventh passage that a follow-up sweep would add, most likely a
+short parenthetical noting the exception rather than a rewrite of the sentence.

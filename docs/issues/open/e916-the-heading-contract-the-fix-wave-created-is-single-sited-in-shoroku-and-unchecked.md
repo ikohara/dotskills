@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-16
 ---
 
 Found by the tanto-cost run's final fix-wave re-review (2026-09-14),
@@ -46,3 +46,24 @@ shoroku quietly reading nothing.
 
 Related: issue-4d8a (nothing checks a role file's own cross-references —
 the same shape, here between two skills instead of within one file).
+
+**2026-09-16, the `tanto-sweep-2` run — the "Composes without modifying" claim
+had drifted from practice, and nothing re-checks it.** req-04f5's "Composes
+without modifying" bullet named `shoroku` among the skills this repository uses
+as-is, while `skills/shoroku/SKILL.md` had by then been edited for `tanto`'s
+sake **twice**. The requirement and the practice were out of step until that
+run's own T1 amended the bullet, so the bullet itself is now correct. What
+remains is this issue's own subject one level up: the coupling described above
+is exactly the thing the bullet asserts does not exist, and no check compares
+the claim against the tree. A run noticed it by reading; the next drift will
+need someone to read again.
+
+**2026-09-16, the `tanto-sweep-2` run — one unpinned site survived the
+batch-F fix wave.** `skills/tanto/SKILL.md`'s Artifacts table still names the
+unpinned "item's `###` heading" phrasing in the last column of its
+`<stage>-brief.md` row — the same ambiguity the whole-branch review's Important
+1 pinned everywhere else in that wave. It survived because it sat outside the
+wave's dispatched edit sets, not because it was judged correct. A one-phrase
+follow-up, and a concrete instance of the coverage gap this issue names: the
+contract is stated in one place and restated informally in others, with
+nothing that finds the restatements.

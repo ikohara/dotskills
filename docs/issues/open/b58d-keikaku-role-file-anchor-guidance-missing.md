@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-16
 ---
 
 Reported from `C:\Users\0000105523\devel\kuchidome` (tanto, topic
@@ -28,3 +28,21 @@ File-structure table, and that plan has not closed yet.
 Proposed fix: add a sentence to `roles/keikaku.md`'s passage-writing
 guidance — an anchor's `after:` value is produced by running its own
 command against the applied text, never by counting from a read.
+
+**2026-09-16, the `tanto-sweep-2` run — a second missing sentence, about where
+a passage lands rather than what its `after:` counts.** Two independent
+instances in one plan of a textually-correct passage landing at a structurally
+awkward point, because the **anchor**, not the words, was wrong:
+
+- Task 8: a plan-declared insertion point split a bulleted list in
+  `roles/keikaku.md`, where the identical text in `roles/sekkei.md` sat between
+  prose paragraphs and read fine — the same needle, two different structural
+  contexts.
+- Task 4: the parked "already been deleted" finding, the same shape (see
+  issue-7ba4, which carries that sentence's own tail).
+
+Worth one shared follow-up sweep rather than two small ones. The guidance this
+issue asks for therefore has two halves, not one: an anchor's `after:` value is
+run rather than counted, **and** an anchor is chosen for where its passage
+*lands* — the structure at the insertion point — not only for where its needle
+matches.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-16
 ---
 
 Found by the tanto-cost run's batch F (2026-09-14), recorded in
@@ -99,3 +99,19 @@ about check 6 and all of this issue's kind:
   skipped in the fix wave, because adding a position to check 6 renumbers
   every position after it and the run had live expectations keyed to those
   numbers. **Trigger: whenever check 6 is next safely renumbered.**
+
+**2026-09-16, the `tanto-sweep-2` run — the third instance, and the first at
+spec time.** The note's own four-site rule — "a plan that adds a template edits
+four of them: this bullet, check 1's path list and expected count, check 2's
+expected count, and check 3's map" — was missed by a **second spec in a row**.
+It was caught only during that plan's own drafting, after the spec had already
+been written and reviewed; nothing between the spec's authoring and the
+drafter's read re-measures the counts a new file under `skills/` moves. The
+two earlier instances above are both batch-time; this one shows the same gap
+reaching one stage further upstream, where the cost of missing it is larger
+because every downstream task inherits the wrong values.
+
+The candidate fix that run named: a Keikaku drafting convention — a plan that
+creates a file under `skills/` lists, in its own text, the structural counts
+the new file moves, so the drafter's list and the note's four sites are
+checked against each other rather than each trusted separately.

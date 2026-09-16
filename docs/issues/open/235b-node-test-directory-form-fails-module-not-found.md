@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-12
+updated: 2026-09-16
 ---
 
 Measured in the tanto-sweep run (2026-09-10, batch A). Both the spec and the
@@ -47,3 +47,12 @@ check. See issue-ea3c for the general gap this is one of two instances of.
 
 Related: req-04f5, design-4807 (the test-suite command), the tanto-sweep
 spec and plan of 2026-09-10, issue-ea3c.
+
+Confirmed twice more in the `tanto-sweep-2` run (2026-09-16), at the batch
+boundaries and again at that plan's task 13, with the same result both times:
+`mise x node@22 -- node --test skills/tanto/scripts/` fails with
+`MODULE_NOT_FOUND` under Windows Git Bash while the suite itself is clean.
+Passing the two `.test.js` files explicitly runs **98 tests, 0 failures**. That
+is the current size of the suite and the current figure for this issue's
+dataset — a Windows Bash-tool pitfall, not a real break, now measured across
+three separate runs.

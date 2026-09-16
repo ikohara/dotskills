@@ -2,7 +2,7 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-09-14
+updated: 2026-09-16
 ---
 
 ## Purpose and shape
@@ -1637,6 +1637,19 @@ prose, says what would make it a command.** Two of this repository's most
 expensive plan findings — the needle trap and the count trap — sat in this
 document as prose for two runs and were broken in the interval by the people
 who had read them.
+
+The review layers that run these conventions are not interchangeable, and the
+`plan.coldread` seat exists because they are not. In the tanto-sweep-2 run a
+cold read of the committed plan caught three drift classes that `lint`,
+`replay`, and the `plan.review` dispatch had all passed: stale scaffolding text
+left from an earlier draft, a CLI argument shape that no command actually
+accepts, and a cross-reference inside the spec pointing at the wrong item. Each
+is a defect only a reader with the whole document in view can see — the
+instruments check what a rule names, and the review dispatch checks what the
+plan claims, while the cold read checks the plan against itself with no prior
+expectation of what it should say. The "found by" column of the table above
+credits a cold read for the same reason: it is a distinct layer, not a slower
+copy of the dry run or the review.
 
 ## The five triage outcomes, and why five
 

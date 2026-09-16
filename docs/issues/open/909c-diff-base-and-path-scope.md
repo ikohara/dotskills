@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-15
+updated: 2026-09-16
 ---
 
 Measured at the tanto-sweep run's batch A boundary (2026-09-10), by Kanri.
@@ -98,3 +98,36 @@ necessarily a standing cost through to the plan's close — a later sweep or
 whole-tree task can absorb it for free — and Kanri's own boundary check should
 not assume an earlier-accepted exception will keep reappearing without
 confirming it directly, the way this boundary's own check did.
+
+2026-09-16 — the base's *moment* of resolution, which the form recorded above
+does not fix. "`diff`'s base is resolved once" names the resolution moment as
+"right before task 1's first commit", but the `tanto-sweep-2` run resolved it
+right after the plan committed, with two more commits landing on the shared
+branch before task 1 ran. That was the first of the five re-resolutions below.
+The convention this asks for is a drafting and ruling rule, not a new base
+form: re-confirm the base **at the moment Jisso's create request actually goes
+out**, not only when the plan first commits. The form above is resolvable from
+the tree at any time, so re-confirming costs one command — and it would have
+caught this before batch A ran.
+
+2026-09-16 — the count closes at **five**, and a second durable option. The
+`tanto-sweep-2` run re-resolved its base five separate times: R-9, R-10 and
+R-12, recorded in the 2026-09-15 paragraph above, then R-15 and R-18 for the
+same recurring cause. Beside the path-scope fix this issue already carries, the
+run named a second durable option for `passage-check-hardening`: a standing
+**exclude-list for Kanri's own edit commits**, so the commits that produce the
+noise are excluded by kind rather than the paths being enumerated. Either
+closes the structural case; the choice between them is open.
+
+2026-09-16 — a third class, for `diff`'s reporting rather than its base.
+`diff`'s literal line-accounting produces the same add-plus-remove symptom from
+two different root causes, and the right response differs between them. One is
+a small, reviewed off-plan textual correction — the `tanto-sweep-2` run's task
+5 fix-round line in `templates/kanri-handover.md` (R-11) — where the response is
+to accept it as an exception. The other is a **moved-but-unchanged** line —
+that run's task 9 `## The output` heading in `roles/kikaku.md`, which only
+shifted position between two adjacent declared edits — where the response is to
+recognize the move, since nothing about the line changed at all. Reporting them
+identically means every instance costs a human ruling to tell apart. A
+requirement on the same instrument's eventual fix, beside base drift and the
+exception-absorption note above.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-08
-updated: 2026-09-08
+updated: 2026-09-16
 ---
 
 Kanri's Start makes sure `.superpowers/sdd/.gitignore` holds `*` and reads
@@ -35,3 +35,15 @@ sequence records the sweep.
 Related: design-4807 (the start sequence, the roster and the conductor
 ledger), issue-f2c4 (one directory per topic would shorten the list of what
 belongs at the root).
+
+**2026-09-16, the `tanto-sweep-2` run — the first measured figure since the
+workspace moved to `.tanto/`.** At that topic's spec stage the root of
+`.tanto/` held **four leftovers from closed topics**, corroborated
+independently by that ledger's own Session events. This is the first real
+count for the listing this issue proposes, and it names the category the "what
+belongs at the root by design" list above does not yet cover: a topic
+directory is legitimate while its topic is open and becomes a leftover the
+moment the topic closes, so the list cannot be read as a static set of
+permitted names. The closed-topic case needs its own entry — a topic directory
+whose topic has closed is a leftover, and the listing should say so rather than
+letting it pass as "one topic directory per open topic".

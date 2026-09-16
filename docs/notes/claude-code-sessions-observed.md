@@ -198,3 +198,16 @@ Observed 2026-09-12, at the second editor restart of the kisou-refresh run.
   them became a spec input (tanto-workspace I-2). The tab title comes from
   the first prompt (above), which for a tanto role is `/tanto <role> …` and
   so does name the role — but only while the tab is wide enough to show it.
+
+## The per-family weekly limit binds on `fable`, not the five-hour window
+
+Observed 2026-09-16 by the human, across the period since the move to sonnet
+for the seats that had been on `fable`.
+
+Two limits apply to a model family: a rolling five-hour window and a weekly
+per-family cap. On `fable` the **weekly** cap is now the one that binds — the
+five-hour window stopped being reached once the sonnet move took the
+frequently-dispatched seats off `fable`. Planning that budgets a run against
+the five-hour window is therefore budgeting against the limit that is no
+longer the constraint; what decides whether a `fable` seat is available late in
+a week is the weekly cap alone.

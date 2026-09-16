@@ -369,6 +369,13 @@ rule does not bind a report or a ledger there. Two reviewers
 independently read it the other way. The rule binds what a shoroku write-out
 **lifts out of** that workspace into `docs/`, which is the check worth making.
 
+**One numbering namespace.** The `## <n>.` sections below are a single
+sequence shared by checks (1-9, 16-20, 23) and lessons (10-15, 21, 22) alike:
+a new entry of either kind takes the next number, and the number says nothing
+about which kind it is. A spec that numbers the two kinds separately would
+collide with this convention, so a plan adding an entry here reads the highest
+existing number rather than the highest of its own kind.
+
 Adding a check is an edit to this file.
 
 ## Versions these checks assume
@@ -1047,14 +1054,22 @@ grep -cF '[adopt | reject | unsure]' skills/tanto/templates/shoroku-brief.md
 grep -cF 'templates/shoroku-brief.md' skills/tanto/SKILL.md
 grep -cF 'templates/shoroku-brief.md' skills/tanto/roles/kanri.md
 grep -cF 'shoroku-brief.md' skills/tanto/README.md
+grep -cF "See: <the item's heading text, without its ### marker>" skills/tanto/templates/shoroku-brief.md
 ```
 
-Expected: `1`, a non-zero count, `1`, then non-zero on the three citations —
-the template exists, carries its markers, and is named where it is copied from,
-which is check 3's rule for every other template. The tag line's alternatives
-are written once, in the shape the groups' lines are rendered from; the three
-group sections carry the concrete tag instead, which is why the third count is
-`1` and not `3`.
+Expected: `1`, a non-zero count, `1`, then non-zero on the three citations, then
+`4` — the template exists, carries its markers, and is named where it is copied
+from, which is check 3's rule for every other template. The tag line's
+alternatives are written once, in the shape the groups' lines are rendered from;
+the three group sections carry the concrete tag instead, which is why the third
+count is `1` and not `3`.
+
+The last line is the `See:` wording itself, pinned rather than merely counted.
+The fix wave that settled this form made the pointer the heading's **text**,
+without its `###` marker, and a bare `See:` count cannot tell the settled form
+from a reversion to the marked one — which is exactly the break that wave
+fixed. Four occurrences: the shape line under `## How to answer`, and one per
+group section.
 
 ## 20. The enumerations the second sweep re-synchronized
 
@@ -1104,3 +1119,52 @@ the mechanism did not list the others. issue-c30e was the same shape one file
 apart: Hosa's standing grant is given at the handshake by "Human access" step 3,
 and the handshake step that gives it did not name it. Both survived a spec
 review and a plan review of the wave that introduced them.
+
+The rule has a spec-time half that the paragraph above leaves out, measured in
+the `tanto-sweep-2` run: a deletion-timing phrase was changed at two sites and
+left at four, and the two sites were chosen by the **spec**, not by a task, so
+the task-level listing `roles/keikaku.md` Step 3 asks for could not catch it —
+each task had listed everything its own change named. Sekkei's per-file change
+list therefore runs the same "every other site that names it" listing that Step
+3 already asks of a task; otherwise the convention binds only below the level
+where the omission is made.
+
+## 22. A heading contract says whether the marker is part of the pointer
+
+A contract between two skills that makes one skill's heading into the other's
+pointer must state whether the heading's `###` marker is part of the pointer or
+not. Saying "the item's heading" settles nothing: a writer reads it as the
+heading's text and a checker reads it as the heading line, and both are
+defensible.
+
+Measured on the check brief's first real run: the brief was written with `See:`
+pointers carrying the heading's text alone, while the check as literally
+specified grepped for the heading **with** its marker, so every pointer missed.
+The whole-branch review raised it (its Important 1) and the batch-F fix wave
+pinned the text-only form everywhere; check 19's last line is what now holds
+that form in place.
+
+This is the same class of gap as issue-e916 one level down — there, a heading
+contract stated in exactly one place with nothing checking it; here, a heading
+contract stated ambiguously with two readers resolving it differently. Both
+fail silently: nothing errors, the pointers simply find nothing.
+
+## 23. A `sections` argument in prose is the bare heading
+
+```bash
+grep -rnE "sections [^|]*['\"\`]#" skills/ docs/notes/
+```
+
+Expected: **no output** (`grep` exits 1). `sections` matches heading text
+exactly, so a quoted argument that carries the heading's `#` marker never
+matches anything — and the failure is silent, since an unmatched section reads
+as an absent one.
+
+The instance behind this check: the three sites that fixed the lowercase
+`unsure` spelling in the `tanto-sweep-2` run introduced `## Unsure` as the
+quoted argument, which `sections` rejects. The whole-branch review caught it
+(its Important 2) and the batch-F fix wave corrected all three; this check is
+what would have caught it at plan time instead. The pattern deliberately looks
+for a quote character immediately followed by `#` on a line naming `sections`,
+so a prose sentence that merely mentions a heading elsewhere on the line does
+not trip it.
