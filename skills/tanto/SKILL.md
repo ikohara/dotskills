@@ -163,14 +163,46 @@ Then check that `subagents.task.escalate` sits above
 `subagents.task.implement` on that ladder — SDD's fix rounds 4-5 are an
 escalation only if it does.
 
+<!-- markdownlint-disable MD038 -->
 A kind's effort cannot ride in a dispatch; it rides in an agent definition,
 which the harness reads when a session starts. So, after reading the merged
-config and before any other work, write for each of the twelve kinds the file
+config and before any other work, make two passes.
+
+**User scope.** Write for each of the twelve kinds the file
 `~/.claude/agents/tanto-<object>-<act>.md` — the kind's name with its `.`
 turned into a `-`, under `$CLAUDE_CONFIG_DIR/agents/` when that variable is
 set — from `templates/agent.md`, when the file is absent or its content
 differs from what the template renders. A file that already matches is left
-alone.
+alone. This rendering takes its effort from the merge of the **built-in and
+personal layers only**, never from the project file, and its `<scope>` slot
+renders empty. That merge is the one every role in every repository computes
+identically for the same personal file, and it is what keeps the user-scope
+files stable across repositories: a project's effort written where every other
+project reads it is the failure this whole mechanism exists to prevent.
+
+**Project scope.** Then compute, for each of the twelve kinds, the three-layer
+effort. For every kind whose three-layer effort **differs** from the
+user-scope effort, write `<cwd>/.claude/agents/tanto-<object>-<act>.md` from
+the same template with that effort and with the `<scope>` slot rendered as
+` Project-scope copy for this repository.` — one leading space, and no other
+change from the user-scope rendering above, which renders the same slot as
+the empty string — when that file is absent or its content differs; a file
+that already matches is left alone. A model difference alone produces no project-scope file: the model
+rides in the dispatch's own `model` parameter, and a definition carries none.
+For every kind whose three-layer effort does **not** differ, remove
+`<cwd>/.claude/agents/tanto-<object>-<act>.md` if it exists. That removal
+sweep runs whenever `<cwd>/.claude/agents/` exists, whether or not a project
+file does, and only those twelve names are ever removed — nothing else under
+that directory is touched. Without it, a project file edited to drop an effort
+would leave a project-scope copy that keeps winning while your start line
+reports the personal effort, which is the silent override the requirement
+forbids. When the project pass writes its first definition and
+`<cwd>/.claude/agents/.gitignore` is absent, write that file with the two
+lines `tanto-*.md` and `.gitignore`; when it exists it is never overwritten,
+whatever it holds, and it is not removed when the last project definition is.
+When the project file is absent, or sets no effort that differs, the write
+half writes nothing and creates no directory; the removal half still runs.
+<!-- markdownlint-enable MD038 -->
 
 The rendered file is `name`, a `description` saying the seat is dispatched by
 name through `subagent_type` and is never to be selected from that
