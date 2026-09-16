@@ -285,6 +285,12 @@ test("an unknown key under the ceiling map is ignored and named on stderr", () =
   assert.match(result.err, line("sekkei"));
   assert.match(result.err, line("kanri\\.window"));
   assert.match(result.out, /^ceiling: kanri baseline=1000 \+ 2 x 65000 = 131000 — context=2000 under$/m);
+
+  // The module's own return value, independent of the CLI run above:
+  // `paths` is exactly `{ personal, project }`, each as resolved.
+  const { loadCeiling } = require(SCRIPT);
+  const project = writeJson("project-tanto.json", { ceiling: {} });
+  assert.deepStrictEqual(loadCeiling(config, project).paths, { personal: config, project });
 });
 
 test("--share skips a path it cannot read, counts only the ones read, and names the skipped", () => {
@@ -357,13 +363,4 @@ test("an unknown key is named with the file it came from, with both files in one
   const line = (name, p) => new RegExp(`^unknown key ceiling\\.${name} in ${escape(p)}, ignored$`, "m");
   assert.match(result.err, line("sekkei", personal));
   assert.match(result.err, line("kanri\\.window", project));
-});
-
-test("loadCeiling's returned paths is exactly { personal, project }, each as resolved", () => {
-  const { loadCeiling } = require(SCRIPT);
-  const personal = writeJson("tanto.json", { ceiling: { kanri: { batches: 3 } } });
-  const project = writeJson("project-tanto.json", { ceiling: { kanri: { batches: 1 } } });
-
-  const result = loadCeiling(personal, project);
-  assert.deepStrictEqual(result.paths, { personal, project });
 });
