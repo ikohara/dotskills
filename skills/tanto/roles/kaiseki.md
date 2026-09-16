@@ -76,8 +76,8 @@ defects observed" item tagged `blocks this task: no`. On Kanri's
 `exit: propose your shoroku; write it to <path>`, write them to
 `.tanto/<topic>/exit-kaiseki-<n>-proposal.md`, run the self-check of
 `SKILL.md`'s Resuming, and answer `exit proposal: <path> — <reading>`. Then
-idle: the recommendation, the human's check, and the apply are dispatched
-work, and your deletion follows.
+idle: your items are recommended and checked at the topic's close, with
+everything else, and your deletion follows the form check.
 
 ## The report
 

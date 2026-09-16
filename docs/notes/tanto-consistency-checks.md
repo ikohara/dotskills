@@ -761,7 +761,7 @@ over this file, and a standing check written into the file it checks must not
 count its own text; and a plan that removes a string refuses that string in
 its own new passages, so a literal here would fail the plan that installs the
 check rather than the tree it checks. The tenth pins the four subagent keys
-that are gone — `default` survives as one of the twelve kinds and is not
+that are gone — `default` survives as one of the thirteen kinds and is not
 swept. The eleventh pins the retired wording for a session committing its own
 exit shoroku. The twelfth pins the two rejected seat names, over the skill,
 `shoroku`, and this directory, which is the scope the choice was recorded
@@ -845,7 +845,7 @@ at `3` and `1` — while the *unfiltered* per-file counts for this file rose fro
 
 ```bash
 uv run --no-project --with pyyaml python -c "import yaml;t=open('skills/tanto/SKILL.md',encoding='utf-8').read().split('---')[1];d=yaml.safe_load(t);print(sorted(d));print('BAD' if ': ' in d['description'] else 'ok')"
-node -e 'const t=require("./skills/tanto/templates/tanto.json");const r=Object.keys(t.sessions),k=Object.keys(t.subagents);if(r.length!==7||k.length!==12)process.exit(1);for(const m of [t.sessions,t.subagents])for(const v of Object.values(m))if(!v.model||!v.effort)process.exit(1);console.log("tanto.json ok",r.length,k.length)'
+node -e 'const t=require("./skills/tanto/templates/tanto.json");const r=Object.keys(t.sessions),k=Object.keys(t.subagents);if(r.length!==7||k.length!==13)process.exit(1);for(const m of [t.sessions,t.subagents])for(const v of Object.values(m))if(!v.model||!v.effort)process.exit(1);console.log("tanto.json ok",r.length,k.length)'
 uv run --no-project --with pyyaml python -c "import yaml,sys;t=open(sys.argv[1],encoding='utf-8').read().split('---')[1];d=yaml.safe_load(t);print(sorted(d));print('BAD' if ': ' in d['description'] else 'ok')" skills/tanto/templates/agent.md
 uv run --no-project --with pyyaml python -c "import yaml,sys;t=open(sys.argv[1],encoding='utf-8').read().split('---')[1];d=yaml.safe_load(t);print(sorted(d),d['effort'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/tanto-task-implement.md"
 if test -f .claude/agents/tanto-task-implement.md; then
@@ -856,7 +856,7 @@ fi
 ```
 
 Expected: `['argument-hint', 'description', 'name']`, then `ok`; then
-`tanto.json ok 7 12`; then `['description', 'effort', 'name']` and `ok`;
+`tanto.json ok 7 13`; then `['description', 'effort', 'name']` and `ok`;
 then `['description', 'effort', 'name'] high` for the user-scope definition;
 and for the project-scope one either the same three keys with this
 repository's own effort, or the fallback line the fifth command echoes. A
@@ -865,7 +865,7 @@ anywhere in a `description` value
 breaks frontmatter parsing silently, which is what the `BAD` branch prints
 for, and it is run against the agent template as well as the contract
 because the rendered definition is a frontmatter file the harness parses.
-The second line is a parse and two assertions in one: the twelve kinds, the
+The second line is a parse and two assertions in one: the thirteen kinds, the
 seven roles, and `model` and `effort` on every entry of both maps, which is
 what makes a half-widened config fail here rather than at a dispatch. The
 fourth and fifth lines read a **rendered** definition — the fourth the

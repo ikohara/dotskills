@@ -86,10 +86,12 @@ in a subagent, say — gets the same workflow in two halves, split where
 session mode waits at `Direction?`. A session-mode run is unchanged by this
 section.
 
-**Recommend mode.** Invoked with a source — a file, or a file and the names
-of the sections to read — an output path, and a baseline, the `docs/` tree an
-item's destination and reason are judged against; and, when the caller wants
-the check brief, a brief path, a template, and a chat language. Run the
+**Recommend mode.** Invoked with one or more sources — each a file, or a file
+and the names of the sections to read — an output path, and a baseline, the
+`docs/` tree an item's destination and reason are judged against; and, when
+the caller wants the check brief, a brief path, a template, and a chat
+language. A caller that names several sources reads every one, since the
+proposal it writes is the only proposal there is. Run the
 workflow up to the
 proposal and write the proposal to that path instead of printing it: the
 numbered items grouped under three `##` headings, in this exact
