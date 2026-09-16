@@ -172,25 +172,69 @@ own boundary, not designed text — and this exemption is exactly the case
 for that: nothing about it needs to match a passage, and `diff` stays
 silent on its lines.
 
-### `diff`'s base is resolved once, at the branch cut — not `git merge-base main HEAD`
+### The `tanto-project-config` catch-up, before Task 1
 
-The branch does not exist yet (queued-topic flow); this section governs
-once Keikaku cuts it from `main` on Kanri's `checkout free:` line. At that
-moment, before Task 1's first commit, resolve the base the same way
-`tanto-sweep-2`'s own plan does — the newest commit already on the branch
-(there should be none but the spec commit itself) that touches one of this
-plan's File-structure paths, or the plain tip if none does:
+This branch was cut from `main` at `2e16584` — after `tanto-sweep-2` closed,
+but **before `tanto-project-config` landed**. That topic's own plan is
+committed on its own branch (`main..tanto-project-config`), not yet merged,
+and several of this plan's old texts were quoted from its *draft* (Task 1's
+P1.3 to P1.8, Task 3's P3.2, anchors A1.2 and A3.1, and the two `twelve`
+survivors with no needle — `roles/kanri.md`'s "twelve agent" and
+`SKILL.md`'s "twelve-definitions", both Open point 2). Batch A cannot start
+until this gap closes, and closing it is **not** Jisso's to discover mid-task
+by the ordinary "a modification in the shared tree it did not make is not
+its to discard" rule — the plan's own old texts are stale by design here,
+known in advance, not a stray edit.
+
+**Who, and when.** Keikaku's own deletion (the Delete table's usual
+"`coldread answered:` line named the exit proposal" trigger) is **held**
+until this catch-up is done — Keikaku is the plan's own author and the one
+session that can tell a real mismatch from a guess, and the alternative is
+Kanri or Jisso discovering the gap cold, with no one left who drafted
+against the projection to judge it. Once `tanto-project-config` merges to
+`main` (the human's own merge decision, as for any topic), Kanri sends this
+Keikaku one line — `catch up: tanto-project-config merged, rebase and
+re-anchor` — and Keikaku:
+
+1. Rebases `shoroku-at-close` onto the new `main` (a rebase, not a merge —
+   the branch carries only the spec and plan commits so far, no Jisso work
+   to preserve a merge commit for).
+2. Re-runs `lint` and `replay --base main` exactly as at the branch cut,
+   and re-anchors whatever fails the same way this plan's own release-time
+   re-anchor did (`plan-dryrun.md`'s own record of that pass is the worked
+   example) — including the two `twelve` sites, which should now read
+   `thirteen` for real and need no needle either way.
+3. Resolves the `diff` base (below) against the rebased tip, and reports
+   both the clean `replay --base main` and the resolved value to Kanri in
+   one line, so Kanri can record it as an `R-n` and write Batch A's prompt.
+   `replay --base main` must print **clean** — the residual gap fully
+   closed, not merely "still `tanto-project-config`'s" — before that
+   prompt goes out.
+
+Keikaku is deleted after that report, under the ordinary Delete table rule,
+once its own exit proposal (below) is on disk.
+
+### `diff`'s base is resolved once, after the catch-up — not `git merge-base main HEAD`
+
+Not at the branch cut (which happened early, before `tanto-project-config`
+landed): the catch-up above is what makes the tree the base is measured
+against real, and Keikaku is who resolves it, in the same step as the
+catch-up's own re-anchor, reporting the value to Kanri to record as an
+`R-n` in the ledger — the branch-cut moment produces no resolved value of
+its own. The commit to run the same way `tanto-sweep-2`'s own plan does —
+the newest commit already on the branch (there should be none but the spec
+and plan commits) that touches one of this plan's File-structure paths, or
+the plain tip if none does:
 
 ```bash
 git log --format=%H main..HEAD -- skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates docs/notes/tanto-consistency-checks.md skills/shoroku/SKILL.md docs/reports | head -1
 ```
 
-Record the resolved value in the ledger (an `R-n`, as `tanto-sweep-2` R-7
-does); every `diff` call in "How a batch is verified" below names it
-explicitly, not `git merge-base main HEAD`, and a later re-derivation that
-yields a different hash is a stop, not a recompute — nothing should land on
-these paths between boundaries while this plan is in flight (`SKILL.md`
-Rule 5).
+Every `diff` call in "How a batch is verified" below names the resolved
+value explicitly, not `git merge-base main HEAD`, and a later re-derivation
+that yields a different hash is a stop, not a recompute — nothing should
+land on these paths between boundaries while this plan is in flight
+(`SKILL.md` Rule 5).
 
 ### The commands `replay` does not run
 
@@ -255,7 +299,7 @@ verified.
 | A | 1 `templates/tanto.json`, the definitions paragraph's removal sentence, the count lines, and the `tanto-<kind>` clause; 2 "Session exit" whole, the Artifacts rows, the roles table's Hosa row, `roles/kaiseki.md`'s one sentence, `skills/shoroku/SKILL.md`'s input sentence, and the note's check 8 and tenth-needle lines; 3 the skill-name-key bullet, the unknown-key example, and the note's write-out lane paragraph | the config and the contract agree on thirteen kinds, the retired `tanto-shoroku.md` definition, and the close's single-stage mechanism | one `verify --task <N>` call per task, 1 to 3, each clean; `diff --base <the ledger's resolved value>` clean (Kanri, by hand); lint clean on the batch's own changed paths, named individually (Kanri, by hand); `mise x node@22 -- node --test skills/tanto/scripts/` passes (Kanri, by hand) |
 | B | 4 `roles/kanri.md`'s "Shoroku" whole (with "Delegation to Hosa"), `templates/kanri.md`'s two paragraphs, `templates/roster.md`'s stage line; 5 Start steps 2 and 6, the decision-file handlings, "When the plan lands" step 3, the loop's three sites, "The final batch" step 3, the Kaiseki branch's two; 6 the Handover's three sites, `templates/kanri-handover.md`'s two edits, and the Delete table's five rows | `roles/kanri.md` and its templates fully consistent on the close's one recommend/check/apply, the spec's four sections, and every `Delete` row's trigger | one `verify --task <N>` call per task, 4 to 6, each clean; `diff --base <the ledger's resolved value>` clean (Kanri, by hand); lint clean on the batch's own changed paths (Kanri, by hand); `mise x node@22 -- node --test skills/tanto/scripts/` passes (Kanri, by hand); `grep -cF '<the close: line, verbatim>' skills/tanto/SKILL.md skills/tanto/roles/kanri.md` prints `1` on each — `roles/hosa.md`'s own copy does not exist until Task 8 (Kanri, by hand) |
 | C | 7 `roles/sekkei.md` and `roles/keikaku.md`; 8 `roles/jisso.md`, `roles/kikaku.md` with `templates/kikaku-decision.md`, and `roles/hosa.md`; 9 the two READMEs' passages and drift review | every seat's own file agrees that the close is the one human-check moment, and both READMEs reflect it | one `verify --task <N>` call per task, 7 to 9, each clean; `diff --base <the ledger's resolved value>` clean except any extra lines from Task 9's own drift review, traceable to that step's record in the batch report (Kanri, by hand); lint clean on the batch's own changed paths (Kanri, by hand); `mise x node@22 -- node --test skills/tanto/scripts/` passes (Kanri, by hand); `grep -cF '<the close: line, verbatim>' skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/hosa.md` prints `1` on all three (Kanri, by hand — the same grep Task 4 step 10, Task 8 step 7, and Task 10 step 1 already run) |
-| D | 10 the whole-tree `O` sweep, the note's check 24 and its lesson line, and checks 1-9, 16, 18-23 re-run with output recorded; 11 the dogfood report (sweep-and-check, no passage) | the proof that no old text or old enumeration survives anywhere in `skills/tanto/`, `skills/shoroku/`, or the consistency note, and the dogfood's issues-closed and readings sections | one `verify --task <N>` call for Task 10, clean; Task 11 reports `no passages`, a result and not a failure; `diff --base <the ledger's resolved value>` clean except any figure Task 10's own step corrects in the note, traceable to that step's own commit or "nothing to commit" in the batch report; `docs/reports/2026-09-15-shoroku-at-close-dogfood.md` reported exempt as `created:` (Kanri, by hand); lint clean on the changed/created paths (Kanri, by hand); every `O` needle at its stated disposition (Kanri, by hand); the note's checks re-run with output recorded (Kanri, by hand); `git ls-files --eol docs/reports/2026-09-15-shoroku-at-close-dogfood.md` reports `i/lf w/crlf` (Kanri, by hand); **the spec's fresh-`/tanto`-start check** (Verification, batch A), deferred here from batch A because rule 11's authority section forbids starting or replacing a role before this, the final boundary — the human runs `/tanto` fresh on any role once this batch is accepted and reports its start line: `agents: 13 current` or `11 current, 2 written`, and the definitions directory now has `tanto-shoroku-recommend.md` and `tanto-shoroku-apply.md` but not `tanto-shoroku.md` (Kanri, by hand, human-run) |
+| D | 10 the whole-tree `O` sweep, the note's check 24 and its lesson line, and checks 1-9, 16, 18-23 re-run with output recorded; 11 the dogfood report (sweep-and-check, no passage) | the proof that no old text or old enumeration survives anywhere in `skills/tanto/`, `skills/shoroku/`, or the consistency note, and the dogfood's issues-closed and readings sections | one `verify --task <N>` call for Task 10, clean; Task 11 reports `no passages`, a result and not a failure; `diff --base <the ledger's resolved value>` clean except any figure Task 10's own step corrects in the note, traceable to that step's own commit or "nothing to commit" in the batch report; `docs/reports/2026-09-15-shoroku-at-close-dogfood.md` reported exempt as `created:` (Kanri, by hand); lint clean on the changed/created paths (Kanri, by hand); every `O` needle at its stated disposition (Kanri, by hand); the note's checks re-run with output recorded (Kanri, by hand); `git ls-files --eol docs/reports/2026-09-15-shoroku-at-close-dogfood.md` reports `i/lf w/crlf` (Kanri, by hand); **the spec's fresh-`/tanto`-start check** (Verification, batch A), deferred here from batch A because rule 11's authority section forbids starting or replacing a role before this, the final boundary — the human runs `/tanto` fresh on any role once this batch is accepted and reports its start line: `agents: 13 current` or `11 current, 2 written`, and the definitions directory now has `tanto-shoroku-recommend.md` and `tanto-shoroku-apply.md` but not `tanto-shoroku.md` (Kanri, by hand, human-run); **the close's own recommend and apply dispatches (`shoroku.recommend`, `shoroku.apply`) run only from a session started after that fresh start** — a definition written during a session is not visible to that session (`SKILL.md`, Start sequence), so the live Kanri and the live Hosa at this boundary, both started before Batch D, cannot dispatch either kind; the fresh-start check above is what makes one visible, so the close (whether this topic's own T2 or any later stage) is Kanri's or Hosa's only once a session has restarted since. If neither a fresh Kanri nor a fresh Hosa exists when the close is due, the human is asked to open one (`/tanto kanri` or `/tanto hosa` in a new window) before the close's recommend dispatch, not after — the same way a role missing entirely is asked for today (Kanri, by hand) |
 
 **Batch internal order.** Each batch's tasks touch largely disjoint files
 (Task 1's `tanto.json`/`SKILL.md` sites do not overlap Task 2's or Task 3's
@@ -3445,10 +3489,18 @@ and commits the accepted subset on a cheaper one. superpowers supplies the spec,
 ```
 
 This block quotes the list's **last line as it stands today**. Two plans ahead
-of this one may append their own designs in their drift reviews
-(`tanto-sweep-2` task 12 is one), in which case this old text no longer
-resolves. **Report that to Kanri and stop**; do not re-target the block on your
-own judgment. Open point 6.
+of this one could have appended their own designs in their drift reviews —
+`tanto-sweep-2` task 12 was one candidate, now landed for real on `main`
+(that topic closed at `2e16584`) — but its drift review did not touch this
+line: the real `main` still ends the list at `2026-09-12-tanto-cost-design.md`,
+confirmed at this plan's release-time re-anchor (Open point 6, resolved).
+`tanto-project-config`'s own plan is the one still ahead and not yet landed;
+the Task-1 catch-up in Global Constraints re-checks this same line along with
+everything else that topic could still move, so if it does append a design
+here, that catch-up is where it surfaces, not this task. Should this old text
+still fail to resolve when Task 9 actually runs (a further plan queued after
+`tanto-project-config` also touching this line, say), **report that to Kanri
+and stop**; do not re-target the block on your own judgment.
 
 - [ ] **Step 6: The drift review for both READMEs**
 
@@ -3797,8 +3849,17 @@ The three the spec names, each from a file and not from recollection:
    saying so and pointing at where it lands.
 3. **The human's shoroku checks in this topic, expected `1`**, and **whether
    the close was delegated to a Hosa** — with, if it was, the time from Kanri's
-   `close:` line to its handover file, against the previous close's time from
-   `tanto-sweep-2`'s or `tanto-project-config`'s ledger.
+   `close:` line to its handover file. Neither `tanto-sweep-2`'s nor
+   `tanto-project-config`'s close had a `close:` line or a Hosa delegation
+   to compare against — this design is what introduces both — so there is
+   no prior figure of the same shape. Measure instead, from each of those
+   two ledgers' Session events, the closest analogous interval: the time
+   from the final batch's acceptance to Kanri's handover file (the closest
+   prior close came to this one's own start and end points), and record
+   this run's own delegated-close time beside it as the new baseline —
+   not a like-for-like comparison, but the first measurement of the shape
+   this plan's own design creates, for a later topic's close to compare
+   against for real.
 
 Plus the issues closed and the readings.
 
@@ -3822,7 +3883,14 @@ name, no frontmatter. Sections:
    family and the apply half is not, which is itself the data point ADR 2 rests
    on.
 4. **What this report does not cover, and why.** One paragraph on the close
-   that had not run when the report was written.
+   that had not run when the report was written. Add one sentence flagging
+   a stale citation for whoever runs the close: the spec's own Shoroku
+   candidate 10 (section 8.3) says "check 22", but real `main`'s checks 22
+   and 23 landed after this plan's review, and this plan's own new check is
+   24 — the close's recommender quotes the spec verbatim, so it will write
+   "check 22" for that candidate; the human's check on the brief, or Kanri's
+   own read of the recommendation, is where that gets corrected to 24, not
+   a plan defect and not this task's to fix in the spec.
 
 - [ ] **Step 4: Lint**
 
@@ -3997,24 +4065,26 @@ site, and what did not match.
    the template's own closing-paragraph copy among its edits. Kanri ruled the
    same way as item 4: fold it in, Keikaku's own call where in the plan.
 
-6. **Task 9, P9.3 — the designs list's last line may move.** The block quotes
-   ``docs/superpowers/specs/2026-09-12-tanto-cost-design.md`.`` as the list's
-   final line, which is what the tree holds today. `tanto-sweep-2`'s task 12 is
-   a drift review of this same README and may append its own design, and
-   `tanto-context-ceiling`'s may already have been expected to. The spec
-   anticipates this ("whether … were added by their own drift reviews is what
-   the landed tree says") but gives no rule. The task's own step says: report
-   and stop, do not re-target.
+6. **Resolved (release-time re-anchor).** Task 9, P9.3's old line
+   (``docs/superpowers/specs/2026-09-12-tanto-cost-design.md`.`` as the
+   designs list's final line) was drafted against a projection that could
+   not see `tanto-sweep-2`'s task 12 (a drift review of the same README).
+   `tanto-sweep-2` has since closed (`2e16584`), and its task 12 did not
+   append a design here — the real `main` still ends the list at that same
+   line, confirmed directly. Nothing to change; Task 9's own step now says
+   so and keeps the "report and stop" rule for whatever `tanto-project-config`
+   might still do to this line, covered by the Global Constraints catch-up.
 
-7. **Task 9 and task 10 — the note and the READMEs sit behind two uncommitted
-   tasks.** The projected baseline does not include `tanto-sweep-2`'s task 12
-   (checks 18 and 19 inserted before check 20; both READMEs' drift review) or
-   its task 13 (its own `O` sweep, which may move a line anywhere in
-   `skills/`). Every block this plan puts in those two files resolved against
-   the projection; each must be re-checked once those tasks land. Check 22's
-   own insertion point — the file's last line, the end of check 21 — is stable
-   under a task that inserts *before* check 20, which is why P10.1 anchors
-   there.
+7. **Resolved (release-time re-anchor).** Task 9 and Task 10's blocks in
+   the note and the READMEs were drafted against a projection missing
+   `tanto-sweep-2`'s tasks 12 (checks 18 and 19 inserted before check 20;
+   both READMEs' drift review) and 13 (its own `O` sweep). `tanto-sweep-2`
+   has since closed, and the release-time re-anchor re-quoted every block
+   this plan touches against the real, fully-landed tree — `replay --base
+   main` is clean on every site this plan itself is responsible for. What
+   remains open is `tanto-project-config`'s own not-yet-landed effect on
+   these same files, which is the Global Constraints catch-up's job, not a
+   separate re-check of this item.
 
 8. **Tasks 2, 4 and 7 — `exit-sekkei` and `exit-keikaku` are still called
    "the stage word".** `roles/sekkei.md` and `roles/keikaku.md` each carry one
