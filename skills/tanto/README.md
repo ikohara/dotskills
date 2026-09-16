@@ -77,7 +77,9 @@ one implementation plan.
   every key falls back to the built-in defaults in `templates/tanto.json`; a
   partial file is complete at either layer, because the overlay is field by
   field, and a key written as a bare model name takes its effort from the
-  layers below.
+  layers below. An effort the project file changes is carried by project-scope
+  agent definitions the roles generate under `<repo>/.claude/agents/`, ignored
+  by a `.gitignore` the roles write there.
 
 ## Usage
 

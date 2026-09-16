@@ -20,14 +20,15 @@ it.
 Run the branch at step 4 before you ask the human for anything: a successor
 taking over mid-plan must not create a second ledger.
 
-1. Read `tanto.json` as `SKILL.md` describes, write the twelve agent
-   definitions from the merged config as its start sequence prescribes, run
+1. Read `tanto.json` as `SKILL.md` describes, write the agent definitions of
+   both scopes as its start sequence prescribes, run
    `ListAgents` once for your own `name [ref]`, and say your start line: the
    two config files and which fields came from which, the ladder result if
    that check failed, and
-   `agents: <n> current, <m> written, <k> not visible to this session`; your
-   own `model` and `effort` against `sessions.kanri`, since you send no
-   handshake and this line is the only place your own two values are checked,
+   `agents: <n> current, <m> written, <k> not visible to this session; project: <p> current, <q> written, <r> removed, <s> in effect`;
+   your own `model` and `effort` against `sessions.kanri`, since you send no
+   handshake and this start line is the only place your own two values are
+   checked,
    a mismatch of either being one line to the human and nothing switched; and
    your `name [ref]`, with your bare name as the address. Then locate your own
    transcript as `SKILL.md`'s "The transcript reading" says and take the
