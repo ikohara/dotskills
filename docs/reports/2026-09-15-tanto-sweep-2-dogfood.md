@@ -55,7 +55,7 @@ From `.tanto/tanto-sweep-2/kanri.md`, section "Measurements" (read-only):
 
 - Kanri context at batch C boundary — `dotskills-a1`: `context=235458`
   (ceiling 215214, over); the same row also carries `dotskills-57` at batch
-  B: `context=336752` (over) — the ledger records the batch B figure inline
+  B: `context=242840` (over) — the ledger records the batch B figure inline
   in the batch C row rather than as a row of its own, and no batch A row
   appears in this section at all.
 - Jisso context at batch C boundary — `dotskills-5f`: `context=453555`
