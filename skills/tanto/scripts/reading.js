@@ -11,7 +11,7 @@ const { parseArgs } = require("node:util");
 // One line, so that a reader who runs the script bare and takes the first
 // line of its output sees both forms.
 const USAGE =
-  "Usage: reading.js <transcript> [--role kanri|jisso] [--presence] [--backstop] [--now <ISO>] [--config <path>] [--settings <path>], or reading.js --share <transcript> [<transcript>...] [--config <path>]";
+  "Usage: reading.js <transcript> [--role kanri|jisso] [--presence] [--backstop] [--now <ISO>] [--config <path>] [--project-config <path>] [--settings <path>], or reading.js --share <transcript> [<transcript>...] [--config <path>] [--project-config <path>]";
 
 // The documented auto-compact point for the 1M-window models
 // (docs/notes/claude-code-sessions-observed.md, and
@@ -53,6 +53,15 @@ function configDir() {
 
 function configPathOf(explicit) {
   return explicit || path.join(configDir(), "tanto.json");
+}
+
+/**
+ * The project file, at `<cwd>/.claude/tanto.json`. `CLAUDE_CONFIG_DIR`
+ * relocates the home-directory files only, so this path is read relative to
+ * the session's working directory whatever that variable says.
+ */
+function projectConfigPathOf(explicit) {
+  return explicit || path.join(process.cwd(), ".claude", "tanto.json");
 }
 
 function settingsPathOf(explicit) {
@@ -99,11 +108,13 @@ function overlayCeiling(target, source, warn) {
 
 /**
  * The merged `ceiling` map: the built-in copy, then the shipped
- * `templates/tanto.json`, then the personal file. Returns
- * { ceiling, warnings, path } -- `warnings` the unknown keys of the personal
- * file, which the caller writes to stderr.
+ * `templates/tanto.json`, then the personal file, then the project file.
+ * Returns { ceiling, warnings, paths } -- `paths` the personal and the
+ * project file as each was resolved, and `warnings` the unknown keys of
+ * both, each named with the file it came from, which the caller writes to
+ * stderr. Nothing in this script prints either path.
  */
-function loadCeiling(explicitConfig) {
+function loadCeiling(explicitConfig, explicitProjectConfig) {
   const ceiling = cloneCeiling(BUILT_IN_CEILING);
   const template = readJson(path.join(__dirname, "..", "templates", "tanto.json"));
   // The shipped template is the built-in default, so its own keys are never
@@ -111,13 +122,22 @@ function loadCeiling(explicitConfig) {
   // the skill, not of the human's file.
   overlayCeiling(ceiling, template?.ceiling, () => {});
 
+  const warnings = [];
   const configFile = configPathOf(explicitConfig);
   const personal = readJson(configFile);
-  const warnings = [];
   overlayCeiling(ceiling, personal?.ceiling, (name) => {
-    warnings.push(`unknown key ceiling.${name}, ignored`);
+    warnings.push(`unknown key ceiling.${name} in ${configFile}, ignored`);
   });
-  return { ceiling, warnings, path: configFile };
+
+  // The project layer wins. A file that is missing or does not parse is the
+  // no-op case here, exactly as the personal one is.
+  const projectFile = projectConfigPathOf(explicitProjectConfig);
+  const project = readJson(projectFile);
+  overlayCeiling(ceiling, project?.ceiling, (name) => {
+    warnings.push(`unknown key ceiling.${name} in ${projectFile}, ignored`);
+  });
+
+  return { ceiling, warnings, paths: { personal: configFile, project: projectFile } };
 }
 
 /** A usage field as a number, or 0 when it is absent or not one. */
@@ -268,7 +288,7 @@ function runReading(file, values) {
   );
   console.log(`effort=${reading.effort}`);
 
-  const { ceiling, warnings } = loadCeiling(values.config);
+  const { ceiling, warnings } = loadCeiling(values.config, values["project-config"]);
   printWarnings(warnings);
 
   let ceilingValue = null;
@@ -325,7 +345,7 @@ function runShare(paths, values) {
     process.stderr.write(`${USAGE}\n`);
     return 2;
   }
-  const { ceiling, warnings } = loadCeiling(values.config);
+  const { ceiling, warnings } = loadCeiling(values.config, values["project-config"]);
   printWarnings(warnings);
   const threshold = ceiling.share_threshold;
 
@@ -380,6 +400,7 @@ function main(argv) {
         share: { type: "boolean" },
         now: { type: "string" },
         config: { type: "string" },
+        "project-config": { type: "string" },
         settings: { type: "string" },
       },
     });
