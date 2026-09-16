@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-07
-updated: 2026-09-15
+updated: 2026-09-16
 ---
 
 decision-de63 fires a Kanri handover on two signals only, the human's word
@@ -271,3 +271,14 @@ point, about 1.76 times) but still crossed within a single boundary carrying
 one full-batch verification pass — a data point for whatever follow-up to this
 issue eventually calibrates `ceiling.kanri` against the shape of the work at a
 boundary, not only its count.
+
+A seventh data point, 2026-09-16, and the first with no batch boundary in it at
+all. The prior five ceiling crossings of this tenure (`dotskills-4c` and its
+predecessors) each fired at a batch boundary carrying a full verification pass.
+This one fired on the very first turn after a plain `/tanto fukki` resume, with
+the human's `OK` to a pending T2 question as the only work done before the
+ceiling-plus-presence check found both conditions met. The bearing is on the
+instrument rather than the number: a resumed session's baseline is the same
+transcript's own growth, not a fresh one, so a session that ends close to its
+ceiling hands its successor-by-resume a context that can cross on turn one —
+before any work a batch-shaped or boundary-shaped threshold would see.
