@@ -889,8 +889,9 @@ the file pattern `exit-<role>[-<suffix>]`; these are your steps.
    exclusion line it opens with and the numbered list under it. Then
    dispatch the recommender at once — step 2 above.
 3. When the recommendation and its brief are on disk, read the brief's
-   `## Unsure` group with `sections`. A line there carrying a "could not be
-   read as written" question is one question back to the session, one line,
+   `## Unsure` group (`sections … Unsure`). A line there carrying a "could
+   not be read as written" question is one question back to the session,
+   one line,
    answered by a rewrite of the proposal. Otherwise ask the human, as a
    numbered list, to delete the session.
 4. Steps 3 and 4 above then run with the session gone. Record the rows with
