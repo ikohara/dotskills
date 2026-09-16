@@ -214,11 +214,16 @@ assume every tool. The description is protocol against the harness's
 proactive agent selection, not enforcement.
 
 Then read your own system prompt's list of available agent types and count
-the twelve names in it. A definition written during a session is not visible
-to that session, so the first session on a machine that writes them
-dispatches without them; from then on a dispatch names its kind as
+the twelve names in it, and among them the ones whose description carries the
+project-scope clause. A definition written during a session is not visible to
+that session at either scope, so the first session on a machine that writes
+them dispatches without them, and a project effort takes effect from the
+second session started in that repository after the project file changed;
+from then on a dispatch names its kind as
 `subagent_type: tanto-<object>-<act>` — or `tanto-<kind>` for a kind with no
-dot in its name, `tanto-shoroku` and `tanto-default`.
+dot in its name, `tanto-shoroku` and `tanto-default`. A kind visible at user
+scope but not yet at project scope dispatches with the user-scope effort, and
+the dispatching role says so once, as it does for a kind it cannot see at all.
 
 Say once, in your start line: the two config files with their state, as
 `personal <path> present` or `personal <path> absent`, and as
@@ -228,8 +233,13 @@ the project file, at the granularity of a field — for instance
 fields came from the personal file, and that the rest are built-in defaults,
 or `all keys built-in defaults` when both files are absent; the unknown keys,
 each named with its file; the ladder result if the check failed; and
-`agents: <n> current, <m> written, <k> not visible to this session`, with the
-kinds named when `<k>` is above zero. This is information, not a warning: the
+`agents: <n> current, <m> written, <k> not visible to this session; project: <p> current, <q> written, <r> removed, <s> in effect`,
+with `<s>` the number of the twelve names whose description in this session's
+own agent list carries the project-scope clause, and with the kinds named when
+`<k>` is above zero. The `project:` half is printed even when all four of its
+numbers are zero, so that a start line always says which scope the session
+runs on. This
+is information, not a warning: the
 human is told once and the session carries on.
 
 A field the project file sets to the same value the personal file sets is
@@ -494,8 +504,9 @@ resumed role: `/tanto fukki` says so and stops, and the human runs
 
 `/tanto fukki` reads this file and nothing else. The role file is already in
 the session's context, which is what a resume preserves. It also re-runs the
-Start sequence's twelve-definitions write-and-count (a resume can carry a new
-`CLAUDE_CONFIG_DIR`, and re-writing may nudge the harness to re-scan) and says
+Start sequence's definitions write-and-count in both scopes (a resume can
+carry a new `CLAUDE_CONFIG_DIR`, and re-writing may nudge the harness to
+re-scan) and says
 the result the same way the Start sequence does.
 
 ## Messages
@@ -756,7 +767,8 @@ review package excludes.
 | `.tanto/.gitignore` holding `*`, and `.tanto/.markdownlint-cli2.yaml` holding `config:` / `default: false` | Kanri at start, a standalone Kaiseki, or a bug-report writer — whichever finds them absent first; never overwritten | git; the editor's markdownlint | keeps everything above untracked, so nothing is ever staged, and keeps the editor quiet on files the commit path never lints |
 | `$CLAUDE_CONFIG_DIR/tanto.json` | the user | every role at start, Kanri at each handshake | the personal expected-model config |
 | `<cwd>/.claude/tanto.json` | the repository | every role at start, Kanri at each handshake, `scripts/reading.js` | the project expected-model config, overlaid on the personal one; committed or ignored as the repository decides |
-| `~/.claude/agents/tanto-*.md`, or `$CLAUDE_CONFIG_DIR/agents/` when that variable is set | every role at its start, from the merged config | the harness, at the next session start | one definition per kind, from `templates/agent.md`; a definition is dispatchable only from the sessions started after it was written |
+| `~/.claude/agents/tanto-*.md`, or `$CLAUDE_CONFIG_DIR/agents/` when that variable is set | every role at its start, from the built-in and personal layers | the harness, at the next session start | one definition per kind, from `templates/agent.md`; a definition is dispatchable only from the sessions started after it was written |
+| `<cwd>/.claude/agents/tanto-*.md`, and `<cwd>/.claude/agents/.gitignore` beside them | every role at its start, for the kinds whose effort the project file changes | the harness, at the next session start; git | the project-scope definitions, from the same template with its `<scope>` clause rendered; the `.gitignore` holds `tanto-*.md` and `.gitignore`, is written once and never overwritten |
 
 Templates are copied and filled, never restated in prose. Fourteen of them:
 `templates/roster.md`, `templates/roster-archive.md`, `templates/kanri.md`,
@@ -827,8 +839,8 @@ its path.
    its role one line, the role tells Kanri one line — and only Kanri decides
    whether it is stray.
 6. Every subagent dispatch names a `model` from `tanto.json`; none omits it,
-   and it names a `subagent_type` from the definitions at
-   `~/.claude/agents/tanto-<object>-<act>.md` when this session sees them.
+   and it names a `subagent_type` from the definitions this session sees,
+   whether they are at `~/.claude/agents/` or at `<cwd>/.claude/agents/`.
 7. Small batches of three or four tasks. Each boundary is a ruling checkpoint
    and a lifecycle checkpoint.
 8. Fix rounds stop at the Kaiseki trigger when the cause is unknown; root cause
