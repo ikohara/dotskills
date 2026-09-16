@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-16
+updated: 2026-09-17
 ---
 
 Found by the `tanto-project-config` run's Jisso at the Batch A boundary
@@ -33,3 +33,25 @@ decision-eee2's per-batch constant and issue-7281, and is not filed yet.
 Proposed fix: one sentence in `roles/jisso.md` making the two-dispatch reading
 explicit, if it is the intended one. If the fix is a single paragraph there, it
 may be folded into issue-0404's edit rather than landed on its own.
+
+2026-09-17 — the split's reviewer-side price, measured. The `shoroku-at-close`
+run's Jisso recorded Batch A's full per-dispatch subagent cost: three tasks,
+zero fix rounds, nine subagent dispatches total — one `task.implement` (sonnet)
+plus two review dispatches (`task.review-spec` and `task.review-quality`, both
+opus) per task, which is the two-dispatch reading this issue names. Token usage
+per dispatch: Task 1 — implement 68,704, spec-review 55,524, quality-review
+56,381; Task 2 (the batch's largest, a 102-line whole-section replacement across
+five files) — implement 95,785, spec-review 74,999, quality-review 86,529;
+Task 3 — implement 59,599, spec-review 49,661, quality-review 49,344. Total
+≈596,500 subagent tokens for a batch that needed no fixes.
+
+Because each review half independently re-reads the same diff rather than
+sharing one read across two verdicts, the split roughly doubles the
+reviewer-side cost `subagent-driven-development`'s own combined template would
+have paid for the same diff — a real, now-priced cost of running
+spec-compliance and code-quality as separately dispatchable `tanto.json` kinds
+rather than one dispatch returning both verdicts. Worth weighing against the
+split's own benefit (independent model and effort tuning per half, no shared
+blind spot between the two verdicts) the next time `tanto.json`'s review kinds
+are revisited. The paragraph above left the run that raised this issue with no
+filed home for its own figure; this is a second run's, filed.

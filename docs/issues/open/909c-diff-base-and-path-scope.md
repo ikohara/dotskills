@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-16
+updated: 2026-09-17
 ---
 
 Measured at the tanto-sweep run's batch A boundary (2026-09-10), by Kanri.
@@ -150,3 +150,24 @@ non-task commits appear, and how many — so the boundary reader compares agains
 a number instead of against zero. The path-scope half of the gap would also
 absorb both kinds, since neither touches the plan's declared paths; the two
 options differ in whether the expectation is written down or derived.
+
+2026-09-17 — a fourth class, and one the base half cannot reach at all:
+uncommitted work. `passage-check.js diff` compares the plan's declared old/new
+text against the **live working tree**, not against committed history alone, so
+any concurrent, uncommitted activity elsewhere in the shared tree shows up as
+`unaccounted-added` / `unexplained-removed` noise at every boundary until that
+other activity resolves, exit code 1 included. Observed by the
+`shoroku-at-close` run's Jisso at its Batch A boundary: Kanri's own unrelated,
+uncommitted `docs/issues/` edit — present since before Task 1 started — was the
+single source of every noisy line. Nothing was wrong (Kanri confirmed it as its
+own in-flight T0 work in the same message that accepted the batch), but the
+batch report had to spell out by hand that every noisy line traced to one
+unrelated file.
+
+This one is untouched by the base-commit form and by the plan-commit-base
+option above, since both name a *commit* and the noise is not committed at all.
+A `diff` mode that compares committed history only — against `HEAD` rather than
+the working tree — or an option naming paths to disregard would let a batch
+report's Verification section stay a pure pass/fail instead of a per-boundary
+explanation of someone else's work in progress. The path-scope half of this
+issue absorbs it too, which is a third reader for that half.

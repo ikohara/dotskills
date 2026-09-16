@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-07
-updated: 2026-09-16
+updated: 2026-09-17
 ---
 
 decision-de63 fires a Kanri handover on two signals only, the human's word
@@ -282,3 +282,20 @@ instrument rather than the number: a resumed session's baseline is the same
 transcript's own growth, not a fresh one, so a session that ends close to its
 ceiling hands its successor-by-resume a context that can cross on turn one —
 before any work a batch-shaped or boundary-shaped threshold would see.
+
+A ninth data point, 2026-09-17, and the first on the **Jisso** seat rather than
+Kanri's — from the `shoroku-at-close` run's Jisso at its Batch A boundary. That
+session's context read 90,349 tokens right after the handshake and 296,542
+tokens at Batch A's own boundary, crossing its ceiling (210,523) inside the very
+first batch, with zero fix rounds and no escalation. The growth is not
+batch-loop iteration cost: it is almost entirely the Start sequence's own
+required reading — the full plan (≈4,109 lines, ≈82,000 tokens), the conductor
+ledger, the role file, the spec's section list, and several `git show` and
+`grep` reads used to fill in Batch A's own task text before any subagent was
+dispatched. A plan this size (11 tasks, four batches) may make the
+Start-sequence reading cost a distinct line item worth tracking separately from
+`ceiling.jisso.per_batch`, which prices a batch cycle and not the reading that
+precedes the first one. It is the same shape of gap the eighth data point above
+names for `ceiling.kanri`'s flat `per_batch` at a structurally heavier *final*
+batch — here at the *first* boundary instead, where the Replace table's
+"never at the final batch's boundary" carve-out gives no cover at all.
