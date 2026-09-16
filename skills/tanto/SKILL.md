@@ -588,13 +588,16 @@ session:
    the brief path, `<stage>-brief.md` beside the recommendation, the template
    `templates/shoroku-brief.md`, and the chat's language; the recommender
    writes both files in one run.
+   <!-- markdownlint-disable MD038 -->
 3. **Check.** Kanri checks the brief's form by `grep` — the four headings
-   present and in order, every `###` item heading of the recommendation
-   appearing exactly once after `See:` — dispatches the recommender once more
+   present and in order, every `###` item heading's text, its `### ` marker
+   stripped, appearing exactly once after `See:` in the brief — dispatches
+   the recommender once more
    on a failure and pastes the brief as it stands on a second, then gives the
    human both paths, the three counts, and the brief's text verbatim; the
    human answers by exception; Kanri writes `<stage>-direction.md` beside the
    recommendation, item by item, with the `S-n` rows in the conductor ledger.
+   <!-- markdownlint-enable MD038 -->
 4. **Apply.** Kanri dispatches the `shoroku` kind again, in apply mode, with
    the recommendation, the direction, and the commit subject; that subagent
    writes the accepted subset per `docs/AGENTS.md`, runs the repository's

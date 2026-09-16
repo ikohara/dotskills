@@ -107,11 +107,15 @@ requirement or ADR item — the original wording followed by a reference
 translation in the chat's language. Do not wait for `Direction?`, and write
 nothing under `docs/`.
 
+<!-- markdownlint-disable MD038 -->
+
 When the caller also names a brief path, a template, and a chat language,
 write the check brief from that template at that path, rendered in that
 language, in the same run and from the same judgment: one line per item under
-the same three headings, each ending in `See:` and the item's `###` heading
-verbatim. The brief is the second and last file this mode writes.
+the same three headings, each ending in `See:` and the item's heading text,
+its `### ` marker stripped. The brief is the second and last file this mode writes.
+
+<!-- markdownlint-enable MD038 -->
 
 **Apply mode.** Invoked with a recommendation path, a direction path, and a
 commit subject. The recommendation quotes every item in full, so no third

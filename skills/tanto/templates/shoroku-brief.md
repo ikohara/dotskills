@@ -18,7 +18,7 @@ Document: <the recommendation's path> — <stage> — written <YYYY-MM-DD> on
 Each group below holds one line per item of that group, in the
 recommendation's order, in this shape:
 
-    <n>. [adopt | reject | unsure] <destination> — <the candidate in one sentence> — <the one-line reason> — See: <the item's ### heading, verbatim>
+    <n>. [adopt | reject | unsure] <destination> — <the candidate in one sentence> — <the one-line reason> — See: <the item's heading text, without its ### marker>
 
 The numbers are the recommendation's own, one run across the whole file, never
 restarted per group, and every `###` heading of the recommendation appears
@@ -36,12 +36,12 @@ item; the apply reads that file and the recommendation, never this brief.
 
 ## Recommended adopt
 
-<n>. [adopt] <destination> — <the candidate in one sentence> — <the one-line reason> — See: <the item's ### heading, verbatim>
+<n>. [adopt] <destination> — <the candidate in one sentence> — <the one-line reason> — See: <the item's heading text, without its ### marker>
 
 ## Recommended reject
 
-<n>. [reject] <destination> — <the candidate in one sentence> — <the one-line reason> — See: <the item's ### heading, verbatim>
+<n>. [reject] <destination> — <the candidate in one sentence> — <the one-line reason> — See: <the item's heading text, without its ### marker>
 
 ## Unsure
 
-<n>. [unsure] <destination> — <the candidate in one sentence> — <the one-line reason> — <the question this item could not settle, one clause> — See: <the item's ### heading, verbatim>
+<n>. [unsure] <destination> — <the candidate in one sentence> — <the one-line reason> — <the question this item could not settle, one clause> — See: <the item's heading text, without its ### marker>

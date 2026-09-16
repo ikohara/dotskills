@@ -792,8 +792,9 @@ they are recommended and checked.
    `## Recommended reject`, `## Unsure`, in that order; every `### ` heading
    of the recommendation appears exactly once in the brief after `See: `, and
    the brief names no heading the recommendation lacks — count both with
-   `grep -c '^### '` on the recommendation and `grep -cF 'See: <heading>'`
-   on the brief, one line per heading. On a failure dispatch the recommender
+   `grep '^### '` on the recommendation, each line stripped of its `### `
+   marker, and `grep -cF 'See: <heading text>'` on the brief, one line per
+   heading: the pointer is the heading's text, not the heading line. On a failure dispatch the recommender
    once more, naming what failed; on a second failure paste the brief as it
    stands and tell the human in one line what is wrong with it. Then give the
    human, in one message: the recommendation's path, the brief's path, the
