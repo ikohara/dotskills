@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-13
+updated: 2026-09-16
 ---
 
 Found by the plan reviewer of the tanto-cost run (2026-09-13), reading
@@ -37,3 +37,21 @@ can be read against the plan's own.
 Related: issue-10bc (resolved; the convention this is the instrument half of),
 issue-d0f4 (a needle that survives by design), issue-f36d (needles the lint
 side does not reach), issue-c841 (fences `replay` cannot see at all).
+
+2026-09-16 — the same gap seen from the other side, and a second measured
+instance. The `tanto-project-config` whole-branch review observed that the
+residual sweep runs over the **applied scratch copy**, not the working tree.
+That is the mechanism behind the paragraphs above, stated as a property of the
+tree the sweep reads rather than of the path list it walks, and it makes the
+two sweeps answer different questions: `replay`'s "is there residue in the
+copies of the files these passages edit" against the plan's own "is there
+residue anywhere in the tree".
+
+Measured on that run: needle `O2.5` is a **declared survivor** outside the
+plan's own file set. The plan's whole-tree grep finds it — one hit, in
+`docs/decisions/03f9-the-top-family-in-one-shots-and-a-kind-that-carries-a-model-and-an-effort.md`,
+exactly as declared — while `replay`'s residual sweep reads `0` for it. Both
+numbers are correct for the tree each sweep looked at, and only one of them
+answers the question a reader asks. A line in the `passage-check` contract or
+in `docs/notes/tanto-consistency-checks.md` saying which tree the residual
+sweep reads would close the reading gap even before either fix above lands.

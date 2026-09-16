@@ -157,6 +157,19 @@ with `--fix` before the commit. A block the linter rewrites can never match.
   **every commit attempt**, not only on a standalone `lint` call, so there is
   no path that lands such a block without the suppression — discovering it late
   costs a round trip and buys nothing.
+- **The suppression pair goes *outside* the passage's own contiguous line
+  range.** A `<!-- markdownlint-disable MD038 -->` / `<!-- markdownlint-enable
+  MD038 -->` pair placed inside the passage breaks `passage-check.js verify`,
+  whose match is exact and per line: the comment lines are text the plan's
+  block does not carry, so the passage reads as absent even though it landed.
+  Wrapping the whole replacement block instead costs a few suppressed lines
+  that need no suppression and keeps the passage verifiable. Measured in the
+  `tanto-project-config` run's Batch B, task 5, where a passage plants a
+  literal leading space inside a code span
+  (`` ` Project-scope copy for this repository.` ``) and the implementer had to
+  place the pair by hand — the plan's own passage text said nothing about it.
+  So a plan that specifies such a passage should specify the pair's placement
+  too, at drafting time, together with the decision the bullet above asks for.
 - Where indentation is **load-bearing content** rather than formatting, prose
   has to carry it, because a code span cannot: `config:` with an unindented
   `default: false` is two top-level keys, and markdownlint-cli2 discards the

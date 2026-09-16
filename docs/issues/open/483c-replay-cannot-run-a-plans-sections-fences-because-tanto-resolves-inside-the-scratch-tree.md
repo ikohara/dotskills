@@ -33,3 +33,20 @@ Related: issue-ebd9 (`replay` auto-skips `verify` but not `diff` or the plan's
 own path — the same "which fences `replay` can actually run" question),
 issue-1d95 (`replay-skip:` is per fence, not per line, which constrains the
 second candidate fix above).
+
+2026-09-16 — the general case, with a measurement. The `tanto-project-config`
+whole-branch review found the cause above is not specific to `sections` or to
+`$TANTO`: the scratch tree holds **only the plan's own files**, so *any* fence
+that calls something the plan does not itself carry fails there. Named in that
+run: `scripts/lint.sh`, `scripts/passage-check.js` and its test, and
+`skills/tanto/templates/tanto.json`.
+
+The measurement puts a size on it — **15 of that run's 24 `DIFFERS`** came
+from this single cause, not from any passage being wrong. That is the majority
+of the instrument's own noise on a run whose passages all landed clean, which
+is the argument for the first candidate fix above over the second: the scratch
+tree should carry the repository's tooling and the skill's untouched files,
+because declaring fifteen fences `replay-skip:` per plan only moves the cost to
+the plan author.
+
+For `passage-check-hardening`, as above.
