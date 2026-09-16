@@ -84,17 +84,27 @@ instead. Every other role does the handshake below.
 
 ## The expected-model config
 
+Three files, each overlaid on the one before it and the last one winning: the
+built-in defaults at `templates/tanto.json` in the skill; the personal
 `$CLAUDE_CONFIG_DIR/tanto.json`, or `~/.claude/tanto.json` when that variable
-is unset. Three maps, three mechanisms. Every value of the first two is
-`{ "model": <family>, "effort": <level> }`, or a bare string, which means that
-model with the effort from the defaults.
+is unset; and the project `<cwd>/.claude/tanto.json`. `<cwd>` is the session's
+working directory — the one rule 4 binds the session to, and the one the
+roster's cwd column records. The skill does not search upward for a repository
+root, so a session started outside the repository root reads no project file
+and says so. Whether a repository commits its own file is that repository's
+decision: the skill only reads it, requires it tracked no more than it ignores
+it, and ships no `.local` variant.
+
+Three maps, three mechanisms. Every value of the first two maps is
+`{ "model": <family>, "effort": <level> }`, or a bare string, which sets
+`model` and leaves `effort` to the layers below.
 
 - `sessions.<role>` is **advisory**. The checks above and Kanri's handshake
-  check compare against it, read at the moment of each comparison — the
-  file's presence as much as its content, since a personal override can be
-  created, edited, or deleted at any time, and "it existed when I last
-  checked" is never evidence that it exists now. Nothing switches a
-  session's model or its effort.
+  check compare against it, read at the moment of each comparison — each
+  file's presence as much as its content, since a personal or a project
+  override can be created, edited, or deleted at any time, and "it existed
+  when I last checked" is never evidence that it exists now. Nothing switches
+  a session's model or its effort.
 - `subagents.<kind>` is **effective**. Its `model` goes into the `model`
   parameter of every subagent that role dispatches, and its `effort` into the
   agent definition below. The twelve kinds are `task.implement`,
@@ -133,17 +143,20 @@ The effort vocabulary is the harness's — `low`, `medium`, `high`, `xhigh`,
 
 The skill ships built-in defaults at `templates/tanto.json`, derived from the
 family ladder `fable > opus > sonnet > haiku` (as of 2026-09). Read the
-personal file and overlay it on the defaults **field by field**: a personal
+personal file and overlay it on the defaults **field by field**, then read the
+project file and overlay it on that result the same way: a personal
 `{"effort":"medium"}` under `subagents.task.implement` changes that effort and
-keeps the default model. A partial personal file is complete; an absent file
-is the case where every key is a default. The `ceiling` map overlays the same
-way and at the same granularity: a personal
+keeps the default model, and a project `{"effort":"xhigh"}` under
+`sessions.sekkei` changes that one effort and keeps the model of the layer
+below. A partial file is complete at either layer; an absent file is the case
+where every key comes from the layers below it. The `ceiling` map overlays the
+same way and at the same granularity: a personal
 `{"ceiling": {"kanri": {"batches": 1}}}` sets Kanri's batch count to 1 and
 leaves every other value of all three maps alone. A key that names no role, no
 kind and no ceiling field — an older file's, for instance — is reported in
-your start line as `unknown key <name>, ignored`, or as
-`unknown key ceiling.<name>, ignored` for one under that map, which
-`scripts/reading.js` writes on `stderr` every time it reads the file; either
+your start line as `unknown key <name> in <path>, ignored`, or as
+`unknown key ceiling.<name> in <path>, ignored` for one under that map, which
+`scripts/reading.js` writes on `stderr` every time it reads a file; either
 way it is otherwise ignored.
 
 Then check that `subagents.task.escalate` sits above
@@ -175,12 +188,21 @@ dispatches without them; from then on a dispatch names its kind as
 `subagent_type: tanto-<object>-<act>` — or `tanto-<kind>` for a kind with no
 dot in its name, `tanto-shoroku` and `tanto-default`.
 
-Say once, in your start line, which file you read; which keys came from the
-defaults, at the granularity of a field, or `no tanto.json at <path>, all
-keys built-in defaults`; the ladder result if the check failed; and
+Say once, in your start line: the two config files with their state, as
+`personal <path> present` or `personal <path> absent`, and as
+`project <path> present` or `project <path> absent`; which fields came from
+the project file, at the granularity of a field — for instance
+`project: subagents.task.implement.effort, ceiling.kanri.batches` — which
+fields came from the personal file, and that the rest are built-in defaults,
+or `all keys built-in defaults` when both files are absent; the unknown keys,
+each named with its file; the ladder result if the check failed; and
 `agents: <n> current, <m> written, <k> not visible to this session`, with the
 kinds named when `<k>` is above zero. This is information, not a warning: the
 human is told once and the session carries on.
+
+A field the project file sets to the same value the personal file sets is
+reported as the project's: the report is about where the effective value was
+read from, and precedence decides that.
 
 **Every subagent dispatch names a `model`**, and a `subagent_type` from the
 definitions when this session sees them. An omitted `model` inherits the
