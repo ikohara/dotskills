@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-13
+updated: 2026-09-16
 ---
 
 Found by the tanto-cost run's batch E task 17 reviewer (2026-09-13),
@@ -36,3 +36,21 @@ batch C.
 
 Related: issue-e18b, issue-2e19 (the same run's other `roles/kanri.md`
 staleness, though this one is a functional gap rather than a stale count).
+
+**A real attempt to fill the row confirmed the gap, and added one requirement
+(2026-09-16).** The `dispatch: <kind> on <family>` Session-events bookkeeping
+line (`roles/kanri.md` loop step 6) was not written at every boundary where the
+`shoroku-at-close` plan's own predecessors' tenures touched a top-family
+(fable) subagent: only 2 explicit `dispatch: shoroku on fable` lines exist in
+that ledger's own Session events, while the narrative separately shows
+`branch.review` and `plan.coldread` each ran on fable at least once without the
+fixed phrase. The Measurements row could therefore report only the
+strictly-bookkept figure (2) plus a caveat that the true count is higher and
+undercounted by the strict method — a concrete instance of the row's own source
+going stale mid-run, the same class of problem issue-9d84 names for the
+consistency notes' hand-maintained values.
+
+Added sub-requirement: the row's own instruction should say what a later Kanri
+does when the bookkeeping itself is incomplete, since "count the lines"
+silently produces a false-precision answer — a partial tally counted silently
+reads as exact.

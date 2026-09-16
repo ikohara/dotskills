@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-16
 ---
 
 design-4807 states that the roster carries a **Residency** table with one row
@@ -40,3 +40,16 @@ at the moment they claim to represent are the only honest source.
 
 Related: design-4807 (the Residency table's rule), issue-40ed (the dataset the
 missing rows feed).
+
+**The gap recurred two topics after its fix (2026-09-16).** Keikaku's Residency
+row was never populated for `tanto-sweep-2` (`dotskills-cc`, its only session
+that topic) — the "each role's last reading" Measurements row had to record "no
+Residency row was ever recorded for it" rather than an actual figure. The
+`tanto-context-ceiling` close (R-46) had already found and fixed the same class
+of gap for a different topic ("this same roster's own Residency table never
+gaining rows for any peer nor its Context column"); this recurrence shows the
+fix did not durably cover every role at every topic — Keikaku specifically went
+unrecorded again, two topics later.
+
+Added fix candidate: whatever wrote R-46's fix, re-verify it actually reaches a
+Keikaku's own boundary-report path, not only Jisso's and Sekkei's.
