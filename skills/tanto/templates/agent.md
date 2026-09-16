@@ -1,6 +1,6 @@
 ---
 name: tanto-<object>-<act>
-description: tanto's <object>.<act> seat. Dispatched by a tanto role by name through subagent_type, and never to be selected from this description.
+description: tanto's <object>.<act> seat.<scope> Dispatched by a tanto role by name through subagent_type, and never to be selected from this description.
 effort: <effort>
 ---
 

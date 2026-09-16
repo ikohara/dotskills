@@ -84,17 +84,27 @@ instead. Every other role does the handshake below.
 
 ## The expected-model config
 
+Three files, each overlaid on the one before it and the last one winning: the
+built-in defaults at `templates/tanto.json` in the skill; the personal
 `$CLAUDE_CONFIG_DIR/tanto.json`, or `~/.claude/tanto.json` when that variable
-is unset. Three maps, three mechanisms. Every value of the first two is
-`{ "model": <family>, "effort": <level> }`, or a bare string, which means that
-model with the effort from the defaults.
+is unset; and the project `<cwd>/.claude/tanto.json`. `<cwd>` is the session's
+working directory — the one rule 4 binds the session to, and the one the
+roster's cwd column records. The skill does not search upward for a repository
+root, so a session started outside the repository root reads no project file
+and says so. Whether a repository commits its own file is that repository's
+decision: the skill only reads it, requires it tracked no more than it ignores
+it, and ships no `.local` variant.
+
+Three maps, three mechanisms. Every value of the first two maps is
+`{ "model": <family>, "effort": <level> }`, or a bare string, which sets
+`model` and leaves `effort` to the layers below.
 
 - `sessions.<role>` is **advisory**. The checks above and Kanri's handshake
-  check compare against it, read at the moment of each comparison — the
-  file's presence as much as its content, since a personal override can be
-  created, edited, or deleted at any time, and "it existed when I last
-  checked" is never evidence that it exists now. Nothing switches a
-  session's model or its effort.
+  check compare against it, read at the moment of each comparison — each
+  file's presence as much as its content, since a personal or a project
+  override can be created, edited, or deleted at any time, and "it existed
+  when I last checked" is never evidence that it exists now. Nothing switches
+  a session's model or its effort.
 - `subagents.<kind>` is **effective**. Its `model` goes into the `model`
   parameter of every subagent that role dispatches, and its `effort` into the
   agent definition below. The twelve kinds are `task.implement`,
@@ -133,31 +143,66 @@ The effort vocabulary is the harness's — `low`, `medium`, `high`, `xhigh`,
 
 The skill ships built-in defaults at `templates/tanto.json`, derived from the
 family ladder `fable > opus > sonnet > haiku` (as of 2026-09). Read the
-personal file and overlay it on the defaults **field by field**: a personal
+personal file and overlay it on the defaults **field by field**, then read the
+project file and overlay it on that result the same way: a personal
 `{"effort":"medium"}` under `subagents.task.implement` changes that effort and
-keeps the default model. A partial personal file is complete; an absent file
-is the case where every key is a default. The `ceiling` map overlays the same
-way and at the same granularity: a personal
+keeps the default model, and a project `{"effort":"xhigh"}` under
+`sessions.sekkei` changes that one effort and keeps the model of the layer
+below. A partial file is complete at either layer; an absent file is the case
+where every key comes from the layers below it. The `ceiling` map overlays the
+same way and at the same granularity: a personal
 `{"ceiling": {"kanri": {"batches": 1}}}` sets Kanri's batch count to 1 and
 leaves every other value of all three maps alone. A key that names no role, no
 kind and no ceiling field — an older file's, for instance — is reported in
-your start line as `unknown key <name>, ignored`, or as
-`unknown key ceiling.<name>, ignored` for one under that map, which
-`scripts/reading.js` writes on `stderr` every time it reads the file; either
+your start line as `unknown key <name> in <path>, ignored`, or as
+`unknown key ceiling.<name> in <path>, ignored` for one under that map, which
+`scripts/reading.js` writes on `stderr` every time it reads a file; either
 way it is otherwise ignored.
 
 Then check that `subagents.task.escalate` sits above
 `subagents.task.implement` on that ladder — SDD's fix rounds 4-5 are an
 escalation only if it does.
 
+<!-- markdownlint-disable MD038 -->
 A kind's effort cannot ride in a dispatch; it rides in an agent definition,
 which the harness reads when a session starts. So, after reading the merged
-config and before any other work, write for each of the twelve kinds the file
+config and before any other work, make two passes.
+
+**User scope.** Write for each of the twelve kinds the file
 `~/.claude/agents/tanto-<object>-<act>.md` — the kind's name with its `.`
 turned into a `-`, under `$CLAUDE_CONFIG_DIR/agents/` when that variable is
 set — from `templates/agent.md`, when the file is absent or its content
 differs from what the template renders. A file that already matches is left
-alone.
+alone. This rendering takes its effort from the merge of the **built-in and
+personal layers only**, never from the project file, and its `<scope>` slot
+renders empty. That merge is the one every role in every repository computes
+identically for the same personal file, and it is what keeps the user-scope
+files stable across repositories: a project's effort written where every other
+project reads it is the failure this whole mechanism exists to prevent.
+
+**Project scope.** Then compute, for each of the twelve kinds, the three-layer
+effort. For every kind whose three-layer effort **differs** from the
+user-scope effort, write `<cwd>/.claude/agents/tanto-<object>-<act>.md` from
+the same template with that effort and with the `<scope>` slot rendered as
+` Project-scope copy for this repository.` — one leading space, and no other
+change from the user-scope rendering above, which renders the same slot as
+the empty string — when that file is absent or its content differs; a file
+that already matches is left alone. A model difference alone produces no project-scope file: the model
+rides in the dispatch's own `model` parameter, and a definition carries none.
+For every kind whose three-layer effort does **not** differ, remove
+`<cwd>/.claude/agents/tanto-<object>-<act>.md` if it exists. That removal
+sweep runs whenever `<cwd>/.claude/agents/` exists, whether or not a project
+file does, and only those twelve names are ever removed — nothing else under
+that directory is touched. Without it, a project file edited to drop an effort
+would leave a project-scope copy that keeps winning while your start line
+reports the personal effort, which is the silent override the requirement
+forbids. When the project pass writes its first definition and
+`<cwd>/.claude/agents/.gitignore` is absent, write that file with the two
+lines `tanto-*.md` and `.gitignore`; when it exists it is never overwritten,
+whatever it holds, and it is not removed when the last project definition is.
+When the project file is absent, or sets no effort that differs, the write
+half writes nothing and creates no directory; the removal half still runs.
+<!-- markdownlint-enable MD038 -->
 
 The rendered file is `name`, a `description` saying the seat is dispatched by
 name through `subagent_type` and is never to be selected from that
@@ -169,18 +214,37 @@ assume every tool. The description is protocol against the harness's
 proactive agent selection, not enforcement.
 
 Then read your own system prompt's list of available agent types and count
-the twelve names in it. A definition written during a session is not visible
-to that session, so the first session on a machine that writes them
-dispatches without them; from then on a dispatch names its kind as
+the twelve names in it, and among them the ones whose description carries the
+project-scope clause. A definition written during a session is not visible to
+that session at either scope, so the first session on a machine that writes
+them dispatches without them, and a project effort takes effect from the
+second session started in that repository after the project file changed;
+from then on a dispatch names its kind as
 `subagent_type: tanto-<object>-<act>` — or `tanto-<kind>` for a kind with no
-dot in its name, `tanto-shoroku` and `tanto-default`.
+dot in its name, `tanto-shoroku` and `tanto-default`. A kind visible at user
+scope but not yet at project scope dispatches with the user-scope effort, and
+the dispatching role says so once, as it does for a kind it cannot see at all.
 
-Say once, in your start line, which file you read; which keys came from the
-defaults, at the granularity of a field, or `no tanto.json at <path>, all
-keys built-in defaults`; the ladder result if the check failed; and
-`agents: <n> current, <m> written, <k> not visible to this session`, with the
-kinds named when `<k>` is above zero. This is information, not a warning: the
+Say once, in your start line: the two config files with their state, as
+`personal <path> present` or `personal <path> absent`, and as
+`project <path> present` or `project <path> absent`; which fields came from
+the project file, at the granularity of a field — for instance
+`project: subagents.task.implement.effort, ceiling.kanri.batches` — which
+fields came from the personal file, and that the rest are built-in defaults,
+or `all keys built-in defaults` when both files are absent; the unknown keys,
+each named with its file; the ladder result if the check failed; and
+`agents: <n> current, <m> written, <k> not visible to this session; project: <p> current, <q> written, <r> removed, <s> in effect`,
+with `<s>` the number of the twelve names whose description in this session's
+own agent list carries the project-scope clause, and with the kinds named when
+`<k>` is above zero. The `project:` half is printed even when all four of its
+numbers are zero, so that a start line always says which scope the session
+runs on. This
+is information, not a warning: the
 human is told once and the session carries on.
+
+A field the project file sets to the same value the personal file sets is
+reported as the project's: the report is about where the effective value was
+read from, and precedence decides that.
 
 **Every subagent dispatch names a `model`**, and a `subagent_type` from the
 definitions when this session sees them. An omitted `model` inherits the
@@ -336,10 +400,11 @@ printed only when asked for, and the sections that ask name the switch:
 against the ceiling. A second form,
 `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]`,
 prints the share of usage spent at a large context across several transcripts,
-and Kanri runs it once, at the plan close. Three further switches — `--now`,
-`--config`, `--settings` — fix the clock, the personal config and the settings
-file; they exist for the tests and for a Kanri verifying a peer's reading, and
-no role file passes them.
+and Kanri runs it once, at the plan close. Four further switches — `--now`,
+`--config`, `--project-config`, `--settings` — fix the clock, the personal
+config, the project config and the settings file; they exist for the tests and
+for a Kanri verifying a peer's reading from another working directory, and no
+role file passes them.
 
 - **Bytes** and **records** are the file's size and its line count, one JSON
   record per line. A line that does not parse as JSON is counted in records
@@ -439,8 +504,9 @@ resumed role: `/tanto fukki` says so and stops, and the human runs
 
 `/tanto fukki` reads this file and nothing else. The role file is already in
 the session's context, which is what a resume preserves. It also re-runs the
-Start sequence's twelve-definitions write-and-count (a resume can carry a new
-`CLAUDE_CONFIG_DIR`, and re-writing may nudge the harness to re-scan) and says
+Start sequence's definitions write-and-count in both scopes (a resume can
+carry a new `CLAUDE_CONFIG_DIR`, and re-writing may nudge the harness to
+re-scan) and says
 the result the same way the Start sequence does.
 
 ## Messages
@@ -700,7 +766,9 @@ review package excludes.
 | `.superpowers/sdd/<plan-basename>/progress.md` | Jisso, through the SDD skill | Kanri | the SDD ledger; Kanri reads it and never writes it; the one artifact tanto reads under `.superpowers/` |
 | `.tanto/.gitignore` holding `*`, and `.tanto/.markdownlint-cli2.yaml` holding `config:` / `default: false` | Kanri at start, a standalone Kaiseki, or a bug-report writer — whichever finds them absent first; never overwritten | git; the editor's markdownlint | keeps everything above untracked, so nothing is ever staged, and keeps the editor quiet on files the commit path never lints |
 | `$CLAUDE_CONFIG_DIR/tanto.json` | the user | every role at start, Kanri at each handshake | the personal expected-model config |
-| `~/.claude/agents/tanto-*.md`, or `$CLAUDE_CONFIG_DIR/agents/` when that variable is set | every role at its start, from the merged config | the harness, at the next session start | one definition per kind, from `templates/agent.md`; a definition is dispatchable only from the sessions started after it was written |
+| `<cwd>/.claude/tanto.json` | the repository | every role at start, Kanri at each handshake, `scripts/reading.js` | the project expected-model config, overlaid on the personal one; committed or ignored as the repository decides |
+| `~/.claude/agents/tanto-*.md`, or `$CLAUDE_CONFIG_DIR/agents/` when that variable is set | every role at its start, from the built-in and personal layers | the harness, at the next session start | one definition per kind, from `templates/agent.md`; a definition is dispatchable only from the sessions started after it was written |
+| `<cwd>/.claude/agents/tanto-*.md`, and `<cwd>/.claude/agents/.gitignore` beside them | every role at its start, for the kinds whose effort the project file changes | the harness, at the next session start; git | the project-scope definitions, from the same template with its `<scope>` clause rendered; the `.gitignore` holds `tanto-*.md` and `.gitignore`, is written once and never overwritten |
 
 Templates are copied and filled, never restated in prose. Fourteen of them:
 `templates/roster.md`, `templates/roster-archive.md`, `templates/kanri.md`,
@@ -720,8 +788,9 @@ and `roles/keikaku.md`, `roles/jisso.md` and `roles/kanri.md` name them.
 `scripts/reading.js` is the instrument every role measures itself with, run at
 every boundary and every exit; its two forms are the reading of one transcript
 — with `--role kanri|jisso`, `--presence` and `--backstop` each adding a line,
-and `--now`, `--config` and `--settings` fixing what the tests and a verifying
-Kanri need fixed — and `--share` over several transcripts, which Kanri runs at
+and `--now`, `--config`, `--project-config` and `--settings` fixing what the
+tests and a verifying Kanri need fixed — and `--share` over several
+transcripts, which Kanri runs at
 the plan close. Both are Node with no dependencies, and both have their tests
 beside them, run by `node --test`. Their paths are written skill-relative,
 like every other path in
@@ -770,8 +839,8 @@ its path.
    its role one line, the role tells Kanri one line — and only Kanri decides
    whether it is stray.
 6. Every subagent dispatch names a `model` from `tanto.json`; none omits it,
-   and it names a `subagent_type` from the definitions at
-   `~/.claude/agents/tanto-<object>-<act>.md` when this session sees them.
+   and it names a `subagent_type` from the definitions this session sees,
+   whether they are at `~/.claude/agents/` or at `<cwd>/.claude/agents/`.
 7. Small batches of three or four tasks. Each boundary is a ruling checkpoint
    and a lifecycle checkpoint.
 8. Fix rounds stop at the Kaiseki trigger when the cause is unknown; root cause

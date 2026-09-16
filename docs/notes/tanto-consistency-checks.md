@@ -848,11 +848,19 @@ uv run --no-project --with pyyaml python -c "import yaml;t=open('skills/tanto/SK
 node -e 'const t=require("./skills/tanto/templates/tanto.json");const r=Object.keys(t.sessions),k=Object.keys(t.subagents);if(r.length!==7||k.length!==12)process.exit(1);for(const m of [t.sessions,t.subagents])for(const v of Object.values(m))if(!v.model||!v.effort)process.exit(1);console.log("tanto.json ok",r.length,k.length)'
 uv run --no-project --with pyyaml python -c "import yaml,sys;t=open(sys.argv[1],encoding='utf-8').read().split('---')[1];d=yaml.safe_load(t);print(sorted(d));print('BAD' if ': ' in d['description'] else 'ok')" skills/tanto/templates/agent.md
 uv run --no-project --with pyyaml python -c "import yaml,sys;t=open(sys.argv[1],encoding='utf-8').read().split('---')[1];d=yaml.safe_load(t);print(sorted(d),d['effort'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/tanto-task-implement.md"
+if test -f .claude/agents/tanto-task-implement.md; then
+  uv run --no-project --with pyyaml python -c "import yaml,sys;t=open(sys.argv[1],encoding='utf-8').read().split('---')[1];d=yaml.safe_load(t);print(sorted(d),d['effort'])" .claude/agents/tanto-task-implement.md
+else
+  echo "no project-scope definition on this host"
+fi
 ```
 
 Expected: `['argument-hint', 'description', 'name']`, then `ok`; then
 `tanto.json ok 7 12`; then `['description', 'effort', 'name']` and `ok`;
-then `['description', 'effort', 'name'] high`. A colon followed by a space
+then `['description', 'effort', 'name'] high` for the user-scope definition;
+and for the project-scope one either the same three keys with this
+repository's own effort, or the fallback line the fifth command echoes. A
+colon followed by a space
 anywhere in a `description` value
 breaks frontmatter parsing silently, which is what the `BAD` branch prints
 for, and it is run against the agent template as well as the contract
@@ -860,9 +868,13 @@ because the rendered definition is a frontmatter file the harness parses.
 The second line is a parse and two assertions in one: the twelve kinds, the
 seven roles, and `model` and `effort` on every entry of both maps, which is
 what makes a half-widened config fail here rather than at a dispatch. The
-fourth line reads a **rendered** definition, which exists only where a role
-has already generated one; where the directory is empty, record
-`definitions not generated on this host` and let the dogfood settle it.
+fourth and fifth lines read a **rendered** definition — the fourth the
+user-scope one, the fifth the project-scope copy under this repository's own
+`.claude/agents/` — and each exists only where a role has already generated
+it; where the user-scope directory is empty, record
+`definitions not generated on this host`, and where the project-scope file is
+absent the fifth line echoes its own fallback, which is the expected result in
+every repository that ships no project config. Let the dogfood settle both.
 When `--with pyyaml` cannot fetch PyYAML, fall back to
 `sed -n 's/^description: //p' skills/tanto/SKILL.md | grep -c ': '`, expect
 `0`, and record the fallback.
@@ -963,12 +975,12 @@ Assigning a write-out by section name — "the `Bug intake` section of the desig
 node skills/tanto/scripts/passage-check.js 2>&1 | head -n 1
 node skills/tanto/scripts/passage-check.js 2>&1 | head -n 1 | grep -oE 'lint|replay|diff|verify|sections|frame|boundary' | sort -u | wc -l
 node skills/tanto/scripts/reading.js 2>&1 | head -n 1
-node skills/tanto/scripts/reading.js 2>&1 | head -n 1 | grep -oE '\-\-role|\-\-presence|\-\-backstop|\-\-share|\-\-now|\-\-config|\-\-settings' | sort -u | wc -l
+node skills/tanto/scripts/reading.js 2>&1 | head -n 1 | grep -oE '\-\-role|\-\-presence|\-\-backstop|\-\-share|\-\-now|\-\-config|\-\-project-config|\-\-settings' | sort -u | wc -l
 grep -cF 'scripts/reading.js' skills/tanto/SKILL.md skills/tanto/README.md
 ```
 
 Expected: the first script's usage line, then `7`; the second script's usage
-line, naming **both** its forms on that one line, then `7`; then one
+line, naming **both** its forms on that one line, then `8`; then one
 `<path>:<n>` line per file with `<n>` at least `1`. The usage lines are read,
 not
 matched: the wording belongs to each script, and a plan that rewords one is not
@@ -984,6 +996,11 @@ which must name both scripts, and the README's Layout, which must list both: a
 zero on either side is the drift this check exists for. `reading.js` spells its
 usage over one line for exactly this reason — a `head -n 1` that showed only
 the first of two forms would pass while hiding half the interface.
+
+`--config` does not match inside `--project-config` — the text there is
+`t-config`, not a second `--config` — so the two are counted separately, and
+an alternation that named only the shorter one would keep passing while
+covering less of the interface than it used to.
 
 This check is numbered after the lessons above rather than beside checks 1 to
 9 because the numbers here are cited by plans; renumbering a check would make

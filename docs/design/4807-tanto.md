@@ -228,12 +228,17 @@ row, as the roster section above says.
 
 ## The expected-model config
 
-Two maps and two mechanisms, recorded in full as decision-9a3a.
+Three maps, three mechanisms — the first two recorded in full as
+decision-9a3a, the third added by decision-eee2.
 `sessions.<role>` is **advisory**: it feeds the model check and Kanri's check at
 the handshake, and nothing ever switches a session's model. `subagents.<kind>`
 is **effective**: its value goes into the `model` parameter of every subagent
 that role dispatches, and no dispatch omits it — an omitted model inherits the
-session's, which on three of the seven roles is the strongest family.
+session's, which on three of the seven roles is the strongest family. `ceiling`
+is **effective** in the same sense: `scripts/reading.js` reads it and the
+residency verdicts Kanri and Jisso act on come out of it — `ceiling.kanri` and
+`ceiling.jisso` as `{ "batches": <N>, "per_batch": <tokens> }`, plus
+`ceiling.presence_minutes` and `ceiling.share_threshold`.
 
 **A kind carries an effort as well as a model, and the two bind by different
 routes.** The twelve kinds are named `<object>.<act>`, and each role renders one

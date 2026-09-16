@@ -131,3 +131,22 @@ recognize the move, since nothing about the line changed at all. Reporting them
 identically means every instance costs a human ruling to tell apart. A
 requirement on the same instrument's eventual fix, beside base drift and the
 exception-absorption note above.
+
+2026-09-16 — which commit **kinds** a topic branch actually carries, from the
+`tanto-project-config` whole-branch review. Run against that topic branch,
+`diff` counted every added line of the commits no task owns as
+`unaccounted-added` against the merge base. Two kinds produced all of it, and
+both are structural rather than accidental: the **spec commit**, which lands
+before task 1 by construction, and the **exit-shoroku commit**, which lands
+after the last task by construction. Every tanto topic branch carries at least
+these two, so the noise is not a property of an unusually mixed branch — it is
+what the default shape of a run produces.
+
+That sharpens the fork this issue already holds rather than opening a third
+alongside issue-4eef. Either the plan names the **plan-commit base** and pairs
+it with a **ruled-deviation allowlist** naming the commit kinds that are
+expected outside it, or the instrument states the expectation outright — that
+non-task commits appear, and how many — so the boundary reader compares against
+a number instead of against zero. The path-scope half of the gap would also
+absorb both kinds, since neither touches the plan's declared paths; the two
+options differ in whether the expectation is written down or derived.

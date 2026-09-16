@@ -1,3 +1,10 @@
+// biome-ignore-all lint/suspicious/noShadowRestrictedNames: the plan's P1.8
+// passage fixes `const escape = ...` verbatim, and `passage-check.js verify`
+// matches it byte-for-byte and contiguously against this file. Renaming the
+// identifier breaks that match (confirmed), and so would a line-level
+// `// biome-ignore` directly above it, since that would insert a line inside
+// P1.8's own span. A file-level suppression is the only fix that leaves the
+// passage untouched.
 const test = require("node:test");
 const { after } = require("node:test");
 const assert = require("node:assert");
@@ -57,7 +64,12 @@ function run(args, extraEnv = {}) {
   const env = { ...process.env, CLAUDE_CONFIG_DIR: EMPTY_CONFIG_DIR };
   delete env.CLAUDE_CODE_AUTO_COMPACT_WINDOW;
   for (const [key, value] of Object.entries(extraEnv)) env[key] = value;
-  const result = spawnSync(process.execPath, [SCRIPT, ...args], { encoding: "utf8", env });
+  // `cwd` is an empty directory for the same reason the config directory is
+  // one: the project layer is read at `<cwd>/.claude/tanto.json`, and the
+  // real repository's own file -- present or not -- must never decide a
+  // test's result.
+  const opts = { encoding: "utf8", env, cwd: EMPTY_CONFIG_DIR };
+  const result = spawnSync(process.execPath, [SCRIPT, ...args], opts);
   return { code: result.status, out: result.stdout || "", err: result.stderr || "", error: result.error };
 }
 
@@ -268,9 +280,17 @@ test("an unknown key under the ceiling map is ignored and named on stderr", () =
 
   const result = run([file, "--role", "kanri", "--config", config]);
   assert.strictEqual(result.code, 0);
-  assert.match(result.err, /^unknown key ceiling\.sekkei, ignored$/m);
-  assert.match(result.err, /^unknown key ceiling\.kanri\.window, ignored$/m);
+  const escaped = config.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const line = (name) => new RegExp(`^unknown key ceiling\\.${name} in ${escaped}, ignored$`, "m");
+  assert.match(result.err, line("sekkei"));
+  assert.match(result.err, line("kanri\\.window"));
   assert.match(result.out, /^ceiling: kanri baseline=1000 \+ 2 x 65000 = 131000 — context=2000 under$/m);
+
+  // The module's own return value, independent of the CLI run above:
+  // `paths` is exactly `{ personal, project }`, each as resolved.
+  const { loadCeiling } = require(SCRIPT);
+  const project = writeJson("project-tanto.json", { ceiling: {} });
+  assert.deepStrictEqual(loadCeiling(config, project).paths, { personal: config, project });
 });
 
 test("--share skips a path it cannot read, counts only the ones read, and names the skipped", () => {
@@ -281,4 +301,66 @@ test("--share skips a path it cannot read, counts only the ones read, and names 
   assert.strictEqual(result.code, 0);
   assert.match(result.out, /over 1 transcripts \(400000 \/ 400000 tokens\)/);
   assert.match(result.out, /\(skipped .*gone\.jsonl\)/);
+});
+
+test("the project file overlays the personal one, field by field", () => {
+  const file = writeTranscript([assistant({ input_tokens: 1000 }), assistant({ input_tokens: 2000 })]);
+  const personal = writeJson("tanto.json", {
+    ceiling: { kanri: { batches: 3, per_batch: 10000 } },
+  });
+  const project = writeJson("project-tanto.json", { ceiling: { kanri: { batches: 1 } } });
+
+  const result = run([file, "--role", "kanri", "--config", personal, "--project-config", project]);
+  assert.strictEqual(result.code, 0);
+  // `batches` is the project's; `per_batch` is the personal's, untouched.
+  assert.match(result.out, /^ceiling: kanri baseline=1000 \+ 1 x 10000 = 11000 — context=2000 under$/m);
+});
+
+test("a missing project file is the all-lower-layers case", () => {
+  const file = writeTranscript([assistant({ input_tokens: 1000 }), assistant({ input_tokens: 2000 })]);
+  const personal = writeJson("tanto.json", { ceiling: { kanri: { batches: 3 } } });
+  const missing = path.join(tmpDir(), "no-project-tanto.json");
+
+  const result = run([file, "--role", "kanri", "--config", personal, "--project-config", missing]);
+  assert.strictEqual(result.code, 0);
+  assert.match(result.out, /^ceiling: kanri baseline=1000 \+ 3 x 65000 = 196000 — context=2000 under$/m);
+});
+
+test("an unparsable project file is the same, and adds nothing on stderr", () => {
+  const file = writeTranscript([assistant({ input_tokens: 1000 }), assistant({ input_tokens: 2000 })]);
+  const personal = writeJson("tanto.json", { ceiling: { kanri: { batches: 3 } } });
+  const broken = writeJson("project-tanto.json", "{ not json at all");
+
+  const result = run([file, "--role", "kanri", "--config", personal, "--project-config", broken]);
+  assert.strictEqual(result.code, 0);
+  assert.match(result.out, /^ceiling: kanri baseline=1000 \+ 3 x 65000 = 196000 — context=2000 under$/m);
+  assert.strictEqual(result.err, "");
+});
+
+test("--project-config fixes the path in both forms", () => {
+  const one = writeTranscript([assistant({ input_tokens: 200000 })]);
+  const project = writeJson("project-tanto.json", { ceiling: { share_threshold: 100000 } });
+
+  const reading = run([one, "--role", "jisso", "--project-config", project]);
+  assert.strictEqual(reading.code, 0);
+  assert.match(reading.out, /^ceiling: jisso baseline=200000 \+ 2 x 65000 = 330000 — context=200000 under$/m);
+
+  const share = run(["--share", one, "--project-config", project]);
+  assert.strictEqual(share.code, 0);
+  assert.match(share.out, /share: 100% of usage at context > 100000 over 1 transcripts/);
+});
+
+test("an unknown key is named with the file it came from, with both files in one run", () => {
+  const file = writeTranscript([assistant({ input_tokens: 1000 }), assistant({ input_tokens: 2000 })]);
+  const personal = writeJson("tanto.json", { ceiling: { sekkei: { batches: 3 } } });
+  const project = writeJson("project-tanto.json", { ceiling: { kanri: { window: 30 } } });
+
+  const result = run([file, "--role", "kanri", "--config", personal, "--project-config", project]);
+  assert.strictEqual(result.code, 0);
+  // The fixture paths are absolute and, on Windows, backslashed, so these
+  // `$`-anchored lines build their pattern from the path itself.
+  const escape = (p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const line = (name, p) => new RegExp(`^unknown key ceiling\\.${name} in ${escape(p)}, ignored$`, "m");
+  assert.match(result.err, line("sekkei", personal));
+  assert.match(result.err, line("kanri\\.window", project));
 });

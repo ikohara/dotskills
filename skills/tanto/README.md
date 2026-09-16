@@ -42,10 +42,10 @@ one implementation plan.
   development, systematic-debugging, requesting-code-review — with the `docs/`
   document-management system that `kisou` installs; the write-out runs through
   `shoroku`'s recommend and apply halves, which are that skill's own feature.
-- Checks each session's model and effort against a personal `tanto.json` and
-  **warns only** — it never switches either — and puts a concrete model family
-  into every subagent dispatch and each kind's effort into the agent
-  definitions it generates.
+- Checks each session's model and effort against the personal and the project
+  `tanto.json` and **warns only** — it never switches either — and puts a
+  concrete model family into every subagent dispatch and each kind's effort
+  into the agent definitions it generates.
 
 ## Prerequisites
 
@@ -72,10 +72,14 @@ one implementation plan.
   write-out at T0, T1, and T2. Without `docs/AGENTS.md` the adopted candidates
   have nowhere to land.
 - **Optional** — a personal `$CLAUDE_CONFIG_DIR/tanto.json` (or
-  `~/.claude/tanto.json`). When it is absent, every key falls back to the
-  built-in defaults in `templates/tanto.json`; a partial file is complete,
-  because the overlay is field by field, and a key written as a bare model
-  name takes its effort from the defaults.
+  `~/.claude/tanto.json`), and a project `<repo>/.claude/tanto.json` overlaid
+  on it, committed or ignored as the repository decides. When both are absent,
+  every key falls back to the built-in defaults in `templates/tanto.json`; a
+  partial file is complete at either layer, because the overlay is field by
+  field, and a key written as a bare model name takes its effort from the
+  layers below. An effort the project file changes is carried by project-scope
+  agent definitions the roles generate under `<repo>/.claude/agents/`, ignored
+  by a `.gitignore` the roles write there.
 
 ## Usage
 
