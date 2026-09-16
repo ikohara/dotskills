@@ -1,7 +1,10 @@
-// biome-ignore-all lint/suspicious/noShadowRestrictedNames: a local `escape`
-// helper (one test's regex-escaping closure) reads clearer than a renamed
-// one, and it never shadows the global across a function boundary that
-// matters here.
+// biome-ignore-all lint/suspicious/noShadowRestrictedNames: the plan's P1.8
+// passage fixes `const escape = ...` verbatim, and `passage-check.js verify`
+// matches it byte-for-byte and contiguously against this file. Renaming the
+// identifier breaks that match (confirmed), and so would a line-level
+// `// biome-ignore` directly above it, since that would insert a line inside
+// P1.8's own span. A file-level suppression is the only fix that leaves the
+// passage untouched.
 const test = require("node:test");
 const { after } = require("node:test");
 const assert = require("node:assert");
@@ -354,4 +357,13 @@ test("an unknown key is named with the file it came from, with both files in one
   const line = (name, p) => new RegExp(`^unknown key ceiling\\.${name} in ${escape(p)}, ignored$`, "m");
   assert.match(result.err, line("sekkei", personal));
   assert.match(result.err, line("kanri\\.window", project));
+});
+
+test("loadCeiling's returned paths is exactly { personal, project }, each as resolved", () => {
+  const { loadCeiling } = require(SCRIPT);
+  const personal = writeJson("tanto.json", { ceiling: { kanri: { batches: 3 } } });
+  const project = writeJson("project-tanto.json", { ceiling: { kanri: { batches: 1 } } });
+
+  const result = loadCeiling(personal, project);
+  assert.deepStrictEqual(result.paths, { personal, project });
 });
