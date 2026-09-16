@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-17
 ---
 
 Deferred by the context-cost design (2026-09-09, its Deferred items). Jisso's
@@ -26,5 +26,11 @@ Sekkei's, and Kaiseki's patterns unchanged, so this case stays open.
 
 The fix, when it is needed, is the same as Kanri's: the bare name in the
 pattern (`exit-jisso-<X>-<name>`), or a sequence when the letter is taken.
+
+2026-09-17: the `seat-lineage` topic removes this issue's cause rather than
+fixing the pattern. Each retiring Jisso is to append to one rolling shoroku
+proposal for the plan, written out once at T2, so the per-batch
+`exit-jisso-<X>` files and their collision go away with them. The issue stays
+open until that lands.
 
 Related: req-04f5, issue-b9a4, decision-d831, design-4807.

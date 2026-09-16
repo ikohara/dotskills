@@ -2,7 +2,7 @@
 id: "04f5"
 title: tanto — multi-session orchestration of one implementation plan in Claude Code
 created: 2026-09-06
-updated: 2026-09-14
+updated: 2026-09-17
 ---
 
 ## Purpose
@@ -94,11 +94,22 @@ artifacts.
   written by another skill changes nothing in tanto.
 - **A session resumed under a new name rejoins the run as easily as
   possible.**
+- **A seat's last words say whether the seat can be released.** Whenever a
+  session ends a turn by going idle, the text it leaves in its own window
+  names where its work landed and which step of the contract, if any, still
+  runs through it — facts a human or another seat can check against a file.
+  A seat never offers its own opinion of whether it is still needed, and
+  never names a step it is not needed for.
 - **A run is affordable to keep running.** The sessions that wait — the
   conductor, the executor between batches, a planner between reviews —
   hold the cheap families' contexts; the strongest model is used where it
   reads once and answers, and its runs per plan are counted. A seat whose
   remaining act is its own exit does not wait for a line that asks for it.
+- **The sessions a plan needs are opened while the human is present.** Where
+  the number of seats a plan will consume is known at its landing, the run
+  asks for them then, in one list, rather than asking again at a boundary
+  the human may not be watching. A seat that has not been given its work
+  yet is not a decision the run has to make later.
 - **A session's cost is measured, not guessed.** Every role reads its own
   transcript at its boundaries, the roster keeps the readings of the current
   run, and the archive keeps them across runs. The reading includes the turn's
@@ -122,6 +133,10 @@ artifacts.
   planned exit of a session, in any role, carries its own shoroku before the
   human closes it, so that nothing a session learned is lost with it. An exit
   forced by a failure is the exception, and the record says what was lost.
+- **A seat's replacement never waits on a document review.** What a retiring
+  seat has to excerpt accumulates where its successor can add to it, and the
+  human checks that material once per plan, not once per seat change. Nothing
+  a seat learned is lost by the deferral, and no handover is held for a check.
 - **Composes without modifying.** The skills tanto composes — superpowers, the
   `kisou` document system, `shoroku`, and the like — are used as they are;
   every override tanto needs is written into tanto's own files.
