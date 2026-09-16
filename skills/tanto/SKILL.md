@@ -107,10 +107,10 @@ Three maps, three mechanisms. Every value of the first two maps is
   a session's model or its effort.
 - `subagents.<kind>` is **effective**. Its `model` goes into the `model`
   parameter of every subagent that role dispatches, and its `effort` into the
-  agent definition below. The twelve kinds are `task.implement`,
+  agent definition below. The thirteen kinds are `task.implement`,
   `task.escalate`, `task.review-spec`, `task.review-quality`, `plan.draft`,
   `plan.review`, `plan.coldread`, `spec.review`, `branch.review`,
-  `brief.write`, `shoroku`, and `default`.
+  `brief.write`, `shoroku.recommend`, `shoroku.apply`, and `default`.
 - A key inside `subagents` whose name is a **skill name** means "run that skill
   in a subagent on that model instead of inline". When the key is absent, the
   skill runs inline on the session's model. `shoroku` is the one built-in
@@ -168,19 +168,23 @@ A kind's effort cannot ride in a dispatch; it rides in an agent definition,
 which the harness reads when a session starts. So, after reading the merged
 config and before any other work, make two passes.
 
-**User scope.** Write for each of the twelve kinds the file
+**User scope.** Write for each of the thirteen kinds the file
 `~/.claude/agents/tanto-<object>-<act>.md` — the kind's name with its `.`
 turned into a `-`, under `$CLAUDE_CONFIG_DIR/agents/` when that variable is
 set — from `templates/agent.md`, when the file is absent or its content
 differs from what the template renders. A file that already matches is left
-alone. This rendering takes its effort from the merge of the **built-in and
+alone. `tanto-shoroku.md` in that directory, the definition of the kind
+before it was split, is removed in the same pass when it exists, so that no
+session is offered a seat the config no longer has; the same removal runs at
+the project scope when that scope has the file. This rendering takes its
+effort from the merge of the **built-in and
 personal layers only**, never from the project file, and its `<scope>` slot
 renders empty. That merge is the one every role in every repository computes
 identically for the same personal file, and it is what keeps the user-scope
 files stable across repositories: a project's effort written where every other
 project reads it is the failure this whole mechanism exists to prevent.
 
-**Project scope.** Then compute, for each of the twelve kinds, the three-layer
+**Project scope.** Then compute, for each of the thirteen kinds, the three-layer
 effort. For every kind whose three-layer effort **differs** from the
 user-scope effort, write `<cwd>/.claude/agents/tanto-<object>-<act>.md` from
 the same template with that effort and with the `<scope>` slot rendered as
@@ -192,7 +196,8 @@ rides in the dispatch's own `model` parameter, and a definition carries none.
 For every kind whose three-layer effort does **not** differ, remove
 `<cwd>/.claude/agents/tanto-<object>-<act>.md` if it exists. That removal
 sweep runs whenever `<cwd>/.claude/agents/` exists, whether or not a project
-file does, and only those twelve names are ever removed — nothing else under
+file does, and only those thirteen names and the retired `tanto-shoroku.md`
+are ever removed — nothing else under
 that directory is touched. Without it, a project file edited to drop an effort
 would leave a project-scope copy that keeps winning while your start line
 reports the personal effort, which is the silent override the requirement
@@ -214,14 +219,14 @@ assume every tool. The description is protocol against the harness's
 proactive agent selection, not enforcement.
 
 Then read your own system prompt's list of available agent types and count
-the twelve names in it, and among them the ones whose description carries the
+the thirteen names in it, and among them the ones whose description carries the
 project-scope clause. A definition written during a session is not visible to
 that session at either scope, so the first session on a machine that writes
 them dispatches without them, and a project effort takes effect from the
 second session started in that repository after the project file changed;
 from then on a dispatch names its kind as
 `subagent_type: tanto-<object>-<act>` — or `tanto-<kind>` for a kind with no
-dot in its name, `tanto-shoroku` and `tanto-default`. A kind visible at user
+dot in its name, which is `tanto-default`. A kind visible at user
 scope but not yet at project scope dispatches with the user-scope effort, and
 the dispatching role says so once, as it does for a kind it cannot see at all.
 
@@ -234,7 +239,7 @@ fields came from the personal file, and that the rest are built-in defaults,
 or `all keys built-in defaults` when both files are absent; the unknown keys,
 each named with its file; the ladder result if the check failed; and
 `agents: <n> current, <m> written, <k> not visible to this session; project: <p> current, <q> written, <r> removed, <s> in effect`,
-with `<s>` the number of the twelve names whose description in this session's
+with `<s>` the number of the thirteen names whose description in this session's
 own agent list carries the project-scope clause, and with the kinds named when
 `<k>` is above zero. The `project:` half is printed even when all four of its
 numbers are zero, so that a start line always says which scope the session

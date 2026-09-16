@@ -19,7 +19,8 @@
     "spec.review": { "model": "opus", "effort": "high" },
     "branch.review": { "model": "fable", "effort": "high" },
     "brief.write": { "model": "fable", "effort": "high" },
-    "shoroku": { "model": "opus", "effort": "medium" },
+    "shoroku.recommend": { "model": "fable", "effort": "high" },
+    "shoroku.apply": { "model": "opus", "effort": "medium" },
     "default": { "model": "sonnet", "effort": "medium" }
   },
   "ceiling": {
