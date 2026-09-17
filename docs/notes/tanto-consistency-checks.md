@@ -1052,12 +1052,14 @@ Expected: `1 1 1 1 1 1 0`, then the two case-insensitive counts equal to the
 case-sensitive ones above them — `1` summed over the three files, and `1` — a
 lowercase spelling anywhere being the drift issue-e916 named; and `0`, the
 contract's lowercase read of "Session exit" being gone. The fifth and seventh
-counts moved from `2` and `1` during `shoroku-at-close`: Task 2 (commit
-`52b20c7`) rewrapped the "Recommend" step's sentence in `SKILL.md` across a
-line break, so the phrase is intact but no longer countable as one line,
-dropping `2` to `1`; Task 4 (commit `db2faca`) replaced `templates/kanri.md`'s
-Shoroku-candidates paragraph with one that describes the `shoroku.recommend`
-dispatch without repeating the three group names, dropping `1` to `0`.
+counts moved from `2` and `1` during `shoroku-at-close`: Task 2 ("an exit
+writes candidates and nothing else, and the close is the one check")
+rewrapped the "Recommend" step's sentence in `SKILL.md` across a line break,
+so the phrase is intact but no longer countable as one line, dropping `2` to
+`1`; Task 4 ("Kanri's Shoroku section is one stage per topic, and Hosa may
+hold it") replaced `templates/kanri.md`'s Shoroku-candidates paragraph with
+one that describes the `shoroku.recommend` dispatch without repeating the
+three group names, dropping `1` to `0`.
 `roles/kanri.md`'s phrase wraps after `recommended`, so its check is on the
 second line's form, as check 6 pins a wrapped line by its own text. `sections` matches heading text
 exactly and is not changed: that exactness is what made the mismatch visible,
@@ -1113,8 +1115,9 @@ grep -rcF 'third top-family' skills/tanto/
 Expected: `1 1`, then `0` on every file of the old enumeration, `0 1`, `1 1`
 for the `continue:` spelling, `0` on every template for the `.md` form, `1`,
 `1 1`, then `0` on every file for the two spellings of the old cap. The
-`exit-keikaku` pair's first count moved from `1` to `0`: Task 4 (commit
-`db2faca`) replaced the ledger template's old concrete Stage-word list —
+`exit-keikaku` pair's first count moved from `1` to `0`: Task 4 ("Kanri's
+Shoroku section is one stage per topic, and Hosa may hold it") replaced the
+ledger template's old concrete Stage-word list —
 which spelled out `` `exit-jisso-B` ``, `` `exit-sekkei` ``, `` `exit-keikaku` ``,
 and `` `exit-kaiseki-1` `` — with generic wording naming only `t2` and
 `exit-<role>[-<suffix>]`; this plan's own Task 10 brief already names that
