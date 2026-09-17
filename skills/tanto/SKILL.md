@@ -1041,7 +1041,10 @@ its path.
     batch, which is neither a replacement nor a creation under this rule —
     every one of them read the skill as it stood before batch A; a re-queue
     request the queue's fallback makes mid-plan is a creation, and waits
-    for the boundary like any other.
+    for the boundary like any other. For a plan that names its final
+    boundary as the safe one, the landing's create request asks for the
+    full N instead of leaving windows for the human to re-queue: the queue
+    cannot be refilled before the plan's end.
 
     The roles that start the plan — Jisso at the plan's landing,
     Keikaku before it, Sekkei before that — read the skill as it stands then,

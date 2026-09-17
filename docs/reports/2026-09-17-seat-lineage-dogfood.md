@@ -66,7 +66,7 @@ template's "delete this blank"/placeholder-deletion instruction — except three
 lines that are the brief's own named exceptions, which legitimately keep the word
 "delet" as a stated **absence**, not a practice:
 
-- `roles/kanri.md`'s Handover section, the successor's Next-step line: "no
+- `roles/kanri.md`'s Start → The five cases → the Handover case: "no
   deletion is asked."
 - `roles/kanri.md`'s "Exit shoroku" step 2: "No recommender runs here, and no
   delete request goes out."

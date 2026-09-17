@@ -114,9 +114,8 @@ writing-plans. Then add, yourself:
   loop's is always 0, so neither can fail without `|| exit 1`); and it is not
   matched by a `replay-skip` pattern, which `boundary` honors too;
 - when the plan edits this skill's own files, the **boundary from which a
-  role may be started or replaced** — where one is *permitted*, as distinct
-  from the boundaries where the Batches bullet expects one — stated in Global
-  Constraints and in the Batches section: the first boundary at which every
+  role may be started or replaced** — where one is *permitted* — stated in
+  Global Constraints and in the Batches section: the first boundary at which every
   file the plan touches agrees with every other, because a session started
   before it reads a half-edited skill — which may be the final boundary, in
   which case a replacement waits for it and the plan says so; and the

@@ -602,14 +602,15 @@ grep -cF 'cleared: <old name> → <new name>' skills/tanto/templates/roster.md
 grep -cF 'decision: <path> received from <name>' skills/tanto/templates/roster.md
 ```
 
-Expected, one number per line, in order: `2`, `1`, `1`, `3`, `1`, `1`, `1`,
+Expected, one number per line, in order: `2`, `1`, `1`, `4`, `1`, `1`, `1`,
 `1`, `2`, `3`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `3`, `1`, `1`, `1`,
 `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`. The ninth is `2` because
 the seat-lineage plan rewrote "Session exit" whole and its new text names
-the `exit-<role>[-<suffix>]` pattern twice and no more. The fourth is `3` because
-`SKILL.md` spells `kanri-address:` three times: the handshake section's
-handover form, the Resuming section's resumed form, and the `<kanri-address>`
-blank's own paragraph. The six `1`s at positions 20 to 25 pin the three
+the `exit-<role>[-<suffix>]` pattern twice and no more. The fourth is `4` because
+`SKILL.md` spells `kanri-address:` four times: the handshake section's
+handover form, the Resuming section's resumed form, the `<kanri-address>`
+blank's own paragraph, and the `no-role` paragraph's held-line rule, naming
+the line a role re-sends once the next `kanri-address:` arrives. The six `1`s at positions 20 to 25 pin the three
 cross-file pairs — the Residency table header, the seven-column `S-n` header,
 and the bug-report line — each copy once, so that a change to one copy shows
 up as a mismatch. The Residency header carries the Topic column because the
@@ -1314,7 +1315,7 @@ The seat-lineage plan removed a lifecycle vocabulary — deletion requests, a
 Jisso replaced on its ceiling, a between-plans Kanri write-out lane, and the
 word "candidate" for a proposal item — and replaced it with a create
 request, a rotation, one close per topic, and the word "item". The sweep it
-ran at its last batch is the record, and check 7's last ten lines are that
+ran at its last batch is the record, and check 7's last nine lines are that
 sweep made standing. Its scope is the three places check 7 sweeps —
 `skills/tanto/SKILL.md`, `skills/tanto/roles/`, `skills/tanto/templates/` —
 and never `skills/tanto/scripts/`, whose tests carry retired strings as
@@ -1334,6 +1335,6 @@ Every surviving line must be about a **file** or about a role the Replace
 table still holds. A line about a session being deleted, or about a Jisso
 being replaced on a symptom, is drift. Three lines are the known
 exceptions, all stating an absence rather than a practice:
-`roles/kanri.md`'s Handover, "no deletion is asked"; its "Exit shoroku"
-step 2, "no delete request goes out"; and its "Session lifecycle" opening,
-"There is no delete request".
+`roles/kanri.md`'s Start → The five cases → the Handover case, "no deletion
+is asked"; its "Exit shoroku" step 2, "no delete request goes out"; and its
+"Session lifecycle" opening, "There is no delete request".

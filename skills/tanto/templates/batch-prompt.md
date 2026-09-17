@@ -33,8 +33,9 @@ where they are, anything the previous batch parked that these tasks touch.>
 - Jisso — <"the first of this plan: run Start steps 1 to 4, the pre-flight
   scan included", or "the <n>th of this plan: run Start steps 1 to 3, resume
   `progress.md` through `sdd-workspace`, and start at task <N> — no scan";
-  after a Jisso gone mid-batch, "resume batch <X> from task <N>" in the
-  second form>
+  after a Jisso gone mid-batch, the second form's "start at task <N>" is
+  replaced, not joined, by "resume batch <X> from task <N>", naming the
+  batch the departed Jisso left mid-run rather than a new one>
 
 ## Rulings to carry into dispatches
 

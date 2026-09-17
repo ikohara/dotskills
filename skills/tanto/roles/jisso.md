@@ -293,11 +293,13 @@ the next queued Jisso as one more batch prompt. If you are that Jisso:
    a ruling, or rule on the load-bearing ones and record what you decided.
 4. Report. There is no second fix wave; residual load-bearing findings reach
    the human through Kanri's merge question.
+5. When Kanri accepts it you are the plan's last Jisso: the `T2:` line
+   follows, not `release:`.
 
 ## T2 and the exit — the shoroku write-out
 
 You hold the context this proposal needs — the SDD ledger's rulings, parked
-findings, and deferred minors, plus everything the batch reports compressed —
+findings, and deferred minors, plus what your own batch report compressed —
 and you do not talk to the human unless Kanri grants it. So you write the
 proposal and stop there: the recommendation, the human's check, and the apply
 are dispatched work of Kanri's, and none of it waits on you.
@@ -309,7 +311,7 @@ of printing it**, in two parts: first the conductor ledger's `pending`
 the close's recommender reads each from the source its row names, and
 nothing you copy would be read twice; then, from your own context, what no
 file holds — the SDD ledger's rulings, parked findings, and deferred minors
-as you understood them, and what the batch reports compressed. Open with
+as you understood them, and what your own batch report compressed. Open with
 the line that says what the proposal excludes, as every proposal does.
 Then send Kanri one line with the path, and idle with your closing line:
 Kanri's `release:` follows the form check, and the recommendation, the

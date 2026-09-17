@@ -41,6 +41,8 @@ prompt names it.
 - <role> — <topic> — <name> [<ref>] — <what that session is waiting for> —
   <"answered", or the last line it sent that this session did not answer;
   that peer re-sends it to the successor's `kanri-address:`>
+- <topic> — <name> [<ref>] — queued: <n>, one line per queued Jisso, in
+  queue order; the successor sends none of them anything
 
 ## Open questions for the human
 
