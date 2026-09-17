@@ -21,10 +21,10 @@ This file is the shared contract. Every role reads it, then reads exactly one
 
 | Role | Count | Owns | Talks to |
 | --- | --- | --- | --- |
-| Kanri (管理) | exactly 1 | roster, conductor ledger, batch prompts, rulings, the recommendations and the directions, the bug intake, lifecycle requests | human, Sekkei, Keikaku, Jisso, Kaiseki, Hosa; Kikaku at its handshake only |
+| Kanri (管理) | exactly 1 | roster, conductor ledger, batch prompts, rulings, the recommendations and the directions, the bug intake, the create requests and the `release:` lines | human, Sekkei, Keikaku, Jisso, Kaiseki, Hosa; Kikaku at its handshake only |
 | Sekkei (設計) | 0 or 1 per topic | the spec and its review | Kanri; the human by grant |
 | Keikaku (計画) | 0 or 1 per topic | the plan, its dry run, and its review | Kanri; the human by grant |
-| Jisso (実装) | 0 or 1 | the SDD run, batch reports, commits, the T2 shoroku proposal | Kanri; the human by grant |
+| Jisso (実装) | 1 live per topic, the plan's others queued | one batch of the SDD run each, its batch report and its commits; the last one, the T2 shoroku proposal | Kanri; the human by grant |
 | Kaiseki (解析) | 0 or 1, on demand | root-cause reports; never a fix; no commit | Kanri; the human by grant |
 | Kikaku (企画) | 0 or 1, opened by the human | the consultation, and the decision files under `.tanto/kikaku/` | the human; Kanri, one `decision:` line |
 | Hosa (補佐) | 0 or 1, opened by the human | the human's small chores, Kanri's filings, and the close's recommend, check, and apply, each in a slot Kanri gives | the human; Kanri |
@@ -52,7 +52,7 @@ Any other word: say the role is unknown, list those eight ids, and stop.
 handshake — and runs "Resuming" below.
 
 The optional second argument is Kanri's address, pasted by the human from
-Kanri's lifecycle request. Kanri runs `/tanto kanri` with no address.
+Kanri's create request. Kanri runs `/tanto kanri` with no address.
 `/tanto kaiseki` with no address is standalone Kaiseki — see `roles/kaiseki.md`.
 
 ## Start sequence
@@ -118,17 +118,19 @@ Three maps, three mechanisms. Every value of the first two maps is
   are the two built-in skill-name keys, naming the `shoroku` skill's
   recommend and apply modes; any other is a personal addition.
 - `ceiling` is **effective** in the sense `subagents` is: `scripts/reading.js`
-  reads it, and the verdicts `roles/kanri.md` and `roles/jisso.md` act on come
-  out of it. `ceiling.kanri` and `ceiling.jisso` are each
+  reads it, and the verdict `roles/kanri.md` acts on comes out of it — Jisso's
+  is measured and kept, and acts on nothing, since one Jisso runs one batch.
+  `ceiling.kanri` and `ceiling.jisso` are each
   `{ "batches": <N>, "per_batch": <tokens> }` — how many batches of measured
   consumption that seat may grow by above its own measured baseline, and what
   one batch costs it. `ceiling.presence_minutes` is the window inside which
   the human's last turn in Kanri's own transcript still counts as present, and
   `ceiling.share_threshold` the context above which a wake-up's usage counts
   toward the share Kanri reports at the plan close. A `ceiling.<role>` for any
-  role but those two is an unknown key: Kanri and Jisso are the only seats the
-  ceiling replaces, because they are the two that run a whole plan of batches,
-  and every other role measures and sends the five figures and is replaced on
+  role but those two is an unknown key: Kanri is the one seat the ceiling
+  replaces, because it is the one that runs a whole plan of batches; Jisso's
+  line is kept for the archive, its rotation being its replacement; and
+  every other role measures and sends the five figures and is replaced on
   none of them.
 
 The ceilings and the threshold are the **human's operating choice**, not a
