@@ -346,20 +346,31 @@ reported and Kanri's warning stays keyed on the absence of `auto` (measured
 reading", so that Kanri can record it and, where its session may read that
 path, verify a reading it doubts.
 
-Jisso and Keikaku then **wait** for Kanri's reply. It carries the plan path
-and the ledger path Jisso cannot start without, and the topic, the spec path,
-and the plan path Keikaku cannot start without. Sekkei, Kikaku, Hosa, and
-Kaiseki start reading while they wait — the human is in the room, and the
-reply arrives as a `<cross-session-message>`.
+Jisso and Keikaku then **wait** for Kanri's reply. Jisso's is `queued: <n>`,
+its place in the plan's queue, and Jisso then waits for its batch prompt —
+the prompt is its orders, and carries the plan path, the ledger path, and the
+branch — reading nothing until it arrives. Keikaku's carries the topic, the
+spec path, and the plan path it cannot start without. Sekkei, Kikaku, Hosa,
+and Kaiseki start reading while they wait — the human is in the room, and
+the reply arrives as a `<cross-session-message>`.
 
 The roster lives at `.tanto/roster.md`, is written only by Kanri from
 `templates/roster.md`, and has Kanri's row first. Columns are Role, Topic,
 Name `[ref]`, cwd, Model, Effort, Branch, Mode, Started, Status, and
-Transcript. Topic is the topic word Kanri's orders line gave that session, or
-`—` for Kanri, Kikaku, Hosa, and a standalone Kaiseki. Status is `live`,
-`dead`, `replaced`, `refused`, or `cleared`, the last for a Kikaku or Hosa
-row that a re-handshake after a `/clear` has replaced. The keeping rule is
-one live session per role and topic; Kanri, Kikaku, and Hosa one each.
+Transcript. Topic is the topic word Kanri's orders line gave that session —
+for a Jisso, the topic whose queue its handshake joined: the plan whose
+batches are in flight, or, with none in flight, the plan whose landing
+requested the queue, since the shared checkout carries one topic's batches
+at a time and the next plan's queue opens at its predecessor's close — or
+`—` for Kanri, Kikaku, Hosa, and a standalone Kaiseki. Status is `queued`, `live`,
+`cleared`, `replaced`, `dead`, or `refused`: `queued` a Jisso waiting for its
+batch prompt; `cleared` a window Kanri released with `release:`, or whose
+`/clear` a re-handshake under a new transcript or a `no-role` reply
+revealed; `replaced` a Kanri that handed over; `dead` a session `ListAgents`
+no longer lists — a closed tab, a crash, a restart before `/tanto fukki`;
+`refused` a handshake that got no row. The keeping rule is one live session
+per role and topic, the plan's other Jissos `queued`; Kanri, Kikaku, and
+Hosa one each.
 `ListAgents` shows name, `[ref]`, kind, and start time — not the cwd, the
 model, or the role; the handshake carries those.
 
@@ -386,6 +397,13 @@ model, or the role; the handshake carries those.
   `decision: <path>` line and Kanri answers, but Kanri never addresses it
   first. A reply copies the envelope's `from` into `to` and needs no name at
   all.
+- **Kanri sends only to the names of `live` roster rows** — never to a
+  `queued` Jisso, which learns Kanri's name from the batch prompt that makes
+  it live, and never to a `cleared` one, which is a bare window. The roster
+  is the address book; `ListAgents` confirms that a name is listed and
+  nothing more. A window keeps its name and `[ref]` across a `/clear`
+  (measured 2026-09-16), so a listed name is no evidence that a role is
+  behind it.
 
 Kanri's address is the first data row of the roster. A message whose first line
 is `kanri-address: <name> [<ref>] — handover accepted; the roster's first row is rewritten`
@@ -483,9 +501,12 @@ every item its summary attributes to the human — "the human said", "ruled",
 such file for that role, so that a second compaction or a replaced session
 does not overwrite the first), names the file in its next line to Kanri as
 `compacted: <path>`, and until Kanri answers `confirmed: <path>` acts on
-none of those items beyond finishing the task in hand. Two sessions have no
-Kanri to answer: Kanri itself, whose own case is its handover file, and a
-standalone Kaiseki, which puts the items to the human in its own window.
+none of those items beyond finishing the task in hand. Three sessions have
+no Kanri to answer: Kanri itself, whose own case is its handover file; a
+standalone Kaiseki, which puts the items to the human in its own window;
+and a Hosa, whose counterpart under its chores grant is the human in its
+own window — it puts the items there before its next job, and Kanri learns
+of the compaction from the count in its next reading.
 What the harness summarizes is not the human's words; the human's words
 are in the dialogue file, the ledger, and the human's own window.
 
@@ -506,14 +527,16 @@ happened. If it differs, this session was resumed:
 
 - A role sends its handshake line again, to the roster's first data row,
   with the same `transcript=`. Kanri matches the path, rewrites the row in
-  place with the new name and `[ref]` — status `live`, no `dead` row — writes
+  place with the new name and `[ref]` — its status as it was, a `queued` row
+  staying `queued`, no `dead` row — writes
   an Events line `resumed: <old name> → <new name>`, and answers with its own
   address. The role continues where it was; its context is the same. A row a
   recovery had already marked `dead` returns to `live` the same way, and the
   Events line corrects the earlier one.
 - Kanri rewrites the roster's first data row with its new name and `[ref]`,
   and sends `kanri-address: <name> [<ref>] — resumed; the roster's first row is rewritten`
-  to every live peer whose name `ListAgents` still lists. A peer not listed
+  to every `live` roster row — never to a `queued` or a `cleared` one, and
+  a listed name is no evidence of a role. A peer not listed
   was resumed too, and re-handshakes on its own `/tanto fukki`, finding the
   new first row.
 
