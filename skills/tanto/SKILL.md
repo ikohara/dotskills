@@ -903,7 +903,7 @@ signal says, and continues.
 | the spec, at the path the orders line names — by default `docs/superpowers/specs/<date>-<topic>-design.md` | Sekkei | Kanri, Keikaku, Jisso | the spec; committed by Sekkei, or by the Keikaku created after the merge when it was a draft |
 | `.tanto/<topic>/spec-draft.md` | Sekkei | the spec reviewer, Kanri, Keikaku | the spec while another topic's batch is in flight; nothing is committed and no branch is cut until Keikaku commits it at its final path |
 | the plan, at the path the orders line names — by default `docs/superpowers/plans/<date>-<topic>.md` | Keikaku | Kanri, Jisso | the plan; committed; carries Global Constraints, a Batches section, and how a batch is verified |
-| `.tanto/roster.md` | Kanri | all roles; a bug-report sender, its first data row | one row per role |
+| `.tanto/roster.md` | Kanri | all roles; a bug-report sender, its first data row | one row per session that handshook — a plan's queued Jissos included |
 | `.tanto/roster-archive.md` | Kanri | Kanri | from `templates/roster-archive.md`; the roster's dead, replaced, refused, and cleared rows with their last readings, and the closed plans' Events lines, appended at each plan close |
 | `.tanto/kanri-handover.md` | the outgoing Kanri | the successor Kanri | the handover; deleted by the successor once accepted |
 | `.tanto/inbox/<date>-<slug>.md` | Kanri | Kanri | a bug report received, with its Triage section |
@@ -914,15 +914,15 @@ signal says, and continues.
 | `.tanto/<topic>/review-brief-spec.md`, `.tanto/<topic>/review-brief-plan.md` | the brief writer the document's author dispatches | the author, then the human; Kanri by the path in `review-ready:` | the review brief, from `templates/review-brief.md`, in the chat's language |
 | `.tanto/<topic>/plan-dryrun.md` | Keikaku | the plan reviewer, Kanri | from `lint` and `replay` — the two commands, each one's output, and Keikaku's ruling on every failure |
 | `.tanto/<topic>/coldread.md` | the `plan.coldread` subagent Kanri dispatches | Kanri, by `sections` | the cold read of the committed plan: a numbered list of open questions, or `none`; Kanri sends Keikaku one numbered message carrying all of them, or `coldread: none`, and Keikaku answers with one `coldread answered:` line |
-| `.tanto/<topic>/batch-<X>-prompt.md` | Kanri | Jisso, human | the same text as the `SendMessage`, so the human can paste it if the message did not arrive |
-| `.tanto/<topic>/batch-<X>-report.md` | Jisso | Kanri | fixed skeleton |
+| `.tanto/<topic>/batch-<X>-prompt.md` | Kanri | the Jisso it names, human | the same text as the `SendMessage`, so the human can paste it if the message did not arrive |
+| `.tanto/<topic>/batch-<X>-report.md` | the Jisso of that batch | Kanri; the close's recommender, its Shoroku proposal section by path and item | fixed skeleton; its Shoroku proposal section is that Jisso's exit shoroku |
 | `.tanto/<topic>/kaiseki-<n>-brief.md` | Kanri | Kaiseki | fixed skeleton |
 | `.tanto/<topic>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
-| `.tanto/<topic>/shoroku-proposal.md` | Jisso | Kanri, for its form; the close's recommender, by path | the close's proposal: the `pending` rows by number and what Jisso's own context holds that no file does, written to a file instead of printed |
-| `.tanto/<topic>/exit-<role>[-<suffix>]-proposal.md`, or `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md` | the exiting session | Kanri, for its form; the close's recommender, by path | the exit shoroku proposal, opening with the line that says what it excludes |
-| `.tanto/<topic>/t2-recommendation.md`, or Kanri's between-plans exit at `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-recommendation.md` | the `shoroku.recommend` kind Kanri dispatches at the close | Kanri, the human, the apply subagent | every candidate once, quoted in full from the source its `pending` row names, in three groups — Recommended adopt, Recommended reject, Unsure — each with its destination and its one-line reason |
-| `.tanto/<topic>/t2-brief.md`, or `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-brief.md` for Kanri's between-plans exit | the `shoroku.recommend` kind, in the same dispatch as the recommendation | Kanri, by `grep` for its form and by `sections` (its bare heading text) for the `Unsure` group; the human, verbatim | the check brief, from `templates/shoroku-brief.md`, in the chat's language: one line per item, grouped as the recommendation groups them, each pointing at the item's `###` heading |
-| `.tanto/<topic>/t2-direction.md`, beside the recommendation, or Kanri's between-plans exit at `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-direction.md` | Kanri, from the human's answer — in its window, or a Kikaku decision file whose third section answers the recommendation | the `shoroku.apply` kind | what the human accepted, item by item; the apply never runs without it |
+| `.tanto/<topic>/shoroku-proposal.md` | the plan's last live Jisso | Kanri, for its form; the close's recommender, by path | the close's proposal: the `pending` rows by number and what that Jisso's own context holds that no file does, written to a file instead of printed |
+| `.tanto/<topic>/exit-<role>[-<suffix>][-2]-proposal.md`, or `.tanto/exit-kanri-<YYYY-MM-DD>-<name>[-2]-proposal.md` | the exiting session — Sekkei, Keikaku, an attached Kaiseki; Kanri at every plan close and at every handover; never Jisso, whose proposal is its report's section | Kanri, for its form; the close's recommender, by path | the exit shoroku proposal, opening with the line that says what it excludes; `-2` a second file at the same boundary, never a rewrite of the first |
+| `.tanto/<topic>/t2-recommendation.md` | the `shoroku.recommend` kind Kanri dispatches at the close | Kanri, the human, the apply subagent | every proposal item once, quoted in full from the source its `pending` row names, in three groups — Recommended adopt, Recommended reject, Unsure — each with its destination and its one-line reason |
+| `.tanto/<topic>/t2-brief.md` | the `shoroku.recommend` kind, in the same dispatch as the recommendation | Kanri, by `grep` for its form and by `sections` (its bare heading text) for the `Unsure` group; the human, verbatim | the check brief, from `templates/shoroku-brief.md`, in the chat's language: one line per item, grouped as the recommendation groups them, each pointing at the item's `###` heading |
+| `.tanto/<topic>/t2-direction.md`, beside the recommendation | Kanri, from the human's answer — in its window, or a Kikaku decision file whose third section answers the recommendation | the `shoroku.apply` kind | what the human accepted, item by item; the apply never runs without it |
 | `.tanto/<topic>/compaction-<role>-<n>.md` | the compacted session | Kanri | every item a compaction summary attributes to the human, one per line, rewritten with the human's answers |
 | `.tanto/kaiseki/kaiseki-<n>.md` | a standalone Kaiseki | the human | its report, outside any run |
 | `.superpowers/sdd/<plan-basename>/progress.md` | Jisso, through the SDD skill | Kanri | the SDD ledger; Kanri reads it and never writes it; the one artifact tanto reads under `.superpowers/` |
@@ -983,9 +983,10 @@ its path.
    Kanri's lines, and the batch prompts; a project memory rule that would add
    a dispatch or a document is put to Kanri as one line before it is acted
    on, since the same memory is loaded by every session in the repository.
-4. One Kanri, one Kikaku, and one Hosa per repo; one Sekkei, one Keikaku, one
-   Jisso, and one Kaiseki per topic. A session is bound to its cwd —
-   CLAUDE.md, memory, and permissions all come from it.
+4. One Kanri, one Kikaku, and one Hosa per repo; one Sekkei, one Keikaku, and
+   one Kaiseki per topic; one **live** Jisso per topic, the plan's other
+   Jissos `queued` in the roster until their batch. A session is bound to its
+   cwd — CLAUDE.md, memory, and permissions all come from it.
 5. Kanri does not edit tracked files while a batch runs, and writes under
    `docs/` only while Jisso is idle or absent. Sekkei and Keikaku write only
    under the spec and plan directory the orders line names — by default
@@ -1034,7 +1035,15 @@ its path.
     successor takes the authority ruling from the handover file rather than
     from the tree; and a further role needed before the boundary — Kaiseki
     — is a Kanri ruling, recorded as `R-n`, made with the half-edited skill
-    in view. The roles that start the plan — Jisso at the plan's landing,
+    in view.
+
+    The plan's Jissos are all started at its landing and rotate one per
+    batch, which is neither a replacement nor a creation under this rule —
+    every one of them read the skill as it stood before batch A; a re-queue
+    request the queue's fallback makes mid-plan is a creation, and waits
+    for the boundary like any other.
+
+    The roles that start the plan — Jisso at the plan's landing,
     Keikaku before it, Sekkei before that — read the skill as it stands then,
     and the authority sentence above is what covers them.
 
