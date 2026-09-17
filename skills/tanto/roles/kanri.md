@@ -361,7 +361,7 @@ Per batch, in this order.
    the claimed tests. You verify in place — there is no worktree.
 3. Read the report **by its sections**, never whole, in the order the batch
    prompt prescribes — For Kanri, Rulings, Questions for the human, Deviations
-   from the plan, Shoroku candidates — with one call:
+   from the plan, Shoroku proposal — with one call:
 
    ```bash
    node "$TANTO/scripts/passage-check.js" sections --file <path> <heading> [<heading>...]
@@ -371,8 +371,10 @@ Per batch, in this order.
    rule on yourself, recorded as `R-n` in the ledger with what it costs if
    wrong and which later tasks inherit it; an **unknown cause** opens the
    Kaiseki branch below; a **scope or spec change** goes to the human. Then
-   copy each shoroku candidate into the ledger's `S-n` table with Adopted
-   `pending` and Stage `t2` — bookkeeping, not a ruling: nothing is adopted
+   record each item of the report's Shoroku proposal section in the ledger's
+   `S-n` table with Adopted `pending` and Stage `t2` — that section is this
+   Jisso's exit shoroku, and this is its form check — bookkeeping, not a
+   ruling: nothing is adopted
    before the close, and the recommendation and the human's check at T2 rule on
    the whole list at once — and update the ledger's Batches row and its
    Progress line.
@@ -396,12 +398,14 @@ Per batch, in this order.
    header beside the Transcript line, and rewrite the roster's Residency
    rows — yours from your own reading, Jisso's from its report's, and every
    other live peer's from the reading its last line carried, as Readings
-   says — each `context=` figure into that row's Context column. A verdict of `over` on your own ceiling line is
-   handover signal 4; a verdict of `over` on Jisso's is a Replace symptom.
-   Either one is gated on `--presence`, run on your own transcript at this
-   check, and an `absent` verdict defers it rather than firing it. Write the
-   Measurements per-boundary entry from the two readings, and a Measurements
-   deferrals entry for anything deferred here.
+   says — each `context=` figure into that row's Context column. A verdict
+   of `over` on your own ceiling line is handover signal 4, gated on
+   `--presence`, run on your own transcript at this check, and an `absent`
+   verdict defers it rather than firing it. Jisso's verdict is recorded and
+   acts on nothing: the rotation retires every Jisso at its boundary, and
+   the figure is what the archive keeps. Write the Measurements per-boundary
+   entry from the two readings, and a Measurements deferrals entry for a
+   handover deferred here.
    Write a Session events line `dispatch: <kind> on <family>` for every
    dispatch since the last boundary whose kind `tanto.json` puts on the top
    family of the ladder — `fable` today, and the merged config decides, not
@@ -414,14 +418,20 @@ Per batch, in this order.
    by kind.
    If a create request is due, make it, unless a
    handover trigger has fired and is not deferred, in which case the
-   successor makes it from the handover's Next step. If a delete or a replace of a live, coherent session
-   is due, or a handover trigger has fired and is not deferred, run "Exit
-   shoroku" now: send the `exit:` lines to the sessions whose proposal is not
-   already named — a Sekkei or Keikaku at its own final boundary named it in
-   its report line and is waiting for nothing — check each proposal's form
-   and record its items as `pending` rows. A delete request goes out as soon
-   as that session's proposal passes the form check ("Exit shoroku", step
-   2); nothing is recommended or applied before the close.
+   successor makes it from the handover's Next step. Then the exits that
+   fall at this boundary, per "Exit shoroku": the retiring Jisso's proposal
+   is its report's Shoroku proposal section, recorded at step 3, so send it
+   `release:` now and mark its row `cleared` — a batch returned for rework
+   is not accepted, and its Jisso stays live for the rework prompt, and the
+   last implementation batch's Jisso waits for the whole-branch review's
+   verdict ("The final batch", step 2); if a
+   release or a replace of another live, coherent session is due, or a
+   handover trigger has fired and is not deferred, send the `exit:` lines to
+   the sessions whose proposal is not already named — a Sekkei or Keikaku at
+   its own final boundary named it in its report line and is waiting for
+   nothing — check each proposal's form, record its items as `pending`
+   rows, and send `release:` as soon as the form check passes. Nothing is
+   recommended or applied before the close.
 
    Whenever a Kikaku, Hosa, or Kaiseki row is `live` and that session has
    reported to you and gone idle, your next line to the human — this
