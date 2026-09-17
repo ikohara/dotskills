@@ -42,6 +42,17 @@ than left in a downstream repository's notes:
    dry run, three `replay --base <tip>` re-checks against a moving branch
    tip with one collision, both fix rounds re-verified against `HEAD`).
 
-Reported by Hosa `kuchidome-6b [d17de0]` from `C:\Users\0000105523\devel\kuchidome`,
+5. **A cost data point for the passage-check-obligations mechanism**
+   (measured in this repository, 2026-09-17). Verifying 35 quoted "before"
+   fragments across two concurrently-open topics' role-file rewrites —
+   `shoroku-at-close`'s own plan and `seat-lineage`'s spec draft — with a
+   `default`-kind dispatch on sonnet reading both documents whole plus the
+   live role files, cost 161,041 subagent tokens and 48 tool uses over
+   roughly 10 minutes, for a "no I-n needed" verdict: no genuine conflict
+   found. Worth citing as a rough cost bound for this recurring "two topics
+   editing the same skill files" check, alongside a dispatch-granularity
+   data point in a kuchidome bug report relayed to Hosa on 2026-09-17.
+
+Items 1 to 4 reported by Hosa `kuchidome-6b [d17de0]` from `C:\Users\0000105523\devel\kuchidome`,
 2026-09-15 (delayed in transit — original addressee no longer live; relayed
 by this repository's own Kanri 2026-09-17).
