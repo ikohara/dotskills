@@ -311,19 +311,26 @@ Then, in this order.
    opening one, with the delta between them. Nothing moves: the ledger stays
    at `.tanto/<topic>/kanri.md`.
 3. Record the spec's own four sections — Requirements, The ADRs, Deferred
-   items, and Shoroku candidates from this spec work — as four `pending`
+   items, and Shoroku proposal from this spec work — as four `pending`
    rows of the `S-n` table, Source the spec's path and the section's
    heading, Stage `t2`, if the spec's acceptance did not already (Sekkei's
-   Delete row). Nothing is copied and nothing is recommended: the close's
+   Release row). Nothing is copied and nothing is recommended: the close's
    recommender reads those four sections of the spec by name, and Keikaku's
    exit proposal, named in the `coldread answered:` line, is form-checked
    and recorded the same way ("Exit shoroku", step 2).
-4. Ask the human to create Jisso, as the Create table below prescribes.
-5. On Jisso's handshake, reply with the orders line. Then write batch A's
-   prompt from `templates/batch-prompt.md`, with
-   `First batch, no previous verdict.` in its previous-batch-verdict section,
-   save it as `.tanto/<topic>/batch-A-prompt.md`, and send
-   the same text, without an idle subscription.
+4. Ask the human to queue the plan's Jissos, as the Create table below
+   prescribes: N windows, N the number of rows in the plan's Batches table
+   plus one for the whole-branch review's fix wave, each running
+   `/tanto jisso <name>`; the human may open more, and fewer when they will
+   be present to re-queue released windows.
+5. Answer each handshake `queued: <n>` with a `queued` row. When the first
+   is queued, write batch A's prompt from `templates/batch-prompt.md` —
+   addressed to that Jisso, `First batch, no previous verdict.` in its
+   previous-batch-verdict section, the first-Jisso line in its Setup on
+   resume — save it as `.tanto/<topic>/batch-A-prompt.md`, send the same
+   text to that name, without an idle subscription, and mark its row
+   `live`. The later handshakes arrive while batch A runs and are queued
+   the same way; batch A does not wait for them.
 6. Enter the batch loop below at step 1.
 
 ## The batch loop
