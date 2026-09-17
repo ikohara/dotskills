@@ -26,6 +26,10 @@ no topic is open. The line after the blocks is written once.
     a `present` verdict runs what the outgoing session could not.>
 - Agents of this session still running — <label and what it was to deliver,
   one per line, or "none">; lost with this session
+- A close delegated to Hosa — <`<topic>` or `kanri`, Hosa's `<name> [<ref>]`,
+  the `close:` line's paths and subject, and whether `close done:` has
+  arrived, or "none">; the successor verifies the commit on `close done:`
+  and fills the ledger, or the roster for a Kanri exit
 
 ## Live peers
 
@@ -71,9 +75,11 @@ Kanri's Residency row from the roster, verbatim, with its last reading.
 
 ## Not reconstructed
 
-- <A shoroku candidate the outgoing Kanri could not classify or reconstruct at
-  its exit, one line each, for the successor to raise at its first boundary.
-  Write "none" when there is none.>
+- <The ledger that holds the outgoing Kanri's exit rows as `pending`, by
+  path, when a ledger was open at the exit; then a shoroku candidate the
+  outgoing Kanri could not classify or reconstruct, one line each, for the
+  successor to raise at its first boundary. Write "none" when there is
+  none.>
 
 ## Commands for the human
 

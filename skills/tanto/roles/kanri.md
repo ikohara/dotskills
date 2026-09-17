@@ -535,7 +535,7 @@ plan stage neither fires the check nor blocks it: its Sekkei or Keikaku holds
 nothing you must wait for beyond an unanswered line, which that peer re-sends
 to your successor's address. Signal 4 **is** checked in that stage, at the
 start of every turn while no batch is in flight, because your context grows
-there — a T0 shoroku, a bug-report triage, the handshakes, a resume — with no
+there — a bug-report triage, the handshakes, a resume — with no
 batch boundary to catch it;
 and Timing below admits a handover there, for the reason it gives. Run the
 self-check of `SKILL.md`'s Resuming at the
@@ -720,26 +720,39 @@ open topic, each with its Topic and what it is waiting for, and marks the ones
 whose last line you had not answered: the successor sends `kanri-address:` to
 all of them, and each answers by re-sending its last unanswered line. A Sekkei
 or Keikaku whose last line named an exit proposal is waiting for nothing but
-its deletion, and your successor's first act for it is the recommender
-dispatch, if the recommendation is not already on disk.
+its deletion, and your successor's first act for it is the delete request,
+if the proposal's form check is recorded in the ledger and the request was
+not sent.
 
 ### The handover, in a plan and between plans
 
-1. **Exit shoroku first** — the Kanri case under "Exit shoroku": write your own
-   proposal from the ledger and the roster rather than from recollection,
-   dispatch the recommender, put the recommendation to the human, write the
-   direction and the `S-n` rows, and dispatch the apply, which commits and
-   reports its subject. What you cannot reconstruct goes into the handover
-   file's "Not reconstructed" section. Verify that commit **before** the
-   handover file is written, so that the successor inherits a commit and not a
-   pending write-out. At a **batch boundary** this step is loop step 6's
-   proposal and recommendation and step 7's slot (a) apply, already done when
-   the window reaches this list. At a **plan close** it is a fresh act, run
-   after T2, the merge decision, the peers' deletion and the archive move, and
-   its commit lands where the tree is once the merge decision is executed — on
-   `main` after a merge, on the plan's branch only when the human declined the
-   merge (decision-b6cb). **Between plans** it is one act too, and the commit
-   lands on `main`.
+1. **Exit shoroku first** — the Kanri case under "Exit shoroku": write your
+   own proposal from the ledger and the roster rather than from recollection,
+   to `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md`. What you cannot
+   reconstruct goes into the handover file's "Not reconstructed" section.
+   Then one of two. **While any ledger is open** — at a batch boundary, at a
+   plan close with another topic open, or in a topic's spec or plan stage —
+   record the proposal's items as `pending` rows, Stage `t2`, Source the
+   proposal's path and the item's number, in the ledger of the topic whose
+   batches are in flight, else the oldest open topic's; nothing is recommended,
+   checked, or applied, and the rows wait for that topic's close. At a batch
+   boundary this is loop step 6's proposal and its rows, already done when
+   the window reaches this list. **Between plans**, with no ledger open,
+   run the close's steps 2 to 4 over your proposal alone — the recommender
+   to `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-recommendation.md` and
+   `-brief.md`, the human's check, the direction beside them, and the
+   apply, whose commit lands on `main` (decision-b6cb). When a Hosa is
+   live, send it the `close:` line of "Delegation to Hosa" with `kanri` for
+   the topic and those paths, name the delegation in the handover file's In
+   flight block, and go on to step 2 without waiting: the successor
+   verifies the commit on Hosa's `close done:`. When none is live, run the
+   three steps yourself and verify that commit **before** the handover file
+   is written, so that the successor inherits a commit and not a pending
+   write-out. A plan close with no other topic open is between plans: the
+   close's own T2, the merge decision, the peers' deletion, and the archive
+   move come first, and your exit lands where the tree is once the merge
+   decision is executed — on `main` after a merge, on the plan's branch
+   only when the human declined the merge.
 2. Write `.tanto/kanri-handover.md` from its template.
 3. **At a batch boundary**, and in a topic's spec or plan stage, set the
    ledger's Progress line to "handover
@@ -1206,11 +1219,11 @@ session is dead first — uncommitted work may be in the tree.
 
 | When | Say |
 | --- | --- |
-| the spec review is accepted, the human's answers to the spec brief are in `dialogue.md`, and the `spec accepted:` line named the exit proposal | Sekkei is done; ask for its deletion once the recommendation over its exit proposal is on disk — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
-| the `coldread answered:` line named the exit proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; ask for its deletion once the recommendation over its exit proposal is on disk; a Keikaku is never reused across topics (decision-f496) |
-| Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; ask for its deletion once the recommendation over its exit proposal is on disk, or keep it if more of the same bug is expected |
-| the final batch is accepted, T2's proposal is written, leftovers are clean, and the human has executed the merge decision | Jisso is done; ask for its deletion once the recommendation over that proposal is on disk, T2 being its exit |
-| Jisso is deleted and the ledger's Progress line says closed | this plan is closed. **First, while every row still carries its Transcript column**, run `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]` over the sessions of **this topic**: every handshake the ledger's Session events accepted for it — Sekkei, Keikaku, Jisso, an attached Kaiseki — and every Kanri whose tenure overlapped it, the current one and any predecessor the Events' handover lines name, each path taken from its roster or archive row. A refused handshake has no row and no transcript and is not in the list; rows of another plan that a shared roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not of this topic and are left out. A path that is denied, `unavailable`, or on another host is skipped and named by the script, and is never read by asking the peer. Record the share line, the sessions it ran over, and the ones it skipped in the Measurements share row; the target is 30% or less. Then ask the human, in one line and in the chat's language, for the Account & Usage view's own figure for the day, and record it beside the proxy — the two are compared, not equated, since that view counts every other workspace and every subagent — and a silence is an answer and a blank. Then mark `dead` the rows of the sessions deleted at this close, move the dead, replaced, refused, and cleared rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet, fill the ledger's remaining Measurements fixed rows, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
+| the spec review is accepted, the human's answers to the spec brief are in `dialogue.md`, and the `spec accepted:` line named the exit proposal | Sekkei is done; record its proposal's items and the spec's four sections as `pending` rows and ask for its deletion as soon as the proposal passes the form check — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
+| the `coldread answered:` line named the exit proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; record its proposal's items as `pending` rows and ask for its deletion as soon as the proposal passes the form check; a Keikaku is never reused across topics (decision-f496) |
+| Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; record its proposal's items as `pending` rows and ask for its deletion as soon as the proposal passes the form check, or keep it if more of the same bug is expected |
+| the final batch is accepted, T2's proposal is written and passes the form check, and leftovers are clean | Jisso is done; ask for its deletion at once, T2 being its exit — the recommendation, the human's check, the apply, and the merge decision run with it gone, and a merge declined with fixes wanted is a new batch on a new Jisso either way |
+| the close's apply is verified, the human has executed the merge decision, and the ledger's Progress line says closed | this plan is closed. **First, while every row still carries its Transcript column**, run `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]` over the sessions of **this topic**: every handshake the ledger's Session events accepted for it — Sekkei, Keikaku, Jisso, an attached Kaiseki — and every Kanri whose tenure overlapped it, the current one and any predecessor the Events' handover lines name, each path taken from its roster or archive row. A refused handshake has no row and no transcript and is not in the list; rows of another plan that a shared roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not of this topic and are left out. A path that is denied, `unavailable`, or on another host is skipped and named by the script, and is never read by asking the peer. Record the share line, the sessions it ran over, and the ones it skipped in the Measurements share row; the target is 30% or less. Then ask the human, in one line and in the chat's language, for the Account & Usage view's own figure for the day, and record it beside the proxy — the two are compared, not equated, since that view counts every other workspace and every subagent — and a silence is an answer and a blank. Then mark `dead` the rows of the sessions deleted at this close, move the dead, replaced, refused, and cleared rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet, fill the ledger's remaining Measurements fixed rows, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
 
 The role is resident; the session that carries it is not. A plan's end is a
 boundary like any other for the run, and the next topic starts with a new topic
