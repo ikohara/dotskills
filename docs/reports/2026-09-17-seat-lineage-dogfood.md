@@ -8,24 +8,26 @@ create/delete session lifecycle, among other renames (`candidate` → `item`,
 `Shoroku candidates` → `Shoroku proposal items`, and others swept below). It
 preserves, in a committed and tracked location, two pieces of record that today
 exist only under the untracked `.tanto/seat-lineage/` tree — which nothing commits
-and which will not survive that topic workspace eventually being cleaned up: Task
+and which will not survive the eventual cleanup of that topic workspace: Task
 33's whole-tree sweep of the old values this plan contradicts, and Task 31's live
 run of the consistency note's checks 6 and 7 against the landed tree.
 
-## The old value sweep
+## The old-value sweep
 
 Task 33 ran the brief's 33 commands from the repository root, branch `seat-lineage`,
-against the plan's already-landed batches. All 33 matched their expected result;
-the full raw output and per-command disposition live at
-`.tanto/seat-lineage/old-value-sweep.md`. In brief order:
+against the plan's already-landed batches. All 33 matched their expected result
+(Step 3's `node --test` script-run finding, covered separately below, is a
+distinct check from the brief and not one of these 33 commands); the full raw
+output and per-command disposition live at `.tanto/seat-lineage/old-value-sweep.md`.
+In brief order:
 
 | # | Pattern swept | Result | Disposition |
 | --- | --- | --- | --- |
-| 1 | `exit-jisso` | 0 on all 20 files | matches |
+| 1 | `exit-jisso` | 0 in every file (20 total) | matches |
 | 2 | `docs: exit shoroku` | 0, 0, 0 | matches |
 | 3 | `docs: T2 shoroku` | 1, 1 | matches |
-| 4 | `Shoroku candidates` | 0 on all 22 files | matches |
-| 5 | `candidate` (case-insensitive) | 0 on all 22 files | matches |
+| 4 | `Shoroku candidates` | 0 in every file (22 total) | matches |
+| 5 | `candidate` (case-insensitive) | 0 in every file (22 total) | matches |
 | 6 | `^## Shoroku proposal items$` | 1, 1 | matches |
 | 7 | `^## Shoroku proposal$` | 1, 1 | matches |
 | 8 | `Jisso replacement deferred` | 0, 0, 0, 0 | matches |
@@ -37,19 +39,19 @@ the full raw output and per-command disposition live at
 | 14 | `**Shoroku proposal** section` | 1, 1 | matches |
 | 15 | `queued: <n>` | 1, 3, 1 (at least 1 each) | matches |
 | 16 | `release: /clear this window` | 2, 1, 2, 2, 1, 1 (at least 1 each) | matches |
-| 17 | no-role fixed text | exactly `SKILL.md` and `templates/batch-prompt.md` | matches |
+| 17 | no-role fixed text (`grep -rl`) | matched exactly `SKILL.md`, `templates/batch-prompt.md` | matches |
 | 18 | `close: <topic> — ...` | 1, 1, 1 | matches |
 | 19 | `^### Release$` | 1 | matches |
 | 20 | `^### Delete$` | 0 | matches |
-| 21 | `orders: plan=` | none | matches |
-| 22 | `lifecycle request` | none | matches |
-| 23 | `ask the human to delete` | none | matches |
-| 24 | `delete and create` | none | matches |
-| 25 | `the ceiling replaces Kanri and Jisso` | none | matches |
-| 26 | `Open a new session in <repo path>` | none | matches |
-| 27 | `every listed peer` | none | matches |
-| 28 | `the peers' deletion` | none | matches |
-| 29 | `kanri or jisso` (templates only) | none | matches |
+| 21 | `orders: plan=` | no output | matches |
+| 22 | `lifecycle request` | no output | matches |
+| 23 | `ask the human to delete` | no output | matches |
+| 24 | `delete and create` | no output | matches |
+| 25 | `the ceiling replaces Kanri and Jisso` | no output | matches |
+| 26 | `Open a new session in <repo path>` | no output | matches |
+| 27 | `every listed peer` | no output | matches |
+| 28 | `the peers' deletion` | no output | matches |
+| 29 | `kanri or jisso` (templates only) | no output | matches |
 | 30 | `delet` (case-insensitive, read not counted) | 15 surviving lines, all classified | matches |
 | 31 | `replacement` (case-insensitive, read not counted) | 13 surviving lines, all classified | matches |
 | 32 | `only Kanri messages Jisso` | exactly 1 line | matches |
@@ -88,8 +90,10 @@ touched the directory — and substituting an explicit glob,
 only, not the brief's literal command), finds and runs the same two test files:
 **103 tests, 103 pass, 0 fail.** The underlying suite is intact and green; the
 brief's literal bare-directory invocation fails to resolve recursive test
-discovery in this local Windows/mise/node setup, a distinct quirk from the
-previously-diagnosed 6-failure WSL-mount issue and not a defect this plan caused.
+discovery in this local Windows/mise/node setup — a distinct quirk from a
+previously-diagnosed issue where running the suite from a WSL-mounted path
+produced six unrelated test failures (a subset of tests failing, not a
+command-level crash before any test runs) — and not a defect this plan caused.
 
 ## The consistency note's checks 6 and 7
 
@@ -101,19 +105,27 @@ check 7 live against the landed tree, recording the result for reuse here.
 `2, 1, 1, 4, 1, 1, 1, 1, 2, 3, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1,
 1, 1, 1, 1, 1`, against the note's own Expected list of `2, 1, 1, 3, 1, 1, 1, 1,
 2, 3, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1`. Two
-positions mismatched, both pre-existing and outside Task 31's own six-passage
-scope (`skills/tanto/SKILL.md` was not touched by that task):
+positions mismatched, neither inside Task 31's own six-passage scope
+(`skills/tanto/SKILL.md` was not touched by that task) — but the two have
+different causes, one caused by this plan and one predating it entirely:
 
 - **Position 4**, `grep -cF 'kanri-address:' skills/tanto/SKILL.md`: the note
   expects `3`, the live tree gives `4` (occurrences at `SKILL.md` lines 391, 409,
-  537, 607). This is a genuine plan coverage gap this plan's own Task 3 caused —
-  a passage that added a fourth `kanri-address:` line without a matching update
-  to this note's Expected count.
+  537, 607). This one is caused by this plan: `git blame`/`git show` on line 607
+  confirms it is new text from commit `c4df747b` ("docs(tanto): every tanto line
+  carries the no-role line, and every exit ends with release:"), this plan's own
+  Task 3 — a passage that added a fourth `kanri-address:` line without a
+  matching update to this note's Expected count. The other three occurrences
+  (lines 391, 409, 537) predate this plan, from commits `df8500aa` (2026-09-07)
+  and `9adfd956` (2026-09-09).
 - **Position 19**, `grep -cF 'the human by grant' skills/tanto/SKILL.md`: the note
   expects `3`, the live tree gives `4` (four Residency-table rows — Sekkei,
-  Keikaku, Jisso, Kaiseki — at `SKILL.md` lines 25-28). This one is unrelated
-  pre-existing drift, present in the tree before this plan and not caused by any
-  task in it.
+  Keikaku, Jisso, Kaiseki — at `SKILL.md` lines 25-28). This one predates the
+  plan entirely: `git blame`/`git show` confirms all four rows carrying this
+  phrase trace to commit `73f789d7`, dated 2026-09-13 — four days before
+  `seat-lineage`'s own branch existed. This plan's own Task 1 did touch the
+  Jisso row (commit `562facbe`), but only its other columns; `git show
+  562facbe` shows no `+`/`-` on "the human by grant" itself.
 
 **The P31.4 sub-block** (13 `grep -cF` lines, in file order) returned
 `1, 3, 1, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1`. Against the note's Expected shape — the
