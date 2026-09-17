@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-13
+updated: 2026-09-17
 ---
 
 A plan's `W` block declares a whole new file whose bytes must land as
@@ -67,3 +67,15 @@ two checks then disagree about what the plan's own new text is, and `lint` is
 the cheap one people run alone. One-word fix, in the same family as the
 `verify` and `diff` gaps above: whatever defines "a `W` block is text the plan
 commits to" has to hold in all three subcommands at once.
+
+**2026-09-17 — a second corroborating measurement, from kuchidome's
+`residency-retention` run (M6b).** Task 12's plan entry was `W`-blocks only,
+and `verify` reported `no passages` for it regardless of what the file
+actually contained — the task reviewer's own byte comparison against the
+brief was the only real check on a "create verbatim" deviation for such a
+task. Same root cause as the 2026-09-11 report above, on a different
+repository's own run; no new fix proposed beyond the two already on file.
+
+Reported by Hosa `kuchidome-6b [d17de0]` from `C:\Users\0000105523\devel\kuchidome`,
+2026-09-15 (delayed in transit — original addressee no longer live; relayed
+by this repository's own Kanri 2026-09-17).
