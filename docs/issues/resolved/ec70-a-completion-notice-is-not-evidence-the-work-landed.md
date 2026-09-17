@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-10
+updated: 2026-09-17
 ---
 
 Observed during the tanto-sweep run (2026-09-10), Jisso's seat, task 3's
@@ -28,3 +28,9 @@ notice arrives.
 
 Related: req-04f5, design-4807 (Jisso's dispatch and boundary conventions),
 the T2 shoroku proposal of 2026-09-10 (Part A item 5).
+
+**Resolved 2026-09-17.** `skills/tanto/SKILL.md` states the rule for every
+dispatch — "The dispatcher verifies the file, not the reply" — and
+`roles/kanri.md`'s commit verification (a clean `git status`, the diff's paths, the
+lint) is the commit case of it. design-4807 records the fix-round case this issue
+cited.

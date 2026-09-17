@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-16
+updated: 2026-09-17
 ---
 
 Found in the tanto-sweep-2 run and recorded in that run's ledger (S-43 and
@@ -28,3 +28,10 @@ than filed one at a time.
 
 Both are the same shape — `skills/tanto/README.md` falling behind the skill it
 documents — so one issue carries them to the same review.
+
+**2026-09-17 — a third, cosmetic defect in the same file.** The designs list has
+a doubled serial "and" across three items, the last of them interacting with the
+pre-existing line above it, so two consecutive list lines both end in ", and".
+Found by `shoroku-at-close`'s Task 9 review and confirmed still at that branch's
+tip by its whole-branch review. It wants the same wording pass as the two gaps
+above, whenever the list is next touched.

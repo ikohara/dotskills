@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-16
+updated: 2026-09-17
 ---
 
 Found by the tanto-cost run's batch F (2026-09-14), recorded in
@@ -115,3 +115,25 @@ The candidate fix that run named: a Keikaku drafting convention — a plan that
 creates a file under `skills/` lists, in its own text, the structural counts
 the new file moves, so the drafter's list and the note's four sites are
 checked against each other rather than each trusted separately.
+
+**2026-09-17 — four stale checks measured, all of them pre-dating the branch
+that found them.** `shoroku-at-close`'s Task 10 swept the note and confirmed,
+against `main`, that checks 3, 4, 6 and 7 carry stale expected values that
+pre-date that topic entirely and are not its responsibility:
+
+- **Check 3** — the `templates/agent.md` citation premise has apparently never
+  been true in any role file's history; issue-c526 holds that premise.
+- **Check 4** — the `Direction?` count in `skills/shoroku/SKILL.md` reads `4`
+  where the note still says `1`.
+- **Check 6** — the `chore:` / `slot:` line-forms block reads `0` across the
+  whole skill, a past rename or removal never reflected in the note, and two
+  single-line counts drifted (`exit-<role>` 5 to 4, `the human by grant` 3 to
+  4).
+- **Check 7** — the `argument-hint` line is missing the `resume` alias
+  entirely, possibly folded into `fukki` and possibly dropped outright;
+  issue-260c's own history might settle it.
+
+Recording rather than fixing is what that task's own Done-when asked for. The
+measured figures above are the input to what resolves this issue: a dedicated
+cleanup task or small plan against the note itself, never a fold-in to some
+later plan's unrelated scope.

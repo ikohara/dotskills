@@ -60,3 +60,14 @@ carried as a pending row in this run's ledger for the T2 close. A Rule 11 plan
 that reads the three together is the natural place to close all of them.
 
 A system gap, not a user-stated need, so no paired requirement.
+
+**2026-09-17, the worked example.** The `shoroku-at-close` branch carries three
+`docs: exit shoroku for jisso at A/B/C` commits: Jisso exits applied mid-plan
+under the old four-step flow, after that plan's own Task 2 had already landed
+the text saying an exit applies nothing. Rule 11 made the orders line, not the
+disk, the running Kanri's authority, and the 2026-09-14 Kikaku interim rule
+covered Sekkei and Keikaku only, so the Jisso exits fell through to the old
+flow. That is this issue's question answered in the measured case — the text
+that governs is the one the orders line names — and the argument for saying so
+in the skill rather than leaving each run to re-derive it. issue-11db is the
+other-topic case; this is the same-plan one.

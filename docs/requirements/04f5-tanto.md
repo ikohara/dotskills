@@ -2,7 +2,7 @@
 id: "04f5"
 title: tanto — multi-session orchestration of one implementation plan in Claude Code
 created: 2026-09-06
-updated: 2026-09-14
+updated: 2026-09-17
 ---
 
 ## Purpose
@@ -42,8 +42,9 @@ artifacts.
 - **The human is interrupted only at defined checkpoints.** The spec dialogue;
   one OK before the plan is committed; batch boundaries, and there only for
   the stop classes of subagent-driven development and a scope or spec change;
-  the shoroku recommendation at each stage, answered by exception — `OK` as
-  recommended, or the items that go the other way; and the merge decision.
+  the shoroku recommendation once per topic, at its close, answered by
+  exception — `OK` as recommended, or the items that go the other way; and
+  the merge decision.
   Beyond those, the human is asked only for what only the human can do:
   create or retire a session when Kanri requests it, confirm the items a
   compaction summary attributes to the human, settle a triage or handover
@@ -117,7 +118,7 @@ artifacts.
 - **Small batches.** Work is delivered in batches of a few tasks, so that each
   boundary is a checkpoint for rulings and for the sessions' lifecycle.
 - **Docs are kept current as part of the flow.** Excerpting into the project's
-  `docs/` happens at staged points of the run, not as an afterthought, and the
+  `docs/` happens once per topic, at its close, not as an afterthought, and the
   human confirms what lands without having to read every item cold. Every
   planned exit of a session, in any role, carries its own shoroku before the
   human closes it, so that nothing a session learned is lost with it. An exit

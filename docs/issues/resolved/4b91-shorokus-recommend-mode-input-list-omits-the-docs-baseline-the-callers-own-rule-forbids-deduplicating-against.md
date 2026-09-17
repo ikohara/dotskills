@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-17
 ---
 
 Found by the tanto-cost run's batch F task 20 reviewer (2026-09-14),
@@ -30,3 +30,12 @@ defect the check exists for.
 
 Related: the tanto-cost design's ADR amending decision-1f5f/decision-d831
 (the recommend/apply split this task implements).
+
+**Resolved 2026-09-17 on the `shoroku-at-close` branch.** `skills/shoroku/SKILL.md`'s
+recommend mode now names the third input — "an output path, and a baseline, the
+`docs/` tree an item's destination and reason are judged against" — and the File
+source specifics rule now ends "in recommend mode the baseline a caller names is
+what an item's destination and reason are judged against, never a filter that
+drops it". That is exactly the contradiction this issue named: the caller passed
+three inputs where the callee listed two, and the callee's own deduplication
+prohibition read as forbidding what the caller required. Both halves landed.

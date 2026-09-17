@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-12
+updated: 2026-09-17
 ---
 
 The human's decisions of 2026-09-10, taken in Kanri's window during the
@@ -101,3 +101,10 @@ worktree requirement of the exit shoroku of 2026-09-11 starts to bind.
 
 Related: req-04f5, decision-b6cb, decision-f496, decision-5c8e, design-4807,
 issue-9a68, issue-40ed, the dogfood report of 2026-09-10.
+
+**Resolved 2026-09-17.** The split landed and is recorded as decision-1ab5.
+`skills/tanto/roles/keikaku.md` exists, `templates/tanto.json` carries
+`sessions.keikaku`, and the exit file is `exit-keikaku` with no suffix — this
+issue's own "the roles' own names do" option. The boundary between the two roles
+sits at the spec review's acceptance, which is the whole of what this issue asked
+for.

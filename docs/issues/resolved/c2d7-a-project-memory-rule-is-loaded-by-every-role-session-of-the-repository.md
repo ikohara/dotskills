@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-12
+updated: 2026-09-17
 ---
 
 Claude Code's auto-memory is kept per project directory, and every tanto role
@@ -42,3 +42,10 @@ system prompt and so of every cache write.
 Related: issue-5a17, issue-2e52, the issue on a subagent that fans out and
 writes nothing (2026-09-12, from the plan Sekkei's exit), the tanto usage
 report of 2026-09-12.
+
+**Resolved 2026-09-17.** `skills/tanto/SKILL.md`'s rule 3 now says a role's
+authority is the contract, its role file, Kanri's lines, and the batch prompts, and
+that a project memory rule which would add a dispatch or a document is put to Kanri
+before it is acted on, "since the same memory is loaded by every session in the
+repository". That is the one sentence inside the skill this issue asked for; the
+memory-hygiene half is the human's own and needs no text.

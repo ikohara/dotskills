@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-12
+updated: 2026-09-17
 ---
 
 `skills/tanto/roles/kanri.md`, Human access step 5, dispatches the review
@@ -33,3 +33,10 @@ the next plan that edits the role files.
 
 Related: issue-2e52 (a sections tool — the same seats read reports whole),
 the tanto-workspace plan review of 2026-09-12.
+
+**Resolved 2026-09-17.** No role file names `subagents.reviewer` or "a read-only
+subagent" any more. `roles/sekkei.md` and `roles/keikaku.md` both dispatch their
+reviewers as agents that "read files; write exactly one file, the output named
+below", and the brief writer is the `brief.write` kind under the same one-file
+rule — the sentence this issue asked for, present at each seat that dispatches a
+reviewer.

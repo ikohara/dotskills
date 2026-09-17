@@ -198,3 +198,14 @@ joins what each later boundary must re-explain by hand, so a run accumulates
 the noise instead of paying it once per boundary, and Batch D's check will face
 three once this exit's own commit lands. The path-scope fix this issue already
 proposes absorbs the whole set at once, which per-commit rulings do not.
+
+**2026-09-17 — the reconciliation is done twice, by two sessions, and its cost
+grows with the plan.** At `shoroku-at-close`'s Batch D boundary both Jisso (in
+its own report) and Kanri (independently, before reading that report) ran the
+same `diff --base <the plan's original base>` and reconciled the same nine
+flagged files against the same six commits — the largest such reconciliation
+that plan produced, since the base is fixed at the plan's start and every later
+boundary's exit-shoroku commits accumulate in the flagged set. Two readings of
+one growing set per boundary is the cost trend for the path-scope fix this issue
+proposes; the cheaper interim is trusting a Jisso report's own reconciliation
+more directly at a late boundary rather than fully re-deriving it.

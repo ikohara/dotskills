@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-17
 ---
 
 `roles/kanri.md` at 62 KB and `SKILL.md` at 47 KB are 15 to 27k of every
@@ -35,3 +35,10 @@ on rather than folding the diet into a sweep.
 this measurement: it is not part of a seat's fixed baseline the way the first
 two are, but it is the largest single file a passage-carrying plan's seats
 read, and it is the same diet's natural third subject.
+
+**2026-09-17, `shoroku-at-close` — the stage word `t2` with no T0 or T1 is
+handed to this diet.** That topic's close-only design keeps the stage word `t2`
+although T0 and T1 no longer exist, deliberately, to keep its own sweep small;
+its spec names this diet as the carrier that renames the word if it renames
+anything, with the ledgers' old rows left under the old word. Nothing else is
+waiting on the rename.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-16
+updated: 2026-09-17
 ---
 
 Observed 2026-09-16 as the `dotskills-e0` Kanri's own mistake, caught and fixed
@@ -40,3 +40,14 @@ landing on a concurrently cut branch, one branch cut racing one chore commit;
 this is two branch cuts racing each other, caused by one broadcast signal from
 Kanri, with a different fix site (the queued-topic protocol's send, not the
 chore-approval check).
+
+**2026-09-17 — the drafting Keikaku's own side of the same event.** Two
+queued-topic Keikakus (`shoroku-at-close`'s and `tanto-project-config`'s)
+received `checkout free:` from the same Kanri near-simultaneously and both cut
+branches from `main` at close to the same moment; a commit from one topic's plan
+landed momentarily on the other's branch before Kanri caught and rebased it
+away. No data was lost, but the queued-topic design's assumption that a branch
+cut is a clean, isolated act does not hold when two queued topics are released
+at once. The fix that Keikaku asked for is the one this issue already names: a
+sequencing point Kanri serializes by hand, a few seconds apart, rather than a
+design gap a plan's own text has to cover.

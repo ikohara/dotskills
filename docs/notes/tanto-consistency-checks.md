@@ -401,6 +401,15 @@ knowingly break them mid-run, as the context-cost plan broke checks 1 and 2
 from its second task until its last; when it does, the batch that breaks them
 says so and the batch that repairs them names the count it restores. This paragraph's scope is not limited to the two bullets above it: any count tied to the shape of a file is a structural count in the same sense, and check 6's per-file `idle` figures are one — the `O` sweep runs over this note as well as over the skill, so a removal task can silently invalidate an expectation written for the thing it removed. One task zeroed `notify_when_idle: true` while check 6 still expected two matching lines, and nothing caught it: the expectation lived in prose that no passage quoted and no `O` needle named.
 
+**A `grep -c` on a phrase inside a reflowable paragraph is a check on the wrap,
+not on the text.** Check 6 already states this for `roles/kanri.md`; it holds
+for every check in this note. The instance: check 18's fifth count dropped from
+`2` to `1` with no editorial change at all, because a line wrap moved the
+phrase across a line break. Where the subject is a phrase that lives in prose
+rather than on a line of its own, either pin it with a flatten pipeline, as
+check 4 does, or treat the count as a structural one that a reflow legitimately
+moves.
+
 ## 1. Every file of the layout exists
 
 ```bash
@@ -1208,7 +1217,7 @@ grep -c 'subagent_type: tanto-shoroku-recommend' skills/tanto/roles/kanri.md
 grep -c 'subagent_type: tanto-shoroku-apply' skills/tanto/roles/kanri.md
 grep -cE 'tanto-shoroku([^-.]|$)' skills/tanto/SKILL.md skills/tanto/roles/kanri.md
 grep -cF 'close: <topic> — proposal <path>; ledger <path>; recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now' skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/hosa.md
-grep -cE '\bt[01]\b|\bT[01]\b' skills/tanto/SKILL.md skills/tanto/README.md skills/tanto/roles/*.md skills/tanto/templates/*.md
+grep -cE '\bt[01]\b|\bT[01]\b' skills/tanto/SKILL.md skills/tanto/README.md skills/tanto/roles/*.md skills/tanto/templates/*.md skills/shoroku/SKILL.md
 ```
 
 Expected: at least `1` from the first and at least `2` from the second —
@@ -1218,8 +1227,9 @@ contract's `tanto-shoroku.md` removal sentence is not a hit, while
 `subagent_type: tanto-shoroku` followed by a space or a period-and-space is.
 `1` from the fourth in each of the three files, which pins the `close:` line's
 three copies to one spelling, as §21 asks of a named mechanism. `0` from the
-fifth in every file: the stage words `t0` and `t1` are retired, and the root
-listing's glob for a predecessor's stage files is gone. This file and `docs/` are outside
+fifth in every file, `skills/shoroku/SKILL.md` included: the stage words `t0`
+and `t1` are retired, and the root listing's glob for a predecessor's stage
+files is gone. This file and `docs/` are outside
 the fifth line's scope, for the reason §10's paragraph gives: a record whose
 subject is "we stopped saying X" must quote X.
 
@@ -1237,3 +1247,13 @@ glob for a predecessor's stage files), and only a run of the grep against the
 draft found them; a third could not be written as a literal at all, because
 every form of it is a prefix of the spelling that replaces it, which is why
 the third line above is a regular expression.
+
+A third lesson, and the reason the fifth line names `skills/shoroku/SKILL.md`
+at all: **an `O` sweep's file list is the plan's touched-file list, not the
+skill's own directory.** The `shoroku-at-close` plan's `\bT[01]\b` needle and
+this check's fifth grep were both scoped to `skills/tanto/`, and the one
+surviving stale stage word on that branch was in `skills/shoroku/SKILL.md` — a
+file the plan edited, and the branch's single Important review finding. Check
+18 already reaches into that file for the group headings, so the precedent
+existed; the fifth line now follows it, and the expected count stays `0` after
+that branch's own fix.

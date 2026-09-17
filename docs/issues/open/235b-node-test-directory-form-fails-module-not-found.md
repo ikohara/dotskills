@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-16
+updated: 2026-09-17
 ---
 
 Measured in the tanto-sweep run (2026-09-10, batch A). Both the spec and the
@@ -56,3 +56,11 @@ Passing the two `.test.js` files explicitly runs **98 tests, 0 failures**. That
 is the current size of the suite and the current figure for this issue's
 dataset — a Windows Bash-tool pitfall, not a real break, now measured across
 three separate runs.
+
+**2026-09-17, one more dated occurrence** (`shoroku-at-close`, Kanri's own
+boundary verification at batch A): `mise x node@22 -- node --test
+skills/tanto/scripts/` — the directory form, still what that plan's own
+Verification text and the ledger template say to run — failed `MODULE_NOT_FOUND`
+on this host, while the quoted-glob form
+(`node --test 'skills/tanto/scripts/*.test.js'`) ran clean, 103 of 103. Four
+runs now, the same two forms, the same result.

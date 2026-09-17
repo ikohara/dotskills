@@ -57,3 +57,10 @@ Candidate directions, none chosen: stamp each rendered definition with the
 repository and skill revision that wrote it and refuse to overwrite a foreign
 stamp; or move the rendering to project scope where it cannot collide; or have
 the Start sequence reconcile rather than overwrite.
+
+**2026-09-17, a dated occurrence.** `tanto-shoroku` — the retired, unsplit kind
+— reappeared in a live Kanri session's own visible agent-type list after a
+Hosa's chore commits, on the first day the removal of `tanto-shoroku.md` was
+live. That Kanri went on dispatching the correctly split
+`tanto-shoroku-recommend` and `tanto-shoroku-apply` kinds regardless and nothing
+was lost, but the reappearance is this issue's clobber pattern exactly.

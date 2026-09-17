@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-13
+updated: 2026-09-17
 ---
 
 Found by the tanto-cost run's batch D task 15 reviewer (2026-09-13),
@@ -33,3 +33,9 @@ unquoted edit to a path `diff` already treats as fully accounted for.
 
 Related: issue-f902, issue-c30e (the same batch's other small gaps in the
 two new seats' role files).
+
+**Resolved 2026-09-17.** `skills/tanto/roles/kikaku.md` now states the model rule
+where its dispatch happens: dispatch "`subagent_type: tanto-default` with the
+`model` `tanto.json` gives `default`, never an omitted `model`, which would inherit
+this session's fable". Kikaku is no longer the one dispatching role file without
+one.

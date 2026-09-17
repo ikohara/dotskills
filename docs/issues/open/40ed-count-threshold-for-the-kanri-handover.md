@@ -316,3 +316,10 @@ first dispatch. Whether that is cheaper than a fresh Start's reading, and by how
 much, this run's data cannot say. The ask for next time: a Jisso taking over
 mid-plan should record one reading at exactly "onboarding done, before the first
 dispatch", as the comparable counterpart to the ninth point's own figure.
+
+**2026-09-17 — a plan whose Kanri ceiling crossed at all four of its batch
+boundaries.** `shoroku-at-close` ran four batches, A through D, and the ceiling
+fired at every one of them — a 100% hit rate across the topic's whole run, not
+merely "usually". As far as that run's ledger was read, it is the first plan in
+this run's own history where every single batch boundary crossed it, which is a
+new kind of point for the threshold dataset above.

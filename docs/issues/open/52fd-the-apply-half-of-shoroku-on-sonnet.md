@@ -53,3 +53,17 @@ half" of one kind. Not changed now, for the same reason already on file: the
 first measured run under decision-03f9's second-measurement order (recommend
 on `opus`, per the `tanto-sweep-2` R-20 reversal already recorded above) has
 to land before this variable is worth changing.
+
+**2026-09-17 — the split is now an ADR, and the same topic measured two of its
+subagents.** decision-0352 records `shoroku` becoming two kinds, so the variable
+above is the `shoroku.apply` kind by name and the key to set is the
+`shoroku.apply` key of the `subagents` map, not a mode of one key.
+
+A per-family cost point from that topic, for the family question this
+measurement turns on: the spec reviewer on `spec.review`/opus ran 1,009 s, 65
+tool uses and 231,151 subagent tokens over a 1,949-line draft and returned 23
+findings, 21 adopted; the brief writer on `brief.write`/fable ran 233 s, 10 tool
+uses and 124,096 tokens over the 2,347-line revised draft, against
+`tanto-sweep-2`'s 115,120 tokens and 262 s for its spec brief. A fable brief
+costs about half an opus review, and both scale with the document, not the
+topic.

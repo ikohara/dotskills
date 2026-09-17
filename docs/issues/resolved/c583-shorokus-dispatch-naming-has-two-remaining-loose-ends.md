@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-17
 ---
 
 Found by the tanto-cost run's final fix-wave re-review (2026-09-14),
@@ -41,3 +41,11 @@ passages closed after batch B.
 Related: the whole-branch review's I3 finding (fixed at the other two
 sites), issue-9d84 (a related "the same fact is stated in more than one
 place, and one copy goes unmaintained" shape).
+
+**Resolved 2026-09-17 on the `shoroku-at-close` branch.** Both loose ends are
+closed. The third, unnamed dispatch site — `roles/kanri.md`'s step 7 (a) — now
+reads "dispatch `subagent_type: tanto-shoroku-apply` with the recommendation, the
+direction, and the commit subject". And `skills/tanto/SKILL.md`'s naming rule now
+says "`subagent_type: tanto-<object>-<act>` — or `tanto-<kind>` for a kind with no
+dot in its name, which is `tanto-default`", so the dotless case is stated
+literally; `tanto-shoroku` no longer exists to need it.
