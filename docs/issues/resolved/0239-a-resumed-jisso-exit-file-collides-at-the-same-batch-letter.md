@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-17
+updated: 2026-09-18
 ---
 
 Deferred by the context-cost design (2026-09-09, its Deferred items). Jisso's
@@ -34,3 +34,10 @@ proposal for the plan, written out once at T2, so the per-batch
 open until that lands.
 
 Related: req-04f5, issue-b9a4, decision-d831, design-4807.
+
+Resolved by the seat-lineage plan: a Jisso writes no exit file at all. Its
+proposal is the Shoroku proposal section of the batch report it writes at
+the boundary, and the plan's last Jisso writes `shoroku-proposal.md` once at
+T2, so the `exit-jisso-<X>` pattern the collision needed no longer exists —
+`grep -c 'exit-jisso'` is `0` across the contract, the role files and the
+templates. The collision case is gone rather than renamed.
