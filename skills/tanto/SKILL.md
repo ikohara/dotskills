@@ -143,8 +143,17 @@ this instrument without anyone moving a threshold.
 The effort vocabulary is the harness's — `low`, `medium`, `high`, `xhigh`,
 `max` — and the family vocabulary is the Agent tool's.
 
-The skill ships built-in defaults at `templates/tanto.json`, derived from the
-family ladder `fable > opus > sonnet > haiku` (as of 2026-09). Read the
+The skill ships built-in defaults at `templates/tanto.json`, decided
+per-kind rather than off one ladder: the one-shot kinds a topic pays for
+once — `plan.review`, `plan.coldread`, `branch.review`, `spec.review`,
+`shoroku.recommend` — buy the top family, and the resident seats that carry
+a whole plan or session — Kanri, Sekkei, Keikaku, Jisso, Hosa — run on the
+cheaper families, with Sekkei's effort alone raised to `max`. Kikaku, which
+the human paces and rule 9 excepts, and Kaiseki, opened on demand, are the
+two seats that stay on the top family regardless. The ladder
+`fable > opus > sonnet > haiku` (as of 2026-09) still orders the families
+for the `subagents.task.escalate`-above-`subagents.task.implement` check
+below. Read the
 personal file and overlay it on the defaults **field by field**, then read the
 project file and overlay it on that result the same way: a personal
 `{"effort":"medium"}` under `subagents.task.implement` changes that effort and

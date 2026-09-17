@@ -2,7 +2,7 @@
   "sessions": {
     "kikaku": { "model": "fable", "effort": "xhigh" },
     "kanri": { "model": "sonnet", "effort": "high" },
-    "sekkei": { "model": "fable", "effort": "high" },
+    "sekkei": { "model": "opus", "effort": "max" },
     "keikaku": { "model": "sonnet", "effort": "high" },
     "jisso": { "model": "sonnet", "effort": "xhigh" },
     "kaiseki": { "model": "fable", "effort": "xhigh" },
@@ -16,9 +16,9 @@
     "plan.draft": { "model": "opus", "effort": "high" },
     "plan.review": { "model": "fable", "effort": "high" },
     "plan.coldread": { "model": "fable", "effort": "high" },
-    "spec.review": { "model": "opus", "effort": "high" },
+    "spec.review": { "model": "fable", "effort": "high" },
     "branch.review": { "model": "fable", "effort": "high" },
-    "brief.write": { "model": "fable", "effort": "high" },
+    "brief.write": { "model": "sonnet", "effort": "high" },
     "shoroku.recommend": { "model": "fable", "effort": "high" },
     "shoroku.apply": { "model": "opus", "effort": "medium" },
     "default": { "model": "sonnet", "effort": "medium" }
