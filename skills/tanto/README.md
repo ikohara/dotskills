@@ -8,8 +8,8 @@ one implementation plan.
 - Runs one plan through separate interactive Claude Code sessions in the same
   repository and on the same branch: **Kanri** (管理) manages, **Sekkei** (設計)
   writes the spec, **Keikaku** (計画) writes the plan, **Jisso** (実装)
-  implements, **Kaiseki** (解析) root-causes. The human creates and deletes
-  sessions; Kanri is the only role that asks.
+  implements, **Kaiseki** (解析) root-causes. The human gives a window its
+  role and takes it away; Kanri is the only role that asks.
 - Adds two seats outside that lifecycle, opened by the human and never
   requested by Kanri: **Kikaku** (企画) thinks with the human about what the
   next work is and hands Kanri a decision file, and **Hosa** (補佐) takes the
@@ -24,12 +24,15 @@ one implementation plan.
   that reading with the lines it
   already sends, so the roster holds what the current run costs and its archive
   holds what earlier runs cost.
-- Holds **Kanri** and **Jisso** under a context ceiling derived from that last
-  figure — each seat's own measured baseline plus a chosen number of batches of
-  measured consumption — and hands the one over or replaces the other at the
-  next boundary once it is crossed, but only while the human is there to create
-  the successor; otherwise the crossing is recorded as deferred and the run
-  continues to the plan close, which hands over in any case.
+- Holds **Kanri** under a context ceiling derived from that last figure — its
+  own measured baseline plus a chosen number of batches of measured
+  consumption — and hands the role over at the next boundary once it is
+  crossed, but only while the human is there to start the successor;
+  otherwise the crossing is recorded as deferred and the run continues to the
+  plan close, which hands over in any case. **Jisso** is measured the same
+  way and kept for the archive, but is replaced by rotation rather than by
+  the ceiling: one fresh session per batch, from a queue the human fills at
+  the plan's landing.
 - Takes bug reports about the skills this repository ships: a report is a file
   and one line to Kanri, which triages it into an issue, a redirect, a
   root-cause session, a one-line hotfix, or an input to a spec in progress.
@@ -69,7 +72,7 @@ one implementation plan.
   itself, and the spec and the plan are wherever Kanri's orders line says,
   by default the superpowers convention.
 - **A `kisou`-style `docs/` system** in the target repo, for the `shoroku`
-  write-out at each topic's close. Without `docs/AGENTS.md` the adopted candidates
+  write-out at each topic's close. Without `docs/AGENTS.md` the adopted items
   have nowhere to land.
 - **Optional** — a personal `$CLAUDE_CONFIG_DIR/tanto.json` (or
   `~/.claude/tanto.json`), and a project `<repo>/.claude/tanto.json` overlaid
@@ -93,8 +96,9 @@ Start Kanri first, with no address:
 /tanto kanri
 ```
 
-Every lifecycle role after Kanri is created when Kanri asks the human for it,
-and starts with Kanri's name as its request prints it:
+Every lifecycle role after Kanri starts when Kanri asks the human for a
+window — the plan's Jissos all at its landing, in one request — and starts
+with Kanri's name as its request prints it:
 
 ```console
 /tanto sekkei <kanri>
@@ -119,10 +123,12 @@ orders.
 `/tanto kaiseki` with no address is standalone Kaiseki — the strong model leads
 one debugging session, with no roster and no batch loop.
 
-A window that comes back after an editor restart or a closed tab keeps its
-context and its transcript but gets a new name. `/tanto fukki` (復帰), typed in
-that window, matches it to its roster row by that transcript path and rejoins
-it to the run; no address is pasted, and Kanri's window goes first.
+A window that comes back after an editor restart keeps its context and its
+transcript but gets a new name; a closed tab is the exception now, because a
+finished seat's window is `/clear`ed and reused rather than closed, and a
+`/clear` keeps the name and the `[ref]`. `/tanto fukki` (復帰), typed in that
+window, matches it to its roster row by that transcript path and rejoins it
+to the run; no address is pasted, and Kanri's window goes first.
 
 ## Layout
 
@@ -150,7 +156,7 @@ it to the run; no address is pasted, and Kanri's window goes first.
 
 `kisou` installs the `docs/` document-management system and `shoroku` fills it;
 `tanto` decides **when** it is filled and how each filling is checked: at
-every exit and every boundary the session holding the candidates writes
+every exit and every boundary the session holding the items writes
 them, and once per topic, at its close, `shoroku` recommends in a subagent
 on the top family, the human answers by exception, and `shoroku` applies
 and commits the accepted subset on a cheaper one. superpowers supplies the spec, plan,
