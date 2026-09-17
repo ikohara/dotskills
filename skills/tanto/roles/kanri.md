@@ -648,7 +648,7 @@ resumed, and the roster's first row is rewritten before anything else.
 
 1. **The plan close**, and this is the ordinary one — the close of the topic
    whose batches were in flight. After T2, the merge decision, the peers'
-   deletion, and the archive move, the handover runs: without a threshold, and
+   release, and the archive move, the handover runs: without a threshold, and
    without asking (decision-b6cb). The close is the moment with nothing in
    flight and the record complete, and a resident session's per-turn cost is
    its age, so the reset is a planned step and not a question put to the human
@@ -816,56 +816,56 @@ In flight carries one block — Plan, Ledger, Batch state, Deferred — **per op
 ledger**,
 so that a topic still in its spec or plan stage is handed over together with
 the topic whose batches were in flight. Deferred is the ledger's Progress
-clause, verbatim, when a handover or a Jisso replacement stands deferred on the
+clause, verbatim, when a handover stands deferred on the
 ceiling and the human's absence, and `none` otherwise: the successor re-checks
 it at its own first check, where a `present` verdict runs what this session
 could not. Live peers lists every peer of every
 open topic, each with its Topic and what it is waiting for, and marks the ones
 whose last line you had not answered: the successor sends `kanri-address:` to
-all of them, and each answers by re-sending its last unanswered line. A Sekkei
-or Keikaku whose last line named an exit proposal is waiting for nothing but
-its deletion, and your successor's first act for it is the delete request,
-if the proposal's form check is recorded in the ledger and the request was
-not sent.
+all of them — the `live` rows; the `queued` Jissos are listed after them by
+name and place and get nothing, since their batch prompt names the Kanri
+that sends it — and each answers by re-sending its last unanswered line,
+which is also what a peer does with a line that got `no-role` back in the
+gap. A Sekkei or Keikaku whose last line named an exit proposal is waiting
+for nothing but `release:`, and your successor's first act for it is that
+line, if the proposal's form check is recorded in the ledger and the line
+was not sent.
 
 ### The handover, in a plan and between plans
 
-1. **Exit shoroku first** — the Kanri case under "Exit shoroku": write your
-   own proposal from the ledger and the roster rather than from recollection,
-   to `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md`. What you cannot
+1. **Exit shoroku first** — the Kanri case under "Exit shoroku". **At a plan
+   close** your proposal is already written and its rows were that close's
+   ("The final batch", step 3): write nothing here but the `-2-proposal.md`
+   of that step for what the close taught you after it, its rows in the
+   roster's Shoroku proposal items table, and go to step 2. **At every other
+   handover**: write your own proposal from the ledger and the roster rather
+   than from recollection, to
+   `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md`; what you cannot
    reconstruct goes into the handover file's "Not reconstructed" section.
-   Then one of two. **While any ledger is open** — at a batch boundary, at a
-   plan close with another topic open, or in a topic's spec or plan stage —
-   record the proposal's items as `pending` rows, Stage `t2`, Source the
-   proposal's path and the item's number, in the ledger of the topic whose
-   batches are in flight, else the oldest open topic's; nothing is recommended,
-   checked, or applied, and the rows wait for that topic's close. At a batch
-   boundary this is loop step 6's proposal and its rows, already done when
-   the window reaches this list. **Between plans**, with no ledger open,
-   run the close's steps 2 to 4 over your proposal alone — the recommender
-   to `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-recommendation.md` and
-   `-brief.md`, the human's check, the direction beside them, and the
-   apply, whose commit lands on `main` (decision-b6cb). When a Hosa is
-   live, send it the `close:` line of "Delegation to Hosa" with `kanri` for
-   the topic and those paths, name the delegation in the handover file's In
-   flight block, and go on to step 2 without waiting: the successor
-   verifies the commit on Hosa's `close done:`. When none is live, run the
-   three steps yourself and verify that commit **before** the handover file
-   is written, so that the successor inherits a commit and not a pending
-   write-out. A plan close with no other topic open is between plans: the
-   close's own T2, the merge decision, the peers' deletion, and the archive
-   move come first, and your exit lands where the tree is once the merge
-   decision is executed — on `main` after a merge, on the plan's branch
-   only when the human declined the merge.
+   Then one of two. **While any ledger is open** — at a batch boundary, or in
+   a topic's spec or plan stage — record the proposal's items as `pending`
+   rows, Stage `t2`, Source the proposal's path and the item's number, in
+   the ledger of the topic whose batches are in flight, else the oldest open
+   topic's. At a batch boundary this is loop step 6's proposal and its rows,
+   already done when the window reaches this list. **Between plans**, with
+   no ledger open, record them as rows of the roster's Shoroku proposal
+   items table, Stage `t2`, Source the same; they move into the next topic's
+   ledger when it opens and are recommended at that topic's close. Nothing
+   is recommended, checked, or applied at any handover.
 2. Write `.tanto/kanri-handover.md` from its template.
 3. **At a batch boundary**, and in a topic's spec or plan stage, set the
    ledger's Progress line to "handover
    written". **At a plan close** that line already says "closed", which the
-   delete table's row keys on, so leave it and record "handover written by
+   Release table's row keys on, so leave it and record "handover written by
    `<name> [<ref>]`" as a roster Events line. **Between plans** there is no
    ledger, and that Events line is the only record.
-4. Print the "Kanri hands over" line with the numbered commands, and stop. Send
-   nothing to any peer; answer the human if asked; do nothing else.
+4. Print the "Kanri hands over" line with the numbered commands, and stop
+   with your closing line — opening with your own identity, as every
+   closing line does: your work is in the handover file, the roster,
+   and the ledger; the step that still needs this seat is none — the human
+   `/clear`s this window and runs `/tanto kanri` in it, or in any free
+   window. Send nothing to any peer; answer the human if asked; do nothing
+   else.
 
 If the human says "continue" instead of creating the successor, delete the
 handover file, record the declined handover in the roster's Events (the `<k>`
