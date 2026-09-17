@@ -1273,13 +1273,16 @@ reach the human in the peer's window and are outside this rule.
 
 ## Session lifecycle
 
-The human is the only actor who can create or delete a session, and you are the
-only role that asks. Every create request is this numbered list, which the
-human can paste, with your own bare name as your start line printed it in place
-of `<name>`:
+The human is the only actor who can give a window a role or take one away,
+and you are the only role that asks. A window is `/clear`ed and reused,
+never closed: a session is identified by its transcript path, a window by
+its `name [ref]`, which survives `/clear` (measured 2026-09-16), and the
+roster's rows tell them apart. Every create request is this numbered list,
+which the human can paste, with your own bare name as your start line
+printed it in place of `<name>`:
 
 ```text
-1. Open a new session in <repo path>.
+1. In a free window of <repo path> — one you have /clear'ed, or a new one:
 2. /model <family>
 3. /effort <level>
 4. Make sure the session is in auto mode.
@@ -1289,15 +1292,24 @@ of `<name>`:
 Line 5 carries, after the command, what the Create table's third column names
 for that role. The family and the level are `sessions.<role>` from
 `tanto.json`, and they come before the command because the human forgets the
-effort more often than the model. A delete request is a numbered list of its
-own, one line per item.
+effort more often than the model — and because `/clear` resets the effort
+to the default while it keeps the model (measured 2026-09-16), so line 3 is
+never redundant in a reused window. For the plan's Jissos the list is sent
+once and says how many windows it is for. There is no delete request: a
+seat's exit ends with your `release:` line to it, and one line to the
+human in your own window — `<role> <name> released — its work is in <paths>;
+no step needs it — /clear its window when convenient`. A line of yours that
+speaks of a release and of a creation keeps them in two clauses with their
+own times — "released now; a fresh Keikaku is requested at
+`<topic>`'s merge" — never one clause for both.
 
 ### Create
 
 | When | Ask the human to | The request line carries |
 | --- | --- | --- |
 | bootstrap | nothing; the human opens a session and runs `/tanto kanri` | — |
-| a plan is committed and your cold read has no open questions | create Jisso | `/tanto jisso <name>`, the plan path, the branch |
+| a plan is committed and your cold read has no open questions | queue the plan's Jissos: N windows, N the rows of the plan's Batches table plus one for the fix wave; more if the human wants, fewer if they will be present to re-queue released windows | `/tanto jisso <name>`, N, the plan path, the branch |
+| the queue is empty and a batch, a fix wave, or a resume needs a Jisso | queue one more Jisso — a released window serves | `/tanto jisso <name>`, the plan path, the branch |
 | the spec review is accepted | create Keikaku | `/tanto keikaku <name>`, the topic, the spec path |
 | the first batch of the current plan is accepted, or every open topic has passed its spec stage | create Sekkei for the next spec, if there is one; the human may decline | `/tanto sekkei <name>`, the topic if known |
 | Jisso reports the Kaiseki trigger with an unknown cause | create Kaiseki | `/tanto kaiseki <name>`; the brief follows the handshake |
@@ -1307,31 +1319,33 @@ own, one line per item.
 
 | Symptom | Action |
 | --- | --- |
-| Jisso is gone — not in `ListAgents`, `SendMessage` errors, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers); ask the human to delete the dead session and create a new Jisso; the next prompt says `resume batch X from task N`; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
-| Jisso context decay — its reading shows a compaction, two consecutive batches needed escalation, or a report says compaction lost rulings | at the batch boundary, ask the human to delete and create; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
-| Jisso's ceiling line says `over` | run `--presence` on your own transcript at that boundary. `present` — run "Exit shoroku" and ask the human to delete and create, the next prompt saying `resume batch X from task N` as for any replacement. `absent` — defer: write the ledger's Progress clause `Jisso replacement deferred (absent, context=<n>, since batch <X>)`, a roster Events line of the same shape as a deferred handover's, and the batch prompt's one-line notice, then re-check at the next boundary. Never at the final batch's boundary: Jisso exits after T2 in any case. The row "Jisso has carried the batches the plan expects of one session" stays — a plan that names the batch count one session should carry still binds — and this row is the measured form of the same idea; a replaced Jisso's baseline is its own first turn, so the ceiling resets with the seat, and the SDD ledger and the batch reports are the recovery point as for any replacement |
-| Sekkei's reading shows a compaction | at its next commit — a verified boundary, or, with no batch in flight, when its work is ready — run "Exit shoroku", then ask the human to delete and create; the dialogue, the drafts, and the reviews on disk are the recovery point, and the new Sekkei takes the spec inputs and `dialogue.md` as its own |
-| Keikaku's reading shows a compaction | at its next commit, as for Sekkei (decision-6dea): run "Exit shoroku", then ask the human to delete and create; the spec, `dialogue.md`, and the plan draft on disk are the recovery point, and the new Keikaku takes them as its own |
-| a Kikaku's or a Hosa's reading shows a compaction | neither is replaced: remind the human to `/clear` that window, mark the row `cleared`, and let the next `/tanto kikaku` or `/tanto hosa` handshake write a new row — what the session produced is already on disk or committed |
-| Kaiseki's reading shows a compaction | at its report: the report as it stands is the recovery point; run "Exit shoroku", then ask the human to delete it and, if the case is open, create a new Kaiseki with the same brief |
-| Jisso has carried the batches the plan expects of one session | replace it at the next boundary, exit shoroku first |
-| A handover trigger fired at a boundary | run the Handover section; the successor asks for your deletion |
-| Sekkei is gone before the spec review is accepted | ask the human to create a new Sekkei; the spec or its draft, the spec inputs, and `dialogue.md` on disk are the recovery point; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
-| Keikaku is gone before the plan is committed | ask the human to create a new Keikaku; the spec on the branch and the plan draft on disk are the recovery point; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
-| Kaiseki is gone before its report | verify `git status` is clean, and revert stray instrumentation if it is not; ask the human to create a new Kaiseki; the brief and the WIP commit are the recovery point; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
+| the live Jisso is gone — not in `ListAgents`, `SendMessage` errors, a `no-role` came back, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers); mark the row `dead`, or `cleared` on a `no-role`, with the Events line saying its exit shoroku did not run and what was lost; send the next queued Jisso the prompt for the same batch, its resume line saying `resume batch X from task N`; the queue is one short, and the next boundary's line to the human asks for one more window (the Create table's third row) |
+| Sekkei's reading shows a compaction | at its next commit — a verified boundary, or, with no batch in flight, when its work is ready — run "Exit shoroku", then the create request; the dialogue, the drafts, and the reviews on disk are the recovery point, and the new Sekkei takes the spec inputs and `dialogue.md` as its own |
+| Keikaku's reading shows a compaction | at its next commit, as for Sekkei (decision-6dea): run "Exit shoroku", then the create request; the spec, `dialogue.md`, and the plan draft on disk are the recovery point, and the new Keikaku takes them as its own |
+| a Kikaku's reading shows a compaction | not replaced: mark the row `cleared`, add its `/clear` as a `for you` item instead of saying it inline, and let the next `/tanto kikaku` handshake write a new row — what the session produced is already on disk or committed |
+| a Hosa's reading shows a compaction | nothing: the count arrives in its next reading, and the Hosa has already confirmed its summary's human items in its own window before continuing |
+| Kaiseki's reading shows a compaction | at its report: the report as it stands is the recovery point; run "Exit shoroku", then, if the case is open, the create request with the same brief |
+| A handover trigger fired at a boundary | run the Handover section; the successor reminds the human to `/clear` your window when it starts elsewhere |
+| Sekkei is gone before the spec review is accepted | the create request; the spec or its draft, the spec inputs, and `dialogue.md` on disk are the recovery point; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
+| Keikaku is gone before the plan is committed | the create request; the spec on the branch and the plan draft on disk are the recovery point; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
+| Kaiseki is gone before its report | verify `git status` is clean, and revert stray instrumentation if it is not; the create request; the brief and the WIP commit are the recovery point; run "Exit shoroku" first if the session is alive and coherent, otherwise record in the roster's Events that its exit shoroku did not run and what was lost |
 
-Never replace mid-batch on suspicion. Wait for the boundary, or confirm the
-session is dead first — uncommitted work may be in the tree.
+A Jisso's ceiling verdict and a compaction in its reading are no longer
+symptoms: one Jisso runs one batch, and the rotation retires it at the
+boundary. The figures are recorded in its Residency row and kept by the
+archive. Never replace mid-batch on suspicion. Wait for the boundary, or
+confirm the session is gone first — uncommitted work may be in the tree.
 
-### Delete
+### Release
 
 | When | Say |
 | --- | --- |
-| the spec review is accepted, the human's answers to the spec brief are in `dialogue.md`, and the `spec accepted:` line named the exit proposal | Sekkei is done; record its proposal's items and the spec's four sections as `pending` rows and ask for its deletion as soon as the proposal passes the form check — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
-| the `coldread answered:` line named the exit proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; record its proposal's items as `pending` rows and ask for its deletion as soon as the proposal passes the form check; a Keikaku is never reused across topics (decision-f496) |
-| Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; record its proposal's items as `pending` rows and ask for its deletion as soon as the proposal passes the form check, or keep it if more of the same bug is expected |
-| the final batch is accepted, T2's proposal is written and passes the form check, and leftovers are clean | Jisso is done; ask for its deletion at once, T2 being its exit — the recommendation, the human's check, the apply, and the merge decision run with it gone, and a merge declined with fixes wanted is a new batch on a new Jisso either way |
-| the close's apply is verified, the human has executed the merge decision, and the ledger's Progress line says closed | this plan is closed. **First, while every row still carries its Transcript column**, run `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]` over the sessions of **this topic**: every handshake the ledger's Session events accepted for it — Sekkei, Keikaku, Jisso, an attached Kaiseki — and every Kanri whose tenure overlapped it, the current one and any predecessor the Events' handover lines name, each path taken from its roster or archive row. A refused handshake has no row and no transcript and is not in the list; rows of another plan that a shared roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not of this topic and are left out. A path that is denied, `unavailable`, or on another host is skipped and named by the script, and is never read by asking the peer. Record the share line, the sessions it ran over, and the ones it skipped in the Measurements share row; the target is 30% or less. Then ask the human, in one line and in the chat's language, for the Account & Usage view's own figure for the day, and record it beside the proxy — the two are compared, not equated, since that view counts every other workspace and every subagent — and a silence is an answer and a blank. Then mark `dead` the rows of the sessions deleted at this close, move the dead, replaced, refused, and cleared rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet, fill the ledger's remaining Measurements fixed rows, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
+| a batch is accepted at loop step 6 — the plan's last implementation batch excepted, whose Jisso waits for the whole-branch review's verdict ("The final batch", step 2) | its Jisso is done; `release:` to it, its row `cleared`, the released line to the human; the next prompt goes to the next queued Jisso |
+| the spec review is accepted, the human's answers to the spec brief are in `dialogue.md`, and the `spec accepted:` line named the exit proposal | Sekkei is done; record its proposal's items and the spec's four sections as `pending` rows and send `release:` as soon as the proposal passes the form check — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
+| the `coldread answered:` line named the exit proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; record its proposal's items as `pending` rows and send `release:` as soon as the proposal passes the form check; a Keikaku is never reused across topics (decision-f496) |
+| Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; record its proposal's items as `pending` rows and send `release:` as soon as the proposal passes the form check, or keep it if more of the same bug is expected |
+| the final batch is accepted, T2's proposal is written and passes the form check, and leftovers are clean | the last Jisso is done; `release:` at once, T2 being its exit — the recommendation, the human's check, the apply, and the merge decision run with it gone, and a merge declined with fixes wanted is a new batch on a new Jisso either way; a queued Jisso that never ran is named in the same released line for the human to `/clear`, its row `cleared` |
+| the close's apply is verified, the human has executed the merge decision, and the ledger's Progress line says closed | this plan is closed. **First, while every row still carries its Transcript column**, run `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]` over the sessions of **this topic**: every handshake the ledger's Session events accepted for it — Sekkei, Keikaku, every Jisso, queued ones that never ran included, an attached Kaiseki — and every Kanri whose tenure overlapped it, the current one and any predecessor the Events' handover lines name, each path taken from its roster or archive row. A refused handshake has no row and no transcript and is not in the list; rows of another plan that a shared roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not of this topic and are left out. A path that is denied, `unavailable`, or on another host is skipped and named by the script, and is never read by asking the peer. Record the share line, the sessions it ran over, and the ones it skipped in the Measurements share row; the target is 30% or less. Then ask the human, in one line and in the chat's language, for the Account & Usage view's own figure for the day, and record it beside the proxy — the two are compared, not equated, since that view counts every other workspace and every subagent — and a silence is an answer and a blank. Then mark `dead` the rows of any session no longer listed, move the dead, replaced, refused, and cleared rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet, fill the ledger's remaining Measurements fixed rows, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
 
 The role is resident; the session that carries it is not. A plan's end is a
 boundary like any other for the run, and the next topic starts with a new topic
