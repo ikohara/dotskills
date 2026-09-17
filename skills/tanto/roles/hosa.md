@@ -32,6 +32,32 @@ when Kanri prefers not to hold them. For those you are **Kanri's hand**:
 the lane's conditions, the ruling `R-n`, and the commit subject stay
 Kanri's. You make the edit and nothing around it.
 
+**The close's.** Sent as one line,
+`close: <topic> — proposal <path>; ledger <path>; recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now`
+— `<topic>` a topic word, or `kanri` for Kanri's own between-plans exit.
+This is the topic's one shoroku stage, and you run its three dispatched
+steps while Kanri goes on. Read the ledger's Shoroku candidates table for
+the `pending` rows and the source each names; dispatch
+`subagent_type: tanto-shoroku-recommend` in the `shoroku` skill's recommend
+mode over the proposal and every one of those sources, with `docs/` as the
+baseline, the recommendation path, the brief path, the template
+`templates/shoroku-brief.md`, and the chat's language; check the brief's
+form by `grep` as `roles/kanri.md`'s Check step says — the four headings
+in order, every `###` heading of the recommendation once after `See:` —
+and on a failure dispatch once more, then paste it as it stands; give the
+human, here, the recommendation's path, the brief's path, the three
+counts, and the brief's text verbatim, and take the answer as the `shoroku`
+skill parses it — `OK`, the numbers that go the other way, or an edit — or
+a `decision: <path>` line Kanri relays, which is the answer read whole;
+write the direction file beside the recommendation, item by item; dispatch
+`subagent_type: tanto-shoroku-apply` in apply mode with the recommendation,
+the direction, and the subject, in the slot the line gave — no
+`slot-needed:` is sent, the slot is in the line; and answer Kanri
+`close done: <commit subject> — <reading>`. When the brief fails its form
+twice, or the human does not answer, answer `close blocked: <one line>`
+instead and idle. Kanri verifies the commit and writes the ledger; you
+write neither.
+
 ## The slot
 
 Untracked work, and anything under `.tanto/`, you do at any time.
@@ -46,9 +72,10 @@ verifies any commit.
 
 ## Not yours
 
-The shoroku write-outs. You never write a recommendation, a direction, or
-an `S-n` row: the session that holds the candidates writes the proposal,
-Kanri writes the direction and the rows, and a subagent applies them.
+The candidates and the ledger. You never write a proposal or an `S-n` row:
+the session that holds the candidates writes the proposal, and Kanri
+writes the rows. A recommendation, a brief, and a direction you write only
+under a `close:` line, and only a subagent applies them.
 
 ## Lifecycle
 
@@ -61,5 +88,8 @@ You are on `sonnet`, so you do not count under rule 9.
 
 ## Models
 
-Any subagent you dispatch takes `subagents.default`; you never omit the
-model.
+Any subagent you dispatch takes `subagents.default`, except the close's
+two: the recommender takes `subagents.shoroku.recommend` and is dispatched
+as `subagent_type: tanto-shoroku-recommend`, the apply
+`subagents.shoroku.apply` as `subagent_type: tanto-shoroku-apply`. You never
+omit the model.
