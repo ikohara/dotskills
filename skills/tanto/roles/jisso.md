@@ -80,12 +80,14 @@ batch is the next Jisso's. At the boundary:
    verifies the tree and rules. A batch returned for rework comes back to
    you as a prompt for the same batch; a batch accepted is your exit — the
    report's Shoroku proposal section is your exit shoroku, nothing else is
-   written, and Kanri's `release: /clear this window` follows. The one
-   exception is the plan's last implementation batch: its Jisso waits for
-   the whole-branch review's verdict, and gets either `release:` — the fix
-   wave is the next Jisso's — or, when the review finds nothing, the `T2:`
-   line below. On `release:`, tell the human to `/clear` this window and
-   end your turn: `none — /clear this window`.
+   written, and Kanri's `release: /clear this window` follows. Two batches
+   are the exception: the plan's last implementation batch, whose Jisso
+   waits for the whole-branch review's verdict and gets either `release:`
+   — the fix wave is the next Jisso's — or, when the review finds nothing,
+   the `T2:` line below; and the fix wave itself, whose Jisso does not get
+   `release:` either, but takes the `T2:` line once Kanri accepts it (see
+   "The final batch", step 5). On `release:`, tell the human to `/clear`
+   this window and end your turn: `none — /clear this window`.
 
 Everything you would otherwise say to a human goes in the report. A message is
 one line plus a path.

@@ -335,7 +335,9 @@ Then, in this order.
    prescribes: N windows, N the number of rows in the plan's Batches table
    plus one for the whole-branch review's fix wave, each running
    `/tanto jisso <name>`; the human may open more, and fewer when they will
-   be present to re-queue released windows.
+   be present to re-queue released windows — except on a plan naming its
+   final boundary as the safe one (rule 11), which asks for the full N
+   instead.
 5. Answer each handshake `queued: <n>` with a `queued` row. When the first
    is queued, write batch A's prompt from `templates/batch-prompt.md` —
    addressed to that Jisso, `First batch, no previous verdict.` in its
@@ -438,7 +440,7 @@ Per batch, in this order.
    is not accepted, and its Jisso stays live for the rework prompt, and the
    Jisso whose boundary is the plan's last waits — the last implementation
    batch's while the review is pending, and the fix wave's — see
-   "The final batch", step 2; if a
+   "The final batch", steps 2 and 3; if a
    release or a replace of another live, coherent session is due, or a
    handover trigger has fired and is not deferred, send the `exit:` lines to
    the sessions whose proposal is not already named — a Sekkei or Keikaku at
@@ -567,13 +569,16 @@ After the last implementation batch is accepted:
    printed, and the review seat goes to the cross-file contracts and the
    human-facing questions, which no script judges.
 2. Turn its findings into one more batch prompt — the final batch — and send
-   it to the next queued Jisso, as any batch. The Jisso that ran the last
-   implementation batch is the one exception to loop step 6's release at
-   the boundary: its `release:` waits for this review's verdict, and goes
-   out when the fix-wave prompt goes to its successor. When the review has
-   no findings there is no fix wave: that Jisso stays live and takes step
-   3's `T2:` line, and the spare queued window is named in the close's
-   released line for the human to `/clear`. A fix-wave list is
+   it to the next queued Jisso, as any batch. Two Jissos are the exception
+   to loop step 6's release at the boundary, not one: the Jisso that ran
+   the last implementation batch, whose `release:` waits for this review's
+   verdict and goes out when the fix-wave prompt goes to its successor; and
+   that successor, the fix-wave Jisso, who does not release at its own
+   boundary either, but takes step 3's `T2:` line once you accept the fix
+   wave. When the review has no findings there is no fix wave: the
+   last-implementation-batch Jisso stays live and takes step 3's `T2:` line
+   directly, and the spare queued window is named in the close's released
+   line for the human to `/clear`. A fix-wave list is
    drafted under the same conditions as a plan: run each command it
    specifies once before dispatching it, and compare its output with what
    the list expects. There is no second fix wave.
@@ -755,7 +760,7 @@ has one open until you close it, so it takes the in-plan procedure with the two
 exceptions steps 1 and 3 name. In a topic's spec or plan stage, with a ledger
 open and no batch in flight, it is a fresh act like the close's — the exit
 proposal written fresh from the ledger and the roster — and it commits
-nothing: as step 1 above says, nothing is recommended, checked, or applied
+nothing: as step 1 below says, nothing is recommended, checked, or applied
 at any handover.
 
 ### Timing
@@ -1325,7 +1330,7 @@ own times — "released now; a fresh Keikaku is requested at
 | When | Ask the human to | The request line carries |
 | --- | --- | --- |
 | bootstrap | nothing; the human opens a session and runs `/tanto kanri` | — |
-| a plan is committed and your cold read has no open questions | queue the plan's Jissos: N windows, N the rows of the plan's Batches table plus one for the fix wave; more if the human wants, fewer if they will be present to re-queue released windows | `/tanto jisso <name>`, N, the plan path, the branch |
+| a plan is committed and your cold read has no open questions | queue the plan's Jissos: N windows, N the rows of the plan's Batches table plus one for the fix wave; more if the human wants, fewer if they will be present to re-queue released windows — except on a plan naming its final boundary as the safe one (rule 11), which asks for the full N instead, since the queue cannot be refilled before the plan's end | `/tanto jisso <name>`, N, the plan path, the branch |
 | the queue is empty and a batch, a fix wave, or a resume needs a Jisso | queue one more Jisso — a released window serves | `/tanto jisso <name>`, the plan path, the branch |
 | the spec review is accepted | create Keikaku | `/tanto keikaku <name>`, the topic, the spec path |
 | the first batch of the current plan is accepted, or every open topic has passed its spec stage | create Sekkei for the next spec, if there is one; the human may decline | `/tanto sekkei <name>`, the topic if known |
@@ -1357,7 +1362,7 @@ confirm the session is gone first — uncommitted work may be in the tree.
 
 | When | Say |
 | --- | --- |
-| a batch is accepted at loop step 6 — the Jisso whose boundary is the plan's last excepted: the last implementation batch's while the review is pending, and the fix wave's — see "The final batch", step 2 | its Jisso is done; `release:` to it, its row `cleared`, the released line to the human; the next prompt goes to the next queued Jisso |
+| a batch is accepted at loop step 6 — the Jisso whose boundary is the plan's last excepted: the last implementation batch's while the review is pending, and the fix wave's — see "The final batch", steps 2 and 3 | its Jisso is done; `release:` to it, its row `cleared`, the released line to the human; the next prompt goes to the next queued Jisso |
 | the spec review is accepted, the human's answers to the spec brief are in `dialogue.md`, and the `spec accepted:` line named the exit proposal | Sekkei is done; record its proposal's items and the spec's four sections as `pending` rows, Source the spec's path as it stands now — rewritten at the landing if that path was a draft's ("When the plan lands", step 3) — and send `release:` as soon as the proposal passes the form check — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
 | the `coldread answered:` line named the exit proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; record its proposal's items as `pending` rows and send `release:` as soon as the proposal passes the form check; a Keikaku is never reused across topics (decision-f496) |
 | Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; record its proposal's items as `pending` rows and send `release:` as soon as the proposal passes the form check, or keep it if more of the same bug is expected |
