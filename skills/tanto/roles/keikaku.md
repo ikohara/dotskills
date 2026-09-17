@@ -90,8 +90,9 @@ writing-plans. Then add, yourself:
   `git clean`, and only Kanri decides whether it is stray;
 - the **Batches** section — batch id, three or four tasks each, what the batch
   delivers, and the stop conditions at its boundary. Size the batches so that
-  one Jisso carries a batch without growing long, and say at which boundaries
-  a planned replacement is expected, if any. A stop condition worded as a
+  one Jisso carries one without growing long: the Batches table's row count,
+  plus one for the fix wave, is what Kanri's Jisso queue is sized from, and
+  every boundary rotates. A stop condition worded as a
   property of the whole tree is backed by a command that sweeps the whole
   tree, not only the files the batch wrote;
 - **How a batch is verified**. For a plan that ships Markdown, that section
@@ -229,7 +230,7 @@ reports and prompts follow the tanto templates, and names nothing else.
    writing-plans checklist against the plan **and the dry-run report**: it
    reads the report and spot-checks a few of its commands rather than
    re-running the set, and writes `.tanto/<topic>/plan-review.md`
-   with a **Shoroku candidates** section at the end; after you have ruled,
+   with a **Shoroku proposal** section at the end; after you have ruled,
    send Kanri one line with the report path.
    Between the reviewer's dispatch and its report, and between the brief
    writer's dispatch and the human's answers, you do not edit the plan; a
@@ -283,7 +284,8 @@ coldread answered: <pointer, one per question, or none>; exit proposal: <path> �
 ```
 
 Then idle. Kanri sends you no `exit:` at this boundary; it checks the
-proposal's form, records its items, and asks for your deletion at once. The
+proposal's form, records its items, and sends you
+`release: /clear this window` at once. The
 `plan committed:`
 line is unchanged and still carries no exit clause: the cold read has not run
 when it is sent, and the human may still not want the plan.
@@ -319,16 +321,19 @@ Two more rules, one at each end of a batch boundary:
 - **Your exit shoroku.** You write it **unasked**, after the cold-read edits
   and before the `coldread answered:` line above, and you name it in that same
   line. The stage word is `exit-keikaku`, no suffix, and the proposal goes
-  to `.tanto/<topic>/exit-keikaku-proposal.md`. Your candidates are the
+  to `.tanto/<topic>/exit-keikaku-proposal.md`. Your proposal items are the
   **delta**: the first line says what the proposal excludes — the plan, the
   dry-run report, and the plan review, which are on disk for anyone to read —
   and the items are the plan dialogue's rejected alternatives with their
   reasons, the facts measured while drafting, the observations about the
-  process, and the defects noticed. Then stop there: Kanri checks the
-  proposal's form, records its items as `pending` rows, and asks the human
-  to delete you at once — no recommender runs before the topic's close,
-  where your items are recommended and checked with everything else; the
-  deletion may lag that ask, and work that reaches you in the gap — a report
+  process, and the defects noticed. Then stop there, with your closing line
+  — the plan, the dry run, and the proposal by path; the step that still
+  needs this seat, `none` — and wait for Kanri's
+  `release: /clear this window`: Kanri checks the proposal's form, records
+  its items as `pending` rows, and sends that line at once — no recommender
+  runs before the topic's close, where your items are recommended and
+  checked with everything else. On `release:` tell the human to `/clear`
+  this window and end your turn. Work that reaches you before it — a report
   that conflicts with
   the plan, a second cold-read question — is answered with a second proposal
   at
