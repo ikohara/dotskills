@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-17
 ---
 
 Expected: `SKILL.md`'s Resuming self-check ("run `ListAgents` once; find the
@@ -92,3 +92,25 @@ restart:
   definitions until a fresh session writes them. That half is issue-7c39
   (resolved); it is recorded here only because both halves were observed in
   the same event, and a future reader hitting one should expect the other.
+
+## A fourth data point, 2026-09-17, from this repository's own run
+
+An editor restart moved this session's own config directory display to
+`.claude-priv`; `ListAgents` showed a new name for every session in the
+run at once. Rather than recompute a fresh transcript path under the new
+config dir and string-compare it against the roster's stored (`.claude`)
+path, this Kanri sidestepped the mismatch by checking both directories
+directly: `.claude-priv/projects/<slug>/` and `.claude/projects/<slug>/`
+listed the same file (`c0f44500-....jsonl`), same size, same mtime, and
+the personal `tanto.json` and `agents/` under both paths were byte-identical
+— confirming the same underlying directory reached by two names (a
+junction, on this evidence, though not confirmed by a reparse-point query).
+Treating the roster's stored path as ground truth and verifying it still
+existed and was still growing was enough to conclude "still the same
+session, resumed" without ever needing the two paths to string-match. That
+manual side-step is itself evidence for the first proposed fix above
+(resolve both paths through the filesystem before comparing) over the
+"weaker signal" alternative — the session id embedded in the filename was
+available and unchanged throughout, but the ground-truth check that
+actually worked here was the roster's own path plus growth over time, not
+that filename.

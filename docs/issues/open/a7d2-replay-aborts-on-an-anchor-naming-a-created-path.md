@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-13
+updated: 2026-09-17
 ---
 
 Found by the Sekkei of the tanto-cost run while drafting
@@ -57,3 +57,28 @@ Related: issue-d0f4 (an `O` block has no survivor form), issue-c841 (the
 fences `replay` and `boundary` can see at all), issue-4eef (`diff` has no
 `exempt:` / `rewritten:` declaration, the same shape of gap on the other
 subcommand).
+
+## The scope is broader than `parsed.created`, 2026-09-17
+
+Reported from `kuchidome`
+(bug-report-passage-check-replay-aborts-on-non-w-block-paths): the same
+`fatal: path '...' exists on disk, but not in '<base>'` abort, from the
+**whole-branch review's** `replay --base <merge base>` call — `SKILL.md`'s
+one documented use of `replay` against something other than the plan's own
+starting commit. On a 36-task plan whose later tasks were authored as
+in-flight amendments, the abort fired on a path a *later task's own `W`
+block* created (not one declared `created:` at the top), and the same
+report names two further cases the proposed `parsed.created`-skip in this
+issue's own original text would not cover: a path created by an ordinary
+fenced step or a `git mv` with no passage block naming it at all. All three
+share the one root cause already named above — `replayPlan`'s base-copy
+step assumes every named path existed at `--base` — but the fix needs to be
+broader than skipping `parsed.created`: also skip a path that some `W`
+block anywhere in the plan creates, and a path named in no block at all
+that a `created:`-adjacent declaration or a `git mv` line accounts for: per
+this report's own proposed spelling, record such a block's result as
+`absent-at-base` and continue, rather than aborting. This is the only
+place a from-base `replay` is mandated by contract (a whole-branch review),
+and a plan long enough to need fix rounds or a mid-plan Kaiseki case is
+exactly the kind likely to hit it — the reviewer here had to patch a
+scratch copy by hand to get any signal at all, and the patch was not kept.
