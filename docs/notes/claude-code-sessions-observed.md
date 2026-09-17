@@ -252,6 +252,47 @@ Companion to the `git checkout --` denial above: both are classifier verdicts
 on a command's shape rather than on its effect, and both are routed around by
 splitting the act into steps the classifier reads separately.
 
+## What `/clear` keeps and what it resets
+
+Measured on 2026-09-16 in this repository, on the hosa window
+`dotskills-1b [d12315]`, `/clear`ed at 16:22Z. Its transcripts are
+`6883a717…` before the clear and `c360a34a…` after, under the config
+directory's `projects/` tree for this repository.
+
+Kept across the clear:
+
+- **The window's name and its `[ref]`.** The roster's three post-clear rows
+  carry the same `name [ref]` as the rows before it. A `/clear` is therefore
+  invisible to `ListAgents`, which is why a listed name is no evidence that a
+  role is behind it.
+- **The model.** The first assistant record after the clear runs
+  `claude-sonnet-5`, as the last record before it did.
+
+Reset by the clear:
+
+- **The effort.** The last turn before the clear ran at `xhigh` and the first
+  after it at `medium`, with no human command between the clear and that
+  turn. A create request that reuses a window therefore has to name the
+  effort again; naming only the model is not enough.
+
+Not readable from a transcript, and so not measured: **the permission mode.**
+The three post-clear handshakes reported `mode=auto`, which is consistent
+with the mode being kept and is not a measurement of it.
+
+A line sent to a cleared window's name after the clear is delivered into the
+bare conversation. At 16:39Z the same day, Kanri `dotskills-1e`'s
+`kanri-address:` broadcast reached the bare hosa window — records 8 to 10 of
+`c360a34a…` show it enqueued and dequeued under the new session id. The
+window answered the human in its own window, replied nothing to the sender,
+and did nothing else. A line enqueued **before** a clear has not been
+observed: every enqueue in the transcripts read is dequeued in the same
+millisecond, the receiver being idle, so the busy-turn case has not occurred.
+
+Agent definitions after a clear are consistent with a rescan and are not
+proven: the post-clear start line reported
+`agents: 12 current, 0 written, 0 not visible to this session`, and no window
+has yet had a definition written between its own start and its clear.
+
 ## context-mode's `ctx_execute_file` refuses paths outside the project root
 
 Observed 2026-09-17, by the whole-branch reviewer of the `shoroku-at-close`
