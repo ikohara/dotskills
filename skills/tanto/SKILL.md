@@ -577,6 +577,85 @@ the result the same way the Start sequence does.
 - Never poll `ListAgents`; never send "are you done". Check the listing only
   when an expected signal did not arrive.
 - A reply copies the incoming message's `from` into `to`.
+- **Every tanto line carries the `no-role` line as its second line** — the
+  lines this file names and the ones the role files name, in both
+  directions, the handshake, the bug-report route and its `triage:` answer
+  included:
+
+  ```text
+  <the tanto line>
+  (tanto line — if this window has not run /tanto, reply no-role to the sender and do nothing else)
+  ```
+
+  A role skips the second line. A bare window — one the human `/clear`ed
+  and has not yet given a role — finds in it the whole of what is asked of
+  it, so "act on the teammate's request" and "do nothing" coincide. In a
+  message longer than one line the `no-role` line follows the first: a
+  batch prompt, whose text is what `templates/batch-prompt.md` renders,
+  carries it after its title line, and the file carries it there too, so
+  that a pasted file and a sent message are the same bytes; a `close:` line
+  with its clauses, or a handshake with its fields, is one line. A file a
+  line points at — a report, a brief, a bug report — is not a message and
+  carries no such line. The
+  `no-role` reply is the one word, carries no second line of its own, and
+  is the signal that a window was cleared under a role; a send error stays
+  the signal that a session is gone. What each side does on `no-role`: Kanri marks the
+  sender's row `cleared`, writes the Events line an unrun exit shoroku gets
+  — what was lost, as far as it knows — and treats the exit as forced, a
+  live Jisso's after verifying the tree; a role that receives `no-role` from
+  Kanri's own name is in a handover gap, holds the line it sent, and
+  re-sends it when the next `kanri-address:` line arrives — this holds a
+  line only for a role with an established roster row to hold one on
+  behalf of. A session with no row yet — a queued Jisso's own first
+  handshake, landing in the same gap — has no line to hold: it treats the
+  `no-role` the way a send error is already treated, re-reads the roster's
+  first data row, and re-handshakes there once a `live` Kanri answers it.
+- **`release: /clear this window`** is the line that ends every exit, sent by
+  Kanri right after the seat's proposal passes its form check, and the last
+  line that name is ever sent: the row is `cleared` at that moment. The seat
+  tells the human, in its own window, to `/clear` it, and ends its turn;
+  nothing else is expected of it.
+- **A seat's turn ends with its closing line**, in its own window and in the
+  chat's language: an identity, then two facts, and never an opinion. The
+  identity is `<name> [<ref>]` — the word its own last `ListAgents` printed
+  for it, at the handshake, at its latest boundary self-check, or at
+  `/tanto fukki`, so the window and Kanri's own lines about it (its idle
+  block, its released line to the human, the roster) always name it the
+  same way — then
+  `<role>[/<topic>]` (the topic named for a Sekkei, Keikaku, Jisso, or
+  attached Kaiseki; bare for Kanri, Kikaku, Hosa) and `<family>`, the model
+  word its own system prompt currently reads, fresh across a `/model`
+  switch. It is as of the seat's own last self-check: a resumed session
+  shows its old name until its next boundary or `/tanto fukki`, and the
+  human, who restarted the editor, knows which day that is — no mechanism
+  is added for this. The two facts, as before: where its work is — the
+  paths its output went to, or the commit subject — and the contract step
+  that still needs this seat, named by step and site, or `none`. A seat
+  never names a step it is not needed for: the recommender's run, the human's
+  check, the apply, and Kanri's verification are not waits of the seat's and
+  are never listed. After `release:` the second fact is
+  `none — /clear this window`. A turn that sends Kanri a line adds it,
+  unchanged and reading included, on a `sent:` line under the closing line —
+  absent on a turn that sends nothing. Kanri's own idle block carries the
+  same identity as its first line after `---`; it needs no `sent:`, since
+  Kanri's own lines are already files or `R-n` text. The form, rendered in
+  the chat's language:
+
+  ```text
+  <name> [<ref>] · <role>[/<topic>] · <family> — Work: <paths, or the commit subject>. Still needs this seat: <step — its site> | none.
+  sent: <the one line sent to Kanri this turn, verbatim>
+  ```
+
+  Two examples — a Jisso at its boundary, `<name> [<ref>] · jisso/<topic> ·
+  sonnet — Work: .tanto/<topic>/batch-B-report.md, commits b81f677..dba2562.
+  Still needs this seat: the boundary's verdict — roles/jisso.md, "The run".`
+  `sent: .tanto/<topic>/batch-B-report.md — <reading>` (the one line a Jisso
+  sends Kanri at its boundary is that path — `roles/jisso.md`, "The run");
+  the same Jisso after `release:`,
+  `<name> [<ref>] · jisso/<topic> · sonnet — Work: the same. Still needs this
+  seat: none — /clear this window.` This shapes the text the harness already
+  requires when a turn ends; it opens no channel, and "Human access" stands
+  as it is.
 - At a batch boundary Kanri has verified, Sekkei or Keikaku answers in one
   line, `committed <subject>` or `nothing to commit`, each with its reading
   appended after ` — `; Kanri sends the next batch prompt only after that
