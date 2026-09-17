@@ -433,13 +433,44 @@ Per batch, in this order.
    rows, and send `release:` as soon as the form check passes. Nothing is
    recommended or applied before the close.
 
-   Whenever a Kikaku, Hosa, or Kaiseki row is `live` and that session has
-   reported to you and gone idle, your next line to the human — this
-   boundary's report, a create or delete request, any line — ends with
-   `— /clear <name>'s window` for a Kikaku or Hosa, or
-   `— delete <name> after its exit shoroku` for a Kaiseki. Write
-   `idle since <HH:MM>` in that row's Status, so that the reminder is not
-   forgotten across a wake-up.
+   At the end of every turn, after whatever else the turn said, write the
+   idle block — fixed, not only when something changed. Its first line
+   after `---` is your own identity, `<name> [<ref>] · kanri · <family>`
+   (`.tanto/kikaku/2026-09-17-closing-line-identity.md`, R-7), so a window
+   holding you says which Kanri; it needs no `sent:` line, since your own
+   lines are already files or `R-n` text.
+
+   ```text
+   ---
+   <name> [<ref>] · kanri · <family>
+   <topic>: <state> — <seat name | no seat> → <what comes next, and whom it waits on>
+   for you: none
+   ```
+
+   or, with an open act:
+
+   ```text
+   ---
+   <name> [<ref>] · kanri · <family>
+   <topic>: <state> — <seat name | no seat> → <what comes next, and whom it waits on>
+   for you:
+   1. <topic | —> — <the act>
+   ```
+
+   At most three topic lines, the most recently active first; a closed
+   topic leaves the block at its close. `for you:` is `none` or a numbered
+   list, one item per act the human has been asked for and has not done —
+   `—` for an act that belongs to no topic: the `/clear` of an idle Kikaku
+   or Hosa window, your own handover, a quota's return, a Kaiseki's release
+   after its exit shoroku, an answer you are waiting on. An item is a
+   pointer to the request already made, not a restatement of it. Draw the
+   block from files, never from memory: the roster's Status column — write
+   `idle since <HH:MM>` there the moment a Kikaku, Hosa, or Kaiseki reports
+   to you and goes idle, so that the reminder is not forgotten across a
+   wake-up — and each open ledger's `## Open questions for the human`,
+   which holds every open act asked of the human, one line each, added
+   when the request is made and removed when it is done. A successor Kanri
+   prints the same block from the same files.
 7. **The commit window.** One committer at a time, in this order, Jisso idle
    throughout. (a) The apply subagent's slot, which only the close fills: at
    the final batch's boundary, once `t2-direction.md` is written, dispatch
@@ -447,7 +478,7 @@ Per batch, in this order.
    direction, and the commit subject, and verify its commit as you verify any
    — `git status` clean, the diff's paths those the direction names, lint on
    them (or on the whole repository where the lint script takes no path
-   arguments). Jisso has already been deleted; it waits for nothing. At every
+   arguments). Jisso has already been released; it waits for nothing. At every
    other boundary this slot is empty. (b) Your
    own edits — the hotfix and the issues from step 4 — each committed by you
    in its turn, or handed to a
@@ -460,7 +491,7 @@ Per batch, in this order.
    the slot being this step at that boundary; Hosa's
    `committed <subject> — <reading>` is verified here like a chore's.
    (c) Tell Sekkei or Keikaku
-   the boundary is verified, naming any Kaiseki create or delete since the
+   the boundary is verified, naming any Kaiseki create or release since the
    last boundary, then wait for the one-line reply —
    `committed <subject> — <reading>` or `nothing to commit — <reading>`;
    subscribe to its idle only
@@ -470,14 +501,21 @@ Per batch, in this order.
    steps 2 to 4 of "The handover, in a plan and between plans" — your exit
    proposal was step 6's, and its items are `pending` rows in this ledger —
    and the loop stops here; the next prompt is the successor's.
-8. Write the next batch prompt from `templates/batch-prompt.md`, carrying the
+8. Write the next batch prompt from `templates/batch-prompt.md`, addressed
+   to the next `queued` Jisso in handshake order — the prompt names it, says
+   which of the plan's Jissos it is, and carries the resume line — with the
    rulings the next tasks inherit and, on its Models line, the four kinds
    Jisso dispatches — `task.implement`, `task.review-spec`,
    `task.review-quality`, and `task.escalate` — each with the family
    `tanto.json` gives it and the definition name that family is dispatched
    with, so that the prompt still says them after a compaction. Save it as
-   `.tanto/<topic>/batch-<X>-prompt.md` and send the same
-   text, without an idle subscription.
+   `.tanto/<topic>/batch-<X>-prompt.md`, send the same text to that name,
+   without an idle subscription, and mark its row `live`. A batch returned
+   for rework goes to the Jisso that ran it, as a prompt for the same batch.
+   When the queue is empty, the Create table's Jisso row's request goes out
+   instead — one window, queued by the same `/tanto jisso <name>` — and the
+   prompt waits for that handshake; the released windows are the ones to
+   offer.
 
 Steps 4, 6, and 7 are everything that needs Jisso idle or the index free, and
 they all precede the prompt that wakes Jisso. The pre-commit hooks stash every
