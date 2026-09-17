@@ -37,7 +37,7 @@ a one-liner.
 
 Keep `.tanto/<topic>/dialogue.md` as you go: each question you put
 and the human's answer, verbatim, in order. Kanri may read it at any time, the
-brief writer reads it, and T1's shoroku takes it as an input — under this
+brief writer reads it, and the close's recommender takes it as an input — under this
 protocol it is the one record of the human's own words.
 
 **A decision reaches `dialogue.md` before it reaches any document.** Write the
@@ -88,8 +88,8 @@ report to
 end. When a batch of another topic is in flight, tell it — as the orders line
 tells you — that the in-flight plan's paths are out of scope. Rule on every
 finding yourself. Scope findings go to the human; everything else is yours.
-Then send Kanri one line with the report path: Kanri adopts from its Shoroku
-candidates.
+Then send Kanri one line with the report path: Kanri records its Shoroku
+candidates as `pending` rows.
 
 Between the reviewer's dispatch and its report, and between the brief writer's
 dispatch and the human's answers, you do not edit the document; a change you
@@ -127,8 +127,8 @@ answers are in `dialogue.md` and the edits they asked for are committed — or
 are in the draft — write your exit proposal as the bullet below describes, run
 the self-check of `SKILL.md`'s Resuming, and send Kanri **one** line naming
 both: `spec accepted: <spec path>; exit proposal: <path> — <reading>`. Then
-idle. Kanri sends you no `exit:` at this boundary; it dispatches the
-recommender at once, and the
+idle. Kanri sends you no `exit:` at this boundary; it checks the proposal's
+form, records its items, and asks for your deletion at once, and the
 plan is Keikaku's from then on.
 
 ## Your write and commit rule
@@ -165,21 +165,24 @@ Two more rules, one at each end of a batch boundary:
   as the last act before the `spec accepted:` line above, and you name it in
   that same line.
   Your candidates are the
-  **delta**. T1 has not run when you exit, so the proposal's first line says
-  what it excludes — the spec, the spec review, and the dialogue, which T1
-  reads for itself — and the items are the dialogue's rejected alternatives
+  **delta**. The close has not run when you exit, so the proposal's first
+  line says what it excludes — the spec, the spec review, and the dialogue,
+  which the close's recommender reads for itself — and the items are the
+  dialogue's rejected alternatives
   with their reasons, the facts measured during the dialogue, the
   observations about the process, and the defects noticed. The stage word is
   `exit-sekkei`, no suffix, and the proposal goes to
   `.tanto/<topic>/exit-sekkei-proposal.md`. Then stop
-  there: Kanri dispatches the recommender over your proposal, and once its
-  recommendation is on disk Kanri asks the human to delete you; the deletion
-  may lag that ask. If more work reaches you in that gap — a cold-read
+  there: Kanri checks the proposal's form, records its items as `pending`
+  rows, and asks the human to delete you at once — no recommender runs before
+  the topic's close, where your items are recommended and checked with
+  everything else; the deletion may lag that ask. If more work reaches you in
+  that gap — a cold-read
   question that changes the spec, a review answer that changes it — write a
   second proposal at
   `.tanto/<topic>/exit-sekkei-2-proposal.md` holding only the delta since the
   first, and name it in the line that reports the work; a proposal you have
-  named is never rewritten, because the recommender may already have read it.
+  named is never rewritten, because Kanri may already have recorded its items.
   An exit that falls away from this boundary — a compaction in your reading, a
   replacement — still arrives as Kanri's
   `exit: propose your shoroku; write it to <path>`, and you answer
