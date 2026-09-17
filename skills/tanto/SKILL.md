@@ -718,7 +718,9 @@ standalone Kaiseki has no Kanri, and its role file says how.
 Kanri's own exit is the one exception to "only the first step": between
 plans, with no ledger open, it runs all four steps — steps 2 to 4 through
 a live Hosa by the same `close:` line, with `kanri` for the topic — and its
-apply lands on `main`; while a ledger is open, its items are `pending` rows
+apply lands where the tree is once the merge decision is executed — on
+`main` after a merge, on the plan's branch only when the human declined the
+merge; while a ledger is open, its items are `pending` rows
 in that ledger — the topic whose batches are in flight, else the oldest
 open — and wait for that topic's close. A topic the human ends before its final batch still
 gets its close, over what is on disk, with Kanri writing the proposal in

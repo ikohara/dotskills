@@ -158,7 +158,7 @@ guessed at.
 This is itself the run ADR 2 (this plan's own spec) rests its data point on —
 but as a statement about **configuration**, not about a dispatch that has
 already happened. `skills/tanto/templates/tanto.json` and this plan's own
-spec (section 4, "The kind split") both set `shoroku.recommend`'s default to
+spec (sections 2.1 and 7.1, "The kind split") both set `shoroku.recommend`'s default to
 `fable`/`high` and `shoroku.apply`'s to `opus`/`medium`; `SKILL.md`'s sibling
 `README.md` states the shape directly — `shoroku` "recommends in a subagent
 on the top family... and applies... on a cheaper one." That is the split the

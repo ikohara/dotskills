@@ -858,8 +858,9 @@ copied into the ledger, and no session re-quotes another's candidates.
    column.
 
 Where the commit lands: on the topic's branch for the close, before the
-merge decision; on `main` for your own between-plans exit, the only stage
-that lands there.
+merge decision; for your own between-plans exit, where the tree is once the
+merge decision is executed — on `main` after a merge, on the plan's branch
+only when the human declined the merge (Handover step 1's fuller rule).
 
 The apply subagent is the writer at the close. You write under `docs/` only
 through the intake's filings and the hotfix lane, and you hand those to Hosa

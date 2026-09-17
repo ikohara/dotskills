@@ -86,8 +86,9 @@ in a subagent, say — gets the same workflow in two halves, split where
 session mode waits at `Direction?`. A session-mode run is unchanged by this
 section.
 
-**Recommend mode.** Invoked with one or more sources — each a file, or a file
-and the names of the sections to read — an output path, and a baseline, the
+**Recommend mode.** Invoked with one or more sources — each a file, a file
+and the names of the sections to read, or a file with the specific items to
+read named — an output path, and a baseline, the
 `docs/` tree an item's destination and reason are judged against; and, when
 the caller wants the check brief, a brief path, a template, and a chat
 language. A caller that names several sources reads every one, since the
@@ -97,12 +98,18 @@ proposal and write the proposal to that path instead of printing it: the
 numbered items grouped under three `##` headings, in this exact
 text — `## Recommended adopt`, `## Recommended reject`, `## Unsure` —
 each item quoted in full from its source so that the
-file stands alone as the apply's input, each item under its own `###`
-heading, `### <n> — <title>`, `<n>` being the item's number in the proposal —
-unique across the file, never restarted per group; where the source is not a
-numbered proposal, as at T1, a running number in the order the items are
-written — so that a reader can point at an item by its heading and the
-human's answer names the item by the number the proposal gave it, and each
+file stands alone as the apply's input. A line in a source proposal that
+only names an `S-n` (or similarly-formed) row is a pointer, not an item to
+quote itself: follow the pointer to its own named source and quote from
+there, never the pointer line itself. Put each item under its own `###`
+heading, `### <n> — <title>`, `<n>` being one running number across the
+whole recommendation, assigned in the order the dispatch names its
+sources — unique across the whole file, never restarted per group nor per
+source proposal — and each heading naming which source it came from; where
+the source is not a numbered proposal, as for a spec's sections, a running
+number in the order the items are written — so that a reader can point at
+an item by its heading and the human's answer names the item by the number
+the recommendation gave it, and each
 carrying its destination, a
 one-line reason, the `req-<id>` pairing for a `design` entry, and — for a
 requirement or ADR item — the original wording followed by a reference
