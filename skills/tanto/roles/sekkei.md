@@ -84,12 +84,12 @@ the repo's `docs/decisions/` and `docs/requirements/`, and — as a third input
 sentences in them the design contradicts that the spec's Old values list does
 not name; ask it to check the spec against all three, and have it write its
 report to
-`.tanto/<topic>/spec-review.md` with a **Shoroku candidates** section at the
+`.tanto/<topic>/spec-review.md` with a **Shoroku proposal** section at the
 end. When a batch of another topic is in flight, tell it — as the orders line
 tells you — that the in-flight plan's paths are out of scope. Rule on every
 finding yourself. Scope findings go to the human; everything else is yours.
 Then send Kanri one line with the report path: Kanri records its Shoroku
-candidates as `pending` rows.
+proposal's items as `pending` rows.
 
 Between the reviewer's dispatch and its report, and between the brief writer's
 dispatch and the human's answers, you do not edit the document; a change you
@@ -128,8 +128,8 @@ are in the draft — write your exit proposal as the bullet below describes, run
 the self-check of `SKILL.md`'s Resuming, and send Kanri **one** line naming
 both: `spec accepted: <spec path>; exit proposal: <path> — <reading>`. Then
 idle. Kanri sends you no `exit:` at this boundary; it checks the proposal's
-form, records its items, and asks for your deletion at once, and the
-plan is Keikaku's from then on.
+form, records its items, and sends you `release: /clear this window` at
+once, and the plan is Keikaku's from then on.
 
 ## Your write and commit rule
 
@@ -164,7 +164,7 @@ Two more rules, one at each end of a batch boundary:
 - **Your exit shoroku.** You write it **unasked**, at your own final boundary,
   as the last act before the `spec accepted:` line above, and you name it in
   that same line.
-  Your candidates are the
+  Your proposal items are the
   **delta**. The close has not run when you exit, so the proposal's first
   line says what it excludes — the spec, the spec review, and the dialogue,
   which the close's recommender reads for itself — and the items are the
@@ -173,11 +173,14 @@ Two more rules, one at each end of a batch boundary:
   observations about the process, and the defects noticed. The stage word is
   `exit-sekkei`, no suffix, and the proposal goes to
   `.tanto/<topic>/exit-sekkei-proposal.md`. Then stop
-  there: Kanri checks the proposal's form, records its items as `pending`
-  rows, and asks the human to delete you at once — no recommender runs before
-  the topic's close, where your items are recommended and checked with
-  everything else; the deletion may lag that ask. If more work reaches you in
-  that gap — a cold-read
+  there, with your closing line — the spec, the dialogue, and the proposal
+  by path; the step that still needs this seat, `none` — and wait for
+  Kanri's `release: /clear this window`: Kanri checks the proposal's form,
+  records its items as `pending` rows, and sends that line at once — no
+  recommender runs before the topic's close, where your items are
+  recommended and checked with everything else. On `release:` tell the
+  human to `/clear` this window and end your turn. If more work reaches you
+  before it — a cold-read
   question that changes the spec, a review answer that changes it — write a
   second proposal at
   `.tanto/<topic>/exit-sekkei-2-proposal.md` holding only the delta since the
