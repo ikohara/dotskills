@@ -171,3 +171,19 @@ the working tree — or an option naming paths to disregard would let a batch
 report's Verification section stay a pure pass/fail instead of a per-boundary
 explanation of someone else's work in progress. The path-scope half of this
 issue absorbs it too, which is a third reader for that half.
+
+2026-09-17 — the committed-history variant of the same gap, one batch later.
+The `shoroku-at-close` run's Batch B boundary check hit the same class of
+unaccounted-file noise the fourth class above names, but from the opposite
+source: not uncommitted work at all, but a fully **committed**, already-verified
+commit landed mid-plan — the outgoing Kanri's own exit-shoroku write-out
+("docs: exit shoroku for jisso at A"), whose touched `docs/issues/open/*.md`
+files are simply not declared in the plan's own File structure. The batch report
+had to trace and explain every noisy line by hand again, exactly as at Batch A,
+for a different reason. This sharpens the scope of the issue rather than opening
+a fifth class: the gap recurs for ordinary prior commit history too, not only
+for uncommitted work, and it recurs **mid-plan** at a Kanri handover rather than
+only at the branch's two structural ends the 2026-09-16 paragraph names. A fix
+that compares against the plan's own declared path set — the path-scope half —
+covers both sources at once, which is what an exclude-list keyed to commit kind
+or to uncommitted state would not.

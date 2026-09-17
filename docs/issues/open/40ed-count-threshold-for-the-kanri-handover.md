@@ -299,3 +299,20 @@ precedes the first one. It is the same shape of gap the eighth data point above
 names for `ceiling.kanri`'s flat `per_batch` at a structurally heavier *final*
 batch — here at the *first* boundary instead, where the Replace table's
 "never at the final batch's boundary" carve-out gives no cover at all.
+
+A tenth data point, 2026-09-17, and the measurement gap it leaves open — from
+the same `shoroku-at-close` run's **replacement** Jisso (`dotskills-1f`), which
+took over mid-plan and ran Batch B. Its two readings: `context=104,635` right
+after its handshake, and `context=343,993` at Batch B's own boundary, against a
+ceiling of `213,973`. Unlike the ninth data point above, this tenure cannot
+split "onboarding reading" from "batch-loop cost", because no reading was taken
+between the two — only handshake-time and the batch boundary exist for this
+session. That matters because a replacement Jisso's own onboarding is a
+different cost shape from a fresh Start's Start-sequence reading: instead of the
+Start sequence, it reads Kanri's orders line, the conductor ledger, the existing
+SDD workspace's `progress.md` (confirming the prior batch's state rather than
+re-deriving it), the batch prompt, and the new batch's own task text before its
+first dispatch. Whether that is cheaper than a fresh Start's reading, and by how
+much, this run's data cannot say. The ask for next time: a Jisso taking over
+mid-plan should record one reading at exactly "onboarding done, before the first
+dispatch", as the comparable counterpart to the ninth point's own figure.
