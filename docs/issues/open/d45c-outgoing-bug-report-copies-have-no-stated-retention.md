@@ -32,3 +32,8 @@ copy is then the durable record; or (b) give the outgoing side the same
 dated-and-indexed shape the inbox already has
 (`.tanto/sent/<YYYY-MM-DD>-<slug>.md`), so a long-lived repository does not
 grow an unbounded flat file list with no way to tell what is still open.
+
+Second data point, from a re-send of the same report two Kanri tenures later
+(2026-09-17): the file count grew from 32 to 44, including the report of this
+very defect, which itself sat unsent from its own draft until this later
+send — the retention gap applies to a report about itself.
