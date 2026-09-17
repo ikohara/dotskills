@@ -171,7 +171,8 @@ Four steps, in this order.
    `sessions.<role>.effort`. A mismatch of either is one line to the human
    saying which of the two differs and what runs.
 2. Check the roster and the listing — no live roster row for that role and
-   topic, and the
+   topic, a Jisso handshake with a live Jisso row being queued rather than
+   refused, and the
    `name [ref]` the handshake carries appears in `ListAgents`.
 3. Write or rewrite that role's roster row.
 4. Reply with the role's standing orders as **one line carrying the variables**.
@@ -186,8 +187,11 @@ Four steps, in this order.
    - Keikaku gets the topic, the spec path — committed, or the draft Sekkei
      left — the plan path, and its standing grant,
      `human-access: granted — the plan dialogue — until the plan is committed and the cold read answered`.
-   - Jisso gets
-     `orders: plan=<path> ledger=<path> branch=<b>; read roles/jisso.md in the tanto skill directory`.
+   - Jisso gets `queued: <n>` — its place in the plan's queue, in handshake
+     order — and a roster row with status `queued`. Its orders are its batch
+     prompt, which the loop sends when its turn comes and which names the
+     plan, the ledger, and the branch. A Jisso handshake with no plan landed
+     is premature and is refused like any other.
    - Kaiseki gets the brief path, or `no brief, stop` in a smoke test.
    - Kikaku gets your address and the open topics, if any. Hosa gets your
      address, one line, "tracked files only in a slot I give", and its
@@ -201,11 +205,23 @@ Four steps, in this order.
 A handshake whose `transcript=` equals a row's Transcript column is that
 session resumed under a new name, not a second session: rewrite the row in
 place with the new name and `[ref]`, status `live`, write the Events line
-`resumed: <old name> → <new name>`, and send nothing but your address. Step 2's
-one-live-row-per-role check does not refuse it.
+`resumed: <old name> → <new name>`, and send nothing but your address — a
+`queued` row keeps its status, and its reply is `queued: <n>` again. Step
+2's one-live-row-per-role check does not refuse it.
 
-A second handshake for a role and topic that already has a live row, or a
-model mismatch, gets **no row**: record it in the roster as `refused` with an
+A handshake whose name is already on a `live` or `queued` row with a
+different transcript is that window `/clear`ed and re-invoked, in any role
+— the rule the roster template stated for Kikaku and Hosa, now every
+role's. Mark the old row `cleared`: with the Events line an unrun exit
+shoroku gets when no `release:` had been sent to it, and, when the old row
+was the live Jisso's, after verifying the tree as the Replace table's first
+row says, the next queued Jisso then resuming the batch. Write the new row
+and answer as for any handshake. Expect nothing about which role a released
+window takes next: the same, another, or your own successor.
+
+A second handshake for a role and topic that already has a live row — a
+Jisso's excepted, which joins that topic's queue while one Jisso is live —
+or a model mismatch, gets **no row**: record it in the roster as `refused` with an
 Events line saying which, and tell the human. An effort mismatch alone refuses
 nothing: the row is written with the effort that runs, because `/effort` is
 the human's to change in that window and the roster records what is there.
@@ -213,7 +229,15 @@ A Jisso whose `mode=` is not `auto` also
 earns a one-line warning to the human that a batch may stall on a Bash or
 commit prompt; peer messages themselves are unaffected.
 
-Dispatch nothing to a session that has no accepted roster row.
+Send nothing to a name whose roster row is not `live`: a `queued` Jisso
+waits for the batch prompt that makes it live, a `cleared` one is a bare
+window, and a session with no accepted row is nobody's. A reply of
+`no-role` from a name you sent to means that window was `/clear`ed before
+your line arrived: mark its row `cleared`, write the Events line an unrun
+exit shoroku gets — what was lost, as far as you know — and treat the exit
+as forced; when the row was the live Jisso's, verify the tree first as the
+Replace table's first row says, and send the next queued Jisso the resume
+prompt.
 
 When the human gives you scope input during spec work, relay it to Sekkei as a
 file, not as a paraphrase: append a numbered `I-n` item with your advisory note
