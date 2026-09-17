@@ -127,7 +127,7 @@ new under `docs/issues/`; only these two existing files are touched.
 | Boundary | Reading |
 | --- | --- |
 | Opening (2026-09-15) | Kanri `context=179645` |
-| Batch A (2026-09-17) | Kanri `context=420475` (over 210713, present); Jisso `context=296542` (over 210523, present) |
+| Batch A (2026-09-17) | Kanri `context=420475` (over, present, handover fires); Jisso `context=296542` (over, present, replace fires) |
 | Handover acceptance (2026-09-17) | Kanri (successor `dotskills-ff`) `context=126737`, fresh post-handover baseline |
 | Batch C (2026-09-17) | Kanri (`dotskills-26`) `context=342377` (over 213704, present at 59 min); Jisso (`dotskills-99`) `context=282349` (over 213715, present) |
 
@@ -155,12 +155,26 @@ form either time — the same gap `tanto-project-config`'s own dogfood report
 already named (issue-b673) — so it is excluded from the tally rather than
 guessed at.
 
-This is itself the run ADR 2 (this plan's own spec) rests its data point on:
-the close's recommend half runs on the top family (`spec.review`,
-`plan.review`, `plan.coldread` all opus or fable) while the apply-shaped work
-— every task implementation, every exit-shoroku apply — runs on `sonnet`. The
-recommend half and the apply half are not symmetric in this run, which is
-exactly the asymmetry issue-52fd's own second-measurement variable is about.
+This is itself the run ADR 2 (this plan's own spec) rests its data point on —
+but as a statement about **configuration**, not about a dispatch that has
+already happened. `skills/tanto/templates/tanto.json` and this plan's own
+spec (section 4, "The kind split") both set `shoroku.recommend`'s default to
+`fable`/`high` and `shoroku.apply`'s to `opus`/`medium`; `SKILL.md`'s sibling
+`README.md` states the shape directly — `shoroku` "recommends in a subagent
+on the top family... and applies... on a cheaper one." That is the split the
+close's own recommend and apply will run under once dispatched — not a claim
+that they already have. Step 1 already established neither has run yet, and
+none of `spec.review`, `plan.review`, or `plan.coldread` (the three-dispatch
+tally just above) is a `shoroku.recommend`/`shoroku.apply` dispatch; they are
+separate, unrelated plan-stage review kinds, counted above only as other
+top-family one-shots this topic made, not as evidence about the close. (One
+live deviation is already on record for whoever reads this later:
+`tanto-sweep-2`'s own R-20 moved `shoroku.recommend` to `opus` for that
+topic's own T2, per issue-52fd's own text — this topic's close, whenever it
+runs, will show in its own Session events line whichever value is live at
+that moment, which this report does not predict.) The recommend half and the
+apply half are configured asymmetrically in this run, which is exactly the
+asymmetry issue-52fd's own second-measurement variable is about.
 
 ## What this report does not cover, and why
 
