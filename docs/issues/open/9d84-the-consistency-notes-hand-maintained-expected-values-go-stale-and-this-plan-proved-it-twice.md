@@ -137,3 +137,19 @@ Recording rather than fixing is what that task's own Done-when asked for. The
 measured figures above are the input to what resolves this issue: a dedicated
 cleanup task or small plan against the note itself, never a fold-in to some
 later plan's unrelated scope.
+
+**2026-09-18, `seat-lineage` — a third instance, and the one the close
+corrected.** Check 6's position 19,
+`grep -cF 'the human by grant' skills/tanto/SKILL.md`, still read `3` in the
+note while the live tree had read `4` since before the `seat-lineage` branch
+was cut: all four Roles-table rows (Sekkei, Keikaku, Jisso, Kaiseki) carry the
+phrase, traced by `git blame` to the 2026-09-13 commit that named seven roles
+and eight ids in `SKILL.md` — four days earlier. That plan's own Task 1 touched
+the same table row's other columns but not this phrase, and the fix wave's H5
+fix touched only position 4 (`kanri-address:`), not this one.
+
+The correction landed with the `seat-lineage` close, so this instance is
+closed; it is recorded because it is the third of the same failure class, and
+because the drift survived a plan that edited the very row it sits in. The
+measured figures paragraph above already predicted this exact value (`the human
+by grant` 3 to 4).

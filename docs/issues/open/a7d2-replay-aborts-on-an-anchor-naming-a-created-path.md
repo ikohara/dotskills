@@ -82,3 +82,25 @@ place a from-base `replay` is mandated by contract (a whole-branch review),
 and a plan long enough to need fix rounds or a mid-plan Kaiseki case is
 exactly the kind likely to hit it — the reviewer here had to patch a
 scratch copy by hand to get any signal at all, and the patch was not kept.
+
+**2026-09-18, `seat-lineage` — a second measured instance, the `git mv`
+destination case, and a reviewer's confirmation.** That plan's Tasks 34 and 35
+name anchors (`A34.1`, `A34.2`, `A35.1`) whose `<path>` does not exist at
+`--base` — one a `git mv` destination, one a brand-new file — and `replay`'s
+base-copy step threw on the first of them, aborting the whole run. `--task`
+does not narrow the copy step, so scoping the run does not avoid it. The
+workaround used was a **scratch copy of the plan truncated before those two
+tasks** for every dry run; it cost the plan itself nothing, because `verify` —
+what actually runs at execution — never reads an anchor's `path` field.
+
+The whole-branch reviewer hit the same abort independently and added the
+consequence that matters beyond the tooling: the whole-branch review step's own
+prescribed `replay` command is **not runnable as written** on a plan of this
+shape, so a role file prescribes a command that fails.
+
+The proposed tolerance is the one `W`-kind whole-file blocks already have,
+extended to `A`-kind anchors: where the path does not exist at base, skip the
+copy and continue — the anchor's own command is self-contained.
+
+`passage-check.js`'s `diff` command shares the same root cause from the other
+side; that half is issue-4eef.

@@ -50,3 +50,16 @@ blocks matched the plan's, and reconstructed from the plan; tasks 18 and 19
 did the same once the dispatch said so explicitly. The convention this
 issue asks for should say so in this exact form: reconstruct from the
 tracked plan, and check the brief against it — not the other way around.
+
+**2026-09-18, `seat-lineage` — self-reported diff statistics deserve an
+independent recount.** Task 22's implementer report miscounted its own diff's
+hunks: it claimed 5, and the actual diff had 3, git's own context merging having
+coalesced them. The task's spec reviewer caught it on a recount; everything else
+in that report verified correct, so this is a report inaccuracy rather than a
+code defect.
+
+It is a small vindication of this issue's own argument. A reviewer that
+reconstructs the diff mechanically recounts the hunks as a by-product, where a
+trust-and-move-on read of the report does not — and on any task with several
+nearby edits, coalescing makes the implementer's own count the least reliable
+number in its report.

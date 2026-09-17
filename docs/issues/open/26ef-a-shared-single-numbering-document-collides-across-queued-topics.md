@@ -36,3 +36,13 @@ Related: issue-bf75 (a plan under review can move) is the adjacent hazard on
 the plan's own text rather than on a shared document's numbering.
 
 A tooling and protocol gap, not a user-stated need, so no paired requirement.
+
+**2026-09-18, `seat-lineage` — the second measured instance, and what the
+resolution costs.** Two branches each appended a "ninth data point" to
+`issue-40ed` independently, and the merge conflict between them had **no
+mechanical resolution**: the two sides could only be read whole and reconciled
+by hand, renumbering for uniqueness. That is the fact this issue did not yet
+carry. A plan or a role file that predicts a same-file conflict of this shape
+should say "reconcile by hand, expect full-file context", not merely warn that
+the collision can happen — the warning suggests a cheap fix and there is
+none.

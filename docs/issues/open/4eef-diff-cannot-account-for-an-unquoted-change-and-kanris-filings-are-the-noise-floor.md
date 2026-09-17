@@ -52,3 +52,16 @@ of prose in the batch report accounts for them
 for"). A `rewritten:` declaration, covering both the added and the removed
 side of a mandated-but-unquoted change, is exactly what this instance needs
 too.
+
+**2026-09-18, `seat-lineage` — the fix wave's own boundary check, and the
+shared root cause with `replay`.** `diff` produces a long, fully expected
+"unaccounted" list for any batch that is not one of the plan's own numbered
+tasks: Task 34's frontmatter bump, and the whole fix wave's own text, both
+authorized and neither quoted as a `P` block. The tool has no notion of any
+authorized edit outside the plan's own quoted passages, which is the same
+underlying gap `replay` has from the other side — issue-a7d2, where the
+instrument assumes every path it handles existed at `--base`.
+
+Stated once for both commands: the tool understands the plan's own passages and
+nothing else that is authorized. A `rewritten:` declaration, already proposed
+above, is the `diff` half; the `A`-block tolerance is the `replay` half.

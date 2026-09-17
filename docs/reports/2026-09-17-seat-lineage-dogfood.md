@@ -172,4 +172,66 @@ for this plan.
 
 ## Measurements appended at T2
 
-Added by this topic's close, once the fresh-start check has run and the Residency rows are final.
+Added by this topic's close.
+
+### The opus/max Sekkei trial
+
+Two figures were asked for at T2 by the trial's own decision file, and
+decision-03f9 is the accepted ADR whose body cannot take them.
+
+**The dialogue side.** The spec dialogue ran four questions — Q1 to Q3 plus one
+re-put — and six design sections to an accepted design, with two riders from
+the human (the design section's name; a later-topic remark that became this
+topic's own section 2) and one request to re-explain.
+
+**The review side.** The `spec.review` seat (fable) returned 28 findings on the
+draft: 1 scope, 7 high, 17 medium, 3 low. All 7 high and 15 of the 17 medium
+were sentences the design contradicts that the draft's per-file passages did
+not cover — misses of coverage, none of them a contradiction inside the design
+or with the human's own decisions. The scope finding was bookkeeping (the
+amended ADRs unnamed), and the 3 low were wording. Every old text the draft
+quoted matched the tree. The human's check answered `all OK` to a 27-point
+brief with no pushback on the design.
+
+The two topics this is compared with are `shoroku-at-close` and
+`tanto-project-config`, both of which ran Sekkei on fable.
+
+### R-2: a spec against a projected tree cost zero rework
+
+Designing against the post-merge tree through another plan's `→` blocks — the
+first topic to do so at sites that plan was still landing — needed a
+section-9 table of eleven sites and the plan's re-quote rule. No passage had to
+be redrafted when that plan's Tasks 6 to 9 landed: every quoted `→` block
+matched the committed text.
+
+The moving-branch risk the design was built for then materialized twice on the
+plan side, and the same mechanical check caught both: two further commits on
+the branch reworded text the plan's whole-section-replace tasks quote verbatim
+as their old block, and `replay`'s `occurrence-count` check failed on the first
+and confirmed the second harmless. Neither drift was visible by inspection. The
+drafting practice this yields is in `docs/notes/authoring-a-passage-plan.md`.
+
+### The review seats' division of labor
+
+The per-task review loop found every coverage gap that lived **inside** a
+task's own file, and none of the seams that live **between** a task's new text
+and a case another file states — all five of the whole-branch review's
+Important findings were of the second kind. The whole-branch seat is where
+those surface, and the fix wave is the right cost for them. One run, with the
+numbers behind it; design-4807 can cite this if a second run repeats it.
+
+### A cross-model-tier corroboration point
+
+The confirmatory opus-tier quality review ordered after tasks 30 and 31's
+original reviews ran on sonnet by mistake independently re-derived both of that
+round's findings from scratch, with no prior context, and reached conclusions
+identical to the Jisso's own `git blame` investigation. A small, concrete data
+point on cross-model-tier agreement for factual and arithmetic verification
+work, for the next time this run's model-tier choices for `task.review-quality`
+are reconsidered.
+
+### Residency
+
+The run's Residency rows were not carried into this close's direction, so they
+are not recorded here; issue-e496 tracks the one-row-per-session rule that
+governs them.

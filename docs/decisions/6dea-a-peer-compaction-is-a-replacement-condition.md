@@ -5,7 +5,7 @@ status: accepted
 supersedes: []
 superseded_by: null
 amends: ["de63"]
-amended_by: ["eee2"]
+amended_by: ["eee2", "ea95"]
 created: 2026-09-09
 updated: 2026-09-14
 ---

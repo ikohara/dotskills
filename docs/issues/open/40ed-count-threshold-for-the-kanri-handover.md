@@ -360,3 +360,12 @@ fired at every one of them — a 100% hit rate across the topic's whole run, not
 merely "usually". As far as that run's ledger was read, it is the first plan in
 this run's own history where every single batch boundary crossed it, which is a
 new kind of point for the threshold dataset above.
+
+**2026-09-18, `seat-lineage` — a close-shaped boundary costs more than any
+implementation batch.** That Kanri tenure's one boundary was batch E plus the
+whole T2 close — the whole-branch review, the recommend, the check, the apply,
+the merge, the hotfix, and the archive move — and it was a heavier cost shape
+than any of the plan's own four implementation-batch boundaries. This is the
+close-side twin of the "final batch costs more" finding above: the threshold
+dataset needs a class for a boundary that is a close, not only for one that is
+a batch.

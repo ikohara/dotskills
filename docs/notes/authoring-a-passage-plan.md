@@ -49,6 +49,15 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   the stated `0` was wrong in both directions at once. Stating a disposition
   without counting it on the tree the check will run against is a boundary
   failure nobody intends and no later step re-derives.
+- **Run the plan's retired-string list over any text pasted from an amendment
+  or a decision file, before it becomes a `P` block.** Such text describes the
+  *pre-plan* tree, and pasting it verbatim installs the vocabulary the plan is
+  removing. Measured on `seat-lineage`: an R-7 fold-in copied a decision file's
+  own wording, "Kanri's delete requests", into text the plan installs — where
+  delete requests no longer exist. `plan.review`'s scoped pass caught it before
+  the commit, and the drafter's own second amendment fold, done the same way
+  earlier, happened to be clean but was never swept. The sweep is the rule;
+  being shown the miss is not.
 
 ## An entity-level sweep beside the phrase-level one
 
@@ -163,6 +172,41 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   hits, and both `twelve`-sites were confirmed absent. A positive data point
   for the bet that a fresh seat can follow a catch-up's written orders without
   the drafting session's memory — the orders were enough.
+- **Re-run `replay` after every edit of the plan, not once at the dry run's
+  start.** Measured on `seat-lineage`, where the risk of drafting against a
+  moving branch materialized **twice** and the same mechanical check caught
+  both: two further commits on the branch being drafted against each reworded
+  text that the plan's whole-section-replace tasks quote verbatim as their old
+  block. Neither drift was visible by inspection — the first surfaced only
+  because `replay`'s `occurrence-count` check failed after an amendment
+  fold-in, and the second was confirmed harmless the same way. A drafter who
+  runs `replay` once, at the start of the dry run, commits a plan with a stale
+  quote and finds out when `verify` fails mid-execution.
+- **When the target file is under another plan's concurrent edits, a rigid
+  anchor on today's tail goes stale; "grep, then append" is the shape that
+  holds.** On `seat-lineage`, a task appending a section to
+  `docs/notes/tanto-consistency-checks.md` declined the `P`-block conversion
+  its plan review suggested, because that file was still being edited by
+  another open plan and an anchor on its exact tail would have gone stale the
+  moment that plan touched it again — which it then did, twice, before this
+  plan's branch was even cut. The flexible shape held under exactly the
+  condition it was designed for; the judgment is worth restating as a
+  confirmed call rather than a hedge.
+- **A plan large enough to rewrite its own skill has structurally more seams
+  of two specific kinds, and a cold read finds them.** Nine cold-read
+  questions on one `seat-lineage`-sized plan is a high count, and eight of the
+  nine traced to two root causes rather than to nine independent misses. The
+  first: *a passage written once and referenced from elsewhere goes stale
+  exactly where it is referenced, not where it is written* — the spec's
+  Amendments treatment, the Verification section's cross-reference, and a
+  fresh-start check's inherited but unearned claim. The second: *a plan's own
+  execution has phases the plan does not otherwise model* — the close happens
+  after the plan's own last commit, and a whole-branch review's fix wave is a
+  conditional extra batch that neither the Global Constraints nor the Batches
+  table accounted for. Name both as a size-class observation for the next
+  drafter of a plan against its own skill's lifecycle; it is not a fault of
+  the run's care. (issue-7281 is a different variable — task size against
+  context cost — and issue-96f2 is the tool-side of the second cause.)
 
 ## A block must survive its destination's linter
 

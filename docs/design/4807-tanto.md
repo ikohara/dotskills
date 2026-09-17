@@ -2,7 +2,7 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-09-17
+updated: 2026-09-18
 ---
 
 ## Purpose and shape
@@ -207,6 +207,26 @@ invocation as the human pasted it, and the roster's first data row. Every other
 role's address is known only to Kanri, from the handshake, and Kanri is the only
 session that sends to Sekkei, Jisso or Kaiseki.
 
+**Kanri sends only to `live` rows, and a queued seat reads nothing until its
+batch prompt** — decision-76a6. The Jisso queue (below) puts N windows on the
+roster at the plan's landing, and a queued row is an address that exists and is
+deliberately never used: the window is sent no `kanri-address:` broadcast, and
+it reads no plan and no spec while it waits. A broadcast to the run's windows
+therefore costs the waiting ones nothing, which is req-04f5's "a seat that
+waits holds the minimum context". The batch prompt is the whole start contract
+for a rotating Jisso, which is why it carries the setup a resume would
+otherwise supply, Kanri's own name and ref included.
+
+**Every tanto line carries a `no-role` second line** — decision-78e4. Because
+windows are reused rather than closed, a line can reach a window that has been
+`/clear`ed and not yet given its next role; a bare window answers the human in
+its own window and replies nothing to the sender, so the run cannot learn of it
+from the wire. The guard is therefore in the message rather than in the host: the
+second line of every line tells a window with no role to say so and act on
+nothing. Three configuration placements were declined — the personal
+`CLAUDE.md`, the repository `AGENTS.md`, and both — because a rule in either
+file cannot ride to the other repositories the human runs tanto in.
+
 A name is not durable, and that is why the **transcript path** is the identity a
 resume keeps. Measured 2026-09-09: a resumed conversation keeps its context, its
 session id and its transcript file, comes back under a new name and `[ref]`, and
@@ -269,6 +289,15 @@ it". The instrument was wrong for the question: settling it needs a behavioral
 probe, a task whose output differs by effort level, not a transcript-field read.
 See `docs/reports/2026-09-14-tanto-cost-dogfood.md`, section 8.
 
+**The effort check's `warns only` is what makes a reused window safe.**
+Measured 2026-09-16 and recorded in `docs/notes/claude-code-sessions-observed.md`:
+a `/clear` **keeps the model and resets the effort**. Under window reuse
+(req-04f5) a seat therefore starts its next role on the right family and at
+whatever effort the window fell back to, so a check that switched or stopped on
+an effort mismatch would stop a correctly-reused window at every role change.
+decision-08bc's warn-only rule, chosen for the model check, is what carries the
+effort half safely.
+
 The skill ships built-in defaults, one value per fixed key, derived from the
 family ladder. A personal file overlays them key by key, so a partial file is
 complete and an absent file is the all-defaults case. Each role says once, at
@@ -313,6 +342,15 @@ will one day be read from. The archive is untracked and dies with the workspace,
 so each plan's T2 direction carries the run's Residency rows into the dogfood
 report, which is where the readings survive.
 
+**The clear rule is every role's, and `dead` is left for the unlisted** —
+decision-ded8. `cleared` entered the roster for Kikaku and Hosa, the two seats
+the human `/clear`s rather than deletes; with every window reused it now covers
+a release in any role. `replaced` is kept for a Kanri's superseded row alone —
+a retired Jisso's released window is `cleared` like any other release, because
+one status per fact is what keeps the archive rule readable. `dead` survives for
+a window that is gone without ever having been on the roster. Three small
+drifts this vocabulary left on the roster template are tracked as issue-7f28.
+
 The address book gained a **Transcript** column with the same change. It holds
 the path each role's handshake carried, and it is the identity that survives a
 resume, so a handshake whose `transcript=` matches a row is that row's session
@@ -331,20 +369,20 @@ sibling repositories of the same machine, whose bug reports converged on closely
 related findings and reached this repository's intake within the same hour.
 
 Between plans there is no
-ledger, so the roster also carries a Shoroku candidates table with the ledger's
-columns, and Kanri moves the unwritten rows into the new ledger when a topic
-opens.
+ledger, so the roster also carries a Shoroku proposal items table with the
+ledger's columns, and Kanri moves the unwritten rows into the new ledger when a
+topic opens.
 
 The conductor ledger is Kanri's, and Sekkei, Jisso and Kaiseki read it without
 ever writing it. It holds the progress line, the plan's locations and the
 hotfixes since the previous plan, the batches table, the rulings, the shoroku
-candidates, the session events, the open questions for the human, and the
+proposal items, the session events, the open questions for the human, and the
 measurements. No plan basename exists before the plan is committed, so the
 ledger starts under a topic directory and moves to the plan's workspace when the
 plan lands; only the ledger moves, and the topic directory stays as the
 spec-phase record.
 
-The ledger's shoroku-candidate table has a **Written** column, holding `no` or
+The ledger's Shoroku proposal items table has a **Written** column, holding `no` or
 the subject of the commit that wrote the row out, and a Stage column that now
 carries `t2` for every row, whichever moment raised it, since the close is the
 one stage that recommends a ledger's rows; `exit-<role>[-<suffix>]` names a
@@ -429,10 +467,25 @@ collapsing the first three by making the topic the plan basename.
 **When the plan lands.** Cold-read the committed spec whole and the plan's
 **frame** and send Sekkei one line per open question; move the ledger to the
 plan's workspace and note the move in the roster's events; record Keikaku's exit
-proposal as `pending` rows and ask for its deletion; ask the human to create
-Jisso — nothing gates Jisso's start but the plan; on Jisso's handshake reply with the
+proposal as `pending` rows and ask for its release; ask the human to create the
+**whole Jisso queue** in one list — nothing gates a Jisso's start but the plan;
+on the first Jisso's handshake reply with the
 standing-orders line, then write the first batch prompt from its template and
 send it.
+
+**The Jisso queue** — decision-ea95. The create request at the landing asks for
+N = batches + 1 windows, and the rotation is fixed: one fresh Jisso per batch,
+in queue order, with the spare seat standing in for a Jisso lost mid-batch.
+That is what removes the replacement decision from every boundary and puts the
+whole ask in front of the human while they are present (req-04f5). The queued
+windows cost nothing while they wait, under the addressing rule above; what
+the editor pays for N idle windows is unmeasured and is issue-6c44. One case
+takes the full N and cannot be topped up: a plan that edits this skill and
+names its final boundary as the only safe one for a start cannot open a window
+mid-plan under rule 11, so a Jisso lost on such a plan is a ruling put to the
+human rather than a routine request. Each batch's Jisso is **released at its
+own boundary**, not held for a list at the close — decision-6930 — because a
+released window is the queue's next seat.
 
 The cold read is Kanri's largest single input and it stays in context for the
 rest of the run, so it reads the **frame** — everything outside the task steps,
@@ -458,7 +511,7 @@ than reading it whole.
 
 **The loop, per batch**, in this order: wait for the report line, never poll;
 verify the tree *before* reading the report; read the report
-and rule, adopting or rejecting each shoroku candidate; **triage any bug report
+and rule, adopting or rejecting each shoroku proposal item; **triage any bug report
 that arrived during the batch**; report one line to the human; **check the
 lifecycle tables and the handover trigger**, running the proposal half of a
 session exit if one is due; **the commit window**, one committer at a time with
@@ -529,8 +582,9 @@ reason that only applies while an implementer exists.
 Kanri is resident, so its only exit is a handover — decision-de63. Four
 signals fire one, checked at every boundary: at loop step 6 while a plan is in
 flight, and between plans at the start of every turn. **The plan close** is the
-ordinary one of the four — decision-b6cb: after T2, the merge decision, the
-peers' deletion, and the archive move, the handover runs without a threshold
+ordinary one of the four — decision-b6cb, as decision-5ec7 amends it: after T2,
+the merge decision, the peers' **release**, and the archive move, the handover
+runs without a threshold
 and without asking, because the close is the moment with nothing in flight and
 the record complete, and a resident session's per-turn cost is its age, so the
 reset is a planned step rather than a question put to the human once a plan
@@ -559,9 +613,12 @@ figure of the reading it takes at every trigger check — a figure it had not
 noticed counts as noticed when it reads it.
 
 **A peer's compaction is a replacement condition too** — decision-6dea, which
-amends decision-de63 by symmetry. One compaction in Jisso's reading means
-replacement at the next boundary, in Sekkei's at its next commit, in Kaiseki's
-at its report, and in each case the exit shoroku runs first. The rejected
+amends decision-de63 by symmetry. One compaction in Sekkei's reading means
+replacement at its next commit, in Kaiseki's at its report, and in each case the
+exit shoroku runs first. Jisso's half of that rule no longer has a case:
+decision-ea95 replaces every Jisso at its own boundary regardless, so a
+compaction in a Jisso's reading is a measurement rather than a trigger, and
+whether `ceiling.jisso` still earns its keep is issue-6620. The rejected
 alternative was to keep the evidence-of-loss condition and merely record the
 compaction; the reason for symmetry is that a summary standing in place of the
 conversation is the loss, whatever its size. The trade is real and was made
@@ -795,7 +852,7 @@ so the human can paste it if the message did not arrive.
 A **batch report** carries the plan and branch header, a tasks table, every
 ruling made in order with what it costs if wrong, deviations from the plan,
 parked findings and deferred minors, the verification commands and their
-results, the mandatory shoroku candidates, a section for Kanri with the rulings
+results, the mandatory shoroku proposal items, a section for Kanri with the rulings
 it needs and what to verify in the tree, the questions for the human, and one
 line on what comes next. Kanri reads four of those sections first, and the batch
 prompt names which four. The questions section is the only one written in the
@@ -823,7 +880,7 @@ bisect. It **commits once, at its own exit, and only the accepted subset of its
 exit shoroku under `docs/`** — the earlier rule that Kaiseki never commits and
 never writes documents is retired by decision-d831. Its report tags every other
 defect it noticed as blocking this task or not, and a non-blocking one becomes a
-shoroku candidate Kaiseki writes out itself at its exit.
+shoroku proposal item Kaiseki writes out itself at its exit.
 
 Kaiseki is a **session rather than a subagent** because the strong model leads
 hard debugging interactively, with the human free to join — debugging often
@@ -845,7 +902,7 @@ After the last implementation batch is accepted, **Kanri** dispatches the
 whole-branch review — not Jisso — so the executor never commissions its own
 final review. The reviewer gets a review package over the merge base and a
 pointer to the parked findings and deferred minors, and it is asked for a
-shoroku-candidates section like every other report.
+Shoroku proposal section like every other report.
 
 Its findings become one more batch prompt. Jisso dispatches **one** fix subagent
 with the complete findings list, runs **exactly one** scoped re-review of the fix
@@ -900,21 +957,43 @@ was genuinely free to disagree rather than merely told it was.
 **The write-out into this document system happens once per topic, at its
 close** — decision-7e0d. The stage keeps the word `t2`. Every other moment of
 a run — a spec accepted, a plan landed, a session's exit, a batch boundary, a
-review, a Kaiseki report — produces candidates and nothing else. T0 and T1 no
+review, a Kaiseki report — produces proposal items and nothing else. T0 and T1 no
 longer exist: the input document's decided items become ADRs at the topic's own
 close, and the requirements and issues the spec produced land there too.
 
-A candidate is recorded as a `pending` row of the conductor ledger's `S-n`
-table, and **the row is a pointer, not the candidate**: one line whose Source
-column names the file the candidate lives in and the item within it — a
-report's path and item number, an exit proposal's path and number, a spec's
-path and section heading. Nothing is quoted into the ledger, so recording a
-candidate costs the recording session one line.
+**The four steps are Propose, Recommend, Check and Apply**, a seat's section is
+a "Shoroku proposal" and the ledger's and roster's two tables are "Shoroku
+proposal items" — decision-2db1. The word "candidate" is retired throughout the
+skill, because a heading is a machine pointer here and two words for one thing
+is a silent miss rather than a matter of style; renaming the steps and leaving
+the headings was weighed and rejected for exactly that reason.
 
-The close runs the four steps of decision-ce83 once. Jisso **writes**
+A proposal item is recorded as a `pending` row of the conductor ledger's `S-n`
+table, and **the row is a pointer, not the item**: one line whose Source
+column names the file the item lives in and the item within it — a
+report's path and item number, an exit proposal's path and number, a spec's
+path and section heading. Nothing is quoted into the ledger, so recording an
+item costs the recording session one line.
+
+**The rows are what carry a seat's lineage** — decision-c787. With one Jisso
+per batch, a topic's implementation seat is a succession of sessions rather
+than one, and the `pending` rows are how their items reach the single close:
+no proposal file rolls from seat to seat and none is renamed at the close.
+Each retiring Jisso's own exit shoroku is the **Shoroku proposal section of its
+batch report** — decision-d125 — so a batch boundary creates no file of its
+own, and the form check the boundary already runs covers the exit.
+
+The close runs the four steps of decision-ce83 once. The last Jisso **writes**
 `.tanto/<topic>/shoroku-proposal.md` — the `pending` rows listed by number
 without re-quotation, plus what its own context holds that no file does — and
-idles; Kanri checks the proposal's form and asks for Jisso's deletion at once.
+idles; Kanri checks the proposal's form and releases the seat at once. Dropping
+the T2 proposal too, and naming the SDD ledger as a source in its place, is a
+real option parked for a stated reason as issue-915a.
+
+**`release:` follows the form check directly, at every seat** —
+decision-0ea5. Nothing runs at an exit that a session could be asked back for,
+so the recommender is never placed before the release; a recommender that finds
+an item unclear resolves it from the sources the row points at.
 The proposal is a **pointer list plus the delta** rather than a re-quotation
 because the re-quotation would run through Jisso's context, which is exactly
 what the writer/applier split exists to avoid. Then one **recommend**: the
@@ -947,9 +1026,15 @@ oldest open one — and hands over; the rows wait for that topic's close. An ite
 that plainly belongs to another open topic is still recorded there and named
 `<topic> S-n` from the other, as the ledger rule already allows. The rows are
 not split by topic at the exit, because the outgoing Kanri is the seat least
-able to afford the read that splitting them would take. Between plans, with no
-ledger open, the four steps run and the apply lands on `main` — the only stage
-left that lands there — with steps 2 to 4 delegated by the same `close:` line.
+able to afford the read that splitting them would take.
+
+**There is no between-plans write-out** — decision-5ec7, amending
+decision-b6cb. Kanri's proposal is written at every plan close, before the
+recommender runs, and that is the only occasion on which its items leave the
+ledger. The between-plans lane the `shoroku-at-close` design carried is gone,
+because it was a second human check per close against the one-check-per-topic
+rule of decision-7e0d. A Kanri that retires with no ledger open leaves its rows
+for the next topic's close.
 
 **A topic the human ends before its final batch closes the same way**: Kanri
 runs the close over what is on disk, writing the T2 proposal in Jisso's
@@ -973,14 +1058,14 @@ the Kikaku decision file its orders line names, for what `docs/` does not yet
 hold.
 
 **The writer of a write-out is a dispatched subagent, not the session that
-raised the candidates.** No session applies the accepted subset of its own
+raised the items.** No session applies the accepted subset of its own
 proposal, at any stage or at any exit. Two things follow: a session is
-**deletable as soon as its proposal is on disk**, which is what lets an exit
+**releasable as soon as its proposal is on disk**, which is what lets an exit
 stop waiting for its own write-out; and the clerical work of applying
 frontmatter rules never runs on a resident context of the strongest family,
 which is the cost this shape exists to avoid.
 
-**A T2 proposal that classifies a candidate against an existing open issue is
+**A T2 proposal that classifies an item against an existing open issue is
 a claim to verify, not to accept on its framing.** Measured on 2026-09-12: the
 executor proposed appending a finding to an existing issue and flagged its own
 uncertainty; Kanri read that issue's actual body — not only the proposal's
@@ -997,6 +1082,22 @@ the write-out commit's subject carries a fixed prefix so the whole-branch review
 package can exclude exactly those commits. A session that does not answer its
 exit lines before its idle notice is treated as a forced exit, and the roster's
 events say what was lost.
+
+**A seat's closing line is two facts and a negative rule** — decision-2497,
+which closes issue-f293's cause. The line names where the seat's work landed
+and which step of the contract, if any, still runs through it, and states no
+opinion of the seat's own necessity. It is written from an English form and
+rendered in the chat's language, which is the same reader/input split the
+review brief makes: the form is what the skill pins and checks, the rendering
+is what the human reads.
+
+**The second check this design removes is the close's and the between-plans
+one, not the in-plan handover's.** The measured wait the decision file cites —
+4 to 128 minutes for a seat held for a document check — was already solved for
+the in-plan handover case by `shoroku-at-close`, before this topic opened. What
+this topic removes is the remaining two. The attribution matters because a later
+reader comparing the before and after figures would otherwise credit one topic
+with the whole of a gain that two produced.
 
 ## Deviations from the composed skills
 
@@ -1040,6 +1141,15 @@ the line and every role reads the contract.
 `<plan-basename>` is the single notation for the plan's workspace directory;
 `<plan>` was retired from the skill's prose because it was never defined and
 read as a path to the plan file.
+
+The word **"candidate" was retired the same way** — decision-2db1. A seat's
+section is a "Shoroku proposal", the ledger's and the roster's tables are
+"Shoroku proposal items", and the four steps are Propose, Recommend, Check and
+Apply. The sweep covered the whole skill rather than the step names alone,
+because these headings are what a `sections` call matches on, so a second
+spelling left anywhere reads as an absent section rather than as a style
+inconsistency. Ledgers written before the rename keep the old word in their own
+rows.
 
 Two rules were derived from real defects, and both are cheap to check
 mechanically; both held under a second plan:
