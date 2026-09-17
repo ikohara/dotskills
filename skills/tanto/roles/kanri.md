@@ -1365,8 +1365,8 @@ Every role sends its reading with its boundary and exit lines, and Jisso's
 and Kaiseki's reports carry it; copy each into that role's Residency row at
 loop step 6, with the boundary it was read at and the `context=` figure in the
 Context column. A reading you doubt — a
-session whose report lost a ruling with `0 compactions`, one whose ceiling
-line decides a replacement, or one that sent
+session whose report lost a ruling with `0 compactions`, your own whose
+ceiling line decides a handover, or one that sent
 `unavailable` — you may verify by running `node "$TANTO/scripts/reading.js"`
 yourself on the path that role's Transcript column holds, with `--role jisso`
 when it is Jisso's ceiling line you are checking, and only when that path is
@@ -1390,6 +1390,8 @@ in each other window, in any order; no address is pasted. Mark `dead` only a
 row whose session neither `ListAgents` lists nor re-handshakes by the time the
 human says the windows are done. Verify the tree if a batch was in flight, then
 ask for the roles still missing, in this order: Jisso only if a batch is in
-flight, Kaiseki only if a bug is open, Keikaku only if a plan is in progress,
+flight and no `queued` row re-handshook — the next queued Jisso resumes the
+batch otherwise, as the Replace table's first row says — Kaiseki only if a
+bug is open, Keikaku only if a plan is in progress,
 Sekkei only if a spec is in progress. Kikaku and Hosa you do not ask for: they
 are the human's to reopen, and your part is the reminder.
