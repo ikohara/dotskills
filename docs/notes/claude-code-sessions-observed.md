@@ -251,3 +251,21 @@ neither half on its own is the thing being refused.
 Companion to the `git checkout --` denial above: both are classifier verdicts
 on a command's shape rather than on its effect, and both are routed around by
 splitting the act into steps the classifier reads separately.
+
+## context-mode's `ctx_execute_file` refuses paths outside the project root
+
+Observed 2026-09-17, by the whole-branch reviewer of the `shoroku-at-close`
+run, on this host.
+
+Two constraints, both of which bite a reviewer trying to process `replay`
+output:
+
+- `ctx_execute_file` refuses a path outside the project root, so a scratchpad
+  under the system temp directory is unreachable from it.
+- its shell wrapper prepends `NODE_OPTIONS=…` to the command line, which breaks
+  a command whose first token must stay first — a leading `for … ; do` loop,
+  for instance, becomes a syntax error.
+
+The working forms: write intermediate output into a scratch directory *inside*
+the working directory, and fall back to the Bash tool for anything that starts
+with a shell control word.

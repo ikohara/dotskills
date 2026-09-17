@@ -2,7 +2,7 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-09-16
+updated: 2026-09-17
 ---
 
 ## Purpose and shape
@@ -241,13 +241,22 @@ residency verdicts Kanri and Jisso act on come out of it — `ceiling.kanri` and
 `ceiling.presence_minutes` and `ceiling.share_threshold`.
 
 **A kind carries an effort as well as a model, and the two bind by different
-routes.** The twelve kinds are named `<object>.<act>`, and each role renders one
+routes.** The thirteen kinds are named `<object>.<act>`, and each role renders one
 agent definition per kind at its start, into `~/.claude/agents/tanto-<object>-<act>.md`
 (the `.` becoming a `-`; `$CLAUDE_CONFIG_DIR/agents/` when that variable is
 set). The definition carries the kind's `effort` and no `model`: the family
 comes from the dispatch's own `model` parameter, which takes precedence, while
 the effort comes from the file. A dispatch therefore names
 `subagent_type: tanto-<object>-<act>` and `model: <family>` together.
+
+**Where the set of kinds is actually pinned.** No script enumerates it:
+`scripts/reading.js` reads only the `ceiling` map, so a plan that adds or
+splits a kind has no script to edit. The set lives in exactly three places —
+the skill's own prose, `templates/tanto.json`'s `subagents` map, and check 8
+of `docs/notes/tanto-consistency-checks.md`, whose assertion is the only
+mechanical guard. A kind split — `shoroku` into `shoroku.recommend` and
+`shoroku.apply`, decision-0352 — is therefore a prose-and-JSON edit plus one
+check's expected value, and nothing else.
 
 The effort half is **measured-unconfirmed**, and this entry states that rather
 than asserting it works. The 2026-09-14 dogfood dispatched a probe on a
@@ -336,8 +345,10 @@ plan lands; only the ledger moves, and the topic directory stays as the
 spec-phase record.
 
 The ledger's shoroku-candidate table has a **Written** column, holding `no` or
-the subject of the commit that wrote the row out, and a Stage column that accepts
-`T0`, `T1`, `T2` and `exit:<role>[-<suffix>]`. Every write-out takes only adopted
+the subject of the commit that wrote the row out, and a Stage column that now
+carries `t2` for every row, whichever moment raised it, since the close is the
+one stage that recommends a ledger's rows; `exit-<role>[-<suffix>]` names a
+proposal file and is never a Stage value. Every write-out takes only adopted
 rows marked `no`, so nothing is written twice. Both live in
 `templates/kanri.md`; the ledger of the 2026-09-07 run predates the column and
 carries the same state inside its Adopted cell, so a reader of that workspace
@@ -345,12 +356,12 @@ should not expect the seventh column there.
 
 Two more workspace artifacts belong to the spec phase. **`dialogue.md`**, under
 the topic directory, is Sekkei's: each question it put to the human and the
-human's answer, verbatim, in order. Kanri, the brief writer, and the T1
+human's answer, verbatim, in order. Kanri, the brief writer, and the close's
 write-out read it, which is the point — the human's own words reach them
 without Sekkei's paraphrase in between. Its caveat is worth stating, because the
 skill calls it the one record of the human's own words while it lives untracked
 under `.superpowers/sdd/`: it survives only as long as the workspace, and its
-content becomes durable only when T1 writes it out. **`review-brief-spec.md`**
+content becomes durable only when the topic's close writes it out. **`review-brief-spec.md`**
 and **`review-brief-plan.md`**, beside the review reports in the same directory,
 are the brief writer's, written from `templates/review-brief.md` in the chat's
 language; Kanri reads them for form and the human reads them through Sekkei.
@@ -417,8 +428,9 @@ collapsing the first three by making the topic the plan basename.
 
 **When the plan lands.** Cold-read the committed spec whole and the plan's
 **frame** and send Sekkei one line per open question; move the ledger to the
-plan's workspace and note the move in the roster's events; do the T1 write-out;
-ask the human to create Jisso; on Jisso's handshake reply with the
+plan's workspace and note the move in the roster's events; record Keikaku's exit
+proposal as `pending` rows and ask for its deletion; ask the human to create
+Jisso — nothing gates Jisso's start but the plan; on Jisso's handshake reply with the
 standing-orders line, then write the first batch prompt from its template and
 send it.
 
@@ -496,7 +508,7 @@ for them. Sekkei answers that line with `committed <subject>` or
 The side channel runs the other way too, through a file rather than a message:
 the spec dialogue happens in Sekkei's window under a standing grant, and its
 words reach Kanri through `dialogue.md`, not through Sekkei's summary of them.
-That is what lets Kanri's T1 reading be mechanical and what gives the brief
+That is what lets Kanri's reading at the plan's landing be mechanical and what gives the brief
 writer the human's own answers to select from. One step of Sekkei's own
 belongs between the last design section and the spec: sweep every settled
 option for a "when" or "who" that rode inside the option text unexamined —
@@ -885,22 +897,64 @@ was genuinely free to disagree rather than merely told it was.
 
 ## Shoroku staging, session exits, and the adoption rule
 
-The write-out into this document system is staged rather than done once at the
-end. T0, before the design session is created, turns the input document's
-decided items into ADRs on the main branch. T1, after the plan commit and before
-the executor is created, files the requirements and issues the spec produced.
-T2, after the final batch, records the design, the rulings, and the dogfood
-report.
+**The write-out into this document system happens once per topic, at its
+close** — decision-7e0d. The stage keeps the word `t2`. Every other moment of
+a run — a spec accepted, a plan landed, a session's exit, a batch boundary, a
+review, a Kaiseki report — produces candidates and nothing else. T0 and T1 no
+longer exist: the input document's decided items become ADRs at the topic's own
+close, and the requirements and issues the spec produced land there too.
 
-Every stage runs the same four steps: the session that holds the candidates
-**writes** them to a file; Kanri dispatches the `shoroku` kind in recommend mode
-to produce a **recommendation**, each item grouped as recommended adopt,
-recommended reject, or unsure; the human **checks** it by exception, answering
-`OK` or naming the items that go the other way; and Kanri writes the direction
-and dispatches the `shoroku` kind again to **apply** and commit in a slot.
+A candidate is recorded as a `pending` row of the conductor ledger's `S-n`
+table, and **the row is a pointer, not the candidate**: one line whose Source
+column names the file the candidate lives in and the item within it — a
+report's path and item number, an exit proposal's path and number, a spec's
+path and section heading. Nothing is quoted into the ledger, so recording a
+candidate costs the recording session one line.
+
+The close runs the four steps of decision-ce83 once. Jisso **writes**
+`.tanto/<topic>/shoroku-proposal.md` — the `pending` rows listed by number
+without re-quotation, plus what its own context holds that no file does — and
+idles; Kanri checks the proposal's form and asks for Jisso's deletion at once.
+The proposal is a **pointer list plus the delta** rather than a re-quotation
+because the re-quotation would run through Jisso's context, which is exactly
+what the writer/applier split exists to avoid. Then one **recommend**: the
+`shoroku.recommend` kind over Jisso's proposal and every source the `pending`
+rows name, with `docs/` as the baseline, writing the recommendation and the
+check brief. One **check**: the brief, verbatim, answered by exception — or by
+a Kikaku decision file whose third section names the recommendation and answers
+it, which is that stage's Check answer (decision-9cc5). One **apply**: the
+`shoroku.apply` kind, on the topic's branch, before the merge decision.
 Adoption is therefore a recommendation the human checks rather than a ruling
 Kanri makes as their delegate — the amendment to decision-1f5f, which holds the
 original reasoning and the alternatives.
+
+**Steps 2 to 4 are a live Hosa's** — decision-a1ae. Kanri delegates them with
+one `close:` line naming the proposal, the ledger, the recommendation, the
+brief, the direction file, the commit subject, and the slot, and is then free
+to hand over: the human's check has unbounded latency, and paying for it out of
+Kanri's tenure and context is what this delegation removes. Hosa pastes the
+brief in its own window under the chores grant it already holds, writes the
+direction file, dispatches the apply, and answers `close done:` or
+`close blocked:`. Kanri, or the successor it handed over to meanwhile, verifies
+the commit and fills the ledger's Adopted and Written columns. With no Hosa
+live, Kanri runs the three steps itself, and its close line suggests opening
+one.
+
+**Kanri's own in-plan exit writes rows, not a stage.** While any ledger is
+open, Kanri writes its proposal from the ledger and the roster and records its
+items as `pending` rows in **one** ledger — the in-flight topic's, else the
+oldest open one — and hands over; the rows wait for that topic's close. An item
+that plainly belongs to another open topic is still recorded there and named
+`<topic> S-n` from the other, as the ledger rule already allows. The rows are
+not split by topic at the exit, because the outgoing Kanri is the seat least
+able to afford the read that splitting them would take. Between plans, with no
+ledger open, the four steps run and the apply lands on `main` — the only stage
+left that lands there — with steps 2 to 4 delegated by the same `close:` line.
+
+**A topic the human ends before its final batch closes the same way**: Kanri
+runs the close over what is on disk, writing the T2 proposal in Jisso's
+absence, and the apply lands on the topic's branch whether or not the merge
+decision takes that branch.
 
 The check arrives in the chat's language at the check step, and the reason it
 had to is a fact about the text rather than about the checker: the measured
@@ -909,8 +963,14 @@ slow check faster by giving the checking session a stronger model. What is
 being checked serves two readers at once — the apply subagent, which quotes the
 recommendation in full and needs it in the repository's language, and the
 human, who only has to decide — which is the same reader/input split the review
-brief already makes, and the reason a single file doing both duties reads
-slowly. issue-c17a holds the deferred full form of that split.
+brief already makes. That split is now built: the recommendation is the apply's
+input and the check brief is the human's, written from the same judgment in the
+same run.
+
+**Cost accepted.** `docs/` reflects a topic's requirements, ADRs, and issues
+only at its close. A concurrent topic's Sekkei reads the spec on the branch, or
+the Kikaku decision file its orders line names, for what `docs/` does not yet
+hold.
 
 **The writer of a write-out is a dispatched subagent, not the session that
 raised the candidates.** No session applies the accepted subset of its own
@@ -1310,8 +1370,8 @@ boundary rather than by the plan's own instruments.
   the sweep terms first and the table from them.
 - **An absence sweep must state its scope, and scope it to the tree it asserts
   about.** A sweep written over `skills docs` to prove a superseded string is
-  gone collides with the write-out the same plan produces: T1, T2 and every
-  exit shoroku write ADRs and design records that *necessarily quote the text
+  gone collides with the write-out the same plan produces: a topic's close
+  writes ADRs and design records that *necessarily quote the text
   they supersede*, so the check goes red on a clean tree by construction.
 - **A plan's count prose is not a checksum.** Six count defects landed across
   one plan — a step's expected counts, four "the N that follow" leads, a
@@ -1667,7 +1727,7 @@ which of the five happened without reading the ledger.
 
 ## Why the exit shoroku has no template of its own
 
-The proposal and direction files are the T2 split's two files under different
+The proposal and direction files are the close's own two files under different
 names, and the batch report already prescribes their shape. A tenth template
 would restate a skeleton that two role files and the ledger's stage values
 already fix, and a skeleton nobody copies drifts from the procedure that does the

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-16
+updated: 2026-09-17
 ---
 
 Found by the Jisso of the `tanto-project-config` run while dispatching task 8's
@@ -41,3 +41,17 @@ hits a sweep-and-check task does not improvise the same pattern from scratch.
 Adjacent but not the same: issue-71bf (the never-idle-for-a-human prohibition
 not naming sweep-and-check tasks), issue-e916 (a single-sited contract — the
 same failure mode for different guidance).
+
+**2026-09-17, the positive instance — what the guidance catches.**
+`shoroku-at-close`'s Task 11, the dogfood report, is a clean worked example of
+`roles/jisso.md`'s "re-run the checks rather than trust the report" instruction
+catching something a diff-only read would have missed. Both of that fix cycle's
+Important findings — a contradiction between "the close hasn't run" and a
+sentence implying it had, and a sourcing rule the table itself did not follow —
+are claims about *what a document asserts*, not about a passage's literal text;
+an ordinary diff-based spec-compliance read would have had nothing to diff
+against, since no plan passage covers that file's prose. Both reviewers
+independently re-derived the ledger figures and the `tanto.json` and spec
+sources rather than trusting the implementer's transcription, and that is
+specifically what surfaced both findings. It is the example to cite when the
+guidance moves into `roles/jisso.md`.

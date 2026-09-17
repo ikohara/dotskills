@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-16
+updated: 2026-09-17
 ---
 
 Measured at the tanto-sweep run's batch A boundary (2026-09-10), by Kanri.
@@ -150,3 +150,62 @@ non-task commits appear, and how many — so the boundary reader compares agains
 a number instead of against zero. The path-scope half of the gap would also
 absorb both kinds, since neither touches the plan's declared paths; the two
 options differ in whether the expectation is written down or derived.
+
+2026-09-17 — a fourth class, and one the base half cannot reach at all:
+uncommitted work. `passage-check.js diff` compares the plan's declared old/new
+text against the **live working tree**, not against committed history alone, so
+any concurrent, uncommitted activity elsewhere in the shared tree shows up as
+`unaccounted-added` / `unexplained-removed` noise at every boundary until that
+other activity resolves, exit code 1 included. Observed by the
+`shoroku-at-close` run's Jisso at its Batch A boundary: Kanri's own unrelated,
+uncommitted `docs/issues/` edit — present since before Task 1 started — was the
+single source of every noisy line. Nothing was wrong (Kanri confirmed it as its
+own in-flight T0 work in the same message that accepted the batch), but the
+batch report had to spell out by hand that every noisy line traced to one
+unrelated file.
+
+This one is untouched by the base-commit form and by the plan-commit-base
+option above, since both name a *commit* and the noise is not committed at all.
+A `diff` mode that compares committed history only — against `HEAD` rather than
+the working tree — or an option naming paths to disregard would let a batch
+report's Verification section stay a pure pass/fail instead of a per-boundary
+explanation of someone else's work in progress. The path-scope half of this
+issue absorbs it too, which is a third reader for that half.
+
+2026-09-17 — the committed-history variant of the same gap, one batch later.
+The `shoroku-at-close` run's Batch B boundary check hit the same class of
+unaccounted-file noise the fourth class above names, but from the opposite
+source: not uncommitted work at all, but a fully **committed**, already-verified
+commit landed mid-plan — the outgoing Kanri's own exit-shoroku write-out
+("docs: exit shoroku for jisso at A"), whose touched `docs/issues/open/*.md`
+files are simply not declared in the plan's own File structure. The batch report
+had to trace and explain every noisy line by hand again, exactly as at Batch A,
+for a different reason. This sharpens the scope of the issue rather than opening
+a fifth class: the gap recurs for ordinary prior commit history too, not only
+for uncommitted work, and it recurs **mid-plan** at a Kanri handover rather than
+only at the branch's two structural ends the 2026-09-16 paragraph names. A fix
+that compares against the plan's own declared path set — the path-scope half —
+covers both sources at once, which is what an exclude-list keyed to commit kind
+or to uncommitted state would not.
+
+2026-09-17 — the same class, compounding across batches. The
+`shoroku-at-close` run's Batch C boundary check traced its noise to **two**
+prior exit-shoroku commits at once — batch A's own exit commit ("docs: exit
+shoroku for jisso at A") and batch B's own exit commit ("docs: exit shoroku for
+jisso at B") — where each of the Batch A and Batch B checks traced to a single
+commit. The set grows rather than resetting: every batch's own exit commit
+joins what each later boundary must re-explain by hand, so a run accumulates
+the noise instead of paying it once per boundary, and Batch D's check will face
+three once this exit's own commit lands. The path-scope fix this issue already
+proposes absorbs the whole set at once, which per-commit rulings do not.
+
+**2026-09-17 — the reconciliation is done twice, by two sessions, and its cost
+grows with the plan.** At `shoroku-at-close`'s Batch D boundary both Jisso (in
+its own report) and Kanri (independently, before reading that report) ran the
+same `diff --base <the plan's original base>` and reconciled the same nine
+flagged files against the same six commits — the largest such reconciliation
+that plan produced, since the base is fixed at the plan's start and every later
+boundary's exit-shoroku commits accumulate in the flagged set. Two readings of
+one growing set per boundary is the cost trend for the path-scope fix this issue
+proposes; the cheaper interim is trusting a Jisso report's own reconciliation
+more directly at a late boundary rather than fully re-deriving it.

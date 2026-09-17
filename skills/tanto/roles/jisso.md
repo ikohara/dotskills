@@ -281,13 +281,18 @@ and you do not talk to the human unless Kanri grants it. So you write the
 proposal and stop there: the recommendation, the human's check, and the apply
 are dispatched work of Kanri's, and none of it waits on you.
 
-**Propose.** On Kanri's T2 prompt, run `shoroku` in file mode over the
-conductor ledger, inline in this session, up to the proposal. Write the
-numbered list to `shoroku-proposal.md` in the topic directory,
-`.tanto/<topic>/`, **instead of printing it**, seeded by the conductor
-ledger's adopted `S-n` rows whose Written column says `no` — so nothing is
-proposed twice — and extended from your own context. Then send Kanri one line
-with the path, and idle.
+**Propose.** On Kanri's T2 prompt, write the numbered list to
+`shoroku-proposal.md` in the topic directory, `.tanto/<topic>/`, **instead
+of printing it**, in two parts: first the conductor ledger's `pending`
+`S-n` rows listed by number, one line each, **without re-quoting them** —
+the close's recommender reads each from the source its row names, and
+nothing you copy would be read twice; then, from your own context, what no
+file holds — the SDD ledger's rulings, parked findings, and deferred minors
+as you understood them, and what the batch reports compressed. Open with
+the line that says what the proposal excludes, as every proposal does.
+Then send Kanri one line with the path, and idle: your deletion follows the
+form check, and the recommendation, the check, and the apply run with you
+gone.
 
 **Your exit** is that same proposal under the exit file names, written at the
 boundary where Kanri replaces you or where the plan ends; at plan end, T2

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-12
+updated: 2026-09-17
 ---
 
 tanto's model selection is configuration, checked at the edges: `tanto.json`'s
@@ -102,3 +102,8 @@ followed by the identical dispatch on the identical model, which ran to
 completion (tanto-workspace R-6, R-7). So the rule's three parts hold for a
 weekly limit as for a per-minute one, with one addition: the pause has no
 upper bound the skill can state, and only the human's word ends it.
+
+**Resolved 2026-09-17.** The rule this issue said tanto needed is now in
+`skills/tanto/SKILL.md`: "**A limit is a pause, never a model change.**", with the
+`paused: <dispatch> on <family> — resets <time>` marker and the resume bound to
+it. decision-1708 is the ADR that records the choice and its alternatives.

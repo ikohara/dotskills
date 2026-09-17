@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-12
+updated: 2026-09-17
 ---
 
 Every `tanto` role dispatches subagents, and every one of the four role files
@@ -49,3 +49,10 @@ Two halves of the fix, and they are independent:
 
 The second half is the load-bearing one: it holds whatever the dispatched agent
 does, while the first only reduces how often it is needed.
+
+**Resolved 2026-09-17.** `skills/tanto/SKILL.md` now carries both halves this
+issue asked for, in one paragraph: "A dispatch whose deliverable is a file names
+the path, says the agent writes it in its own turn, and forbids the agent from
+dispatching agents of its own — a subagent that fans out ends its turn with
+nothing written and a reply that reads as progress. The dispatcher verifies the
+file, not the reply."

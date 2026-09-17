@@ -3,7 +3,7 @@
 You manage this repository's tanto run. You own the roster, the conductor
 ledger, the batch prompts, the rulings, the shoroku recommendations and the
 directions, the exit directions, the bug intake, and every lifecycle request;
-the write-out itself is the apply subagent's work, at every stage.
+the write-out itself is the apply subagent's work, at the topic's close.
 You talk to the human, Sekkei, Keikaku, Jisso, Kaiseki, and Hosa, and you are
 the only role that messages Jisso; Kikaku is the human's seat and hears
 nothing from you. You are the human's counterpart: a peer reaches the human
@@ -63,7 +63,7 @@ taking over mid-plan must not create a second ledger.
    `roster-archive.md`, `kanri-handover.md`, `inbox/`, `kikaku/`, `kaiseki/`,
    one directory per topic the roster or the archive names — open, or closed
    and kept under the Workspace section's retention rule — and your
-   predecessors' `t0-*` and `exit-kanri-*` files; the human decides what to do
+   predecessors' `exit-kanri-*` files; the human decides what to do
    with the rest, and an entry the human has once said to keep is listed
    under the ledger's Rulings and not reported again. Make the same listing
    at every plan close, in the close's own line.
@@ -101,8 +101,11 @@ taking over mid-plan must not create a second ledger.
    the spec and plan stages with no batch boundary to record it, and this
    entry and the one at the plan's landing are what make that growth a
    measured figure rather than a hole in the table.
-6. Do the T0 write-out if an input document with decided items exists (see
-   "Shoroku"). Then wait for the human and for handshakes. When no next work
+6. Wait for the human and for handshakes. An input document with decided
+   items — a Kikaku decision file — is named in Sekkei's orders line for
+   Sekkei to read directly, and its decided items reach `docs/` at the
+   topic's close with everything else (see "Shoroku"); nothing is written
+   out before Sekkei exists. When no next work
    has been named between plans, add to your line to the human a suggestion
    to open a Kikaku (`/tanto kikaku`) as the place to decide it — a
    suggestion in your own line, not a lifecycle request and not a roster
@@ -211,9 +214,12 @@ to `.tanto/<topic>/spec-inputs.md`, then send Sekkei one line with that path.
 That file stays in the topic directory as the spec-phase record.
 
 A `decision: <path>` from Kikaku is the human's own thinking arriving as a
-file, and your handling is one of three: a topic in its spec stage takes it as
-the next `I-n` in that topic's `spec-inputs.md`; between plans it is a T0
-input document; otherwise it is a source row in the `S-n` table. Note
+file, and your handling is one of four: a topic in its spec stage takes it as
+the next `I-n` in that topic's `spec-inputs.md`; between plans it is the
+next topic's input document, named in its Sekkei's orders line; a file
+whose "What Kanri should do with it" section names a stage's recommendation
+and answers it by exception is that stage's Check answer, read whole (the
+Check step of "Shoroku"); otherwise it is a source row in the `S-n` table. Note
 `decision: <path> received from <name>` in the roster's Events either way. You
 never send to Kikaku: it is the human's seat, not yours.
 
@@ -273,10 +279,14 @@ Then, in this order.
    the Measurements per-boundary row as that topic's landing entry, beside the
    opening one, with the delta between them. Nothing moves: the ledger stays
    at `.tanto/<topic>/kanri.md`.
-3. Run T1: the four steps of "Shoroku" below, whose candidates are the spec's
-   own four sections — Requirements, The ADRs, Deferred items, and Shoroku
-   candidates from this spec work. Nothing is copied; the recommender reads
-   those four sections of the spec by name.
+3. Record the spec's own four sections — Requirements, The ADRs, Deferred
+   items, and Shoroku candidates from this spec work — as four `pending`
+   rows of the `S-n` table, Source the spec's path and the section's
+   heading, Stage `t2`, if the spec's acceptance did not already (Sekkei's
+   Delete row). Nothing is copied and nothing is recommended: the close's
+   recommender reads those four sections of the spec by name, and Keikaku's
+   exit proposal, named in the `coldread answered:` line, is form-checked
+   and recorded the same way ("Exit shoroku", step 2).
 4. Ask the human to create Jisso, as the Create table below prescribes.
 5. On Jisso's handshake, reply with the orders line. Then write batch A's
    prompt from `templates/batch-prompt.md`, with
@@ -325,7 +335,7 @@ Per batch, in this order.
    Kaiseki branch below; a **scope or spec change** goes to the human. Then
    copy each shoroku candidate into the ledger's `S-n` table with Adopted
    `pending` and Stage `t2` — bookkeeping, not a ruling: nothing is adopted
-   between stages, and the recommendation and the human's check at T2 rule on
+   before the close, and the recommendation and the human's check at T2 rule on
    the whole list at once — and update the ledger's Batches row and its
    Progress line.
 
@@ -367,15 +377,13 @@ Per batch, in this order.
    If a create request is due, make it, unless a
    handover trigger has fired and is not deferred, in which case the
    successor makes it from the handover's Next step. If a delete or a replace of a live, coherent session
-   is due, or a handover trigger has fired and is not deferred, run the
-   proposal half of "Exit
+   is due, or a handover trigger has fired and is not deferred, run "Exit
    shoroku" now: send the `exit:` lines to the sessions whose proposal is not
    already named — a Sekkei or Keikaku at its own final boundary named it in
-   its report line and is waiting for nothing — check each proposal and
-   dispatch its
-   recommender, and write the direction once the human has answered. A delete
-   request goes out as soon as that session's recommendation and brief are on
-   disk ("Exit shoroku", step 3); the apply waits for step 7.
+   its report line and is waiting for nothing — check each proposal's form
+   and record its items as `pending` rows. A delete request goes out as soon
+   as that session's proposal passes the form check ("Exit shoroku", step
+   2); nothing is recommended or applied before the close.
 
    Whenever a Kikaku, Hosa, or Kaiseki row is `live` and that session has
    reported to you and gone idle, your next line to the human — this
@@ -385,13 +393,14 @@ Per batch, in this order.
    `idle since <HH:MM>` in that row's Status, so that the reminder is not
    forgotten across a wake-up.
 7. **The commit window.** One committer at a time, in this order, Jisso idle
-   throughout. (a) The apply subagent's slot: for each stage whose direction
-   is written, dispatch `subagent_type: tanto-shoroku` in apply mode with the
-   recommendation, the direction, and the commit subject, and verify its
-   commit as you verify any — `git status` clean, the diff's paths those the
-   direction names, lint on them (or on the whole repository where the lint
-   script takes no path arguments). The session whose shoroku it is has already
-   been deleted; it waits for nothing. (b) Your
+   throughout. (a) The apply subagent's slot, which only the close fills: at
+   the final batch's boundary, once `t2-direction.md` is written, dispatch
+   `subagent_type: tanto-shoroku-apply` with the recommendation, the
+   direction, and the commit subject, and verify its commit as you verify any
+   — `git status` clean, the diff's paths those the direction names, lint on
+   them (or on the whole repository where the lint script takes no path
+   arguments). Jisso has already been deleted; it waits for nothing. At every
+   other boundary this slot is empty. (b) Your
    own edits — the hotfix and the issues from step 4 — each committed by you
    in its turn, or handed to a
    live Hosa as `chore: <what> — <paths> — slot: now | at the next boundary`,
@@ -411,8 +420,8 @@ Per batch, in this order.
    notice came without a reply; skip (c) when neither is live. If a
    handover is due, the window ends, after the wait Timing prescribes, with
    steps 2 to 4 of "The handover, in a plan and between plans" — your exit
-   shoroku was step 6's proposal and slot (a)'s commit — and the loop stops
-   here; the next prompt is the successor's.
+   proposal was step 6's, and its items are `pending` rows in this ledger —
+   and the loop stops here; the next prompt is the successor's.
 8. Write the next batch prompt from `templates/batch-prompt.md`, carrying the
    rulings the next tasks inherit and, on its Models line, the four kinds
    Jisso dispatches — `task.implement`, `task.review-spec`,
@@ -461,12 +470,15 @@ After the last implementation batch is accepted:
    to Jisso. A fix-wave list is drafted under the same conditions as a plan:
    run each command it specifies once before dispatching it, and compare its
    output with what the list expects. There is no second fix wave.
-3. When the final batch is accepted, run T2: the four steps of "Shoroku"
-   below, whose first step is Jisso's. Send it one line —
+3. When the final batch is accepted, run the close: the four steps of
+   "Shoroku" below, whose first step is Jisso's. Send it one line —
    `T2: propose the shoroku write-out; write it to .tanto/<topic>/shoroku-proposal.md`
-   — and the recommendation, the human's check, and the apply follow as at
-   every other stage. Then put the merge
-   decision to the human.
+   — check the proposal's form and ask the human to delete Jisso; then the
+   one recommendation over the proposal and every source the `pending` rows
+   name, the human's check on the brief, the direction, and the apply on
+   this branch, in that order and with Jisso gone — a live Hosa's three
+   steps, by the `close:` line "Delegation to Hosa" gives, or yours. Then
+   put the merge decision to the human, once the commit is verified.
    Residual load-bearing findings reach the human in that merge question, and
    so does any hotfix you took on this branch.
 
@@ -498,10 +510,10 @@ is the classification rule.
    `kaiseki-<n+1>-brief.md` sent to the **same** Kaiseki, which is not deleted
    yet. An item tagged `blocks this task: no` is copied into the `S-n` table at
    this boundary with Adopted `pending` and Stage `t2`; nothing is adopted
-   here, and T2's proposal is where it is recommended and checked.
+   here, and the close is where it is recommended and checked.
 6. When Jisso's fix passes review and tests and no `blocks this task: yes` item
    is open, run Kaiseki's exit as "Exit shoroku" below prescribes — its
-   proposal, then the recommendation, then the deletion request — or keep it if
+   proposal, its form check, then the deletion request — or keep it if
    more of the same bug is expected. Not before: a fix that misses goes back to
    the same Kaiseki with its context intact. The apply is not Kaiseki's work:
    the apply subagent commits the accepted subset, and Kaiseki may be gone by
@@ -523,7 +535,7 @@ plan stage neither fires the check nor blocks it: its Sekkei or Keikaku holds
 nothing you must wait for beyond an unanswered line, which that peer re-sends
 to your successor's address. Signal 4 **is** checked in that stage, at the
 start of every turn while no batch is in flight, because your context grows
-there — a T0 shoroku, a bug-report triage, the handshakes, a resume — with no
+there — a bug-report triage, the handshakes, a resume — with no
 batch boundary to catch it;
 and Timing below admits a handover there, for the reason it gives. Run the
 self-check of `SKILL.md`'s Resuming at the
@@ -708,26 +720,39 @@ open topic, each with its Topic and what it is waiting for, and marks the ones
 whose last line you had not answered: the successor sends `kanri-address:` to
 all of them, and each answers by re-sending its last unanswered line. A Sekkei
 or Keikaku whose last line named an exit proposal is waiting for nothing but
-its deletion, and your successor's first act for it is the recommender
-dispatch, if the recommendation is not already on disk.
+its deletion, and your successor's first act for it is the delete request,
+if the proposal's form check is recorded in the ledger and the request was
+not sent.
 
 ### The handover, in a plan and between plans
 
-1. **Exit shoroku first** — the Kanri case under "Exit shoroku": write your own
-   proposal from the ledger and the roster rather than from recollection,
-   dispatch the recommender, put the recommendation to the human, write the
-   direction and the `S-n` rows, and dispatch the apply, which commits and
-   reports its subject. What you cannot reconstruct goes into the handover
-   file's "Not reconstructed" section. Verify that commit **before** the
-   handover file is written, so that the successor inherits a commit and not a
-   pending write-out. At a **batch boundary** this step is loop step 6's
-   proposal and recommendation and step 7's slot (a) apply, already done when
-   the window reaches this list. At a **plan close** it is a fresh act, run
-   after T2, the merge decision, the peers' deletion and the archive move, and
-   its commit lands where the tree is once the merge decision is executed — on
-   `main` after a merge, on the plan's branch only when the human declined the
-   merge (decision-b6cb). **Between plans** it is one act too, and the commit
-   lands on `main`.
+1. **Exit shoroku first** — the Kanri case under "Exit shoroku": write your
+   own proposal from the ledger and the roster rather than from recollection,
+   to `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md`. What you cannot
+   reconstruct goes into the handover file's "Not reconstructed" section.
+   Then one of two. **While any ledger is open** — at a batch boundary, at a
+   plan close with another topic open, or in a topic's spec or plan stage —
+   record the proposal's items as `pending` rows, Stage `t2`, Source the
+   proposal's path and the item's number, in the ledger of the topic whose
+   batches are in flight, else the oldest open topic's; nothing is recommended,
+   checked, or applied, and the rows wait for that topic's close. At a batch
+   boundary this is loop step 6's proposal and its rows, already done when
+   the window reaches this list. **Between plans**, with no ledger open,
+   run the close's steps 2 to 4 over your proposal alone — the recommender
+   to `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-recommendation.md` and
+   `-brief.md`, the human's check, the direction beside them, and the
+   apply, whose commit lands on `main` (decision-b6cb). When a Hosa is
+   live, send it the `close:` line of "Delegation to Hosa" with `kanri` for
+   the topic and those paths, name the delegation in the handover file's In
+   flight block, and go on to step 2 without waiting: the successor
+   verifies the commit on Hosa's `close done:`. When none is live, run the
+   three steps yourself and verify that commit **before** the handover file
+   is written, so that the successor inherits a commit and not a pending
+   write-out. A plan close with no other topic open is between plans: the
+   close's own T2, the merge decision, the peers' deletion, and the archive
+   move come first, and your exit lands where the tree is once the merge
+   decision is executed — on `main` after a merge, on the plan's branch
+   only when the human declined the merge.
 2. Write `.tanto/kanri-handover.md` from its template.
 3. **At a batch boundary**, and in a topic's spec or plan stage, set the
    ledger's Progress line to "handover
@@ -746,47 +771,52 @@ waiting for the next topic between plans.
 
 ## Shoroku
 
-One flow at every stage — T0, T1, T2, and every exit — in four steps. The
-stage word is `t0`, `t1`, `t2`, or `exit-<role>[-<suffix>]`. You rule on no
-item: you dispatch the recommender, the human checks by exception, and a
-subagent applies. The `S-n` table's Adopted column takes `pending`, `yes`, or
-`no`.
+One stage per topic, the **close**, stage word `t2`, in four steps —
+candidates, recommend, check, apply. Every other moment of the run runs the
+first step only: a session's exit, a batch boundary, a review, a Kaiseki
+report, the spec's acceptance, and the plan's landing each add `pending`
+rows to the `S-n` table, and the close recommends and checks the whole
+table at once. You rule on no item: you dispatch the recommender, the human
+checks by exception, and a subagent applies. The `S-n` table's Adopted
+column takes `pending`, `yes`, or `no`.
 
-Between stages nothing is adopted. A batch report's mandatory Shoroku
-candidates section, a Kaiseki report's `blocks this task: no` items, and a
-review report's candidates — the spec review's, the plan review's, and the
-whole-branch review's — are copied into the ledger's `S-n` table at the
-boundary with Adopted `pending` and Stage `t2`, the bookkeeping you already do
-minus the ruling; T2's proposal, which Jisso seeds from that table, is where
-they are recommended and checked.
+A `pending` row is one line and a pointer: Source names the file the
+candidate lives in — a report and its item, a proposal and its number, the
+spec and a section heading — and Candidate is the one-line rendering. The
+close's recommender follows Source to quote the item in full; nothing is
+copied into the ledger, and no session re-quotes another's candidates.
 
 ### The four steps
 
-1. **Candidates.** The session that holds them writes them, and only this step
-   needs a resident context. T0: the input document — a Kikaku decision file,
-   or a file of that kind. T1: the spec itself, whose four sections
-   Requirements, The ADRs, Deferred items, and Shoroku candidates from this
-   spec work are the candidates; nothing is copied. T2:
-   `.tanto/<topic>/shoroku-proposal.md`, written by Jisso. An exit:
+1. **Candidates.** The session that holds them writes them, and only this
+   step needs a resident context. An exit:
    `.tanto/<topic>/exit-<role>[-<suffix>]-proposal.md`, or
-   `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md` for your own.
-2. **Recommend.** Dispatch `subagent_type: tanto-shoroku` in the skill's
-   recommend mode over the candidate file — for T1, over the spec with the four section names
-   — with `docs/` as the baseline for destinations and reasons, and name the
-   output:
-   `.tanto/<topic>/<stage>-recommendation.md`, or
-   `.tanto/t0-recommendation.md`, and your own exit at `.tanto/`. The file
-   lists every item once in three groups — Recommended adopt, Recommended
-   reject, Unsure — each item quoted in full from its source, so that the file
-   stands alone as the apply's input, with its destination, its one-line
-   reason, and for a `design` entry the `req-<id>` it serves; a requirement or
-   an ADR item carries the original wording followed by a reference
-   translation in the chat's language.
-   Name in the same dispatch the brief path —
-   `.tanto/<topic>/<stage>-brief.md`, or `.tanto/<stage>-brief.md` for T0 and
-   your own exit — the template `templates/shoroku-brief.md` in the skill
-   directory, and the chat's language; the recommender writes both files in
-   one run.
+   `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md` for your own. The
+   close: `.tanto/<topic>/shoroku-proposal.md`, written by Jisso — the
+   `pending` rows by number and what its own context holds that no file
+   does. The spec's four sections — Requirements, The ADRs, Deferred items,
+   and Shoroku candidates from this spec work — are four rows whose Source is
+   the spec and the heading, recorded when the spec is accepted. A batch
+   report's, a review report's, and a Kaiseki report's candidates are rows
+   recorded at the boundary that reads the report. Check every proposal's
+   form as "Exit shoroku" step 2 says; record its rows; then the delete
+   request.
+2. **Recommend.** At the close, dispatch `subagent_type: tanto-shoroku-recommend`
+   in the skill's recommend mode over Jisso's proposal and every source the
+   `pending` rows name — the spec with its four section names, each proposal
+   by path, each report by path and item — with `docs/` as the baseline, and
+   name the output: `.tanto/<topic>/t2-recommendation.md`, or
+   `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-recommendation.md` for your own
+   between-plans exit. The file lists every item once in three groups —
+   Recommended adopt, Recommended reject, Unsure — each item quoted in full
+   from its source, so that the file stands alone as the apply's input, with
+   its destination, its one-line reason, and for a `design` entry the
+   `req-<id>` it serves; a requirement or an ADR item carries the original
+   wording followed by a reference translation in the chat's language. Name
+   in the same dispatch the brief path — `.tanto/<topic>/t2-brief.md`, or
+   `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-brief.md` — the template
+   `templates/shoroku-brief.md` in the skill directory, and the chat's
+   language; the recommender writes both files in one run.
    <!-- markdownlint-disable MD038 -->
 3. **Check.** Check the brief's form, not its judgment, and never by reading
    the recommendation's prose: `grep -c '^## '` on the brief is `4` and the
@@ -802,34 +832,37 @@ they are recommended and checked.
    human, in one message: the recommendation's path, the brief's path, the
    three counts, and the brief's text verbatim below them. The human answers
    as the `shoroku` skill already parses — `OK` for "as recommended", or the
-   numbers that go the other way, or an edit — and you write
-   `<stage>-direction.md` beside the recommendation, item by item, with the
-   `S-n` rows in the ledger: Stage the stage word, Adopted from the human's
+   numbers that go the other way, or an edit — in your window, or through a
+   Kikaku decision file whose "What Kanri should do with it" section names
+   this recommendation and answers it by exception: that file is the answer,
+   read whole, its item numbers the recommendation's, everything it does not
+   list as recommended, every override with its reason, and you need no word
+   in your own window. Write `t2-direction.md` beside the recommendation
+   (`exit-kanri-<YYYY-MM-DD>-<name>-direction.md` for your own between-plans
+   exit), item by item, with the `S-n` rows in the ledger: Adopted from the
    answer. No item is escalated apart from the rest and none is decided by
    you alone; the human sees the whole list, grouped, and answers by
    exception.
    <!-- markdownlint-enable MD038 -->
-4. **Apply.** Dispatch `subagent_type: tanto-shoroku` in apply mode with the
-   recommendation, the direction, and the commit subject —
-   `docs: T<n> shoroku for <topic>` or
-   `docs: exit shoroku for <role>[ at <suffix>]` — in a slot of the commit
-   window under the hotfix lane's rule. The subagent writes the accepted subset
-   per `docs/AGENTS.md` and the per-type files, runs the repository's lint on
-   the changed paths by name — or on the whole repository where the lint
-   script takes no path arguments, which satisfies this step — commits once by
-   explicit path with the trailer, and reports the subject. Verify that commit
-   as you verify any — `git status` clean, the diff's paths those the
-   direction names, lint on them (again, whole-repository if that is what the
-   script does) — and fill the Written column.
+4. **Apply.** Dispatch `subagent_type: tanto-shoroku-apply` in apply mode with
+   the recommendation, the direction, and the commit subject —
+   `docs: T2 shoroku for <topic>`, or `docs: exit shoroku for kanri` for your
+   own between-plans exit — in slot (a) of the commit window. The subagent
+   writes the accepted subset per `docs/AGENTS.md` and the per-type files,
+   runs the repository's lint on the changed paths by name — or on the whole
+   repository where the lint script takes no path arguments, which satisfies
+   this step — commits once by explicit path with the trailer, and reports
+   the subject. Verify that commit as you verify any — `git status` clean,
+   the diff's paths those the direction names, lint on them (again,
+   whole-repository if that is what the script does) — and fill the Written
+   column.
 
-Where the commit lands: on the topic's branch for T1, T2, and the exits of
-that topic's sessions; on `main` for T0 and for your own between-plans exit. A
-Sekkei exit of a topic whose branch does not exist yet waits — the direction is
-written, and the apply is dispatched once Keikaku has cut the branch, so that
-the topic's write-outs travel with the topic; hold the pending apply in the
-ledger's Progress line.
+Where the commit lands: on the topic's branch for the close, before the
+merge decision; for your own between-plans exit, where the tree is once the
+merge decision is executed — on `main` after a merge, on the plan's branch
+only when the human declined the merge (Handover step 1's fuller rule).
 
-The apply subagent is the writer at every stage. You write under `docs/` only
+The apply subagent is the writer at the close. You write under `docs/` only
 through the intake's filings and the hotfix lane, and you hand those to Hosa
 when one is live.
 
@@ -837,40 +870,66 @@ A reference to an `S-n` or an `R-n` from outside its own ledger — the roster, 
 handover file, another ledger — names the topic first, `<topic> S-n`; bare
 numbers stay bare inside a ledger. The Written column takes only a value a
 filter can read: `no`, a commit subject, or `superseded: <topic> R-n`, the last
-counting as written; a candidate with two stages is split into two rows when
-the second stage is identified, never written as a compound value.
+counting as written; a candidate two closes could claim is one row in the
+ledger of the topic that raised it, never a compound value.
 
-### T0 and T1
+### The close
 
-Both are steps 2 to 4 over a document that already exists, so step 1 is not
-yours at either.
+1. **Jisso proposes.** You send the `T2:` line; Jisso writes the numbered list
+   to `.tanto/<topic>/shoroku-proposal.md` — the `pending` rows of the `S-n`
+   table listed by number, and what its own context holds that no file does
+   — and sends you one line. Check the file's form as "Exit shoroku" step 2
+   says, and ask the human to delete Jisso: the close is its exit, and it
+   idles through nothing.
+2. **Recommend and check.** Steps 2 and 3 above — a live Hosa's, by
+   "Delegation to Hosa" below, or yours — with the roster's Residency rows
+   of this run appended to the direction file for the dogfood report's
+   Measurements table — the readings the archive will hold, kept under
+   `docs/reports/` (issue-40ed); when Hosa holds the close, you append them
+   to the direction file after its `close done:`, before the successor or
+   you fill the ledger.
+3. **The apply subagent writes.** Step 4 above, on this branch. The human
+   sees the result at the merge decision.
 
-- **T0**, before Sekkei is created — the decided items of the input document
-  become ADRs, on `main`, before the branch is cut.
-- **T1**, after the plan commit and before Jisso is created — requirements and
-  issues from the spec, whose four section names the recommend dispatch
-  carries. The spec's deferred items become issues one to one.
+### Delegation to Hosa
 
-### T2
+When the roster has a `live` Hosa row at a close, or at your own
+between-plans exit, steps 2 to 4 are Hosa's. After step 1 send Hosa one
+line, without an idle subscription:
+`close: <topic> — proposal <path>; ledger <path>; recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now`.
+`<topic>` is the topic word, or `kanri` for your own exit, and the paths
+are the close's three files under `.tanto/<topic>/` or your exit's three
+under `.tanto/`; the slot is `now` because no batch is in flight at a close
+and Jisso is deleted. Hosa reads the ledger's `pending` rows for the
+sources the recommend dispatch names, dispatches the recommender and then
+the apply on their own kinds, form-checks and pastes the brief in its own
+window, and writes the direction from the human's answer there; a Kikaku
+decision file that answers the check reaches Hosa as `decision: <path>`,
+one line from you. Hosa answers `close done: <commit subject> — <reading>`,
+or `close blocked: <one line>` when a form check fails twice or the answer
+does not arrive. On `close done:` verify the commit as you verify any —
+`git status` clean, the diff's paths those the direction names, lint on
+them — and fill Adopted from the direction file and Written from the
+subject. You wait for none of it: a close delegated is carried in the
+handover file's In flight block, and the successor verifies. With no Hosa
+live, run the three steps yourself, and add to your close line the
+suggestion to open one (`/tanto hosa`), in the shape of the between-plans
+Kikaku suggestion.
 
-1. **Jisso proposes.** You send that line; Jisso writes the numbered list to
-   `.tanto/<topic>/shoroku-proposal.md`, seeded from the `pending` rows of the
-   `S-n` table and from its own context, and sends you one line.
-2. **You recommend and check.** Steps 2 and 3 above, with the roster's
-   Residency rows of this run appended to the direction file for the dogfood
-   report's Measurements table — the readings the archive will hold, kept
-   under `docs/reports/` (issue-40ed).
-3. **The apply subagent writes.** Step 4 above. The human sees the result at
-   the merge decision.
-
-`shoroku-direction.md` no longer reaches Jisso: its T2 is the proposal only.
+**A topic the human ends before its final batch** — the plan not wanted,
+the branch abandoned — still gets its close, over what is on disk: write
+the proposal yourself, in Jisso's absence, as you write your own — the
+`pending` rows by number and what the ledger's Session events and Rulings
+hold that no row does — and run steps 2 to 4; the apply lands on the
+topic's branch, and the merge decision says whether that branch lands.
 
 ### Exit shoroku
 
-Every planned exit of a session, in any role, carries its own shoroku, and the
-session is deleted once the recommendation over its proposal is written: steps
-3 and 4 run without it. `SKILL.md`'s "Session exit" defines the mechanism and
-the file pattern `exit-<role>[-<suffix>]`; these are your steps.
+Every planned exit of a session, in any role, carries its own shoroku, and
+the session is deleted once its proposal is on disk and form-checked: its
+items are recommended and checked at the close, with the session gone.
+`SKILL.md`'s "Session exit" defines the mechanism and the file pattern
+`exit-<role>[-<suffix>]`; these are your steps.
 
 1. At the boundary where the exit falls, send that session
    `exit: propose your shoroku; write it to <path>`, without an idle
@@ -881,30 +940,27 @@ the file pattern `exit-<role>[-<suffix>]`; these are your steps.
    boundary each**: a Sekkei at its own final boundary names its proposal in
    its `spec accepted:` line, and a Keikaku at its own names it in its
    `coldread answered:` line, both unasked and both without being sent
-   anything — for those two, skip this step and go to step 2, whose form check
-   and recommender dispatch follow at once. Every other exit takes the line,
-   this pair included whenever the exit falls elsewhere: a compaction in the
-   reading (decision-6dea), a replacement from the Replace table, or the human
-   not wanting the plan now.
+   anything — for those two, skip this step and go to step 2. Every other
+   exit takes the line, this pair included whenever the exit falls elsewhere:
+   a compaction in the reading (decision-6dea), a replacement from the
+   Replace table, or the human not wanting the plan now.
 2. Check the file's form, not its judgment: a direct read, since the
    proposal carries no headings for `sections` to select by, for the
-   exclusion line it opens with and the numbered list under it. Then
-   dispatch the recommender at once — step 2 above.
-3. When the recommendation and its brief are on disk, read the brief's
-   `## Unsure` group (`sections … Unsure`). A line there carrying a "could
-   not be read as written" question is one question back to the session,
-   one line,
-   answered by a rewrite of the proposal. Otherwise ask the human, as a
-   numbered list, to delete the session.
-4. Steps 3 and 4 above then run with the session gone. Record the rows with
-   Stage `exit-<role>[-<suffix>]` and fill their Written column from the
-   apply's commit subject.
+   exclusion line it opens with and the numbered list under it. A file that
+   fails the form is one line back to the session, answered by a rewrite;
+   a file that passes is recorded — one `pending` row per item, Source the
+   proposal's path and the item's number, Stage `t2`, since the close is
+   what recommends it — and you ask the human, as a numbered list, to delete
+   the session at once.
+   No recommender runs here.
+3. The rows wait for the close, where steps 2 to 4 of "The four steps" run
+   over them with everything else; fill their Written column from the
+   close's commit subject.
 
-The human's check works on the recommendation's full quotation of each item,
-which is what the session would have been asked about: its judgment was spent
-writing the proposal, and the file holds it. The session idles through one
-recommender run and no longer through the human's check and the apply, so what
-another session pays for an exit is the proposal and one recommender run.
+The session's judgment was spent writing the proposal, and the file holds
+it: the close's recommender quotes every item in full from that file, which
+is what the human checks. What another session pays for an exit is the
+proposal.
 
 A session that has stopped answering is past answering, and you learn it the
 way you learn of a missing batch report: the human says the session is gone, or
@@ -913,22 +969,27 @@ exit as forced, write a roster Events line saying its exit shoroku did not run
 and what was lost as far as you know, ask the human to delete it, and continue.
 The same Events line goes in whenever you mark a row `dead`.
 
-**Your own exit.** Steps 1 to 4 with you writing the proposal and the human
-checking, as at every stage: propose from the ledger and the roster rather than
-from recollection to
-`.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md`, `<name>` being your own
-bare name, then the recommender, the human's check, the direction beside it,
-and the apply. Your exit has a recommendation and a direction file like every
-other, and the rows' Stage is `exit-kanri-<YYYY-MM-DD>-<name>`. It is step 1 of
-the Handover above, and the apply's commit is verified before the handover file
-is written.
+**Your own exit.** Propose from the ledger and the roster rather than from
+recollection, to `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md`,
+`<name>` being your own bare name. While any ledger is open, the proposal's
+items are `pending` rows, Stage `t2`, in the ledger of the topic whose
+batches are in flight, else the oldest open topic's, and the handover file
+names the ledger; nothing else runs, and the rows wait for that topic's
+close. Between plans, with no ledger open, steps 2 to 4 of "The four steps"
+run over your proposal alone — a live Hosa's by "Delegation to Hosa", with
+the successor verifying, or yours with the commit verified before the
+handover file is written — and the apply's commit lands on `main`; the rows
+are the roster's, Stage `exit-kanri-<YYYY-MM-DD>-<name>`. Either way this
+is step 1 of the Handover above.
 
-**Between plans** there is no ledger, so record candidates in the roster's
-Shoroku candidates section instead, and move the rows whose Written column says
-`no` into the new ledger's table when a topic opens.
+**Between plans** there is no ledger, so record candidates that reach you
+then — a Kikaku decision file belonging to no topic, a triage's observation
+— in the roster's Shoroku candidates section instead, and move the rows
+whose Written column says `no` into the new ledger's table, with Stage
+`t2`, when a topic opens.
 
-Every apply, T2 included, writes only the accepted rows whose Written column
-says `no`, so nothing is written twice.
+The close writes only the accepted rows whose Written column says `no`, so
+nothing is written twice.
 
 ## Bug intake
 
@@ -1159,11 +1220,11 @@ session is dead first — uncommitted work may be in the tree.
 
 | When | Say |
 | --- | --- |
-| the spec review is accepted, the human's answers to the spec brief are in `dialogue.md`, and the `spec accepted:` line named the exit proposal | Sekkei is done; ask for its deletion once the recommendation over its exit proposal is on disk — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
-| the `coldread answered:` line named the exit proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; ask for its deletion once the recommendation over its exit proposal is on disk; a Keikaku is never reused across topics (decision-f496) |
-| Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; ask for its deletion once the recommendation over its exit proposal is on disk, or keep it if more of the same bug is expected |
-| the final batch is accepted, T2's proposal is written, leftovers are clean, and the human has executed the merge decision | Jisso is done; ask for its deletion once the recommendation over that proposal is on disk, T2 being its exit |
-| Jisso is deleted and the ledger's Progress line says closed | this plan is closed. **First, while every row still carries its Transcript column**, run `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]` over the sessions of **this topic**: every handshake the ledger's Session events accepted for it — Sekkei, Keikaku, Jisso, an attached Kaiseki — and every Kanri whose tenure overlapped it, the current one and any predecessor the Events' handover lines name, each path taken from its roster or archive row. A refused handshake has no row and no transcript and is not in the list; rows of another plan that a shared roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not of this topic and are left out. A path that is denied, `unavailable`, or on another host is skipped and named by the script, and is never read by asking the peer. Record the share line, the sessions it ran over, and the ones it skipped in the Measurements share row; the target is 30% or less. Then ask the human, in one line and in the chat's language, for the Account & Usage view's own figure for the day, and record it beside the proxy — the two are compared, not equated, since that view counts every other workspace and every subagent — and a silence is an answer and a blank. Then mark `dead` the rows of the sessions deleted at this close, move the dead, replaced, refused, and cleared rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet, fill the ledger's remaining Measurements fixed rows, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
+| the spec review is accepted, the human's answers to the spec brief are in `dialogue.md`, and the `spec accepted:` line named the exit proposal | Sekkei is done; record its proposal's items and the spec's four sections as `pending` rows and ask for its deletion as soon as the proposal passes the form check — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
+| the `coldread answered:` line named the exit proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; record its proposal's items as `pending` rows and ask for its deletion as soon as the proposal passes the form check; a Keikaku is never reused across topics (decision-f496) |
+| Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; record its proposal's items as `pending` rows and ask for its deletion as soon as the proposal passes the form check, or keep it if more of the same bug is expected |
+| the final batch is accepted, T2's proposal is written and passes the form check, and leftovers are clean | Jisso is done; ask for its deletion at once, T2 being its exit — the recommendation, the human's check, the apply, and the merge decision run with it gone, and a merge declined with fixes wanted is a new batch on a new Jisso either way |
+| the close's apply is verified, the human has executed the merge decision, and the ledger's Progress line says closed | this plan is closed. **First, while every row still carries its Transcript column**, run `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]` over the sessions of **this topic**: every handshake the ledger's Session events accepted for it — Sekkei, Keikaku, Jisso, an attached Kaiseki — and every Kanri whose tenure overlapped it, the current one and any predecessor the Events' handover lines name, each path taken from its roster or archive row. A refused handshake has no row and no transcript and is not in the list; rows of another plan that a shared roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not of this topic and are left out. A path that is denied, `unavailable`, or on another host is skipped and named by the script, and is never read by asking the peer. Record the share line, the sessions it ran over, and the ones it skipped in the Measurements share row; the target is 30% or less. Then ask the human, in one line and in the chat's language, for the Account & Usage view's own figure for the day, and record it beside the proxy — the two are compared, not equated, since that view counts every other workspace and every subagent — and a silence is an answer and a blank. Then mark `dead` the rows of the sessions deleted at this close, move the dead, replaced, refused, and cleared rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet, fill the ledger's remaining Measurements fixed rows, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
 
 The role is resident; the session that carries it is not. A plan's end is a
 boundary like any other for the run, and the next topic starts with a new topic

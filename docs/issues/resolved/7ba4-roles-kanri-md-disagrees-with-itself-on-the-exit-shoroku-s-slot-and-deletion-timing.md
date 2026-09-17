@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-16
+updated: 2026-09-17
 ---
 
 Found by the tanto-cost run's batch C task reviews (2026-09-13), recorded in
@@ -60,3 +60,14 @@ its own shoroku *before* any deletion rather than after. Real but not
 load-bearing — no reader is misrouted, since the slot is now unambiguous — and
 it needs a seventh passage that a follow-up sweep would add, most likely a
 short parenthetical noting the exception rather than a rewrite of the sentence.
+
+**Resolved 2026-09-17 on the `shoroku-at-close` branch.** The remaining tail — the
+slot (a) sentence not covering Kanri's own exit — goes away with the in-plan Kanri
+exit's apply. `roles/kanri.md` step 7 (a) now describes the apply subagent's slot
+as one only the close fills, with Jisso already deleted so that it waits for
+nothing, and says the slot is empty at every other boundary; step 6 sends the
+delete request "as soon as that session's proposal passes the form check"; and
+step 7's last sentence records that Kanri's exit proposal was step 6's and its
+items are `pending` rows in the ledger. Kanri's between-plans exit runs through the
+`close:` line with the apply in slot (a). No sentence on the tree says the other
+thing any more.

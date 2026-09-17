@@ -319,3 +319,44 @@ costs Jisso well above the flat `ceiling.jisso.per_batch` default on an
 signal beside the eighth data point's final-batch axis: a plan whose batches
 rewrite large chunks of `roles/kanri.md` costs more per batch than the default
 assumes, whatever the batch letter.
+
+A tenth data point, 2026-09-17, and the first on the **Jisso** seat rather than
+Kanri's — from the `shoroku-at-close` run's Jisso at its Batch A boundary. That
+session's context read 90,349 tokens right after the handshake and 296,542
+tokens at Batch A's own boundary, crossing its ceiling (210,523) inside the very
+first batch, with zero fix rounds and no escalation. The growth is not
+batch-loop iteration cost: it is almost entirely the Start sequence's own
+required reading — the full plan (≈4,109 lines, ≈82,000 tokens), the conductor
+ledger, the role file, the spec's section list, and several `git show` and
+`grep` reads used to fill in Batch A's own task text before any subagent was
+dispatched. A plan this size (11 tasks, four batches) may make the
+Start-sequence reading cost a distinct line item worth tracking separately from
+`ceiling.jisso.per_batch`, which prices a batch cycle and not the reading that
+precedes the first one. It is the same shape of gap the eighth data point above
+names for `ceiling.kanri`'s flat `per_batch` at a structurally heavier *final*
+batch — here at the *first* boundary instead, where the Replace table's
+"never at the final batch's boundary" carve-out gives no cover at all.
+
+An eleventh data point, 2026-09-17, and the measurement gap it leaves open — from
+the same `shoroku-at-close` run's **replacement** Jisso (`dotskills-1f`), which
+took over mid-plan and ran Batch B. Its two readings: `context=104,635` right
+after its handshake, and `context=343,993` at Batch B's own boundary, against a
+ceiling of `213,973`. Unlike the tenth data point above, this tenure cannot
+split "onboarding reading" from "batch-loop cost", because no reading was taken
+between the two — only handshake-time and the batch boundary exist for this
+session. That matters because a replacement Jisso's own onboarding is a
+different cost shape from a fresh Start's Start-sequence reading: instead of the
+Start sequence, it reads Kanri's orders line, the conductor ledger, the existing
+SDD workspace's `progress.md` (confirming the prior batch's state rather than
+re-deriving it), the batch prompt, and the new batch's own task text before its
+first dispatch. Whether that is cheaper than a fresh Start's reading, and by how
+much, this run's data cannot say. The ask for next time: a Jisso taking over
+mid-plan should record one reading at exactly "onboarding done, before the first
+dispatch", as the comparable counterpart to the ninth point's own figure.
+
+**2026-09-17 — a plan whose Kanri ceiling crossed at all four of its batch
+boundaries.** `shoroku-at-close` ran four batches, A through D, and the ceiling
+fired at every one of them — a 100% hit rate across the topic's whole run, not
+merely "usually". As far as that run's ledger was read, it is the first plan in
+this run's own history where every single batch boundary crossed it, which is a
+new kind of point for the threshold dataset above.

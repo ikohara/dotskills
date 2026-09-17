@@ -41,11 +41,16 @@ When something is decided, write `.tanto/kikaku/<YYYY-MM-DD>-<slug>.md`
 from `templates/kikaku-decision.md` and send Kanri one line,
 `decision: <path>`.
 
-Kanri's handling is one of three, and the file's third section is where you
+Kanri's handling is one of four, and the file's third section is where you
 say which one you expect: a topic in its spec stage relays it as the next
-`I-n` in that topic's `spec-inputs.md`; between plans it is a T0 input
-document; otherwise it is a source row in the `S-n` table. Nothing else
-carries the discussion forward, so what you leave out of the file is lost.
+`I-n` in that topic's `spec-inputs.md`; between plans it is the next
+topic's input document, read by that topic's Sekkei directly; a file whose
+third section names a stage's recommendation and answers it by exception
+is that stage's Check answer, read whole by Kanri, which writes the
+direction from it — the item numbers are the recommendation's, everything
+not listed is as recommended, and every override carries its reason;
+otherwise it is a source row in the `S-n` table. Nothing else carries the
+discussion forward, so what you leave out of the file is lost.
 
 ## Lifecycle
 

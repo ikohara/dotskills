@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-16
+updated: 2026-09-17
 ---
 
 Found in the tanto-sweep-2 run and recorded in that run's ledger (S-69).
@@ -50,3 +50,11 @@ because declaring fifteen fences `replay-skip:` per plan only moves the cost to
 the plan author.
 
 For `passage-check-hardening`, as above.
+
+**2026-09-17 — the cheapest mitigation has a name.** A whole-branch reviewer's
+dispatch prompt had to carry a sentence naming this issue so the reviewer would
+not report the two `sections` crash lines as findings. Correct for that run, but
+a `replay-skip` marker on those two fences in the plan — the instrument already
+honors one for `boundary` — would make the exclusion mechanical instead of a
+per-dispatch sentence. `shoroku-at-close`'s Batch E report names the same marker
+independently, as its second candidate.

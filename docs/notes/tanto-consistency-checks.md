@@ -142,7 +142,7 @@ its own quotations.
 
 **That exclusion is not enough, and the wider scope usually is not wanted.**
 The same plan's write-out lane produces more quotations of the text it removes:
-T1, T2 and every exit shoroku write ADRs, design entries and issue resolutions
+the close of every topic writes ADRs, design entries and issue resolutions
 under `docs/decisions/`, `docs/design/` and `docs/issues/`, and a record whose
 subject is "we stopped saying X" **must** quote X. So a sweep written over
 `skills docs` goes red on a clean skill by construction, and it did — two of
@@ -400,6 +400,15 @@ updates fewer leaves a check failing that nothing else will catch. A plan may
 knowingly break them mid-run, as the context-cost plan broke checks 1 and 2
 from its second task until its last; when it does, the batch that breaks them
 says so and the batch that repairs them names the count it restores. This paragraph's scope is not limited to the two bullets above it: any count tied to the shape of a file is a structural count in the same sense, and check 6's per-file `idle` figures are one — the `O` sweep runs over this note as well as over the skill, so a removal task can silently invalidate an expectation written for the thing it removed. One task zeroed `notify_when_idle: true` while check 6 still expected two matching lines, and nothing caught it: the expectation lived in prose that no passage quoted and no `O` needle named.
+
+**A `grep -c` on a phrase inside a reflowable paragraph is a check on the wrap,
+not on the text.** Check 6 already states this for `roles/kanri.md`; it holds
+for every check in this note. The instance: check 18's fifth count dropped from
+`2` to `1` with no editorial change at all, because a line wrap moved the
+phrase across a line break. Where the subject is a phrase that lives in prose
+rather than on a line of its own, either pin it with a flatten pipeline, as
+check 4 does, or treat the count as a structural one that a reflow legitimately
+moves.
 
 ## 1. Every file of the layout exists
 
@@ -761,7 +770,7 @@ over this file, and a standing check written into the file it checks must not
 count its own text; and a plan that removes a string refuses that string in
 its own new passages, so a literal here would fail the plan that installs the
 check rather than the tree it checks. The tenth pins the four subagent keys
-that are gone — `default` survives as one of the twelve kinds and is not
+that are gone — `default` survives as one of the thirteen kinds and is not
 swept. The eleventh pins the retired wording for a session committing its own
 exit shoroku. The twelfth pins the two rejected seat names, over the skill,
 `shoroku`, and this directory, which is the scope the choice was recorded
@@ -845,7 +854,7 @@ at `3` and `1` — while the *unfiltered* per-file counts for this file rose fro
 
 ```bash
 uv run --no-project --with pyyaml python -c "import yaml;t=open('skills/tanto/SKILL.md',encoding='utf-8').read().split('---')[1];d=yaml.safe_load(t);print(sorted(d));print('BAD' if ': ' in d['description'] else 'ok')"
-node -e 'const t=require("./skills/tanto/templates/tanto.json");const r=Object.keys(t.sessions),k=Object.keys(t.subagents);if(r.length!==7||k.length!==12)process.exit(1);for(const m of [t.sessions,t.subagents])for(const v of Object.values(m))if(!v.model||!v.effort)process.exit(1);console.log("tanto.json ok",r.length,k.length)'
+node -e 'const t=require("./skills/tanto/templates/tanto.json");const r=Object.keys(t.sessions),k=Object.keys(t.subagents);if(r.length!==7||k.length!==13)process.exit(1);for(const m of [t.sessions,t.subagents])for(const v of Object.values(m))if(!v.model||!v.effort)process.exit(1);console.log("tanto.json ok",r.length,k.length)'
 uv run --no-project --with pyyaml python -c "import yaml,sys;t=open(sys.argv[1],encoding='utf-8').read().split('---')[1];d=yaml.safe_load(t);print(sorted(d));print('BAD' if ': ' in d['description'] else 'ok')" skills/tanto/templates/agent.md
 uv run --no-project --with pyyaml python -c "import yaml,sys;t=open(sys.argv[1],encoding='utf-8').read().split('---')[1];d=yaml.safe_load(t);print(sorted(d),d['effort'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/tanto-task-implement.md"
 if test -f .claude/agents/tanto-task-implement.md; then
@@ -856,7 +865,7 @@ fi
 ```
 
 Expected: `['argument-hint', 'description', 'name']`, then `ok`; then
-`tanto.json ok 7 12`; then `['description', 'effort', 'name']` and `ok`;
+`tanto.json ok 7 13`; then `['description', 'effort', 'name']` and `ok`;
 then `['description', 'effort', 'name'] high` for the user-scope definition;
 and for the project-scope one either the same three keys with this
 repository's own effort, or the fallback line the fifth command echoes. A
@@ -865,7 +874,7 @@ anywhere in a `description` value
 breaks frontmatter parsing silently, which is what the `BAD` branch prints
 for, and it is run against the agent template as well as the contract
 because the rendered definition is a frontmatter file the harness parses.
-The second line is a parse and two assertions in one: the twelve kinds, the
+The second line is a parse and two assertions in one: the thirteen kinds, the
 seven roles, and `model` and `effort` on every entry of both maps, which is
 what makes a half-widened config fail here rather than at a dispatch. The
 fourth and fifth lines read a **rendered** definition — the fourth the
@@ -1048,12 +1057,20 @@ grep -ci 'reject, unsure' skills/tanto/roles/kanri.md
 grep -c 'reads its `unsure` group' skills/tanto/SKILL.md
 ```
 
-Expected: `1 1 1 1 2 1 1`, then the two case-insensitive counts equal to the
-case-sensitive ones above them — `3` summed over the three files, and `1` — a
+Expected: `1 1 1 1 1 1 0`, then the two case-insensitive counts equal to the
+case-sensitive ones above them — `1` summed over the three files, and `1` — a
 lowercase spelling anywhere being the drift issue-e916 named; and `0`, the
-contract's lowercase read of "Session exit" being gone. `roles/kanri.md`'s
-phrase wraps after `recommended`, so its check is on the second line's form, as
-check 6 pins a wrapped line by its own text. `sections` matches heading text
+contract's lowercase read of "Session exit" being gone. The fifth and seventh
+counts moved from `2` and `1` during `shoroku-at-close`: Task 2 ("an exit
+writes candidates and nothing else, and the close is the one check")
+rewrapped the "Recommend" step's sentence in `SKILL.md` across a line break,
+so the phrase is intact but no longer countable as one line, dropping `2` to
+`1`; Task 4 ("Kanri's Shoroku section is one stage per topic, and Hosa may
+hold it") replaced `templates/kanri.md`'s Shoroku-candidates paragraph with
+one that describes the `shoroku.recommend` dispatch without repeating the
+three group names, dropping `1` to `0`.
+`roles/kanri.md`'s phrase wraps after `recommended`, so its check is on the
+second line's form, as check 6 pins a wrapped line by its own text. `sections` matches heading text
 exactly and is not changed: that exactness is what made the mismatch visible,
 and the fix is on the two sides that spell the heading, never in the matcher.
 The two case-insensitive lines above run shorter phrases than spec 8.1's own
@@ -1104,9 +1121,16 @@ grep -rc 'two top-family' skills/tanto/
 grep -rcF 'third top-family' skills/tanto/
 ```
 
-Expected: `1 1`, then `0` on every file of the old enumeration, `1 1`, `1 1`
+Expected: `1 1`, then `0` on every file of the old enumeration, `0 1`, `1 1`
 for the `continue:` spelling, `0` on every template for the `.md` form, `1`,
-`1 1`, then `0` on every file for the two spellings of the old cap. The five
+`1 1`, then `0` on every file for the two spellings of the old cap. The
+`exit-keikaku` pair's first count moved from `1` to `0`: Task 4 ("Kanri's
+Shoroku section is one stage per topic, and Hosa may hold it") replaced the
+ledger template's old concrete Stage-word list —
+which spelled out `` `exit-jisso-B` ``, `` `exit-sekkei` ``, `` `exit-keikaku` ``,
+and `` `exit-kaiseki-1` `` — with generic wording naming only `t2` and
+`exit-<role>[-<suffix>]`; this plan's own Task 10 brief already names that
+retirement as expected, not an omission. The five
 sites of the cap are `SKILL.md` rule 9, `roles/sekkei.md`, `roles/keikaku.md`,
 `roles/kikaku.md`, and `templates/kanri.md`'s paragraph under the Measurements
 table; the last two say "one" in their own words, which is why the sweep is for
@@ -1185,3 +1209,51 @@ what would have caught it at plan time instead. The pattern deliberately looks
 for a quote character immediately followed by `#` on a line naming `sections`,
 so a prose sentence that merely mentions a heading elsewhere on the line does
 not trip it.
+
+## 24. The two shoroku kinds, and the stage word that is left
+
+```bash
+grep -c 'subagent_type: tanto-shoroku-recommend' skills/tanto/roles/kanri.md
+grep -c 'subagent_type: tanto-shoroku-apply' skills/tanto/roles/kanri.md
+grep -cE 'tanto-shoroku([^-.]|$)' skills/tanto/SKILL.md skills/tanto/roles/kanri.md
+grep -cF 'close: <topic> — proposal <path>; ledger <path>; recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now' skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/hosa.md
+grep -cE '\bt[01]\b|\bT[01]\b' skills/tanto/SKILL.md skills/tanto/README.md skills/tanto/roles/*.md skills/tanto/templates/*.md skills/shoroku/SKILL.md
+```
+
+Expected: at least `1` from the first and at least `2` from the second —
+`SKILL.md` names the kinds, not the `subagent_type` spellings, and is not in
+those two. `0` from the third, on both files: the `.` is excluded so that the
+contract's `tanto-shoroku.md` removal sentence is not a hit, while
+`subagent_type: tanto-shoroku` followed by a space or a period-and-space is.
+`1` from the fourth in each of the three files, which pins the `close:` line's
+three copies to one spelling, as §21 asks of a named mechanism. `0` from the
+fifth in every file, `skills/shoroku/SKILL.md` included: the stage words `t0`
+and `t1` are retired, and the root listing's glob for a predecessor's stage
+files is gone. This file and `docs/` are outside
+the fifth line's scope, for the reason §10's paragraph gives: a record whose
+subject is "we stopped saying X" must quote X.
+
+Two lessons under it. **A definition-vs-template comparison through `$(...)`
+on Git Bash strips the CR** and reports every CRLF file as differing: the
+rendered definitions under `$CLAUDE_CONFIG_DIR/agents/` are CRLF on disk, as
+`templates/agent.md` is, so compare with `tr -d '\r'` on both sides, or read
+the start sequence's "content differs" modulo line endings. Measured while the
+`shoroku-at-close` design was written: all of that host's definitions were
+current, and a naive comparison called every one of them stale. **A retirement
+needle has to be written against the new text as well as the old.** Two of that
+design's first needles matched strings its own new text writes
+(`tanto-shoroku.md`) or its unedited text kept (the root listing's retired
+glob for a predecessor's stage files), and only a run of the grep against the
+draft found them; a third could not be written as a literal at all, because
+every form of it is a prefix of the spelling that replaces it, which is why
+the third line above is a regular expression.
+
+A third lesson, and the reason the fifth line names `skills/shoroku/SKILL.md`
+at all: **an `O` sweep's file list is the plan's touched-file list, not the
+skill's own directory.** The `shoroku-at-close` plan's `\bT[01]\b` needle and
+this check's fifth grep were both scoped to `skills/tanto/`, and the one
+surviving stale stage word on that branch was in `skills/shoroku/SKILL.md` — a
+file the plan edited, and the branch's single Important review finding. Check
+18 already reaches into that file for the group headings, so the precedent
+existed; the fifth line now follows it, and the expected count stays `0` after
+that branch's own fix.

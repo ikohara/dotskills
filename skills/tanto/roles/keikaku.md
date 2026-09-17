@@ -41,7 +41,7 @@ them to you:
   and the human's answer, verbatim, in order. Append the plan dialogue to it
   in the same shape, so that one file holds the human's own words for the
   whole topic; Kanri may read it at any time, the brief writer reads it, and
-  T1's shoroku takes it as an input.
+  the close's recommender takes it as an input.
 
 **A decision reaches `dialogue.md` before it reaches any document.** Write the
 turn — the question you put, the human's answer verbatim, and your reading of
@@ -282,7 +282,9 @@ Resuming, and send **one** line carrying every pointer and the proposal:
 coldread answered: <pointer, one per question, or none>; exit proposal: <path> — <reading>
 ```
 
-Then idle. Kanri sends you no `exit:` at this boundary. The `plan committed:`
+Then idle. Kanri sends you no `exit:` at this boundary; it checks the
+proposal's form, records its items, and asks for your deletion at once. The
+`plan committed:`
 line is unchanged and still carries no exit clause: the cold read has not run
 when it is sent, and the human may still not want the plan.
 
@@ -322,15 +324,17 @@ Two more rules, one at each end of a batch boundary:
   dry-run report, and the plan review, which are on disk for anyone to read —
   and the items are the plan dialogue's rejected alternatives with their
   reasons, the facts measured while drafting, the observations about the
-  process, and the defects noticed. Then stop there: Kanri
-  dispatches the recommender over your proposal, and once its recommendation
-  is on disk Kanri asks the human to delete you; the deletion may lag that
-  ask, and work that reaches you in the gap — a report that conflicts with
+  process, and the defects noticed. Then stop there: Kanri checks the
+  proposal's form, records its items as `pending` rows, and asks the human
+  to delete you at once — no recommender runs before the topic's close,
+  where your items are recommended and checked with everything else; the
+  deletion may lag that ask, and work that reaches you in the gap — a report
+  that conflicts with
   the plan, a second cold-read question — is answered with a second proposal
   at
   `.tanto/<topic>/exit-keikaku-2-proposal.md` holding only the delta since the
   first, named in the line that reports the work; a proposal you have named is
-  never rewritten, because the recommender may already have read it. An exit that falls away from this boundary — the human not wanting the plan
+  never rewritten, because Kanri may already have recorded its items. An exit that falls away from this boundary — the human not wanting the plan
   now, a compaction in your reading, a replacement — still arrives as Kanri's
   `exit: propose your shoroku; write it to <path>`, and you answer
   `exit proposal: <path> — <reading>` as any other role does.

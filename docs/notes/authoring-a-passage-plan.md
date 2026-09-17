@@ -42,6 +42,13 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   brief path instead of the output path. The passage is correct in isolation
   every time; only the surrounding sentence breaks, which is why no needle and
   no diff finds it.
+- **A disposition of `0` is a measurement on the tree the check will run
+  against, never a guess.** Three `O` needles of one spec as first written —
+  `one of three`, `at every stage`, and `twelve` in `roles/kanri.md` — had
+  legitimate survivors, or had already been zeroed by a plan ahead of it, so
+  the stated `0` was wrong in both directions at once. Stating a disposition
+  without counting it on the tree the check will run against is a boundary
+  failure nobody intends and no later step re-derives.
 
 ## An entity-level sweep beside the phrase-level one
 
@@ -86,6 +93,15 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   the invariant and the raw per-file count is only a snapshot: any later edit
   that legitimately adds the needle to a swept file invalidates the raw one
   while the filtered one still holds.
+- **A sweep-and-check task that moves the consistency note's own figures needs
+  an explicit carve-out**, because such a task otherwise may not add lines
+  beyond its own quoted passages. The `shoroku-at-close` plan's Global
+  Constraints wrote one speculatively ("Task 10's own note-figure
+  correction … may add lines beyond its own quoted passages") and its Task 10
+  is the first real case of it firing — twice, for two independent reasons: a
+  line wrap collapsing a literal count, and an intentional retirement from an
+  earlier task. That is the worked example the next task of this shape points
+  at.
 
 ## Expectations
 
@@ -132,6 +148,21 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   once the script exists and merely fails. (Distinct from issue-235b, which is
   a `MODULE_NOT_FOUND` from the `node --test <directory>` form — same message,
   different cause.)
+- **Before treating a fresh-start gate near a batch boundary as an extra step,
+  check whether an ordinary handover already supplies it.** In the
+  `shoroku-at-close` run, a plan-stated gate — a fresh `/tanto` start after
+  Batch D lands, before the close's recommend and apply dispatches — and the
+  conductor's own context ceiling converged by accident at the same boundary:
+  a session started after Batch D's acceptance is exactly what the gate needs,
+  and the handover was going to produce one anyway. A plan that states such a
+  gate should say which event is expected to satisfy it, so the boundary is not
+  paid for twice.
+- **A queued-topic catch-up can come back empty, and one did.** The
+  `tanto-project-config` catch-up found zero real drift on its first run:
+  `replay --base main` exited `0`, all 57 residual `O` needles measured `0`
+  hits, and both `twelve`-sites were confirmed absent. A positive data point
+  for the bet that a fresh seat can follow a catch-up's written orders without
+  the drafting session's memory — the orders were enough.
 
 ## A block must survive its destination's linter
 

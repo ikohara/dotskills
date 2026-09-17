@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-14
+updated: 2026-09-17
 ---
 
 `skills/tanto/SKILL.md` names one location for the expected-model config:
@@ -43,3 +43,10 @@ This is a change to `SKILL.md`'s config section and to every role's start
 sequence, so it belongs to a plan that edits `skills/tanto/` under contract
 rule 11 — a small topic of its own is the carrier, rather than a rider on a
 plan opened for something else.
+
+**Resolved 2026-09-17.** `skills/tanto/SKILL.md` names the project file
+`<cwd>/.claude/tanto.json`, overlaid on the personal one, and the Artifacts table
+records it as "committed or ignored as the repository decides". The overlay, its
+precedence, and the tracked-or-local question this issue left open all landed with
+`tanto-project-config`, so one repository can now pin a role's model without
+touching every other repository's runs.

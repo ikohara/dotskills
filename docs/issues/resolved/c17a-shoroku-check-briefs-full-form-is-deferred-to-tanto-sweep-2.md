@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-17
 ---
 
 The 2026-09-14 hotfix bundle (R-12) landed the interim form of the shoroku
@@ -51,3 +51,13 @@ This is a `tanto-sweep-2` candidate (the topic follows `tanto-context-ceiling`).
 Reference: `.tanto/kikaku/2026-09-14-shoroku-check-brief-and-topic-order.md`,
 sections 2 and 3; `tanto-context-ceiling` ledger, R-12 and its `S-n` source
 rows.
+
+**Resolved 2026-09-17 on the `shoroku-at-close` branch.** Every bullet of the
+deferred full form is on the tree. `skills/tanto/templates/shoroku-brief.md`
+exists; `skills/shoroku/SKILL.md` writes the brief from that template, at the path
+the caller names, in the chat's language, in the same run as the recommendation;
+`roles/kanri.md`'s Check step checks the brief's form by `grep` — four headings,
+and every `###` heading once after `See:` — dispatching once more on a failure
+and pasting on a second; and `SKILL.md`'s Artifacts table names the file.
+`tanto-sweep-2` landed the deferred form on `main` and this branch renamed the
+file to `t2-brief.md`; this topic's own close is its first use.

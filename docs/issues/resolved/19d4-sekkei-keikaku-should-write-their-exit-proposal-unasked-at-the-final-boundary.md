@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-17
 ---
 
 A Sekkei or Keikaku currently idles until Kanri sends `exit:` at its final
@@ -39,5 +39,10 @@ whether it rides there or waits for `tanto-sweep-2` (see that topic's
 
 The choice itself is now recorded: that Sekkei decided at Q5 that it rides
 with `tanto-context-ceiling`, and decision-d538 holds the decision, its
-options, and its consequences. This issue stays **open** — it tracks the
-change to the sites listed above, which the decision record does not make.
+options, and its consequences.
+
+Resolved by the `shoroku-at-close` plan's own Task 10 whole-tree sweep: no
+site still has a Sekkei or Keikaku waiting on an `exit:` line at its own final
+boundary. Every site listed above now has the seat write its own exit
+proposal unasked, named in the same `spec accepted:`/`plan committed:` report
+line, per that plan's own passages.

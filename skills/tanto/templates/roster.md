@@ -81,7 +81,8 @@ the written ones here as the record.
 Columns as the ledger's, with Source the triage, report, or session that
 raised it; Destination one of requirements, design, decisions, issues, notes,
 or reports; Adopted one of `pending`, `yes`, and `no`; Stage the stage word —
-`t0`, `t1`, `t2`, or `exit-<role>[-<suffix>]`; and Written `no` or the subject
+`exit-kanri-<YYYY-MM-DD>-<name>` for a row a between-plans Kanri exit
+recommends, and `t2` once a row moves into a ledger; and Written `no` or the subject
 of the commit that wrote the row out. The placeholder row stays until the
 first candidate arrives.
 

@@ -69,7 +69,7 @@ one implementation plan.
   itself, and the spec and the plan are wherever Kanri's orders line says,
   by default the superpowers convention.
 - **A `kisou`-style `docs/` system** in the target repo, for the `shoroku`
-  write-out at T0, T1, and T2. Without `docs/AGENTS.md` the adopted candidates
+  write-out at each topic's close. Without `docs/AGENTS.md` the adopted candidates
   have nowhere to land.
 - **Optional** — a personal `$CLAUDE_CONFIG_DIR/tanto.json` (or
   `~/.claude/tanto.json`), and a project `<repo>/.claude/tanto.json` overlaid
@@ -150,9 +150,10 @@ it to the run; no address is pasted, and Kanri's window goes first.
 
 `kisou` installs the `docs/` document-management system and `shoroku` fills it;
 `tanto` decides **when** it is filled and how each filling is checked: at
-every stage the session holding the candidates writes them, `shoroku`
-recommends in a subagent, the human answers by exception, and `shoroku`
-applies and commits the accepted subset. superpowers supplies the spec, plan,
+every exit and every boundary the session holding the candidates writes
+them, and once per topic, at its close, `shoroku` recommends in a subagent
+on the top family, the human answers by exception, and `shoroku` applies
+and commits the accepted subset on a cheaper one. superpowers supplies the spec, plan,
 implementation, and debugging machinery; `tanto` supplies the sessions, the
 boundaries between them, and the model discipline. superpowers is used as it
 is, and `shoroku`'s two halves are its own feature, which `tanto` calls;
@@ -165,4 +166,5 @@ The designs this skill implements are
 `docs/superpowers/specs/2026-09-08-review-brief-design.md`,
 `docs/superpowers/specs/2026-09-09-context-cost-design.md`,
 `docs/superpowers/specs/2026-09-11-tanto-workspace-design.md`, and
-`docs/superpowers/specs/2026-09-12-tanto-cost-design.md`.
+`docs/superpowers/specs/2026-09-12-tanto-cost-design.md`, and
+`docs/superpowers/specs/2026-09-15-shoroku-at-close-design.md`.
