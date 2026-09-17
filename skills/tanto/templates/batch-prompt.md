@@ -1,21 +1,21 @@
-# Batch <X> — tasks <N> to <M>
+# Batch <X> — tasks <N> to <M> — to <name> [<ref>], Jisso <n> of this plan
+
+(tanto line — if this window has not run /tanto, reply no-role to the sender and do nothing else)
 
 Guard — this prompt belongs to the tanto workspace `.tanto/<topic>/` in
-`<repo path>` on branch `<branch>`. If that is not your workspace, reply
-`not me` to `<kanri-address>` and stop.
+`<repo path>` on branch `<branch>`, and to the Jisso named above. If that is
+not your workspace or your name, reply `not me` to `<kanri-address>` and
+stop.
 
 ## Previous batch verdict
 
 <One line per point: what Kanri verified in the tree, what was accepted, what
 was returned for rework and why. For the first batch, write "First batch, no
 previous verdict.">
-<When a deferral stands at this boundary, one further line, verbatim — both
-when both stand:
-"Kanri's handover is deferred since <batch X | the spec stage | the plan
-stage> — the ceiling is crossed and the human is absent; this batch runs under
-the same Kanri", and
-"Your replacement is deferred since batch <X> — your ceiling is crossed and
-the human is absent; run this batch and report as usual".>
+<When Kanri's handover stands deferred at this boundary, one further line,
+verbatim: "Kanri's handover is deferred since <batch X | the spec stage | the
+plan stage> — the ceiling is crossed and the human is absent; this batch runs
+under the same Kanri".>
 
 ## What changes in this batch
 
@@ -30,8 +30,11 @@ where they are, anything the previous batch parked that these tasks touch.>
 - Conductor ledger, read only — <.tanto/<topic>/kanri.md>
 - Kanri — <name> [<ref>]
 - Branch — <branch>, base is the commit with subject <commit subject>
-- <Only after a replacement: "resume batch <X> from task <N>". Otherwise drop
-  this line.>
+- Jisso — <"the first of this plan: run Start steps 1 to 4, the pre-flight
+  scan included", or "the <n>th of this plan: run Start steps 1 to 3, resume
+  `progress.md` through `sdd-workspace`, and start at task <N> — no scan";
+  after a Jisso gone mid-batch, "resume batch <X> from task <N>" in the
+  second form>
 
 ## Rulings to carry into dispatches
 
