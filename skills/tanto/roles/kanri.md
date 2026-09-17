@@ -537,7 +537,7 @@ After the last implementation batch is accepted:
    (`skills/requesting-code-review/code-reviewer.md` inside the superpowers
    plugin), a review package over the merge base, and a pointer to the SDD
    ledger's parked and deferred-minor lines, and ask for a **Shoroku
-   candidates** section at the end of its report; copy its candidates into the
+   proposal** section at the end of its report; record its items in the
    `S-n` table with Adopted `pending` and Stage `t2`, as you do a batch
    report's. You dispatch it, not Jisso, so the executor never
    commissions its own final review. Anything else you dispatch takes the
@@ -552,21 +552,39 @@ After the last implementation batch is accepted:
    for `diff` at every boundary (issue-7481). Its report says what the replay
    printed, and the review seat goes to the cross-file contracts and the
    human-facing questions, which no script judges.
-2. Turn its findings into one more batch prompt — the final batch — and send it
-   to Jisso. A fix-wave list is drafted under the same conditions as a plan:
-   run each command it specifies once before dispatching it, and compare its
-   output with what the list expects. There is no second fix wave.
+2. Turn its findings into one more batch prompt — the final batch — and send
+   it to the next queued Jisso, as any batch. The Jisso that ran the last
+   implementation batch is the one exception to loop step 6's release at
+   the boundary: its `release:` waits for this review's verdict, and goes
+   out when the fix-wave prompt goes to its successor. When the review has
+   no findings there is no fix wave: that Jisso stays live and takes step
+   3's `T2:` line, and the spare queued window is named in the close's
+   released line for the human to `/clear`. A fix-wave list is
+   drafted under the same conditions as a plan: run each command it
+   specifies once before dispatching it, and compare its output with what
+   the list expects. There is no second fix wave.
 3. When the final batch is accepted, run the close: the four steps of
-   "Shoroku" below, whose first step is Jisso's. Send it one line —
+   "Shoroku" below, whose first step is two proposals. Jisso's first: send
+   the live Jisso one line —
    `T2: propose the shoroku write-out; write it to .tanto/<topic>/shoroku-proposal.md`
-   — check the proposal's form and ask the human to delete Jisso; then the
-   one recommendation over the proposal and every source the `pending` rows
+   — check the proposal's form, record its rows, and send it `release:`.
+   Then your own: write `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md`
+   from the ledger and the roster, as "Exit shoroku" says for your own
+   exit, and record its items as `pending` rows of this ledger — at every
+   plan close, whether or not you will decline the close's handover, so that
+   the close is every seat's write-out, yours included. Then the one
+   recommendation over Jisso's proposal and every source the `pending` rows
    name, the human's check on the brief, the direction, and the apply on
    this branch, in that order and with Jisso gone — a live Hosa's three
    steps, by the `close:` line "Delegation to Hosa" gives, or yours. Then
    put the merge decision to the human, once the commit is verified.
    Residual load-bearing findings reach the human in that merge question, and
-   so does any hotfix you took on this branch.
+   so does any hotfix you took on this branch. What you learn after your
+   proposal is written — at the check, the merge decision, the archive —
+   goes to `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-2-proposal.md`, whose
+   items are rows of the roster's Shoroku proposal items table and move
+   into the next topic's ledger when it opens; a proposal you have recorded
+   is never rewritten.
 
 ## The Kaiseki branch
 
