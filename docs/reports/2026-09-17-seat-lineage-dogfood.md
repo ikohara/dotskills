@@ -112,23 +112,24 @@ different causes, one caused by this plan and one predating it entirely:
 - **Position 4**, `grep -cF 'kanri-address:' skills/tanto/SKILL.md`: the note
   expects `3`, the live tree gives `4` (occurrences at `SKILL.md` lines 391, 409,
   537, 607). This one is caused by this plan: `git blame`/`git show` on line 607
-  confirms it is new text from the commit subjected "every tanto line carries
+  confirms it is new text from the commit titled "every tanto line carries
   the no-role line, and every exit ends with release:", this plan's own Task 3
   — a passage that added a fourth `kanri-address:` line without a matching
   update to this note's Expected count. The other three occurrences (lines
-  391, 409, 537) predate this plan: line 391/409 from the commit subjected
+  391, 409, 537) predate this plan: line 391/409 from the commit titled
   "address by born name, add the exit and bug-report terms" (2026-09-07), and
-  line 537 from the commit subjected "the contract gains the transcript
-  reading and Resuming" (2026-09-09).
+  line 537 from the commit whose subject is "the contract gains the
+  transcript reading and Resuming" (2026-09-09).
 - **Position 19**, `grep -cF 'the human by grant' skills/tanto/SKILL.md`: the note
   expects `3`, the live tree gives `4` (four Residency-table rows — Sekkei,
   Keikaku, Jisso, Kaiseki — at `SKILL.md` lines 25-28). This one predates the
   plan entirely: `git blame`/`git show` confirms all four rows carrying this
-  phrase trace to the commit subjected "name seven roles and eight ids in
+  phrase trace to the commit titled "name seven roles and eight ids in
   SKILL.md" (2026-09-13) — four days before `seat-lineage`'s own branch
-  existed. This plan's own Task 1 (the commit subjected "the roles table, the
-  invocation line, and the ceiling name one replaced seat") did touch the
-  Jisso row, but only its other columns; `git show` on that commit shows no
+  existed. This plan's own Task 1 (the commit whose subject is "the roles
+  table, the invocation line, and the ceiling name one replaced seat") did
+  touch the Jisso row, but only its other columns; `git show` on that commit
+  shows no
   `+`/`-` on "the human by grant" itself.
 
 **The P31.4 sub-block** (13 `grep -cF` lines, in file order) returned
