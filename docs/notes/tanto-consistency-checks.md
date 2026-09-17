@@ -1185,3 +1185,40 @@ what would have caught it at plan time instead. The pattern deliberately looks
 for a quote character immediately followed by `#` on a line naming `sections`,
 so a prose sentence that merely mentions a heading elsewhere on the line does
 not trip it.
+
+## 24. The two shoroku kinds, and the stage word that is left
+
+```bash
+grep -c 'subagent_type: tanto-shoroku-recommend' skills/tanto/roles/kanri.md
+grep -c 'subagent_type: tanto-shoroku-apply' skills/tanto/roles/kanri.md
+grep -cE 'tanto-shoroku([^-.]|$)' skills/tanto/SKILL.md skills/tanto/roles/kanri.md
+grep -cF 'close: <topic> — proposal <path>; ledger <path>; recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now' skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/hosa.md
+grep -cE '\bt[01]\b|\bT[01]\b' skills/tanto/SKILL.md skills/tanto/README.md skills/tanto/roles/*.md skills/tanto/templates/*.md
+```
+
+Expected: at least `1` from the first and at least `2` from the second —
+`SKILL.md` names the kinds, not the `subagent_type` spellings, and is not in
+those two. `0` from the third, on both files: the `.` is excluded so that the
+contract's `tanto-shoroku.md` removal sentence is not a hit, while
+`subagent_type: tanto-shoroku` followed by a space or a period-and-space is.
+`1` from the fourth in each of the three files, which pins the `close:` line's
+three copies to one spelling, as §21 asks of a named mechanism. `0` from the
+fifth in every file: the stage words `t0` and `t1` are retired, and the root
+listing's glob for a predecessor's stage files is gone. This file and `docs/` are outside
+the fifth line's scope, for the reason §10's paragraph gives: a record whose
+subject is "we stopped saying X" must quote X.
+
+Two lessons under it. **A definition-vs-template comparison through `$(...)`
+on Git Bash strips the CR** and reports every CRLF file as differing: the
+rendered definitions under `$CLAUDE_CONFIG_DIR/agents/` are CRLF on disk, as
+`templates/agent.md` is, so compare with `tr -d '\r'` on both sides, or read
+the start sequence's "content differs" modulo line endings. Measured while the
+`shoroku-at-close` design was written: all of that host's definitions were
+current, and a naive comparison called every one of them stale. **A retirement
+needle has to be written against the new text as well as the old.** Two of that
+design's first needles matched strings its own new text writes
+(`tanto-shoroku.md`) or its unedited text kept (the root listing's retired
+glob for a predecessor's stage files), and only a run of the grep against the
+draft found them; a third could not be written as a literal at all, because
+every form of it is a prefix of the spelling that replaces it, which is why
+the third line above is a regular expression.
