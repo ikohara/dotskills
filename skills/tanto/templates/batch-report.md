@@ -32,7 +32,14 @@ Every ruling made in this batch, in the order made.
 
 - <the exact command run> — <the result>
 
-## Shoroku candidates
+## Shoroku proposal
+
+<This section is this Jisso's exit shoroku: the items this batch raised
+that no file holds — a rejected alternative and its reason, a fact measured,
+a defect noticed, an observation about the run — never a restatement of the
+plan, the SDD ledger, or this report. Kanri records each as a `pending` row;
+the close's recommender quotes it from here. Nothing else is written at
+your exit.>
 
 - <requirements, design, decisions, issues, notes, or reports> — <one line on
   what is worth keeping and why>
