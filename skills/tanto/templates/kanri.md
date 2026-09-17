@@ -48,12 +48,13 @@ stays until the first one is.
 
 ## Shoroku candidates
 
-Columns: S-n, the row id; Source, the report or session that raised it;
+Columns: S-n, the row id; Source, the file the candidate lives in and its place there — a report and its item, a proposal and its number, the spec and a section heading — so that the close's recommender can follow it;
 Candidate, one line; Destination, one of requirements, design, decisions,
 issues, notes, or reports; Adopted, one of `pending`, `yes`, and `no`; Stage,
-the stage word — `t0`, `t1`, `t2`, or `exit-<role>[-<suffix>]`, as in
-`exit-jisso-B`, `exit-sekkei`, `exit-keikaku`, `exit-kaiseki-1`, and
-`exit-kanri-<YYYY-MM-DD>-<name>`; Written, `no` or the subject of the commit
+the stage word — `t2` for every row of this table, whichever moment raised
+it, since the close is the one stage that recommends a ledger's rows, and
+`exit-<role>[-<suffix>]` names a proposal file, never a Stage value; Written,
+`no` or the subject of the commit
 that wrote the row out. The placeholder row stays until the first candidate
 arrives.
 
@@ -61,38 +62,38 @@ arrives.
 | --- | --- | --- | --- | --- | --- | --- |
 | (no candidate yet) | | | | | | |
 
-Nothing is adopted here by a ruling. A candidate copied in at a boundary —
-from a batch report's Shoroku candidates, a Kaiseki report's
-`blocks this task: no` items, or a review report — arrives with Adopted
-`pending` and Stage `t2`, and stays `pending` until the stage that recommends
-it. At every stage Kanri dispatches the `shoroku` kind to write
-`<stage>-recommendation.md`, which lists every item once in three groups —
-Recommended adopt, Recommended reject, Unsure; tells the human that path, the
-three counts, and the items themselves as a numbered list in the chat's
-language; and writes `<stage>-direction.md` from the human's answer,
-and these rows with it, Adopted `yes` or `no` as the direction says and Stage
-the stage word. No item is put to the human apart from the rest and none is
-settled by Kanri alone: the human sees the whole list, grouped, and answers by
-exception.
+Nothing is adopted here by a ruling. Every row arrives `pending` — from a
+batch report's Shoroku candidates, a Kaiseki report's
+`blocks this task: no` items, a review report, a session's exit proposal,
+the spec's four sections, or a Kanri exit that fell while this ledger was
+open — and stays `pending` until the close. At the close Kanri dispatches
+the `shoroku.recommend` kind over Jisso's proposal and every source these
+rows name, to write `t2-recommendation.md` and `t2-brief.md`; gives the
+human both paths, the three counts, and the brief verbatim; and writes
+`t2-direction.md` from the human's answer, and these rows with it, Adopted
+`yes` or `no` as the direction says. No item is put to the human apart from
+the rest and none is settled by Kanri alone: the human sees the whole list,
+grouped, once, and answers by exception.
 
-Every write-out, T2 included, writes only the adopted rows whose Written column
-says `no`, and fills that column with the commit subject. So nothing is written
-twice, and T2 keeps everything adopted but not yet written.
+The close writes only the adopted rows whose Written column says `no`, and
+fills that column with the commit subject; a row a Kanri exit recorded here is
+written by this topic's close like any other. So nothing is written twice.
 
 A reference to an `S-n` or an `R-n` from outside its own ledger — the roster, a
 handover file, another ledger — names the topic first, `<topic> S-n`; bare
 numbers stay bare inside a ledger. The Written column takes only a value a
 filter can read: `no`, a commit subject, or `superseded: <topic> R-n`, the last
-counting as written; a candidate with two stages is split into two rows when
-the second stage is identified, never written as a compound value.
+counting as written; a candidate two closes could claim is one row in the
+ledger of the topic that raised it, never a compound value.
 
 ## Session events
 
 - <YYYY-MM-DD HH:MM> — <a create, replace, or delete request and the human's
   answer; a handshake accepted or refused; a session declared dead and what was
   verified; a recovery after a VS Code restart; a handover written or accepted;
-  a bug report triaged and its outcome; an exit shoroku committed, or not run
-  and what was lost; a human access grant and the human-access: done line that
+  a bug report triaged and its outcome; an exit proposal form-checked and its
+  rows recorded, or an exit shoroku not run and what was lost; a human access
+  grant and the human-access: done line that
   closed it; a human-contact: line and what was said>
 
 ## Open questions for the human
