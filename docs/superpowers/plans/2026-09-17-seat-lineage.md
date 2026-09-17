@@ -30,7 +30,7 @@
   | `default` (an ad-hoc search or one-off exploration outside the SDD loop) | `tanto-default` | sonnet | medium |
 
 - **This plan runs on the old lifecycle** (spec section 10, rule 11). This plan's own Jisso is one session, created at the landing by today's create request, carrying every one of this plan's batches; that Jisso's own exit is a **deletion**, exactly as the pre-plan text on disk says today — not the `release:` line and not the `/clear` this plan is writing. The queue, `release:`, and the `no-role` line this plan introduces take effect starting with the **first plan that lands after this one**, not this one. State this plainly to the Jisso running this plan if it ever reads its own half-edited `roles/jisso.md` mid-plan: it is not waiting on a `release:` line, because Kanri will never send it one under this plan.
-- **The safe boundary is the final one (batch D3).** No role is started or replaced before this plan's last batch is accepted, because every role file this skill ships changes somewhere across this plan's 35 tasks, and a session started earlier would read a half-edited skill (rule 11). This holds **even if** a context-ceiling verdict of `over` is read for Kanri or for this plan's own Jisso at an earlier boundary: rule 11 overrides the ordinary Replace trigger for the whole run of this plan, and Kanri records that override as its own `R-n` at the plan's landing, so every batch prompt and a handover file, if one happens mid-plan, carry it forward. The one exception rule 11 itself allows before batch D3 is a Kaiseki dispatched on a Kanri ruling (`R-n`), made with the half-edited skill in view, if a fix round's root cause is genuinely unknown (rule 8) — Sekkei stays paused for that duration (rule 9), and nothing else starts or replaces early.
+- **The safe boundary is the final one — D3 accepted, or the fix wave after it, whichever actually lands last.** `roles/kanri.md`'s own "The final batch" step 2 turns the whole-branch review's findings, if it has any, into one more batch prompt on these same files, sent to Jisso after D3 is accepted; there is no second fix wave. So D3 being accepted is this plan's own end only when that review comes back clean. Wherever this plan names "batch D3" as a boundary, read it as "D3, or the fix wave that follows it, whichever this run actually ends on." No role is started or replaced before that actual end, because every role file this skill ships changes somewhere across this plan's 35 tasks, and a session started earlier would read a half-edited skill (rule 11); the fresh-start check (D3's own row, and "How a batch is verified") runs only once that end is reached, not at D3 if a fix wave still follows it. This holds **even if** a context-ceiling verdict of `over` is read for Kanri or for this plan's own Jisso at an earlier boundary: rule 11 overrides the ordinary Replace trigger for the whole run of this plan, and Kanri records that override as its own `R-n` at the plan's landing, so every batch prompt and a handover file, if one happens mid-plan, carry it forward. A compaction in this plan's own Jisso's reading is **not** overridden the same way: decision-6dea's Replace-on-compaction symptom is the one Replace trigger rule 11 still allows before the safe boundary, alongside a Kaiseki dispatched on a Kanri ruling (`R-n`) if a fix round's root cause is genuinely unknown (rule 8) — a compacted Jisso may have lost track of the plan in a way continuing it would not fix, while its replacement still reads under this same Global Constraints authority (its batch prompt carries it forward) rather than cold from the half-edited disk text, so it is not the risk this rule exists to prevent. Sekkei stays paused for the Kaiseki case's duration (rule 9), and nothing else starts or replaces early.
 
 ## Batches
 
@@ -61,7 +61,7 @@ batch, and no role is started or replaced before D3.
 | C4 | 28, 29 | `templates/batch-report.md`, `templates/kaiseki-report.md`, `templates/shoroku-brief.md` | Tasks 28-29 `verify` clean; **batch C's own boundary**: every role file and every template now names the new vocabulary consistently |
 | D1 | 30, 31 | The READMEs' drift review; `docs/notes/tanto-consistency-checks.md`'s checks 6 and 7 re-run with the new lines | Tasks 30-31 `verify` clean; re-check whether `shoroku-at-close`'s own Task 10 (check 24) has landed since this plan was drafted — Task 31's Self-Review flag 1 — and re-verify P31.1-P31.6 against the live note before this task is accepted if it has |
 | D2 | 32, 33 | `docs/notes/claude-code-sessions-observed.md`'s `/clear` measurements; the whole-tree old-value sweep (Task 33, sweep-and-check — no edit, no commit; output to `.tanto/seat-lineage/old-value-sweep.md`) | Task 32 `verify` clean; Task 33's sweep output reviewed by a human eye for any hit beyond the three known, accepted survivors (the `delet` sweep's three absence-stating lines in `roles/kanri.md` — its Handover, its "Exit shoroku" step 2, and its "Session lifecycle" opening — the spec's own new text; Self-Review flag 2 names two of the three) |
-| D3 | 34, 35 | issue-0239 and issue-f293 closed; the dogfood report written | Tasks 34-35 `verify` clean; a real YAML load of both closed issues' frontmatter (the `updated:` bump) succeeds; **the plan's final boundary**: run the full Verification list below, then the human-run fresh-start check, before any role is started or replaced |
+| D3 | 34, 35 | issue-0239 and issue-f293 closed; the dogfood report written | Tasks 34-35 `verify` clean; a real YAML load of both closed issues' frontmatter (the `updated:` bump) succeeds; re-run what stands in for the spec's own Verification section (Task 33's sweep, Task 31's checks 6/7, `node --test`) one more time against the fully-landed tree; **the plan's final boundary if the whole-branch review then comes back clean** (Global Constraints) — if it does not, the fix wave that follows is the actual final boundary instead, and the fresh-start check waits for that one |
 
 ## How a batch is verified
 
@@ -88,15 +88,25 @@ that frontmatter, not a text match — a hand-edited date that breaks the
 block is a defect the grep-only checks above would not catch. No task in
 this plan writes JSON.
 
-Batch D3, the plan's own final boundary, additionally runs the full
-Verification list below in its entirety (the whole-tree sweep beyond D2's
-own Task 33, the consistency note's checks re-run one more time against
-the fully-landed tree, and `node --test skills/tanto/scripts/` one final
-time) before the human-run fresh-start check: a `/clear`ed window, started
-before this plan's definitions and template edits, running `/tanto` and
-reporting in its own start line whether `mode=` still reads `auto` and
-whether `agents: 13 current` — the two facts spec section 10 and "Measured
-while designing" 5 ask this plan to close.
+Batch D3 additionally re-runs what stands
+in for the spec's own Verification section
+(`docs/superpowers/specs/2026-09-17-seat-lineage-design.md`, heading
+"## Verification") one more time against the fully-landed tree — Task 33's
+own sweep (D2), the consistency note's checks 6 and 7 (Task 31 Step 4),
+and `node --test skills/tanto/scripts/`. The human-run fresh-start check
+follows this — at D3 if the whole-branch review then comes back clean, at
+the fix wave's own boundary otherwise (Global Constraints): a `/clear`ed
+window, started before this plan's definitions and template edits, running
+`/tanto` and reporting in its own start line whether `mode=` still reads
+`auto` and the triple `agents: <n> current, <m> written, <k> not visible`.
+Record the triple as read, not as a pass against `13`: no task in this
+plan writes an agent definition, so nothing here tests whether a `/clear`
+forces a rescan — the closest measurement on record is `agents: 12
+current` (`.tanto/seat-lineage/dialogue.md`, before this plan added the
+thirteenth kind), and this check only adds a second data point at a
+different count, not a proof. Say plainly, in the dogfood report, that
+"Measured while designing" 5 (spec section 10) stays a fact consistent
+with a rescan, not a demonstrated one.
 
 ---
 
@@ -401,7 +411,7 @@ Subject: `docs(tanto): the roster carries queued rows and Kanri sends only to li
 
 - Modify: `skills/tanto/SKILL.md` (insert after L545)
 
-Spec section 2.4. This is the one site that fixes the `no-role` line's text; `templates/batch-prompt.md` carries the same bytes (Task 27) and no other file may. The closing-line passage — its prose, its `text` fence, and its two examples — is amended by `.tanto/kikaku/2026-09-17-closing-line-identity.md` (R-7): every closing line gains an identity prefix (`<name> [<ref>] · <role>[/<topic>] · <family>`) and an optional `sent:` line under it. The accepted spec is not re-edited; the plan carries the amendment and names this file, the same treatment R-6 gave the idle block.
+Spec section 2.4. This is the one site that fixes the `no-role` line's text; `templates/batch-prompt.md` carries the same bytes (Task 27) and no other file may. The closing-line passage — its prose, its `text` fence, and its two examples — is amended by `.tanto/kikaku/2026-09-17-closing-line-identity.md` (R-7): every closing line gains an identity prefix (`<name> [<ref>] · <role>[/<topic>] · <family>`) and an optional `sent:` line under it. The cold read found R-6 in the spec's own `## Amendments` and R-7 not; the spec now carries both (R-7 §1, §2, §5), so a `task.review-spec` dispatch has a tracked document for every one of these seven sites, matching R-6's own treatment in full.
 
 **Named mechanisms this task touches.** The **`no-role` line**'s fixed text — its only other site is `templates/batch-prompt.md` (Task 27), and `roles/kikaku.md` names the rule for its own `decision:` line (Task 26); `roles/kanri.md` acts on a received `no-role` in its handshake close (Task 7), its Replace table and its Release table (Task 15), and its "Shoroku" forced-exit paragraph (Task 14). The **`release: /clear this window`** line: also `roles/kanri.md` (Tasks 9, 11, 12, 14, 15), `roles/jisso.md` (Task 21), `roles/sekkei.md` (Task 22), `roles/keikaku.md` (Task 23), `roles/kaiseki.md` (Task 24). The **closing line**: also `roles/kanri.md`'s handover step 4 (Task 13), `roles/jisso.md` (Task 21), `roles/sekkei.md` (Task 22), `roles/keikaku.md` (Task 23), `roles/kaiseki.md` (Task 24), `roles/hosa.md` (Task 25). Closing issue-f293's first site.
 
@@ -449,7 +459,12 @@ The block below is fenced with four backticks because its own text carries a thr
   — what was lost, as far as it knows — and treats the exit as forced, a
   live Jisso's after verifying the tree; a role that receives `no-role` from
   Kanri's own name is in a handover gap, holds the line it sent, and
-  re-sends it when the next `kanri-address:` line arrives.
+  re-sends it when the next `kanri-address:` line arrives — this holds a
+  line only for a role with an established roster row to hold one on
+  behalf of. A session with no row yet — a queued Jisso's own first
+  handshake, landing in the same gap — has no line to hold: it treats the
+  `no-role` the way a send error is already treated, re-reads the roster's
+  first data row, and re-handshakes there once a `live` Kanri answers it.
 - **`release: /clear this window`** is the line that ends every exit, sent by
   Kanri right after the seat's proposal passes its form check, and the last
   line that name is ever sent: the row is `cleared` at that moment. The seat
@@ -4062,6 +4077,8 @@ Subject: `docs(tanto): Sekkei ends with a closing line and waits for release:, n
 
 Spec sections 5.2 and the Keikaku part of 5.4. The closing-line mention below is amended by `.tanto/kikaku/2026-09-17-closing-line-identity.md` (R-7), one of the sites its own section 5 lists: the identity prefix and the optional `sent:` line SKILL.md's Messages defines (Task 3) apply here too.
 
+The queue-sizing rule `P23.1` installs (the Batches table's row count plus one) has a first, self-referential data point in this very plan: this table has 17 rows, so the *same* plan under the lifecycle it installs would size an 18-window queue — 18 full plan-and-spec reads instead of one Jisso carrying all 35 tasks. No action follows from this at drafting time — this plan itself runs on the old lifecycle (rule 11) and is exempt from the rule it writes, per Global Constraints — but it is the first evidence for Deferred item 4's open question (a queued window's own idle cost) plus a second cost that item does not name, a queued seat's own re-read of the plan and spec at its batch prompt. Worth a measurement in the first plan that does queue-size itself, not a cap here: no threshold exists yet for either a plan's total task count or its per-batch size (Self-Review, issue-7281), and adding one for the queue length alone, without one for the plan it queues, would constrain the wrong variable.
+
 **Named mechanisms this task touches.** The **Batches table's row count + 1** as the queue's size: also `roles/kanri.md`'s "When the plan lands" step 4 and its Create table (Tasks 8, 15), rule 11's queue clause (Task 5), and `roles/jisso.md`'s Start (Task 21). The plan reviewer's **`**Shoroku proposal** section`**: the twin is `roles/sekkei.md`'s (Task 22). The **closing line** and **`release:`**: as Task 22.
 
 **Old values this task must clear** — counts run against the live tree at `17f2e4a`:
@@ -5575,22 +5592,25 @@ created: docs/reports/2026-09-17-seat-lineage-dogfood.md
 
 Spec section 8.3's third bullet, and its "What the plan must contain" last item. `docs/reports/AGENTS.md`: no frontmatter, the `# H1` is the title, the date lives only in the file name, the leading paragraph states the scope, and the file is frozen once written.
 
-**Named mechanisms this task touches.** The **fresh-start check** is the final boundary's own check and this report is where its result lands: a window started before this plan's edits is `/clear`ed and `/tanto` run in it, and its start line says whether the permission mode survived (`mode=`) and whether the definitions are current (`agents: 13 current`). That check closes the spec's "Measured while designing" 5 and pairs with the sessions note (Task 32). The **queue's own figures do not exist yet**: this plan runs on the old lifecycle (rule 11), so its Jisso is one session carrying every batch, and the report says so rather than reporting a rotation it did not run.
+**Named mechanisms this task touches.** The **fresh-start check** runs at the plan's actual final boundary (D3, or the fix wave after it — Global Constraints), which is at or after this task's own commit, so this task cannot contain its result at write time; the append below is where it lands instead. That check pairs with the sessions note (Task 32) and only partly closes the spec's "Measured while designing" 5, per this task's own Step 1 note. The **queue's own figures do not exist yet**: this plan runs on the old lifecycle (rule 11), so its Jisso is one session carrying every batch, and the report says so rather than reporting a rotation it did not run.
 
 This task has no `P` block: it creates a file. Its check is the anchor below, plus the line-ending restore in Step 4 — a Markdown file created on this host lands `w/lf` every time (measured five of five in the tanto-cost run), so the commit is followed by a restore.
+
+Two of the report's items do not exist when this task runs, for the same reason the fresh-start check doesn't: the roster's Residency rows freeze only at the close (`docs/reports/AGENTS.md` freezes the file once written, otherwise), well after this plan's own last batch lands, whole-branch review included; and the fresh-start check itself, which the paragraph above places at or after this task's own commit. This task writes what it can and leaves the rest to a later append, the same shape `docs/reports/2026-09-11-kisou-refresh-dogfood.md`'s own "## Measurements appended at T2" section uses (`2026-09-15-shoroku-at-close-dogfood.md`'s alternative — pointing at the ledger's table instead of appending — does not fit here, since this plan's own close is what produces the Residency rows and the fresh-start result in the first place, not a table that already existed). Kanri (or Hosa, in the close's own slot) appends that section when the close's step 2 ("The final batch", step 3 in "Shoroku") fills the ledger's remaining Measurements — the same moment the Residency rows move to `roster-archive.md` — naming who ran the fresh-start check and when.
 
 - [ ] **Step 1: Write the report**
 
 Write `docs/reports/2026-09-17-seat-lineage-dogfood.md` with:
 
 - A `# The seat-lineage dogfood` H1 and a leading paragraph stating the scope: what this run changed in the tanto skill and what this report preserves that the untracked `.tanto/` tree will not.
-- **The old-value sweep.** Task 33's recorded counts, command by command, with the disposition of every hit — including the one line that legitimately keeps the words "delete request".
+- **The old-value sweep.** Task 33's recorded counts, command by command, with the disposition of every hit — including the three lines that legitimately keep the words "delet" as an absence, not a practice (Task 33's own three known exceptions).
 - **The consistency note's checks 6 and 7.** Task 31's Step 4 outputs, and whether each matched the note's Expected paragraphs.
-- **The fresh-start check.** The `/clear`ed window's `/tanto` start line: its `mode=` value and its `agents: <n> current, <n> written, <n> not visible` triple, with `agents: 13 current` as the expectation. Say plainly whether the definition rescan is now measured or still only consistent with the data.
-- **Measurements.** The roster's Residency rows for this run, from the direction file the close appended them to; and the note, in one sentence, that the queue's own figures — a queued seat's idle cost, a rotating Jisso's per-seat context — come from the first plan that lands after this one, because this plan ran on the old lifecycle under rule 11.
 - **What the READMEs' review found.** Task 30's six rewrites, and that `skills/shoroku/README.md` was reviewed and left unchanged.
+- A closing `## Measurements appended at T2` heading, empty but for one sentence: "Added by this topic's close, once the fresh-start check has run and the Residency rows are final." This is the anchor the close's own append lands under; nothing else in this task writes under it.
 
 **A35.1** `docs/reports/2026-09-17-seat-lineage-dogfood.md` — `grep -c '^# The seat-lineage dogfood$' docs/reports/2026-09-17-seat-lineage-dogfood.md` — before: 0, after: 1
+
+**A35.2** `docs/reports/2026-09-17-seat-lineage-dogfood.md` — `grep -c '^## Measurements appended at T2$' docs/reports/2026-09-17-seat-lineage-dogfood.md` — before: 0, after: 1
 
 - [ ] **Step 2: Verify**
 

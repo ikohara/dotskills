@@ -345,7 +345,12 @@ Insert after the bullet that says a reply copies the incoming message's
   — what was lost, as far as it knows — and treats the exit as forced, a
   live Jisso's after verifying the tree; a role that receives `no-role` from
   Kanri's own name is in a handover gap, holds the line it sent, and
-  re-sends it when the next `kanri-address:` line arrives.
+  re-sends it when the next `kanri-address:` line arrives — this holds a
+  line only for a role with an established roster row to hold one on
+  behalf of. A session with no row yet — a queued Jisso's own first
+  handshake, landing in the same gap — has no line to hold: it treats the
+  `no-role` the way a send error is already treated, re-reads the roster's
+  first data row, and re-handshakes there once a `live` Kanri answers it.
 - **`release: /clear this window`** is the line that ends every exit, sent by
   Kanri right after the seat's proposal passes its form check, and the last
   line that name is ever sent: the row is `cleared` at that moment. The seat
@@ -3069,7 +3074,7 @@ writes the `amends:` links `docs/decisions/AGENTS.md` asks for; recorded as
 - `grep -c 'Shoroku candidates' skills/tanto/SKILL.md skills/tanto/roles/*.md skills/tanto/templates/*.md skills/tanto/README.md` — `0` on every file (the scripts' tests keep the string as a fixture and are not swept); `grep -c '^## Shoroku proposal items$' skills/tanto/templates/roster.md skills/tanto/templates/kanri.md` — `1` and `1`; `grep -c '^## Shoroku proposal$' skills/tanto/templates/batch-report.md skills/tanto/templates/kaiseki-report.md` — `1` and `1`.
 - `grep -ci 'candidate' skills/tanto/SKILL.md skills/tanto/roles/*.md skills/tanto/templates/*.md skills/tanto/README.md` — `0` on every file.
 - `grep -cF 'Jisso replacement deferred' skills/tanto/templates/kanri.md` — `0`; `grep -c '<dead, replaced, refused, or cleared>' skills/tanto/templates/roster-archive.md` — `1`; `grep -cF 'the Kanri exit' skills/tanto/templates/shoroku-brief.md` — `0`.
-- `grep -cF 'asks for your deletion' skills/tanto/roles/sekkei.md skills/tanto/roles/keikaku.md` — `0` on each; `grep -cF 'your deletion follows' skills/tanto/roles/jisso.md` — `0`; `grep -cF 'Replace symptom' skills/tanto/roles/jisso.md skills/tanto/roles/kanri.md` — `0` on each; `grep -cF '**Shoroku proposal** section' skills/tanto/roles/sekkei.md skills/tanto/roles/keikaku.md skills/tanto/roles/kanri.md` — `1` on each.
+- `grep -cF 'asks for your deletion' skills/tanto/roles/sekkei.md skills/tanto/roles/keikaku.md` — `0` on each; `grep -cF 'your deletion follows' skills/tanto/roles/jisso.md` — `0`; `grep -cF 'Replace symptom' skills/tanto/roles/jisso.md skills/tanto/roles/kanri.md` — `0` on each; `grep -cF '**Shoroku proposal** section' skills/tanto/roles/sekkei.md skills/tanto/roles/keikaku.md` — `1` on each (per section 8.2, only these two files carry the bold pin; `roles/kanri.md` reads the same section by its bare heading via `sections` and carries no pin of its own).
 - `grep -cF 'queued: <n>' skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/jisso.md` — at least `1` on each; `grep -cF 'release: /clear this window' skills/tanto/SKILL.md skills/tanto/roles/kanri.md` — at least `1` on each, and `1` or more on each of `roles/sekkei.md`, `roles/keikaku.md`, `roles/kaiseki.md`, `roles/jisso.md`; the `no-role` line's fixed text, `grep -cF '(tanto line — if this window has not run /tanto, reply no-role to the sender and do nothing else)' skills/tanto/SKILL.md skills/tanto/templates/batch-prompt.md` — `1` on each, and the fixed text lives in no other file.
 - `grep -cF 'close: <topic> — proposal <path>; ledger <path>; recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now' skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/hosa.md` — `1` on each.
 - `grep -c '^### Release$' skills/tanto/roles/kanri.md` — `1`; `grep -c '^### Delete$'` — `0`.
@@ -3306,6 +3311,74 @@ drafting — the cheap moment `2026-09-17-clear-based-lifecycle.md` section
 9 named for the same reason; a change before `plan.review` costs a
 drafter's addendum, after it a scoped re-review, and after the plan lands
 a second topic on the same paragraphs.
+
+`.tanto/kikaku/2026-09-17-closing-line-identity.md` (R-7, ruled in
+`seat-lineage/kanri.md`, added at the cold read: that file's own section 5
+said the spec would not be re-edited, the same as R-6 — the cold read
+found the two amendments treated unevenly, since R-6 alone had reached the
+spec, and this entry corrects that), sections 1, 2, and 5, verbatim (headed
+here as R-7 §1, §2, §5 to avoid colliding with R-6's own "1." and "2."
+above):
+
+### R-7 §1. The form
+
+The closing line the plan already fixes — Task 3 of
+`docs/superpowers/plans/2026-09-17-seat-lineage.md`, "A seat's turn ends
+with its closing line", `Work: <paths>. Still needs this seat: <step> | none.`
+— gains one part in front and one optional line under it:
+
+```text
+<name> [<ref>] · <role>[/<topic>] · <family> — Work: <paths, or the commit subject>. Still needs this seat: <step — its site> | none.
+sent: <the one line sent to Kanri this turn, verbatim>
+```
+
+- `<name> [<ref>]` is what the seat's own last `ListAgents` printed for it —
+  at the handshake, at its latest boundary self-check, or at `/tanto fukki`.
+  It is the word Kanri's idle block, Kanri's delete requests, and the roster
+  use, so the window and those lines match on the same word. The uuid
+  session id is the roster's Transcript column and is not shown.
+- `<role>[/<topic>]`: the role id, with the topic for a Sekkei, Keikaku,
+  Jisso, or attached Kaiseki — `jisso/shoroku-at-close`; bare `kanri`,
+  `kikaku`, `hosa` for the topicless seats.
+- `<family>` is the family word — `opus`, `fable`, `sonnet` — read from the
+  seat's own system prompt, which the harness rewrites on a `/model`
+  switch, so it is fresh; it is what a decision file's "which model wrote
+  what" and Kanri's handshake check both key on.
+- `sent:` appears only on a turn that sent Kanri a line, and carries that
+  line unchanged, its reading included. In this editor a `SendMessage` is a
+  collapsed row; the human reads the window, not the envelope (the measured
+  case of `2026-09-17-deletable-closing-line.md`, section 0), and this line
+  puts the envelope's one line in the window.
+- **Kanri's idle block** (`2026-09-17-idle-block-and-hosa-compact.md`)
+  gets the same identity as its first line after `---`, so that a window
+  holding a Kanri says which Kanri — three were replaced today. It needs
+  no `sent:`: Kanri's lines are already files (the batch prompts) or `R-n`
+  text.
+
+Two more facts, checkable against the listing and the system prompt; still
+never an opinion, as the plan's passage says.
+
+### R-7 §2. Staleness after a resume
+
+A resumed session comes back under a new name and `[ref]`, and nothing in
+its context says so until its next boundary self-check or the human's
+`/tanto fukki`; until then the line shows the old name. The plan's passage
+says so in one clause — the identity is as of the seat's last self-check —
+and the human, who restarted the editor, knows which day that is. No
+mechanism is added.
+
+### R-7 §5. Placement, and the interim
+
+The plan is drafted and reviewed (`.tanto/seat-lineage/plan-review.md` on
+disk); the human's plan dialogue and the cold read have not run. The
+change is one clause per site: the Task 3 passage — its prose, its `text`
+fence, and its two examples — and the sites that restate the closing line,
+as Task 3's own "Named mechanisms" paragraph lists them: `roles/kanri.md`'s
+handover step 4 (Task 13), `roles/jisso.md` (Task 21), `roles/sekkei.md`
+(Task 22), `roles/keikaku.md` (Task 23), `roles/kaiseki.md` (Task 24),
+`roles/hosa.md` (Task 25); and the idle block's site (Task 10) for Kanri's
+identity line. A drafter's addendum by the live Keikaku `dotskills-f0`, a
+scoped `plan.review` on those passages, then the dialogue as planned.
 
 ## Shoroku candidates from this spec work
 
