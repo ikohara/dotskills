@@ -187,3 +187,14 @@ only at the branch's two structural ends the 2026-09-16 paragraph names. A fix
 that compares against the plan's own declared path set — the path-scope half —
 covers both sources at once, which is what an exclude-list keyed to commit kind
 or to uncommitted state would not.
+
+2026-09-17 — the same class, compounding across batches. The
+`shoroku-at-close` run's Batch C boundary check traced its noise to **two**
+prior exit-shoroku commits at once — batch A's own exit commit ("docs: exit
+shoroku for jisso at A") and batch B's own exit commit ("docs: exit shoroku for
+jisso at B") — where each of the Batch A and Batch B checks traced to a single
+commit. The set grows rather than resetting: every batch's own exit commit
+joins what each later boundary must re-explain by hand, so a run accumulates
+the noise instead of paying it once per boundary, and Batch D's check will face
+three once this exit's own commit lands. The path-scope fix this issue already
+proposes absorbs the whole set at once, which per-commit rulings do not.

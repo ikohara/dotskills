@@ -55,3 +55,21 @@ split's own benefit (independent model and effort tuning per half, no shared
 blind spot between the two verdicts) the next time `tanto.json`'s review kinds
 are revisited. The paragraph above left the run that raised this issue with no
 filed home for its own figure; this is a second run's, filed.
+
+2026-09-17 — Batch C's own measurement, a second point for the same split.
+Batch C of the `shoroku-at-close` run repeated the shape the paragraph above
+prices: nine subagent dispatches across three tasks, one `task.implement`
+(sonnet) plus `task.review-spec` and `task.review-quality` (both opus) per
+task, zero fix rounds. Token usage per dispatch, read from each dispatch's own
+result: Task 7 — implement 75,673, spec-review 57,673, quality-review 63,106
+(196,452); Task 8 — implement 74,236, spec-review 61,225, quality-review 71,788
+(207,249); Task 9 — implement 81,115, spec-review 54,262, quality-review 57,662
+(193,039). Batch total ≈596,740 subagent tokens.
+
+That lands within 0.04% of the Batch A total above, despite different task
+sizes and no shared cause beyond "three documentation tasks, the two-dispatch
+review split, zero fix rounds". The figure alone is not the finding — two
+batches landing within noise of each other on this metric is: the split's
+reviewer-side cost is flat across batch composition, which the open question
+this issue carries (two opus dispatches versus one) previously had only a
+single point to argue from.
