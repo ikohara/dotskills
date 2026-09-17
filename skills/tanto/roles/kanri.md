@@ -611,14 +611,14 @@ is the classification rule.
 5. Work the report's "Other defects observed" section item by item. An item
    tagged `blocks this task: yes` goes through the classification rule again —
    a known cause is a ruling, an unknown cause gets
-   `kaiseki-<n+1>-brief.md` sent to the **same** Kaiseki, which is not deleted
+   `kaiseki-<n+1>-brief.md` sent to the **same** Kaiseki, which is not released
    yet. An item tagged `blocks this task: no` is copied into the `S-n` table at
    this boundary with Adopted `pending` and Stage `t2`; nothing is adopted
    here, and the close is where it is recommended and checked.
 6. When Jisso's fix passes review and tests and no `blocks this task: yes` item
    is open, run Kaiseki's exit as "Exit shoroku" below prescribes — its
-   proposal, its form check, then the deletion request — or keep it if
-   more of the same bug is expected. Not before: a fix that misses goes back to
+   proposal, its form check, then `release:` — or keep it if more of the
+   same bug is expected. Not before: a fix that misses goes back to
    the same Kaiseki with its context intact. The apply is not Kaiseki's work:
    the apply subagent commits the accepted subset, and Kaiseki may be gone by
    then.
