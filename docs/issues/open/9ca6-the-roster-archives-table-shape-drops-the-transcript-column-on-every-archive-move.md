@@ -32,3 +32,12 @@ directly weakens — the archive is its dataset), issue-e496 (the other half of
 the same Residency dataset). Distinct from issue-e18b, which is about a stale
 status enumeration in `SKILL.md`'s Artifacts row rather than the table's
 columns.
+
+**2026-09-18, `seat-lineage` — the first measurement of what the gap costs a
+`--share` figure.** Tracing `shoroku-at-close`'s full multi-day
+Kanri/Sekkei/Keikaku lineage back to its 2026-09-15 opening, for a fuller
+`--share` figure than the bounded 11-transcript slice actually used, was
+considered and **rejected as unreachable**: `roster-archive.md` carries no
+Transcript column for the older rows, so more searching would not have found
+them. A lineage-wide `--share` figure therefore stops at the archive, which is
+the concrete consequence of this issue's table shape.

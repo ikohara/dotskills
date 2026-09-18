@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-18
 ---
 
 The contract releases a seat while the one text the human reads says the seat
@@ -81,3 +81,18 @@ own wording; it is recorded here so that the topic's plan does not lose it if
 Kanri's wording is not carried forward.
 
 Related: req-04f5, design-4807, decision-d831.
+
+Resolved by the seat-lineage plan, at all three sites. The **closing line**
+is defined in `SKILL.md`'s Messages — an identity
+(`<name> [<ref>] · <role>[/<topic>] · <family>`, per
+`.tanto/kikaku/2026-09-17-closing-line-identity.md`) and two facts, where
+the seat's work is and which contract step still needs it or `none`, with the negative rule
+that a seat never names a step it is not needed for — and every role file's
+idle and exit paragraph now ends with it. **Kanri's released line** carries
+the second fact: `<role> <name> released — its work is in <paths>; no step
+needs it — /clear its window when convenient`. **One clock per clause** is
+stated in `roles/kanri.md`'s Session lifecycle: a line that speaks of a
+release and of a creation keeps them in two clauses with their own times.
+The third site, Kanri's delete request, is gone with the request itself:
+there is no delete request any more, only a `release:` line to the seat and
+one line to the human.

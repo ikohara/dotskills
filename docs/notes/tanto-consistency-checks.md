@@ -579,7 +579,7 @@ grep -cF 'bug-report:' skills/tanto/SKILL.md
 grep -cF 'exit-<role>' skills/tanto/SKILL.md
 grep -cF 'exit-<role>' skills/tanto/roles/kanri.md
 grep -c '^## Residency$' skills/tanto/templates/roster.md
-grep -c '^## Shoroku candidates$' skills/tanto/templates/roster.md
+grep -c '^## Shoroku proposal items$' skills/tanto/templates/roster.md
 grep -cF -- '- Kanri — ' skills/tanto/templates/batch-prompt.md
 grep -c '| Written |' skills/tanto/templates/kanri.md
 grep -cF 'nothing to commit' skills/tanto/roles/sekkei.md
@@ -589,8 +589,8 @@ grep -cF 'human-needed:' skills/tanto/SKILL.md
 grep -cF 'the human by grant' skills/tanto/SKILL.md
 grep -cF '| Role | Topic | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Context | Batches | Plans | Noticed |' skills/tanto/templates/roster.md
 grep -cF '| Role | Topic | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Context | Batches | Plans | Noticed |' skills/tanto/templates/kanri-handover.md
-grep -cF '| S-n | Source | Candidate | Destination | Adopted | Stage | Written |' skills/tanto/templates/roster.md
-grep -cF '| S-n | Source | Candidate | Destination | Adopted | Stage | Written |' skills/tanto/templates/kanri.md
+grep -cF '| S-n | Source | Item | Destination | Adopted | Stage | Written |' skills/tanto/templates/roster.md
+grep -cF '| S-n | Source | Item | Destination | Adopted | Stage | Written |' skills/tanto/templates/kanri.md
 grep -cF 'bug-report: <absolute path>' skills/tanto/SKILL.md
 grep -cF 'bug-report: <absolute path>' skills/tanto/templates/bug-report.md
 grep -cF 'transcript=<absolute path|unavailable>' skills/tanto/SKILL.md
@@ -602,12 +602,20 @@ grep -cF 'cleared: <old name> → <new name>' skills/tanto/templates/roster.md
 grep -cF 'decision: <path> received from <name>' skills/tanto/templates/roster.md
 ```
 
-Expected, one number per line, in order: `2`, `1`, `1`, `3`, `1`, `1`, `1`,
-`1`, `5`, `3`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `3`, `1`, `1`, `1`,
-`1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`. The fourth is `3` because
-`SKILL.md` spells `kanri-address:` three times: the handshake section's
-handover form, the Resuming section's resumed form, and the `<kanri-address>`
-blank's own paragraph. The six `1`s at positions 20 to 25 pin the three
+Expected, one number per line, in order: `2`, `1`, `1`, `4`, `1`, `1`, `1`,
+`1`, `2`, `3`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `4`, `1`, `1`, `1`,
+`1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`. The ninth is `2` because
+the seat-lineage plan rewrote "Session exit" whole and its new text names
+the `exit-<role>[-<suffix>]` pattern twice and no more. The fourth is `4` because
+`SKILL.md` spells `kanri-address:` four times: the handshake section's
+handover form, the Resuming section's resumed form, the `<kanri-address>`
+blank's own paragraph, and the `no-role` paragraph's held-line rule, naming
+the line a role re-sends once the next `kanri-address:` arrives. The
+nineteenth is `4` because all four Roles-table rows — Sekkei, Keikaku, Jisso
+and Kaiseki — carry `the human by grant`; it read `3` here from before the
+`seat-lineage` branch was cut until that topic's close corrected it on
+2026-09-18, the tree having read `4` since the 2026-09-13 commit that named
+seven roles and eight ids in `SKILL.md` (issue-9d84). The six `1`s at positions 20 to 25 pin the three
 cross-file pairs — the Residency table header, the seven-column `S-n` header,
 and the bug-report line — each copy once, so that a change to one copy shows
 up as a mismatch. The Residency header carries the Topic column because the
@@ -640,6 +648,38 @@ of each of the two combined report lines that follow it (`spec accepted:
 those two seats lost its unasked form. These are the contract's copies
 only; a role
 file that repeats a form is pinned where that file's own rows are.
+
+The lines the seat-lineage design added, each pinned in the contract and in
+the file that sends or answers it, and the two review-report headings that
+are a contract with the `spec.review` and `plan.review` kinds:
+
+```bash
+grep -cF 'queued: <n>' skills/tanto/SKILL.md
+grep -cF 'queued: <n>' skills/tanto/roles/kanri.md
+grep -cF 'queued: <n>' skills/tanto/roles/jisso.md
+grep -cF 'release: /clear this window' skills/tanto/SKILL.md
+grep -cF 'release: /clear this window' skills/tanto/roles/kanri.md
+grep -cF 'release: /clear this window' skills/tanto/roles/sekkei.md
+grep -cF 'release: /clear this window' skills/tanto/roles/keikaku.md
+grep -cF 'release: /clear this window' skills/tanto/roles/kaiseki.md
+grep -cF 'release: /clear this window' skills/tanto/roles/jisso.md
+grep -cF '(tanto line — if this window has not run /tanto, reply no-role to the sender and do nothing else)' skills/tanto/SKILL.md
+grep -cF '(tanto line — if this window has not run /tanto, reply no-role to the sender and do nothing else)' skills/tanto/templates/batch-prompt.md
+grep -cF '**Shoroku proposal** section' skills/tanto/roles/sekkei.md
+grep -cF '**Shoroku proposal** section' skills/tanto/roles/keikaku.md
+```
+
+Expected: thirteen lines. The first nine are **at least** `1` each and are
+read rather than compared, because a role file may state a line it sends and
+the same line it receives; a `0` on any of them is the failure this block
+catches. The tenth and eleventh are exactly `1`: the `no-role` line's fixed
+text lives in the contract and in the batch prompt, in those two files only,
+so that a pasted prompt file and a sent message are the same bytes — a `1`
+anywhere else means a third copy that will drift. The last two are exactly
+`1` each: the review report's section name is what `roles/sekkei.md` and
+`roles/keikaku.md` ask their reviewers for; `roles/kanri.md` reads the same
+section by its bare heading via `sections`, never by this bold string, so it
+is not pinned here — spec 8.2 names only the two review-report headings.
 
 The five triage answers, each exactly once in the contract:
 
@@ -756,9 +796,25 @@ grep -rnE 'exit write.out' skills/tanto
 grep -rn -iE 'sho[m]u|jos[h]u' skills/tanto skills/shoroku docs/notes
 grep -rnE '#{3} Task' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
 grep -rnE '\b[0-9a-f]{7,40}\b' skills/tanto/
+grep -rnE 'exit-jiss[o]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
+grep -rnE 'docs: exit shorok[u]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
+grep -rnE 'Shoroku candidate[s]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
+grep -rnE 'orders: plan[=]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
+grep -rnE 'ask the human to delet[e]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
+grep -rnE 'asks for your deletio[n]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
+grep -rnE 'your deletion follow[s]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
+grep -rnE 'Replace sympto[m]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
+grep -rnE 'Jisso replacement deferre[d]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
 ```
 
-Expected: no output from the first thirteen (each exits 1). The sixth and
+Expected: no output from the first thirteen, nor from the fifteenth through
+the twenty-third, which the seat-lineage plan added (each exits 1). Those
+nine sweep the three places this check already sweeps rather than
+`skills/tanto/` whole, because the scripts' tests carry the retired strings
+as fixtures by design; and each is written as a regular expression with one
+bracketed character, for the same reason the tenth through the thirteenth
+are — a plan that removes a string refuses that string in its own new
+passages, so a literal here would fail the plan that installs the check. The sixth and
 seventh flatten the file first and strip `**`, because their pre-images
 — `You **do not commit**` with its bold markers, and
 ``never write under `docs/` yourself`` across a line break — would never
@@ -786,6 +842,20 @@ hashes, and `<sha7>` inside a template blank is a placeholder, not a
 hash. `<plan>` is checked because `<plan-basename>` is the only correct
 form; runtime text is skill-relative, so only the skill's `README.md`
 and this note may name `skills/tanto/`. This is a deliberate asymmetry, not an oversight: the skill's `README.md` may name `skills/tanto/` because it documents this repository's layout, which is precisely what runtime text must not depend on.
+
+**A sweep names its directories.** The thirteenth line's exclusion of
+`skills/tanto/scripts/` generalizes: a recursive sweep over `skills/tanto/` is
+a different population from the three directories a sweep names, because the
+scripts' tests carry retired strings as fixtures on purpose. Measured again on
+2026-09-18, at the `seat-lineage` close, from both sides of the same fact. On
+the spec side, a `candidate` sweep counted 53 hits over `SKILL.md`, `roles/`
+and `templates/` while `scripts/passage-check.test.js` uses `Shoroku
+candidates` as a `sections` fixture six more times, so a recursive `grep -rc`
+would have reported a different number for the same question. On the check
+side, a spec's Verification section greps `grep -rc` and `grep -rci` over a
+whole directory and expects `0 on every file`, which cannot hold while
+fixtures carry the string. Both halves have one rule: a sweep states the
+directories it is about, and a Verification grep is scoped to them.
 
 The invocation line is read rather than counted, for the second reason above:
 the value it must no longer carry cannot be written here.
@@ -1170,6 +1240,17 @@ list therefore runs the same "every other site that names it" listing that Step
 3 already asks of a task; otherwise the convention binds only below the level
 where the omission is made.
 
+**Measured a second time on 2026-09-18, in the `seat-lineage` spec review.**
+Six of the sentences that review found left behind were **twins** of a
+sentence the spec did rewrite in another file: `roles/hosa.md` against
+`roles/kikaku.md` on "no delete request"; `templates/kanri-handover.md`
+against `roles/kanri.md` on "a Jisso replacement stands deferred"; `SKILL.md`'s
+roles table against `roles/kanri.md`'s opening; and `roles/jisso.md` against
+`roles/kanri.md` on "Replace symptom". A per-file change list built from the
+**entity** rather than from the file — the drafting rule `roles/keikaku.md`
+Step 3 gives for `O` needles — would have listed each pair. The missing
+step at spec-drafting time is issue-7bef.
+
 ## 22. A heading contract says whether the marker is part of the pointer
 
 A contract between two skills that makes one skill's heading into the other's
@@ -1257,3 +1338,43 @@ file the plan edited, and the branch's single Important review finding. Check
 18 already reaches into that file for the group headings, so the precedent
 existed; the fifth line now follows it, and the expected count stays `0` after
 that branch's own fix.
+
+## 25. The old values the seat-lineage plan contradicts
+
+The seat-lineage plan removed a lifecycle vocabulary — deletion requests, a
+Jisso replaced on its ceiling, a between-plans Kanri write-out lane, and the
+word "candidate" for a proposal item — and replaced it with a create
+request, a rotation, one close per topic, and the word "item". The sweep it
+ran at its last batch is the record, and check 7's last nine lines are that
+sweep made standing. Its scope is the three places check 7 sweeps —
+`skills/tanto/SKILL.md`, `skills/tanto/roles/`, `skills/tanto/templates/` —
+and never `skills/tanto/scripts/`, whose tests carry retired strings as
+fixtures on purpose.
+
+Two counts are read rather than swept, because the words survive in senses
+the design keeps: a file is still deleted (the handover file, an inbox copy
+that never is), and a role other than Jisso is still replaced. Read the
+lines, not the count:
+
+```bash
+grep -rn -i 'delet' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
+grep -rn -i 'replacement' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
+```
+
+Every surviving line must be about a **file** or about a role the Replace
+table still holds. A line about a session being deleted, or about a Jisso
+being replaced on a symptom, is drift. Three lines are the known
+exceptions, all stating an absence rather than a practice:
+`roles/kanri.md`'s Start → The five cases → the Handover case, "no deletion
+is asked"; its "Exit shoroku" step 2, "no delete request goes out"; and its
+"Session lifecycle" opening, "There is no delete request".
+
+The `replacement` sweep has one exception of its own, on a **third** sense of
+the word that is neither a session nor a file: `roles/keikaku.md`'s
+plan-authoring convention, "a replacement is `` **P<task>.<n>** `<path>` —
+replace exactly these <N> lines ``". It is a passage-authoring term, it is
+plan-mandated byte for byte, and it fits neither the rule above nor the
+parallel `delet` sweep's three exceptions — so without this line every future
+run of this check hits one predictable, explainable false positive. Confirmed
+by the confirmatory opus-tier review of the `seat-lineage` run and parked as a
+Minor there.

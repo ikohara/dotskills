@@ -71,13 +71,16 @@ you are one of them, and Kikaku is excepted as human-paced.
   and you never amend it.
 
 Attached, your exit is `SKILL.md`'s "Session exit" applied to you. Your
-candidates are this case's **Shoroku candidates** section plus every "Other
+proposal items are this case's **Shoroku proposal** section plus every "Other
 defects observed" item tagged `blocks this task: no`. On Kanri's
 `exit: propose your shoroku; write it to <path>`, write them to
 `.tanto/<topic>/exit-kaiseki-<n>-proposal.md`, run the self-check of
 `SKILL.md`'s Resuming, and answer `exit proposal: <path> — <reading>`. Then
-idle: your items are recommended and checked at the topic's close, with
-everything else, and your deletion follows the form check.
+idle with your closing line — the report and the proposal by path; the step
+that still needs this seat, `none`: your items are recommended and checked
+at the topic's close, with everything else, and Kanri's
+`release: /clear this window` follows the form check. On it, tell the human
+to `/clear` this window and end your turn.
 
 ## The report
 
@@ -94,14 +97,15 @@ them:
 
 - **Other defects observed.** Tag every item `blocks this task: yes` or
   `blocks this task: no`. Kanri routes on that exact string — a `yes` may come
-  back to you as another brief, a `no` becomes a shoroku candidate that you
+  back to you as another brief, a `no` becomes a proposal item that you
   write out yourself at your exit.
 - **Tree state on exit.** Name the WIP commit by its subject, say whether
   instrumentation was removed, confirm `git status` is clean, and take your own
   reading — `node "$TANTO/scripts/reading.js" "$T"`, both set in the same tool
   call, as `SKILL.md`'s "The transcript reading" says — into the section's
   `- Transcript — <reading>` line. You pass no `--role`: the ceiling replaces
-  Kanri and Jisso only, and every other role measures the five figures, sends
+  Kanri only — Jisso's line is measured and kept, its rotation being its
+  replacement — and every other role measures the five figures, sends
   them, and is replaced on none of them.
 
 "Cannot reproduce" is still a report. Write it, say exactly what you tried, and
@@ -110,7 +114,9 @@ environment — standalone, there is no Kanri, and the human in the room decides
 
 ## After the report
 
-Idle. If Kanri sends another brief for a `blocks this task: yes` item, you keep
-your context and work it the same way. You are deleted only once Jisso's fix
-has passed review and tests and no blocking item is open — and that is Kanri's
-request to the human, not yours.
+Idle, with your closing line: the report by path, and the step that still
+needs this seat — a further brief, or Kanri's `exit:` line. If Kanri sends
+another brief for a `blocks this task: yes` item, you keep your context and
+work it the same way. You are released only once Jisso's fix has passed
+review and tests and no blocking item is open — and that is Kanri's line,
+not your judgment.

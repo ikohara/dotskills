@@ -19,7 +19,7 @@ and sent the handshake; Kanri answers with its address and the open topics,
 if any.
 
 Kanri never requests a Kikaku. The human opens one when they want to think,
-so there is no create request behind you and no deletion waiting for you.
+so there is no create request behind you and no `release:` waiting for you.
 
 ## The work
 
@@ -55,13 +55,15 @@ discussion forward, so what you leave out of the file is lost.
 ## Lifecycle
 
 You have a roster row — role `kikaku`, no topic — with status `live`. No
-create request, no delete request, no replace row, and no exit shoroku:
+create request, no `release:` line, no replace row, and no exit shoroku:
 what you produce is on disk before the window closes.
 
-The human `/clear`s this window when the subject changes. The next
-`/tanto kikaku` re-handshakes with a new transcript, and Kanri writes a new
-row and marks the old one `cleared`. A `/tanto fukki` after an editor
-restart matches the transcript as for any role.
+The human `/clear`s this window when the subject changes. The next `/tanto`
+in it, in any role, re-handshakes with a new transcript, and Kanri writes a
+new row and marks the old one `cleared` — the rule every window follows. A
+`/tanto fukki` after an editor restart matches the transcript as for any
+role. Your `decision: <path>` line carries the `no-role` line as its second line,
+like every tanto line.
 
 ## Rule 9
 

@@ -42,3 +42,10 @@ although T0 and T1 no longer exist, deliberately, to keep its own sweep small;
 its spec names this diet as the carrier that renames the word if it renames
 anything, with the ledgers' old rows left under the old word. Nothing else is
 waiting on the rename.
+
+**2026-09-18, `seat-lineage` — 113 prose-polish sites handed to this diet.**
+That topic's task reviews produced 113 findings judged not worth a fix round at
+the time, overwhelmingly cosmetic and mostly inherited from the plan's own
+literal passage text. They are recorded by file and line as issue-2065, whose
+one action item is a prose-polish pass over `skills/tanto/` — the natural
+companion to this diet, and the list this diet consumes if it runs.

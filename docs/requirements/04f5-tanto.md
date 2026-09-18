@@ -2,7 +2,7 @@
 id: "04f5"
 title: tanto — multi-session orchestration of one implementation plan in Claude Code
 created: 2026-09-06
-updated: 2026-09-17
+updated: 2026-09-18
 ---
 
 ## Purpose
@@ -106,6 +106,14 @@ artifacts.
   hold the cheap families' contexts; the strongest model is used where it
   reads once and answers, and its runs per plan are counted. A seat whose
   remaining act is its own exit does not wait for a line that asks for it.
+- **A seat that waits holds the minimum context.** A queued session reads
+  nothing until the work that names it arrives, and is sent nothing before
+  that, so that a broadcast to the run's windows costs the waiting ones
+  nothing.
+- **A run's windows are reused, not multiplied.** A session that has finished
+  is released to be `/clear`ed and given its next role by the human, never
+  closed, and the run's lines reach only the windows the roster says hold a
+  role, so that a bare window is never asked to act.
 - **The sessions a plan needs are opened while the human is present.** Where
   the number of seats a plan will consume is known at its landing, the run
   asks for them then, in one list, rather than asking again at a boundary

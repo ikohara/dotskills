@@ -54,7 +54,7 @@ bullet standing.>
 - `git status` — clean
 - Transcript — <reading>
 
-## Shoroku candidates
+## Shoroku proposal
 
 - <requirements, design, decisions, issues, notes, or reports> — <one line on
   what is worth keeping and why>

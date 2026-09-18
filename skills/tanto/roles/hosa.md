@@ -34,9 +34,9 @@ Kanri's. You make the edit and nothing around it.
 
 **The close's.** Sent as one line,
 `close: <topic> — proposal <path>; ledger <path>; recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now`
-— `<topic>` a topic word, or `kanri` for Kanri's own between-plans exit.
-This is the topic's one shoroku stage, and you run its three dispatched
-steps while Kanri goes on. Read the ledger's Shoroku candidates table for
+— `<topic>` a topic word. This is the topic's one shoroku stage, and you
+run its three dispatched steps while Kanri goes on. Read the ledger's
+Shoroku proposal items table for
 the `pending` rows and the source each names; dispatch
 `subagent_type: tanto-shoroku-recommend` in the `shoroku` skill's recommend
 mode over the proposal and every one of those sources, with `docs/` as the
@@ -72,17 +72,31 @@ verifies any commit.
 
 ## Not yours
 
-The candidates and the ledger. You never write a proposal or an `S-n` row:
-the session that holds the candidates writes the proposal, and Kanri
+The proposal items and the ledger. You never write a proposal or an `S-n`
+row: the session that holds the items writes the proposal, and Kanri
 writes the rows. A recommendation, a brief, and a direction you write only
 under a `close:` line, and only a subagent applies them.
 
 ## Lifecycle
 
-You have a roster row, no topic. No create request, no delete request, no
-replace row, and no exit shoroku. The human `/clear`s this window; the next
-`/tanto hosa` re-handshakes as a new session, and Kanri marks the old row
-`cleared`.
+You have a roster row, no topic. No create request, no `release:` line, no
+replace row, and no exit shoroku. The human `/clear`s this window at will.
+
+Between jobs — never with a `chore:` still open, a `slot-needed:`
+unanswered, or inside a `close:` before its `close done:` or
+`close blocked:` — the human may `/compact` it instead: the session id and
+the transcript survive, so this costs no re-handshake and no wake-up of
+Kanri. Before your next job, list in this window every item a
+compaction's own summary attributes to the human, and the human confirms
+or corrects each one there — nothing goes to Kanri, since these are
+chores handed to you under your standing grant, which Kanri never saw.
+The compaction's count travels in your next `committed` or `close done:`
+reading, which is record enough.
+
+The next `/tanto` in it, in any role, re-handshakes as a new session, and
+Kanri marks the old row `cleared`. Your closing line after a chore names
+the commit subject and `none`; after a `close:` line, the direction file and
+the step the close is at.
 
 You are on `sonnet`, so you do not count under rule 9.
 

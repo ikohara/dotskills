@@ -31,3 +31,15 @@ not the `DIFFERS` comparison.
 For `passage-check-hardening`'s instrument list.
 
 A tooling gap, not a user-stated need, so no paired requirement.
+
+**2026-09-18, `seat-lineage` — the figure for a second plan, and a concrete
+`MATCH` rule.** Ten of ten `DIFFERS` lines on that plan were benign: every one
+came from a multi-file `grep -c` fence, where the `Expected:` is a prose
+statement and the actual output is one line per file. The comparison is an
+artifact of the prose-against-multi-line shape, not a mismatch. Against the
+seven of nine one topic earlier, that is a second measurement in the same
+direction and a larger absolute count of noise.
+
+A third fix, narrower than the two above and sufficient for this shape: treat
+an `Expected:` of the form "`N` on each of the files" as a `MATCH` when every
+output line carries `N`.

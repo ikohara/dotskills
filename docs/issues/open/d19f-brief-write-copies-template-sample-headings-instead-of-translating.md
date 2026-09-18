@@ -29,3 +29,13 @@ Two candidate fixes, either resolves it:
 
 The form check already catches the defect before it reaches the human, so
 this is a cost issue (one extra round trip), not a correctness one.
+
+**2026-09-18, `seat-lineage` — a second data point, one heading left in
+English.** The `brief.write` seat (sonnet) rendered seven of the eight headings
+of the shoroku check brief and left `## How to answer` exactly as
+`templates/shoroku-brief.md` spells it. The form check caught it and a second
+dispatch fixed that one line; earlier briefs in this repository rendered it
+`## 回答のしかた`. One failure in one brief, of the kind the template's own "the
+headings included" already forbids, and the same shape as the original
+instance. No template change is proposed by this instance either — it is the
+second measurement of the cost, not a new defect.

@@ -20,25 +20,29 @@ no topic is open. The line after the blocks is written once.
   - Ledger — <.tanto/<topic>/kanri.md>
   - Batch state — <"batch <X> accepted, batch <Y> prompt not sent", or "at the
     spec or plan stage, no batches yet">
-  - Deferred — <the ledger's Progress clause, verbatim, when a handover or a
-    Jisso replacement stands deferred on the ceiling and the human's absence;
-    "none" otherwise. The successor re-checks it at its own first check, where
-    a `present` verdict runs what the outgoing session could not.>
+  - Deferred — <the ledger's Progress clause, verbatim, when a handover
+    stands deferred on the ceiling and the human's absence; "none"
+    otherwise. The successor re-checks it at its own first check, where a
+    `present` verdict runs what the outgoing session could not.>
 - Agents of this session still running — <label and what it was to deliver,
   one per line, or "none">; lost with this session
-- A close delegated to Hosa — <`<topic>` or `kanri`, Hosa's `<name> [<ref>]`,
-  the `close:` line's paths and subject, and whether `close done:` has
-  arrived, or "none">; the successor verifies the commit on `close done:`
-  and fills the ledger, or the roster for a Kanri exit
+- A close delegated to Hosa — <`<topic>`, Hosa's `<name> [<ref>]`, the
+  `close:` line's paths and subject, and whether `close done:` has arrived,
+  or "none">; the successor verifies the commit on `close done:` and fills
+  the ledger
 
 ## Live peers
 
-Every peer of every open topic, with its Topic as the roster carries it; the
-successor sends `kanri-address:` to all of them.
+Every `live` peer of every open topic, with its Topic as the roster carries
+it; the successor sends `kanri-address:` to all of them. Then the `queued`
+Jissos, by name and place — the successor sends them nothing; their batch
+prompt names it.
 
 - <role> — <topic> — <name> [<ref>] — <what that session is waiting for> —
   <"answered", or the last line it sent that this session did not answer;
   that peer re-sends it to the successor's `kanri-address:`>
+- <topic> — <name> [<ref>] — queued: <n>, one line per queued Jisso, in
+  queue order; the successor sends none of them anything
 
 ## Open questions for the human
 
@@ -76,12 +80,15 @@ Kanri's Residency row from the roster, verbatim, with its last reading.
 ## Not reconstructed
 
 - <The ledger that holds the outgoing Kanri's exit rows as `pending`, by
-  path, when a ledger was open at the exit; then a shoroku candidate the
+  path, when a ledger was open at the exit; then a proposal item the
   outgoing Kanri could not classify or reconstruct, one line each, for the
   successor to raise at its first boundary. Write "none" when there is
   none.>
 
 ## Commands for the human
 
-1. Open a new session in <repo path> and run `/tanto kanri`.
-2. When the new Kanri asks, delete this session.
+1. /clear this window — or pick any free window of <repo path>.
+2. /model <family> and /effort <level>, as `sessions.kanri` says; /clear
+   keeps the model and resets the effort.
+3. /tanto kanri
+4. If the new Kanri started elsewhere, /clear this window when convenient.

@@ -57,3 +57,16 @@ case was not a `/clear` — it was a deletion followed by a new session. The
 title's scope is now known to be too narrow: the pattern is identity reuse
 across any delete-and-recreate, of which `/clear` is one way, not the only
 way.
+
+**2026-09-18, `seat-lineage` — a second site, and its fix on that branch.**
+`roles/kanri.md`'s "Kept Kanri" start case compared `name [ref]` only, which
+under this issue's identity reuse no longer distinguishes a kept session from a
+`/clear`ed one. The consequence was not cosmetic: the peers' held-line rule
+(`no-role`, then wait for `kanri-address:`) would then have had no sender,
+because the new Kanri would have believed itself the kept one and sent
+nothing.
+
+Resolved on that branch by the fix wave, which added a **transcript-column
+check** to the start case — the same identity this issue has said all along is
+the only one that distinguishes the two. Recorded here rather than filed
+separately, since the consequence is fixed and the premise is this issue's.
