@@ -114,7 +114,7 @@ ledger of the topic that raised it, never a compound value.
 | the day's cost, uncached input, cache miss, cache hit, and hit rate | <YYYY-MM-DD> | <the five figures as the human pastes them from the Claude Code Usage extension> |
 | Kanri's context at the topic's opening and at the plan's landing, then Kanri's at each boundary with the delta per batch, and each Jisso's at its own boundary | <YYYY-MM-DD, each check> | <opening: kanri context=<n>; landing: kanri context=<n> (+<d>); batch letter: kanri context=<n> (+<d>), jisso <name> context=<n>>, one entry per check |
 | deferrals: where, the context, and the presence verdict | <YYYY-MM-DD, the check> | <batch letter or stage, context=<n>, last human turn <m> min ago>, one entry per deferred handover, or `none` |
-| the share of usage at context over the threshold, proxy and Account & Usage | <YYYY-MM-DD, the plan close> | <the share line, the names it ran over, and the human's figure or blank> |
+| the share of usage at context over the threshold | <YYYY-MM-DD, the plan close> | <the share line, the names it ran over> |
 
 These seven rows are fixed and always present. Kanri fills the first at the
 plan close from this ledger's Session events, where it writes one line each
@@ -125,9 +125,8 @@ fourth from what the human pastes. The fifth is filled at the topic's opening
 (Start step 5), at the plan's landing, and at every boundary from the two
 readings of loop step 6; the sixth at any deferred handover, in whichever
 stage, and carries `none` when a plan's Kanri never deferred; the seventh at
-the plan close from `reading.js --share`, with the sessions it ran over, the
-ones it skipped, and the figure the human read from the Account & Usage view,
-or a blank where the human did not answer. The fifth and sixth are the record
+the plan close from `reading.js --share`, with the sessions it ran over and the
+ones it skipped. The fifth and sixth are the record
 behind a rule — the ceiling of `roles/kanri.md`'s trigger — and the other five
 are the record the next measurement starts from.
 
