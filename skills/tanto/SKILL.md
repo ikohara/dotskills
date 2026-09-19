@@ -27,7 +27,7 @@ This file is the shared contract. Every role reads it, then reads exactly one
 | Jisso (実装) | 1 live per topic, the plan's others queued | one batch of the SDD run each, its batch report and its commits; the last one, the T2 shoroku proposal | Kanri; the human by grant |
 | Kaiseki (解析) | 0 or 1, on demand | root-cause reports; never a fix; no commit | Kanri; the human by grant |
 | Kikaku (企画) | 0 or 1, opened by the human | the consultation, and the decision files under `.tanto/kikaku/` | the human; Kanri, one `decision:` line |
-| Hosa (補佐) | 0 or 1, opened by the human | the human's small chores, the bug intake, Kanri's filings, and the close's recommend, check, and apply, each in a slot Kanri gives | the human; Kanri |
+| Hosa (補佐) | 0 or 1, opened by the human | the human's small chores, the bug intake, the hotfix lane's edits Kanri hands over, and the close's recommend, check, and apply, each in a slot Kanri gives | the human; Kanri |
 
 ## Invocation
 
@@ -675,7 +675,10 @@ the result the same way the Start sequence does.
   else. The author puts the brief's text verbatim in its review request, with
   both paths. The human's answers to the brief's points are the confirmation
   that review asks for; the document is what the points point into, and the
-  human reads it where a point sends them.
+  human reads it where a point sends them. When a lookup the document
+  depends on is still in flight, the author holds `review-ready:` until it
+  lands, or the brief's Document line names the inputs it predates, so that
+  the human knows a second brief may follow.
 - Permission boundaries are per session. Never ask a peer for work that was
   denied in your own session or would be blocked there. Blocked work goes to
   Kanri, which rules on human access.

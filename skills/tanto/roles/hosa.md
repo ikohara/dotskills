@@ -29,8 +29,10 @@ without a `human-contact:` for every job.
 
 **The intake's.** While your roster row's Status begins with `live`, every
 `bug-report: <path>` line for this repository is addressed to you, from
-another repository's session or from a session of this one, and you answer
-it with one act that reads nothing of the report: copy the file to
+another repository's session or from a session of this one — and one that
+arrives after Kanri has since marked your row otherwise is answered the
+same way, since the sender read the roster once and the act is harmless —
+and you answer it with one act that reads nothing of the report: copy the file to
 `.tanto/inbox/<basename>` — the sender's `<YYYY-MM-DD>-<slug>.md`, or
 today's date and the file's name kebab-cased when it is not of that shape —
 creating `inbox/` if absent; append one line under the copy's `## Received`
@@ -67,7 +69,8 @@ and every one of those copies by path, with `docs/` as the
 baseline and `skills/` as the paths a `fix` item may touch, the
 recommendation path, the brief path, the template
 `templates/shoroku-brief.md`, and the chat's language; check the brief's
-form by `grep` as `roles/kanri.md`'s Check step says — the five headings
+form by `grep`, without opening `roles/kanri.md` — `grep -c '^## '` on the
+brief is `5`, the five headings
 in order, every `###` heading of the recommendation once after `See:` —
 and on a failure dispatch once more, then paste it as it stands; give the
 human, here, the recommendation's path, the brief's path, the three

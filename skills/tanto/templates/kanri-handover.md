@@ -55,7 +55,9 @@ prompt names it.
 
 - R-<n> — <the ruling, one line, copied verbatim as compaction insurance>; a
   ruling known only from a compaction summary is marked `(unverified)` on its
-  line, and the successor puts it to the human at its first boundary
+  line, and the successor puts it to the human at its first boundary; a
+  finding still undecided because the dispatch that raised it returned on
+  this handover's own wake-up names that dispatch and its report's path
 - Models the next prompt must restate — the task implementation on
   `task.implement` (sonnet, `subagent_type: tanto-task-implement`); the
   per-task reviews on `task.review-spec` and `task.review-quality` (opus,

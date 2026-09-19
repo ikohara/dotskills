@@ -44,7 +44,10 @@ flight, or, with none in flight, the plan whose landing requested the queue
 the handshake's `effort=` carried.
 
 Status is one of `queued`, `live`, `cleared`, `replaced`, `dead`, and
-`refused`. `queued` is a Jisso waiting for its batch prompt, in handshake
+`refused`; a `live` cell may carry the suffix `(idle since <HH:MM>)`, which
+Kanri writes while a Kikaku, Hosa, or Kaiseki idles and the intake's
+address rule reads, so a reader tests the cell's first word, not the whole
+cell. `queued` is a Jisso waiting for its batch prompt, in handshake
 order. `cleared` records a window Kanri released — `release:` sent, the row
 marked as the line goes out — or whose `/clear` came to light another way: a
 handshake under a name already here with a different transcript, in any

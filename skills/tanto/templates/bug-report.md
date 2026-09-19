@@ -61,7 +61,7 @@ as a fix instead of filing an issue.>
 
 ## Reported
 
-- <YYYY-MM-DD>
+- `<YYYY-MM-DD>`
 
 ## Received
 
@@ -78,4 +78,4 @@ words is out of the queue.>
 - Reference — <the issue id, the fix's commit subject, the redirect or
   dismissal in one line, the kaiseki line, or the relay's `I-<n> of <topic>`,
   the topic alone until Kanri has appended the `I-n`>
-- Date — <YYYY-MM-DD>
+- Date — `<YYYY-MM-DD>`

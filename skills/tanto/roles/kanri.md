@@ -452,8 +452,10 @@ Per batch, in this order.
    the sessions whose proposal is not already named — a Sekkei or Keikaku at
    its own final boundary named it in its report line and is waiting for
    nothing — check each proposal's form, record its items as `pending`
-   rows, and send `release:` as soon as the form check passes. Nothing is
-   recommended or applied before the close.
+   rows, and send `release:` as soon as the form check passes; when the
+   trigger that fired is your own handover, write your own proposal here too,
+   as "Handover" step 1 says, so that it is done when that list is reached.
+   Nothing is recommended or applied before the close.
 
    At the end of every turn, after whatever else the turn said, write the
    idle block — fixed, not only when something changed. Its first line
@@ -717,7 +719,8 @@ compaction while the human is away is that net doing its work.
 A deferred handover is written in three places, so that a successor or a cold
 reader sees it:
 
-- the ledger's Progress line gains the clause
+- the Progress line of the ledger of the topic whose batches are in flight,
+  else the oldest open topic's, gains the clause
   `handover deferred (absent, context=<n>, since <batch X | the spec stage | the plan stage>)`,
   kept until the handover runs or the plan closes;
 - a roster Events line,
@@ -1100,7 +1103,7 @@ steps 2 to 4 over the untriaged inbox copies alone: the files are
 `.tanto/inbox-<YYYY-MM-DD>-recommendation.md`, `-brief.md`, and
 `-direction.md` beside the roster, the subjects `docs: inbox sweep
 <YYYY-MM-DD>` and `fix: text corrections from the inbox sweep <YYYY-MM-DD>`,
-the commits on `main`. With a `live` Hosa row, send it one line, without an
+the commits on `main`, checked as "Where the commit lands" says. With a `live` Hosa row, send it one line, without an
 idle subscription,
 `sweep: inbox — recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now`,
 and verify on its `close done:` as above; no `S-n` rows are written, since
