@@ -5,11 +5,13 @@ pre-commit passes the changed Markdown paths as arguments. A file whose first
 line is `---` (a UTF-8 BOM and CRLF are allowed) carries frontmatter up to the
 next `---` line and that block must be valid YAML and a mapping; any other
 file passes untouched. Per-kind schema checks (required keys, name formats)
-are not done here.
+are not done here, with one exception: an issue under docs/issues/open/ or
+docs/issues/deferred/ must open its body with a Source: line.
 """
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -17,6 +19,25 @@ import yaml
 
 DELIMITER = "---"
 HINT = "hint: a value containing a colon followed by a space must be quoted (description: 'Use when: x')"
+
+
+SOURCE_RE = re.compile(
+    r"^Source: (?:"
+    r"inbox \d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*"
+    r"|shoroku [a-z0-9]+(?:-[a-z0-9]+)*(?: S-\d+)?"
+    r"|hotfix \S.*"
+    r"|session \d{4}-\d{2}-\d{2}"
+    r")$"
+)
+SOURCE_HINT = (
+    "an issue's body must open with a Source: line: inbox <YYYY-MM-DD>-<slug>, "
+    "shoroku <topic>[ S-<n>], hotfix <commit subject>, or session <YYYY-MM-DD>"
+)
+
+
+def _is_checked_issue(path: Path) -> bool:
+    posix = "/" + path.as_posix()
+    return "/docs/issues/open/" in posix or "/docs/issues/deferred/" in posix
 
 
 def _yaml_type(value: object) -> str:
@@ -53,6 +74,12 @@ def check(path: Path) -> tuple[list[str], bool]:
         return [f"{path}:1: invalid YAML: {e}"], True
     if not isinstance(data, dict):
         return [f"{path}:1: frontmatter must be a YAML mapping (got {_yaml_type(data)})"], False
+    if not _is_checked_issue(path):
+        return [], False
+    body_index = next((i for i in range(end + 1, len(lines)) if lines[i].strip()), None)
+    if body_index is None or not SOURCE_RE.match(lines[body_index].rstrip()):
+        line = body_index + 1 if body_index is not None else end + 1
+        return [f"{path}:{line}: {SOURCE_HINT}"], False
     return [], False
 
 
