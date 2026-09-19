@@ -1180,7 +1180,7 @@ alternatives are written once, in the shape the groups' lines are rendered from;
 the four group sections carry the concrete tag instead, which is why the third
 count is `1` and not `4`.
 
-The last line is the `See:` wording itself, pinned rather than merely counted.
+The `See:` line is the wording itself, pinned rather than merely counted.
 The fix wave that settled this form made the pointer the heading's **text**,
 without its `###` marker, and a bare `See:` count cannot tell the settled form
 from a reversion to the marked one — which is exactly the break that wave
