@@ -21,13 +21,13 @@ This file is the shared contract. Every role reads it, then reads exactly one
 
 | Role | Count | Owns | Talks to |
 | --- | --- | --- | --- |
-| Kanri (管理) | exactly 1 | roster, conductor ledger, batch prompts, rulings, the recommendations and the directions, the bug intake, the create requests and the `release:` lines | human, Sekkei, Keikaku, Jisso, Kaiseki, Hosa; Kikaku at its handshake only |
+| Kanri (管理) | exactly 1 | roster, conductor ledger, batch prompts, rulings, the recommendations and the directions, the bug intake when no Hosa is live, the create requests and the `release:` lines | human, Sekkei, Keikaku, Jisso, Kaiseki, Hosa; Kikaku at its handshake only |
 | Sekkei (設計) | 0 or 1 per topic | the spec and its review | Kanri; the human by grant |
 | Keikaku (計画) | 0 or 1 per topic | the plan, its dry run, and its review | Kanri; the human by grant |
 | Jisso (実装) | 1 live per topic, the plan's others queued | one batch of the SDD run each, its batch report and its commits; the last one, the T2 shoroku proposal | Kanri; the human by grant |
 | Kaiseki (解析) | 0 or 1, on demand | root-cause reports; never a fix; no commit | Kanri; the human by grant |
 | Kikaku (企画) | 0 or 1, opened by the human | the consultation, and the decision files under `.tanto/kikaku/` | the human; Kanri, one `decision:` line |
-| Hosa (補佐) | 0 or 1, opened by the human | the human's small chores, Kanri's filings, and the close's recommend, check, and apply, each in a slot Kanri gives | the human; Kanri |
+| Hosa (補佐) | 0 or 1, opened by the human | the human's small chores, the bug intake, Kanri's filings, and the close's recommend, check, and apply, each in a slot Kanri gives | the human; Kanri |
 
 ## Invocation
 
@@ -557,7 +557,10 @@ the result the same way the Start sequence does.
 
 - One boss. Only Kanri messages Jisso; Sekkei, Keikaku, Kaiseki, Kikaku, and
   Hosa never do — inbound messages queue and drain in order, and a second
-  boss interleaves instructions.
+  boss interleaves instructions. The one exception is the intake's
+  `received:` line, `from` copied into `to`: a reply to a line the receiver
+  sent, carrying no instruction, and the one line a Hosa sends to a role
+  other than Kanri.
 - A message is one line plus a path. Report bodies, rulings, briefs, and plans
   live in files: a message dies with the session, a file survives compaction
   and a VS Code restart.
@@ -579,7 +582,7 @@ the result the same way the Start sequence does.
 - A reply copies the incoming message's `from` into `to`.
 - **Every tanto line carries the `no-role` line as its second line** — the
   lines this file names and the ones the role files name, in both
-  directions, the handshake, the bug-report route and its `triage:` answer
+  directions, the handshake, the bug-report route and its `received:` answer
   included:
 
   ```text
@@ -998,7 +1001,8 @@ its path.
 
 ## Rules
 
-1. One boss: only Kanri messages Jisso.
+1. One boss: only Kanri messages Jisso; the intake's `received:` reply is a
+   reply, not a boss's line.
 2. Files between the sessions: the spec, the plan, the conductor ledger, the
    spec inputs, the Kaiseki reports, and the shoroku recommendations and
    directions are the only channel. Every role is on it, not only the ones on
@@ -1106,6 +1110,15 @@ Kanri decides whether it is stray.
 asks the human to delete either: after T2 the two have the same standing —
 untracked, local to one machine, useful only for a later re-read — and disk
 is the only cost (issue-12d3).
+
+`.tanto/` reserves these names, and a topic slug is none of them and begins
+with neither prefix: the
+directories `inbox`, `sent`, `kikaku`, and `kaiseki`; the files `roster.md`,
+`roster-archive.md`, `kanri-handover.md`, `.gitignore`, and
+`.markdownlint-cli2.yaml`; and the prefixes `exit-kanri-` and `inbox-`.
+Kanri checks a new slug against this list by name, before any directory
+exists, and lists the root against the same names at every start and every
+close.
 
 ## Now read your role file
 
