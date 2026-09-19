@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
 Source: inbox 2026-09-17-shoroku-apply-429-after-commit
@@ -65,3 +65,28 @@ case even under presence pressure or a resumed/replaced dispatcher — and
 guards against a worse failure mode: a naive retry of the same apply after
 the "pause" resets could re-run the write-and-commit steps against a tree
 that already has them, risking a duplicate or conflicting second commit.
+
+## 2026-09-20 — the other half: a cutoff *before* the commit
+
+The paragraphs above are about a cutoff after the commit, which reads as
+failure. The mirror case was then reported: an apply-mode dispatch given a
+direction covering several new documents in one commit was cut off by the
+model's own session or quota limit **after** finishing one document in full — a
+new ADR — and before touching the second write, let alone the two after it, the
+lint pass, or the commit.
+
+Nothing was lost that time only because the cutoff happened to land on a
+document boundary and the finished document was genuinely complete. A cutoff
+one write earlier, mid-file inside the ADR, would have left a half-written
+document on disk with no signal distinguishing it from a finished one.
+
+So the dispatch's atomicity is "all or nothing" only by luck: it should either
+finish every document or fail with nothing written, and today it can do
+neither. Proposed by the reporter: have the apply dispatch — Kanri's prompt, or
+the apply mode's own internal instructions — checkpoint **per document** rather
+than per commit when a direction names more than one, writing and verifying
+document 1, reporting a one-line checkpoint back to the dispatcher or writing a
+marker file, then proceeding, and committing only once all documents are
+written. That is the same instrument the fix above wants and it answers both
+halves: a checkpoint trail tells a dispatcher exactly how far the run got,
+whichever side of the commit the cutoff fell on.

@@ -7,10 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
-Source: session 2026-09-14
+Source: inbox 2026-09-14-agent-definition-visibility-mid-session
 
 Expected, per `SKILL.md`: "A definition written during a session is not
 visible to that session, so the first session on a machine that writes them

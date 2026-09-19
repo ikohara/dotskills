@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
 Source: session 2026-09-16
@@ -43,3 +43,13 @@ considered and **rejected as unreachable**: `roster-archive.md` carries no
 Transcript column for the older rows, so more searching would not have found
 them. A lineage-wide `--share` figure therefore stops at the archive, which is
 the concrete consequence of this issue's table shape.
+
+**2026-09-20, `bug-report-hold` — a second close hits the same wall, so the
+fix is due rather than held.** That close's own `--share` proxy could read only
+**4 of about 9** traceable sessions, for the same reason: the archived rows
+carry no Transcript. This is the second consecutive close to be measured
+partial by this gap, after `shoroku-at-close`'s own (roster-S-3). Two
+recurrences with a measured cost each is what lifts the repair from "held for a
+future close" to a template change worth making: add the Transcript column to
+`templates/roster-archive.md`, which is the smaller of this issue's two fix
+candidates and the one both instances actually needed.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
 Source: session 2026-09-13
@@ -57,3 +57,16 @@ numbers are correct for the tree each sweep looked at, and only one of them
 answers the question a reader asks. A line in the `passage-check` contract or
 in `docs/notes/tanto-consistency-checks.md` saying which tree the residual
 sweep reads would close the reading gap even before either fix above lands.
+
+**2026-09-20, `bug-report-hold` — the transcription step, and a third fix that
+removes it.** The sweep set does not only differ from the blocks' paths; it is
+**transcribed by hand** on the way into the plan. The spec holds an "Old
+values" table; the plan's sweep task restates it as a comma-separated prose
+list, and on this plan that restatement dropped two rows (F-5).
+
+A `sweep` subcommand of `passage-check.js` that reads the table from the spec
+path the plan already names in its `**Spec:**` line, and folds the copies
+itself, removes the transcription entirely and makes the sweep a fenced block
+`boundary` can run. The whole-branch review's own Recommendation 2 — fold the
+residual-needle sweep into `replay` — is the same proposal from the other
+direction.

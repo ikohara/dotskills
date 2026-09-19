@@ -15,6 +15,13 @@ recorded baseline's `Output:` heading finds no blocks at all, which reads as
 and the tree is this note's problem or the tree's; a divergence introduced in
 transcription is neither, and it looks exactly like a result.
 
+**An old-text count is taken over the file with its line wraps folded.** A
+by-hand `grep -cF` of an inline string returns a false `0` whenever the text it
+looks for wraps in its target, so a reviewer's old-text check is multi-line and
+whitespace-normalized by default — one review of 39 old blocks produced four
+such false zeros before the check was re-run by a script that reads the whole
+file.
+
 Three moments in a `tanto` plan call for the same extraction method —
 every fenced block of the plan pulled into a scratch tree, diffed
 against `HEAD`, and these commands run there: Sekkei's plan review

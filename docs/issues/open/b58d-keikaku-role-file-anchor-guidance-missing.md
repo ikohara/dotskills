@@ -7,10 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
-Source: session 2026-09-14
+Source: inbox 2026-09-14-keikaku-role-file-anchor-guidance-missing
 
 Reported from `C:\Users\0000105523\devel\kuchidome` (tanto, topic
 `residency-retention`, keikaku): `plan.review`'s full per-task replay found

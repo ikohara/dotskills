@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
 Source: shoroku kisou-refresh
@@ -67,3 +67,25 @@ instrument assumes every path it handles existed at `--base`.
 Stated once for both commands: the tool understands the plan's own passages and
 nothing else that is authorized. A `rewritten:` declaration, already proposed
 above, is the `diff` half; the `A`-block tolerance is the `replay` half.
+
+**2026-09-20, `bug-report-hold` — the boundary check's totals are blind on
+both sides, measured as a pair.** This is about the accounting `diff` reports
+rather than about an unquoted change, and the two halves are symmetric.
+
+- **Added side.** The boundary's `diff` totals (1309/234) did not grow at all
+  across two consecutive batch boundaries, A and B, although four more tasks'
+  real changes landed between them. Every one of batch B's edits *was*
+  correctly recognized as passage-governed, which is the tool working — but it
+  means the count alone cannot distinguish "nothing new happened" from
+  "everything new was properly declared". Confirming which it was took a
+  per-file grep the tool does not run.
+- **Removed side.** The next batch's boundary needed the same manual per-file
+  classification in the other direction. Task 12's old `bug-report.md` content,
+  26 lines, showed as `unexplained-removed` exactly as Task 1's 234-file
+  `updated:` substitution had, and nothing in the output flags a `W`-block
+  target as expected-removed the way it might for a passage-governed file.
+
+So the reporting, not only the rule, is what a reader has to work around:
+whoever next tunes `diff`'s output should make the accounted and the
+expected-removed sets visible, not only their totals. Alongside issue-f94f and
+issue-f1a4.

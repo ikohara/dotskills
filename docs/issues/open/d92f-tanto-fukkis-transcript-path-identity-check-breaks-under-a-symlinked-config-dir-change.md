@@ -7,10 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
-Source: session 2026-09-14
+Source: inbox 2026-09-14-fukki-config-dir-mismatch
 
 Expected: `SKILL.md`'s Resuming self-check ("run `ListAgents` once; find the
 roster row whose Transcript column is this session's own transcript path")

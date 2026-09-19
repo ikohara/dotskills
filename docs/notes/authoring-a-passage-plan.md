@@ -58,6 +58,28 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   the commit, and the drafter's own second amendment fold, done the same way
   earlier, happened to be clean but was never swept. The sweep is the rule;
   being shown the miss is not.
+- **Check every needle against the plan's own new texts before the table is
+  frozen.** A needle that matches text the plan itself installs reports one
+  false hit forever. Measured on `bug-report-hold`: the spec's "Old values this
+  plan contradicts" table bundled `` four `##` headings ``, which is the exact
+  string one of the plan's own passages writes into `skills/shoroku/SKILL.md`,
+  so Task 17's sweep found a hit that was the plan working correctly. It
+  surfaced only because that sweep's author investigated the surprise instead
+  of assuming the script was wrong. issue-3e94 is the anchor-side sibling: a
+  needle measured against its own new passage.
+- **An `O` needle whose disposition is "stays" quotes the sentence it judges.**
+  A disposition stated as a reason alone survives a misreading of the text it
+  is about; the quotation does not. Measured on `bug-report-hold`, where a
+  disposition claiming a shipped phrase was wrong went through the plan, a
+  dogfood report and a batch proposal before a plain re-read of the cited
+  paragraph overturned it — the neighbouring sentence, had it been quoted
+  beside the claim, refutes it on sight.
+- **A needle catches the literal string, not the claim.** A needle derived from
+  the sentence being replaced can miss a paraphrase in a neighbouring section,
+  while a needle derived from the retired *token* sweeps every literal
+  occurrence. Measured: one needle swept a stale table header to zero while six
+  body rows and a parenthetical kept the retired label, and the paraphrase
+  elsewhere was found only by a reviewer's read of the neighbourhood.
 
 ## An entity-level sweep beside the phrase-level one
 
@@ -207,6 +229,21 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   drafter of a plan against its own skill's lifecycle; it is not a fault of
   the run's care. (issue-7281 is a different variable — task size against
   context cost — and issue-96f2 is the tool-side of the second cause.)
+- **A step that predicts what a script will find on real data states the
+  prediction as a measured value, with the command that produced it, or says
+  plainly that it is unmeasured.** Measured on `bug-report-hold`: a retrofit's
+  date guard (`copy_date <= created`) is satisfied by a *same-day* inbox
+  reference as readily as by one well after the fact, so it produced a
+  `Source: inbox …` line — arguably the truer provenance — for an issue the
+  plan's own narrative had assumed would fall through to `session`. The
+  narrative was written from reasoning about the data rather than from a run
+  against it. issue-e13a and issue-2e2b hold the sibling gaps for spec quotes
+  and for dogfood stages.
+- **A `P` block the formatter reflows is the one shape that reaches both
+  `verify` and the boundary `diff`.** A `W` block or a plain append reaches
+  neither. So the cost of "let the boundary rule on it", under the rule that
+  the formatter's output is canonical because it is run, is one visible red
+  check — and only in the reflowed-`P` case.
 
 ## A block must survive its destination's linter
 
@@ -290,6 +327,53 @@ with `--fix` before the commit. A block the linter rewrites can never match.
   section quotes verbatim the two commands the new text carries. A line can
   therefore be accounted for by the prose that specified it rather than by a
   block that lands it.
+- **`diff` compares literally.** An added line counts only when it equals a
+  whole plan line, and a removed line only when the plan quotes it inside a
+  fenced block. A plan that describes an edit in prose cannot pass `diff`: the
+  exact lines must be quoted, or the boundary lists them as unaccounted.
+- **A snippet quoted for a position must be quoted at that position's
+  indentation** ("inside branch X, before call Y"), or `diff` lists every line
+  of it as unaccounted. Prose placement and literal comparison disagree at the
+  whitespace.
+- **`diff --base <your own commit>`, run *after* committing, reads clean having
+  compared nothing** — that range is empty by construction. The informative run
+  is the one before the commit, over the batch's own range. Relatedly: a spec
+  file under `docs/superpowers/specs/` carries no passage in the plan and
+  legitimately reports `unaccounted-added`; that is neither coverage nor a
+  defect, since the spec is the author's artifact rather than a task's output.
+
+Each subcommand sees less than its name suggests, and the three gaps are worth
+stating together, because a plan author otherwise learns them one boundary at a
+time. `verify` matches a task's `P` blocks and `A` anchors present in the tree
+exactly as the plan quotes them, and nothing else — no `W` block, no `before:`
+value. `diff` compares a commit range against the plan's quoted lines and lists
+whatever it cannot account for, which includes every authorized edit the plan
+did not quote. `replay` runs the plan's fenced commands in a scratch tree, and
+its exit `0` measures only the `W` / `P` / `A` / `O` needles: on one plan it
+skipped 36 commands of four shapes — `.bat` files, `verify` itself, cmd's
+`type`, and the git add/commit blocks — and said nothing about batch files,
+lint, or the test suite.
+
+## Scripted edits
+
+A batch of passage edits applied by a script is subject to the replacement
+language's own substitution syntax, which no lint and no needle sweep will
+catch.
+
+- **`String.prototype.replace(old, new)` expands `$'`, `$&` and `$1` inside
+  `new`.** Measured on `bug-report-hold`: a new text containing
+  `'^## Recommended fix$'` re-inserted the rest of the file — about 110 lines,
+  twice — at the point of the match, because `$'` reads as "the text after the
+  match"; a first repair then cut the wrong span, and the file had to be
+  restored from `HEAD`. Use `split(old).join(new)` or a replacement *function*,
+  neither of which reads a substitution pattern in the replacement.
+- **Assert exactly one occurrence before writing**, since a zero-hit or
+  multi-hit replacement is the failure the script cannot report afterwards.
+- **Count the file's level-two headings after a batch of edits.** The
+  duplication above was caught by that count and by nothing else; lint passed.
+
+The same call applies a plan's `W` and `P` blocks, so this is the drafting side
+of an instrument gap, not a one-off scripting accident.
 
 ## The passage-task recipe on a CRLF host
 

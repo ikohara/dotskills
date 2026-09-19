@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
 Source: session 2026-09-14
@@ -72,3 +72,18 @@ Resolved on that branch by the fix wave, which added a **transcript-column
 check** to the start case — the same identity this issue has said all along is
 the only one that distinguishes the two. Recorded here rather than filed
 separately, since the consequence is fixed and the premise is this issue's.
+
+**2026-09-20, `bug-report-hold` — a collision within one run, and the key any
+future mechanism must use.** A Kanri tenure found its own bare name and `[ref]`
+already on the roster at its start, as a `replaced` row with a **different**
+transcript. Not a resume: the transcripts differ and the earlier row was
+already `replaced` before this session existed. So the same bare name *and* the
+same `[ref]` were issued to two genuinely different sessions inside the
+lifetime of one run.
+
+`SKILL.md`'s Handshake section calls the `[ref]` "load-bearing: it identifies a
+session across the listing, the roster, and the handover", and here it did not.
+Nothing depended on the collision going unnoticed — the handover procedure's
+own transcript-path comparison caught it correctly, which is the same check the
+`seat-lineage` fix wave added above. The point for a future mechanism is the
+key: `(name, transcript)`, never `[ref]` alone.

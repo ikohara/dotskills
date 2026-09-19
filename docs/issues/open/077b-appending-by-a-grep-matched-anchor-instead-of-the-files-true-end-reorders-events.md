@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
 Source: session 2026-09-15
@@ -37,3 +37,23 @@ is in active use by a run. This entry exists so the pattern is on record from
 two different files rather than once, for whoever does aim at the append path.
 
 Related: design-4807 (the roster and the conductor ledger).
+
+**2026-09-20, `bug-report-hold` — a second failure mode of the same edit
+mechanism: an insertion-anchor heading lost.** A four-edit sequence against one
+ledger file silently dropped that file's own `## Plan` heading. It was
+discovered only because a later edit's anchor (`grep -n "^## Plan$"`) came back
+empty. Each individual edit that touched the region matched and replaced
+correctly by its own `old_string`/`new_string` pair, and the heading survived
+several of them; tracing which pair omitted it was not worth the cost. Caught
+and fixed in place, content unchanged, nothing lost, since every fact under it
+stayed in its own paragraphs regardless.
+
+So an anchor-based Markdown edit against a file that grows by hundreds of lines
+in one tenure fails in two ways, not one: an append can land in the wrong
+place, and a heading used only as an insertion anchor can disappear. The second
+has a cheap guard the first does not: a **fixed list of the file's expected
+level-two headings, grepped at a boundary**, the way the skill already
+grep-checks a
+review brief's or a shoroku brief's form. That guard, or a sentence in
+`roles/kanri.md`'s ledger-writing guidance, is the same fix this issue is
+waiting on.

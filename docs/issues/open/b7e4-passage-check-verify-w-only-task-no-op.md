@@ -7,10 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
-Source: session 2026-09-18
+Source: inbox 2026-09-18-verify-silently-no-ops-for-w-only-tasks
 
 Reported from a live occurrence in another repository, 2026-09-18: for a task
 whose only passages are `W` blocks (a whole new file, byte-exact), `verify

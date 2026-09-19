@@ -7,10 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
-Source: session 2026-09-14
+Source: inbox 2026-09-14-limits-probe-wording-ambiguous
 
 Expected: unambiguous instructions for what to dispatch when checking
 whether a paused family's quota has recovered.

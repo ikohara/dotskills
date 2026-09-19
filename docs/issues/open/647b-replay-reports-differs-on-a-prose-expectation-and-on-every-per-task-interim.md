@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
 Source: shoroku shoroku-at-close
@@ -45,3 +45,31 @@ direction and a larger absolute count of noise.
 A third fix, narrower than the two above and sufficient for this shape: treat
 an `Expected:` of the form "`N` on each of the files" as a `MATCH` when every
 output line carries `N`.
+
+**2026-09-20, `bug-report-hold` — three faces of one missing idea, and the
+count of the environmental noise.** All three came out of the same plan, and
+they are the same gap seen from three sides.
+
+- **The anchor side.** `replay` applies every task's passages to one synthetic
+  tree *before* checking any anchor, so it compares every `after:` against the
+  plan's **final** state regardless of which task declares it. A mechanism two
+  tasks build up therefore fails on a correct interim value: `roles/kanri.md`'s
+  `sent/` count goes `0 → 1` at Task 9 and `1 → 2` at Task 14, so A9.2's
+  `after: 1` is exactly what `verify --task 9` sees on the real tree at batch
+  C's boundary — and `replay` reports it as a mismatch expecting `1` and
+  finding `2`. Nothing is wrong.
+- **The grammar side.** The plan grammar has no way to say "superseded by
+  A15.x", so a later task's legitimate supersession of an earlier anchor
+  (A9.2 by Task 15's `MATCH … -ge 2`) can only print as a failure.
+- **The environmental side, measured.** `replay`'s command stage runs every
+  stated command in the applied tree, which has no `.git`, no `scripts/`, and
+  none of the paths the plan does not write. For a documentation plan that
+  makes nearly every `W` or verification command print `DIFFERS` for
+  environmental reasons: **42 of 42 on this plan, all noise**, burying the
+  handful whose `actual:` is a real content value.
+
+Two mechanisms close all three. A `--through-batch` (or `--through-task`) mode
+that replays only up to a cut, which also fixes issue-e2b1's unread `before:`
+value; and either a `--repo <checkout>` option or a "needs git / needs paths
+outside the written set → skipped" classification, like the one `replay`
+already has for `git` fences, so the output is readable at all.

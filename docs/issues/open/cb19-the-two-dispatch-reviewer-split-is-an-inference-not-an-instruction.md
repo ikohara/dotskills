@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
 Source: session 2026-09-16
@@ -75,3 +75,16 @@ batches landing within noise of each other on this metric is: the split's
 reviewer-side cost is flat across batch composition, which the open question
 this issue carries (two opus dispatches versus one) previously had only a
 single point to argue from.
+
+**2026-09-20, `bug-report-hold` — a positive data point on the split's
+reliability, to weigh against its price.** Twice in one batch, the two
+independent reviewers of the same diff (spec and quality) surfaced the *same*
+Important, plan-mandated finding independently and in different words — Task
+5's Bug-intake contradiction and Task 6's antecedent ambiguity. Neither saw the
+other's output, and both reached identical conclusions.
+
+Small, and about a documentation-only plan rather than a code one, but it is
+evidence on the side the paragraphs above do not measure: the split's cost is
+now priced twice over, and this is the first reading of what the second
+dispatch actually buys — or, on this shape of plan, does not, since the
+convergence says the second verdict added confidence rather than a finding.
