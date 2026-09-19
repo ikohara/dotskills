@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-06
-updated: 2026-09-06
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto
 
 `tanto.json` keys subagents by task kind (`implementer`, `reviewer`,
 `drafter`, `escalation`, `default`) because kinds recur across roles

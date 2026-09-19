@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-06
-updated: 2026-09-06
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto
 
 The tanto design of 2026-09-06 puts a progress view across repositories out
 of scope. A session is bound to its cwd (rule 4), so a Kanri that spans

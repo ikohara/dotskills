@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-context-ceiling
 
 Found at the `tanto-context-ceiling` run's T2 (2026-09-14), while checking
 the deferred-handover machinery's own decline state.

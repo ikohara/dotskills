@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-12
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-12
 
 `docs/decisions/AGENTS.md` — a kisou-managed copy of
 `skills/kisou/templates/docs/decisions/AGENTS.md` — makes an accepted ADR's

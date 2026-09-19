@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: shoroku shoroku-at-close
 
 Measured on `shoroku-at-close`'s spec, and recurring from the sweep specs
 before it. The first draft quoted about sixty old texts and six did not

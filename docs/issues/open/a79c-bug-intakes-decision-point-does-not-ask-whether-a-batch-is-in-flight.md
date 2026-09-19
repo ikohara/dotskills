@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-17
 
 Observed 2026-09-17 as the `dotskills-1a` Kanri's own mistake, caught by Jisso
 and corrected before any commit landed wrong. While a batch was already in

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-17
 
 T1 — the spec-derived requirements and issues, due after the plan commits and
 before Jisso is created — has no slot anywhere in a topic's ledger. The

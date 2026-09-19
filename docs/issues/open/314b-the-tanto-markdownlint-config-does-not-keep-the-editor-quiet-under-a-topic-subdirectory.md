@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-18
+updated: 2026-09-19
 ---
+
+Source: shoroku seat-lineage
 
 `SKILL.md`'s Artifacts row says the workspace's own `.markdownlint-cli2.yaml`
 "keeps the editor quiet on files the commit path never lints". Measured while

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-14
 
 Found by the tanto-cost whole-branch review (2026-09-14), a cross-cutting
 finding visible only from the full diff (batch A wrote one detector,

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-15
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-sweep-2
 
 Observed in the `tanto-sweep-2` spec stage (2026-09-14), while
 `tanto-context-ceiling` was running concurrently on the shared branch.

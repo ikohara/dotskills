@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-15
 
 First-use report, 2026-09-15, from the `tanto-context-ceiling` topic's close.
 `--share` is specified over "every Kanri whose tenure overlapped" the topic, but

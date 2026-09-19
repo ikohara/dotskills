@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-context-ceiling
 
 `roles/kanri.md` at 62 KB and `SKILL.md` at 47 KB are 15 to 27k of every
 seat's 72 to 83k baseline; a diet in passage-check form, `kanri.md` first, is

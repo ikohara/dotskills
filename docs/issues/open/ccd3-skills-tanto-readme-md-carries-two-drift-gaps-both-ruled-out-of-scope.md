@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-sweep-2
 
 Found in the tanto-sweep-2 run and recorded in that run's ledger (S-43 and
 the task 12 quality review's second minor). Both gaps were raised by that

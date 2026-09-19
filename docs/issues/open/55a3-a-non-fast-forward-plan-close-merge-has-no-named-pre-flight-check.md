@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-17
 
 A real, reproduced merge divergence this run's own precedent didn't cover.
 Every earlier plan close in this run merged with `--ff-only` because `main`

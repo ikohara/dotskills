@@ -310,3 +310,65 @@ output:
 The working forms: write intermediate output into a scratch directory *inside*
 the working directory, and fall back to the Bash tool for anything that starts
 with a shell control word.
+
+## A cross-session message has two renderings in the transcript
+
+Measured 2026-09-19, reading three `seat-lineage` transcripts whole with a
+script.
+
+A cross-session message reaches a transcript in either of two forms: the
+harness's own `<cross-session-message ...>` block, or that same block prefixed
+with `Another Claude session sent a message:`. A script that categorizes
+wake-ups by source has to recognize both — the first pass of this one matched
+only the bare block and counted every message of the second rendering as a
+human turn, which inflates exactly the figure a presence or a cost reading
+cares about. The table it produced was corrected once the second rendering was
+matched too.
+
+## Two cache TTL regimes, and the cold-read signature
+
+Measured 2026-09-19 over eight sessions' transcripts; the overage link
+confirmed by the human the same day.
+
+For every wake-up — a `type: user` record that is not a `tool_result` array, as
+`scripts/reading.js` counts them — the gap since the previous `assistant`
+record was paired with the next `assistant` record's `usage`. A wake-up is
+**cold** when `cache_creation_input_tokens + input_tokens` exceeds
+`cache_read_input_tokens`. On every cold wake-up `cache_read` sat at 35k to
+41k — the system prompt and the tools — and the whole conversation went to
+`cache_creation`.
+
+| Wake-ups with a 5 to 60 minute gap | cold / warm | Sessions |
+| --- | --- | --- |
+| 2026-09-12 to 09-16 | about 0 / all | Kanri `dotskills-00` on 09-14: 0 / 19; Jisso `dotskills-1f` on 09-13: 0 / 44; Kanri `dotskills-2d`: 0 / 16 |
+| 2026-09-09 to 09-11, and 09-17 to 09-18 | nearly all / about 0 | Kanri `dotskills-ca` (seat-lineage): 24 / 1; Kanri `dotskills-c5` on 09-09: 22 / 2; Kanri `dotskills-1a` on 09-10: 19 / 2; Kanri `dotskills-48` on 09-17: 7 / 1; Hosa `dotskills-db`: 9 / 0 |
+
+In the first regime only gaps over 60 minutes are cold — the 1-hour TTL the
+harness states. In the second, a 6-minute gap is cold — the 5-minute TTL the
+harness's own tool text says it drops to "if the session enters usage overage".
+Those were days past the weekly limit, which the human confirmed on 2026-09-19.
+So the second regime is the overage TTL, and it arrives exactly when the quota
+is already spent: the two penalties compound.
+
+**What the regime costs.** The `seat-lineage` Kanri woke 33 times, 27 of them
+cold, `cache_creation` 25.9M tokens in total; under the 1-hour regime only its
+three gaps over 60 minutes would have been cold, about 2M. Its context grew
+from 84k at `/tanto kanri` to 145k after the start sequence to 835k at the
+close, and the presence gate read `absent` at every one of 18 boundaries, so
+the handover never fired. A cold wake-up costs the whole context, so the
+product **context size × cold count** is the dominant term, and in the 5-minute
+regime it is roughly ten times the 1-hour figure.
+
+**Tool calls are the second multiplier.** Every tool call re-reads the whole
+context at the cache-read price, so a session's `cache_read` total is about the
+sum of its context over its tool calls. The same run, measured:
+
+| `seat-lineage` session | tool calls | `cache_read` | `cache_creation` | largest items |
+| --- | --- | --- | --- | --- |
+| Kanri `dotskills-ca` | 536 | 401M | 25.9M | Edit 207, Bash 174, Read 60, SendMessage 38 (98 KB), Write 23 (104 KB) |
+| Jisso `dotskills-a8` | about 600 | 573M | 10.6M | Bash 248, Agent 110, Read 69 (554 KB of results), Edit 69; one compaction at 954k |
+| Jisso's 110 subagents | — | 140M | 14.8M | opus 69, sonnet 41; `task.implement` 36, `task.review-quality` 39, `task.review-spec` 34 |
+| Keikaku `dotskills-f7` | — | 326M | 8.2M | — |
+
+Kanri made about 16 tool calls per boundary, six of them Edits to the ledger's
+and the roster's tables.

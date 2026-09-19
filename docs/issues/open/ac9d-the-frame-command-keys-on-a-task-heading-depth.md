@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-13
+updated: 2026-09-20
 ---
+
+Source: session 2026-09-12
 
 `skills/tanto/roles/kanri.md`, "When the plan lands", gives Kanri an `awk`
 frame command that collapses every task's steps to a line count, so that the
@@ -42,3 +44,21 @@ fact outlives the fence-awareness, though: the regex wants a word boundary
 plan from writing an unfenced `## Tasks` heading. Cited here rather than filed
 separately because it is the same command and the same pattern this issue
 proposes widening.
+
+**2026-09-20, `bug-report-hold` — a third measured instance, from another
+repository, with the cost of the miss.** Run against a committed 1540-line
+plan, the frame command printed all 1540 lines and collapsed nothing: that
+plan's tasks are `## Task B1-FIX — …` at level two and its steps are
+`- [ ] **P1: …**` lines, while the command keys on `### Task` and
+`- [ ] **Step`. Adapted to the plan's actual markup, the frame was 939 lines.
+The cold read therefore ran in the conductor's own context at roughly the
+plan's full size plus a 718-line spec — the largest wake-up of that run.
+
+That is the first instance to price the miss rather than just report it, and
+it adds the step pattern to the heading pattern: both halves of the command
+assume a markup the plan template does not enforce. Two fixes, as before,
+now stated for both halves: accept `^##+ Task` and any `- [ ] **` line, or fix
+the markup in the plan template and have `plan.review` check it. A third
+possibility this instance raises: if `passage-check.js frame` already replaces
+the `awk`, make it the one frame instrument and drop the `awk` from the role
+text, so there is one pattern to keep correct instead of two.

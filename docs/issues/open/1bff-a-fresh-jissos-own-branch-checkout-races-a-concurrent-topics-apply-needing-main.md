@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-17
 
 Observed 2026-09-17 in this repository's own run, as the `dotskills-1a` Kanri's
 tenure, with `shoroku-at-close` and `seat-lineage` both open. A fresh Jisso

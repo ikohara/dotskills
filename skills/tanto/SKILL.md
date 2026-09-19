@@ -21,13 +21,13 @@ This file is the shared contract. Every role reads it, then reads exactly one
 
 | Role | Count | Owns | Talks to |
 | --- | --- | --- | --- |
-| Kanri (管理) | exactly 1 | roster, conductor ledger, batch prompts, rulings, the recommendations and the directions, the bug intake, the create requests and the `release:` lines | human, Sekkei, Keikaku, Jisso, Kaiseki, Hosa; Kikaku at its handshake only |
+| Kanri (管理) | exactly 1 | roster, conductor ledger, batch prompts, rulings, the recommendations and the directions, the bug intake when no Hosa is live, the create requests and the `release:` lines | human, Sekkei, Keikaku, Jisso, Kaiseki, Hosa; Kikaku at its handshake only |
 | Sekkei (設計) | 0 or 1 per topic | the spec and its review | Kanri; the human by grant |
 | Keikaku (計画) | 0 or 1 per topic | the plan, its dry run, and its review | Kanri; the human by grant |
 | Jisso (実装) | 1 live per topic, the plan's others queued | one batch of the SDD run each, its batch report and its commits; the last one, the T2 shoroku proposal | Kanri; the human by grant |
 | Kaiseki (解析) | 0 or 1, on demand | root-cause reports; never a fix; no commit | Kanri; the human by grant |
 | Kikaku (企画) | 0 or 1, opened by the human | the consultation, and the decision files under `.tanto/kikaku/` | the human; Kanri, one `decision:` line |
-| Hosa (補佐) | 0 or 1, opened by the human | the human's small chores, Kanri's filings, and the close's recommend, check, and apply, each in a slot Kanri gives | the human; Kanri |
+| Hosa (補佐) | 0 or 1, opened by the human | the human's small chores, the bug intake, the hotfix lane's edits Kanri hands over, and the close's recommend, check, and apply, each in a slot Kanri gives | the human; Kanri |
 
 ## Invocation
 
@@ -557,7 +557,10 @@ the result the same way the Start sequence does.
 
 - One boss. Only Kanri messages Jisso; Sekkei, Keikaku, Kaiseki, Kikaku, and
   Hosa never do — inbound messages queue and drain in order, and a second
-  boss interleaves instructions.
+  boss interleaves instructions. The one exception is the intake's
+  `received:` line, `from` copied into `to`: a reply to a line the receiver
+  sent, carrying no instruction, and the one line a Hosa sends to a role
+  other than Kanri.
 - A message is one line plus a path. Report bodies, rulings, briefs, and plans
   live in files: a message dies with the session, a file survives compaction
   and a VS Code restart.
@@ -579,7 +582,7 @@ the result the same way the Start sequence does.
 - A reply copies the incoming message's `from` into `to`.
 - **Every tanto line carries the `no-role` line as its second line** — the
   lines this file names and the ones the role files name, in both
-  directions, the handshake, the bug-report route and its `triage:` answer
+  directions, the handshake, the bug-report route and its `received:` answer
   included:
 
   ```text
@@ -672,32 +675,54 @@ the result the same way the Start sequence does.
   else. The author puts the brief's text verbatim in its review request, with
   both paths. The human's answers to the brief's points are the confirmation
   that review asks for; the document is what the points point into, and the
-  human reads it where a point sends them.
+  human reads it where a point sends them. When a lookup the document
+  depends on is still in flight, the author holds `review-ready:` until it
+  lands, or the brief's Document line names the inputs it predates, so that
+  the human knows a second brief may follow.
 - Permission boundaries are per session. Never ask a peer for work that was
   denied in your own session or would be blocked there. Blocked work goes to
   Kanri, which rules on human access.
 
-A defect noticed in a skill goes to the Kanri of the repository that ships that
-skill, as a **bug report**: a file written from `templates/bug-report.md` and
-one line, `bug-report: <absolute path>`. Kanri is the intake, and its address
-is read from the target workspace's roster: the sender reads the first data
-row of `<workspace>/.tanto/roster.md` and takes the bare `<name>` before the
-bracket of its `Name [ref]` column, the human supplying the workspace's path
-where the sender does not know it; the sender checks that name against
-`ListAgents` before sending, and asks the human for the address when the
-roster is absent — a workspace not yet migrated, or an older skill — or the
-name is not listed, since a resumed Kanri carries a new name until it
-rewrites its row. The roster is Kanri's to write and the sender's only to
-read; the read is of a file outside the sender's own working directory, and
-outside auto mode the harness may put a permission prompt for it in the
-sender's window — the harness's own prompt, like the model-mismatch stop, and
-not a failure of the route. A defect that surfaces in a spec dialogue reaches
-Kanri as an `I-n` in `spec-inputs.md`, not as a bug report.
+A defect noticed in a skill goes to the repository that ships that skill, as
+a **bug report**: a file written from `templates/bug-report.md` at
+`.tanto/sent/<YYYY-MM-DD>-<slug>.md` under the reporter's own repository, and
+one line, `bug-report: <absolute path>`. Any session may write and send one;
+when the human noticed the defect, they hand it to a live Hosa as a chore, or
+say it in Kanri's window. **The intake is the target repository's `live`
+Hosa, else its Kanri**: the sender reads `<workspace>/.tanto/roster.md`,
+takes the bare `<name>` before the bracket of the `Name [ref]` column of the
+row whose Role is `hosa` and whose Status begins with `live` — Kanri writes
+`idle since <HH:MM>` into that cell while a Hosa idles — or, when there is
+none, of the first data row, the human supplying the workspace's path where the sender
+does not know it; checks that name against `ListAgents`; and asks the human
+for the address when the roster is absent — a workspace not yet migrated, or
+an older skill — or the name is not listed, since a resumed session carries a
+new name until it rewrites its row. The roster is Kanri's to write and the
+sender's only to read; the read is of a file outside the sender's own working
+directory, and outside auto mode the harness may put a permission prompt for
+it in the sender's window — the harness's own prompt, like the model-mismatch
+stop, and not a failure of the route. A defect that surfaces in a spec
+dialogue reaches Kanri as an `I-n` in `spec-inputs.md`, not as a bug report.
 
-Kanri answers a bug report with one line, in one of five forms:
-`triage: issue-<id>`, `triage: redirect — <one line>`,
-`triage: kaiseki requested`, `triage: hotfix — <commit subject>`, and
-`triage: relayed as I-<n>`.
+The intake answers with one line, `received: <inbox path>`, after one act
+that reads nothing of the report: the file is copied to
+`.tanto/inbox/<YYYY-MM-DD>-<slug>.md` under the same basename, and one line
+is appended under its `## Received` heading. No triage, no ruling, no filing,
+no Events line: a report pends nothing until a **close**, where the
+recommender reads every untriaged inbox copy beside the proposal items
+("Session exit"). A fix the human wants sooner is the hotfix lane, opened by
+the human's word in Kanri's window, never by a report.
+
+**The tracked-write rule.** A tracked file or a commit message names a
+report's source as `inbox <YYYY-MM-DD>-<slug>` and nothing more — no
+repository name or path, no session name, no topic name of the reporter's,
+no quotation of the reporter repository's own documents; what a reproduction
+needs is restated against this repository's files or an inline fixture. It
+binds the issue filed at the close and its `Source:` line, the close's two
+commits, the hotfix lane's commit, the dogfood report, and any ADR. The
+template drops the identifying fields at the source, so that what is not in
+the file cannot be leaked by the subagent that writes the issue; the rule
+stands second.
 
 ### The brief's form
 
@@ -782,16 +807,23 @@ other moment runs only the first:
    a pointer, and the rows are the lineage — however many sessions carried a
    seat, its items are in one table.
 2. **Recommend.** At the close, Kanri dispatches the `shoroku.recommend`
-   kind over the T2 proposal and every source the `pending` rows name — the
+   kind over the T2 proposal, every source the `pending` rows name — the
    spec's sections by heading, each proposal by path, each report by path
-   and item — and names the output, `t2-recommendation.md`: every item once,
-   quoted in full from its source, in three groups — Recommended adopt,
-   Recommended reject, Unsure — each with its destination and its one-line
-   reason. The same dispatch names the brief path, `t2-brief.md` beside the
+   and item, each with its `S-n` — and every untriaged copy under
+   `.tanto/inbox/`, by path, names `skills/` as the paths a `fix` item may
+   touch, and names the output, `t2-recommendation.md`:
+   every item once, quoted in full from its source, its heading carrying the
+   pointer its `Source:` line will take, in four groups — Recommended adopt,
+   Recommended fix, Recommended reject, Unsure — each with its destination
+   and its one-line reason. An inbox item's destination is one of `issue`,
+   `fix — <file>`, `redirect — <where it belongs>`, `kaiseki — <one line>`,
+   `relay — <topic>`, or `dismissed — <one line>`; a `fix` item carries the
+   file, the text as it reads, and the text as it should read.
+   The same dispatch names the brief path, `t2-brief.md` beside the
    recommendation, the template `templates/shoroku-brief.md`, and the chat's
    language; the recommender writes both files in one run.
    <!-- markdownlint-disable MD038 -->
-3. **Check.** Kanri checks the brief's form by `grep` — the four headings
+3. **Check.** Kanri checks the brief's form by `grep` — the five headings
    present and in order, every `###` item heading's text, its `### ` marker
    stripped, appearing exactly once after `See:` in the brief — dispatches
    the recommender once more on a failure and pastes the brief as it stands
@@ -803,13 +835,19 @@ other moment runs only the first:
    ledger.
    <!-- markdownlint-enable MD038 -->
 4. **Apply.** Kanri dispatches the `shoroku.apply` kind with the
-   recommendation, the direction, and the commit subject; that subagent
-   writes the accepted subset per `docs/AGENTS.md`, runs the repository's
-   lint on the changed paths — or on the whole repository where the lint
-   script takes no path arguments, which satisfies the step — and commits
-   once by explicit path, on the topic's branch, before the merge decision.
-   No session applies the accepted subset of its own proposal. Kanri
-   verifies the diff as for any commit and marks the `S-n` rows written.
+   recommendation, the direction, the commit subject, the inbox copies to
+   fill by path, and the fix subject; that subagent
+   writes the accepted subset per `docs/AGENTS.md` — every issue opening
+   with the `Source:` line its item's heading names — fills the Triage
+   section of every swept inbox copy with the direction's outcome, runs the
+   repository's lint on the changed paths — or on the whole repository where
+   the lint script takes no path arguments, which satisfies the step — and
+   commits once by explicit path, on the topic's branch, before the merge
+   decision; then, when the direction accepted a `fix` item, applies those
+   sentences to their files under `skills/` and commits them once more as
+   `fix: text corrections from <topic>'s close`. No session applies the
+   accepted subset of its own proposal. Kanri verifies both diffs as for any
+   commit and marks the `S-n` rows written.
 
 When a Hosa is live, steps 2 to 4 are its: Kanri sends one line,
 `close: <topic> — proposal <path>; ledger <path>; recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now`,
@@ -818,8 +856,16 @@ its own window under its chores grant, writes the direction from the
 human's answer — or from a `decision: <path>` line Kanri relays — dispatches
 the apply in that slot, and answers `close done: <commit subject> — <reading>`
 or `close blocked: <one line>`; Kanri, or the successor it has handed over
-to, verifies the commit and fills the ledger. With no Hosa live, Kanri runs
-the three steps itself.
+to, verifies the commit — and the fix commit, when the direction accepted a
+`fix` item — and fills the ledger. With no Hosa live, Kanri runs the three
+steps itself. **Between plans**, when the human asks in Kanri's window for
+the inbox to be swept, the same three steps run over the inbox alone — the
+files `.tanto/inbox-<YYYY-MM-DD>-recommendation.md`, `-brief.md`, and
+`-direction.md` beside the roster, the commits `docs: inbox sweep
+<YYYY-MM-DD>` and `fix: text corrections from the inbox sweep <YYYY-MM-DD>`
+on `main` — by a live Hosa on Kanri's line
+`sweep: inbox — recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now`,
+or by Kanri.
 
 Nothing is adopted before the close, and no item is decided by Kanri alone:
 the human sees the whole recommendation, grouped, once per topic. Proposal
@@ -871,9 +917,11 @@ Kanri, `.tanto/exit-kanri-<YYYY-MM-DD>-<name>[-2]-proposal.md` next to the
 roster. A Jisso has no proposal file but the close's
 `.tanto/<topic>/shoroku-proposal.md`. The close's three files —
 `t2-recommendation.md`, `t2-brief.md`, `t2-direction.md` — live in the topic
-directory; there are no others. The apply subagent's commit subject is
-`docs: T2 shoroku for <topic>` — the one fixed prefix, `docs: T2 shoroku`,
-that the whole-branch review package excludes.
+directory; there are no others. The apply subagent's commit subjects are
+`docs: T2 shoroku for <topic>` and, when a `fix` item was accepted,
+`fix: text corrections from <topic>'s close` — the two fixed prefixes,
+`docs: T2 shoroku` and `fix: text corrections`, that the whole-branch review
+package excludes.
 
 **The exit itself.** Every line above is sent without an idle
 subscription, like every other tanto line. Kanri checks that the proposal
@@ -903,10 +951,12 @@ signal says, and continues.
 | the spec, at the path the orders line names — by default `docs/superpowers/specs/<date>-<topic>-design.md` | Sekkei | Kanri, Keikaku, Jisso | the spec; committed by Sekkei, or by the Keikaku created after the merge when it was a draft |
 | `.tanto/<topic>/spec-draft.md` | Sekkei | the spec reviewer, Kanri, Keikaku | the spec while another topic's batch is in flight; nothing is committed and no branch is cut until Keikaku commits it at its final path |
 | the plan, at the path the orders line names — by default `docs/superpowers/plans/<date>-<topic>.md` | Keikaku | Kanri, Jisso | the plan; committed; carries Global Constraints, a Batches section, and how a batch is verified |
-| `.tanto/roster.md` | Kanri | all roles; a bug-report sender, its first data row | one row per session that handshook — a plan's queued Jissos included |
+| `.tanto/roster.md` | Kanri | all roles; a bug-report sender, its live Hosa row or its first data row | one row per session that handshook — a plan's queued Jissos included |
 | `.tanto/roster-archive.md` | Kanri | Kanri | from `templates/roster-archive.md`; the roster's dead, replaced, refused, and cleared rows with their last readings, and the closed plans' Events lines, appended at each plan close |
 | `.tanto/kanri-handover.md` | the outgoing Kanri | the successor Kanri | the handover; deleted by the successor once accepted |
-| `.tanto/inbox/<date>-<slug>.md` | Kanri | Kanri | a bug report received, with its Triage section |
+| `.tanto/inbox/<date>-<slug>.md` | the intake — a live Hosa, else Kanri | the close's recommender, by path; the apply, for the Triage section | a bug report received, under the sender's basename, with its Received line; its Triage section is filled by the close's apply and marks the copy triaged |
+| `.tanto/sent/<date>-<slug>.md` | the session that noticed the defect — any role, or Hosa from the human's words | the intake of the target workspace, by the path the `bug-report:` line carries | a bug report sent, from `templates/bug-report.md`; kept, never deleted by a rule |
+| `.tanto/inbox-<date>-recommendation.md`, `-brief.md`, `-direction.md` | the between-plans inbox sweep's recommender, and Kanri or Hosa for the direction | Kanri, the human, the apply | the sweep's three files when no topic is open, beside the roster |
 | `.tanto/kikaku/<YYYY-MM-DD>-<slug>.md` | Kikaku | Kanri | one decision from the human's consultation, from `templates/kikaku-decision.md`; named to Kanri as `decision: <path>`, and from there the next topic's input document, an `I-n`, an `S-n` source, or a stage's Check answer |
 | `.tanto/<topic>/kanri.md` | Kanri | Sekkei, Keikaku, Jisso, Kaiseki, Kikaku, Hosa | the conductor ledger; it never moves |
 | `.tanto/<topic>/spec-inputs.md` (optional) | Kanri | Sekkei | scope inputs the human gave Kanri during spec work, numbered `I-n`, each with Kanri's advisory notes |
@@ -920,7 +970,7 @@ signal says, and continues.
 | `.tanto/<topic>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
 | `.tanto/<topic>/shoroku-proposal.md` | the plan's last live Jisso | Kanri, for its form; the close's recommender, by path | the close's proposal: the `pending` rows by number and what that Jisso's own context holds that no file does, written to a file instead of printed |
 | `.tanto/<topic>/exit-<role>[-<suffix>][-2]-proposal.md`, or `.tanto/exit-kanri-<YYYY-MM-DD>-<name>[-2]-proposal.md` | the exiting session — Sekkei, Keikaku, an attached Kaiseki; Kanri at every plan close and at every handover; never Jisso, whose proposal is its report's section | Kanri, for its form; the close's recommender, by path | the exit shoroku proposal, opening with the line that says what it excludes; `-2` a second file at the same boundary, never a rewrite of the first |
-| `.tanto/<topic>/t2-recommendation.md` | the `shoroku.recommend` kind Kanri dispatches at the close | Kanri, the human, the apply subagent | every proposal item once, quoted in full from the source its `pending` row names, in three groups — Recommended adopt, Recommended reject, Unsure — each with its destination and its one-line reason |
+| `.tanto/<topic>/t2-recommendation.md` | the `shoroku.recommend` kind Kanri dispatches at the close | Kanri, the human, the apply subagent | every proposal item once, quoted in full from the source its `pending` row names, in four groups — Recommended adopt, Recommended fix, Recommended reject, Unsure — each with its destination and its one-line reason |
 | `.tanto/<topic>/t2-brief.md` | the `shoroku.recommend` kind, in the same dispatch as the recommendation | Kanri, by `grep` for its form and by `sections` (its bare heading text) for the `Unsure` group; the human, verbatim | the check brief, from `templates/shoroku-brief.md`, in the chat's language: one line per item, grouped as the recommendation groups them, each pointing at the item's `###` heading |
 | `.tanto/<topic>/t2-direction.md`, beside the recommendation | Kanri, from the human's answer — in its window, or a Kikaku decision file whose third section answers the recommendation | the `shoroku.apply` kind | what the human accepted, item by item; the apply never runs without it |
 | `.tanto/<topic>/compaction-<role>-<n>.md` | the compacted session | Kanri | every item a compaction summary attributes to the human, one per line, rewritten with the human's answers |
@@ -973,7 +1023,8 @@ its path.
 
 ## Rules
 
-1. One boss: only Kanri messages Jisso.
+1. One boss: only Kanri messages Jisso; the intake's `received:` reply is a
+   reply, not a boss's line.
 2. Files between the sessions: the spec, the plan, the conductor ledger, the
    spec inputs, the Kaiseki reports, and the shoroku recommendations and
    directions are the only channel. Every role is on it, not only the ones on
@@ -1081,6 +1132,15 @@ Kanri decides whether it is stray.
 asks the human to delete either: after T2 the two have the same standing —
 untracked, local to one machine, useful only for a later re-read — and disk
 is the only cost (issue-12d3).
+
+`.tanto/` reserves these names, and a topic slug is none of them and begins
+with neither prefix: the
+directories `inbox`, `sent`, `kikaku`, and `kaiseki`; the files `roster.md`,
+`roster-archive.md`, `kanri-handover.md`, `.gitignore`, and
+`.markdownlint-cli2.yaml`; and the prefixes `exit-kanri-` and `inbox-`.
+Kanri checks a new slug against this list by name, before any directory
+exists, and lists the root against the same names at every start and every
+close.
 
 ## Now read your role file
 

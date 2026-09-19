@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-13
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-cost
 
 Raised by the spec review (candidate 3) and deferred by the tanto-cost design
 (`docs/superpowers/specs/2026-09-12-tanto-cost-design.md`, "Deferred items"

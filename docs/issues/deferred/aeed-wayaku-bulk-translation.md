@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-05-21
-updated: 2026-05-27
+updated: 2026-09-19
 ---
+
+Source: session 2026-05-21
 
 `wayaku` is **spot translation only**. The SKILL.md explicitly
 forbids walking the project tree:

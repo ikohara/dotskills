@@ -2,7 +2,7 @@
 id: "04f5"
 title: tanto — multi-session orchestration of one implementation plan in Claude Code
 created: 2026-09-06
-updated: 2026-09-18
+updated: 2026-09-20
 ---
 
 ## Purpose
@@ -59,17 +59,29 @@ artifacts.
   and that session answers and tells Kanri in one line. Kikaku, the seat the
   human opens to think in, is the exception: its counterpart is the human by
   definition, and what it decides reaches Kanri.
-- **Trouble reports reach the repository's Kanri, and Kanri answers them.**
+- **Trouble reports have one intake, and are decided at a close.**
   What a human notices while using a skill, and what another repository's
   run suspects is a defect in a skill this repository ships, has one intake:
-  the resident Kanri. Kanri classifies each report and files it, fixes it
-  when the fix is small and no batch is in flight, sends it where it belongs
-  when it is not this repository's, or asks for a root-cause pass when the
-  cause is unknown. The reporter learns the outcome in one line, and no
-  report waits for the next plan to be heard. Two workspaces running this
-  skill report defects to each other through the skill itself: a reporter
-  that knows the target workspace's path finds the intake's address in that
-  workspace, and asks the human only when that address is stale.
+  the cheapest seat that is live, which answers receipt in one line and reads
+  nothing of the report. No report is lost and none is decided on arrival:
+  every report is decided at the next topic's close, by the same
+  recommendation the human checks by exception, into an issue, a fix applied,
+  a redirect, a root-cause pass, an input to a spec, or a dismissal. Two
+  workspaces running this skill report to each other through the skill
+  itself: a reporter that knows the target workspace's path finds the
+  intake's address in that workspace, and asks the human only when that
+  address is stale.
+- **Nothing tracked names another repository.** A report from another
+  workspace carries nothing that identifies it — no name, path, session, or
+  topic, and no quotation of its documents — and a tracked file or commit
+  written from a report names it by the receiving inbox's dated slug alone,
+  so that what this repository commits says nothing about the repositories
+  that use its skills.
+- **A one-sentence repair is applied, not filed.** A gap or drift in a
+  skill's own prose whose whole repair is a sentence, and which needs no
+  decision, is applied to the text at the close — in a commit of its own that
+  the human approved by exception — instead of opening an issue that a later
+  plan must pick up.
 - **Model discipline.** The human decides which model, and how much effort,
   each seat and each kind of subagent runs on. A session that runs on
   something else is reported to the human and never switched silently

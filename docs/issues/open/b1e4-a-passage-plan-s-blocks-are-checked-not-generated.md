@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-13
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-sweep
 
 Deferred by the tanto-sweep spec (`docs/superpowers/specs/2026-09-10-tanto-sweep-design.md`,
 "Deferred items" 4). The dialogue's D-6 chose **invocation over generation**

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-14
 
 Found by the tanto-cost run's batch F (2026-09-14), recorded in
 `.tanto/tanto-cost/batch-F-report.md`, "Two divergences task 22 found that

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-19
 ---
+
+Source: shoroku kisou-refresh
 
 Measured at the kisou-refresh whole-branch review (2026-09-11).
 `./scripts/lint.sh` runs pre-commit, and several of its hooks rewrite files

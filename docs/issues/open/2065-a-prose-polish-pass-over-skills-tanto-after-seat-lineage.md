@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-18
+updated: 2026-09-19
 ---
+
+Source: shoroku seat-lineage
 
 113 review findings across the `seat-lineage` plan's 35 tasks were each judged
 not worth a fix round at the time — overwhelmingly cosmetic (a ragged wrap, a

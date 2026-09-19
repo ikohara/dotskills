@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-17
 
 The T2 apply surfaced a loose end its own direction never named. The
 recommendation flagged the spec's Deferred item 2 ("a second project layer",

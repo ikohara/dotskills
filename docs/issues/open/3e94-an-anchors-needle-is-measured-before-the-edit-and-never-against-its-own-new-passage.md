@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-13
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-13
 
 Found by the Sekkei of the tanto-cost run on the assembled
 `docs/superpowers/plans/2026-09-12-tanto-cost.md` (2026-09-13), recorded as

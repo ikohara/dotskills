@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-17
 
 A name collision this tenure caused directly, not just observed. Resuming
 under `/tanto fukki` landed this session on `dotskills-27` — the exact bare

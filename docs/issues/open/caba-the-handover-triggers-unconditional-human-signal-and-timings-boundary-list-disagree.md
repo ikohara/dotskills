@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-14
 
 Two sentences in `skills/tanto/roles/kanri.md` read oppositely about whether an
 explicit human handover order can be obeyed while a topic is in its spec or plan

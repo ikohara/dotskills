@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-sweep
 
 Measured in the tanto-sweep run (2026-09-10, batch A). Both the spec and the
 plan name `mise x node@22 -- node --test skills/tanto/scripts/` — the

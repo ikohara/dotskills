@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-20
 ---
+
+Source: inbox 2026-09-14-brief-write-template-headings-invite-copying
 
 Reported from `C:\Users\0000105523\devel\kuchidome` (tanto, topic
 `gated-permissions`, sekkei dispatching `brief.write`): a `brief.write`
@@ -39,3 +41,11 @@ dispatch fixed that one line; earlier briefs in this repository rendered it
 headings included" already forbids, and the same shape as the original
 instance. No template change is proposed by this instance either — it is the
 second measurement of the cost, not a new defect.
+
+**2026-09-19, `bug-report-hold` — a third instance, and the first on a second
+family.** The `brief.write` seat, on sonnet, rendered all six of the review
+brief's section headings in English on its first pass, although the dispatch
+named Japanese and the template says the headings are rendered. One
+re-dispatch fixed it. The earlier two instances were on one family; this one
+says the copying is not a family's quirk but a property of a template that
+ships an English original beside an instruction to translate it.

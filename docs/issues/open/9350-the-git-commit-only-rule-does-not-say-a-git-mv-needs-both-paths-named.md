@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: shoroku shoroku-at-close
 
 Measured on `shoroku-at-close`'s Task 11, where the implementer self-caught and
 self-corrected the mistake mid-task. Its first commit named the **new** path of

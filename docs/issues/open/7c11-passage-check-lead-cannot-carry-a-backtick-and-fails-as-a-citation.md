@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-19
 ---
+
+Source: inbox 2026-09-11-passage-check-lead-grammar
 
 `skills/tanto/scripts/passage-check.js` delimits a lead's content with a
 single backtick: `LEAD_START_RE` matches `` **O<n>.<n>** `[^`]*` `` and

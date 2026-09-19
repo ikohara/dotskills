@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-15
 
 Observed by the `tanto-sweep-2` Kanri (`dotskills-a1`) at its exit,
 2026-09-15: a gap in how a consolidated ruling generalizes across topics and

@@ -2,7 +2,7 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-09-18
+updated: 2026-09-20
 ---
 
 ## Purpose and shape
@@ -122,7 +122,16 @@ skill the sessions load is the working tree's own copy, a plan that edits
 started mid-plan reads whatever is on disk at that moment. So while such a plan
 is in flight the authority for the run's sessions is the plan's Global
 Constraints, Kanri's orders line, and the batch prompts, not the role text on
-disk; Kanri records that as a ruling when the plan lands. The rule states the
+disk; Kanri records that as a ruling when the plan lands. The rule speaks of
+this repository's own sessions, and there is a second class of reader it does
+not name: **another repository's sender reads the linked tree mid-plan too**
+(req-04f5). A reporter that resolves the intake's address out of this
+repository's `.tanto/roster.md`, or that reads the report template to write
+from it, is reading files a plan may be halfway through rewriting, and it is
+bound by no orders line. The route survives it because both artifacts are
+readable in either state and the act they lead to is one harmless line; a plan
+that changes what the sender must *do*, rather than what it reads, has to land
+that change at a boundary the sender can be told about. The rule states the
 premise conditionally, because `SKILL.md` ships to hosts where the skill is
 installed as a copy and the hazard does not arise there. decision-5c8e holds the
 reasoning and the alternative that was rejected.
@@ -399,7 +408,13 @@ write-out read it, which is the point — the human's own words reach them
 without Sekkei's paraphrase in between. Its caveat is worth stating, because the
 skill calls it the one record of the human's own words while it lives untracked
 under `.superpowers/sdd/`: it survives only as long as the workspace, and its
-content becomes durable only when the topic's close writes it out. **`review-brief-spec.md`**
+content becomes durable only when the topic's close writes it out. It also
+**outlives the seat that wrote it**, and that is worth writing even when the
+seat is discarded: on `bug-report-hold` a first Sekkei was discarded and its
+`dialogue.md` became the successor's recovery point — the measurements and the
+one open question were read rather than re-measured, and the question had been
+answered by a Kikaku file before the successor started. A dialogue file is a
+recovery point, not only a record. **`review-brief-spec.md`**
 and **`review-brief-plan.md`**, beside the review reports in the same directory,
 are the brief writer's, written from `templates/review-brief.md` in the chat's
 language; Kanri reads them for form and the human reads them through Sekkei.
@@ -718,7 +733,40 @@ five cases should not restore it there. The nearby disagreement between
 `templates/handover.md`'s Live peers placement and `roles/kanri.md`'s
 (issue-f5d8) is a separate matter and is not resolved by this.
 
+## The shared checkout, and when a queued topic may commit (req-04f5)
+
+A second topic may open once every open topic has passed its spec stage, and
+its Sekkei and Keikaku write documents anywhere; what they cannot do is commit
+into the one checkout another topic's implementation holds. The release
+condition is the occupying topic's **plan closing** — not "a Jisso takes the
+tree". The two readings are opposites: once a Jisso is running that topic's
+batches the shared tree is occupied *more* exclusively, not freed, and no other
+topic's Keikaku can commit until that whole plan closes. Measured across at
+least three topics, the standing ruling for a queued topic was phrased the
+wrong way round ("the plan lands and a Jisso takes the tree, or Keikaku hands
+the draft to a fresh commit"), and one tenure had to write the correction as an
+explicit amendment for its own Keikaku, because the inherited wording read as
+permission to commit the instant the occupying topic's first batch began. The
+queued Keikaku therefore parks its draft as a `spec-draft.md` under its own
+topic directory and takes it to its final path when Kanri says the checkout is
+free.
+
 ## Bug intake
+
+The rule that nothing tracked names another repository (req-04f5) is not
+tidiness: it was measured. Before it, thirty tracked files and eight commit
+subjects carried a sibling repository's name or the user's home path, traced to
+the report template's own fields and to one sentence of the hotfix lane. The
+template drops the identifying fields at the source and the tracked-write rule
+stands behind it as the second defence, because a rule alone leans on every
+later writer's compliance.
+
+The intake is the cheapest seat that is live, and the reason is that **an
+intake's cost is the receiving session's context re-read, not the act** — the
+act is one line and reads nothing of the report, so what a report costs is
+whatever the woken session has to re-read to answer it (req-04f5). That is why
+the intake moves to the seat with the smallest context rather than to the seat
+with the least to do.
 
 A defect noticed in a skill reaches the repository that ships it through Kanri,
 which is the intake. A report is a file written from `templates/bug-report.md`
@@ -760,6 +808,15 @@ reporter back to the human, which is the route that existed before. The
 alternative, a per-user registry file, was not built — it adds a second address
 book beside the roster and a second staleness rule, and it remains the live
 option if the human's remaining step is ever worth removing too.
+
+**An interim ruling over this route fixes a line's form, not only its outcome
+word** (req-04f5). The 2026-09-15 interim protocol named the outcomes and left
+the reply's shape open, and the inbox's Reference lines came back in at least
+four shapes — `issue-<id>`, a `docs/issues/open/<id>-…` path, a bare id, and
+prose — so the retrofit that read them could only look for the `issue-<id>`
+token. The template that replaced the ruling lists the five references
+literally. A ruling that expects to be read by a script later states the form
+it expects.
 
 ## Human access
 
@@ -909,6 +966,22 @@ with the complete findings list, runs **exactly one** scoped re-review of the fi
 wave, adjudicates residuals in the SDD ledger, and reports. There is no second
 fix wave; residual load-bearing findings reach the human through Kanri's merge
 question.
+
+**Why the step earns its seat after every per-batch check has passed clean.** A
+check that reruns the derivation the drafting itself used re-derives the
+drafting's error; it does not catch it. Measured on `bug-report-hold`: the
+plan's own disposition for one needle misread a shipped phrase before any text
+landed; the dogfood report, written after all four sites had landed,
+independently re-derived the same misreading from the live tree and found a
+plausible-looking extra site that made the claim look *more* corroborated; and
+the batch's own Shoroku proposal then carried it forward as a proposed fix for
+the close. Three authors, three independent checks, one shared wrong premise,
+each pass reinforcing it rather than testing it. What caught it was the
+whole-branch review's plain re-read of the cited paragraph — no script, no
+re-derivation. Independent re-derivation compounds an error rather than
+correcting it, which is the failure mode a final reading seat is positioned
+against, and the reason per-task and per-batch review alone was judged
+insufficient (req-04f5).
 
 ## What the executor's loop assumes
 

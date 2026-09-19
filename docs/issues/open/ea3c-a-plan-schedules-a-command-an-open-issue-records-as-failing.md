@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-12
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-workspace
 
 Nothing in the spec or plan workflow consults the open issues for the commands
 and constructs the plan is about to schedule. So a form already recorded as

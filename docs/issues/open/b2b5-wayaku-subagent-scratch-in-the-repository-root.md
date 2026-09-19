@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-07
-updated: 2026-09-07
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-07
 
 On 2026-09-07, while a Sekkei session was running `wayaku` update runs,
 three empty untracked files appeared at the repository root,

@@ -44,7 +44,10 @@ flight, or, with none in flight, the plan whose landing requested the queue
 the handshake's `effort=` carried.
 
 Status is one of `queued`, `live`, `cleared`, `replaced`, `dead`, and
-`refused`. `queued` is a Jisso waiting for its batch prompt, in handshake
+`refused`; a `live` cell may carry the suffix `(idle since <HH:MM>)`, which
+Kanri writes while a Kikaku, Hosa, or Kaiseki idles and the intake's
+address rule reads, so a reader tests the cell's first word, not the whole
+cell. `queued` is a Jisso waiting for its batch prompt, in handshake
 order. `cleared` records a window Kanri released — `release:` sent, the row
 marked as the line goes out — or whose `/clear` came to light another way: a
 handshake under a name already here with a different transcript, in any
@@ -88,13 +91,13 @@ closed with decision-b6cb and with that map.
 ## Shoroku proposal items
 
 Between plans there is no conductor ledger, so an item raised then — by a
-between-plans triage or a Kikaku file belonging to no topic, by Kanri's own
+Kikaku file belonging to no topic, by Kanri's own
 between-plans exit, or by a close's `-2-proposal.md` — is recorded here with
 the same seven columns the ledger uses. When a topic opens, Kanri moves the
 rows into the new ledger's table; nothing is written out from this table
 itself, so every row here says `no` until it moves.
 
-Columns as the ledger's, with Source the triage, report, or session that
+Columns as the ledger's, with Source the file, report, or session that
 raised it; Destination one of requirements, design, decisions, issues, notes,
 or reports; Adopted one of `pending`, `yes`, and `no`; Stage the stage word
 `t2` for every row, the close of the topic the row moves into being what
@@ -120,7 +123,7 @@ list holds the current run.
   no-role from <name> [<ref>] — <what was lost>;
   a handover written by <name> [<ref>];
   a handover accepted by <name> [<ref>] from <name> [<ref>]; an exit shoroku
-  proposed by <name> [<ref>], or not run and what was lost; a bug report
-  received, or sent to <name> [<ref>];
+  proposed by <name> [<ref>], or not run and what was lost;
+  an inbox sweep: its three files and its commit subjects;
   decision: <path> received from <name>;
   a hotfix committed between plans>

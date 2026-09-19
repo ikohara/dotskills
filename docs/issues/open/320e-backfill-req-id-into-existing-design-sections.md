@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-19
 ---
+
+Source: shoroku requirement-extraction
 
 Deferred by the requirement-extraction design (2026-09-09, its Deferred
 items 1). That design adds a bullet-level pairing rule to the docs system:

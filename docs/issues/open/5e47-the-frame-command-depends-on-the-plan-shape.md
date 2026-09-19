@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-19
 ---
+
+Source: shoroku context-cost
 
 Deferred by the context-cost design (2026-09-09, its Deferred items). Kanri's
 cold read of a landed plan reads the plan's frame — everything outside the

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: shoroku shoroku-at-close
 
 A deliberate, documented inconsistency left by `shoroku-at-close` (its plan's
 Open point 8): no passage and no needle covered the two role-file sites, to

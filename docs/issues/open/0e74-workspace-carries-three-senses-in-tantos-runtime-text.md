@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-12
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-workspace
 
 The word "workspace" names three different things in the skill's runtime text:
 

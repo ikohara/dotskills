@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-18
+updated: 2026-09-19
 ---
+
+Source: shoroku seat-lineage
 
 At a large close, Kanri fills the shoroku table's Adopted and Written columns
 for every `S-n` row the direction answered. Done row by row that is one edit

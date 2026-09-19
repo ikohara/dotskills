@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-20
 ---
+
+Source: inbox 2026-09-17-passage-check-diff-enobufs-on-large-branch
 
 Two related tool limits, both hit by kuchidome's `residency-retention` plan
 (M6b, a 36-task plan, 2026-09-14 through 2026-09-17), reported alongside the

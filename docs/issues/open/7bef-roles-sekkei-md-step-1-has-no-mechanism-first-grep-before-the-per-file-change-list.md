@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-18
+updated: 2026-09-19
 ---
+
+Source: shoroku seat-lineage
 
 A draft spec's per-file change list is built from the decision file's own scope
 list (file → sites). Nothing asks the drafter to grep the retired words first

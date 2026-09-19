@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-20
 ---
+
+Source: session 2026-09-15
 
 Measured directly against `skills/tanto/scripts/passage-check.js`,
 2026-09-15. The parser matches an `A` block's anchor line with
@@ -41,3 +43,17 @@ of them reads `before:`.
 The queued `passage-check-hardening` topic is this issue's carrier, per
 issue-13a1: the fix lives in that topic's spec, and this issue is a note to
 nobody unless its Sekkei reads `docs/issues/open/` whole.
+
+**2026-09-20, `bug-report-hold` — the first measured defect from the dead
+value, and a concrete mechanism that fixes it.** A wrong `before:` (A15.1) and
+the stop-condition count derived from it (the plan's Batches row C) passed
+`lint`, `replay` **and** `boundary`, and were caught by a cold read. Until now
+this issue recorded that the value is never read; this is the instance where
+that cost something.
+
+The mechanism the review proposed is narrower than a `verify --before` and
+closes the same gap from the other side: a `replay --through-batch <X>` mode
+that stops at a batch cut and runs that row's own stop condition against the
+replayed tree. The Batches table is the one place a plan asserts intermediate
+counts, and nothing reads it. The same `--through-batch` / `--through-task`
+shape is what issue-647b needs for an `after:` value, so one mode serves both.

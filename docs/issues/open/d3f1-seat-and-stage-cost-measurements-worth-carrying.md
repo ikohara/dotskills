@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-20
 ---
+
+Source: inbox 2026-09-17-seat-and-stage-cost-measurements
 
 Not a defect — reference cost data measured running kuchidome's M6a/M6b/M8
 and `residency-retention` topics, better carried in the skill's own

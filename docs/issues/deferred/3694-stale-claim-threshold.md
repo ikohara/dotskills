@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-05-21
-updated: 2026-05-21
+updated: 2026-09-19
 ---
+
+Source: session 2026-05-21
 
 `shoroku` says an issue `claimed_by` whose `claimed_at` is
 older than 6 hours is stale and may be ignored by other agents. 6 hours

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-12
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-workspace
 
 `passage-check.js verify` and `diff` compare the tree against the plan as
 committed. When a controller rules mid-run that a passage must land differently

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: inbox 2026-09-11-passage-check-w-blocks
 
 A plan's `W` block declares a whole new file whose bytes must land as
 written. `skills/tanto/SKILL.md` presents `scripts/passage-check.js` as the

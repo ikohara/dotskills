@@ -56,6 +56,12 @@ Classification follows the two splits the type files define — design vs
 decisions, requirements vs issues — and the proposal carries the requirement
 pairing `docs/AGENTS.md`'s Propose step defines; neither is restated here.
 
+An issue written in session, memory, or file mode opens its body with one
+line, `Source: session <YYYY-MM-DD>`, the day of the run — the first
+non-empty line after the frontmatter, before the narrative. In recommend and
+apply mode the pointer rides in the item's heading, from the source the
+caller's dispatch named, and the apply writes what the heading carries.
+
 Parse direction flexibly: `OK` / `全部適用` accept all; `2 と 5 だけ` accept
 named; `3 はやめて` reject named; `5 の severity は high で` accept with an edit;
 `全部やめ` / `cancel` write nothing.
@@ -95,21 +101,31 @@ language. A caller that names several sources reads every one, since the
 proposal it writes is the only proposal there is. Run the
 workflow up to the
 proposal and write the proposal to that path instead of printing it: the
-numbered items grouped under three `##` headings, in this exact
-text — `## Recommended adopt`, `## Recommended reject`, `## Unsure` —
+numbered items grouped under four `##` headings, in this exact
+text — `## Recommended adopt`, `## Recommended fix`, `## Recommended reject`,
+`## Unsure` —
 each item quoted in full from its source so that the
 file stands alone as the apply's input. An `issue` destination is
 recommended only when the item is medium severity or above, needs a
-decision, or records a measured defect; a low-severity gap whose repair is
-a single sentence is grouped `Recommended reject`, with the correction
-written out in the reason. A line in a source proposal that
+decision, or records a measured defect; a low-severity gap or drift in the
+skill's own prose whose whole repair is one sentence, or a few adjacent ones
+in one file, and needs no decision is grouped `Recommended fix`, its body
+carrying `File: <path>`, the text as it reads in an `Old:` fence, the text
+as it should read in a `New:` fence, and the one-line reason — an item the
+apply can act on without judgment; a fix the caller's dispatch does not
+allow — a file outside the paths it names — is grouped `Recommended reject`
+with the correction in the reason. A line in a source proposal that
 only names an `S-n` (or similarly-formed) row is a pointer, not an item to
 quote itself: follow the pointer to its own named source and quote from
 there, never the pointer line itself. Put each item under its own `###`
 heading, `### <n> — <title>`, `<n>` being one running number across the
 whole recommendation, assigned in the order the dispatch names its
 sources — unique across the whole file, never restarted per group nor per
-source proposal — and each heading naming which source it came from; where
+source proposal — and each heading ending with the pointer the dispatch
+gave for its source, in parentheses — `(<topic> S-<n>)` for a ledger row,
+`(inbox <YYYY-MM-DD>-<slug>)` for an inbox copy, or the dispatch's own
+words for another source — so that the apply writes the issue's `Source:`
+line from the heading alone; where
 the source is not a numbered proposal, as for a spec's sections, a running
 number in the order the items are written — so that a reader can point at
 an item by its heading and the human's answer names the item by the number
@@ -125,7 +141,7 @@ nothing under `docs/`.
 When the caller also names a brief path, a template, and a chat language,
 write the check brief from that template at that path, rendered in that
 language, in the same run and from the same judgment: one line per item under
-the same three headings, each ending in `See:` and the item's heading text,
+the same four headings, each ending in `See:` and the item's heading text,
 its `### ` marker stripped. The brief is the second and last file this mode writes.
 
 <!-- markdownlint-enable MD038 -->
@@ -134,9 +150,24 @@ its `### ` marker stripped. The brief is the second and last file this mode writ
 commit subject. The recommendation quotes every item in full, so no third
 file is read: where the candidates were sections of the source document, the
 recommendation is the only proposal there is. Apply the accepted subset per
-the per-type `AGENTS.md`, lint the changed paths by name, make **one** commit
+the per-type `AGENTS.md` — an issue opening with the `Source:` line its
+item's heading carries, `Source: shoroku <topic> S-<n>` or `Source: inbox
+<YYYY-MM-DD>-<slug>`, and naming nothing else of where a report came from —
+lint the changed paths by name, make **one** commit
 by explicit path with the subject you were given, and report the paths and
-the subject. Write nothing the direction did not accept, and never run
+the subject. Then two things outside `docs/`, when the dispatch asks for
+them. For every inbox copy the dispatch named, fill its `## Triage` section
+— Outcome, one of `issue`, `fix`, `redirect`, `kaiseki`, `relay`,
+`dismissed`, as the direction settled it; Reference, the issue id, the
+fix's commit subject, the redirect or dismissal in one line, the `kaiseki`
+line, or the relay's topic; Date — an untracked write that rides in no
+commit. For every accepted `Recommended fix` item, replace its `Old:` text
+with its `New:` text exactly once in the file it names, lint those paths,
+review the sibling `README.md` for drift when a `SKILL.md` changed, make a
+**second** commit by explicit path with the fix subject the dispatch gave,
+and report it; an `Old:` text found zero or several times is reported as
+`fix skipped: <n> — <why>` and the file is left as it was. Write nothing the
+direction did not accept, and never run
 without a direction file.
 
 The direction file carries the directions this skill already parses — `OK`,
@@ -164,8 +195,10 @@ start, and the direction file is the confirmation.
   nothing is written under `docs/`, and in apply mode the direction file is
   the confirmation, written from the human's answers.
 - Do NOT restate the document format in this file — defer to `AGENTS.md`.
-- Do NOT write outside `docs/` — except the recommendation file a caller
-  names in recommend mode. `shoroku` no longer installs or edits
+- Do NOT write outside `docs/` — except the recommendation and brief files
+  a caller names in recommend mode, and in apply mode the inbox copies'
+  Triage sections and the `Recommended fix` files the dispatch names.
+  `shoroku` no longer installs or edits
   `AGENTS.md`; setting up the system is `kisou`'s job.
 - Do NOT rewrite an `accepted` ADR body — only its `status` / supersede and
   amend links.

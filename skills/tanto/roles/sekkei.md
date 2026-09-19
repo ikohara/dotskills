@@ -32,8 +32,14 @@ which is the draft rule of Step 1.
 ## Step 1 — the spec
 
 Run superpowers brainstorming with the human. The dialogue is theirs; the
-write-up is yours. Take the architectural path — this is a design document, not
-a one-liner.
+write-up is yours. When the input is a Kikaku decision file, open the
+dialogue by restating, in your own words, the mechanism the decision
+presupposes and the user-visible behavior it changes, before the first
+design question, so that a mismatch is corrected at once and not two
+question batches later. Take the architectural path — this is a design document, not
+a one-liner. A figure a Kikaku file lets you cite without re-measuring holds
+only while the spec uses the measurement's own definition: a figure the spec
+builds a rule on is re-measured under that rule's definition.
 
 Keep `.tanto/<topic>/dialogue.md` as you go: each question you put
 and the human's answer, verbatim, in order. Kanri may read it at any time, the

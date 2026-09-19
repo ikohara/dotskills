@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-15
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-sweep-2
 
 Hit in a live run on 2026-09-14: `tanto-sweep-2`'s spec stage opened while
 `tanto-context-ceiling` was in flight, and both topics' scope is

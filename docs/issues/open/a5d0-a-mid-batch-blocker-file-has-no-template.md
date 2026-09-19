@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-15
 
 Surfaced by `tanto-sweep-2`'s task 11 mid-batch escalation (2026-09-15).
 `skills/tanto/templates/batch-prompt.md` and

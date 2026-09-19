@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-17
 
 A procedural gap in the close-gated shoroku model, found in kuchidome's
 `residency-retention` run: that topic's Kaiseki reports had already

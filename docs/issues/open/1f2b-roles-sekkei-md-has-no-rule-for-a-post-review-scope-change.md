@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: shoroku shoroku-at-close
 
 Measured on `shoroku-at-close`. The human's scope change — the close's steps 2
 to 4 delegated to a live Hosa — arrived after the spec review, in the same

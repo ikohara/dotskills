@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-06
-updated: 2026-09-07
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto
 
 The tanto design of 2026-09-06 caps strong-model sessions at two (rule 9:
 Sekkei pauses while Kaiseki is active). The cap is a guess. The rate limit for

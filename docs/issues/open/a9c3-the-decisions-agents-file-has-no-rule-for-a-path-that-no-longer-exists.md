@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-12
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-workspace
 
 `docs/decisions/AGENTS.md` makes an accepted ADR's body immutable and asks that
 managed entries be cited by `<type>-<id>`, but an ADR body also names plain

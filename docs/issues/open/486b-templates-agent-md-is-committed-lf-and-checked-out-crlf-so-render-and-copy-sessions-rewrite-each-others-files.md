@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-16
+updated: 2026-09-20
 ---
+
+Source: shoroku tanto-sweep-2
 
 Found in the tanto-sweep-2 run and recorded in that run's ledger (S-61).
 
@@ -32,3 +34,17 @@ created Markdown file always landing with LF in the working tree — but it does
 not cover the render-versus-copy comparison, which is where this one bites.
 
 Related: issue-6f3d.
+
+**2026-09-20, `bug-report-hold` — a second symptom, in the start sequence
+itself.** `SKILL.md`'s Start sequence tells a session to rewrite an agent
+definition whose "content differs" from what the template renders, and that
+test is byte-level. Measured at one session's start: all thirteen
+`~/.claude/agents/tanto-*.md` differed from the rendered template **only in
+line endings**. A session that took the test literally would rewrite thirteen
+files at every start, for ever; this one compared after normalizing and wrote
+nothing.
+
+Same cause as the paragraphs above, at a second site, and either fix already
+listed closes it — the comparison normalizes line endings, or the template is
+committed LF. Worth stating that the Start sequence, not only the
+render-versus-copy path, is where the flap is paid.

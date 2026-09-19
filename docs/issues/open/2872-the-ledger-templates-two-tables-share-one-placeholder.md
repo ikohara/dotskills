@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-12
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-12
 
 `skills/tanto/templates/kanri.md` opens both its Batches table and its
 Shoroku candidates table with a placeholder row of the same shape

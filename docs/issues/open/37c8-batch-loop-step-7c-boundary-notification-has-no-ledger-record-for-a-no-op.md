@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: inbox 2026-09-17-batch-loop-step-7c-notification-unlogged
 
 `roles/kanri.md`'s batch loop step 7(c) has Kanri tell a live Sekkei or
 Keikaku that the boundary is verified and wait for `committed <subject>` or

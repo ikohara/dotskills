@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-12
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-workspace
 
 An `O` block in a passage plan names an old value the plan contradicts, and
 `skills/tanto/scripts/passage-check.js` sweeps it with one implied

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-17
 
 A session's Start sequence writes agent-definition files from the `tanto.json`
 it reads on the branch its shared tree happens to be on, and leaves no record

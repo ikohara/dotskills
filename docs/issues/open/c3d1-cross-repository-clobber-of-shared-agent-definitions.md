@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-17
 
 `$CLAUDE_CONFIG_DIR/agents/` is per-OS-user, not per-repository: tanto's "User
 scope" pass renders each kind's agent definition from **that repository's own

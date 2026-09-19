@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: inbox 2026-09-17-shoroku-kind-name-drift-no-mid-tenure-recheck
 
 Two related gaps, reported from kuchidome (a different repository running
 the same tanto skill), corroborated here:

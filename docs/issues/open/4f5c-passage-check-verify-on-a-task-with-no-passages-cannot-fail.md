@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-19
 ---
+
+Source: shoroku kisou-refresh
 
 `node skills/tanto/scripts/passage-check.js verify --task <N>` prints
 `task N: no passages` and exits **0** for a task that carries no passage

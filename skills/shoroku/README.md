@@ -19,10 +19,12 @@ maintains the agent-agnostic document-management system that governs them.
 - For a caller that answers through files — an orchestrator running the skill
   in a subagent — the same workflow splits into two halves at `Direction?`:
   **recommend** writes the numbered proposal, each item under its own `###`
-  heading and marked adopt, reject, or unsure, to a path the caller names —
+  heading and marked adopt, fix, reject, or unsure, to a path the caller names —
   and, when the caller names a brief path, a template and a chat language, a
   check brief beside it, one line per item in that language; **apply** reads
-  the proposal with a direction file and makes the one commit.
+  the proposal with a direction file, makes one commit for the accepted docs
+  subset, and a second commit for an accepted `Recommended fix` item's text
+  correction when the direction accepted at least one.
 
 ## Usage
 

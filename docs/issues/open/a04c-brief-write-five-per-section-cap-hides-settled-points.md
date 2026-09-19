@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-20
 ---
+
+Source: inbox 2026-09-14-brief-write-five-per-section-cap-hides-settled-points
 
 Reported from `C:\Users\0000105523\devel\kuchidome` (tanto, topic
 `boundary-hardening`): for a spec whose dialogue settled everything (every

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-context-ceiling
 
 The alternative rejected at Q3 of the `tanto-context-ceiling` spec dialogue,
 filed so that the day a compaction summary loses a ruling the option is on

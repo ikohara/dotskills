@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-15
 
 Observed in this repository's own run, 2026-09-15, by a Kanri whose tenure was
 mostly multi-topic coordination while `tanto-sweep-2` and

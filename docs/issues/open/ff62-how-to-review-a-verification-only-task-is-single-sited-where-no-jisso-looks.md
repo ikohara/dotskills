@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-project-config
 
 Found by the Jisso of the `tanto-project-config` run while dispatching task 8's
 reviewers (2026-09-16).

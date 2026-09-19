@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-11
 
 `biome.json` enables the recommended rules, and `lint/suspicious/noRedundantUseStrict`
 is among them with a safe fix: under the `biome-check` pre-commit hook, which

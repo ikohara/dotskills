@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-10
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-sweep
 
 Found by the tanto-sweep run's batch D report (candidate 1, 2026-09-10). A
 task's own Verify step can carry a `grep` needle that a later fix wave or a

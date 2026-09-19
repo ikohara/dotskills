@@ -91,7 +91,7 @@ ledger of the topic that raised it, never a compound value.
   sent, a `queued: <n>` answered, a `no-role` received; a replace and the human's
   answer; a handshake accepted or refused; a session declared dead and what was
   verified; a recovery after a VS Code restart; a handover written or accepted;
-  a bug report triaged and its outcome; an exit proposal form-checked and its
+  an exit proposal form-checked and its
   rows recorded, or an exit shoroku not run and what was lost; a human access
   grant and the human-access: done line that
   closed it; a human-contact: line and what was said>

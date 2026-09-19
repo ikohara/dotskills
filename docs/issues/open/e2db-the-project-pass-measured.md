@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-16
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-project-config
 
 Deferred item 1 of the `tanto-project-config` design spec
 (`2026-09-15-tanto-project-config-design.md`, recorded at T2 as that spec

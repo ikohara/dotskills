@@ -153,7 +153,11 @@ plan is machine-checkable and not only readable:
   ``**A<task>.<n>** `<path>` — `<command>` — before: <v>, after: <v>``, both values
   stated always: an anchor check inverts only when the new passage wholly
   supersedes the needle, and when the needle is the passage's unchanged
-  opening it still returns `1` after a correct edit;
+  opening it still returns `1` after a correct edit; an anchor on a file the
+  task itself edits is task-local — the values right before and right after
+  that task's own commit — and an anchor that only reads a file another task
+  changes, to justify a derived number, says so in its own text and states
+  the values as they stand at this task's own boundary;
 - an old value the plan contradicts is
   ``**O<task>.<n>** `<needle>` — <where it must be gone, or why it may stay>``,
   one per **entity** the plan changes — for a column added, the sentences that

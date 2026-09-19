@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-19
 ---
+
+Source: shoroku kisou-refresh
 
 Measured in the kisou-refresh run (2026-09-11, batch C). The dogfood task ran
 `起草して migrate` against this repository, and every answer in the dialogue —

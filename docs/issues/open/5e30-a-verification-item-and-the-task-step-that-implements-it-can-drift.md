@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-12
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-workspace
 
 A plan states its checks twice: once in the numbered "How a batch is verified"
 section, and once inside the task step that performs the check. Nothing ties the

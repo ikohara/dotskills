@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: inbox 2026-09-17-fukki-resume-should-ask-not-infer-continue
 
 `SKILL.md`'s Handover section names one explicit way a due handover is
 declined: "If the human says 'continue' instead of creating the successor,

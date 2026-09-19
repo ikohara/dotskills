@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-12
+updated: 2026-09-20
 ---
+
+Source: shoroku context-cost
 
 Observed by the context-cost plan review (2026-09-09). In that plan task 1 is
 875 lines and 48 steps and task 7 is 767 lines and 44 steps; under
@@ -101,3 +103,17 @@ discover about where to look — rather than its step count, and this plan's tas
 6 carried every command it needed, with expected values, in its brief. If that
 holds, the variable this issue wants is not "is it a sweep" but "how much does
 the task have to find out before it can start".
+
+**2026-09-20, `bug-report-hold` — the sharpest instance yet, and it is
+file count.** That plan's batch A (tasks 1-3), nominally the smallest batch by
+its own Self-Review, read `context=370806` at the plan's **very first**
+boundary against a Jisso ceiling of `216943` — 1.7× over, before any other
+batch had run. The likely driver is Task 1's bulk retrofit, which touches 234
+files.
+
+This is the cleanest separation so far between the variable the plan measures
+and the variable that costs: the task-sizing language ("largest task", the
+Self-Review) is line-count-based throughout and did not flag this batch at all,
+because a 234-file retrofit is short to *state* and expensive to *run*. A
+file-count or file-read term, beside the line count and the uncertainty
+hypothesis above, is what the next design weighing task size should carry.

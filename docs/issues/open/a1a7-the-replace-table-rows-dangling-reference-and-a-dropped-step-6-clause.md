@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-14
 
 Found while landing the same batch's roster/readings text (context-ceiling
 task 9; see design-4807 and decision-eee2 for the mechanism these gaps are

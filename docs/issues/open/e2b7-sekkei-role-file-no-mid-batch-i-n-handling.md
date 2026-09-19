@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-20
 ---
+
+Source: inbox 2026-09-14-sekkei-role-file-no-mid-batch-in-handling
 
 Reported from `C:\Users\0000105523\devel\kuchidome` (tanto, topic
 `boundary-hardening`): a scope input (`I-2`) arrived from Kanri after

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-14
 
 `lint: clean` and `replay` clean did not catch either of the
 `tanto-context-ceiling` plan review's two blockers, and reading `boundary

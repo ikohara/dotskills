@@ -195,7 +195,10 @@ For a plan that carries passages, run
 at every batch boundary, before you report. It prints the added lines of the
 merge-base diff that the plan does not literally quote, and the removed lines
 that fall outside any fenced block; both sets must be empty, or accounted for
-in your report. It exits `0` when they are, `1` when they are not, and `2`
+in your report — the spec's and the plan's own added lines are always in the
+first set, since those documents create the passages rather than being
+governed by them, so classify the output by directory before reading its
+count. It exits `0` when they are, `1` when they are not, and `2`
 when it could not run at all — a `2` is never a clean tree. Its first line
 names the paths the plan declared `created:`, which it exempted rather than
 checked; say in your report that they were. It needs only the plan and
@@ -241,6 +244,10 @@ condition on top:
 > `Task N: kaiseki — wip <sha7>, awaiting brief` to the SDD ledger, write the
 > batch report, and go idle.
 
+A round that resumes an implementer is a `SendMessage` to that agent, decided
+before the message body is written, and a dispatch call's own `isolation`,
+`model`, and `run_in_background` are read against the plan's Global
+Constraints before it is sent, not after something goes wrong.
 A **known** cause continues the SDD rounds; only an unknown one trips this. A
 clean `git status` is the handoff invariant, so the failing state is committed
 rather than left in the tree — and a modification you find there that this
@@ -284,7 +291,10 @@ text, these win.
 ## The final batch
 
 Kanri dispatches the whole-branch review itself and sends its findings to
-the next queued Jisso as one more batch prompt. If you are that Jisso:
+the next queued Jisso as one more batch prompt. If you are that Jisso, your
+Start reading is what the prompt's own `Instead:` clause names — the
+findings arrive diagnosed, so step 1's whole plan and spec is not re-read
+for a fix wave — and steps 2 and 3 run as written:
 
 1. Dispatch **one** fix subagent with the complete findings list — never one
    fixer per finding.

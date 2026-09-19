@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-18
+updated: 2026-09-19
 ---
+
+Source: shoroku seat-lineage
 
 decision-0ea5 puts `release:` directly after the form check at every seat.
 `roles/kanri.md`'s batch-loop step 3 records that form check, and step 6 trusts

@@ -15,6 +15,13 @@ recorded baseline's `Output:` heading finds no blocks at all, which reads as
 and the tree is this note's problem or the tree's; a divergence introduced in
 transcription is neither, and it looks exactly like a result.
 
+**An old-text count is taken over the file with its line wraps folded.** A
+by-hand `grep -cF` of an inline string returns a false `0` whenever the text it
+looks for wraps in its target, so a reviewer's old-text check is multi-line and
+whitespace-normalized by default — one review of 39 old blocks produced four
+such false zeros before the check was re-run by a script that reads the whole
+file.
+
 Three moments in a `tanto` plan call for the same extraction method —
 every fenced block of the plan pulled into a scratch tree, diffed
 against `HEAD`, and these commands run there: Sekkei's plan review
@@ -603,8 +610,11 @@ grep -cF 'decision: <path> received from <name>' skills/tanto/templates/roster.m
 ```
 
 Expected, one number per line, in order: `2`, `1`, `1`, `4`, `1`, `1`, `1`,
-`1`, `2`, `3`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `4`, `1`, `1`, `1`,
-`1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`. The ninth is `2` because
+`2`, `2`, `3`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `4`, `1`, `1`, `1`,
+`1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`. The eighth moved from `1`
+to `2` when `bug-report-hold` added the `.tanto/sent/` row to the Artifacts
+table, whose Readers cell names the `bug-report:` line a second time. The
+ninth is `2` because
 the seat-lineage plan rewrote "Session exit" whole and its new text names
 the `exit-<role>[-<suffix>]` pattern twice and no more. The fourth is `4` because
 `SKILL.md` spells `kanri-address:` four times: the handshake section's
@@ -681,15 +691,18 @@ anywhere else means a third copy that will drift. The last two are exactly
 section by its bare heading via `sections`, never by this bold string, so it
 is not pinned here — spec 8.2 names only the two review-report headings.
 
-The five triage answers, each exactly once in the contract:
+The intake's one answer and the sweep's one line, each exactly once in the
+three files that carry them:
 
 ```bash
-for s in 'triage: issue-<id>' 'triage: redirect — <one line>' 'triage: kaiseki requested' 'triage: hotfix — <commit subject>' 'triage: relayed as I-<n>'; do
-  printf '%s -> %s\n' "$s" "$(grep -cF "$s" skills/tanto/SKILL.md)"
+for f in skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/hosa.md; do
+  printf '%s -> %s %s\n' "$f" "$(grep -cF 'received: <inbox path>' "$f")" "$(grep -cF 'sweep: inbox — recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now' "$f")"
 done
 ```
 
-Expected: five lines, each ending `-> 1`.
+Expected: three lines, each ending `-> 1 1`. The five `triage:` answers this
+check pinned until 2026-09-19 no longer exist: `bug-report-hold` replaced the
+five-way triage on arrival with one receipt and a decision at the close.
 
 The human-access request line, byte-identical in the contract and the four
 role files:
@@ -1115,22 +1128,25 @@ moment it is written.
 ## 18. The recommendation's headings, on both sides
 
 ```bash
-grep -cF '`## Recommended adopt`, `## Recommended reject`, `## Unsure`' skills/shoroku/SKILL.md
+grep -cF '`## Recommended adopt`, `## Recommended fix`, `## Recommended reject`,' skills/shoroku/SKILL.md
 grep -cF '## Recommended adopt' skills/tanto/templates/shoroku-brief.md
 grep -cF '## Recommended reject' skills/tanto/templates/shoroku-brief.md
 grep -cF '## Unsure' skills/tanto/templates/shoroku-brief.md
-grep -cF 'Recommended adopt, Recommended reject, Unsure' skills/tanto/SKILL.md
+grep -c '^## Recommended fix$' skills/tanto/templates/shoroku-brief.md
+grep -cF 'Recommended adopt, Recommended fix, Recommended reject, Unsure' skills/tanto/SKILL.md
 grep -cF 'reject, Unsure —' skills/tanto/roles/kanri.md
 grep -cF 'Recommended adopt, Recommended reject, Unsure' skills/tanto/templates/kanri.md
-grep -rciF 'recommended adopt, recommended reject' skills/tanto/SKILL.md skills/tanto/templates/kanri.md skills/shoroku/SKILL.md
+grep -rciF 'recommended adopt, recommended fix' skills/tanto/SKILL.md skills/tanto/templates/kanri.md skills/shoroku/SKILL.md
 grep -ci 'reject, unsure' skills/tanto/roles/kanri.md
 grep -c 'reads its `unsure` group' skills/tanto/SKILL.md
 ```
 
-Expected: `1 1 1 1 1 1 0`, then the two case-insensitive counts equal to the
+Expected: `1 1 1 1 1 1 1 0`, then the two case-insensitive counts equal to the
 case-sensitive ones above them — `1` summed over the three files, and `1` — a
 lowercase spelling anywhere being the drift issue-e916 named; and `0`, the
-contract's lowercase read of "Session exit" being gone. The fifth and seventh
+contract's lowercase read of "Session exit" being gone. The fifth line is
+`bug-report-hold`'s own addition, the brief's fourth group. The sixth and
+eighth
 counts moved from `2` and `1` during `shoroku-at-close`: Task 2 ("an exit
 writes candidates and nothing else, and the close is the one check")
 rewrapped the "Recommend" step's sentence in `SKILL.md` across a line break,
@@ -1154,26 +1170,29 @@ is a superset — anything the longer form would catch, this catches too.
 ```bash
 grep -c '^## How to answer$' skills/tanto/templates/shoroku-brief.md
 grep -cF 'See:' skills/tanto/templates/shoroku-brief.md
-grep -cF '[adopt | reject | unsure]' skills/tanto/templates/shoroku-brief.md
+grep -cF '[adopt | fix | reject | unsure]' skills/tanto/templates/shoroku-brief.md
 grep -cF 'templates/shoroku-brief.md' skills/tanto/SKILL.md
 grep -cF 'templates/shoroku-brief.md' skills/tanto/roles/kanri.md
 grep -cF 'shoroku-brief.md' skills/tanto/README.md
 grep -cF "See: <the item's heading text, without its ### marker>" skills/tanto/templates/shoroku-brief.md
+grep -c '^## ' skills/tanto/templates/shoroku-brief.md
+grep -c '^## Recommended fix$' skills/tanto/templates/shoroku-brief.md
 ```
 
 Expected: `1`, a non-zero count, `1`, then non-zero on the three citations, then
-`4` — the template exists, carries its markers, and is named where it is copied
+`5`, `5`, and `1` — the template exists, carries its markers, and is named
+where it is copied
 from, which is check 3's rule for every other template. The tag line's
 alternatives are written once, in the shape the groups' lines are rendered from;
-the three group sections carry the concrete tag instead, which is why the third
-count is `1` and not `3`.
+the four group sections carry the concrete tag instead, which is why the third
+count is `1` and not `4`.
 
-The last line is the `See:` wording itself, pinned rather than merely counted.
+The `See:` line is the wording itself, pinned rather than merely counted.
 The fix wave that settled this form made the pointer the heading's **text**,
 without its `###` marker, and a bare `See:` count cannot tell the settled form
 from a reversion to the marked one — which is exactly the break that wave
-fixed. Four occurrences: the shape line under `## How to answer`, and one per
-group section.
+fixed. Five occurrences: the shape line under `## How to answer`, and one per
+group section, of which there are now four.
 
 ## 20. The enumerations the second sweep re-synchronized
 

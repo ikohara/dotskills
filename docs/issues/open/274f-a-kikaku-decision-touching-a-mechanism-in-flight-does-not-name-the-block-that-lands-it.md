@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-18
+updated: 2026-09-19
 ---
+
+Source: shoroku seat-lineage
 
 A Kikaku decision is written against the skill text the human and the seat can
 read, which is the text on disk. When a plan is in flight over that same text,

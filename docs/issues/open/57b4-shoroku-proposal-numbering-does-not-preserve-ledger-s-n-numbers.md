@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-16
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-16
 
 A shoroku proposal numbers its own items from 1, independently of the `S-n`
 row numbers the topic ledger gave the candidates it draws from. The

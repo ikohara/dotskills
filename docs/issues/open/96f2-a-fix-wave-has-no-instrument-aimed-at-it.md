@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-12
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-10
 
 A passage plan is checked by `lint`, by `replay`, by `diff`, by the dry run,
 by its own content greps, and — since the tanto-sweep run of 2026-09-10 — by
