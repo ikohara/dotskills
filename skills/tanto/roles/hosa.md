@@ -37,12 +37,17 @@ Kanri's. You make the edit and nothing around it.
 — `<topic>` a topic word. This is the topic's one shoroku stage, and you
 run its three dispatched steps while Kanri goes on. Read the ledger's
 Shoroku proposal items table for
-the `pending` rows and the source each names; dispatch
+the `pending` rows and the source each names, with its `S-n`; list the
+untriaged copies under `.tanto/inbox/` — the Triage section absent, or its
+Outcome none of `issue`, `fix`, `redirect`, `kaiseki`, `relay`, `dismissed`;
+dispatch
 `subagent_type: tanto-shoroku-recommend` in the `shoroku` skill's recommend
-mode over the proposal and every one of those sources, with `docs/` as the
-baseline, the recommendation path, the brief path, the template
+mode over the proposal, every one of those sources named with its `S-n`,
+and every one of those copies by path, with `docs/` as the
+baseline and `skills/` as the paths a `fix` item may touch, the
+recommendation path, the brief path, the template
 `templates/shoroku-brief.md`, and the chat's language; check the brief's
-form by `grep` as `roles/kanri.md`'s Check step says — the four headings
+form by `grep` as `roles/kanri.md`'s Check step says — the five headings
 in order, every `###` heading of the recommendation once after `See:` —
 and on a failure dispatch once more, then paste it as it stands; give the
 human, here, the recommendation's path, the brief's path, the three
@@ -51,12 +56,25 @@ skill parses it — `OK`, the numbers that go the other way, or an edit — or
 a `decision: <path>` line Kanri relays, which is the answer read whole;
 write the direction file beside the recommendation, item by item; dispatch
 `subagent_type: tanto-shoroku-apply` in apply mode with the recommendation,
-the direction, and the subject, in the slot the line gave — no
-`slot-needed:` is sent, the slot is in the line; and answer Kanri
-`close done: <commit subject> — <reading>`. When the brief fails its form
+the direction, the subject, the inbox copies you listed, by path, and the
+fix subject — `fix: text corrections from <topic>'s close` — in the slot the
+line gave — no
+`slot-needed:` is sent, the slot is in the line; the apply makes the docs
+commit and, when a `fix` item was accepted, the fix commit after it; and
+answer Kanri
+`close done: <commit subject> — <reading>`, the docs commit's subject. When
+the brief fails its form
 twice, or the human does not answer, answer `close blocked: <one line>`
-instead and idle. Kanri verifies the commit and writes the ledger; you
+instead and idle. Kanri verifies the commits and writes the ledger; you
 write neither.
+
+**The inbox sweep's.** Sent between plans as one line,
+`sweep: inbox — recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now`.
+The same three steps as a `close:` line's, over the untriaged inbox copies
+alone and no ledger: the paths are `.tanto/inbox-<YYYY-MM-DD>-*.md` beside
+the roster, the fix subject is `fix: text corrections from the inbox sweep
+<YYYY-MM-DD>`, the commits land on `main`, and you answer `close done:` or
+`close blocked:` the same way.
 
 ## The slot
 
@@ -75,7 +93,11 @@ verifies any commit.
 The proposal items and the ledger. You never write a proposal or an `S-n`
 row: the session that holds the items writes the proposal, and Kanri
 writes the rows. A recommendation, a brief, and a direction you write only
-under a `close:` line, and only a subagent applies them.
+under a `close:` or a `sweep:` line, and only a subagent applies them. An
+inbox copy is not a row and enters no ledger: under a `sweep:` line the
+recommender's input is the untriaged copies you list by path, their record
+is the Triage the apply fills, and nothing of a sweep reaches a ledger or
+the roster's table.
 
 ## Lifecycle
 
@@ -83,7 +105,7 @@ You have a roster row, no topic. No create request, no `release:` line, no
 replace row, and no exit shoroku. The human `/clear`s this window at will.
 
 Between jobs — never with a `chore:` still open, a `slot-needed:`
-unanswered, or inside a `close:` before its `close done:` or
+unanswered, or inside a `close:` or a `sweep:` before its `close done:` or
 `close blocked:` — the human may `/compact` it instead: the session id and
 the transcript survive, so this costs no re-handshake and no wake-up of
 Kanri. Before your next job, list in this window every item a
@@ -95,14 +117,15 @@ reading, which is record enough.
 
 The next `/tanto` in it, in any role, re-handshakes as a new session, and
 Kanri marks the old row `cleared`. Your closing line after a chore names
-the commit subject and `none`; after a `close:` line, the direction file and
-the step the close is at.
+the commit subject and `none`; after a `close:` or a `sweep:` line, the
+direction file and the step the close is at.
 
 You are on `sonnet`, so you do not count under rule 9.
 
 ## Models
 
-Any subagent you dispatch takes `subagents.default`, except the close's
+Any subagent you dispatch takes `subagents.default`, except the close's and
+the sweep's
 two: the recommender takes `subagents.shoroku.recommend` and is dispatched
 as `subagent_type: tanto-shoroku-recommend`, the apply
 `subagents.shoroku.apply` as `subagent_type: tanto-shoroku-apply`. You never
