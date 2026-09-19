@@ -84,7 +84,9 @@ none does.
    append one line under `## Received`, answer `received: <inbox path>`.
    No triage, no `R-n`, no ledger row, no roster Events line, no filing. The
    slug is the sender's, taken from the report file's own name (section 1.2),
-   so the intake derives nothing from the report's text. Serves req-04f5
+   so the intake derives nothing from the report's text — Q5 = (a), which
+   amends the decision file §2's "the slug kebab-case from the Symptom", an
+   act that reads the report (The ADRs, 1). Serves req-04f5
    "The human is interrupted only at defined checkpoints" — a report is not
    one.
 3. **The close sweeps the inbox** (the decision file §4, amended by the
@@ -232,7 +234,8 @@ one of the six words `issue`, `fix`, `redirect`, `kaiseki`, `relay`,
 and a placeholder all count as untriaged (Measured 1). A filled Triage is
 three lines: Outcome, one of the six words; Reference — the issue id, the
 commit subject of the fix, the redirect or dismissal in one line, the
-`kaiseki` line, or the topic of the relay; Date. Copies are never deleted.
+`kaiseki` line, or, for a relay, the topic — rewritten by Kanri to `I-<n> of
+<topic>` once the relay is done (Q6 = (a)); Date. Copies are never deleted.
 
 ### 1.2 The sent copy — `.tanto/sent/<YYYY-MM-DD>-<slug>.md`
 
@@ -764,7 +767,9 @@ column.`, is replaced by:
    for an adopted row, the fix subject for a `fix` row. An inbox item has no
    row; its Triage is its record. A `relay` outcome is yours to finish:
    append the copy's Symptom as the next `I-n` of that topic's
-   `spec-inputs.md` with your note and send its Sekkei one line; a `kaiseki`
+   `spec-inputs.md` with your note, send its Sekkei one line, and rewrite the
+   copy's Reference from the topic to `I-<n> of <topic>` — one untracked
+   line, no slot; a `kaiseki`
    outcome is a numbered item in your close line asking the human to open a
    standalone Kaiseki with the copy's path.
 ```
@@ -1448,7 +1453,8 @@ words is out of the queue.>
 
 - Outcome — <issue, fix, redirect, kaiseki, relay, or dismissed>
 - Reference — <the issue id, the fix's commit subject, the redirect or
-  dismissal in one line, the kaiseki line, or the relay's topic>
+  dismissal in one line, the kaiseki line, or the relay's `I-<n> of <topic>`,
+  the topic alone until Kanri has appended the `I-n`>
 - Date — <YYYY-MM-DD>
 ````
 
@@ -1884,7 +1890,10 @@ writes the `amends:` links `docs/decisions/AGENTS.md` asks for; recorded as
    decision-ce83's one check per topic). Amends decision-2f36 (the hotfix
    lane): the lane is opened by the human's word alone, never by a report's
    triage, its commit body names no report's origin, and the third path for
-   a fix to a plan-listed file is an inbox copy, not an issue; and
+   a fix to a plan-listed file is an inbox copy, not an issue; the decision
+   file §2's own act, whose slug the intake derived from the Symptom — the
+   sender names the file instead, so that the act reads nothing (Q5 = (a));
+   and
    decision-1ab5, whose Hosa chores named "the intake's issue filings" —
    there are none, and Hosa is the intake itself.
 2. **The template drops every identifying field at the source, and the
@@ -1950,7 +1959,7 @@ writes the `amends:` links `docs/decisions/AGENTS.md` asks for; recorded as
 
 - `grep -c 'triage:' skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/hosa.md skills/tanto/templates/bug-report.md` — `0` on each; `grep -cF 'received: <inbox path>' skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/hosa.md` — `1` on each.
 - `grep -cF 'sweep: inbox — recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now' skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/hosa.md` — `1` on each.
-- `grep -c '^## ' skills/tanto/templates/shoroku-brief.md` — `5`; `grep -c '^## Recommended fix `grep -cF "is \`5\`" skills/tanto/roles/kanri.md` — `1`; `grep -cF 'three groups' skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/hosa.md skills/shoroku/SKILL.md` — `0` on each.
+- `grep -c '^## ' skills/tanto/templates/shoroku-brief.md` — `5`; `grep -c '^## Recommended fix$' skills/tanto/templates/shoroku-brief.md` — `1`; `grep -cF '`## Recommended fix`' skills/shoroku/SKILL.md` — at least `1`; `grep -cF "is \`5\`" skills/tanto/roles/kanri.md` — `1`; `grep -cF 'three groups' skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/hosa.md skills/shoroku/SKILL.md` — `0` on each.
 - `grep -cF 'fix: text corrections from <topic>' skills/tanto/SKILL.md skills/tanto/roles/kanri.md` — at least `1` on each.
 - `grep -c '^## Reported$' skills/tanto/templates/bug-report.md` and `grep -c '^## Received$'` — `1` each; `grep -c 'Repository —'` — `0`; `grep -c '^## Reporter$'` — `0`.
 - `grep -cF 'Source: shoroku <topic> S-<n>' skills/tanto/roles/kanri.md skills/shoroku/SKILL.md` — at least `1` on each; `grep -cF 'Source: session <YYYY-MM-DD>' skills/shoroku/SKILL.md skills/tanto/roles/kaiseki.md` — `1` on each.
@@ -1995,117 +2004,10 @@ issue-c3a9 is narrowed, not closed (8.4).
 
 ## Answers to the spec inputs
 
-- **I-1** — Hosa's reading of section 4 (`.tanto/bug-report-hold/spec-inputs.md`):
-  4.1, 4.2, and 4.3 touch the obligations Hosa named and no other; its flag
-  — that "Not yours" speaks of `S-n` rows and the sweep has no ledger — is
-  taken as 4.4, one passage distinguishing an inbox copy from a `pending`
-  row.
-
-## Deferred items
-
-1. **The `S-n` on retrofitted `shoroku` lines.** The 102 write-outs carry
-   the topic and not the row; a later pass could match issue titles against
-   the closed ledgers' Item columns where the ledger survives under
-   `.tanto/`, and write the row. Left because the ledgers are untracked and
-   local, and the pointer to the ledger file is already true.
-2. **A sender learning the outcome.** Under this design the reporter hears
-   `received:` and nothing more; the outcome lives in the receiving
-   repository's untracked inbox copy. If a run wants it, the close could
-   send one line per `relay` or `issue` to the Send to name — but that name
-   is a session that may have been cleared since, and the human's word is
-   the surer channel. Revisit when a second repository runs closes of its
-   own.
-3. **The fix commit's review.** A `fix` item lands on the topic branch after
-   the whole-branch review, unreviewed by a subagent; Kanri's diff
-   verification and the human's brief line are its checks. If a fix ever
-   breaks a pinned string, the consistency script (policy 3) is where the
-   catch belongs.
-4. **An inbox copy's `Old:`/`New:` shape in the report.** The Proposed fix
-   section invites the sentence but does not fix its shape; the recommender
-   writes the `Old:`/`New:` fences itself. A template shape could follow if
-   the recommender's readings prove uneven.
-
-## Shoroku proposal from this spec work
-
-Recorded at the spec's acceptance as one `pending` row pointing at this
-heading. The items are the delta beyond the requirements, the ADRs, and the
-deferred items above — what this dialogue and this reading found that no
-file holds:
-
-1. **The start sequence's "content differs" test is byte-level, and the
-   template is CRLF while the written definitions are LF** (measured at this
-   session's start: all thirteen `~/.claude/agents/tanto-*.md` differed from
-   the rendered template only in line endings). A session that took the test
-   literally would rewrite thirteen files at every start; this one compared
-   after normalizing and wrote nothing. Destination: an issue, low, against
-   `SKILL.md`'s Start sequence — the comparison normalizes line endings, or
-   the template is committed LF.
-2. **A discarded Sekkei's `dialogue.md` was the successor's recovery point**:
-   the first Sekkei's measurements and its one question were read, not
-   re-measured, and the question was answered by a Kikaku file before the
-   successor started. Destination: a fact under the seat-lineage design's
-   section on what a seat leaves on disk — a dialogue file outlives its seat
-   and is worth writing even when the seat is discarded.
-3. **The inbox's Reference lines took at least four shapes under the
-   interim ruling** (Measured 1) because the ruling fixed the outcome word
-   and not the line; the retrofit reads only the `issue-<id>` token. The new
-   template fixes the shape by listing the five references (7.1).
-   Destination: a sentence in the design's Bug intake section, so that the
-   next interim ruling fixes a form.
-4. **The skill's linked tree is read by other repositories' senders
-   mid-plan** (section 9): rule 11 speaks of this repository's own sessions,
-   and the sender side of a route is the case it does not cover. Destination:
-   a sentence under rule 11 in design-4807, or an issue if the recommender
-   prefers a tracked gap.
-5. **The route's readers were counted at design time**: the Bug intake
-   section, 116 lines, becomes about 60 under 3.6, and the five `triage:`
-   forms leave two files and the consistency note. Destination: the
-   `tanto-diet` input row the ledger's S-4 already holds, with the figure.
- skills/tanto/templates/shoroku-brief.md` — `1`; `grep -cF '`## Recommended fix`' skills/shoroku/SKILL.md` — at least `1`; `grep -cF "is \`5\`" skills/tanto/roles/kanri.md` — `1`; `grep -cF 'three groups' skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/hosa.md skills/shoroku/SKILL.md` — `0` on each.
-- `grep -cF 'fix: text corrections from <topic>' skills/tanto/SKILL.md skills/tanto/roles/kanri.md` — at least `1` on each.
-- `grep -c '^## Reported$' skills/tanto/templates/bug-report.md` and `grep -c '^## Received$'` — `1` each; `grep -c 'Repository —'` — `0`; `grep -c '^## Reporter$'` — `0`.
-- `grep -cF 'Source: shoroku <topic> S-<n>' skills/tanto/roles/kanri.md skills/shoroku/SKILL.md` — at least `1` on each; `grep -cF 'Source: session <YYYY-MM-DD>' skills/shoroku/SKILL.md skills/tanto/roles/kaiseki.md` — `1` on each.
-- `grep -cF '`sent`' skills/tanto/SKILL.md` — at least `1`; `grep -cF 'sent/' skills/tanto/roles/kanri.md` — at least `2` (Start step 2 and Reporting from the other side).
-- `grep -L '^Source: ' docs/issues/open/*.md docs/issues/deferred/*.md` — prints nothing; `grep -l '^Source: ' docs/issues/resolved/*.md | wc -l` — `0`.
-- `grep -c '^Source: inbox ' docs/issues/open/*.md docs/issues/deferred/*.md | grep -vc ':0$'` — the count the retrofit's log records, about `15` (Measured 1).
-- `uv run --no-project --with pyyaml python -m unittest discover -s scripts -p 'test_check_md_frontmatter.py'` — passes; `uv run --no-project --with pyyaml python scripts/check_md_frontmatter.py docs/issues/open/*.md docs/issues/deferred/*.md` — exit `0`; the same on a scratch file under a path containing `docs/issues/open/` whose first body line is narrative — exit `1` with the hint.
-- `./scripts/lint.sh` (or `.bat`) on every changed path — clean.
-- The consistency note's edited checks re-run with their expected counts, recorded in the dogfood report.
-- The first close under the new text: the recommendation carries every untriaged inbox copy as an item, the brief has five `##` headings, the apply's Triage fills leave `grep -L 'Outcome — \(issue\|fix\|redirect\|kaiseki\|relay\|dismissed\)' .tanto/inbox/*.md` printing only copies the human sent to Unsure, and the fix commit exists iff the direction accepted a `fix`. Recorded in that plan's dogfood report.
-
-## Out of scope
-
-- The `docs/issues/AGENTS.md` sentence and kisou's issue template
-  (`experience-layer`, fixed input 9).
-- Renumbering the batch loop's steps after step 4 shrinks (`tanto-diet`,
-  D-7), and the Bug intake section's size as a diet input (the ledger's
-  S-4).
-- A pre-commit check rejecting a user-home path in a tracked file (dotrepo,
-  the ledger's S-3).
-- A reply to the sender beyond `received:` — the outcome stays in the
-  receiving repository's inbox copy.
-- Any change to `docs/design/4807-tanto.md` before the close.
-- The consistency script of the answers file §2 policy 3
-  (`passage-check-hardening`).
-
-## Issues this design closes
-
-- issue-a79c — the intake's decision point ("is a Hosa live" before "is a
-  batch in flight") no longer exists: the intake writes nothing tracked, and
-  the hotfix lane is the human's word in a slot.
-- issue-d45c — the sender's copy has a dated place and a stated retention
-  (1.2, fixed input 12).
-- issue-59c9 — the reserved names of `.tanto/` are one list checked by name
-  (1.5, 2.6, 3.1).
-- issue-9d17 — verify at T2: Kanri's Start step 2 already lists the root at
-  every start and close against the same names and names a closed topic's
-  directory as a leftover under the retention rule; 3.1 points it at the one
-  list.
-
-issue-c3a9 is narrowed, not closed (8.4).
-
-## Answers to the spec inputs
-
+- **The spec review's two scope findings** — F-1 and F-2, put to the human
+  as Q5 and Q6, both answered as recommended: the sender names the file
+  (fixed input 2, ADR 1) and a relay's Reference ends as `I-<n> of <topic>`
+  (1.1, 3.4 step 4, 7.1).
 - **I-1** — Hosa's reading of section 4 (`.tanto/bug-report-hold/spec-inputs.md`):
   4.1, 4.2, and 4.3 touch the obligations Hosa named and no other; its flag
   — that "Not yours" speaks of `S-n` rows and the sweep has no ledger — is
