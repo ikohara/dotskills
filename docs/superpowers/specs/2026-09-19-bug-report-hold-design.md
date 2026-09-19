@@ -1022,6 +1022,30 @@ the sweep's
 two: the recommender takes `subagents.shoroku.recommend` and is dispatched
 ```
 
+### 4.4 "Not yours": the sweep's input is not a row
+
+Old:
+
+```text
+The proposal items and the ledger. You never write a proposal or an `S-n`
+row: the session that holds the items writes the proposal, and Kanri
+writes the rows. A recommendation, a brief, and a direction you write only
+under a `close:` line, and only a subagent applies them.
+```
+
+New:
+
+```text
+The proposal items and the ledger. You never write a proposal or an `S-n`
+row: the session that holds the items writes the proposal, and Kanri
+writes the rows. A recommendation, a brief, and a direction you write only
+under a `close:` or a `sweep:` line, and only a subagent applies them. An
+inbox copy is not a row and enters no ledger: under a `sweep:` line the
+recommender's input is the untriaged copies you list by path, their record
+is the Triage the apply fills, and nothing of a sweep reaches a ledger or
+the roster's table.
+```
+
 ## 5. `skills/tanto/roles/kaiseki.md`
 
 The standalone clause, old:
@@ -1597,7 +1621,7 @@ the plan.
 | --- | --- |
 | `skills/tanto/SKILL.md` | 2.1 to 2.6 |
 | `skills/tanto/roles/kanri.md` | 3.1 to 3.7 |
-| `skills/tanto/roles/hosa.md` | 4.1 to 4.3 |
+| `skills/tanto/roles/hosa.md` | 4.1 to 4.4 |
 | `skills/tanto/roles/kaiseki.md` | 5 |
 | `skills/shoroku/SKILL.md` | 6.1 to 6.4 |
 | `skills/shoroku/README.md` | 6.5 |
@@ -1814,6 +1838,14 @@ writes the `amends:` links `docs/decisions/AGENTS.md` asks for; recorded as
   list.
 
 issue-c3a9 is narrowed, not closed (8.4).
+
+## Answers to the spec inputs
+
+- **I-1** — Hosa's reading of section 4 (`.tanto/bug-report-hold/spec-inputs.md`):
+  4.1, 4.2, and 4.3 touch the obligations Hosa named and no other; its flag
+  — that "Not yours" speaks of `S-n` rows and the sweep has no ledger — is
+  taken as 4.4, one passage distinguishing an inbox copy from a `pending`
+  row.
 
 ## Deferred items
 
