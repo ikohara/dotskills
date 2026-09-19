@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-17
 
 Five process facts measured while running Keikaku in kuchidome (M6a/M6b/M10)
 that `roles/keikaku.md` (or the `plan.draft`/`plan.review`/`brief.write`

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-14
 
 Found while landing `roles/kanri.md`'s deferred-handover / presence-gate
 machinery (context-ceiling task 8; see design-4807 and decision-eee2 for the

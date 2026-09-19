@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-16
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-project-config
 
 Found by the whole-branch reviewer of the `tanto-project-config` run as Minor 1
 (2026-09-16) and carried as S-47 in that run's ledger.

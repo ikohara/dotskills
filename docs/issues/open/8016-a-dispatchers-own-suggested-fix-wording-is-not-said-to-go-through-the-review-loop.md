@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-18
+updated: 2026-09-19
 ---
+
+Source: shoroku seat-lineage
 
 `roles/jisso.md`'s dispatch guidance does not say that a controller's verbatim
 fix wording, handed to an implementer inside a resume message, is subject to

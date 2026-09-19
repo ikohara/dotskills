@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-15
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-14
 
 After a local `/clear` followed by `/tanto hosa` in this run, `ListAgents`
 reported the identical name and ref (`dotskills-b0 [27f77c]`, "started 4h

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-16
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-15
 
 design-4807 states that the roster carries a **Residency** table with one row
 per session of the current run, Kanri's first, each row holding that session's

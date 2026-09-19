@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: inbox 2026-09-17-outgoing-bug-report-retention-undefined-2
 
 `SKILL.md`'s "Reporting from the other side" says where an outgoing bug
 report is *sent* — the intake's bare name, read from the target workspace's

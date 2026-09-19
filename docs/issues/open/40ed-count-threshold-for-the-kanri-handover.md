@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-07
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: inbox 2026-09-07-session-length-signal
 
 decision-de63 fires a Kanri handover on two signals only, the human's word
 and a compaction the session notices. A count of batches or plans since the

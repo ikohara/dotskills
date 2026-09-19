@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-09
 
 `skills/tanto/templates/review-brief.md` says the brief "selects and
 translates the judgment points, does no new analysis, and proposes no

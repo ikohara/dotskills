@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-context-ceiling
 
 Whether Sekkei, Keikaku, or an attached Kaiseki should be replaced on the
 fifth figure, to be read from the archive's Context column once a few runs

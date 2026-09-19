@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-19
 ---
+
+Source: shoroku kisou-refresh
 
 issue-235b's proposal reads "the next passage plan that ships a `node --test`
 verification command names the glob". That is addressed to a **future

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: inbox 2026-09-17-kikaku-unreachable-row-has-no-timeout
 
 `roles/kanri.md`'s Replace table leaves a Kikaku's or a Hosa's row `live`
 when its session cannot be confirmed reachable in `ListAgents`, "awaiting its

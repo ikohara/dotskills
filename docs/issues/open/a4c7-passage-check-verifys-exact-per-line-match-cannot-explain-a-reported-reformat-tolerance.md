@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 ---
+
+Source: inbox 2026-09-15-passage-check-verify-tolerates-reformatting
 
 Reported from `kuchidome`'s `residency-retention` topic (Batch A, 2026-09-15,
 `.tanto/inbox/2026-09-15-passage-check-verify-tolerates-reformatting.md` in

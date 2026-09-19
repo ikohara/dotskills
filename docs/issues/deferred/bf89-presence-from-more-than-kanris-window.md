@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-context-ceiling
 
 The human's turns in the other roles' windows, readable from the roster's
 transcript paths, would sharpen the presence verdict; not done, because the

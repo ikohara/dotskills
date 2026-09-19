@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-13
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-13
 
 Raised by the human in Sekkei's spec dialogue for the tanto-cost topic
 (2026-09-13), drafted by Sekkei (`dotskills-a0 [95cfbe]`) at

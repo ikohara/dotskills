@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-15
 
 Measured directly against `skills/tanto/scripts/passage-check.js`,
 2026-09-15. The parser matches an `A` block's anchor line with

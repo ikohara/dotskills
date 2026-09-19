@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-10
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-sweep
 
 Raised at the tanto-sweep run's batch A boundary (2026-09-10), from the
 human's decision on the batch report's question 1. `replay` reads a fenced

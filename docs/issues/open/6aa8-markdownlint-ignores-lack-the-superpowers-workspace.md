@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-12
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-09
 
 `.markdownlint-cli2.yaml` ignores `docs/superpowers/**` and
 `skills/**/templates/**` and nothing else. `.superpowers/` is the superpowers

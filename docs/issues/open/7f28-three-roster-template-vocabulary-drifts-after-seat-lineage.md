@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-18
+updated: 2026-09-19
 ---
+
+Source: shoroku seat-lineage
 
 Three small drifts landed on the roster template and its enumerations when the
 `cleared` vocabulary generalized (decision-ded8). They are one reading, so they

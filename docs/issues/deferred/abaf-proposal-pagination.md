@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-05-21
-updated: 2026-05-21
+updated: 2026-09-19
 ---
+
+Source: session 2026-05-21
 
 The proposal is currently a single flat numbered list grouped by
 destination file. For runs with > ~30 entries the list will become

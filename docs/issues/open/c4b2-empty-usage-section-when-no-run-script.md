@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-09-19
 ---
+
+Source: session 2026-05-28
 
 In `kisou`'s bundled `templates/README.md`, the `## Usage` heading is
 unconditionally present, but all of its content blocks (Windows / macOS-Linux

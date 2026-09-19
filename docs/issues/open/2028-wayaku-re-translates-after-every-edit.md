@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-06
-updated: 2026-09-07
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-06
 
 While reviewing the tanto spec on 2026-09-06, the Sekkei session re-ran
 `wayaku` on the spec after each of three small edits, without being asked,

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-16
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-16
 
 `roster-archive.md`'s single "## Sessions" table still uses the pre-2026-09-14
 16-column shape (no Topic, Effort, cwd, Mode, or Transcript columns), even

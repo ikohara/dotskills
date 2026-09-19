@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-19
 ---
+
+Source: inbox 2026-09-11-tanto-pre-spec-act-closure
 
 Kanri may rule, before Sekkei's spec, that some act — a diagnosis, a crash
 dump analysis, a measurement — is a pre-spec act whose result lands in a

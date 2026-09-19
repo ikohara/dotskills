@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto
 
 Observed at the kisou-refresh plan stage (2026-09-11), by Sekkei, while
 authoring the plan's `diff` base expression. `passage-check.js replay` runs

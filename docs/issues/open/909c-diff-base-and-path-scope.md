@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-sweep
 
 Measured at the tanto-sweep run's batch A boundary (2026-09-10), by Kanri.
 `diff` classifies every added line of `git diff <base>` and carries no path

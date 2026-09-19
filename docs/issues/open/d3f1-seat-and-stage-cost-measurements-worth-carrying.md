@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-17
 
 Not a defect — reference cost data measured running kuchidome's M6a/M6b/M8
 and `residency-retention` topics, better carried in the skill's own

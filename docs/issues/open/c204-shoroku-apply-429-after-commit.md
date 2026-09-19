@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: inbox 2026-09-17-shoroku-apply-429-after-commit
 
 Reported from a live occurrence in another repository's `question-responder`
 T2 close, 2026-09-17: at that close, Hosa dispatched `shoroku.apply` (a

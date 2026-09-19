@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: shoroku seat-lineage
 
 The idea: a successor Kanri the human opens ahead, handshaking as `standby`;
 at a boundary where the handover trigger fires, the live Kanri hands over to

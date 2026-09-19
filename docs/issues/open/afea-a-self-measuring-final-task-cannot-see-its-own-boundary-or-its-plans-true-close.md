@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-14
 
 A plan's final sweep-and-check task runs inside the last batch, before that
 batch's own boundary check and before the plan's actual close (merge, T2,

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-13
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-13
 
 Two defects in `skills/tanto/roles/sekkei.md`, Step 2 ("spec review"), both
 measured on the tanto-cost spec review of 2026-09-13

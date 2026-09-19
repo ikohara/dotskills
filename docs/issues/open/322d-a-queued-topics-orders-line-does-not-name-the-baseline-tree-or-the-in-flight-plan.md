@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: shoroku shoroku-at-close
 
 Measured twice. `tanto-sweep-2`'s Sekkei needed a clarify round-trip to
 establish which tree its spec was written against, because the topic ran

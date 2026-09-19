@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-08
-updated: 2026-09-16
+updated: 2026-09-19
 ---
+
+Source: shoroku boundary-rules
 
 Kanri's Start makes sure `.superpowers/sdd/.gitignore` holds `*` and reads
 the roster; no step of any role looks at what else sits at the root of

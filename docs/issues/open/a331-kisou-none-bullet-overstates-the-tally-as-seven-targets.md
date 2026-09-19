@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-19
 ---
+
+Source: shoroku kisou-refresh
 
 Measured at the kisou-refresh whole-branch review (2026-09-11, ruling 3),
 and left outside the fix wave as a minor. `skills/kisou/SKILL.md`'s migrate

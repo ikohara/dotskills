@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-19
 ---
+
+Source: shoroku review-brief
 
 The sixth block of check 6 in `docs/notes/tanto-consistency-checks.md` counts
 the two routed lines and the idle subscription per file:

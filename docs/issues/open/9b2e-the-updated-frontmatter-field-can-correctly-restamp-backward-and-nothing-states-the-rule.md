@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-17
 
 Not a defect in the tanto skill — a generalizable document-management
 convention this repository has been following by observation, never written

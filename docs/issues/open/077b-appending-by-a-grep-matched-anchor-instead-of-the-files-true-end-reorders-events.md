@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-15
 
 A growing Events or Session-events section is appended to by locating an anchor
 — a grep match on a nearby line — rather than by finding the section's true end.

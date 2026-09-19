@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-12
+updated: 2026-09-19
 ---
+
+Source: shoroku kisou-refresh
 
 Measured in the kisou-refresh fix wave (2026-09-11, task 13). The wave's
 P13.7 carried an approved `files:` line for `.pre-commit-config.yaml` at 132

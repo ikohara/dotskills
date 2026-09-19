@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-sweep-2
 
 Measured during `tanto-sweep-2`'s spec stage (2026-09-14).
 

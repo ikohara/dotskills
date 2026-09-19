@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-15
 
 The Kikaku decision "queued-topic keikaku" of 2026-09-15 (it lives under the
 workspace's own `kikaku/` directory, outside the six types, so it is named

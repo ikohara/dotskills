@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-18
+updated: 2026-09-19
 ---
+
+Source: shoroku seat-lineage
 
 decision-ea95 opens N = batches + 1 Jisso windows at the plan's landing, and
 decision-76a6 keeps each of them reading nothing and receiving nothing until its

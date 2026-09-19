@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-15
 
 Observed in this repository's own run, 2026-09-15, while `tanto-sweep-2` and
 `tanto-project-config` were both open and no batch was in flight anywhere.

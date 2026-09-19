@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-14
 
 Expected: `replay` gives some evidence about whether a plan's claimed test
 counts and behavior actually hold, the way it does for a plan carrying

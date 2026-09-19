@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-19
 ---
+
+Source: shoroku review-brief
 
 Raised by the human in the review-brief spec dialogue (2026-09-08, D-1): would
 writing on `opus` and reviewing on `fable` be better and cheaper than the

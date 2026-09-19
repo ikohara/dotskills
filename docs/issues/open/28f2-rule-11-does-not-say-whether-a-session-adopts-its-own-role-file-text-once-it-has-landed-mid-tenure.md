@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-17
 
 Observed in the `shoroku-at-close` run (2026-09-17), by Jisso at the Batch C
 boundary, while writing its own exit proposal.

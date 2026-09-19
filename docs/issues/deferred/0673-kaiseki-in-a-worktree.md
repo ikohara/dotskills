@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-06
-updated: 2026-09-06
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto
 
 The tanto design of 2026-09-06 has Jisso idle while Kaiseki works the same
 tree, because Kaiseki instruments the tree and Kanri verifies it in place. A

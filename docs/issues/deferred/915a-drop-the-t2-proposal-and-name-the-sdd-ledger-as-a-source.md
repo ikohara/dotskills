@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-18
+updated: 2026-09-19
 ---
+
+Source: shoroku seat-lineage
 
 A real design option the `seat-lineage` spec weighed and parked (its Deferred
 1; the option is Q1's (c) of that dialogue, and decision-d125 records the

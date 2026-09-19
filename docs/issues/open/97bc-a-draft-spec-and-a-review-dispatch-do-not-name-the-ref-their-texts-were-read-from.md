@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-18
+updated: 2026-09-19
 ---
+
+Source: shoroku seat-lineage
 
 One cause, two sites: the shared checkout moves under a topic's documents while
 they are being written and reviewed, and neither the draft nor the review

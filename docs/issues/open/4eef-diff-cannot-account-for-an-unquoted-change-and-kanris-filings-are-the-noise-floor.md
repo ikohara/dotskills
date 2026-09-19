@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-13
+updated: 2026-09-19
 ---
+
+Source: shoroku kisou-refresh
 
 Two measurements from the kisou-refresh run (2026-09-11), both about what
 `diff --plan <plan> --base <base>` counts as unaccounted, and both under rule

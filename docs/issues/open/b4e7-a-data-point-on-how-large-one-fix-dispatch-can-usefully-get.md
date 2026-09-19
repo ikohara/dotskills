@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-17
 
 Not a defect — a data point on dispatch granularity, measured in kuchidome's
 `residency-retention` run (M6b), worth citing the next time "how big can one

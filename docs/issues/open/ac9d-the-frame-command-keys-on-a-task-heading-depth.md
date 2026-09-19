@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-13
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-12
 
 `skills/tanto/roles/kanri.md`, "When the plan lands", gives Kanri an `awk`
 frame command that collapses every task's steps to a line count, so that the

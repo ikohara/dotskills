@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: shoroku shoroku-at-close
 
 Observed while reviewing `shoroku-at-close`'s spec. decision-ce83's
 Consequences say "the most clerical of the twelve kinds" and decision-03f9's

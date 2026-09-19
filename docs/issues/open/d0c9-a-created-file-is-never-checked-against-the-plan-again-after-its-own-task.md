@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-13
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-13
 
 Found by the tanto-cost run's batch D (2026-09-13), recorded in
 `.tanto/tanto-cost/batch-D-report.md`, "Shoroku candidates".

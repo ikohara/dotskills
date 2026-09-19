@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-11
 
 The skill's cost signal is the transcript reading, and what fills a Kanri
 transcript, measured on the kisou-refresh run of 2026-09-11 (1.86 MB at the

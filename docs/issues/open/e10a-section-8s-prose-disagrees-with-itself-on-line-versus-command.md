@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-16
+updated: 2026-09-19
 ---
+
+Source: shoroku tanto-project-config
 
 Found by the Jisso of the `tanto-project-config` run at Batch B (2026-09-16),
 parked as a plan-mandated quality minor on task 7 and carried as S-36 in that

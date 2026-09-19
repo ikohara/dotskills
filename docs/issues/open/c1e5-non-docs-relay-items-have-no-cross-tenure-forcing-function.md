@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: inbox 2026-09-17-non-docs-relay-items-have-no-cross-tenure-forcing-function
 
 Reported from kuchidome (a different repository running the same tanto
 skill): an exit-shoroku (or T1/T2) direction table can hold rows whose

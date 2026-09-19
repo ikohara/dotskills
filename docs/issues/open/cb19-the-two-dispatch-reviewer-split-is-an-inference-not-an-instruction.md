@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-16
 
 Found by the `tanto-project-config` run's Jisso at the Batch A boundary
 (2026-09-16), in its exit shoroku proposal.

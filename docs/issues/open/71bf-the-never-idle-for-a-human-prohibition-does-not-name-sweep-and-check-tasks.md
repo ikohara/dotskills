@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-14
 
 The standing rule that a `task.implement` dispatch never idles for a human —
 SDD's own prohibition table, which `roles/jisso.md` already states — is worded

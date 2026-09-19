@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-19
 ---
+
+Source: inbox 2026-09-11-tanto-proof-deferred-to-next-batch
 
 Contract rule 7 asks for small batches of three or four tasks, and a plan's
 "How a batch is verified" section names each batch's proof. Neither says what

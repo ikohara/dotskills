@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: shoroku shoroku-at-close
 
 Measured by `shoroku-at-close`'s whole-branch review. `replay` reports
 `DIFFERS` on any fence whose Expected is prose or holds more than one literal,

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-14
 
 A data point to accumulate across topics, not a defect with a proposed fix
 (reported explicitly as a process observation on tanto's own economics, in

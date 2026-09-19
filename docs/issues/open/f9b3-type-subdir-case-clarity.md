@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-09-19
 ---
+
+Source: session 2026-05-28
 
 The `{{name}}` case mapping table covers script names and structural dirs but
 **explicitly excludes** the issue-status subdir names (`open`, `deferred`,

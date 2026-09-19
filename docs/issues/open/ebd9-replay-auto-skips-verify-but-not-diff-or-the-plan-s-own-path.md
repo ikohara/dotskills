@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-12
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-12
 
 `skills/tanto/scripts/passage-check.js` `replay` runs every fenced `bash` or
 `console` block of the plan against a scratch tree holding copies of the blobs

@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-19
 ---
+
+Source: shoroku requirement-extraction
 
 Found in the requirement-extraction spec review (2026-09-09), during the README
 drift check the spec asks of the plan.

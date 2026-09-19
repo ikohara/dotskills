@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-10
+updated: 2026-09-19
 ---
+
+Source: session 2026-09-10
 
 `roles/sekkei.md` Step 1 says to keep `.superpowers/sdd/<topic>/dialogue.md`
 as the spec dialogue goes, and `SKILL.md` makes that file the one record of

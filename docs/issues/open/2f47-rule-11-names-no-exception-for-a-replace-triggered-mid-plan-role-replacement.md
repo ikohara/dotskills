@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: shoroku shoroku-at-close
 
 Caught after the fact on `shoroku-at-close`. A ruling earlier in that tenure
 had already named the plan's own boundary for a role replacement as Batch D's

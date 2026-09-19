@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-12
+updated: 2026-09-19
 ---
+
+Source: shoroku context-cost
 
 Observed by the context-cost plan review (2026-09-09). In that plan task 1 is
 875 lines and 48 steps and task 7 is 767 lines and 44 steps; under

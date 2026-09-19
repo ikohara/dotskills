@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-18
+updated: 2026-09-19
 ---
+
+Source: shoroku seat-lineage
 
 What happens to a tanto line that is **enqueued before** a window is `/clear`ed,
 when that window is mid-turn at the moment the clear lands, has never been

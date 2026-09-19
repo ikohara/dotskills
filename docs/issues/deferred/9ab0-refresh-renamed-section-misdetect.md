@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-06-17
-updated: 2026-09-06
+updated: 2026-09-19
 ---
+
+Source: session 2026-06-17
 
 The migrate-mode refresh introduced for kisou-managed files (decision `281f`,
 SKILL.md Step 3 Present branch) is **additive**: a fixed section/block the

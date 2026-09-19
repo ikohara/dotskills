@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 ---
+
+Source: shoroku shoroku-at-close
 
 Measured on `shoroku-at-close`. That topic's Sekkei ran under a ruling that
 made it draft-only — commit nothing, because another topic held the shared

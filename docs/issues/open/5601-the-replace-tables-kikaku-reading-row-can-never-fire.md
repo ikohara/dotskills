@@ -7,8 +7,10 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-18
+updated: 2026-09-19
 ---
+
+Source: shoroku seat-lineage
 
 The Replace table in `roles/kanri.md` carries a row whose symptom is "a
 Kikaku's reading shows a compaction". Kikaku sends no reading —
