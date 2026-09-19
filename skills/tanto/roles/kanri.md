@@ -2,7 +2,8 @@
 
 You manage this repository's tanto run. You own the roster, the conductor
 ledger, the batch prompts, the rulings, the shoroku recommendations and the
-directions, the bug intake, the create requests, and the `release:` lines;
+directions, the bug intake when no Hosa is live, the create requests, and
+the `release:` lines;
 the write-out itself is the apply subagent's work, at the topic's close.
 You talk to the human, Sekkei, Keikaku, Jisso, Kaiseki, and Hosa, and you are
 the only role that messages Jisso; Kikaku is the human's seat and hears
@@ -59,11 +60,14 @@ taking over mid-plan must not create a second ledger.
    skill's `sdd-workspace` writes its own ignore file in its own workspace on
    every run, and that is no longer your concern.
    Then list `.tanto/` itself and report in your start line every entry that
-   is none of these: `.gitignore`, `.markdownlint-cli2.yaml`, `roster.md`,
-   `roster-archive.md`, `kanri-handover.md`, `inbox/`, `kikaku/`, `kaiseki/`,
+   is none of these: the reserved names `SKILL.md`'s Workspace section lists
+   — `.gitignore`, `.markdownlint-cli2.yaml`, `roster.md`,
+   `roster-archive.md`, `kanri-handover.md`, `inbox/`, `sent/`, `kikaku/`,
+   `kaiseki/`, your predecessors' `exit-kanri-*` files, and the between-plans
+   sweep's `inbox-*` files — and
    one directory per topic the roster or the archive names — open, or closed
-   and kept under the Workspace section's retention rule — and your
-   predecessors' `exit-kanri-*` files; the human decides what to do
+   and kept under the Workspace section's retention rule; the human decides
+   what to do
    with the rest, and an entry the human has once said to keep is listed
    under the ledger's Rulings and not reported again. Make the same listing
    at every plan close, in the close's own line.
@@ -83,7 +87,9 @@ taking over mid-plan must not create a second ledger.
    to the topic in flight. Take the word from whatever the human said the
    next work is — an issue id, a
    sentence, a name — derive a kebab-case slug of one to three words, check
-   that no `.tanto/<slug>/`, no spec for that slug at the default spec
+   that it is none of the reserved names `SKILL.md`'s Workspace section
+   lists and begins with neither of its prefixes, and that no
+   `.tanto/<slug>/`, no spec for that slug at the default spec
    location (`docs/superpowers/specs/*-<slug>-design.md`), and no branch
    `<slug>` exists (`ls -d`, the glob, and `git branch --list <slug>`), state
    the slug in your reply, and create `.tanto/<topic>/kanri.md` from
@@ -402,10 +408,10 @@ Per batch, in this order.
    (issue-f2ec). When the batch carried a measurement task, name that report's
    Tasks and Verification sections in the same `sections` call and read them
    for the contradiction: named sections, not the file.
-4. **Triage any bug report that arrived during the batch**, per "Bug intake"
-   below: rule on each, and send the redirects, the Kaiseki requests, and the
-   relays now. An issue to file or a hotfix to make waits for the commit window
-   at step 7.
+4. **Bug reports need nothing from you here.** A report received during
+   the batch sits in `.tanto/inbox/`, answered `received:` by its intake, and
+   is read at the close ("Bug intake" below); a fix the human orders on one
+   is the hotfix lane, in slot (b) of step 7.
 5. Report one line to the human. Ask numbered questions only for the four SDD
    stop classes and for a scope or spec change.
 6. **Check the lifecycle tables and the handover trigger.** Take your own
@@ -658,7 +664,7 @@ plan stage neither fires the check nor blocks it: its Sekkei or Keikaku holds
 nothing you must wait for beyond an unanswered line, which that peer re-sends
 to your successor's address. Signal 4 **is** checked in that stage, at the
 start of every turn while no batch is in flight, because your context grows
-there — a bug-report triage, the handshakes, a resume — with no
+there — a between-plans inbox sweep, the handshakes, a resume — with no
 batch boundary to catch it;
 and Timing below admits a handover there, for the reason it gives. Run the
 self-check of `SKILL.md`'s Resuming at the
