@@ -1,6 +1,6 @@
 ---
 id: "c3a9"
-title: "a between-plans intake commit can land on a concurrent topic's freshly cut branch instead of `main`"
+title: "a between-plans hotfix or filing can land on a concurrent topic's freshly cut branch instead of main"
 severity: low
 depends_on: []
 blocks: []
@@ -64,3 +64,10 @@ worked mitigation).
 2026-09-15: rewriting `tanto-sweep-2`'s branch history to relocate the
 misplaced issue-a4c7 commit was considered and rejected — the misplacement is
 harmless, and a rewrite costs more in disruption than it removes.
+
+2026-09-19, `bug-report-hold`: the intake commit that triggered this no
+longer exists — a report received is copied to the inbox, not filed — and
+gap 1, Kanri's own check, is written into the hotfix lane ("Where the commit
+lands", `roles/kanri.md`). What remains open is gap 2: nothing tells a
+Sekkei or Keikaku about to cut a topic branch that a human-ordered
+between-plans commit may be about to land on the shared checkout.
