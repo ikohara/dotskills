@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-09-19-bug-report-hold-design.md` — committed on this branch. The plan argues from the spec; executors read both.
 
-**`$TANTO`** is the tanto skill's own directory, `C:\Users\0000105523\.claude\skills\tanto`, as `SKILL.md` sets it.
+**`$TANTO`** is the tanto skill's own directory, as `SKILL.md`'s Start sequence sets it for the session running a command — normally `$CLAUDE_CONFIG_DIR/skills/tanto` or `~/.claude/skills/tanto` when that variable is unset. Every fenced block below that runs it sets it inline, so no command depends on a shell that already has it exported.
 
 **Old texts** were re-quoted from the working tree on branch `bug-report-hold` at drafting time, after the spec's own commits. Every fenced old block below was read out of the live file, not copied from the spec, and every `O` needle's count below was run against the tree, not asserted. The spec's own needle list was written against newline-folded copies; this plan's `O` needles are single-line forms, because `replay` sweeps the raw text and a needle that wraps in its target returns `0` and reads as "already gone". See Self-Review for the four facts that did not match the spec's expectation.
 
@@ -19,7 +19,7 @@
 - **AGENTS.md.** Every commit follows the repo's `AGENTS.md`: run `./scripts/lint.sh` (`scripts\lint.bat` on Windows) on the changed paths, relative to the repo root, and fix issues before committing; commit by explicit path with `git commit --only <paths>` — the index is shared, so a new file needs `git add <path>` first, since `--only` cannot pick up an untracked one; end every commit message with a `Co-Authored-By:` trailer naming the agent that made it; never `git add -A`/`.`/`-u`, a bare `git commit`, or `git commit -a`; never bypass a commit or push hook (`--no-verify`, `-n`); never amend a published commit; never push to `origin/main`. This plan lands its commits on the `bug-report-hold` branch; the merge to `main` is the human's own decision at the topic's close, not a step of this plan.
 - **This plan is itself the "explicit human approval" AGENTS.md asks for before an agent instruction file is edited** — for exactly the files named in the File structure table below, and no others. `CLAUDE.md`, the repo-root `AGENTS.md`/`CONTRIBUTING.md`/`README.md`, and every linter or formatter config stay off limits without a fresh, separate approval; no task here touches them. The approval is on record in `.tanto/kikaku/2026-09-15-bug-report-hold.md`, `.tanto/kikaku/2026-09-17-issue-source-line.md`, the accepted spec, and the human's answers in `.tanto/bug-report-hold/dialogue.md`.
 - **Not yours to discard.** A modification in the shared tree that you, or a subagent you dispatched, did not make is not yours to discard — report it, one line naming the file and what changed, rather than running `git checkout --` or `git clean` on your own judgment. Only Kanri decides whether it is stray (Rule 5). The one exception is the line-ending restore this plan writes into a task's own steps, which names its own path.
-- **Model families**, read from `C:\Users\0000105523\.claude\skills\tanto\templates\tanto.json` merged with `C:\Users\0000105523\devel\dotskills\.claude\tanto.json` at this plan's drafting. The project layer overrides only `sessions.kikaku` and `sessions.sekkei`, neither of which is a subagent kind, so every kind below is the built-in default. Every dispatch you make names both a `subagent_type` and a `model` together — an omitted `model` inherits your own session's, which is not what these kinds are pinned to:
+- **Model families**, read from `templates/tanto.json` in the tanto skill's own directory, merged with this repository's own `.claude/tanto.json`, at this plan's drafting. The project layer overrides only `sessions.kikaku` and `sessions.sekkei`, neither of which is a subagent kind, so every kind below is the built-in default. Every dispatch you make names both a `subagent_type` and a `model` together — an omitted `model` inherits your own session's, which is not what these kinds are pinned to:
 
   | Kind | `subagent_type` | Model | Effort |
   | --- | --- | --- | --- |
@@ -31,8 +31,9 @@
 
 - **This plan edits the tanto skill's own files, so contract rule 11 governs the run.** The authority for every session of this run is **this plan, Kanri's orders line, and the batch prompts — not the role text on disk**, which is half-edited from batch B onward. A session that reads its own role file mid-plan reads a file this plan is in the middle of rewriting; where the two disagree, this plan and the batch prompt win, and Kanri records that override as its own `R-n` at the plan's landing so every batch prompt and any handover file carries it forward.
 - **The safe boundary for starting or replacing a role is the final one** — batch E accepted, or the fix wave that follows the whole-branch review, whichever this run actually ends on. No role is started or replaced before it. Every role file this skill ships changes somewhere across this plan, and the sender-side text lands last of all, so a session started earlier reads a skill that disagrees with itself. This holds even if a context-ceiling verdict of `over` is read for Kanri or for this plan's Jisso at an earlier boundary: rule 11 overrides the ordinary Replace trigger for the whole run. The one Replace trigger it still allows before that boundary is decision-6dea's Replace-on-compaction, whose replacement reads under this same Global Constraints authority rather than cold from the half-edited disk text.
-- **The live Hosa keeps its old intake act until the merge.** `roles/hosa.md`'s new intake paragraph lands in batch D and the sender-side text in batch E, but the Hosa that is live while this plan runs was started before either. It goes on doing what it started with, and Kanri's interim ruling (the decision file §7 — a report received is held untriaged, `held (untriaged), per R-8` in the copy) stands until this branch lands on `main`. The human releases the live Hosa at the final boundary and opens a new one after the merge, so that the first Hosa a sender reaches under the new rule has read it. A report that arrives at Kanri meanwhile takes the interim act, which is the new one in all but the address.
-- **Senders in other repositories read the linked tree mid-plan.** A session of another workspace started while this plan is in flight reads whatever `skills/tanto/SKILL.md` says that day. That is why `SKILL.md` 2.2, `roles/kaiseki.md` 5, and the whole of `roles/kanri.md` 3.6 are in the final batch, after `roles/hosa.md` 4.1: until they land, a sender still addresses the first roster row, which is Kanri, which still holds the interim act.
+- **The live Hosa is taught the one new act by relay, before any sender can reach it under the new rule.** `roles/hosa.md`'s new intake paragraph lands in batch D and the sender-side routing (the roster lookup that prefers a `live` Hosa row) lands in batch E, but the Hosa that is live while this plan runs was started before either and, under rule 11, never re-reads its own file mid-plan. Once batch E's routing text lands, any sender — inside this repository or another workspace reading the linked tree — that checks the roster finds this Hosa row `live` and addresses it, whether or not it has been told what to do with a `bug-report:` line (cold-read Q6). So Kanri relays the exact one act — copy the file to `.tanto/inbox/<basename>`, append one `Received` line, answer `received: <inbox path>` — to the live Hosa as a one-line order, no later than Task 11's own boundary (batch D) and in any case before Task 15's commit (batch E) opens the routing to it; this is the same pre-review-relay pattern this very topic already used once for a different procedure (`dialogue.md`, spec-inputs I-1; ledger S-21), not a re-read of the role file. Until that relay lands, and for every other duty the relay does not cover, the Hosa goes on doing what it started with, and Kanri's interim ruling (the decision file §7 — a report received is held untriaged, `held (untriaged), per R-8` in the copy) governs any report that still reaches Kanri directly. The human releases the live Hosa at the final boundary and opens a new one after the merge, so that the next Hosa reads the landed file directly and needs no relay.
+- **Senders in other repositories read the linked tree mid-plan.** A session of another workspace started while this plan is in flight reads whatever `skills/tanto/SKILL.md` says that day. That is why `SKILL.md` 2.2, `roles/kaiseki.md` 5, and the whole of `roles/kanri.md` 3.6 are in the final batch, after `roles/hosa.md` 4.1: until they land, a sender still addresses the first roster row, which is Kanri, which still holds the interim act. Once they land, a sender's roster lookup can prefer the live Hosa row instead — which is exactly why the relay above must already have landed by then.
+- **This topic's own close runs under the text this plan just landed, not the text Kanri started the run with.** Rule 11 makes the plan the run's authority *while it is in flight*; once batch E (or the fix wave after it) is accepted and this branch is what `main` will become, the plan is no longer in flight, and Kanri re-reads the just-landed `roles/kanri.md`'s "Shoroku" steps 2-4 fresh before running this topic's own close — the recommend dispatch's fourth group, the five-heading brief, and the inbox-copies input all depend on that text, not on whatever Kanri's own session held in context at the run's start (cold-read Q5). At that same close, Kanri (or Hosa under a `close:` line) records the dogfood report's three forward-pointer numbers — the inbox's untriaged count after the close, how many items went `fix`, and whether the fix commit exists — in `.tanto/bug-report-hold/kanri.md`'s Progress section, per Task 17 Step 4's own pointer.
 - **The tracked-write rule binds every commit of this plan.** A tracked file or a commit message names a report's source as `inbox <YYYY-MM-DD>-<slug>` and nothing more — no repository name or path, no session name, no topic name of the reporter's, no quotation of the reporter repository's own documents. It binds the retrofit's `Source: inbox …` lines, this plan's commit messages, the dogfood report, and any issue a fix round files.
 - **Named-mechanism rule for tasks.** A task that introduces or changes a named mechanism — the `received:` line, the `Source:` line and its four kinds, the `Recommended fix` group, the `sweep:` line, the reserved names of `.tanto/`, the six Triage outcome words, the `fix: text corrections from …` subject — lists in its own text every other site in this plan's files, and in the repository files this plan touches, that names the same mechanism, so that its reviewer checks them together. Each task below carries that list under **Named mechanisms this task touches**.
 - **Line-ending rule for tasks.** A task that creates or rewrites a Markdown file whole and later checks its line endings writes the restore — `git checkout -- <path>` after the commit — into the task's own steps, not only into the stop condition: a file written fresh lands `w/lf` on this host every time. Tasks 12 and 17 carry it.
@@ -86,7 +87,7 @@ Every batch is verified the same way.
 2. The boundary check, comparing the branch's actual commits against this plan's own passage blocks for every task accepted so far — `$TANTO` set in the same shell invocation, since shell state does not persist between tool calls:
 
 ```bash
-TANTO="C:/Users/0000105523/.claude/skills/tanto"
+TANTO="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/tanto"
 node "$TANTO/scripts/passage-check.js" diff --plan docs/superpowers/plans/2026-09-19-bug-report-hold.md --base "$(git merge-base main HEAD)"
 ```
 
@@ -310,7 +311,14 @@ def frontmatter_value(path: Path, key: str) -> str:
 def source_line(path: Path, index: dict[str, str], topics: list[str]) -> str:
     issue_id = path.name.split("-", 1)[0]
     if issue_id in index:
-        return f"Source: inbox {index[issue_id]}"
+        # `index` already holds the *oldest* copy naming this id (`inbox_index`'s
+        # `setdefault` over a oldest-first glob), so if even that copy postdates
+        # the issue's own `created:`, no copy of this id can be its provenance —
+        # it is a later data point appended to an issue that already existed,
+        # not the report that caused it (cold-read Q2). Fall through to rule 2.
+        copy_date = index[issue_id][:10]
+        if copy_date <= frontmatter_value(path, "created"):
+            return f"Source: inbox {index[issue_id]}"
     subject = first_commit_subject(path)
     if subject.startswith(PREFIXES):
         for topic in topics:
@@ -343,6 +351,7 @@ def normalize_inbox() -> int:
         raw, nl = read(copy)
         lines = raw.replace("\r\n", "\n").split("\n")
         out = list(lines)
+        drop: set[int] = set()
         inside = False
         touched = False
         for i, line in enumerate(lines):
@@ -357,6 +366,15 @@ def normalize_inbox() -> int:
             value = match.group(1).strip()
             if value in OUTCOMES:
                 continue
+            # A wrapped Outcome sentence continues on the following line(s) as
+            # plain indented text, not a new `- ` bullet; once the Outcome
+            # line itself is rewritten to the bare word, those continuation
+            # lines are a stray fragment of the old sentence, not "the copy's
+            # other lines" spec 8.2 leaves alone (cold-read Q3) — drop them.
+            j = i + 1
+            while j < len(out) and out[j].strip() and not out[j].lstrip().startswith("- "):
+                drop.add(j)
+                j += 1
             if value.startswith("hotfix"):
                 out[i] = "- Outcome — fix"
                 touched = True
@@ -364,13 +382,14 @@ def normalize_inbox() -> int:
                 out[i] = "- Outcome — issue"
                 touched = True
                 ids = TOKEN_ID_RE.findall(value)
-                for j in range(i + 1, min(i + 4, len(out))):
-                    if out[j].startswith("- Reference"):
-                        if ids and f"issue-{ids[0]}" not in out[j]:
-                            out[j] = out[j].rstrip() + f"; issue-{ids[0]}"
+                for k in range(j, min(j + 3, len(out))):
+                    if out[k].startswith("- Reference"):
+                        if ids and f"issue-{ids[0]}" not in out[k]:
+                            out[k] = out[k].rstrip() + f"; issue-{ids[0]}"
                         break
         if touched:
-            copy.write_text(nl.join(out), encoding="utf-8", newline="")
+            kept = [line for idx, line in enumerate(out) if idx not in drop]
+            copy.write_text(nl.join(kept), encoding="utf-8", newline="")
             changed += 1
     return changed
 
@@ -420,6 +439,8 @@ Expected: `0`.
 
 Open one file of each of the three kinds the run produced and confirm the shape: closing `---`, one blank line, the `Source:` line, one blank line, then the body as it was; and `updated:` restamped to today in the frontmatter. A file whose body was eaten or whose frontmatter lost a key is a script defect — fix the script and re-run from a clean `git checkout -- docs/issues/`, which is permitted here because the modification is your own.
 
+Two behaviors this script deliberately guards, so open the files they name and confirm each: `issue-40ed`, `issue-a7d2`, and `issue-d92f` predate every inbox copy that mentions them — each of those copies only appended a data point well after the issue existed (their own Outcome text says "appended"/"existing"/"data point") — so `source_line`'s date guard must have fallen through to rule 2 for all three, giving each a `Source: shoroku <topic>` or `Source: session <YYYY-MM-DD>` line, never `Source: inbox …`. And `.tanto/inbox/2026-09-17-outgoing-bug-report-retention-undefined-2.md` and `.tanto/inbox/2026-09-17-passage-check-replay-aborts-on-non-w-block-paths.md` each had a wrapped Outcome sentence under the old text — confirm their normalized `## Triage` section is exactly three lines (`Outcome`, `Reference`, `Date`) with no stray continuation line left over.
+
 - [ ] **Step 5: Confirm the frontmatter still loads**
 
 ```bash
@@ -447,7 +468,7 @@ Expected: `task 1: no passages` — this task declares no `P` block (Step 3 abov
 - [ ] **Step 8: Commit**
 
 ```bash
-git commit --only docs/issues/open docs/issues/deferred
+git commit --only docs/issues/open/*.md docs/issues/deferred/*.md
 ```
 
 Subject: `docs(issues): open every open and deferred issue with a Source: line`. End the message with your own `Co-Authored-By:` trailer. The inbox normalization rides in no commit — `.tanto/` is untracked.
@@ -1954,7 +1975,9 @@ Start step 2's entry list and step 5's slug check change inside backticked token
 
 **A9.1** `skills/tanto/roles/kanri.md` — `grep -c 'reserved names' skills/tanto/roles/kanri.md` — before: 0, after: 2
 
-**A9.2** `skills/tanto/roles/kanri.md` — `grep -cF 'sent/' skills/tanto/roles/kanri.md` — before: 0, after: 2
+**A9.2** `skills/tanto/roles/kanri.md` — `grep -cF 'sent/' skills/tanto/roles/kanri.md` — before: 0, after: 1
+
+This task's own P9.1 puts one `sent/` into the reserved-names list; the second comes only with Task 14's "Reporting from the other side" (A14.3, batch E) — `verify --task 9` reads the working tree as it stands right after *this* task's own commit, so its `after:` is this task's own contribution alone, not the plan's eventual total. `replay` (the dry-run tool, never re-run at real execution) applies every task's passages to one synthetic tree before checking any anchor, so it reports this specific anchor as a mismatch (it sees the plan's final count, `2`) regardless of what its `after:` says — that report is the tool's own known gap with a multi-task mechanism, not a plan defect; `verify --task 9`, the check that actually gates batch C's real boundary, is what this value is written for.
 
 - [ ] **Step 1: Apply the two "Start" passages**
 
@@ -2541,6 +2564,10 @@ Spec section 3.6. `### Limits` and everything after it stay exactly as they are;
 
 **A14.2** `skills/tanto/roles/kanri.md` — `grep -cF 'received: <inbox path>' skills/tanto/roles/kanri.md` — before: 0, after: 1
 
+**A14.3** `skills/tanto/roles/kanri.md` — `grep -cF 'sent/' skills/tanto/roles/kanri.md` — before: 1, after: 2
+
+Task 9's P9.1 already put the first `sent/` into the reserved-names list; this task's own new "Reporting from the other side" subsection is the second. Batch E's own "How a batch is verified" block already asserts the final count is `2` or more (`skills/tanto/SKILL.md`'s `` `sent` `` and `roles/kanri.md`'s `sent/`) — A14.3 is what makes that assertion true at the task that actually delivers it, rather than only at the boundary.
+
 - [ ] **Step 1: Replace the section**
 
 **P14.1** `skills/tanto/roles/kanri.md` — replace exactly these 115 lines
@@ -2988,13 +3015,13 @@ Spec section 8.3, plus checks 18 and 19, which the spec's 8.3 does not name but 
 
 **A16.1** `docs/notes/tanto-consistency-checks.md` — `grep -c 'Recommended fix' docs/notes/tanto-consistency-checks.md` — before: 0, after: 4
 
-**A16.2** `skills/tanto/SKILL.md` — `grep -cF 'bug-report:' skills/tanto/SKILL.md` — before: 1, after: 2
+**A16.2** `skills/tanto/SKILL.md` — `grep -cF 'bug-report:' skills/tanto/SKILL.md` — before: 2, after: 2
 
 **A16.3** `skills/tanto/SKILL.md` — `grep -cF 'bug-report: <absolute path>' skills/tanto/SKILL.md` — before: 1, after: 1
 
 **A16.4** `skills/tanto/templates/bug-report.md` — `grep -cF 'bug-report: <absolute path>' skills/tanto/templates/bug-report.md` — before: 1, after: 1
 
-A16.3 and A16.4 are why the note's L594-595 are **not** edited: the spec asked for their "new values", and the new values, measured against this plan's own new texts, are the old ones — `SKILL.md`'s new Messages paragraph and the new `templates/bug-report.md` each name `bug-report: <absolute path>` exactly once, as the old ones did. A16.2 is the one that **did** move: the bare `bug-report:` count in `SKILL.md` goes from `1` to `2`, because Task 7's new `.tanto/sent/` Artifacts row names the line a second time. P16.2 carries that value into the note's expectation list, whose eighth number is that count.
+These three read `skills/tanto/SKILL.md` and `templates/bug-report.md`, neither of which this task edits — like every anchor, `before:`/`after:` are this task's own working-tree state immediately before and after *its* commit, so all three are unchanged by Task 16 itself; they are recorded here because Task 16's own P16.2 needs their values to compute the note's expectations, and stating them as anchors is what lets a reviewer confirm those computed numbers against the real tree rather than trusting the prose. A16.3 and A16.4 are why the note's L594-595 are **not** edited: the spec asked for their "new values", and the new values, measured against this plan's own new texts, are the old ones — `SKILL.md`'s new Messages paragraph and the new `templates/bug-report.md` each name `bug-report: <absolute path>` exactly once, as the old ones did. A16.2 is the one whose value differs from the spec's own pre-plan measurement of `1` (Requirements/Measured, drafting time): Task 7 (batch B) already moved the bare `bug-report:` count in `SKILL.md` from `1` to `2`, because its new `.tanto/sent/` Artifacts row names the line a second time — by the time this task runs, that count has already been `2` for three batches. P16.2 carries the value `2` into the note's expectation list, whose eighth number is that count.
 
 - [ ] **Step 1: Replace the five-`triage:` check, and the one count of check 8 that moved**
 
@@ -3263,22 +3290,21 @@ Expected: `NONE` on every needle but `Kanri's filings` (1 hit — `skills/tanto/
 
 Write `.tanto/bug-report-hold/old-value-sweep.md`: the two commands, their full output, and one line per hit saying which `O` block rules on it and how. The file is untracked under `.tanto/.gitignore`; it is the record a human eye reads before this batch is accepted.
 
+This sweep file is not itself an input the close's recommend dispatch reads (`SKILL.md`'s Session exit names the T2 proposal, the `pending` ledger rows, and the inbox copies — not an arbitrary batch's own untracked sweep file), so "the three counts" (O17.1's disposition) needs its own path to the recommender (cold-read Q7): Keikaku, at its own cold-read boundary, carries it into `exit-keikaku-proposal.md` as a proposal item citing this task's sweep by path; Kanri records that item as a `pending` `S-n` row of this topic's ledger the way it records every exit proposal's items; the close's recommend dispatch then reaches it because every `pending` row's source is named to it, same as any other.
+
 - [ ] **Step 3: Re-run the whole Verification section against the landed tree**
 
 Run every command in "How a batch is verified" sections 4, 5 and 6 one more time, and the three edited checks from Task 16 Step 4. Record every value.
 
 - [ ] **Step 4: Write the dogfood report**
 
-Write `docs/reports/2026-09-19-bug-report-hold-dogfood.md` following `docs/reports/AGENTS.md` — a frozen, dated investigation. Its **Measurements** section is a bullet list, and these bullets are required:
+Write `docs/reports/2026-09-19-bug-report-hold-dogfood.md` following `docs/reports/AGENTS.md` — a frozen, dated investigation, written once at this batch's own boundary and never edited afterward. `docs/reports/AGENTS.md`'s "frozen" means exactly that: a number this task cannot yet know — anything that depends on the topic's own close, which has not happened when this task runs — does not belong in it as a blank to fill in later (cold-read Q4); it belongs in the topic's conductor ledger, `.tanto/bug-report-hold/kanri.md`, which is mutable, untracked, and exactly the artifact this skill already uses for state a plan close changes. Its **Measurements** section is a bullet list, and these bullets are required, every one of them knowable **now**, at this task's own execution, with no forward reference:
 
 - **The retrofit's four kinds.** The counts Task 1 Step 2 printed: how many issues under `open/` and `deferred/` took `inbox`, how many `shoroku`, how many `hotfix`, how many `session`, and the total, which must be `234` unless the tree changed between drafting and the run. Name the expected `inbox` figure, about `15`, and say whether the run matched it.
-- **The inbox's untriaged count before the first close under the new text.** Run `grep -L 'Outcome — \(issue\|fix\|redirect\|kaiseki\|relay\|dismissed\)' .tanto/inbox/*.md | wc -l` before that close and record the number, beside the `60` copies and `49`-untriaged figures the spec measured on 2026-09-19.
-- **The same count after that close**, and the difference.
-- **How many of that close's items went `fix`** — the count of accepted `Recommended fix` items, and whether the second commit, `fix: text corrections from <topic>'s close`, exists. It exists if and only if the direction accepted one.
+- **The inbox's untriaged count, measured now.** Run `grep -L 'Outcome — \(issue\|fix\|redirect\|kaiseki\|relay\|dismissed\)' .tanto/inbox/*.md | wc -l` and record the number, beside the `60` copies and `49`-untriaged figures the spec measured on 2026-09-19. This is the count going into the topic's own close, whenever that runs — not the count after it.
 - **The consistency note's edited checks**, each with its printed value beside its stated expectation: the intake check's three `-> 1 1` lines, check 18's eight counts, check 19's seven.
-- **The `bug-report:` counts that did not move.** A16.2 to A16.4 measured `1`, `1`, `1` before and after; record that the note's L578 and L594-595 were deliberately not edited and why.
-
-The first three and the fourth bullet are measurements of the **first close under the new text**, which is this plan's own close. Write the report with the bullets present and the close's own numbers filled in at that close; a bullet whose number is not yet knowable says so in one clause and names when it will be.
+- **The `bug-report:` counts, and which one moved and when.** A16.3 and A16.4 stayed `1` throughout, both against the spec's own pre-plan measurement and through this task's own boundary. A16.2 — the bare `bug-report:` count in `SKILL.md` — is `2` by this point, but it moved from the spec's pre-plan `1` at Task 7 (batch B), not at Task 16 or here; record that the note's L578 and L594-595 were deliberately not edited and why.
+- **A pointer, not a number, for what this report cannot yet know.** The inbox's untriaged count *after* the topic's own close, how many of that close's items went `fix`, and whether the second commit (`fix: text corrections from <topic>'s close`) exists are recorded in `.tanto/bug-report-hold/kanri.md`'s Progress section at the close itself, by whoever runs it (Kanri, or Hosa under a `close:` line) — name that file and say so in this bullet, rather than leaving three blanks in a frozen file for someone to edit later.
 
 The report names no reporter's repository, no session of one, and no topic of one — the tracked-write rule (Global Constraints) binds this file too.
 
