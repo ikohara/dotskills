@@ -70,8 +70,13 @@ Measurements).
   `39`, against `60` total copies (unchanged from the spec's own count — the
   retrofit normalizes existing Triage text, it does not add or remove
   copies). The spec's own 2026-09-19 measurement was `49` untriaged of `60`;
-  ten more copies have since been triaged by tasks landed between then and
-  now. This `39` is the count going into the topic's own close, whenever
+  the drop is not tasks triaging reports — nothing in this plan does that —
+  but Task 1's own `normalize_inbox()` step rewriting 11 copies' Outcome
+  lines from non-canonical forms (e.g. `hotfix`, `issue-<id>…`) into the
+  canonical form (`fix`, `issue`) this bullet's own grep pattern matches;
+  those 11 copies' outcomes were already effectively decided and simply
+  read as untriaged to the old check until the retrofit normalized their
+  wording. This `39` is the count going into the topic's own close, whenever
   that runs — not the count after it.
 - **The consistency note's edited checks**, each printed value beside its
   stated expectation, all matching:
