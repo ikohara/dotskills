@@ -930,29 +930,44 @@ and the close reads them once.
    that reads the report. Check every proposal's form as "Exit shoroku" step
    2 says; record its rows; then `release:`.
 2. **Recommend.** At the close, dispatch `subagent_type: tanto-shoroku-recommend`
-   in the skill's recommend mode over the T2 proposal and every source the
+   in the skill's recommend mode over the T2 proposal, every source the
    `pending` rows name — the spec with its four section names, each proposal
-   by path, each report by path and item — with `docs/` as the baseline, and
-   name the output, `.tanto/<topic>/t2-recommendation.md`. The recommender's
+   by path, each report by path and item, **each named with its `S-n`** so
+   that the item's heading and its `Source:` line can carry it — and **every
+   untriaged copy under `.tanto/inbox/`**, by path — a copy whose Triage
+   section is absent or whose Outcome is none of `issue`, `fix`, `redirect`,
+   `kaiseki`, `relay`, `dismissed` — with `docs/` as the baseline and `skills/`
+   as the paths a `fix` item may touch, and name
+   the output, `.tanto/<topic>/t2-recommendation.md`. The recommender's
    bar: an item is recommended as an `issue` only when it is medium
    severity or above, needs a decision, or records a measured defect; a
-   low-severity gap in the skill's own prose whose repair is one sentence
-   is recommended `reject`, with the correction written out in the reason,
-   so the direction can still order it applied. The file lists
-   every item once in three groups — Recommended adopt, Recommended reject,
-   Unsure — each item quoted in full from its source, so that the file
-   stands alone as the apply's input, with its destination, its one-line
-   reason, and for a `design` entry the `req-<id>` it serves; a requirement
-   or an ADR item carries the original wording followed by a reference
-   translation in the chat's language. Name in the same dispatch the brief
+   low-severity gap or drift in the skill's own prose whose whole repair is
+   one sentence, or a few adjacent ones in one file under `skills/`, and
+   needs no decision is recommended `fix`, with the file, the text as it
+   reads, and the text as it should read written out in the item. The file
+   lists every item once in four groups — Recommended adopt, Recommended
+   fix, Recommended reject, Unsure — each item quoted in full from its
+   source under a heading that ends with its pointer, `(<topic> S-<n>)` or
+   `(inbox <YYYY-MM-DD>-<slug>)`, so that the file stands alone as the
+   apply's input, with its destination, its one-line reason, and for a
+   `design` entry the `req-<id>` it serves; a requirement or an ADR item
+   carries the original wording followed by a reference translation in the
+   chat's language. An inbox item's destination is one of `issue`,
+   `fix — <file>`, `redirect — <where it belongs>`, `kaiseki — <one line>`,
+   `relay — <topic>` (a live spec whose scope it is in), or `dismissed —
+   <one line>` (no defect, or a duplicate); `issue`, `redirect`, `kaiseki`,
+   and `relay` are recommended adopt, `dismissed` reject, and an inbox item
+   the human turns down goes `dismissed` with the direction's words as its
+   reason. Name in the same dispatch the brief
    path — `.tanto/<topic>/t2-brief.md` — the template
    `templates/shoroku-brief.md` in the skill directory, and the chat's
    language; the recommender writes both files in one run.
    <!-- markdownlint-disable MD038 -->
 3. **Check.** Check the brief's form, not its judgment, and never by reading
-   the recommendation's prose: `grep -c '^## '` on the brief is `4` and the
-   four headings are `## How to answer`, `## Recommended adopt`,
-   `## Recommended reject`, `## Unsure`, in that order; every `### ` heading
+   the recommendation's prose: `grep -c '^## '` on the brief is `5` and the
+   five headings are `## How to answer`, `## Recommended adopt`,
+   `## Recommended fix`, `## Recommended reject`, `## Unsure`, in that
+   order; every `### ` heading
    of the recommendation appears exactly once in the brief after `See: `, and
    the brief names no heading the recommendation lacks — count both with
    `grep '^### '` on the recommendation, each line stripped of its `### `
@@ -975,30 +990,52 @@ and the close reads them once.
    alone; the human sees the whole list, grouped, and answers by exception.
    <!-- markdownlint-enable MD038 -->
 4. **Apply.** Dispatch `subagent_type: tanto-shoroku-apply` in apply mode with
-   the recommendation, the direction, and the commit subject —
-   `docs: T2 shoroku for <topic>` — in slot (a) of the commit window. The
+   the recommendation, the direction, the commit subject —
+   `docs: T2 shoroku for <topic>` — the inbox copies to fill, by path, and
+   the fix subject, `fix: text corrections from <topic>'s close`, in slot (a)
+   of the commit window. The
    subagent writes the accepted subset per `docs/AGENTS.md` and the per-type
-   files, runs the repository's lint on the changed paths by name — or on
-   the whole repository where the lint script takes no path arguments, which
-   satisfies this step — commits once by explicit path with the trailer, and
-   reports the subject. Verify that commit as you verify any — `git status`
-   clean, the diff's paths those the direction names, lint on them (again,
-   whole-repository if that is what the script does) — and fill the Written
-   column.
+   files, every issue opening with the `Source:` line its item's heading
+   names — `Source: shoroku <topic> S-<n>` or `Source: inbox
+   <YYYY-MM-DD>-<slug>` — and naming no report's source otherwise (the
+   tracked-write rule of `SKILL.md`'s Messages); fills the Triage section of
+   every inbox copy the dispatch named with the direction's outcome, its
+   reference, and the date, so that the copy leaves the queue (untracked, so
+   that write needs no slot); runs the repository's lint on the changed
+   paths by name — or on the whole repository where the lint script takes
+   no path arguments, which satisfies this step — commits once by explicit
+   path with the trailer, and reports the subject. Then, when the direction
+   accepted a `fix` item, it replaces each accepted item's old text with its
+   new text exactly once in the file named, runs lint on those paths and the
+   README drift review when a `SKILL.md` changed, commits them once more by
+   explicit path as `fix: text corrections from <topic>'s close`, and
+   reports that subject too; an old text found zero or several times is
+   reported as `fix skipped: <n> — <why>` and left for the human. Verify
+   both commits as you verify any — `git status` clean, the diffs' paths
+   those the direction names, lint on them (again, whole-repository if that
+   is what the script does) — and fill the Written column: the docs subject
+   for an adopted row, the fix subject for a `fix` row. An inbox item has no
+   row; its Triage is its record. A `relay` outcome is yours to finish:
+   append the copy's Symptom as the next `I-n` of that topic's
+   `spec-inputs.md` with your note, send its Sekkei one line, and rewrite the
+   copy's Reference from the topic to `I-<n> of <topic>` — one untracked
+   line, no slot; a `kaiseki`
+   outcome is a numbered item in your close line asking the human to open a
+   standalone Kaiseki with the copy's path.
 
 Where the commit lands: on the topic's branch, before the merge decision.
 No other stage commits under `docs/` through this section.
 
 **Between plans** there is no ledger, so record items that reach you then —
-a Kikaku decision file belonging to no topic, a triage's observation, your
+a Kikaku decision file belonging to no topic, your
 own exit's proposal, a close's `-2-proposal.md` — in the roster's Shoroku
 proposal items table instead, and move its rows into the new ledger's
 table, with Stage `t2`, when a topic opens. Nothing is written out from the
 roster's table itself, so nothing is written twice.
 
 The apply subagent is the writer at the close. You write under `docs/` only
-through the intake's filings and the hotfix lane, and you hand those to Hosa
-when one is live.
+through the hotfix lane, on the human's word, and you hand that to Hosa when
+one is live.
 
 A reference to an `S-n` or an `R-n` from outside its own ledger — the roster, a
 handover file, another ledger — names the topic first, `<topic> S-n`; bare
@@ -1042,12 +1079,27 @@ Kikaku decision file that answers the check reaches Hosa as
 `close done: <commit subject> — <reading>`, or `close blocked: <one line>`
 when a form check fails twice or the answer does not arrive. On
 `close done:` verify the commit as you verify any — `git status` clean, the
-diff's paths those the direction names, lint on them — and fill Adopted
-from the direction file and Written from the subject. You wait for none of
+diff's paths those the direction names, lint on them — and the fix commit
+beside it when the direction accepted a `fix` item, whose subject is fixed
+by "The four steps" step 4 and rides no line; fill Adopted
+from the direction file and Written from the subjects. You wait for none of
 it: a close delegated is carried in the handover file's In flight block,
 and the successor verifies. With no Hosa live, run the three steps
 yourself, and add to your close line the suggestion to open one
 (`/tanto hosa`), in the shape of the between-plans Kikaku suggestion.
+
+**The between-plans inbox sweep.** When no topic is open and the human
+says, in your window and in any words, that the inbox is to be swept, run
+steps 2 to 4 over the untriaged inbox copies alone: the files are
+`.tanto/inbox-<YYYY-MM-DD>-recommendation.md`, `-brief.md`, and
+`-direction.md` beside the roster, the subjects `docs: inbox sweep
+<YYYY-MM-DD>` and `fix: text corrections from the inbox sweep <YYYY-MM-DD>`,
+the commits on `main`. With a `live` Hosa row, send it one line, without an
+idle subscription,
+`sweep: inbox — recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now`,
+and verify on its `close done:` as above; no `S-n` rows are written, since
+an inbox item's record is its copy's Triage. Write the sweep as one Events
+line of the roster.
 
 **A topic the human ends before its final batch** — the plan not wanted,
 the branch abandoned — still gets its close, over what is on disk: write
