@@ -33,9 +33,13 @@ one implementation plan.
   way and kept for the archive, but is replaced by rotation rather than by
   the ceiling: one fresh session per batch, from a queue the human fills at
   the plan's landing.
-- Takes bug reports about the skills this repository ships: a report is a file
-  and one line to Kanri, which triages it into an issue, a redirect, a
-  root-cause session, a one-line hotfix, or an input to a spec in progress.
+- Takes bug reports about the skills this repository ships: a report is a
+  file and one line to the run's live Hosa, or to Kanri when none is live,
+  which copies it and answers `received:`; every report is decided at the
+  next topic's close with everything else — an issue, a one-sentence fix
+  applied to the skill's text, a redirect, a root-cause session, an input to
+  a spec in progress, or dismissed — and nothing tracked names the
+  reporter's repository.
 - Puts a **review brief** in front of the human before each spec and plan
   review: the points that need the human's judgment, each with a pointer into
   the document, in the chat's language, written by a subagent the document's
