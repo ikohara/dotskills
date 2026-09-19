@@ -933,7 +933,12 @@ and the close reads them once.
    in the skill's recommend mode over the T2 proposal and every source the
    `pending` rows name — the spec with its four section names, each proposal
    by path, each report by path and item — with `docs/` as the baseline, and
-   name the output, `.tanto/<topic>/t2-recommendation.md`. The file lists
+   name the output, `.tanto/<topic>/t2-recommendation.md`. The recommender's
+   bar: an item is recommended as an `issue` only when it is medium
+   severity or above, needs a decision, or records a measured defect; a
+   low-severity gap in the skill's own prose whose repair is one sentence
+   is recommended `reject`, with the correction written out in the reason,
+   so the direction can still order it applied. The file lists
    every item once in three groups — Recommended adopt, Recommended reject,
    Unsure — each item quoted in full from its source, so that the file
    stands alone as the apply's input, with its destination, its one-line

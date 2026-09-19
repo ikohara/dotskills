@@ -98,7 +98,11 @@ proposal and write the proposal to that path instead of printing it: the
 numbered items grouped under three `##` headings, in this exact
 text — `## Recommended adopt`, `## Recommended reject`, `## Unsure` —
 each item quoted in full from its source so that the
-file stands alone as the apply's input. A line in a source proposal that
+file stands alone as the apply's input. An `issue` destination is
+recommended only when the item is medium severity or above, needs a
+decision, or records a measured defect; a low-severity gap whose repair is
+a single sentence is grouped `Recommended reject`, with the correction
+written out in the reason. A line in a source proposal that
 only names an `S-n` (or similarly-formed) row is a pointer, not an item to
 quote itself: follow the pointer to its own named source and quote from
 there, never the pointer line itself. Put each item under its own `###`
