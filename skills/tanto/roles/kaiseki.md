@@ -32,13 +32,20 @@ with two additions. Before the human closes the session, run `shoroku` in its
 ordinary session mode, with the human answering `Direction?`, and commit once —
 there is no Kanri to rule for you. And when the human asks for a defect to be
 reported to another repository, write the report from
-`templates/bug-report.md`, read the intake's bare name — the `<name>` before
-the bracket of the `Name [ref]` column — from the first data row of that
-repository's `.tanto/roster.md`, the human giving you the workspace's path,
+`templates/bug-report.md` at `.tanto/sent/<YYYY-MM-DD>-<slug>.md`, read the
+intake's bare name — the `<name>` before
+the bracket of the `Name [ref]` column — from that
+repository's `.tanto/roster.md`, the row whose Role is
+`hosa` and whose Status begins with `live`, or the first data row when there
+is none, the
+human giving you the
+workspace's path,
 check the name against `ListAgents`, and send `bug-report: <absolute path>`
 to it; when that roster is absent or the name is not listed, ask the human
 for the address, and a report you still cannot send stays a file the human
-carries.
+carries. An issue your own shoroku run files opens with
+`Source: session <YYYY-MM-DD>`, as the `shoroku` skill's session mode
+writes it.
 
 ## The run
 

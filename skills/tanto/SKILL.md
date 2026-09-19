@@ -680,27 +680,46 @@ the result the same way the Start sequence does.
   denied in your own session or would be blocked there. Blocked work goes to
   Kanri, which rules on human access.
 
-A defect noticed in a skill goes to the Kanri of the repository that ships that
-skill, as a **bug report**: a file written from `templates/bug-report.md` and
-one line, `bug-report: <absolute path>`. Kanri is the intake, and its address
-is read from the target workspace's roster: the sender reads the first data
-row of `<workspace>/.tanto/roster.md` and takes the bare `<name>` before the
-bracket of its `Name [ref]` column, the human supplying the workspace's path
-where the sender does not know it; the sender checks that name against
-`ListAgents` before sending, and asks the human for the address when the
-roster is absent — a workspace not yet migrated, or an older skill — or the
-name is not listed, since a resumed Kanri carries a new name until it
-rewrites its row. The roster is Kanri's to write and the sender's only to
-read; the read is of a file outside the sender's own working directory, and
-outside auto mode the harness may put a permission prompt for it in the
-sender's window — the harness's own prompt, like the model-mismatch stop, and
-not a failure of the route. A defect that surfaces in a spec dialogue reaches
-Kanri as an `I-n` in `spec-inputs.md`, not as a bug report.
+A defect noticed in a skill goes to the repository that ships that skill, as
+a **bug report**: a file written from `templates/bug-report.md` at
+`.tanto/sent/<YYYY-MM-DD>-<slug>.md` under the reporter's own repository, and
+one line, `bug-report: <absolute path>`. Any session may write and send one;
+when the human noticed the defect, they hand it to a live Hosa as a chore, or
+say it in Kanri's window. **The intake is the target repository's `live`
+Hosa, else its Kanri**: the sender reads `<workspace>/.tanto/roster.md`,
+takes the bare `<name>` before the bracket of the `Name [ref]` column of the
+row whose Role is `hosa` and whose Status begins with `live` — Kanri writes
+`idle since <HH:MM>` into that cell while a Hosa idles — or, when there is
+none, of the first data row, the human supplying the workspace's path where the sender
+does not know it; checks that name against `ListAgents`; and asks the human
+for the address when the roster is absent — a workspace not yet migrated, or
+an older skill — or the name is not listed, since a resumed session carries a
+new name until it rewrites its row. The roster is Kanri's to write and the
+sender's only to read; the read is of a file outside the sender's own working
+directory, and outside auto mode the harness may put a permission prompt for
+it in the sender's window — the harness's own prompt, like the model-mismatch
+stop, and not a failure of the route. A defect that surfaces in a spec
+dialogue reaches Kanri as an `I-n` in `spec-inputs.md`, not as a bug report.
 
-Kanri answers a bug report with one line, in one of five forms:
-`triage: issue-<id>`, `triage: redirect — <one line>`,
-`triage: kaiseki requested`, `triage: hotfix — <commit subject>`, and
-`triage: relayed as I-<n>`.
+The intake answers with one line, `received: <inbox path>`, after one act
+that reads nothing of the report: the file is copied to
+`.tanto/inbox/<YYYY-MM-DD>-<slug>.md` under the same basename, and one line
+is appended under its `## Received` heading. No triage, no ruling, no filing,
+no Events line: a report pends nothing until a **close**, where the
+recommender reads every untriaged inbox copy beside the proposal items
+("Session exit"). A fix the human wants sooner is the hotfix lane, opened by
+the human's word in Kanri's window, never by a report.
+
+**The tracked-write rule.** A tracked file or a commit message names a
+report's source as `inbox <YYYY-MM-DD>-<slug>` and nothing more — no
+repository name or path, no session name, no topic name of the reporter's,
+no quotation of the reporter repository's own documents; what a reproduction
+needs is restated against this repository's files or an inline fixture. It
+binds the issue filed at the close and its `Source:` line, the close's two
+commits, the hotfix lane's commit, the dogfood report, and any ADR. The
+template drops the identifying fields at the source, so that what is not in
+the file cannot be leaked by the subagent that writes the issue; the rule
+stands second.
 
 ### The brief's form
 
