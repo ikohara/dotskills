@@ -1186,92 +1186,68 @@ the commands, and your closing line.
 ## Bug intake
 
 `SKILL.md` defines the terms — the `bug-report:` line, the file written from
-`templates/bug-report.md`, and the five `triage:` answers. You are this
-repository's intake.
+`templates/bug-report.md`, the intake's `received:` answer, and the
+tracked-write rule. The intake is a `live` Hosa; you are the intake only
+while none is live, and then you do exactly what Hosa does and nothing more.
 
-### Intake
+### The one act
 
-On `bug-report: <path>`, or on the human's own words, copy the file to
-`.tanto/inbox/<YYYY-MM-DD>-<slug>.md`, the slug kebab-case derived by you
-from the Symptom, creating `inbox/` if it is absent. When
-the human reports in chat, write their words into the skeleton yourself. From
-then on read only the copy: the reporter's own file may vanish. The inbox is
-the log — the Triage section is appended to the copy, and copies are never
-deleted. Every receipt and every send is one line in the roster's Events.
+On `bug-report: <path>`: copy the file to `.tanto/inbox/<basename>`, the
+basename the sender's — `<YYYY-MM-DD>-<slug>.md` — or, when the name is not
+of that shape, today's date and the file's name kebab-cased; create `inbox/`
+if it is absent; append one line under the copy's `## Received` heading,
+`- <the envelope's from-name>, <YYYY-MM-DD>`; answer one line,
+`received: <inbox path>`, copying the envelope's `from` into `to`. A copy
+command and one appended line: you read nothing of the report, since a
+report read is a report in your context, and its cost is your context size,
+not the act. No triage, no `R-n`, no ledger row, no Events line, no filing,
+no hotfix: the copy is the log of receipt, and the report waits for a close.
+Copies are never deleted.
 
-The intake's address is read, not relayed. A reporter that knows this
-workspace's path reads the first data row of `<workspace>/.tanto/roster.md`
-— your row — and takes the bare `<name>` before the bracket of its
-`Name [ref]` column as your address; the human supplies the path where the
-reporter does not know it, which is the one thing only the human, who sees
-both repositories, can tell it. A resume gives you a new name and the row
-follows only when you rewrite it, so a reporter checks the name against
-`ListAgents` before sending and asks the human for the address when it is
-not listed, or when the roster is absent. You write the roster; a reporter
-only reads it, and that read, outside the reporter's own working directory,
-may draw a harness permission prompt in the reporter's window outside auto
-mode — the harness's, not a protocol failure. A report the reporter cannot
-send stays a file the human pastes to you as `bug-report: <path>`.
+When the human reports in chat, in your window, write their words into the
+skeleton yourself at `.tanto/inbox/<YYYY-MM-DD>-<slug>.md`, and the Received
+line says `- the human, in chat, <YYYY-MM-DD>`.
 
-### Triage — five outcomes
+### The close reads the inbox
 
-Each triage is a ruling of yours, recorded as `R-n` in the current ledger, or
-in the roster's Events when no plan is open. Exactly one of:
-
-1. **Issue** — a defect in a skill this repository ships, larger than a
-   one-line fix, or with an unknown cause the human does not want a Kaiseki
-   for. File it under `docs/issues/open/` per `docs/issues/AGENTS.md`, with the
-   report's symptom and reproduction; the triage is your ruling, so the filing
-   is yours to order, and the human sees the commit. The issue is then the
-   tracker: `claimed_by` when a plan picks it up, `git mv` to `resolved/` at
-   the T2 of the plan that lands the fix. A plan's spec names the issues it
-   resolves, and that plan's T2 moves them.
-2. **Redirect** — the problem belongs elsewhere: dotrepo, superpowers, Claude
-   Code, or the reporter's own repository. One line back, nothing written.
-3. **Kaiseki** — the cause is unknown and worth a root-cause pass. Ask the
-   human, as a numbered list, to create a standalone Kaiseki with
-   `/tanto kaiseki` and to give it the inbox copy's path as its symptom and
-   reproduction. Its report goes to the human in that session; the human brings
-   its path back to you, and the report re-enters triage as a known cause.
-4. **Hotfix** — a one-line fix. See "The hotfix lane" below.
-5. **Relay** — a spec is in progress and the report is in its scope. Append it
-   to `.tanto/<topic>/spec-inputs.md` as the next `I-n` with your
-   note, and send Sekkei one line — the existing relay, reused.
-
-Redirect, the Kaiseki request, and the relay may happen whenever you read the
-report. Filing an issue and the hotfix touch tracked files. When a Hosa is
-live, hand the filing to it as
-`chore: <what> — <paths> — slot: now | at the next boundary`, and the slot you
-name places it; when none is live, the filing is your own and waits for the
-commit window at loop step 7, or for a gap between plans. When no plan is open,
-triage on arrival.
-
-Answer with exactly one line — `triage: issue-<id>`,
-`triage: redirect — <one line>`, `triage: kaiseki requested`,
-`triage: hotfix — <commit subject>`, or `triage: relayed as I-<n>` — copying
-the envelope's `from` into `to`, or saying it in chat to the human.
+Every untriaged copy — its Triage section absent, or its Outcome none of
+`issue`, `fix`, `redirect`, `kaiseki`, `relay`, `dismissed` — is an input to
+the next close's recommend dispatch, whichever topic closes ("Shoroku", step
+2), and the apply fills its Triage (step 4). Between plans, the human's word
+in your window runs the same steps over the inbox alone ("Delegation to
+Hosa"). Your own exit shoroku does not sweep the inbox.
 
 ### The hotfix lane
 
-The lane is open only while no batch is in flight — between batches, where the
-triage is ruled at loop step 4 and the edit and the commit happen in slot (b)
-of step 7's commit window, or between plans — and never on a file the
-in-flight plan lists in its File structure table. In the lane you edit the
-skill file directly, run lint on the changed paths by name — or on the whole
-repository where the lint script takes no path arguments — and the README drift
-review if `SKILL.md` changed, commit once by explicit path with the trailer,
-and record `R-n`. No issue is filed: the commit is the durable record, so its
-subject names the symptom, not only the report's slug, and its body names where
-the report came from. The commit lands on the branch the tree is on — the plan
-branch between batches, `main` between plans — and is never pushed. A hotfix on
-a plan branch is named in your merge question.
+The lane is opened by the human's word in your window and by nothing else,
+and only while no batch is in flight — between batches, in slot (b) of step
+7's commit window, or between plans — and never on a file the in-flight plan
+lists in its File structure table. In the lane you edit the skill file
+directly, run lint on the changed paths by name — or on the whole repository
+where the lint script takes no path arguments — and the README drift review
+if `SKILL.md` changed, commit once by explicit path with the trailer, and
+record `R-n`. No issue is filed for the fix: the commit is the durable
+record, so its subject names the symptom, and its body names a report's
+source, when the fix answers one, as `inbox <YYYY-MM-DD>-<slug>` and nothing
+more; you then fill that copy's Triage — Outcome `fix`, Reference the commit
+subject, Date. An issue the human orders filed in the lane opens with
+`Source: hotfix <its own commit subject>`.
+
+**Where the commit lands.** Before committing, compare the branch the tree
+is on with where the commit is meant to land — the plan branch between
+batches, `main` between plans. When the checkout has moved to a branch a
+concurrent topic's Sekkei or Keikaku has just cut, a between-plans commit
+would land there; ask the human, as a numbered question, before it does
+(issue-c3a9). Nothing here is pushed. A hotfix on a plan branch is named in
+your merge question.
 
 A live Hosa may be your hand in the lane when you would rather not hold the
 edit: send it the `chore:` line with the paths and the slot. The lane's
 conditions, the ruling `R-n`, and the commit subject stay yours. When a
-filing or a hotfix is pending and the roster has no `live` Hosa row, add to
-your line to the human a suggestion to open one (`/tanto hosa`) — same shape
-as the Kikaku suggestion in "Start".
+hotfix is pending in the lane and the roster has no `live` Hosa row, add to
+your line to the human a suggestion to open one (`/tanto hosa`), in the
+shape of the Kikaku suggestion in "Start"; a report in the inbox is no
+reason for it, since a report pends nothing.
 
 So that hotfixes reach `docs/` once, carry them forward: when you create a new
 topic's ledger, copy the hotfix lines recorded in the roster's Events since the
@@ -1283,21 +1259,25 @@ that rewrites the file is still ahead and Keikaku is still live, it is a
 cold-read question to Keikaku, which edits the plan's fenced block so that the
 task delivers the fix. If every rewriting task has run and only the final batch
 remains, the fix joins the whole-branch review's single fix wave. If neither
-holds, it takes the issue outcome and waits.
+holds, it waits for the close as an inbox copy you write from the human's
+words in your window.
 
 ### Reporting from the other side
 
 You are also a reporter: a Kanri in another repository is where a defect in
 this repository's skills is often noticed. On the human's request, write the
-report from `templates/bug-report.md`; read the intake's bare name — the
-`<name>` before the bracket of the `Name [ref]` column — from the first data
-row of `<target workspace>/.tanto/roster.md`, asking the human for the
-workspace's path if you do not know it, and expecting, outside auto mode, a
-harness permission prompt in your window for a read outside your working
-directory; check that the name is in `ListAgents`, and ask the human for the
-address when it is not, or when that roster is absent; send
-`bug-report: <absolute path>` to that bare name; and record the send in the
-roster's Events.
+report from `templates/bug-report.md` at
+`.tanto/sent/<YYYY-MM-DD>-<slug>.md` under your own `.tanto/`; read the
+intake's bare name — the `<name>` before the bracket of the `Name [ref]`
+column — from `<target workspace>/.tanto/roster.md`, the row whose Role is
+`hosa` and whose Status begins with `live`, or the first data row when there
+is none,
+asking the human for the workspace's path if you do not know it, and
+expecting, outside auto mode, a harness permission prompt in your window
+for a read outside your working directory; check that the name is in
+`ListAgents`, and ask the human for the address when it is not, or when
+that roster is absent; send `bug-report: <absolute path>` to that bare
+name. The sent copy is the record of the send, and it is kept.
 
 ### Limits
 
