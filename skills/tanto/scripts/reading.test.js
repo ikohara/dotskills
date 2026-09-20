@@ -364,3 +364,88 @@ test("an unknown key is named with the file it came from, with both files in one
   assert.match(result.err, line("sekkei", personal));
   assert.match(result.err, line("kanri\\.window", project));
 });
+
+// The cache regime's fixtures. `stampAt` puts every record on one UTC day so
+// that a gap in the tests is exactly the minutes named.
+function stampAt(minutes) {
+  return new Date(Date.UTC(2026, 8, 19, 0, minutes, 0)).toISOString();
+}
+
+const COLD = { input_tokens: 10, cache_creation_input_tokens: 5000, cache_read_input_tokens: 100 };
+const WARM = { input_tokens: 10, cache_creation_input_tokens: 0, cache_read_input_tokens: 5000 };
+
+function ttlOf(out) {
+  const found = /^ttl=(\S+)$/m.exec(out);
+  return found ? found[1] : null;
+}
+
+test("ttl is the third line always, and unknown with no wake-up inside the window", () => {
+  const file = writeTranscript([
+    human(stampAt(0), "start"),
+    assistant(WARM, { timestamp: stampAt(1) }),
+    human(stampAt(3), "again"),
+    assistant(WARM, { timestamp: stampAt(4) }),
+  ]);
+  const result = run([file]);
+  assert.strictEqual(result.code, 0);
+  const lines = result.out.split("\n");
+  assert.match(lines[0], /^transcript: /);
+  assert.match(lines[1], /^effort=/);
+  assert.strictEqual(lines[2], "ttl=unknown");
+});
+
+test("a cold wake-up inside the window reads 5m and a warm one reads 1h", () => {
+  const cold = writeTranscript([
+    human(stampAt(0), "start"),
+    assistant(WARM, { timestamp: stampAt(1) }),
+    human(stampAt(31), "back"),
+    assistant(COLD, { timestamp: stampAt(32) }),
+  ]);
+  assert.strictEqual(ttlOf(run([cold]).out), "5m");
+  const warm = writeTranscript([
+    human(stampAt(0), "start"),
+    assistant(COLD, { timestamp: stampAt(1) }),
+    human(stampAt(31), "back"),
+    assistant(WARM, { timestamp: stampAt(32) }),
+  ]);
+  assert.strictEqual(ttlOf(run([warm]).out), "1h");
+});
+
+test("the window's edges are five and sixty minutes, both inclusive", () => {
+  const cases = [
+    [4, "unknown"],
+    [5, "5m"],
+    [60, "5m"],
+    [61, "unknown"],
+  ];
+  for (const [gap, want] of cases) {
+    const file = writeTranscript([
+      human(stampAt(0), "start"),
+      assistant(WARM, { timestamp: stampAt(1) }),
+      human(stampAt(1 + gap), "back"),
+      assistant(COLD, { timestamp: stampAt(2 + gap) }),
+    ]);
+    assert.strictEqual(ttlOf(run([file]).out), want, `gap ${gap}`);
+  }
+});
+
+test("the most recent wake-up inside the window decides", () => {
+  const file = writeTranscript([
+    human(stampAt(0), "start"),
+    assistant(WARM, { timestamp: stampAt(1) }),
+    human(stampAt(31), "a cold gap"),
+    assistant(COLD, { timestamp: stampAt(32) }),
+    human(stampAt(92), "a warm gap"),
+    assistant(WARM, { timestamp: stampAt(93) }),
+  ]);
+  assert.strictEqual(ttlOf(run([file]).out), "1h");
+});
+
+test("the unavailable form still prints three lines", () => {
+  const result = run([path.join(tmpDir(), "gone.jsonl")]);
+  assert.strictEqual(result.code, 0);
+  const lines = result.out.split("\n");
+  assert.match(lines[0], /^transcript: unavailable — /);
+  assert.strictEqual(lines[1], "effort=unknown");
+  assert.strictEqual(lines[2], "ttl=unknown");
+});
