@@ -1,8 +1,10 @@
 # Conductor ledger — <topic>
 
 Kept by Kanri. Sekkei, Keikaku, Jisso, Kaiseki, Kikaku, and Hosa read it;
-none of them writes it. Lives at `.tanto/<topic>/kanri.md` from the topic's
-opening to the plan's close, and never moves.
+none of them writes it. The `boundary.verify` subagent Kanri dispatches at a
+boundary writes it as Kanri's hand, through `boundary.js record`, and writes
+nothing else. Lives at `.tanto/<topic>/kanri.md` from the topic's opening to
+the plan's close, and never moves.
 
 ## Progress
 
@@ -91,7 +93,12 @@ ledger of the topic that raised it, never a compound value.
   sent, a `queued: <n>` answered, a `no-role` received; a replace and the human's
   answer; a handshake accepted or refused; a session declared dead and what was
   verified; a recovery after a VS Code restart; a handover written or accepted;
-  an exit proposal form-checked and its
+  a peer line you received and did not answer in the same turn, as
+  `unanswered: <from> — <line>`, paired with `answered: <from> — <line>`
+  when it is answered, both written through `record --event`, which ends a
+  line it writes at a boundary with `(batch <X>)` so that the same event in
+  two batches is two lines and twice in one batch is one; an exit
+  proposal form-checked and its
   rows recorded, or an exit shoroku not run and what was lost; a human access
   grant and the human-access: done line that
   closed it; a human-contact: line and what was said>
@@ -112,7 +119,7 @@ ledger of the topic that raised it, never a compound value.
 | top-family one-shots per plan, counted by kind | <YYYY-MM-DD, the plan close> | <one count per kind dispatched on the top family> |
 | each role's last reading | <YYYY-MM-DD, the plan close> | <the roster's Residency figures, copied, one role per line> |
 | the day's cost, uncached input, cache miss, cache hit, and hit rate | <YYYY-MM-DD> | <the five figures as the human pastes them from the Claude Code Usage extension> |
-| Kanri's context at the topic's opening and at the plan's landing, then Kanri's at each boundary with the delta per batch, and each Jisso's at its own boundary | <YYYY-MM-DD, each check> | <opening: kanri context=<n>; landing: kanri context=<n> (+<d>); batch letter: kanri context=<n> (+<d>), jisso <name> context=<n>>, one entry per check |
+| Kanri's context at the topic's opening and at the plan's landing, then Kanri's at each boundary with the delta per batch, and each Jisso's at its own boundary | <YYYY-MM-DD, each check> | <opening: kanri context=<n>; landing: kanri context=<n> (+<d>); batch <X>: kanri context=<n>, jisso context=<n>, ttl=<v>>, entries separated by `;` — the opening and the landing written by Kanri, every `batch <X>` entry by `boundary.js record`, which replaces its own batch's entry and leaves every other entry alone |
 | deferrals: where, the context, and the presence verdict | <YYYY-MM-DD, the check> | <batch letter or stage, context=<n>, last human turn <m> min ago>, one entry per deferred handover, or `none` |
 | the share of usage at context over the threshold | <YYYY-MM-DD, the plan close> | <the share line, the names it ran over> |
 
