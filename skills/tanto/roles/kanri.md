@@ -125,16 +125,20 @@ note whether the roster's first row carries your own name — the outgoing
 Kanri `/clear`ed its window and you started in it, so the name and the
 `[ref]` are the same and only the transcript differs — or another's, and,
 for another's, whether `ListAgents` still lists it; rewrite the roster —
-your own row first with status `live` and your own transcript path in its
-Transcript column, the old Kanri's row `replaced` (or `dead` when it is
+your own row first with status `live`, your own transcript path in its
+Transcript column, and today, your model, and your effort in its Started,
+Model, and Effort columns — and its Name column too when
+you started in a window other than the outgoing Kanri's, the same-window case
+needing no Name rewrite because a window keeps its name and `[ref]` across a
+`/clear` — the old Kanri's row `replaced` (or `dead` when it is
 another name and not listed), the Residency row reset to your name and today
 with zero counts and your own reading, and one Events line "handover
 accepted by `<you>` from `<old>`", the two names equal in the same-window
-case; send every `live` peer, to its bare name from the roster, one line
-`kanri-address: <name> [<ref>] — handover accepted; the roster's first row is rewritten`
-— in the same-window case too, because a line a peer sent into the gap
-between the `/clear` and your start got `no-role` back, and this line is
-what tells it to re-send; delete the handover file, because the Events line
+case; read the ledger's Session events for `unanswered:` lines that have no
+`answered:` pair, and the handover file's Live peers for its marks, and answer
+those lines first — you announce nothing, and a peer whose line got `no-role`
+back in the gap between the `/clear` and your start re-sends it to the
+roster's first row on its own next wake-up; delete the handover file, because the Events line
 is the record and a stale file must not start a false handover at the next
 Kanri start; when the old Kanri's name is another's, remind the human in one
 line to `/clear` that window when convenient — no deletion is asked;
@@ -150,9 +154,10 @@ its Transcript column names a different session — a `/clear` without a
 handover, or one run after the handover file was already consumed — this is
 that same gap under your own name: run the Handover procedure in place and
 without a file — rewrite the row's Transcript column to your own path, write
-an Events line `cleared: stale transcript, row rewritten in place`, and send
-every `live` peer the same `kanri-address:` line Handover sends, so a line a
-peer sent into the gap and got `no-role` back knows to re-send — then
+an Events line `cleared: stale transcript, row rewritten in place`, and read
+the ledger's Session events for `unanswered:` lines that have no `answered:`
+pair and answer those first — this gap has no handover file, and a peer whose
+line got `no-role` back in it re-sends on its own next wake-up — then
 cold-read the ledger and continue as the paragraph above says.
 
 **Second Kanri** — no handover file, the first data row is another name, and
@@ -164,7 +169,6 @@ already, and ask whether that one should hand over or this window should be
 `ListAgents` does not list, and that row's Transcript column is your own
 transcript path. This is your own conversation resumed under a new name:
 rewrite the first row in place with your new name and `[ref]`, status `live`,
-send the `kanri-address:` line of `SKILL.md`'s Resuming to every `live` row,
 write the Events line `resumed: <old name> → <new name>`, and continue where
 the ledger's Progress line says. No row is marked `dead`, and there is no tree
 recovery beyond `git status`.
@@ -340,16 +344,17 @@ Then, in this order.
 4. Ask the human to queue the plan's Jissos, as the Create table below
    prescribes: N windows, N the number of rows in the plan's Batches table
    plus one for the whole-branch review's fix wave, each running
-   `/tanto jisso <name>`; the human may open more, and fewer when they will
+   `/tanto jisso`; the human may open more, and fewer when they will
    be present to re-queue released windows — except on a plan naming its
    final boundary as the safe one (rule 11), which asks for the full N
    instead.
 5. Answer each handshake `queued: <n>` with a `queued` row. When the first
    is queued, write batch A's prompt from `templates/batch-prompt.md` —
-   addressed to that Jisso, `First batch, no previous verdict.` in its
+   addressed to that Jisso, `First batch, no previous verdict, no check: line.` in its
    previous-batch-verdict section, the first-Jisso line in its Setup on
-   resume — save it as `.tanto/<topic>/batch-A-prompt.md`, send the same
-   text to that name, without an idle subscription, and mark its row
+   resume — save it as `.tanto/<topic>/batch-A-prompt.md`, send that name
+   the one line `batch: .tanto/<topic>/batch-A-prompt.md` with the `no-role`
+   line after it, without an idle subscription, and mark its row
    `live`. The later handshakes arrive while batch A runs and are queued
    the same way; batch A does not wait for them.
 6. Enter the batch loop below at step 1.
@@ -366,23 +371,49 @@ Per batch, in this order.
    the batch has gone quiet, or when your window wakes for anything else and
    the report has not arrived. Say in your boundary line to the human which
    signal you are waiting for, so that the human is that detector.
-2. **Verify the tree before reading the report**, with two commands:
+2. **Dispatch the boundary.** One subagent, kind `boundary.verify`,
+   `subagent_type: tanto-boundary-verify`, its `model` from the merged
+   `tanto.json` and named on the dispatch as every dispatch names one, with
+   this prompt and nothing more:
 
-   ```bash
-   node "$TANTO/scripts/passage-check.js" boundary --plan <plan path>
-   node "$TANTO/scripts/passage-check.js" diff --plan <plan path> --base <merge base>
+   ```text
+   Run the tanto boundary brief at <skill dir>/templates/boundary-brief.md with:
+   topic=<topic> batch=<X> plan=<plan path> report=<report path>
+   ledger=<.tanto/<topic>/kanri.md> roster=<.tanto/roster.md> base=<merge base>
+   kanri-transcript=<your transcript path, from the roster's first data row>
+   tanto=<skill dir>
+   measurement=<the measurement report's path on a measurement batch, or none>
+   peer readings since the last boundary, one per line, or none: <…>
+   top-family dispatches since the last boundary, one per line, or none: <…>
+   Write .tanto/<topic>/batch-<X>-verdict.md in your own turn. Dispatch no agents.
+   Reply with the verdict line only.
    ```
 
-   `boundary` runs the plan's own verification list in order, `git status`
-   clean and the commits' trailers being the first two checks it prints;
-   `diff` accounts for the branch's changed lines against the passages the
-   plan carries. Read each for its pass or fail lines and the failing output
-   only. What no command knows about you check yourself: repo-specific
-   leftovers such as stray processes or temp directories, and a spot check of
-   the claimed tests. You verify in place — there is no worktree.
-3. Read the report **by its sections**, never whole, in the order the batch
-   prompt prescribes — For Kanri, Rulings, Questions for the human, Deviations
-   from the plan, Shoroku proposal — with one call:
+   The last two lines are the two things the subagent cannot see and you hold
+   as text. The readings are the ones peers' last lines carried since the
+   previous boundary, one `<role> <name> [<ref>] <reading>` per line. The
+   dispatches are every one since the previous boundary whose kind
+   `tanto.json` puts on the top family of the ladder — `fable` today, and the
+   merged config decides, not the family a session happens to run on, so an
+   `opus` `shoroku` dispatch does not count while a `fable` `plan.coldread`
+   does: your own `plan.coldread` and `branch.review`, and the ones a peer's
+   line implies — `review-ready:` is one `brief.write`, a plan-review path is
+   one `plan.review`, a spec-review path is one `spec.review` if the config
+   puts it there — each written as the line `dispatch: <kind> on <family>`,
+   which `record` appends and which you count by kind to fill the one-shots
+   row at the close.
+
+   Then wait for one line. You do not run `passage-check`, `reading.js`, or
+   `sections` at this boundary; you do not open the report; you edit no table
+   by hand. What the brief cannot judge it reports: a tracked-file
+   modification the plan does not account for reaches you under the verdict
+   file's Failures, never through a `git checkout --` of the subagent's, and
+   only you decide whether it is stray.
+3. **Rule.** When `rulings needed` or `human questions` is above zero, the
+   verdict is `fail`, or `ceiling:` says `over, present`, read the verdict
+   file's sections that apply — Rulings needed, Questions for the human,
+   Deviations, Failures, Verify in the tree, Ceiling, Measurement — with one
+   call:
 
    ```bash
    node "$TANTO/scripts/passage-check.js" sections --file <path> <heading> [<heading>...]
@@ -391,58 +422,48 @@ Per batch, in this order.
    For each item under "Rulings needed": a **known cause** you
    rule on yourself, recorded as `R-n` in the ledger with what it costs if
    wrong and which later tasks inherit it; an **unknown cause** opens the
-   Kaiseki branch below; a **scope or spec change** goes to the human. Then
-   record each item of the report's Shoroku proposal section in the ledger's
-   `S-n` table with Adopted `pending` and Stage `t2` — that section is this
-   Jisso's exit shoroku, and this is its form check — bookkeeping, not a
-   ruling: nothing is adopted
-   before the close, and the recommendation and the human's check at T2 rule on
-   the whole list at once — and update the ledger's Batches row and its
-   Progress line.
+   Kaiseki branch below; a **scope or spec change** goes to the human; a
+   `fail` is a rework, or an acceptance you rule over it. The report's
+   Shoroku proposal section is already `S-n` rows, Adopted `pending` and
+   Stage `t2`, written by the brief — that section is this Jisso's exit
+   shoroku, and the brief's pass over it is its form check: bookkeeping, not
+   a ruling, since nothing is adopted before the close, where the
+   recommendation and the human's check at T2 rule on the whole list at once.
 
-   A **measurement** report — one whose deliverable is what a tool actually did
-   — is read for whether its outcome **contradicts** the brief's prediction. A
-   real run usually does, somewhere; a report that confirms every expectation
-   deserves a second look rather than a faster approval, because a
-   reconstruction is built from the same brief the prediction came from
-   (issue-f2ec). When the batch carried a measurement task, name that report's
-   Tasks and Verification sections in the same `sections` call and read them
-   for the contradiction: named sections, not the file.
-4. **Bug reports need nothing from you here.** A report received during
-   the batch sits in `.tanto/inbox/`, answered `received:` by its intake, and
-   is read at the close ("Bug intake" below); a fix the human orders on one
-   is the hotfix lane, in slot (b) of step 7.
-5. Report one line to the human. Ask numbered questions only for the four SDD
-   stop classes and for a scope or spec change.
-6. **Check the lifecycle tables and the handover trigger.** Take your own
-   reading with `--role kanri`, read Jisso's ceiling line from its report's
-   header beside the Transcript line, and rewrite the roster's Residency
-   rows — yours from your own reading, Jisso's from its report's, and every
-   other live peer's from the reading its last line carried, as Readings
-   says — each `context=` figure into that row's Context column. A verdict
-   of `over` on your own ceiling line is handover signal 4, gated on
-   `--presence`, run on your own transcript at this check, and an `absent`
-   verdict defers it rather than firing it. Jisso's verdict is recorded and
-   acts on nothing: the rotation retires every Jisso at its boundary, and
-   the figure is what the archive keeps. Write the Measurements per-boundary
-   entry from the two readings, and a Measurements deferrals entry for a
-   handover deferred here.
-   Write a Session events line `dispatch: <kind> on <family>` for every
-   dispatch since the last boundary whose kind `tanto.json` puts on the top
-   family of the ladder — `fable` today, and the merged config decides, not
-   the family a session happens to run on, so an `opus` `shoroku` dispatch
-   does not count while a `fable` `plan.coldread` does: your own
-   `plan.coldread` and `branch.review`, and the ones a peer's line implies —
-   `review-ready:` is one `brief.write`, a plan-review path is one
-   `plan.review`, a spec-review path is one `spec.review` if the config puts
-   it there — and fill the one-shots row at the close by counting those lines
-   by kind.
+   A **measurement** report — one whose deliverable is what a tool actually
+   did — reaches you as the verdict file's Measurement section, that report's
+   Tasks and Verification sections verbatim, and is read for whether its
+   outcome **contradicts** the brief's prediction. A real run usually does,
+   somewhere; a report that confirms every expectation deserves a second look
+   rather than a faster approval, because a reconstruction is built from the
+   same brief the prediction came from (issue-f2ec).
+
+   Bug reports need nothing from you here: a report received during the batch
+   sits in `.tanto/inbox/`, answered `received:` by its intake, and is read at
+   the close ("Bug intake" below); a fix the human orders on one is the hotfix
+   lane, in slot (b) of step 5. Then report one line to the human, and ask
+   numbered questions only for the four SDD stop classes and for a scope or
+   spec change.
+4. **Check the lifecycle tables and the handover trigger.** Both are read off
+   the verdict line, not measured again here. `ceiling: over, present` is
+   handover signal 4 and runs the handover at this boundary; `over, absent`
+   defers it, with the three writings the Handover section prescribes and the
+   Measurements deferrals entry your step 6 `record` call writes from
+   `--deferred`; a `compactions:` figure
+   above the count you have noticed is signal 3. Jisso's verdict is recorded
+   and acts on nothing: the rotation retires every Jisso at its boundary, and
+   the figure is what the archive keeps. The readings themselves, the
+   Residency rows, the Measurements per-boundary entry, the `dispatch:` events
+   lines, and the next batch's `planned` row with its Prompt cell are the brief's,
+   written by `record` from the dispatch you sent at step 2 — at a boundary you
+   take no reading and rewrite no row.
    If a create request is due, make it, unless a
    handover trigger has fired and is not deferred, in which case the
    successor makes it from the handover's Next step. Then the exits that
    fall at this boundary, per "Exit shoroku": the retiring Jisso's proposal
-   is its report's Shoroku proposal section, recorded at step 3, so send it
-   `release:` now and mark its row `cleared` — a batch returned for rework
+   is its report's Shoroku proposal section, recorded by the brief at step 2,
+   so send it `release:` now and let step 6's `record` call mark its row
+   `cleared` — a batch returned for rework
    is not accepted, and its Jisso stays live for the rework prompt, and the
    Jisso whose boundary is the plan's last waits — the last implementation
    batch's while the review is pending, and the fix wave's — see
@@ -451,11 +472,12 @@ Per batch, in this order.
    handover trigger has fired and is not deferred, send the `exit:` lines to
    the sessions whose proposal is not already named — a Sekkei or Keikaku at
    its own final boundary named it in its report line and is waiting for
-   nothing — check each proposal's form, record its items as `pending`
-   rows, and send `release:` as soon as the form check passes; when the
-   trigger that fired is your own handover, write your own proposal here too,
-   as "Handover" step 1 says, so that it is done when that list is reached.
-   Nothing is recommended or applied before the close.
+   nothing — check each proposal's form, name its items as `--s-item`
+   arguments of step 6's `record` call, and send `release:` as soon as the
+   form check passes; when the trigger that fired is your own handover, write
+   your own proposal here too, as "Handover" step 1 says, so that it is done
+   when that list is reached. Nothing is recommended or applied before the
+   close.
 
    At the end of every turn, after whatever else the turn said, write the
    idle block — fixed, not only when something changed. Its first line
@@ -495,7 +517,7 @@ Per batch, in this order.
    which holds every open act asked of the human, one line each, added
    when the request is made and removed when it is done. A successor Kanri
    prints the same block from the same files.
-7. **The commit window.** One committer at a time, in this order, Jisso idle
+5. **The commit window.** One committer at a time, in this order, Jisso idle
    throughout. (a) The apply subagent's slot, which only the close fills: at
    the final batch's boundary, once `t2-direction.md` is written, dispatch
    `subagent_type: tanto-shoroku-apply` with the recommendation, the
@@ -504,7 +526,7 @@ Per batch, in this order.
    them (or on the whole repository where the lint script takes no path
    arguments). Jisso has already been released; it waits for nothing. At every
    other boundary this slot is empty. (b) Your
-   own edits — the hotfix and the issues from step 4 — each committed by you
+   own edits — the hotfix and the issues from step 3 — each committed by you
    in its turn, or handed to a
    live Hosa as `chore: <what> — <paths> — slot: now | at the next boundary`,
    which Hosa commits here and answers `committed <subject> — <reading>`; the
@@ -523,26 +545,53 @@ Per batch, in this order.
    notice came without a reply; skip (c) when neither is live. If a
    handover is due, the window ends, after the wait Timing prescribes, with
    steps 2 to 4 of "The handover, in a plan and between plans" — your exit
-   proposal was step 6's, and its items are `pending` rows in this ledger —
-   and the loop stops here; the next prompt is the successor's.
-8. Write the next batch prompt from `templates/batch-prompt.md`, addressed
-   to the next `queued` Jisso in handshake order — the prompt names it, says
-   which of the plan's Jissos it is, and carries the resume line — with the
-   rulings the next tasks inherit and, on its Models line, the four kinds
-   Jisso dispatches — `task.implement`, `task.review-spec`,
-   `task.review-quality`, and `task.escalate` — each with the family
-   `tanto.json` gives it and the definition name that family is dispatched
-   with, so that the prompt still says them after a compaction. Save it as
-   `.tanto/<topic>/batch-<X>-prompt.md`, send the same text to that name,
-   without an idle subscription, and mark its row `live`. A batch returned
-   for rework goes to the Jisso that ran it, as a prompt for the same batch.
+   proposal was step 4's, and its items are `pending` rows you write here
+   with one `record` call of your own that also carries what step 6's would
+   have: this batch's `--state` and `--verdict`, the `--status` changes step 4
+   decided, and `--deferred` — because the loop stops before
+   step 6 — and the loop stops here; the next prompt is the successor's.
+6. **Record and send.** Fill the rendered prompt's three `<Kanri fills>`
+   slots — the Previous batch verdict's ruling line and its deferral line,
+   and the Rulings section's first line — and save it. The render is the
+   brief's, from `templates/batch-prompt.md`, addressed to the next `queued`
+   Jisso in handshake order, and it already carries the resume line and, on
+   its Models line, the four kinds Jisso dispatches —
+   `task.implement`, `task.review-spec`, `task.review-quality`, and
+   `task.escalate` — each with the family `tanto.json` gives it and the
+   definition name that family is dispatched with, so that the prompt still
+   says them after a compaction. Run the `ListAgents` self-check of
+   `SKILL.md`'s Resuming, once: the listing shows your own name, which only
+   you can compare with your roster row, so it is not the brief's. Then send
+   that Jisso the one line `batch: .tanto/<topic>/batch-<X>-prompt.md` with
+   the `no-role` line after it, without an idle subscription. Then the one
+   `record` call of this boundary:
+
+   ```bash
+   node "$TANTO/scripts/boundary.js" record --ledger <.tanto/<topic>/kanri.md> \
+     --roster <.tanto/roster.md> --batch <X> --state accepted|rework \
+     --verdict "<one line>" --progress "<one line>" \
+     --status "<name [ref]> cleared" --status "<name [ref]> live" \
+     --s-item "<source> | <item>" --deferred "<one line>"
+   ```
+
+   It carries the Batches row's state and verdict your ruling gives, the
+   Progress line, the Status changes this boundary decided — the retiring
+   Jisso `cleared`, the Jisso you have just sent `live`, a seat released at
+   step 4 `cleared` — one `--s-item` per item of an exit proposal step 4
+   form-checked, and `--deferred` when step 4's ruling was a deferral. That
+   call is the whole of your table writing: at a boundary no table is edited
+   by hand, the deferrals entry included. A batch returned for rework is a
+   prompt you write yourself from the same template, for the same Jisso, and
+   send the same way.
    When the queue is empty, the Create table's Jisso row's request goes out
-   instead — one window, queued by the same `/tanto jisso <name>` — and the
+   instead — one window, queued by the same `/tanto jisso` — and the
    prompt waits for that handshake; the released windows are the ones to
    offer.
 
-Steps 4, 6, and 7 are everything that needs Jisso idle or the index free, and
-they all precede the prompt that wakes Jisso. The pre-commit hooks stash every
+Steps 3 to 6 are everything that needs Jisso idle or the index free, and
+everything in them but step 6's `record` call precedes the prompt that wakes
+Jisso; `record` writes untracked files under `.tanto/`, which the index does
+not see. The pre-commit hooks stash every
 unstaged change in the tree while they run, so nobody edits a tracked file
 outside its own slot of the window, you included.
 
@@ -577,8 +626,10 @@ After the last implementation batch is accepted:
    printed, and the review seat goes to the cross-file contracts and the
    human-facing questions, which no script judges.
 2. Turn its findings into one more batch prompt — the final batch — and send
-   it to the next queued Jisso, as any batch. Two Jissos are the exception
-   to loop step 6's release at the boundary, not one: the Jisso that ran
+   it to the next queued Jisso, as any batch. In that same turn send
+   `release:` to the Jisso that ran the last implementation batch — its wait
+   ended with this review's verdict. Two Jissos are the exception
+   to loop step 4's release at the boundary, not one: the Jisso that ran
    the last implementation batch, whose `release:` waits for this review's
    verdict and goes out when the fix-wave prompt goes to its successor; and
    that successor, the fix-wave Jisso, who does not release at its own
@@ -659,12 +710,13 @@ the human is asked about the environment.
 ### The trigger
 
 Four signals fire a handover. Check them at the boundaries of the topic whose
-batches are in flight — at loop step 6 — and, between plans, at the start of
+batches are in flight — at loop step 4 — and, between plans, at the start of
 every turn you get, a message or the human speaking. For signals 1 and 3, a
 topic in its spec or
 plan stage neither fires the check nor blocks it: its Sekkei or Keikaku holds
 nothing you must wait for beyond an unanswered line, which that peer re-sends
-to your successor's address. Signal 4 **is** checked in that stage, at the
+to the roster's first row at its own next wake-up. Signal 4 **is** checked in
+that stage, at the
 start of every turn while no batch is in flight, because your context grows
 there — a between-plans inbox sweep, the handshakes, a resume — with no
 batch boundary to catch it;
@@ -687,10 +739,11 @@ resumed, and the roster's first row is rewritten before anything else.
    compaction loses nothing the successor cannot read back; it is the harness's
    own signal that the session has grown long, and it is the one signal a
    session can see for itself.
-4. **The ceiling crossed.** At every check — loop step 6 at a boundary, and
+4. **The ceiling crossed.** At every check — loop step 4 at a boundary, and
    the start of every turn while no batch is in flight, a topic's spec or plan
-   stage included — take your own reading with `--role kanri` and read its
-   ceiling line. A verdict of `over` is this signal. The ceiling is derived,
+   stage included — the verdict line's `ceiling:` is the reading at a
+   boundary, and your own `--role kanri --presence` reading is the reading
+   everywhere else. A verdict of `over` is this signal. The ceiling is derived,
    not configured: your own first turn's context in this transcript, measured
    from the transcript itself, plus `ceiling.kanri.batches` batches of
    `ceiling.kanri.per_batch`. It moves when the seat's fixed load moves and
@@ -751,9 +804,11 @@ way the Handover section already describes. Not the `tokens left` figure the
 harness prints in its reminders, whose unit is not documented as the context
 window and whose presence is not guaranteed: the instrument is the reading's
 own `context=`, the harness's `usage` accounting for the turn it billed, which
-is the token figure issue-40ed asked for. At every check take your own reading
-(`SKILL.md`, "The transcript
-reading") and rewrite your Residency row with it: a compactions figure of `1`
+is the token figure issue-40ed asked for. At every check outside a boundary
+take your own reading (`SKILL.md`, "The transcript
+reading") and rewrite your Residency row with it — at a boundary you take
+none: that row is `record`'s, written from the reading the dispatch
+carried. A compactions figure of `1`
 where you noticed none is signal 3, seen in a file, and counts as noticed.
 After a compaction your context drops below your own baseline for a turn or
 two and the ceiling verdict reads `under`, which is right: signal 3 is the
@@ -779,7 +834,8 @@ and the next prompt not yet sent, that topic's close once the archive move is
 done, or between plans. Never mid-batch — "never replace mid-batch on
 suspicion" names you too. A topic in its spec or plan stage while no batch is in flight counts as
 between plans here: nothing is in flight, and an unanswered line of its
-Sekkei or Keikaku is re-sent to your successor's address. While a batch is
+Sekkei or Keikaku is re-sent to the roster's first row at that peer's own next
+wake-up. While a batch is
 in flight, another topic's spec or plan stage supplies no boundary of this
 kind and holds no handover of yours. That list governs the signals you check
 for yourself — the tenure, a compaction, the ceiling; the human's word,
@@ -815,8 +871,9 @@ next batch inherits" rather than from the tree.
 At every plan close, and whenever the human asks, print one of two lines to the
 human. At a plan close it is always the second, because the close is itself a
 handover trigger; "Kanri stays" is only ever the answer to the human's own
-mid-plan question. The `[<ref>]` is the identity; the human copies the bare
-name into the next `/tanto <role> <name>`.
+mid-plan question. The `[<ref>]` is the identity, and no create request
+carries it: a role started with a bare `/tanto <role>` reads the roster's
+first data row.
 
 ```text
 Kanri stays — <name> [<ref>] — <n> batches, <m> plans since <YYYY-MM-DD>, <k> compactions noticed — <reading>; handover not due.
@@ -850,12 +907,12 @@ ceiling and the human's absence, and `none` otherwise: the successor re-checks
 it at its own first check, where a `present` verdict runs what this session
 could not. Live peers lists every peer of every
 open topic, each with its Topic and what it is waiting for, and marks the ones
-whose last line you had not answered: the successor sends `kanri-address:` to
-all of them — the `live` rows; the `queued` Jissos are listed after them by
-name and place and get nothing, since their batch prompt names the Kanri
-that sends it — and each answers by re-sending its last unanswered line,
-which is also what a peer does with a line that got `no-role` back in the
-gap. A Sekkei or Keikaku whose last line named an exit proposal is waiting
+whose last line you had not answered: the successor answers those marked lines
+first, pairing them with the ledger's `unanswered:` events, and announces
+nothing. The `queued` Jissos are listed after them by
+name and place and get nothing, since their batch prompt is a path they read
+at their own wake-up.
+A Sekkei or Keikaku whose last line named an exit proposal is waiting
 for nothing but `release:`, and your successor's first act for it is that
 line, if the proposal's form check is recorded in the ledger and the line
 was not sent.
@@ -875,7 +932,9 @@ was not sent.
    a topic's spec or plan stage — record the proposal's items as `pending`
    rows, Stage `t2`, Source the proposal's path and the item's number, in
    the ledger of the topic whose batches are in flight, else the oldest open
-   topic's. At a batch boundary this is loop step 6's proposal and its rows,
+   topic's. At a batch boundary this is loop step 4's proposal, its rows
+   written by the `record` call of loop step 6 or, when the loop stops at
+   step 5 for the handover, by the `record --s-item` call made there,
    already done when the window reaches this list. **Between plans**, with
    no ledger open, record them as rows of the roster's Shoroku proposal
    items table, Stage `t2`, Source the same; they move into the next topic's
@@ -892,13 +951,13 @@ was not sent.
    with your closing line — opening with your own identity, as every
    closing line does: your work is in the handover file, the roster,
    and the ledger; the step that still needs this seat is none — the human
-   `/clear`s this window and runs `/tanto kanri` in it, or in any free
-   window. Send nothing to any peer; answer the human if asked; do nothing
+   `/clear`s this window and runs `/tanto kanri` in it. Send nothing to any
+   peer; answer the human if asked; do nothing
    else.
 
 If the human says "continue" instead of creating the successor, delete the
 handover file, record the declined handover in the roster's Events (the `<k>`
-counter stays), and resume — at loop step 8 at a batch boundary, at the turn's own work
+counter stays), and resume — at loop step 6 at a batch boundary, at the turn's own work
 in a spec or plan stage, at the next topic's opening after a plan close, or
 waiting for the next topic between plans.
 
@@ -1224,7 +1283,7 @@ Hosa"). Your own exit shoroku does not sweep the inbox.
 
 The lane is opened by the human's word in your window and by nothing else,
 and only while no batch is in flight — between batches, in slot (b) of step
-7's commit window, or between plans — and never on a file the in-flight plan
+5's commit window, or between plans — and never on a file the in-flight plan
 lists in its File structure table. In the lane you edit the skill file
 directly, run lint on the changed paths by name — or on the whole repository
 where the lint script takes no path arguments — and the README drift review
@@ -1346,19 +1405,20 @@ and you are the only role that asks. A window is `/clear`ed and reused,
 never closed: a session is identified by its transcript path, a window by
 its `name [ref]`, which survives `/clear` (measured 2026-09-16), and the
 roster's rows tell them apart. Every create request is this numbered list,
-which the human can paste, with your own bare name as your start line
-printed it in place of `<name>`:
+which the human can paste:
 
 ```text
 1. In a free window of <repo path> — one you have /clear'ed, or a new one:
 2. /model <family>
 3. /effort <level>
 4. Make sure the session is in auto mode.
-5. /tanto <role> <name>
+5. /tanto <role>
 ```
 
-Line 5 carries, after the command, what the Create table's third column names
-for that role. The family and the level are `sessions.<role>` from
+Line 5 carries, after the command, the plan path, the branch, the topic, or
+the spec path, as the Create table's third column names them for that role —
+never an address: the new session reads the roster's first data row. The
+family and the level are `sessions.<role>` from
 `tanto.json`, and they come before the command because the human forgets the
 effort more often than the model — and because `/clear` resets the effort
 to the default while it keeps the model (measured 2026-09-16), so line 3 is
@@ -1376,11 +1436,11 @@ own times — "released now; a fresh Keikaku is requested at
 | When | Ask the human to | The request line carries |
 | --- | --- | --- |
 | bootstrap | nothing; the human opens a session and runs `/tanto kanri` | — |
-| a plan is committed and your cold read has no open questions | queue the plan's Jissos: N windows, N the rows of the plan's Batches table plus one for the fix wave; more if the human wants, fewer if they will be present to re-queue released windows — except on a plan naming its final boundary as the safe one (rule 11), which asks for the full N instead, since the queue cannot be refilled before the plan's end | `/tanto jisso <name>`, N, the plan path, the branch |
-| the queue is empty and a batch, a fix wave, or a resume needs a Jisso | queue one more Jisso — a released window serves | `/tanto jisso <name>`, the plan path, the branch |
-| the spec review is accepted | create Keikaku | `/tanto keikaku <name>`, the topic, the spec path |
-| the first batch of the current plan is accepted, or every open topic has passed its spec stage | create Sekkei for the next spec, if there is one; the human may decline | `/tanto sekkei <name>`, the topic if known |
-| Jisso reports the Kaiseki trigger with an unknown cause | create Kaiseki | `/tanto kaiseki <name>`; the brief follows the handshake |
+| a plan is committed and your cold read has no open questions | queue the plan's Jissos: N windows, N the rows of the plan's Batches table plus one for the fix wave; more if the human wants, fewer if they will be present to re-queue released windows — except on a plan naming its final boundary as the safe one (rule 11), which asks for the full N instead, since the queue cannot be refilled before the plan's end | `/tanto jisso`, N, the plan path, the branch |
+| the queue is empty and a batch, a fix wave, or a resume needs a Jisso | queue one more Jisso — a released window serves | `/tanto jisso`, the plan path, the branch |
+| the spec review is accepted | create Keikaku | `/tanto keikaku`, the topic, the spec path |
+| the first batch of the current plan is accepted, or every open topic has passed its spec stage | create Sekkei for the next spec, if there is one; the human may decline | `/tanto sekkei`, the topic if known |
+| Jisso reports the Kaiseki trigger with an unknown cause | create Kaiseki | `/tanto kaiseki`; the brief follows the handshake |
 | — | nothing; Kikaku and Hosa are opened by the human and never requested by you | — |
 
 ### Replace
@@ -1408,7 +1468,7 @@ confirm the session is gone first — uncommitted work may be in the tree.
 
 | When | Say |
 | --- | --- |
-| a batch is accepted at loop step 6 — the Jisso whose boundary is the plan's last excepted: the last implementation batch's while the review is pending, and the fix wave's — see "The final batch", steps 2 and 3 | its Jisso is done; `release:` to it, its row `cleared`, the released line to the human; the next prompt goes to the next queued Jisso |
+| a batch is accepted at loop step 4 — the Jisso whose boundary is the plan's last excepted: the last implementation batch's while the review is pending, and the fix wave's — see "The final batch", steps 2 and 3 | its Jisso is done; `release:` to it, its row `cleared` by loop step 6's `record` call, the released line to the human; the next prompt goes to the next queued Jisso |
 | the spec review is accepted, the human's answers to the spec brief are in `dialogue.md`, and the `spec accepted:` line named the exit proposal | Sekkei is done; record its proposal's items and the spec's four sections as `pending` rows, Source the spec's path as it stands now — rewritten at the landing if that path was a draft's ("When the plan lands", step 3) — and send `release:` as soon as the proposal passes the form check — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
 | the `coldread answered:` line named the exit proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; record its proposal's items as `pending` rows and send `release:` as soon as the proposal passes the form check; a Keikaku is never reused across topics (decision-f496) |
 | Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; record its proposal's items as `pending` rows and send `release:` as soon as the proposal passes the form check, or keep it if more of the same bug is expected |
@@ -1430,9 +1490,10 @@ local to one machine, and useful only for a later re-read (issue-12d3).
 ### Readings
 
 Every role sends its reading with its boundary and exit lines, and Jisso's
-and Kaiseki's reports carry it; copy each into that role's Residency row at
-loop step 6, with the boundary it was read at and the `context=` figure in the
-Context column. A reading you doubt — a
+and Kaiseki's reports carry it; pass each as a `--peer-reading` of the
+boundary's dispatch and `record` writes that role's Residency row, with the
+boundary it was read at and the `context=` figure in the Context column;
+outside a boundary you write the row yourself. A reading you doubt — a
 session whose report lost a ruling with `0 compactions`, your own whose
 ceiling line decides a handover, or one that sent
 `unavailable` — you may verify by running `node "$TANTO/scripts/reading.js"`

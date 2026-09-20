@@ -244,6 +244,15 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   neither. So the cost of "let the boundary rule on it", under the rule that
   the formatter's output is canonical because it is run, is one visible red
   check — and only in the reflowed-`P` case.
+- **A fence that checks two runs agree does not check that the first was
+  clean.** Measured on `tanto-diet`'s fence 4: `boundary.js record`, run on an
+  untouched copy of the ledger and roster templates, writes a Measurements
+  Value cell holding four of the template's placeholder fragments *plus* the
+  real entry — and the fence, which asserts only that two successive runs
+  produce identical output, passed over it. Idempotence and correctness are
+  different properties, and a fence that tests the first says nothing about
+  the second. One extra assertion — grep the written row for `<` — would have
+  caught the defect the whole-branch review found instead.
 
 ## A block must survive its destination's linter
 
@@ -394,3 +403,61 @@ plan, for a Markdown target (batch B) and a YAML one (batch C) alike:
   read as missing until the reader stripped `\r` before joining — six false
   absences in one pass, all from this alone. The single-line `grep -cF` case is
   unaffected, which is exactly why the failure is easy to miss.
+
+## A rebase note predicts the passages, not the fix commits
+
+A plan's own "Rebase note", written at drafting time before the other topic
+merges, predicts which of this plan's sites the other landing will move. It is
+a floor, not a ceiling.
+
+Measured on `tanto-diet`: the note predicted four sites that
+`bug-report-hold`'s landing would move. When the merge happened, **seven** had
+moved — and three of the four surprises came from that plan's own **close-fix
+commit**, made after its T2 shoroku to correct text its human review had
+caught, rather than from any passage of the plan itself. A prediction table
+authored from a plan's own passages cannot see a fix commit that lands after
+it.
+
+So the table is a starting point for the re-author pass, never a ceiling on
+it: only re-running `replay` against the tree as it actually stands at
+branch-cut time catches the rest. The hazard is the table's own tone — a
+confident four-row list reads as more complete than it is, and a re-author
+who trusts it stops early.
+
+## A whole-file block is run before the plan is committed
+
+Assemble the content of a plan's `W` blocks and run it — as the real files,
+against real fixtures — before the plan is committed, not at the task that
+transcribes it.
+
+Measured on `tanto-diet`, whose drafting-time claim was exactly that: the
+`W1.1` and `W2.1` content was assembled and run together before the commit,
+23 tests, 23 pass. The claim held up under fresh, independent re-execution
+during the batch that landed it — task 1's suite failed exactly as predicted,
+and task 2's implementation made all of it pass on the first real dispatch
+(24 tests, after one fix round). What surfaced instead were two pre-existing
+design gaps in the code the blocks carried, not transcription errors.
+
+That is the point of the practice: running the blocks first moves everything
+a run can catch out of the implementation batch, so what is left at the
+boundary is design, which is what a review is for. `roles/keikaku.md` does not
+name it as a general recommendation.
+
+## A departure's reason is a test case
+
+When a task's brief states a deliberate departure from the spec and gives its
+reason — "this design choice exists because of scenario X" — the test content
+that same brief mandates should include a fixture for X. Otherwise the
+departure's own justification is the one thing the task never verifies.
+
+Measured on `tanto-diet`: task 3's brief departed from the design spec's 1.5
+in one sentence (measuring a wake-up's gap from the most recent *any*-
+timestamped record, not only the previous `assistant` record) and gave the
+exact reason — "two wake-ups can arrive with no `assistant` record between
+them". No test in the plan's own verbatim-mandated `P3.8` block exercises
+that scenario: every fixture is strict human/assistant alternation. The
+departure was correct and went unverified.
+
+The Expectations section above is this rule's neighbor: a stated reason is a
+prediction, and a prediction a plan states is a prediction a plan should
+run.

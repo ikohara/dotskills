@@ -24,6 +24,11 @@ one implementation plan.
   that reading with the lines it
   already sends, so the roster holds what the current run costs and its archive
   holds what earlier runs cost.
+- Runs each batch boundary — the verification, the report's sections, the two
+  readings, the ledger's and the roster's row appends, the next prompt's draft
+  — in a subagent whose context ends with its turn, so that the resident
+  Kanri reads one verdict line and rules on it. The boundary's procedure is a
+  template the subagent reads, and its one deliverable is a verdict file.
 - Holds **Kanri** under a context ceiling derived from that last figure — its
   own measured baseline plus a chosen number of batches of measured
   consumption — and hands the role over at the next boundary once it is
@@ -60,9 +65,10 @@ one implementation plan.
   `SendMessage` to address them by name. Unlike `kisou`, `shoroku`, and
   `wayaku`, it is not host-agnostic and does not run on other Agent Skills
   hosts.
-- **Node 22 or newer on `PATH`**, for `scripts/passage-check.js` and
-  `scripts/reading.js`. Every role runs the second at every boundary and every
-  exit, so it is no longer needed only by a plan that carries passages; a
+- **Node 22 or newer on `PATH`**, for `scripts/passage-check.js`,
+  `scripts/reading.js`, and `scripts/boundary.js`. Every role runs the second
+  at every exit and every boundary — Kanri's at a boundary through the
+  `boundary.verify` subagent — so it is no longer needed only by a plan that carries passages; a
   session on which `node` will not run sends
   `transcript: unavailable — <one line why>` in place of its reading and
   carries on, which costs the run its cost signal and nothing else. Claude Code
@@ -102,22 +108,23 @@ Start Kanri first, with no address:
 
 Every lifecycle role after Kanri starts when Kanri asks the human for a
 window — the plan's Jissos all at its landing, in one request — and starts
-with Kanri's name as its request prints it:
+with no address at all:
 
 ```console
-/tanto sekkei <kanri>
-/tanto keikaku <kanri>
-/tanto jisso <kanri>
-/tanto kaiseki <kanri>
+/tanto sekkei
+/tanto keikaku
+/tanto jisso
+/tanto kaiseki
 ```
 
 Kikaku and Hosa are the human's own seats — `/tanto kikaku` and
-`/tanto hosa`, opened whenever the human wants one. With no name after the
-command, the session finds Kanri in the roster.
+`/tanto hosa`, opened whenever the human wants one. Every one of these finds
+Kanri in the roster's first data row, read at the moment it sends.
 
-`<kanri>` is the bare name Kanri's request prints — the name that session was
-born with. No `tanto` session is renamed once it has started, because a rename
-would invalidate every address already held.
+The command's optional second argument is the bootstrap for a workspace whose
+roster does not exist yet, and no create request carries it. No `tanto`
+session is renamed once it has started, because a rename would invalidate
+every address already held.
 
 Every attached role then checks its model and sends Kanri one handshake line;
 Kanri checks its model too, but receives handshakes rather than sending one,
@@ -142,7 +149,8 @@ to the run; no address is pasted, and Kanri's window goes first.
   role. A session reads exactly one.
 - `templates/` — copy-and-fill skeletons: `roster.md`, `roster-archive.md`,
   `kanri.md` (the conductor ledger), `kanri-handover.md`, `bug-report.md`,
-  `batch-prompt.md`, `batch-report.md`, `kaiseki-brief.md`,
+  `batch-prompt.md`, `batch-report.md`, `boundary-brief.md` (the procedure the
+  boundary's subagent follows), `kaiseki-brief.md`,
   `kaiseki-report.md`, `review-brief.md`, `shoroku-brief.md` (the shoroku
   check brief), `tanto.json` (the built-in model and effort defaults),
   `kikaku-decision.md`, and `agent.md`, the subagent definition every role
@@ -150,11 +158,17 @@ to the run; no address is pasted, and Kanri's window goes first.
 - `scripts/passage-check.js` — the instrument a plan that carries passages
   checks itself with: `lint`, `replay`, `diff`, `verify`, `sections`,
   `frame`, and `boundary`, with `scripts/passage-check.test.js` beside it.
-- `scripts/reading.js` — the instrument every role measures itself with: the
-  five-figure reading of one transcript, with the ceiling, presence and
+- `scripts/reading.js` — the instrument every role measures itself with: three
+  lines always — the five-figure reading of one transcript, the effort, and
+  `ttl=5m|1h|unknown`, the cache regime — with the ceiling, presence and
   backstop lines on request, and a `--share` form over several transcripts
   that Kanri runs at the plan close, with `scripts/reading.test.js` beside it.
-- Both scripts are Node, no dependencies, invoked as `node <path>`.
+- `scripts/boundary.js` — the boundary's own instrument, run by the subagent
+  Kanri dispatches there: `check`, which runs the boundary's read-only
+  commands and prints their output under fixed headings, and `record`, which
+  writes the conductor ledger's and the roster's rows idempotently, with
+  `scripts/boundary.test.js` beside it.
+- All three scripts are Node, no dependencies, invoked as `node <path>`.
 
 ## Relationship to kisou, shoroku, and superpowers
 
@@ -176,5 +190,6 @@ The designs this skill implements are
 `docs/superpowers/specs/2026-09-08-review-brief-design.md`,
 `docs/superpowers/specs/2026-09-09-context-cost-design.md`,
 `docs/superpowers/specs/2026-09-11-tanto-workspace-design.md`, and
-`docs/superpowers/specs/2026-09-12-tanto-cost-design.md`, and
-`docs/superpowers/specs/2026-09-15-shoroku-at-close-design.md`.
+`docs/superpowers/specs/2026-09-12-tanto-cost-design.md`,
+`docs/superpowers/specs/2026-09-15-shoroku-at-close-design.md`, and
+`docs/superpowers/specs/2026-09-19-tanto-diet-design.md`.

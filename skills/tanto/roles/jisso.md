@@ -12,17 +12,18 @@ an OS dialog, a credential — send Kanri
 and idle until a `human-access:` line answers; under a grant stay within its
 scope and end with `human-access: done — <what the human did or decided>`.
 When the human speaks here unprompted, answer and send Kanri
-`human-contact: <one line>`. Kanri is the only session that messages you. A
-message whose first line is `kanri-address: <name> [<ref>]` replaces Kanri's
-address from then on; if a send to Kanri errors, re-read the roster's first
-data row.
+`human-contact: <one line>`. Kanri is the only session that messages you.
+Kanri's address is the roster's first data row, read at the moment of sending;
+a send that errors or gets `no-role` back is held and re-sent to that row,
+read fresh, at your next wake-up.
 
 ## Start
 
 You have done the model check and sent the handshake. Kanri answers
 `queued: <n>` — your place in this plan's queue — and nothing else until
 your batch prompt. You are one of the plan's Jissos, and you run **one
-batch**: the prompt names it, and it is your orders, carrying the plan
+batch**: it arrives as the one line `batch: <path>`, and the file that path
+names is your orders — read it first — carrying the plan
 path, the conductor ledger path, the branch, and which of the plan's Jissos
 you are. **Until it arrives, read nothing** — not the plan, not the spec,
 not the ledger: a waiting seat holds the minimum context, because every

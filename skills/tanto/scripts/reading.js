@@ -37,6 +37,13 @@ const SCALAR_FIELDS = ["presence_minutes", "share_threshold"];
 // is still the signal it always was.
 const COMPACTION_PHRASE = "This session is being continued from a previous conversation";
 
+// The gap window the cache regime is read off: a wake-up after a gap of five
+// to sixty minutes, inclusive, is the one that tells a 5-minute TTL from a
+// 1-hour one, because a shorter gap is warm under either and a longer one is
+// cold under both.
+const TTL_WINDOW_MIN = 5;
+const TTL_WINDOW_MAX = 60;
+
 /** JSON at `file`, or null when it is absent or does not parse. */
 function readJson(file) {
   try {
@@ -184,9 +191,9 @@ function wakeUpText(record) {
 }
 
 /**
- * The five figures, the effort, the baseline, and the last human turn, from
- * one transcript. Throws when the file cannot be read, which the caller
- * reports as the `unavailable` form.
+ * The five figures, the effort, the cache regime, the baseline, and the last
+ * human turn, from one transcript. Throws when the file cannot be read, which
+ * the caller reports as the `unavailable` form.
  */
 function readTranscript(file) {
   const raw = fs.readFileSync(file, "utf8");
@@ -200,6 +207,12 @@ function readTranscript(file) {
   let baselineSeen = false;
   let effort = "unknown";
   let lastHuman = null;
+  // The cache regime: the timestamp of the most recent record that carried
+  // one, whether the last wake-up's gap fell inside the window, and the
+  // verdict the most recent windowed wake-up gave.
+  let lastStamp = null;
+  let inWindow = false;
+  let ttl = "unknown";
 
   for (const line of lines) {
     let record;
@@ -219,6 +232,12 @@ function readTranscript(file) {
       if (record.origin && record.origin.kind === "human" && record.timestamp) {
         lastHuman = record.timestamp;
       }
+      const woke = Date.parse(record.timestamp);
+      if (Number.isFinite(woke)) {
+        const gap = lastStamp === null ? null : (woke - lastStamp) / 60000;
+        inWindow = gap !== null && gap >= TTL_WINDOW_MIN && gap <= TTL_WINDOW_MAX;
+        lastStamp = woke;
+      }
       continue;
     }
 
@@ -229,6 +248,17 @@ function readTranscript(file) {
           : typeof record.effort === "string"
             ? record.effort
             : "unknown";
+      const spoke = Date.parse(record.timestamp);
+      if (Number.isFinite(spoke)) lastStamp = spoke;
+      const usage = record.message?.usage;
+      if (inWindow && usage && typeof usage === "object") {
+        // The wake-up's own cost, billed on the turn that answered it: fresh
+        // input above cache reads means the cache had expired, so the regime
+        // is the shorter TTL.
+        const fresh = tokens(usage.input_tokens) + tokens(usage.cache_creation_input_tokens);
+        ttl = fresh > tokens(usage.cache_read_input_tokens) ? "5m" : "1h";
+        inWindow = false;
+      }
       const turn = contextOf(record);
       if (turn !== null) {
         context = turn;
@@ -248,6 +278,7 @@ function readTranscript(file) {
     context,
     baseline,
     effort,
+    ttl,
     lastHuman,
   };
 }
@@ -278,6 +309,7 @@ function runReading(file, values) {
     // The unavailable form is a value the roles send, not a failure.
     console.log(`transcript: unavailable — ${oneLine(err.message)}`);
     console.log("effort=unknown");
+    console.log("ttl=unknown");
     return 0;
   }
 
@@ -287,6 +319,7 @@ function runReading(file, values) {
       `context=${reading.context}`,
   );
   console.log(`effort=${reading.effort}`);
+  console.log(`ttl=${reading.ttl}`);
 
   const { ceiling, warnings } = loadCeiling(values.config, values["project-config"]);
   printWarnings(warnings);

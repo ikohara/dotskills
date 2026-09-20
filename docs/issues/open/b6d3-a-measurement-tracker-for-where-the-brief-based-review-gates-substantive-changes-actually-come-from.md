@@ -61,3 +61,35 @@ between the human and the review subagents.
 Reporter: `ellmx-fd [05a76d]`, repo `ellmx` (a sibling repository on the same
 machine), 2026-09-14
 (`.tanto/inbox/2026-09-14-sekkei-review-load-measurement.md`).
+
+## Second data point, 2026-09-20, from `tanto-diet`'s own run
+
+Three measurements from one topic in this repository, all pointing the same
+way as the first.
+
+**The spec gate's cost, and what it changed.** Every dialogue question was
+answered by the recommendation and every design section by `OK`, the review
+gate included (`all OK`, with both decide points falling to their defaults).
+Nine of the human's turns for a 974-line spec, and none of the nine changed
+the document; the human's time had gone to the Kikaku decisions taken before
+the topic opened.
+
+**A content misread the gate passed.** The plan review brief's point 2.2
+misread the spec — it listed `Rulings needed` among "today's five headings"
+where the spec's `check` names `Rulings`, and said "six headings" where the
+verdict file has ten — and the human answered `all OK`. The form check cannot
+catch a content misread, by design; the human's answer did not; the author's
+own one line beside the brief was the only correction. A negative data point:
+the gate passed something wrong, so no fix is proposed for the form check
+itself.
+
+**Five plan reviews across five topics.** Every plan review whose answer is
+written down in a ledger: `tanto-project-config` — `all OK` (18/0/0/10, no
+defaults needed); `tanto-cost` — `all OK`, one `decide` answered explicitly
+(5.5), one closed by its default (4.4); `seat-lineage` — `all OK`, the one
+`choose` point defaulted; `bug-report-hold` — `all OK`, both choose/decide
+points defaulted per their "If unanswered"; `tanto-diet` — `all OK`, no
+edits. **Five reviews, zero edits, one explicit decision.** This is the
+tracker's headline figure across topics, and the rationale of the Kikaku
+decision that would make the plan review written rather than waited for; that
+decision's own ADR belongs to the topic that takes it.

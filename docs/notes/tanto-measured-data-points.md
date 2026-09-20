@@ -213,3 +213,144 @@ between that Sekkei's `spec-review:` line and its `review-ready:` line; the
 from that Sekkei went to the new name, and nothing was lost or repeated.
 
 Confirming evidence for decision-de63's handover claim.
+
+## What the tanto-diet spec and plan stages cost, seat by seat (2026-09-20)
+
+**The Sekkei.** A fable Sekkei writing a 974-line spec whose inputs were read
+section-wise: `context=239298` at its resume and `context=333845` at its
+exit, on a transcript of 2,253,437 B, 700 records, 23 wake-ups, 0
+compactions. Its two dispatched subagents cost 192,984 and 139,706 tokens.
+The second fable-Sekkei figure in this note, and the first with a context
+reading beside it.
+
+**The Keikaku.** Drafting, reviewing, post-merge re-authoring, and
+cold-read-answering one plan cost **seven `plan.draft` dispatches** — one
+initial and six resumes of the same subagent — totalling roughly 3.16M
+subagent tokens, averaging about 34 minutes of wall time each, plus one
+`plan.review` dispatch (~273K) and one `brief.write` dispatch (~133K). The
+seat's own context grew from `context=89791` at its handshake to
+`context=401875` at its exit, over 4×, entirely from reading the spec, the
+dialogue, the reviews and the cold-read reports, and from the text of eight
+resumed-agent hand-back messages. That last item is itself the measurement: a
+**resumed** subagent's report stays in the parent's transcript permanently,
+where a fresh dispatch's context would have been thrown away — the resume
+buys continuity at the price of the parent's own context.
+
+**The cold read.** The `plan.coldread` dispatch for the same plan (fable, one
+run, no resumes) cost 238,355 subagent tokens, 20 tool uses and about 12
+minutes, reading the spec whole, both frame stages, the dry-run report, and
+running one pre-flight `diff --base`. It returned 7 independently-verified
+questions, all 7 of which led to a real plan or spec edit. 238K against the
+drafting cycle's ~3.16M is the evidence for keeping the cold read a single
+dispatch rather than folding it into Kanri's own resident reading.
+
+## How much contract a Kanri reads before its first word (2026-09-20)
+
+File sizes in this tree: `skills/tanto/SKILL.md` 76,301 bytes,
+`roles/kanri.md` 97,484, `roles/keikaku.md` 22,208, `roles/jisso.md` 20,274,
+`roles/sekkei.md` 12,187; the whole skill's prose 287,489. At four bytes a
+token, a Kanri reads about **43,000 tokens of contract before its first
+word**. A Kikaku seat's first reading in the same tree was `context=80670`
+before any work at all.
+
+The figure a later diet or model-choice decision wants, and the reason the
+role-file diet (issue-cca9) is measured in bytes of prose rather than in
+sections.
+
+## What the split reviewer pair caught, and where its view is narrow (2026-09-20)
+
+Three observations from `tanto-diet`'s four content batches on the split of
+SDD's combined task-reviewer role into `task.review-spec` and
+`task.review-quality`, dispatched as two separate subagents per task.
+
+- **Real redundancy on a mechanical task.** Both reviewers of task 4
+  independently verified a byte-exact 172-line transcription against the
+  plan's own `W4.1` block by two different methods — one wrote a Python diff,
+  one did a manual line-by-line extraction and count — and reached the same
+  zero-mismatch result. The first data point in this note that shows the
+  split buying redundancy rather than doubled cost.
+- **Different things caught on the same diff.** Both task-12 reviewers and
+  both task-13 reviewers re-derived the batch's `grep` count expectations
+  from the diff's own content rather than trusting the report's printed
+  numbers; the "cannot verify from diff" items each pair raised did not
+  always overlap, even though their nominal split is spec-versus-quality.
+- **The narrow view's false alarm.** A task-11 quality reviewer raised, as a
+  warning-shaped question, whether `boundary.verify` is a `boundary.js`
+  subcommand distinct from `check`/`record`. It is not — `boundary.verify` is
+  the dispatch *kind*, and `boundary.js` has exactly two subcommands. The
+  Jisso resolved it from its own reading of the plan, without a ruling. A
+  reviewer scoped to one diff at a time has no way to settle a cross-task
+  naming question on its own, and this was the second batch in a row where
+  the narrow view produced a resolvable-but-real-looking question.
+
+issue-cb19 is the standing question these feed: the two-dispatch reviewer
+split is an inference rather than an instruction.
+
+## Four batches whose every substantive finding pointed at the plan, not the implementer (2026-09-20)
+
+The fix-round rate against task type, from `tanto-diet`'s four content
+batches, beside this note's pure-transcription figure from `bug-report-hold`.
+
+- **Batch C (tasks 8–11).** Zero fix rounds and zero Critical or Important
+  findings across all eight dispatched reviews, two per task — the highest
+  clean-run density of the three batches to that point (batch A had one fix
+  round on task 1 and two parked findings on task 2; batch B had none). All
+  four tasks were pure prose-passage applications with no new code, which may
+  be the more relevant variable than task count or reviewer count.
+- **Batch D (tasks 12–15).** The plan's largest batch by file count — task 15
+  alone touched nine files across sixteen passages — and it landed with zero
+  fix rounds across all four tasks and all eight reviews. Every finding was
+  either Minor or an Important finding explicitly traced to the plan's own
+  mandated passage text, never to a deviation by an implementer.
+
+Four batches in a row (B, C, D and the pattern's start) where the
+implementers' work was clean and every substantive finding pointed at the
+plan's authorship. At that point it stops being a batch-sizing figure and
+becomes a signal about where a passage plan's defects actually live.
+
+## One plan's boundary readings under a five-boundary deferral (2026-09-20)
+
+The per-seat context figures at every boundary of one plan — the comparison
+set a future topic's Kanri measures the new boundary procedure against. The
+ledger holds them, and the ledger is untracked.
+
+**The Jissos, each at its own boundary.** Batch A: `context=346643` (its own
+boundary reading, not directly comparable to the others). Batch B: 299295.
+Batch C: not carried in that Jisso's report line, per the ledger's own note.
+Batch D: `context=373937`, the highest of the four.
+
+**The fix wave's Jisso.** `context=349445`, far over that seat's ceiling of
+218943, and it grew substantially across the three fixes plus the
+self-caught correction. A fix wave dispatching six implementer rounds and six
+review rounds plus a direct investigation of its own costs a lot more context
+than an ordinary content batch.
+
+**The resident Kanri, across all five.** The tenure accepted its handover at
+`context=133500` and reached `context=407157` at the fix-wave boundary — a
+**Δ=273657 single-tenure growth** across four content batches, one
+whole-branch review dispatch and one fix wave, with no handover to reset the
+count. No handover ran because the ceiling was crossed at every one of the
+five boundaries while the human was away: presence was checked at 68, 106,
+144, 199 and 300 minutes since the last human turn. decision-b6cb's deferral
+exists precisely to trade this growth against stalling the run, and this is
+the first full five-boundary example of what that trade costs one resident in
+one sitting.
+
+## What a three-fix wave landing inside mandated spans cost (2026-09-20)
+
+`tanto-diet`'s fix wave, beside this note's single-clause fix-wave figure.
+Six implementer dispatches and six review dispatches across three fixes, plus
+a self-caught regression that required reverting one file and re-running the
+plan's full sixteen-task verification sweep to confirm the fix —
+substantially more dispatch overhead than any of the plan's four-task content
+batches needed.
+
+The cost came from the passage gate itself, which is what makes this figure
+different from the pre-diagnosed one above: two of the three fixes landed
+squarely inside task 8's `P8.2`, `P8.3` and `P8.4` exact-text-mandated spans,
+so a correct fix still broke `verify` and had to be reverted. A batch that
+edits inside an earlier task's mandated span is a materially different shape
+of work from one that does not, and this plan's own batch prompt did not flag
+that risk in advance for either fix. For whoever scopes the next plan's
+post-review fix wave. issue-96f2 is the standing gap: a fix wave has no
+instrument aimed at it.

@@ -80,8 +80,9 @@ plans closed, and compactions noticed by the session itself, cumulative since
 its own start; a declined handover leaves Noticed incremented, so the count
 stays a record, and a handover resets Kanri's row to the successor with zero
 counts. A reading Kanri doubted and could not verify carries `(unverified)`
-after its Compactions figure; `unavailable` stands in every reading column
-when the session sent that. At the plan close every row whose session is dead,
+after its Compactions figure; when the session sent `transcript: unavailable`,
+`—` stands in the four figure columns and `context=unavailable` in Context, so
+that a `context=` sweep still finds the row. At the plan close every row whose session is dead,
 replaced, refused, or cleared moves to `roster-archive.md`, joined with its
 status row above, and the archive's Context column across runs is the data any
 later ceiling for the roles that only measure would be read from — Kanri's and

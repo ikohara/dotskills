@@ -1,8 +1,10 @@
 # Conductor ledger — <topic>
 
 Kept by Kanri. Sekkei, Keikaku, Jisso, Kaiseki, Kikaku, and Hosa read it;
-none of them writes it. Lives at `.tanto/<topic>/kanri.md` from the topic's
-opening to the plan's close, and never moves.
+none of them writes it. The `boundary.verify` subagent Kanri dispatches at a
+boundary writes it as Kanri's hand, through `boundary.js record`, and writes
+nothing else. Lives at `.tanto/<topic>/kanri.md` from the topic's opening to
+the plan's close, and never moves.
 
 ## Progress
 
@@ -31,10 +33,15 @@ rewritten to `present` when the file lands and dropped once the spec cites it>
 ## Batches
 
 Columns: Batch, the letter; Tasks, the plan's task numbers; State, one of
-planned, sent, reported, accepted, or rework; Prompt and Report, the two file
+planned, reported, accepted, or rework; Prompt and Report, the two file
 names under `.tanto/<topic>/`; Verdict, one line — accepted, or what must
 change. One row per batch, added as the batch is planned; the placeholder row
 stays until the first one is.
+
+The boundary-verify brief writes a next batch's row as `planned` once it has
+rendered that batch's prompt file, because rendering is not sending; no
+`record` call ever writes a row `sent` — its next explicit write is
+`reported`, from that batch's own boundary's brief once its report lands.
 
 | Batch | Tasks | State | Prompt | Report | Verdict |
 | --- | --- | --- | --- | --- | --- |
@@ -91,7 +98,12 @@ ledger of the topic that raised it, never a compound value.
   sent, a `queued: <n>` answered, a `no-role` received; a replace and the human's
   answer; a handshake accepted or refused; a session declared dead and what was
   verified; a recovery after a VS Code restart; a handover written or accepted;
-  an exit proposal form-checked and its
+  a peer line you received and did not answer in the same turn, as
+  `unanswered: <from> — <line>`, paired with `answered: <from> — <line>`
+  when it is answered, both written through `record --event`, which ends a
+  line it writes at a boundary with `(batch <X>)` so that the same event in
+  two batches is two lines and twice in one batch is one; an exit
+  proposal form-checked and its
   rows recorded, or an exit shoroku not run and what was lost; a human access
   grant and the human-access: done line that
   closed it; a human-contact: line and what was said>
@@ -112,18 +124,20 @@ ledger of the topic that raised it, never a compound value.
 | top-family one-shots per plan, counted by kind | <YYYY-MM-DD, the plan close> | <one count per kind dispatched on the top family> |
 | each role's last reading | <YYYY-MM-DD, the plan close> | <the roster's Residency figures, copied, one role per line> |
 | the day's cost, uncached input, cache miss, cache hit, and hit rate | <YYYY-MM-DD> | <the five figures as the human pastes them from the Claude Code Usage extension> |
-| Kanri's context at the topic's opening and at the plan's landing, then Kanri's at each boundary with the delta per batch, and each Jisso's at its own boundary | <YYYY-MM-DD, each check> | <opening: kanri context=<n>; landing: kanri context=<n> (+<d>); batch letter: kanri context=<n> (+<d>), jisso <name> context=<n>>, one entry per check |
+| Kanri's context at the topic's opening and at the plan's landing with the landing's delta, then Kanri's and each Jisso's at each boundary with the cache regime | <YYYY-MM-DD, each check> | <opening: kanri context=<n>; landing: kanri context=<n> (+<d>); batch <X>: kanri context=<n>, jisso context=<n>, ttl=<v>>, entries separated by `;` — the opening and the landing written by Kanri, every `batch <X>` entry by `boundary.js record`, which replaces its own batch's entry and leaves every other entry alone |
 | deferrals: where, the context, and the presence verdict | <YYYY-MM-DD, the check> | <batch letter or stage, context=<n>, last human turn <m> min ago>, one entry per deferred handover, or `none` |
 | the share of usage at context over the threshold | <YYYY-MM-DD, the plan close> | <the share line, the names it ran over> |
 
-These seven rows are fixed and always present. Kanri fills the first at the
+These seven rows are always present; the rows the last paragraph adds sit
+below them. Kanri fills the first at the
 plan close from this ledger's Session events, where it writes one line each
 time a second top-family session goes live; the second by counting those same
 events' one-shot lines by kind and not by stage, since one kind is dispatched
 at several stages; the third by copying the roster's Residency rows; the
 fourth from what the human pastes. The fifth is filled at the topic's opening
-(Start step 5), at the plan's landing, and at every boundary from the two
-readings of loop step 6; the sixth at any deferred handover, in whichever
+(Start step 5), at the plan's landing, and at every boundary by
+`boundary.js record`, from the two readings the boundary's dispatch carried;
+the sixth at any deferred handover, in whichever
 stage, and carries `none` when a plan's Kanri never deferred; the seventh at
 the plan close from `reading.js --share`, with the sessions it ran over and the
 ones it skipped. The fifth and sixth are the record

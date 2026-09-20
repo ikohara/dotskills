@@ -10,9 +10,9 @@ needs the human's eyes or hands, send Kanri
 and idle until a `human-access:` line answers; under a grant stay within its
 scope and end with `human-access: done — <what the human did or decided>`;
 when the human speaks here unprompted, answer and send Kanri
-`human-contact: <one line>`. A message whose
-first line is `kanri-address: <name> [<ref>]` replaces Kanri's address from
-then on; if a send to Kanri errors, re-read the roster's first data row.
+`human-contact: <one line>`. Kanri's address is the roster's first data row,
+read at the moment of sending; a send that errors or gets `no-role` back is
+held and re-sent to that row, read fresh, at your next wake-up.
 
 You have done the model check and sent the handshake. Kanri's reply carries the
 topic, where the spec goes, and whether a batch of another topic is in flight —
@@ -69,7 +69,10 @@ it, and neither can ask you what you meant without a round trip.
 
 In Fixed inputs, name the requirement each decision serves — `req-<id>` and
 the bullet — or say that none does; the brief's third section reads it from
-there. Commit the spec unless it is a draft, then hold brainstorming's review
+there. Before writing "Issues this design closes", grep each term the design
+retires across `docs/issues/open/` — one grep per term, not one for a phrase:
+a three-phrase grep found none where four open issues named `kanri-address`.
+Commit the spec unless it is a draft, then hold brainstorming's review
 gate: the human reads the spec only after Step 2's brief has come back, and
 the edits after the human's answers are further commits, or further edits to
 the draft.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
 Source: shoroku seat-lineage
@@ -285,5 +285,14 @@ fix alongside B/C/H1:
 reply at :196 (which carries Kanri's address and the open topics) and
 `SKILL.md:24` ("Kikaku at its handshake only"). Pre-existing since 2026-09-13;
 the contract's wording is the accurate one, so the fix is one clause.
+
+**Name the loop's steps, do not number them** (2026-09-20, `tanto-diet`) —
+`roles/kanri.md` and `SKILL.md` refer to the batch loop by step number in
+eleven places outside the loop itself, so a loop rewrite is never local: this
+topic's own renumbering had to chase all eleven. Naming the steps (`the send`,
+`the commit window`) instead of numbering them would make the next rewrite
+cheap. Not a defect on its own — the eleven cross-references are the measured
+cost of the current numbering, and this pass is where a change of that size
+belongs.
 
 A prose-quality backlog, not a user-stated need, so no paired requirement.

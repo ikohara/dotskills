@@ -9,9 +9,9 @@ anything beyond that grant that needs the human's eyes or hands, send Kanri
 and idle until a `human-access:` line answers; under a grant stay within its
 scope and end with `human-access: done — <what the human did or decided>`;
 when the human speaks here unprompted, answer and send Kanri
-`human-contact: <one line>`. A message whose first line is
-`kanri-address: <name> [<ref>]` replaces Kanri's address from then on; if a
-send to Kanri errors, re-read the roster's first data row.
+`human-contact: <one line>`. Kanri's address is the roster's first data row,
+read at the moment of sending; a send that errors or gets `no-role` back is
+held and re-sent to that row, read fresh, at your next wake-up.
 
 You have done the model check and sent the handshake. Kanri asked for you at
 the boundary "the spec review is accepted", and its orders line carries the
@@ -81,7 +81,12 @@ When the spec is already committed, the branch exists and you continue on it.
 
 Dispatch a drafter on `plan.draft`, naming `subagent_type: tanto-plan-draft`
 and its `model` together, to write the plan from the spec with superpowers
-writing-plans. Then add, yourself:
+writing-plans. Name in that dispatch the four block shapes below — `P`, `A`,
+`O`, and `W` for a file the plan creates — and the `replay-skip:` declarations
+this repository's plans carry (`./scripts/lint.sh`, `node --test`, any fixture
+the scratch tree cannot hold): a drafter given only the passage syntax has no
+reason to ask for either, and each omission cost one resume round at
+`tanto-diet`. Then add, yourself:
 
 - the **Global Constraints** section the batch prompts are built from — the
   repo's `AGENTS.md` rules, the concrete model families from `tanto.json`, and
@@ -137,7 +142,11 @@ writing-plans. Then add, yourself:
 
 Name those sections exactly as they are named here, and the Self-Review with
 them: `frame --stage 1` finds them by their headings, and a plan's frame is
-what Kanri reads in place of the plan.
+what Kanri reads in place of the plan. End "How a batch is verified" with a
+`##` heading of its own (`## Tasks`, say) before the first `### Task`: `frame`
+bounds a section at the next heading of equal or shallower depth, and a plan
+whose tasks nest directly under that section prints whole — 5,552 lines and
+about 93,000 tokens into the reading Kanri's context, at `tanto-diet`.
 
 A plan that carries passages rather than whole files wraps each new passage
 at its destination file's column, chosen when the block is authored, and
@@ -149,6 +158,11 @@ plan is machine-checkable and not only readable:
   the old block, then `**P<task>.<n> →**` and the new block; an insertion says
   `insert after these <N> lines` and its new block omits the anchor lines,
   because an insertion's anchor stays;
+- a file the plan creates is ``**W<task>.<n>** `<path>` — new file, <N> lines``
+  and one fence holding the whole file; `replay` copies no base for a `W`
+  path, so a new file written as plain fenced code without this lead fails
+  `replay --base` at exit 2 (`git show main:… does not exist`) rather than at
+  a lint error;
 - an anchor step is
   ``**A<task>.<n>** `<path>` — `<command>` — before: <v>, after: <v>``, both values
   stated always: an anchor check inverts only when the new passage wholly

@@ -18,6 +18,7 @@
     "plan.coldread": { "model": "fable", "effort": "high" },
     "spec.review": { "model": "fable", "effort": "high" },
     "branch.review": { "model": "fable", "effort": "high" },
+    "boundary.verify": { "model": "sonnet", "effort": "high" },
     "brief.write": { "model": "sonnet", "effort": "high" },
     "shoroku.recommend": { "model": "fable", "effort": "high" },
     "shoroku.apply": { "model": "opus", "effort": "medium" },

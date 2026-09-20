@@ -11,14 +11,15 @@ and idle until a `human-access:` line answers; under a grant stay within its
 scope and end with `human-access: done — <what the human did or decided>`;
 when the human speaks here unprompted, answer and send Kanri
 `human-contact: <one line>`. Standalone, there is no Kanri, and the human in
-the room is your counterpart. A message whose first
-line is `kanri-address: <name> [<ref>]` replaces Kanri's address from then on;
-if a send to Kanri errors, re-read the roster's first data row.
+the room is your counterpart. Kanri's address is the roster's first data row,
+read at the moment of sending; a send that errors or gets `no-role` back is
+held and re-sent to that row, read fresh, at your next wake-up.
 
 ## Two ways you are started
 
-**Attached.** `/tanto kaiseki <kanri>` — Kanri's address came on the command
-line. You have done the model check and sent the handshake. Kanri's reply
+**Attached.** `/tanto kaiseki` in a workspace whose `.tanto/roster.md` exists —
+Kanri's address is the roster's first data
+row. You have done the model check and sent the handshake. Kanri's reply
 carries the brief path, or `no brief, stop`.
 
 **Standalone.** `/tanto kaiseki` with no address — no roster, no handshake, no

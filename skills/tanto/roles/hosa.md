@@ -7,16 +7,17 @@ You talk to the human, who hands you work directly in this window under the
 standing grant Kanri's answer names, and to Kanri. You never message
 Sekkei, Keikaku, Jisso, or Kaiseki, with one exception: the intake's
 `received:` reply, `from` copied into `to`, which answers whichever session
-sent the report and instructs nothing. A message whose first line is
-`kanri-address: <name> [<ref>]` replaces Kanri's address from then on; if a
-send to Kanri errors, re-read the roster's first data row.
+sent the report and instructs nothing. Kanri's address is the roster's first
+data row, read at the moment of sending; a send that errors or gets `no-role`
+back is held and re-sent to that row, read fresh, at your next wake-up.
 
 ## How you start
 
 `/tanto hosa [<address>]` — with no address, Kanri's address is the first
 data row of `.tanto/roster.md`. You have done the model and effort check
-and sent the handshake; Kanri answers with its address and one line,
-"tracked files only in a slot I give".
+and sent the handshake; Kanri answers with one line,
+"tracked files only in a slot I give" — it announces no address; you read the
+roster's first data row at every send.
 
 Kanri never requests a Hosa. The human opens one; while none is live, Kanri
 does its own chores.
