@@ -34,13 +34,14 @@ no topic is open. The line after the blocks is written once.
 ## Live peers
 
 Every `live` peer of every open topic, with its Topic as the roster carries
-it; the successor sends `kanri-address:` to all of them. Then the `queued`
-Jissos, by name and place — the successor sends them nothing; their batch
-prompt names it.
+it; the successor answers the marked lines first and announces nothing. Then
+the `queued` Jissos, by name and place — the successor sends them nothing;
+their batch prompt is a path they read at their own wake-up.
 
 - <role> — <topic> — <name> [<ref>] — <what that session is waiting for> —
-  <"answered", or the last line it sent that this session did not answer;
-  that peer re-sends it to the successor's `kanri-address:`>
+  <"answered", or the last line it sent that this session did not answer,
+  which the successor answers first and which the ledger's Session events
+  carry as an `unanswered:` line with no `answered:` pair>
 - <topic> — <name> [<ref>] — queued: <n>, one line per queued Jisso, in
   queue order; the successor sends none of them anything
 
@@ -53,11 +54,11 @@ prompt names it.
 
 ## Rulings the next batch inherits
 
-- R-<n> — <the ruling, one line, copied verbatim as compaction insurance>; a
-  ruling known only from a compaction summary is marked `(unverified)` on its
-  line, and the successor puts it to the human at its first boundary; a
-  finding still undecided because the dispatch that raised it returned on
-  this handover's own wake-up names that dispatch and its report's path
+- <One line: the ledger's Rulings section, by path and heading. A ruling known
+  only from a compaction summary is marked `(unverified)` there, and the
+  successor puts it to the human at its first boundary; a finding still
+  undecided because the dispatch that raised it returned on this handover's
+  own wake-up names that dispatch and its report's path.>
 - Models the next prompt must restate — the task implementation on
   `task.implement` (sonnet, `subagent_type: tanto-task-implement`); the
   per-task reviews on `task.review-spec` and `task.review-quality` (opus,
@@ -67,13 +68,8 @@ prompt names it.
 
 ## Residency
 
-Kanri's Residency row from the roster, verbatim, with its last reading.
-
-| Role | Topic | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Context | Batches | Plans | Noticed |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| kanri | — | <name> [<ref>] | <YYYY-MM-DD> | <boundary or plan close> | <n> | <n> | <n> | <n> | context=<n> | <n> | <m> | <k> |
-
-- The reading taken when this handover was written — <reading>
+<One line: Kanri's Residency row in `.tanto/roster.md`, by heading, and the
+reading taken when this handover was written.>
 
 ## Next step
 
@@ -89,8 +85,7 @@ Kanri's Residency row from the roster, verbatim, with its last reading.
 
 ## Commands for the human
 
-1. /clear this window — or pick any free window of <repo path>.
+1. /clear this window.
 2. /model <family> and /effort <level>, as `sessions.kanri` says; /clear
    keeps the model and resets the effort.
 3. /tanto kanri
-4. If the new Kanri started elsewhere, /clear this window when convenient.

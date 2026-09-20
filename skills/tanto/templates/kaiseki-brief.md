@@ -36,5 +36,5 @@ Kanri first.>
 ## Report
 
 Write `.tanto/<topic>/kaiseki-<n>.md` from the tanto skill's
-`templates/kaiseki-report.md`, then send `<kanri-address>` one line with its
-path.
+`templates/kaiseki-report.md`, then send the roster's first data row, read at
+that moment, one line with its path.

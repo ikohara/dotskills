@@ -5,8 +5,8 @@ Sent as the one line `batch: <path>` naming this file. The file carries no
 
 Guard — this prompt belongs to the tanto workspace `.tanto/<topic>/` in
 `<repo path>` on branch `<branch>`, and to the Jisso named above. If that is
-not your workspace or your name, reply `not me` to `<kanri-address>` and
-stop.
+not your workspace or your name, reply `not me` to the roster's first data
+row, read at that moment, and stop.
 
 ## Previous batch verdict
 
@@ -69,6 +69,7 @@ boundary, write the report and go idle.
 ## Report
 
 Write `.tanto/<topic>/batch-<X>-report.md` from the tanto skill's
-`templates/batch-report.md`, then send `<kanri-address>` one line with its
+`templates/batch-report.md`, then send the roster's first data row, read at
+that moment, one line with its
 path. Kanri reads these sections first, in this order — For Kanri, Rulings,
 Questions for the human, Deviations from the plan.

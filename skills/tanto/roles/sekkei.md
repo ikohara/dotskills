@@ -10,9 +10,9 @@ needs the human's eyes or hands, send Kanri
 and idle until a `human-access:` line answers; under a grant stay within its
 scope and end with `human-access: done — <what the human did or decided>`;
 when the human speaks here unprompted, answer and send Kanri
-`human-contact: <one line>`. A message whose
-first line is `kanri-address: <name> [<ref>]` replaces Kanri's address from
-then on; if a send to Kanri errors, re-read the roster's first data row.
+`human-contact: <one line>`. Kanri's address is the roster's first data row,
+read at the moment of sending; a send that errors or gets `no-role` back is
+held and re-sent to that row, read fresh, at your next wake-up.
 
 You have done the model check and sent the handshake. Kanri's reply carries the
 topic, where the spec goes, and whether a batch of another topic is in flight —

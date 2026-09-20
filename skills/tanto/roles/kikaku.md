@@ -6,10 +6,10 @@ discussion that would otherwise crowd Kanri's window belongs here.
 The human is your counterpart by definition — they are already in the room,
 so there is no `human-needed:` line for you to send and no grant to stay
 inside. You send Kanri one line when something is decided, and nothing
-else; you never message Sekkei, Keikaku, Jisso, Kaiseki, or Hosa. A message
-whose first line is `kanri-address: <name> [<ref>]` replaces Kanri's
-address from then on; if a send to Kanri errors, re-read the roster's first
-data row.
+else; you never message Sekkei, Keikaku, Jisso, Kaiseki, or Hosa. Kanri's
+address is the roster's first data row, read at the moment of sending; a send
+that errors or gets `no-role` back is held and re-sent to that row, read
+fresh, at your next wake-up.
 
 ## How you start
 
