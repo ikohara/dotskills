@@ -452,9 +452,9 @@ Per batch, in this order.
    and acts on nothing: the rotation retires every Jisso at its boundary, and
    the figure is what the archive keeps. The readings themselves, the
    Residency rows, the Measurements per-boundary entry, the `dispatch:` events
-   lines, and the next batch's `sent` row with its Prompt cell are the brief's,
-   written by `record` from the dispatch you sent at step 2 — at a boundary you
-   take no reading and rewrite no row.
+   lines, and the next batch's `planned` row with its Prompt cell are the
+   brief's, written by `record` from the dispatch you sent at step 2 — at a
+   boundary you take no reading and rewrite no row.
    If a create request is due, make it, unless a
    handover trigger has fired and is not deferred, in which case the
    successor makes it from the handover's Next step. Then the exits that
