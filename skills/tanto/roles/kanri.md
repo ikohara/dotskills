@@ -347,15 +347,15 @@ Then, in this order.
    be present to re-queue released windows — except on a plan naming its
    final boundary as the safe one (rule 11), which asks for the full N
    instead.
-5. Answer each handshake `queued: <n>` with a `queued` row. When the first
-   is queued, write batch A's prompt from `templates/batch-prompt.md` —
-   addressed to that Jisso, `First batch, no previous verdict.` in its
-   previous-batch-verdict section, the first-Jisso line in its Setup on
-   resume — save it as `.tanto/<topic>/batch-A-prompt.md`, send that name
-   the one line `batch: .tanto/<topic>/batch-A-prompt.md` with the `no-role`
-   line after it, without an idle subscription, and mark its row
-   `live`. The later handshakes arrive while batch A runs and are queued
-   the same way; batch A does not wait for them.
+5. Answer each handshake `queued: <n>` with a `queued` row. When the first is
+   queued, write batch A's prompt from `templates/batch-prompt.md` — addressed
+   to that Jisso, `First batch, no previous verdict and no check: line.` in its
+   previous-batch-verdict section, the first-Jisso line in its Setup on resume
+   — save it as `.tanto/<topic>/batch-A-prompt.md`, send that name the one line
+   `batch: .tanto/<topic>/batch-A-prompt.md` with the `no-role` line after it,
+   without an idle subscription, and mark its row `live`. The later handshakes
+   arrive while batch A runs and are queued the same way; batch A does not wait
+   for them.
 6. Enter the batch loop below at step 1.
 
 ## The batch loop
@@ -571,13 +571,17 @@ Per batch, in this order.
    ```
 
    It carries the Batches row's state and verdict your ruling gives, the
-   Progress line, the Status changes this boundary decided — the retiring
-   Jisso `cleared`, the Jisso you have just sent `live`, a seat released at
-   step 4 `cleared` — one `--s-item` per item of an exit proposal step 4
-   form-checked, and `--deferred` when step 4's ruling was a deferral. That
-   call is the whole of your table writing: at a boundary no table is edited
-   by hand, the deferrals entry included. A batch returned for rework is a
-   prompt you write yourself from the same template, for the same Jisso, and
+   Progress line, the Status changes this boundary decided — the retiring Jisso
+   `cleared`, the Jisso you have just sent `live`, a seat released at step 4
+   `cleared` — one `--s-item` per item of an exit proposal step 4 form-checked,
+   and `--deferred` when step 4's ruling was a deferral. A peer line this turn
+   received and did not answer in the same turn also goes into this same
+   `record` call, as `--event 'unanswered: <from> — <line>'`. Between plans,
+   with no ledger open for `record`'s `--ledger` to take, write that same
+   `unanswered: <from> — <line>` line to the roster's Events by hand instead.
+   That call is the whole of your table writing: at a boundary no table is
+   edited by hand, the deferrals entry included. A batch returned for rework is
+   a prompt you write yourself from the same template, for the same Jisso, and
    send the same way.
    When the queue is empty, the Create table's Jisso row's request goes out
    instead — one window, queued by the same `/tanto jisso` — and the
