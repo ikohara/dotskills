@@ -107,10 +107,11 @@ Three maps, three mechanisms. Every value of the first two maps is
   a session's model or its effort.
 - `subagents.<kind>` is **effective**. Its `model` goes into the `model`
   parameter of every subagent that role dispatches, and its `effort` into the
-  agent definition below. The thirteen kinds are `task.implement`,
+  agent definition below. The fourteen kinds are `task.implement`,
   `task.escalate`, `task.review-spec`, `task.review-quality`, `plan.draft`,
   `plan.review`, `plan.coldread`, `spec.review`, `branch.review`,
-  `brief.write`, `shoroku.recommend`, `shoroku.apply`, and `default`.
+  `boundary.verify`, `brief.write`, `shoroku.recommend`, `shoroku.apply`, and
+  `default`.
 - A key inside `subagents` whose `<object>` is a **skill name** and whose
   `<act>` is one of that skill's modes means "run that mode of the skill in a
   subagent on that model instead of inline". When the key is absent, the mode
@@ -150,7 +151,9 @@ per-kind rather than off one ladder: the one-shot kinds a topic pays for
 once — `plan.review`, `plan.coldread`, `branch.review`, `spec.review`,
 `shoroku.recommend` — buy the top family, and the resident seats that carry
 a whole plan or session — Kanri, Sekkei, Keikaku, Jisso, Hosa — run on the
-cheaper families, with Sekkei's effort alone raised to `max`. Kikaku, which
+cheaper families, with Sekkei's effort alone raised to `max`. The
+resident-side `boundary.verify`, dispatched once per batch boundary in
+Kanri's place, runs there too, at `high`. Kikaku, which
 the human paces and rule 9 excepts, and Kaiseki, opened on demand, are the
 two seats that stay on the top family regardless. The ladder
 `fable > opus > sonnet > haiku` (as of 2026-09) still orders the families
@@ -184,7 +187,7 @@ A kind's effort cannot ride in a dispatch; it rides in an agent definition,
 which the harness reads when a session starts. So, after reading the merged
 config and before any other work, make two passes.
 
-**User scope.** Write for each of the thirteen kinds the file
+**User scope.** Write for each of the fourteen kinds the file
 `~/.claude/agents/tanto-<object>-<act>.md` — the kind's name with its `.`
 turned into a `-`, under `$CLAUDE_CONFIG_DIR/agents/` when that variable is
 set — from `templates/agent.md`, when the file is absent or its content
@@ -200,7 +203,7 @@ identically for the same personal file, and it is what keeps the user-scope
 files stable across repositories: a project's effort written where every other
 project reads it is the failure this whole mechanism exists to prevent.
 
-**Project scope.** Then compute, for each of the thirteen kinds, the three-layer
+**Project scope.** Then compute, for each of the fourteen kinds, the three-layer
 effort. For every kind whose three-layer effort **differs** from the
 user-scope effort, write `<cwd>/.claude/agents/tanto-<object>-<act>.md` from
 the same template with that effort and with the `<scope>` slot rendered as
@@ -212,7 +215,7 @@ rides in the dispatch's own `model` parameter, and a definition carries none.
 For every kind whose three-layer effort does **not** differ, remove
 `<cwd>/.claude/agents/tanto-<object>-<act>.md` if it exists. That removal
 sweep runs whenever `<cwd>/.claude/agents/` exists, whether or not a project
-file does, and only those thirteen names and the retired `tanto-shoroku.md`
+file does, and only those fourteen names and the retired `tanto-shoroku.md`
 are ever removed — nothing else under
 that directory is touched. Without it, a project file edited to drop an effort
 would leave a project-scope copy that keeps winning while your start line
@@ -235,7 +238,7 @@ assume every tool. The description is protocol against the harness's
 proactive agent selection, not enforcement.
 
 Then read your own system prompt's list of available agent types and count
-the thirteen names in it, and among them the ones whose description carries the
+the fourteen names in it, and among them the ones whose description carries the
 project-scope clause. A definition written during a session is not visible to
 that session at either scope, so the first session on a machine that writes
 them dispatches without them, and a project effort takes effect from the
@@ -255,7 +258,7 @@ fields came from the personal file, and that the rest are built-in defaults,
 or `all keys built-in defaults` when both files are absent; the unknown keys,
 each named with its file; the ladder result if the check failed; and
 `agents: <n> current, <m> written, <k> not visible to this session; project: <p> current, <q> written, <r> removed, <s> in effect`,
-with `<s>` the number of the thirteen names whose description in this session's
+with `<s>` the number of the fourteen names whose description in this session's
 own agent list carries the project-scope clause, and with the kinds named when
 `<k>` is above zero. The `project:` half is printed even when all four of its
 numbers are zero, so that a start line always says which scope the session
@@ -432,7 +435,14 @@ set in the same tool call as the command**:
 node "$TANTO/scripts/reading.js" "$T"
 ```
 
-That prints two lines always: the reading, then the effort. Three more are
+That prints three lines always: the reading, the effort, then
+`ttl=5m|1h|unknown`, which says which cache regime the session is in: among
+the wake-ups whose gap since the previous record is between 5 and 60 minutes,
+the most recent one decides, cold reading `5m` and warm `1h`, and no such
+wake-up yet reading `unknown`. That line travels nowhere by itself — the
+reading appended to a boundary or an exit line is the first line only — and
+reaches a reader through the boundary's verdict file and the ledger's
+Measurements per-boundary entry. Three more are
 printed only when asked for, and the sections that ask name the switch:
 `--role kanri|jisso` prints the ceiling line, `--presence` the human line, and
 `--backstop` the auto-compact line, which needs `--role` because its verdict is
@@ -953,18 +963,19 @@ signal says, and continues.
 | the plan, at the path the orders line names — by default `docs/superpowers/plans/<date>-<topic>.md` | Keikaku | Kanri, Jisso | the plan; committed; carries Global Constraints, a Batches section, and how a batch is verified |
 | `.tanto/roster.md` | Kanri | all roles; a bug-report sender, its live Hosa row or its first data row | one row per session that handshook — a plan's queued Jissos included |
 | `.tanto/roster-archive.md` | Kanri | Kanri | from `templates/roster-archive.md`; the roster's dead, replaced, refused, and cleared rows with their last readings, and the closed plans' Events lines, appended at each plan close |
-| `.tanto/kanri-handover.md` | the outgoing Kanri | the successor Kanri | the handover; deleted by the successor once accepted |
+| `.tanto/kanri-handover.md` | the outgoing Kanri | the successor Kanri | the handover; deleted by the successor once accepted. In flight, Live peers, and Not reconstructed in full; the rest pointers |
 | `.tanto/inbox/<date>-<slug>.md` | the intake — a live Hosa, else Kanri | the close's recommender, by path; the apply, for the Triage section | a bug report received, under the sender's basename, with its Received line; its Triage section is filled by the close's apply and marks the copy triaged |
 | `.tanto/sent/<date>-<slug>.md` | the session that noticed the defect — any role, or Hosa from the human's words | the intake of the target workspace, by the path the `bug-report:` line carries | a bug report sent, from `templates/bug-report.md`; kept, never deleted by a rule |
 | `.tanto/inbox-<date>-recommendation.md`, `-brief.md`, `-direction.md` | the between-plans inbox sweep's recommender, and Kanri or Hosa for the direction | Kanri, the human, the apply | the sweep's three files when no topic is open, beside the roster |
 | `.tanto/kikaku/<YYYY-MM-DD>-<slug>.md` | Kikaku | Kanri | one decision from the human's consultation, from `templates/kikaku-decision.md`; named to Kanri as `decision: <path>`, and from there the next topic's input document, an `I-n`, an `S-n` source, or a stage's Check answer |
-| `.tanto/<topic>/kanri.md` | Kanri | Sekkei, Keikaku, Jisso, Kaiseki, Kikaku, Hosa | the conductor ledger; it never moves |
+| `.tanto/<topic>/kanri.md` | Kanri, or the `boundary.verify` subagent it dispatches, through `boundary.js record` | Sekkei, Keikaku, Jisso, Kaiseki, Kikaku, Hosa | the conductor ledger; it never moves |
 | `.tanto/<topic>/spec-inputs.md` (optional) | Kanri | Sekkei | scope inputs the human gave Kanri during spec work, numbered `I-n`, each with Kanri's advisory notes |
 | `.tanto/<topic>/dialogue.md` | Sekkei | Kanri, the brief writer, the close's recommender | the spec dialogue: each question Sekkei put and the human's answer, verbatim, in order |
 | `.tanto/<topic>/review-brief-spec.md`, `.tanto/<topic>/review-brief-plan.md` | the brief writer the document's author dispatches | the author, then the human; Kanri by the path in `review-ready:` | the review brief, from `templates/review-brief.md`, in the chat's language |
 | `.tanto/<topic>/plan-dryrun.md` | Keikaku | the plan reviewer, Kanri | from `lint` and `replay` — the two commands, each one's output, and Keikaku's ruling on every failure |
 | `.tanto/<topic>/coldread.md` | the `plan.coldread` subagent Kanri dispatches | Kanri, by `sections` | the cold read of the committed plan: a numbered list of open questions, or `none`; Kanri sends Keikaku one numbered message carrying all of them, or `coldread: none`, and Keikaku answers with one `coldread answered:` line |
-| `.tanto/<topic>/batch-<X>-prompt.md` | Kanri | the Jisso it names, human | the same text as the `SendMessage`, so the human can paste it if the message did not arrive |
+| `.tanto/<topic>/batch-<X>-prompt.md` | the `boundary.verify` subagent, from `templates/batch-prompt.md`; Kanri for its three `<Kanri fills>` slots and for a rework prompt | the Jisso it names, human | the prompt; sent as the one line `batch: <path>`, which the human pastes if the message did not arrive |
+| `.tanto/<topic>/batch-<X>-verdict.md` | the `boundary.verify` kind Kanri dispatches | Kanri, by `sections` | the boundary's verdict: ten fixed sections, and an eleventh, `Measurement`, when the batch carried a measurement task |
 | `.tanto/<topic>/batch-<X>-report.md` | the Jisso of that batch | Kanri; the close's recommender, its Shoroku proposal section by path and item | fixed skeleton; its Shoroku proposal section is that Jisso's exit shoroku |
 | `.tanto/<topic>/kaiseki-<n>-brief.md` | Kanri | Kaiseki | fixed skeleton |
 | `.tanto/<topic>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
@@ -982,28 +993,36 @@ signal says, and continues.
 | `~/.claude/agents/tanto-*.md`, or `$CLAUDE_CONFIG_DIR/agents/` when that variable is set | every role at its start, from the built-in and personal layers | the harness, at the next session start | one definition per kind, from `templates/agent.md`; a definition is dispatchable only from the sessions started after it was written |
 | `<cwd>/.claude/agents/tanto-*.md`, and `<cwd>/.claude/agents/.gitignore` beside them | every role at its start, for the kinds whose effort the project file changes | the harness, at the next session start; git | the project-scope definitions, from the same template with its `<scope>` clause rendered; the `.gitignore` holds `tanto-*.md` and `.gitignore`, is written once and never overwritten |
 
-Templates are copied and filled, never restated in prose. Fourteen of them:
+Templates are copied and filled, never restated in prose. Fifteen of them:
 `templates/roster.md`, `templates/roster-archive.md`, `templates/kanri.md`,
 `templates/kanri-handover.md`, `templates/bug-report.md`,
 `templates/batch-prompt.md`, `templates/batch-report.md`,
-`templates/kaiseki-brief.md`, `templates/kaiseki-report.md`,
-`templates/review-brief.md`, `templates/shoroku-brief.md`,
-`templates/tanto.json`, `templates/kikaku-decision.md`, and
-`templates/agent.md`.
+`templates/boundary-brief.md`, `templates/kaiseki-brief.md`,
+`templates/kaiseki-report.md`, `templates/review-brief.md`,
+`templates/shoroku-brief.md`, `templates/tanto.json`,
+`templates/kikaku-decision.md`, and `templates/agent.md`.
 
-The skill also ships two executables. `scripts/passage-check.js` is the
+The skill also ships three executables. `scripts/passage-check.js` is the
 instrument a plan that carries passages checks itself with, run by Keikaku in
-place of an agent dry run, by Jisso at every batch boundary, by Kanri at every
-boundary it rules on, and by the whole-branch reviewer; its seven subcommands
+place of an agent dry run, by Jisso at every batch boundary, by the
+`boundary.verify` subagent at every boundary in Kanri's place, and by the
+whole-branch reviewer; its seven subcommands
 are `lint`, `replay`, `diff`, `verify`, `sections`, `frame`, and `boundary`,
 and `roles/keikaku.md`, `roles/jisso.md` and `roles/kanri.md` name them.
 `scripts/reading.js` is the instrument every role measures itself with, run at
-every boundary and every exit; its two forms are the reading of one transcript
+every boundary and every exit; it prints three lines always, and its two forms
+are the reading of one transcript
 — with `--role kanri|jisso`, `--presence` and `--backstop` each adding a line,
 and `--now`, `--config`, `--project-config` and `--settings` fixing what the
 tests and a verifying Kanri need fixed — and `--share` over several
 transcripts, which Kanri runs at
-the plan close. Both are Node with no dependencies, and both have their tests
+the plan close. `scripts/boundary.js` is the boundary's own instrument, run by
+the `boundary.verify` subagent Kanri dispatches — and, under the shape 2 the
+tanto-diet design leaves as a seam, by a headless session running the same
+brief; its two subcommands are `check`, which runs the boundary's read-only
+commands and prints their output under fixed headings, and `record`, which
+writes the ledger's and the roster's rows idempotently.
+All three are Node with no dependencies, and all three have their tests
 beside them, run by `node --test`. Their paths are written skill-relative,
 like every other path in
 this skill, and the role files spell the runnable form `$TANTO`: set it to the
@@ -1030,7 +1049,9 @@ its path.
    directions are the only channel. Every role is on it, not only the ones on
    the top family — Keikaku and Hosa hand over files as the others do.
 3. State in files, not in memory: the roster and the ledgers. Memory holds at
-   most a pointer to them. A role's authority is this file, its role file,
+   most a pointer to them. A subagent Kanri dispatches to a boundary writes
+   the ledger and the roster as Kanri's hand, through `boundary.js record`,
+   and nothing else. A role's authority is this file, its role file,
    Kanri's lines, and the batch prompts; a project memory rule that would add
    a dispatch or a document is put to Kanri as one line before it is acted
    on, since the same memory is loaded by every session in the repository.
