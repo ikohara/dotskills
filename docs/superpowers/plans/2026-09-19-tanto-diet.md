@@ -449,20 +449,23 @@ fails the run and leaves the change unstaged — re-stage and re-run, as
   `skills/tanto/templates/kanri.md` and `skills/tanto/templates/roster.md` as
   its ledger and roster fixtures — so a change to a fixed table's shape in
   either template fails here first.
-- Produces: the behaviour task 2 implements, stated as assertions. Eighteen
-  tests — seven for `check` (the `check:` line and its headings; the report
-  header read for Jisso's reading and not its body; the five report sections;
-  `## measurement` and `## kanri reading` present only when asked for; exit 2
-  on an unnamed argument and on an absent path; the unknown-subcommand usage
-  line) and eleven for `record` (a second run changing nothing and printing
-  the same rows; the Batches row and the placeholder it displaces; a second
-  call rewriting only the cells its arguments name; a State the table does not
-  name refused with nothing written; the `S-n` counter reading the table it
-  appends to; the Measurements entry replacing its own batch and leaving
-  another batch's alone; the Progress line replaced whole and the Session
-  events line written once; a Residency row appended once then rewritten in
-  place; a peer reading and a status; a heading it cannot find; a file's own
-  line ending kept).
+- Produces: the behaviour task 2 implements, stated as assertions.
+  Twenty-three tests — eight for `check` (the `check:` line and its headings;
+  that only `boundary` gates the verdict word while `diff` prints but never
+  flips it; the report header read for Jisso's reading and not its body; the
+  five report sections; `## measurement` and `## kanri reading` present only
+  when asked for; exit 2 on an unnamed argument and on an absent path; the
+  unknown-subcommand usage line) and fifteen for `record` (a second run
+  changing nothing and printing the same rows; the Batches row and the
+  placeholder it displaces; a second call rewriting only the cells its
+  arguments name; a State the table does not name refused with nothing
+  written; the `S-n` counter reading the table it appends to; the Measurements
+  entry replacing its own batch and leaving another batch's alone; the
+  Progress line replaced whole and the Session events line written once; a
+  Residency row appended once then rewritten in place; a peer reading and a
+  status; a heading it cannot find; a file's own line ending kept; the same
+  event in two batches landing twice and twice in one batch landing once; an
+  event-only call leaving the Batches table alone; `--prompt`; `--deferred`).
 
 **Why the split here is by file, and why this task ends red.** `replay` copies
 every path a `P`, `A`, or `O` block names out of the merge base, and a path
@@ -489,7 +492,7 @@ sentence on disk; the executables count that `boundary.js` changes is task 2's
 
 **Whole file:**
 
-**W1.1** `skills/tanto/scripts/boundary.test.js` — new file, 481 lines
+**W1.1** `skills/tanto/scripts/boundary.test.js` — new file, 585 lines
 
 ```javascript
 const test = require("node:test");
@@ -613,14 +616,30 @@ test("check prints the check: line first and each child under its heading", () =
   const f = fixture();
   const result = run(["check", "--plan", f.plan, "--report", f.report, "--base", "HEAD", "--tanto", TANTO], f.dir);
   const lines = result.out.split("\n");
-  assert.match(lines[0], /^check: (pass|fail) — boundary (pass|fail), diff (pass|fail)$/);
+  assert.match(lines[0], /^check: (pass|fail) — boundary (pass|fail); diff (pass|fail) \(informational\)$/);
   for (const heading of ["## boundary", "## diff", "## sections", "## jisso reading"]) {
     assert.ok(result.out.includes(`\n${heading}\n`), `${heading} is missing`);
   }
   // Outside a repository both halves fail, so the verdict and the exit code
   // are the failing ones, and that is the mapping under test.
-  assert.strictEqual(lines[0], "check: fail — boundary fail, diff fail");
+  assert.strictEqual(lines[0], "check: fail — boundary fail; diff fail (informational)");
   assert.strictEqual(result.code, 1);
+});
+
+test("only boundary gates the verdict; diff prints but never fails it", () => {
+  const f = fixture();
+  // `boundary` passes on a plan whose verification list is one `true` fence
+  // when it runs inside a git repository, so this case runs in the real one
+  // and asserts the mapping rather than the outcome: whatever `diff` says,
+  // the verdict word repeats `boundary`'s.
+  const args = ["check", "--plan", f.plan, "--report", f.report, "--base", "HEAD", "--tanto", TANTO];
+  const result = run(args, f.dir);
+  const first = result.out.split("\n")[0];
+  const boundaryWord = /boundary (pass|fail)/.exec(first)[1];
+  const verdictWord = /^check: (pass|fail)/.exec(first)[1];
+  assert.strictEqual(verdictWord, boundaryWord);
+  assert.strictEqual(result.code, boundaryWord === "pass" ? 0 : 1);
+  assert.match(first, /diff (pass|fail) \(informational\)$/);
 });
 
 test("check reads the report's header for the jisso reading, and not its body", () => {
@@ -962,6 +981,94 @@ test("a heading record cannot find makes it write nothing and exit 1, naming the
   assert.strictEqual(fs.readFileSync(fixture.ledger, "utf8"), before);
 });
 
+test("the same event in two batches is two lines; twice in one batch is one", () => {
+  const fixture = ledgerAndRoster();
+  const event = (batch, now) => [
+    "record",
+    "--ledger",
+    fixture.ledger,
+    "--batch",
+    batch,
+    "--event",
+    "dispatch: plan.review on fable",
+    "--now",
+    now,
+  ];
+  assert.strictEqual(run(event("Y", "2026-09-19 09:00"), fixture.dir).code, 0);
+  assert.strictEqual(run(event("Y", "2026-09-19 09:30"), fixture.dir).code, 0);
+  assert.strictEqual(run(event("Z", "2026-09-19 10:00"), fixture.dir).code, 0);
+  const ledger = fs.readFileSync(fixture.ledger, "utf8");
+  const lines = ledger.split("\n").filter((l) => l.includes("dispatch: plan.review on fable"));
+  // Two dispatches of one kind in two batches are two dispatches, and the
+  // close counts them by kind; the repeated call inside batch Y is one.
+  assert.strictEqual(lines.length, 2);
+  assert.ok(ledger.includes("dispatch: plan.review on fable (batch Y)"), ledger);
+  assert.ok(ledger.includes("dispatch: plan.review on fable (batch Z)"), ledger);
+});
+
+test("an event-only call writes no Batches row and needs no --batch", () => {
+  const fixture = ledgerAndRoster();
+  const args = [
+    "record",
+    "--ledger",
+    fixture.ledger,
+    "--event",
+    "unanswered: keikaku-a [ccdd11] — plan committed:",
+    "--s-item",
+    "exit-keikaku-proposal.md item 1 | an item raised between plans",
+    "--now",
+    "2026-09-19 08:00",
+  ];
+  const result = run(args, fixture.dir);
+  assert.strictEqual(result.code, 0, result.err);
+  const ledger = fs.readFileSync(fixture.ledger, "utf8");
+  // The Batches table is untouched, placeholder and all.
+  assert.ok(ledger.includes("| (no batch yet) |"), ledger);
+  assert.ok(ledger.includes("- 2026-09-19 08:00 — unanswered: keikaku-a [ccdd11] — plan committed:"), ledger);
+  assert.ok(ledger.includes("| S-1 | exit-keikaku-proposal.md item 1 |"), ledger);
+});
+
+test("--prompt writes the Batches row's Prompt cell", () => {
+  const fixture = ledgerAndRoster();
+  const args = [
+    "record",
+    "--ledger",
+    fixture.ledger,
+    "--batch",
+    "Y",
+    "--state",
+    "sent",
+    "--prompt",
+    ".tanto/tanto-diet/batch-Y-prompt.md",
+  ];
+  const result = run(args, fixture.dir);
+  assert.strictEqual(result.code, 0, result.err);
+  const ledger = fs.readFileSync(fixture.ledger, "utf8");
+  assert.ok(ledger.includes("| Y |  | sent | .tanto/tanto-diet/batch-Y-prompt.md |"), ledger);
+});
+
+test("--deferred writes the Measurements deferrals entry for its own batch", () => {
+  const fixture = ledgerAndRoster();
+  const call = (batch, text, now) => [
+    "record",
+    "--ledger",
+    fixture.ledger,
+    "--batch",
+    batch,
+    "--deferred",
+    text,
+    "--now",
+    now,
+  ];
+  assert.strictEqual(run(call("Y", "context=1, last human turn 90 min ago", "2026-09-19 09:00"), fixture.dir).code, 0);
+  assert.strictEqual(run(call("Z", "context=2, last human turn 70 min ago", "2026-09-19 10:00"), fixture.dir).code, 0);
+  assert.strictEqual(run(call("Z", "context=3, last human turn 60 min ago", "2026-09-19 11:00"), fixture.dir).code, 0);
+  const ledger = fs.readFileSync(fixture.ledger, "utf8");
+  assert.ok(ledger.includes("batch Y: context=1, last human turn 90 min ago"), ledger);
+  assert.ok(ledger.includes("batch Z: context=3, last human turn 60 min ago"), ledger);
+  assert.ok(!ledger.includes("context=2"), "batch Z's earlier deferral survived");
+});
+
 test("record keeps a file's own line ending", () => {
   const fixture = ledgerAndRoster();
   const crlf = fs.readFileSync(fixture.ledger, "utf8").replace(/\n/g, "\r\n");
@@ -989,7 +1096,7 @@ deterministically, which is what the `check: fail` assertions rest on.
 node --test 'skills/tanto/scripts/boundary.test.js'
 ```
 
-Expected: `# fail 18`, every failure reading `Cannot find module` and naming
+Expected: `# fail 23`, every failure reading `Cannot find module` and naming
 `skills/tanto/scripts/boundary.js`. A red suite is this task's deliverable. The
 first fence of "How a batch is verified" is gated on `boundary.js` existing,
 so the plan's own verification list stays green across this task.
@@ -1001,7 +1108,7 @@ grep -c '^test(' skills/tanto/scripts/boundary.test.js
 grep -c 'record run twice changes nothing' skills/tanto/scripts/boundary.test.js
 ```
 
-Expected: `18`, then `1`. `verify` does not compare a `W` block against the
+Expected: `23`, then `1`. `verify` does not compare a `W` block against the
 file — `verifyTask` reads `P` and `A` blocks only — so this grep is the
 content check for this task.
 
@@ -1054,7 +1161,7 @@ Markdown template does.
   so that `boundary.js` depends on what those two scripts print and not on
   their internals. Their CLI is
   `passage-check.js <lint|replay|diff|verify|sections|frame|boundary> [--plan <path>] [--file <path>] [--base <ref>] [--task <N>] [--stage 1|2] [<heading>...]`.
-  And task 1's eighteen assertions, which this task makes pass.
+  And task 1's twenty-three assertions, which this task makes pass.
 - Produces, for `templates/boundary-brief.md` (task 4) and `roles/kanri.md`'s
   new loop (task 8), two subcommands.
 
@@ -1063,18 +1170,24 @@ Markdown template does.
     [--kanri-transcript <t>] [--measurement <m>] [--tanto <dir>]
   ```
 
-  It prints `check: pass|fail — boundary pass|fail, diff pass|fail` first,
-  then each child's output unchanged under `## boundary`, `## diff`,
-  `## sections`, `## measurement` (only with `--measurement`),
-  `## jisso reading`, and `## kanri reading` (only with
-  `--kanri-transcript`). `--tanto` defaults to the script's own directory's
+  It prints `check: pass|fail — boundary pass|fail; diff pass|fail
+  (informational)` first, then each child's output unchanged under
+  `## boundary`, `## diff`, `## sections`, `## measurement` (only with
+  `--measurement`), `## jisso reading`, and `## kanri reading` (only with
+  `--kanri-transcript`). **The verdict word is `boundary`'s alone.** `diff`
+  runs and prints in full, and a resident or a human reads every residual
+  there, but its exit code never flips the verdict: a plan whose own spec and
+  plan commits sit on the branch it verifies makes `diff` fail at every
+  boundary it will ever have, and a verdict that can never read `pass` is a
+  verdict nobody reads. `--tanto` defaults to the script's own directory's
   parent. Exit `0` pass, `1` fail, `2` a missing or unnamed input path. It
   judges nothing and edits nothing.
 
   ```text
   node "$TANTO/scripts/boundary.js" record --ledger <l> --batch <X>
     [--roster <ro>] [--tasks <N-M>] [--state planned|sent|reported|accepted|rework]
-    [--report <path>] [--verdict "<one line>"] [--progress "<one line>"]
+    [--report <path>] [--prompt <path>] [--verdict "<one line>"]
+    [--progress "<one line>"] [--deferred "<one line>"]
     [--kanri "<name [ref]>"] [--kanri-reading "<reading>"]
     [--jisso "<name [ref]>"] [--jisso-reading "<reading>"]
     [--peer-reading "<role> <name [ref]> <reading>"]...
@@ -1082,13 +1195,19 @@ Markdown template does.
     [--status "<name [ref]> live|cleared|queued"]... [--now "<YYYY-MM-DD HH:MM>"]
   ```
 
-  Every argument but `--ledger` and `--batch` is optional, and each names the
-  cells or rows the call writes, so a call touches nothing its arguments do
-  not name. `--roster` is required only when a roster row is named. `--now`
-  fixes the clock, for the tests. It prints every row it wrote, as written,
-  and a re-run with the same arguments changes nothing and prints the same
-  rows — which is why an `S-n` row and a Session events line that are already
-  there are printed again rather than skipped silently. Exit `0` having
+  Only `--ledger` is required, and each other argument names the cells or rows
+  the call writes, so a call touches nothing its arguments do not name.
+  `--batch` is required by what is keyed on a batch — a Batches row, a
+  Measurements entry, a Residency row — and by nothing else, so an
+  events-only or status-only call needs none and leaves the Batches table
+  alone, placeholder and all. `--roster` is required only when a roster row is
+  named. `--now` fixes the clock, for the tests. It prints every row it wrote,
+  as written, and a re-run with the same arguments changes nothing and prints
+  the same rows — which is why an `S-n` row and a Session events line that are
+  already there are printed again rather than skipped silently. A Session
+  events line's identity is its **batch and its text together**: the same line
+  in two batches is two lines, which is what keeps the close's count of
+  top-family dispatches honest, and twice in one batch is one. Exit `0` having
   written, `1` having written nothing and named what it could not find, `2` on
   a missing required argument or path.
 
@@ -1119,7 +1238,7 @@ It may stay until task 11 rewrites the Layout bullets; a residual after task
 
 **Whole file:**
 
-**W2.1** `skills/tanto/scripts/boundary.js` — new file, 515 lines
+**W2.1** `skills/tanto/scripts/boundary.js` — new file, 544 lines
 
 ```javascript
 // tanto's boundary instrument, beside `passage-check.js` and `reading.js`.
@@ -1242,7 +1361,11 @@ function cmdCheck(argv) {
   const sections = child(passageCheck, ["sections", "--file", report, ...REPORT_HEADINGS]);
 
   const word = (code) => (code === 0 ? "pass" : "fail");
-  const verdict = boundary.code === 0 && diff.code === 0 ? "pass" : "fail";
+  // The verdict is `boundary`'s alone. `diff` still runs and still prints
+  // under its own heading, but a plan whose own spec and plan commits sit on
+  // the branch it verifies makes `diff` fail forever, and a boundary that can
+  // never pass is a boundary nobody reads.
+  const verdict = boundary.code === 0 ? "pass" : "fail";
 
   const blocks = [
     ["boundary", boundary.out],
@@ -1261,7 +1384,7 @@ function cmdCheck(argv) {
     blocks.push(["kanri reading", child(reading, args).out]);
   }
 
-  console.log(`check: ${verdict} — boundary ${word(boundary.code)}, diff ${word(diff.code)}`);
+  console.log(`check: ${verdict} — boundary ${word(boundary.code)}; diff ${word(diff.code)} (informational)`);
   for (const [heading, body] of blocks) {
     console.log(`\n## ${heading}\n`);
     console.log(String(body).replace(/\s+$/, ""));
@@ -1278,8 +1401,9 @@ const BATCH_CELLS = ["batch", "tasks", "state", "prompt", "report", "verdict"];
 /** The five values the ledger template's Batches table names for State. */
 const STATES = ["planned", "sent", "reported", "accepted", "rework"];
 
-/** The Measurements row whose Value cell carries the per-boundary entries. */
+/** The Measurements rows whose Value cells carry one entry per batch. */
 const MEASUREMENT_ROW = "Kanri's context at the topic's opening";
+const DEFERRALS_ROW = "deferrals:";
 
 /** The roster's two `| Role | Topic | Name [ref] |` tables, told apart. */
 const SESSIONS_HEADER = "| Role | Topic | Name [ref] | cwd |";
@@ -1386,7 +1510,7 @@ function writeBatch(doc, values, written) {
     batch,
     tasks: given(values, "tasks"),
     state,
-    prompt: null,
+    prompt: given(values, "prompt"),
     report: given(values, "report"),
     verdict: given(values, "verdict"),
   };
@@ -1415,20 +1539,20 @@ function writeBatch(doc, values, written) {
 }
 
 /**
- * The per-boundary entry, inside the Measurements row's Value cell: one
- * `batch <X>: …` entry per batch separated by `;`, this batch's replaced and
- * every other entry — the opening and the landing ones Kanri writes by hand —
- * left untouched.
+ * One `batch <X>: …` entry inside a Measurements row's Value cell, entries
+ * separated by `;`, this batch's replaced and every other entry — the opening
+ * and the landing ones Kanri writes by hand, and every other batch's — left
+ * untouched. Both per-batch Measurements rows are written this way.
  */
-function writeMeasurement(doc, batch, kanri, jisso, ttl, written) {
+function writeCellEntry(doc, rowPrefix, batch, body, written) {
   const span = sectionSpan(doc.lines, "Measurements");
   if (!span) return "the ledger's Measurements table";
   const table = tableSpan(doc.lines, span);
   if (!table) return "the ledger's Measurements table";
   for (let i = table.first; i < table.end; i++) {
     const current = cells(doc.lines[i]);
-    if (!current[0].startsWith(MEASUREMENT_ROW)) continue;
-    const entry = `batch ${batch}: kanri context=${kanri.context}, jisso context=${jisso.context}, ttl=${ttl}`;
+    if (!current[0].startsWith(rowPrefix)) continue;
+    const entry = `batch ${batch}: ${body}`;
     const raw = current[2].split(";");
     const entries = raw.map((part) => part.trim()).filter((part) => part.length > 0);
     const at = entries.findIndex((part) => part.startsWith(`batch ${batch}:`));
@@ -1439,7 +1563,7 @@ function writeMeasurement(doc, batch, kanri, jisso, ttl, written) {
     written.push(doc.lines[i]);
     return null;
   }
-  return "the ledger's Measurements per-boundary row";
+  return `the ledger's Measurements row for ${rowPrefix}`;
 }
 
 /**
@@ -1476,11 +1600,20 @@ function writeSItem(doc, item, written) {
   return null;
 }
 
-/** One Session events line, appended once for the same text. */
-function writeEvent(doc, text, now, written) {
+/**
+ * One Session events line, written once per batch for the same text. The
+ * dedup key is the batch and the text together, which is what makes a
+ * re-run of the same call a no-op without losing the second real occurrence
+ * of an event that recurs in a later batch: two `dispatch: plan.review on
+ * fable` lines in two batches are two dispatches and must both be counted at
+ * the close, while two in one batch are one call made twice. A call with no
+ * `--batch` — a between-plans record — keys on the text alone.
+ */
+function writeEvent(doc, text, batch, now, written) {
   const span = sectionSpan(doc.lines, "Session events");
   if (!span) return "the ledger's Session events section";
-  const tail = ` — ${text}`;
+  const body = batch === null ? text : `${text} (batch ${batch})`;
+  const tail = ` — ${body}`;
   for (let i = span.start + 1; i < span.end; i++) {
     if (doc.lines[i].endsWith(tail)) {
       written.push(doc.lines[i]);
@@ -1489,7 +1622,7 @@ function writeEvent(doc, text, now, written) {
   }
   let at = span.end;
   while (at > span.start + 1 && doc.lines[at - 1].trim() === "") at--;
-  const line = `- ${now} — ${text}`;
+  const line = `- ${now} — ${body}`;
   doc.lines.splice(at, 0, line);
   written.push(line);
   return null;
@@ -1550,8 +1683,14 @@ function cmdRecord(argv) {
   const ledgerPath = given(values, "ledger");
   const batch = given(values, "batch");
   if (!ledgerPath) return fail("record needs --ledger", 2);
-  if (!batch) return fail("record needs --batch", 2);
   if (!fs.existsSync(ledgerPath)) return fail(`record: --ledger ${ledgerPath} is not on disk`, 2);
+
+  // `--batch` is required only by what is keyed on a batch. An events-only or
+  // status-only call — a between-plans record, a peer line answered outside a
+  // boundary — needs none, and must not touch the Batches table.
+  const batchCells = ["tasks", "state", "report", "verdict", "prompt"];
+  const wantsBatchRow = batchCells.some((name) => given(values, name) !== null);
+  if (wantsBatchRow && !batch) return fail("record needs --batch for a Batches row", 2);
 
   const kanri = given(values, "kanri");
   const jisso = given(values, "jisso");
@@ -1574,23 +1713,32 @@ function cmdRecord(argv) {
   };
 
   const ledger = readDoc(ledgerPath);
-  note(writeBatch(ledger, values, written));
+  if (wantsBatchRow) note(writeBatch(ledger, values, written));
   if (kanriReading !== null && jissoReading !== null) {
     const kanriFigures = readingFigures(kanriReading);
     const jissoFigures = readingFigures(jissoReading);
     if (!kanriFigures || !jissoFigures) note("two readings that parse");
+    else if (!batch) note("--batch beside a pair of readings");
     else {
       const ttl = ttlOf(kanriReading);
-      note(writeMeasurement(ledger, batch, kanriFigures, jissoFigures, ttl, written));
+      const body = `kanri context=${kanriFigures.context}, jisso context=${jissoFigures.context}, ttl=${ttl}`;
+      note(writeCellEntry(ledger, MEASUREMENT_ROW, batch, body, written));
     }
   }
+  const deferred = given(values, "deferred");
+  if (deferred !== null && !batch) note("--batch beside --deferred");
+  if (deferred !== null && batch) {
+    note(writeCellEntry(ledger, DEFERRALS_ROW, batch, deferred, written));
+  }
   for (const item of values["s-item"]) note(writeSItem(ledger, item, written));
-  for (const event of values.event) note(writeEvent(ledger, event, now, written));
+  for (const event of values.event) note(writeEvent(ledger, event, batch, now, written));
   const progress = given(values, "progress");
   if (progress !== null) note(writeProgress(ledger, progress, written));
 
   let roster = null;
-  if (needRoster) {
+  const residencyRows = kanri !== null || jisso !== null || values["peer-reading"].length > 0;
+  if (residencyRows && !batch) note("--batch beside a Residency row");
+  if (needRoster && !(residencyRows && !batch)) {
     roster = readDoc(rosterPath);
     if (kanri !== null && kanriReading === null) note("--kanri-reading beside --kanri");
     if (kanri !== null && kanriReading !== null) {
@@ -1653,9 +1801,9 @@ It carries no shebang and no `"use strict"`, as `passage-check.js` and
 node --test 'skills/tanto/scripts/*.test.js'
 ```
 
-Expected: `# fail 0`, with `tests 18` and `pass 18` from `boundary.test.js`
+Expected: `# fail 0`, with `tests 23` and `pass 23` from `boundary.test.js`
 alone. This exact pair of files was run this way while the plan was drafted —
-18 tests, 18 pass — against real copies of `templates/kanri.md` and
+23 tests, 23 pass — against real copies of `templates/kanri.md` and
 `templates/roster.md`. `reading.test.js` and `passage-check.test.js` are
 unaffected by this task.
 
@@ -2156,7 +2304,7 @@ cardinality is written.
 
 **Whole file:**
 
-**W4.1** `skills/tanto/templates/boundary-brief.md` — new file, 161 lines
+**W4.1** `skills/tanto/templates/boundary-brief.md` — new file, 172 lines
 
 ````markdown
 # tanto boundary brief
@@ -2241,8 +2389,19 @@ only the resident can compare with its roster row.
    Jisso. Fill the Previous batch verdict section's first line from the
    `check:` line and the report's For Kanri section, and leave the three slots
    that template names as `<Kanri fills>` — that section's ruling line, its
-   deferral line, and the Rulings section's first line. When the batch is the
-   plan's last, write no prompt and say so under Next prompt.
+   deferral line, and the Rulings section's first line. Then make your second
+   and last `record` call, for the batch you have just rendered:
+
+   ```bash
+   node "<tanto>/scripts/boundary.js" record --ledger <ledger> \
+     --batch <Y> --tasks <N-M> --state sent --prompt <the rendered path>
+   ```
+
+   That row is bookkeeping, not a ruling — the prompt exists and the ledger
+   should say so — which is why it is yours and not the resident's: the
+   resident's one `record` call carries batch `<X>`'s acceptance, and nothing
+   else. When the batch is the plan's last, write no prompt, make no second
+   `record` call, and say so under Next prompt.
 6. Write `.tanto/<topic>/batch-<X>-verdict.md`, below.
 7. Reply with the one line, below, and nothing else.
 
@@ -2697,7 +2856,9 @@ the plan's close, and never moves.
 ```markdown
   a peer line you received and did not answer in the same turn, as
   `unanswered: <from> — <line>`, paired with `answered: <from> — <line>`
-  when it is answered, both written through `record --event`; an exit
+  when it is answered, both written through `record --event`, which ends a
+  line it writes at a boundary with `(batch <X>)` so that the same event in
+  two batches is two lines and twice in one batch is one; an exit
   proposal form-checked and its
 ```
 
@@ -2815,11 +2976,12 @@ Gone after this task; the paragraph reads "Steps 3 to 6".
 `bug-report-hold` landed on 2026-09-20 and this task folds into step 3. Zero
 after this task; the pointer becomes step 5's, the commit window's new number.
 
-**O8.7** `send the same text to that name` — 1 hit, `roles/kanri.md`,
-the loop's send. Gone after this task. Its sibling at, the
-first batch's send, spells the same rule as `send the same` + `text to that
-name` across a line break and is fixed by **P8.4**; `grep -c "without an idle
-subscription, and mark its row"` is 2 before this task and 0 after.
+**O8.7** `send the same text to that name` — 1 hit, `roles/kanri.md`, the
+loop's send. Gone after this task. Its sibling, the first batch's send in
+"When the plan lands", spells the same rule across a line break and is fixed
+by **P8.4**; `grep -c "without an idle subscription, and mark its row"` is 2
+before this task and **1** after, because P8.4 keeps that phrase and changes
+only what precedes it.
 
 **Passages:**
 
@@ -3030,14 +3192,16 @@ Per batch, in this order.
 4. **Check the lifecycle tables and the handover trigger.** Both are read off
    the verdict line, not measured again here. `ceiling: over, present` is
    handover signal 4 and runs the handover at this boundary; `over, absent`
-   defers it, with the three writings the Handover section prescribes and a
-   Measurements deferrals entry you write yourself; a `compactions:` figure
+   defers it, with the three writings the Handover section prescribes and the
+   Measurements deferrals entry your step 6 `record` call writes from
+   `--deferred`; a `compactions:` figure
    above the count you have noticed is signal 3. Jisso's verdict is recorded
    and acts on nothing: the rotation retires every Jisso at its boundary, and
    the figure is what the archive keeps. The readings themselves, the
-   Residency rows, the Measurements per-boundary entry, and the `dispatch:`
-   events lines are the brief's, written by `record` from the dispatch you
-   sent at step 2 — at a boundary you take no reading and rewrite no row.
+   Residency rows, the Measurements per-boundary entry, the `dispatch:` events
+   lines, and the next batch's `sent` row with its Prompt cell are the brief's,
+   written by `record` from the dispatch you sent at step 2 — at a boundary you
+   take no reading and rewrite no row.
    If a create request is due, make it, unless a
    handover trigger has fired and is not deferred, in which case the
    successor makes it from the handover's Next step. Then the exits that
@@ -3171,17 +3335,18 @@ outside its own slot of the window, you included.
      --roster <.tanto/roster.md> --batch <X> --state accepted|rework \
      --verdict "<one line>" --progress "<one line>" \
      --status "<name [ref]> cleared" --status "<name [ref]> live" \
-     --s-item "<source> | <item>"
+     --s-item "<source> | <item>" --deferred "<one line>"
    ```
 
    It carries the Batches row's state and verdict your ruling gives, the
    Progress line, the Status changes this boundary decided — the retiring
    Jisso `cleared`, the Jisso you have just sent `live`, a seat released at
-   step 4 `cleared` — and one `--s-item` per item of an exit proposal step 4
-   form-checked. That call is the whole of your table writing: at a boundary
-   no table is edited by hand. A batch returned for rework is a prompt you
-   write yourself from the same template, for the same Jisso, and send the
-   same way.
+   step 4 `cleared` — one `--s-item` per item of an exit proposal step 4
+   form-checked, and `--deferred` when step 4's ruling was a deferral. That
+   call is the whole of your table writing: at a boundary no table is edited
+   by hand, the deferrals entry included. A batch returned for rework is a
+   prompt you write yourself from the same template, for the same Jisso, and
+   send the same way.
    When the queue is empty, the Create table's Jisso row's request goes out
    instead — one window, queued by the same `/tanto jisso <name>` — and the
    prompt waits for that handshake; the released windows are the ones to
@@ -3237,7 +3402,10 @@ Expected: exactly six lines, reading `1.` to `6.` in order, with no `7.` or
 `8.` among them — the `sed` scopes the grep to the loop's own section, because
 the Start and handshake sections above it carry numbered lists of their own and
 an unscoped grep never reaches the loop. Then `1` for the dispatch site, and
-`0` for the old send.
+`1` for the old send: P8.3 clears the loop's copy, and the one P8.4 rewrites
+keeps the phrase — "send that name the one line … without an idle
+subscription, and mark its row `live`" — because the sentence reads better
+whole than re-wrapped around the words this needle happens to span.
 
 - [ ] **Step 4: Verify the task's blocks**
 
@@ -3293,7 +3461,7 @@ only `step 7` left in the file once task 8 has landed. Two sites change
 meaning as well as number, and both are passages below: Readings' "copy each
 into that role's Residency row" becomes the `--peer-reading` of the dispatch,
 and the trigger's "rewrite your Residency row with it" becomes a non-boundary
-act. `templates/kanri.md`'s Measurements paragraph is the ninth site and lands
+act. `templates/kanri.md`'s Measurements paragraph is the tenth site and lands
 in this same task, so that the ledger template and the role file are reviewed
 against one map.
 
@@ -3474,8 +3642,8 @@ the sixth at any deferred handover, in whichever
 
 - [ ] **Step 1: Apply the passages in file order**
 
-Apply **P9.1** through **P9.8** in that order — they are in `roles/kanri.md`'s
-own line order — and then **P9.9** in `templates/kanri.md`.
+Apply **P9.1** through **P9.9** in that order — they are in `roles/kanri.md`'s
+own line order — and then **P9.10** in `templates/kanri.md`.
 
 - [ ] **Step 2: Read every remaining `loop step n` against the map**
 
@@ -3491,7 +3659,7 @@ one line: `loop step 4` five times (P9.1, P9.2, P9.3, P9.5's first clause, and
 P9.8's `accepted at`) and `loop step 6` three times (P9.5's second clause,
 P9.6, and P9.8's `cleared by`). No `loop step 3` and no `loop step 5` survive:
 the hotfix lane's sentence says "in slot (b) of step 5's commit window", which
-carries no `loop step`, and `templates/kanri.md`'s own reference is what P9.9
+carries no `loop step`, and `templates/kanri.md`'s own reference is what P9.10
 removes. Each is read against the map in the task's table above. The third
 command prints two lines, both inside "The final batch" — that section's own
 step 3, deliberately unchanged.
@@ -3502,7 +3670,7 @@ step 3, deliberately unchanged.
 node "$TANTO/scripts/passage-check.js" verify --plan docs/superpowers/plans/2026-09-19-tanto-diet.md --task 9
 ```
 
-Expected: `task 9: verify clean`. O9.1 to O9.9 are the rows' own claim;
+Expected: `task 9: verify clean`. O9.1 to O9.10 are the rows' own claim;
 step 2's greps are what checks them here, and task 16 step 4 is the sweep.
 
 - [ ] **Step 4: Lint the changed paths**
@@ -5416,7 +5584,7 @@ role file. Every `O` needle's count is the count `grep -rF -c` actually printed
 on 2026-09-19, not an assumed one; the two needles that would have read `0`
 because they wrap in their target — `by Kanri at every boundary it rules on`
 and `the two readings of loop step 6` — were narrowed to the single lines
-`boundary it rules on` (O10.6) and `readings of loop step 6` (O9.9) after
+`boundary it rules on` (O10.6) and `readings of loop step 6` (O9.10) after
 being run.
 
 **2a. What `lint` and `replay` report, and why one finding is expected.**
@@ -5455,7 +5623,7 @@ carries a content grep of its own as the step that stands in for it.
 **The `W` content was executed, not only written.** Both JavaScript files were
 assembled, placed in a scratch skill tree beside real copies of
 `passage-check.js`, `reading.js`, `templates/kanri.md` and
-`templates/roster.md`, and run: `node --test` reports 18 tests, 18 pass, 0
+`templates/roster.md`, and run: `node --test` reports 23 tests, 23 pass, 0
 fail. Two defects were found and fixed that way, both in `record`: a re-run
 printed fewer rows than the first run, because an `S-n` row and a Session
 events line that were already there were skipped silently instead of being
@@ -5490,43 +5658,44 @@ kind is `boundary.verify` and the definition `tanto-boundary-verify` everywhere.
 
 | Task | Plan lines | Steps | Blocks |
 | --- | --- | --- | --- |
-| 1 | 602 | 6 | 1 W (481 lines), 0 O |
-| 2 | 661 | 6 | 1 W (515 lines), 2 O |
-| 3 | 415 | 7 | 8 P, 1 A, 2 O |
-| 4 | 252 | 5 | 1 W (161 lines), 1 O |
+| 1 | 710 | 6 | 1 W (585 lines), 0 O |
+| 2 | 701 | 6 | 1 W (544 lines), 2 O |
+| 3 | 423 | 7 | 8 P, 1 A, 2 O |
+| 4 | 263 | 5 | 1 W (172 lines), 1 O |
 | 5 | 94 | 5 | 1 P, 1 A, 1 O |
-| 6 | 141 | 5 | 3 P, 2 O |
-| 7 | 127 | 5 | 3 P, 2 O |
-| 8 | 512 | 6 | 4 P, 8 O |
-| 9 | 253 | 5 | 9 P, 10 O |
+| 6 | 145 | 5 | 3 P, 2 O |
+| 7 | 132 | 5 | 3 P, 2 O |
+| 8 | 532 | 6 | 4 P, 8 O |
+| 9 | 254 | 5 | 10 P, 10 O |
 | 10 | 346 | 5 | 14 P, 6 O |
-| 11 | 196 | 5 | 5 P, 3 O |
-| 12 | 219 | 5 | 7 P, 6 O |
-| 13 | 193 | 5 | 6 P, 5 O |
+| 11 | 200 | 5 | 5 P, 3 O |
+| 12 | 227 | 5 | 7 P, 6 O |
+| 13 | 254 | 5 | 9 P, 7 O |
 | 14 | 256 | 6 | 6 P, 8 O |
-| 15 | 389 | 6 | 16 P, 8 O |
-| 16 | 137 | 7 | none |
+| 15 | 399 | 6 | 16 P, 8 O |
+| 16 | 144 | 7 | none |
 
-**The largest task is task 2** at 661 plan lines and 6 steps, of which 515 are
-the one `W` block: `boundary.js` whole, both subcommands. Task 1 is next at
-602 lines, 481 of them its own `W` block. Neither can be split further without
+**The largest task is task 1** at 710 plan lines and 6 steps, of which 585 are
+the one `W` block: `boundary.test.js` whole, twenty-three tests. Task 2 is
+next at 701 lines, 544 of them its own `W` block: `boundary.js`, both
+subcommands. Neither can be split further without
 putting a `P` block on a path the plan creates, which `replay` cannot follow,
 and each is one file whose reviewer has one question: does this file do what
 the brief and the loop say, and do the tests say so. Task 8 is the largest
-**prose** task at 506 lines, with a 60-line, a 40-line, and a 50-line
-replacement in one file; task 15 at 389 lines is the widest, sixteen passages
+**prose** task at 532 lines, with a 60-line, a 42-line, and a 50-line
+replacement in one file; task 15 at 399 lines is the widest, sixteen passages
 over nine files, but every one of them is three or four lines of the same
 sentence.
 
 The count that matters for a Jisso is not the plan's line count but the tree
-diff: batch A writes 996 new lines of JavaScript in two files and changes
+diff: batch A writes 1,129 new lines of JavaScript in two files and changes
 about 45 more in `reading.js` and its tests; batch B writes 161 new lines and
 changes about 20; batch C changes about 190 lines across four files; batch D
 changes about 110 across eleven; batch E changes none.
 
 **Task 1's deliverable is a red suite**, which is the other shape a reviewer
 has to be told about: its file is complete and correct and every one of its
-eighteen tests fails, because the file it tests arrives in task 2. Its own
+twenty-three tests fails, because the file it tests arrives in task 2. Its own
 step 2 states the expected failure text, and the plan's verification fences
 are gated on `boundary.js` existing so that none of them is red at its
 boundary.
