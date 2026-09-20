@@ -126,15 +126,18 @@ Kanri `/clear`ed its window and you started in it, so the name and the
 `[ref]` are the same and only the transcript differs — or another's, and,
 for another's, whether `ListAgents` still lists it; rewrite the roster —
 your own row first with status `live` and your own transcript path in its
-Transcript column, the old Kanri's row `replaced` (or `dead` when it is
+Transcript, Started, Model, and Effort columns — and its Name column too when
+you started in a window other than the outgoing Kanri's, the same-window case
+needing no Name rewrite because a window keeps its name and `[ref]` across a
+`/clear` — the old Kanri's row `replaced` (or `dead` when it is
 another name and not listed), the Residency row reset to your name and today
 with zero counts and your own reading, and one Events line "handover
 accepted by `<you>` from `<old>`", the two names equal in the same-window
-case; send every `live` peer, to its bare name from the roster, one line
-`kanri-address: <name> [<ref>] — handover accepted; the roster's first row is rewritten`
-— in the same-window case too, because a line a peer sent into the gap
-between the `/clear` and your start got `no-role` back, and this line is
-what tells it to re-send; delete the handover file, because the Events line
+case; read the ledger's Session events for `unanswered:` lines that have no
+`answered:` pair, and the handover file's Live peers for its marks, and answer
+those lines first — you announce nothing, and a peer whose line got `no-role`
+back in the gap between the `/clear` and your start re-sends it to the
+roster's first row on its own next wake-up; delete the handover file, because the Events line
 is the record and a stale file must not start a false handover at the next
 Kanri start; when the old Kanri's name is another's, remind the human in one
 line to `/clear` that window when convenient — no deletion is asked;
@@ -150,9 +153,10 @@ its Transcript column names a different session — a `/clear` without a
 handover, or one run after the handover file was already consumed — this is
 that same gap under your own name: run the Handover procedure in place and
 without a file — rewrite the row's Transcript column to your own path, write
-an Events line `cleared: stale transcript, row rewritten in place`, and send
-every `live` peer the same `kanri-address:` line Handover sends, so a line a
-peer sent into the gap and got `no-role` back knows to re-send — then
+an Events line `cleared: stale transcript, row rewritten in place`, and read
+the ledger's Session events for `unanswered:` lines that have no `answered:`
+pair and answer those first — this gap has no handover file, and a peer whose
+line got `no-role` back in it re-sends on its own next wake-up — then
 cold-read the ledger and continue as the paragraph above says.
 
 **Second Kanri** — no handover file, the first data row is another name, and
@@ -164,7 +168,6 @@ already, and ask whether that one should hand over or this window should be
 `ListAgents` does not list, and that row's Transcript column is your own
 transcript path. This is your own conversation resumed under a new name:
 rewrite the first row in place with your new name and `[ref]`, status `live`,
-send the `kanri-address:` line of `SKILL.md`'s Resuming to every `live` row,
 write the Events line `resumed: <old name> → <new name>`, and continue where
 the ledger's Progress line says. No row is marked `dead`, and there is no tree
 recovery beyond `git status`.
@@ -706,7 +709,8 @@ every turn you get, a message or the human speaking. For signals 1 and 3, a
 topic in its spec or
 plan stage neither fires the check nor blocks it: its Sekkei or Keikaku holds
 nothing you must wait for beyond an unanswered line, which that peer re-sends
-to your successor's address. Signal 4 **is** checked in that stage, at the
+to the roster's first row at its own next wake-up. Signal 4 **is** checked in
+that stage, at the
 start of every turn while no batch is in flight, because your context grows
 there — a between-plans inbox sweep, the handshakes, a resume — with no
 batch boundary to catch it;
@@ -731,8 +735,9 @@ resumed, and the roster's first row is rewritten before anything else.
    session can see for itself.
 4. **The ceiling crossed.** At every check — loop step 4 at a boundary, and
    the start of every turn while no batch is in flight, a topic's spec or plan
-   stage included — take your own reading with `--role kanri` and read its
-   ceiling line. A verdict of `over` is this signal. The ceiling is derived,
+   stage included — the verdict line's `ceiling:` is the reading at a
+   boundary, and your own `--role kanri --presence` reading is the reading
+   everywhere else. A verdict of `over` is this signal. The ceiling is derived,
    not configured: your own first turn's context in this transcript, measured
    from the transcript itself, plus `ceiling.kanri.batches` batches of
    `ceiling.kanri.per_batch`. It moves when the seat's fixed load moves and
@@ -823,7 +828,8 @@ and the next prompt not yet sent, that topic's close once the archive move is
 done, or between plans. Never mid-batch — "never replace mid-batch on
 suspicion" names you too. A topic in its spec or plan stage while no batch is in flight counts as
 between plans here: nothing is in flight, and an unanswered line of its
-Sekkei or Keikaku is re-sent to your successor's address. While a batch is
+Sekkei or Keikaku is re-sent to the roster's first row at that peer's own next
+wake-up. While a batch is
 in flight, another topic's spec or plan stage supplies no boundary of this
 kind and holds no handover of yours. That list governs the signals you check
 for yourself — the tenure, a compaction, the ceiling; the human's word,
@@ -894,12 +900,12 @@ ceiling and the human's absence, and `none` otherwise: the successor re-checks
 it at its own first check, where a `present` verdict runs what this session
 could not. Live peers lists every peer of every
 open topic, each with its Topic and what it is waiting for, and marks the ones
-whose last line you had not answered: the successor sends `kanri-address:` to
-all of them — the `live` rows; the `queued` Jissos are listed after them by
-name and place and get nothing, since their batch prompt names the Kanri
-that sends it — and each answers by re-sending its last unanswered line,
-which is also what a peer does with a line that got `no-role` back in the
-gap. A Sekkei or Keikaku whose last line named an exit proposal is waiting
+whose last line you had not answered: the successor answers those marked lines
+first, pairing them with the ledger's `unanswered:` events, and announces
+nothing. The `queued` Jissos are listed after them by
+name and place and get nothing, since their batch prompt is a path they read
+at their own wake-up.
+A Sekkei or Keikaku whose last line named an exit proposal is waiting
 for nothing but `release:`, and your successor's first act for it is that
 line, if the proposal's form check is recorded in the ledger and the line
 was not sent.
@@ -938,8 +944,8 @@ was not sent.
    with your closing line — opening with your own identity, as every
    closing line does: your work is in the handover file, the roster,
    and the ledger; the step that still needs this seat is none — the human
-   `/clear`s this window and runs `/tanto kanri` in it, or in any free
-   window. Send nothing to any peer; answer the human if asked; do nothing
+   `/clear`s this window and runs `/tanto kanri` in it. Send nothing to any
+   peer; answer the human if asked; do nothing
    else.
 
 If the human says "continue" instead of creating the successor, delete the
