@@ -108,22 +108,23 @@ Start Kanri first, with no address:
 
 Every lifecycle role after Kanri starts when Kanri asks the human for a
 window — the plan's Jissos all at its landing, in one request — and starts
-with Kanri's name as its request prints it:
+with no address at all:
 
 ```console
-/tanto sekkei <kanri>
-/tanto keikaku <kanri>
-/tanto jisso <kanri>
-/tanto kaiseki <kanri>
+/tanto sekkei
+/tanto keikaku
+/tanto jisso
+/tanto kaiseki
 ```
 
 Kikaku and Hosa are the human's own seats — `/tanto kikaku` and
-`/tanto hosa`, opened whenever the human wants one. With no name after the
-command, the session finds Kanri in the roster.
+`/tanto hosa`, opened whenever the human wants one. Every one of these finds
+Kanri in the roster's first data row, read at the moment it sends.
 
-`<kanri>` is the bare name Kanri's request prints — the name that session was
-born with. No `tanto` session is renamed once it has started, because a rename
-would invalidate every address already held.
+The command's optional second argument is the bootstrap for a workspace whose
+roster does not exist yet, and no create request carries it. No `tanto`
+session is renamed once it has started, because a rename would invalidate
+every address already held.
 
 Every attached role then checks its model and sends Kanri one handshake line;
 Kanri checks its model too, but receives handshakes rather than sending one,

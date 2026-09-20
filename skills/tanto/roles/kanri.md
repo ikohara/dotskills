@@ -343,7 +343,7 @@ Then, in this order.
 4. Ask the human to queue the plan's Jissos, as the Create table below
    prescribes: N windows, N the number of rows in the plan's Batches table
    plus one for the whole-branch review's fix wave, each running
-   `/tanto jisso <name>`; the human may open more, and fewer when they will
+   `/tanto jisso`; the human may open more, and fewer when they will
    be present to re-queue released windows — except on a plan naming its
    final boundary as the safe one (rule 11), which asks for the full N
    instead.
@@ -580,7 +580,7 @@ Per batch, in this order.
    prompt you write yourself from the same template, for the same Jisso, and
    send the same way.
    When the queue is empty, the Create table's Jisso row's request goes out
-   instead — one window, queued by the same `/tanto jisso <name>` — and the
+   instead — one window, queued by the same `/tanto jisso` — and the
    prompt waits for that handshake; the released windows are the ones to
    offer.
 
@@ -865,8 +865,9 @@ next batch inherits" rather than from the tree.
 At every plan close, and whenever the human asks, print one of two lines to the
 human. At a plan close it is always the second, because the close is itself a
 handover trigger; "Kanri stays" is only ever the answer to the human's own
-mid-plan question. The `[<ref>]` is the identity; the human copies the bare
-name into the next `/tanto <role> <name>`.
+mid-plan question. The `[<ref>]` is the identity, and no create request
+carries it: a role started with a bare `/tanto <role>` reads the roster's
+first data row.
 
 ```text
 Kanri stays — <name> [<ref>] — <n> batches, <m> plans since <YYYY-MM-DD>, <k> compactions noticed — <reading>; handover not due.
@@ -1398,19 +1399,20 @@ and you are the only role that asks. A window is `/clear`ed and reused,
 never closed: a session is identified by its transcript path, a window by
 its `name [ref]`, which survives `/clear` (measured 2026-09-16), and the
 roster's rows tell them apart. Every create request is this numbered list,
-which the human can paste, with your own bare name as your start line
-printed it in place of `<name>`:
+which the human can paste:
 
 ```text
 1. In a free window of <repo path> — one you have /clear'ed, or a new one:
 2. /model <family>
 3. /effort <level>
 4. Make sure the session is in auto mode.
-5. /tanto <role> <name>
+5. /tanto <role>
 ```
 
-Line 5 carries, after the command, what the Create table's third column names
-for that role. The family and the level are `sessions.<role>` from
+Line 5 carries, after the command, the plan path, the branch, the topic, or
+the spec path, as the Create table's third column names them for that role —
+never an address: the new session reads the roster's first data row. The
+family and the level are `sessions.<role>` from
 `tanto.json`, and they come before the command because the human forgets the
 effort more often than the model — and because `/clear` resets the effort
 to the default while it keeps the model (measured 2026-09-16), so line 3 is
@@ -1428,11 +1430,11 @@ own times — "released now; a fresh Keikaku is requested at
 | When | Ask the human to | The request line carries |
 | --- | --- | --- |
 | bootstrap | nothing; the human opens a session and runs `/tanto kanri` | — |
-| a plan is committed and your cold read has no open questions | queue the plan's Jissos: N windows, N the rows of the plan's Batches table plus one for the fix wave; more if the human wants, fewer if they will be present to re-queue released windows — except on a plan naming its final boundary as the safe one (rule 11), which asks for the full N instead, since the queue cannot be refilled before the plan's end | `/tanto jisso <name>`, N, the plan path, the branch |
-| the queue is empty and a batch, a fix wave, or a resume needs a Jisso | queue one more Jisso — a released window serves | `/tanto jisso <name>`, the plan path, the branch |
-| the spec review is accepted | create Keikaku | `/tanto keikaku <name>`, the topic, the spec path |
-| the first batch of the current plan is accepted, or every open topic has passed its spec stage | create Sekkei for the next spec, if there is one; the human may decline | `/tanto sekkei <name>`, the topic if known |
-| Jisso reports the Kaiseki trigger with an unknown cause | create Kaiseki | `/tanto kaiseki <name>`; the brief follows the handshake |
+| a plan is committed and your cold read has no open questions | queue the plan's Jissos: N windows, N the rows of the plan's Batches table plus one for the fix wave; more if the human wants, fewer if they will be present to re-queue released windows — except on a plan naming its final boundary as the safe one (rule 11), which asks for the full N instead, since the queue cannot be refilled before the plan's end | `/tanto jisso`, N, the plan path, the branch |
+| the queue is empty and a batch, a fix wave, or a resume needs a Jisso | queue one more Jisso — a released window serves | `/tanto jisso`, the plan path, the branch |
+| the spec review is accepted | create Keikaku | `/tanto keikaku`, the topic, the spec path |
+| the first batch of the current plan is accepted, or every open topic has passed its spec stage | create Sekkei for the next spec, if there is one; the human may decline | `/tanto sekkei`, the topic if known |
+| Jisso reports the Kaiseki trigger with an unknown cause | create Kaiseki | `/tanto kaiseki`; the brief follows the handshake |
 | — | nothing; Kikaku and Hosa are opened by the human and never requested by you | — |
 
 ### Replace
