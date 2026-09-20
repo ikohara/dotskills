@@ -574,7 +574,8 @@ test("--deferred writes the Measurements deferrals entry for its own batch", () 
 
 test("record keeps a file's own line ending", () => {
   const fixture = ledgerAndRoster();
-  const crlf = fs.readFileSync(fixture.ledger, "utf8").replace(/\n/g, "\r\n");
+  const lf = fs.readFileSync(fixture.ledger, "utf8").replace(/\r\n/g, "\n");
+  const crlf = lf.replace(/\n/g, "\r\n");
   fs.writeFileSync(fixture.ledger, crlf, "utf8");
   const args = ["record", "--ledger", fixture.ledger, "--batch", "Z", "--state", "sent"];
   const result = run(args, fixture.dir);
@@ -582,4 +583,15 @@ test("record keeps a file's own line ending", () => {
   const after = fs.readFileSync(fixture.ledger, "utf8");
   assert.ok(after.includes("\r\n"), "the CRLF endings were lost");
   assert.ok(!/[^\r]\n/.test(after), "a bare LF was written into a CRLF file");
+});
+
+test("record keeps a file's own line ending (LF)", () => {
+  const fixture = ledgerAndRoster();
+  const lf = fs.readFileSync(fixture.ledger, "utf8").replace(/\r\n/g, "\n");
+  fs.writeFileSync(fixture.ledger, lf, "utf8");
+  const args = ["record", "--ledger", fixture.ledger, "--batch", "Z", "--state", "sent"];
+  const result = run(args, fixture.dir);
+  assert.strictEqual(result.code, 0, result.err);
+  const after = fs.readFileSync(fixture.ledger, "utf8");
+  assert.ok(!after.includes("\r"), "a CRLF ending was written into an LF file");
 });
