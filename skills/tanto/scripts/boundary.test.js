@@ -473,6 +473,33 @@ test("a peer reading and a status each name the row they write", () => {
   assert.ok(roster.includes("| cleared |"), roster);
 });
 
+test("an unavailable Jisso reading still writes the Batches row and the Kanri Residency row", () => {
+  const fixture = ledgerAndRoster();
+  const args = recordArgs(fixture).map((arg) =>
+    arg === JISSO_READING ? "transcript: unavailable — no transcript on this host" : arg,
+  );
+  const result = run(args, fixture.dir);
+  assert.strictEqual(result.code, 0, result.err);
+  const ledger = fs.readFileSync(fixture.ledger, "utf8");
+  const roster = fs.readFileSync(fixture.roster, "utf8");
+  // Nothing else this same call names is lost: the Batches row, the S-item
+  // row, and the Session events line are all still written.
+  assert.ok(ledger.includes("| Z | 1-3 | reported |"), ledger);
+  assert.ok(ledger.includes("| S-1 | batch-Z-report.md item 1 |"), ledger);
+  assert.ok(ledger.includes("- 2026-09-19 10:00 — boundary Z verified"), ledger);
+  // The unavailable side's own Residency row is still written, `—` in the
+  // four figure columns and `context=unavailable` rather than a refusal.
+  assert.ok(
+    roster.includes("| jisso | — | jisso-z [bbbbbb] | 2026-09-19 | batch Z | — | — | — | — | context=unavailable |"),
+    roster,
+  );
+  // The available side's own Residency row reads normally, unaffected.
+  assert.ok(
+    roster.includes("| kanri | — | kanri-z [aaaaaa] | 2026-09-19 | batch Z | 1 | 2 | 3 | 0 | context=4 |"),
+    roster,
+  );
+});
+
 test("a heading record cannot find makes it write nothing and exit 1, naming the table", () => {
   const fixture = ledgerAndRoster();
   const stripped = fs.readFileSync(fixture.ledger, "utf8").replace("## Batches", "## Batch list");

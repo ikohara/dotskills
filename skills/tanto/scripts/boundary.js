@@ -238,6 +238,16 @@ function readingFigures(text) {
   return { bytes, records, wakeUps, compactions, context };
 }
 
+/**
+ * Whether a reading string is the `transcript: unavailable — <reason>`
+ * sentinel `SKILL.md` documents: a session's legitimate answer when its own
+ * transcript is unreadable, not a malformed reading. Matched on the prefix
+ * alone, so the reason text after the dash never has to be parsed.
+ */
+function isUnavailableReading(text) {
+  return /^transcript: unavailable\b/.test(String(text));
+}
+
 /** The cache regime a reading string carries, or `unknown`. */
 function ttlOf(text) {
   const found = /ttl=(5m|1h|unknown)/.exec(String(text));
@@ -394,10 +404,16 @@ function writeProgress(doc, text, written) {
   return null;
 }
 
-/** A Residency row, rewritten in place from a reading, or appended. */
+/**
+ * A Residency row, rewritten in place from a reading, or appended. An
+ * `unavailable` reading still writes the row — `—` in the four figure
+ * columns and `context=unavailable` — rather than refusing the whole call
+ * over the one side whose transcript could not be read.
+ */
 function writeResidency(doc, role, name, reading, batch, today, written) {
-  const figures = readingFigures(reading);
-  if (!figures) return `a reading that parses (got ${reading})`;
+  const unavailable = isUnavailableReading(reading);
+  const figures = unavailable ? null : readingFigures(reading);
+  if (!unavailable && !figures) return `a reading that parses (got ${reading})`;
   const table = tableByHeader(doc.lines, RESIDENCY_HEADER);
   if (!table) return "the roster's Residency table";
   let at = -1;
@@ -408,11 +424,19 @@ function writeResidency(doc, role, name, reading, batch, today, written) {
   const current = at === -1 ? blank : cells(doc.lines[at]);
   while (current.length < blank.length) current.push("—");
   current[4] = `batch ${batch}`;
-  current[5] = figures.bytes;
-  current[6] = figures.records;
-  current[7] = figures.wakeUps;
-  current[8] = figures.compactions;
-  current[9] = `context=${figures.context}`;
+  if (unavailable) {
+    current[5] = "—";
+    current[6] = "—";
+    current[7] = "—";
+    current[8] = "—";
+    current[9] = "context=unavailable";
+  } else {
+    current[5] = figures.bytes;
+    current[6] = figures.records;
+    current[7] = figures.wakeUps;
+    current[8] = figures.compactions;
+    current[9] = `context=${figures.context}`;
+  }
   const line = row(current);
   if (at === -1) doc.lines.splice(table.end, 0, line);
   else doc.lines[at] = line;
@@ -472,14 +496,30 @@ function cmdRecord(argv) {
   const ledger = readDoc(ledgerPath);
   if (wantsBatchRow) note(writeBatch(ledger, values, written));
   if (kanriReading !== null && jissoReading !== null) {
-    const kanriFigures = readingFigures(kanriReading);
-    const jissoFigures = readingFigures(jissoReading);
-    if (!kanriFigures || !jissoFigures) note("two readings that parse");
-    else if (!batch) note("--batch beside a pair of readings");
-    else {
-      const ttl = ttlOf(kanriReading);
-      const body = `kanri context=${kanriFigures.context}, jisso context=${jissoFigures.context}, ttl=${ttl}`;
-      note(writeCellEntry(ledger, MEASUREMENT_ROW, batch, body, written));
+    const kanriUnavailable = isUnavailableReading(kanriReading);
+    const jissoUnavailable = isUnavailableReading(jissoReading);
+    if (kanriUnavailable || jissoUnavailable) {
+      // One side's transcript could not be read: the joint context entry
+      // needs both figures, so it is skipped rather than failing the whole
+      // call — the other side's own Residency row, and everything else this
+      // call names, are still written below.
+      const who =
+        kanriUnavailable && jissoUnavailable
+          ? "kanri and jisso readings"
+          : kanriUnavailable
+            ? "kanri reading"
+            : "jisso reading";
+      written.push(`measurement skipped — ${who} unavailable`);
+    } else {
+      const kanriFigures = readingFigures(kanriReading);
+      const jissoFigures = readingFigures(jissoReading);
+      if (!kanriFigures || !jissoFigures) note("two readings that parse");
+      else if (!batch) note("--batch beside a pair of readings");
+      else {
+        const ttl = ttlOf(kanriReading);
+        const body = `kanri context=${kanriFigures.context}, jisso context=${jissoFigures.context}, ttl=${ttl}`;
+        note(writeCellEntry(ledger, MEASUREMENT_ROW, batch, body, written));
+      }
     }
   }
   const deferred = given(values, "deferred");
