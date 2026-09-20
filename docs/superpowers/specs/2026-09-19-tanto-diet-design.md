@@ -251,16 +251,23 @@ next heading of equal or shallower depth, so neither is named a second time
 Verification, and, with `--kanri-transcript`,
 `reading.js <t> --role kanri --presence`. It reads the report's header for
 the reading line beside its Transcript line. It prints one line first —
-`check: pass|fail — boundary pass|fail, diff pass|fail` — mapping each
-child's exit code, then each child's output unchanged under a fixed `##`
+`check: pass|fail — boundary pass|fail; diff pass|fail (informational)` —
+then each child's output unchanged under a fixed `##`
 heading: `## boundary`, `## diff`, `## sections`, `## measurement` (when
-asked), `## jisso reading`, `## kanri reading`. It judges nothing and edits
+asked), `## jisso reading`, `## kanri reading`. **The verdict word is
+`boundary`'s exit status alone.** `diff` runs and prints in full, and the
+resident or a human reads every residual under its heading, but its exit code
+never flips the verdict: a plan whose own spec and plan commits sit on the
+branch it verifies makes `diff` fail at every boundary that plan will ever
+have, and a verdict that can never read `pass` is a verdict nobody reads.
+It judges nothing and edits
 nothing. Child processes, so that `boundary.js` depends on what the two
 scripts print and not on their internals; the plan may call
 `passage-check.js`'s exports in-process where that is simpler, the printed
 form being the contract the brief reads. `--tanto` defaults to the script's
-own directory's parent. Its exit code is the `check:` line's: 0 on pass, 1
-on fail, 2 when an input path is missing.
+own directory's parent. Its exit code is the `check:` line's verdict word: 0
+on pass, 1 on fail, 2 when an input path is missing — so it, too, follows
+`boundary` alone.
 
 **`record`** — `--ledger <l> --batch <X>` always; every other argument is
 optional, and each names the cells or rows the call writes, so that a call
@@ -311,8 +318,12 @@ exit wrote there since the last boundary is counted and not overwritten.
 ### 1.5 `reading.js`: the `ttl=` line
 
 The reading's command prints a third line always, after `effort=`:
-`ttl=5m|1h|unknown`. For each wake-up, the gap since the previous
-`assistant` record is paired with the next `assistant` record's `usage`; the
+`ttl=5m|1h|unknown`. For each wake-up, the gap since the most recent record
+that carried a timestamp — a wake-up included, not only an `assistant`
+record, because two wake-ups can arrive with no `assistant` record between
+them and measuring from the earlier `assistant` record would then report idle
+time that did not pass — is paired with the next `assistant` record's
+`usage`; the
 wake-up is **cold** when `cache_creation_input_tokens + input_tokens` exceeds
 `cache_read_input_tokens`, warm otherwise (§0's rule). Among the wake-ups
 whose gap is between 5 and 60 minutes, the most recent one decides: cold
