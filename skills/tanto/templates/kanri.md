@@ -129,8 +129,9 @@ time a second top-family session goes live; the second by counting those same
 events' one-shot lines by kind and not by stage, since one kind is dispatched
 at several stages; the third by copying the roster's Residency rows; the
 fourth from what the human pastes. The fifth is filled at the topic's opening
-(Start step 5), at the plan's landing, and at every boundary from the two
-readings of loop step 6; the sixth at any deferred handover, in whichever
+(Start step 5), at the plan's landing, and at every boundary by
+`boundary.js record`, from the two readings the boundary's dispatch carried;
+the sixth at any deferred handover, in whichever
 stage, and carries `none` when a plan's Kanri never deferred; the seventh at
 the plan close from `reading.js --share`, with the sessions it ran over and the
 ones it skipped. The fifth and sixth are the record

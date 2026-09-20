@@ -620,7 +620,7 @@ After the last implementation batch is accepted:
    human-facing questions, which no script judges.
 2. Turn its findings into one more batch prompt — the final batch — and send
    it to the next queued Jisso, as any batch. Two Jissos are the exception
-   to loop step 6's release at the boundary, not one: the Jisso that ran
+   to loop step 4's release at the boundary, not one: the Jisso that ran
    the last implementation batch, whose `release:` waits for this review's
    verdict and goes out when the fix-wave prompt goes to its successor; and
    that successor, the fix-wave Jisso, who does not release at its own
@@ -701,7 +701,7 @@ the human is asked about the environment.
 ### The trigger
 
 Four signals fire a handover. Check them at the boundaries of the topic whose
-batches are in flight — at loop step 6 — and, between plans, at the start of
+batches are in flight — at loop step 4 — and, between plans, at the start of
 every turn you get, a message or the human speaking. For signals 1 and 3, a
 topic in its spec or
 plan stage neither fires the check nor blocks it: its Sekkei or Keikaku holds
@@ -729,7 +729,7 @@ resumed, and the roster's first row is rewritten before anything else.
    compaction loses nothing the successor cannot read back; it is the harness's
    own signal that the session has grown long, and it is the one signal a
    session can see for itself.
-4. **The ceiling crossed.** At every check — loop step 6 at a boundary, and
+4. **The ceiling crossed.** At every check — loop step 4 at a boundary, and
    the start of every turn while no batch is in flight, a topic's spec or plan
    stage included — take your own reading with `--role kanri` and read its
    ceiling line. A verdict of `over` is this signal. The ceiling is derived,
@@ -795,7 +795,9 @@ window and whose presence is not guaranteed: the instrument is the reading's
 own `context=`, the harness's `usage` accounting for the turn it billed, which
 is the token figure issue-40ed asked for. At every check take your own reading
 (`SKILL.md`, "The transcript
-reading") and rewrite your Residency row with it: a compactions figure of `1`
+reading") and rewrite your Residency row with it, outside a boundary — at a
+boundary that row is `record`'s, written from the reading the dispatch
+carried. A compactions figure of `1`
 where you noticed none is signal 3, seen in a file, and counts as noticed.
 After a compaction your context drops below your own baseline for a turn or
 two and the ceiling verdict reads `under`, which is right: signal 3 is the
@@ -917,7 +919,9 @@ was not sent.
    a topic's spec or plan stage — record the proposal's items as `pending`
    rows, Stage `t2`, Source the proposal's path and the item's number, in
    the ledger of the topic whose batches are in flight, else the oldest open
-   topic's. At a batch boundary this is loop step 6's proposal and its rows,
+   topic's. At a batch boundary this is loop step 4's proposal, its rows
+   written by the `record` call of loop step 6 or, when the loop stops at
+   step 5 for the handover, by the `record --s-item` call made there,
    already done when the window reaches this list. **Between plans**, with
    no ledger open, record them as rows of the roster's Shoroku proposal
    items table, Stage `t2`, Source the same; they move into the next topic's
@@ -940,7 +944,7 @@ was not sent.
 
 If the human says "continue" instead of creating the successor, delete the
 handover file, record the declined handover in the roster's Events (the `<k>`
-counter stays), and resume — at loop step 8 at a batch boundary, at the turn's own work
+counter stays), and resume — at loop step 6 at a batch boundary, at the turn's own work
 in a spec or plan stage, at the next topic's opening after a plan close, or
 waiting for the next topic between plans.
 
@@ -1266,7 +1270,7 @@ Hosa"). Your own exit shoroku does not sweep the inbox.
 
 The lane is opened by the human's word in your window and by nothing else,
 and only while no batch is in flight — between batches, in slot (b) of step
-7's commit window, or between plans — and never on a file the in-flight plan
+5's commit window, or between plans — and never on a file the in-flight plan
 lists in its File structure table. In the lane you edit the skill file
 directly, run lint on the changed paths by name — or on the whole repository
 where the lint script takes no path arguments — and the README drift review
@@ -1450,7 +1454,7 @@ confirm the session is gone first — uncommitted work may be in the tree.
 
 | When | Say |
 | --- | --- |
-| a batch is accepted at loop step 6 — the Jisso whose boundary is the plan's last excepted: the last implementation batch's while the review is pending, and the fix wave's — see "The final batch", steps 2 and 3 | its Jisso is done; `release:` to it, its row `cleared`, the released line to the human; the next prompt goes to the next queued Jisso |
+| a batch is accepted at loop step 4 — the Jisso whose boundary is the plan's last excepted: the last implementation batch's while the review is pending, and the fix wave's — see "The final batch", steps 2 and 3 | its Jisso is done; `release:` to it, its row `cleared` by loop step 6's `record` call, the released line to the human; the next prompt goes to the next queued Jisso |
 | the spec review is accepted, the human's answers to the spec brief are in `dialogue.md`, and the `spec accepted:` line named the exit proposal | Sekkei is done; record its proposal's items and the spec's four sections as `pending` rows, Source the spec's path as it stands now — rewritten at the landing if that path was a draft's ("When the plan lands", step 3) — and send `release:` as soon as the proposal passes the form check — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
 | the `coldread answered:` line named the exit proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; record its proposal's items as `pending` rows and send `release:` as soon as the proposal passes the form check; a Keikaku is never reused across topics (decision-f496) |
 | Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; record its proposal's items as `pending` rows and send `release:` as soon as the proposal passes the form check, or keep it if more of the same bug is expected |
@@ -1472,9 +1476,10 @@ local to one machine, and useful only for a later re-read (issue-12d3).
 ### Readings
 
 Every role sends its reading with its boundary and exit lines, and Jisso's
-and Kaiseki's reports carry it; copy each into that role's Residency row at
-loop step 6, with the boundary it was read at and the `context=` figure in the
-Context column. A reading you doubt — a
+and Kaiseki's reports carry it; pass each as a `--peer-reading` of the
+boundary's dispatch and `record` writes that role's Residency row, with the
+boundary it was read at and the `context=` figure in the Context column;
+outside a boundary you write the row yourself. A reading you doubt — a
 session whose report lost a ruling with `0 compactions`, your own whose
 ceiling line decides a handover, or one that sent
 `unavailable` — you may verify by running `node "$TANTO/scripts/reading.js"`
