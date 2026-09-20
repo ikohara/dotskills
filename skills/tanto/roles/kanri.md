@@ -125,8 +125,9 @@ note whether the roster's first row carries your own name — the outgoing
 Kanri `/clear`ed its window and you started in it, so the name and the
 `[ref]` are the same and only the transcript differs — or another's, and,
 for another's, whether `ListAgents` still lists it; rewrite the roster —
-your own row first with status `live` and your own transcript path in its
-Transcript, Started, Model, and Effort columns — and its Name column too when
+your own row first with status `live`, your own transcript path in its
+Transcript column, and today, your model, and your effort in its Started,
+Model, and Effort columns — and its Name column too when
 you started in a window other than the outgoing Kanri's, the same-window case
 needing no Name rewrite because a window keeps its name and `[ref]` across a
 `/clear` — the old Kanri's row `replaced` (or `dead` when it is
@@ -349,7 +350,7 @@ Then, in this order.
    instead.
 5. Answer each handshake `queued: <n>` with a `queued` row. When the first
    is queued, write batch A's prompt from `templates/batch-prompt.md` —
-   addressed to that Jisso, `First batch, no previous verdict.` in its
+   addressed to that Jisso, `First batch, no previous verdict, no check: line.` in its
    previous-batch-verdict section, the first-Jisso line in its Setup on
    resume — save it as `.tanto/<topic>/batch-A-prompt.md`, send that name
    the one line `batch: .tanto/<topic>/batch-A-prompt.md` with the `no-role`
@@ -381,6 +382,7 @@ Per batch, in this order.
    ledger=<.tanto/<topic>/kanri.md> roster=<.tanto/roster.md> base=<merge base>
    kanri-transcript=<your transcript path, from the roster's first data row>
    tanto=<skill dir>
+   measurement=<the measurement report's path on a measurement batch, or none>
    peer readings since the last boundary, one per line, or none: <…>
    top-family dispatches since the last boundary, one per line, or none: <…>
    Write .tanto/<topic>/batch-<X>-verdict.md in your own turn. Dispatch no agents.
@@ -452,7 +454,7 @@ Per batch, in this order.
    and acts on nothing: the rotation retires every Jisso at its boundary, and
    the figure is what the archive keeps. The readings themselves, the
    Residency rows, the Measurements per-boundary entry, the `dispatch:` events
-   lines, and the next batch's `sent` row with its Prompt cell are the brief's,
+   lines, and the next batch's `planned` row with its Prompt cell are the brief's,
    written by `record` from the dispatch you sent at step 2 — at a boundary you
    take no reading and rewrite no row.
    If a create request is due, make it, unless a
@@ -544,7 +546,9 @@ Per batch, in this order.
    handover is due, the window ends, after the wait Timing prescribes, with
    steps 2 to 4 of "The handover, in a plan and between plans" — your exit
    proposal was step 4's, and its items are `pending` rows you write here
-   with one `record --s-item` call of your own, because the loop stops before
+   with one `record` call of your own that also carries what step 6's would
+   have: this batch's `--state` and `--verdict`, the `--status` changes step 4
+   decided, and `--deferred` — because the loop stops before
    step 6 — and the loop stops here; the next prompt is the successor's.
 6. **Record and send.** Fill the rendered prompt's three `<Kanri fills>`
    slots — the Previous batch verdict's ruling line and its deferral line,
@@ -622,7 +626,9 @@ After the last implementation batch is accepted:
    printed, and the review seat goes to the cross-file contracts and the
    human-facing questions, which no script judges.
 2. Turn its findings into one more batch prompt — the final batch — and send
-   it to the next queued Jisso, as any batch. Two Jissos are the exception
+   it to the next queued Jisso, as any batch. In that same turn send
+   `release:` to the Jisso that ran the last implementation batch — its wait
+   ended with this review's verdict. Two Jissos are the exception
    to loop step 4's release at the boundary, not one: the Jisso that ran
    the last implementation batch, whose `release:` waits for this review's
    verdict and goes out when the fix-wave prompt goes to its successor; and
@@ -798,10 +804,10 @@ way the Handover section already describes. Not the `tokens left` figure the
 harness prints in its reminders, whose unit is not documented as the context
 window and whose presence is not guaranteed: the instrument is the reading's
 own `context=`, the harness's `usage` accounting for the turn it billed, which
-is the token figure issue-40ed asked for. At every check take your own reading
-(`SKILL.md`, "The transcript
-reading") and rewrite your Residency row with it, outside a boundary — at a
-boundary that row is `record`'s, written from the reading the dispatch
+is the token figure issue-40ed asked for. At every check outside a boundary
+take your own reading (`SKILL.md`, "The transcript
+reading") and rewrite your Residency row with it — at a boundary you take
+none: that row is `record`'s, written from the reading the dispatch
 carried. A compactions figure of `1`
 where you noticed none is signal 3, seen in a file, and counts as noticed.
 After a compaction your context drops below your own baseline for a turn or

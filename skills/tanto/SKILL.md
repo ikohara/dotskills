@@ -753,7 +753,9 @@ before `See:`, then the pointer, and on a choose or decide point the
 carry the ` — ` separator, as a plan's task headings do; a choose or decide
 point without that clause failing the check; every pointer the document's own
 heading text, verbatim and untranslated, so that `grep '^#'` on the document
-matches it. Dispatch once more if the form fails; if it fails again, send the
+matches it. Dispatch once more if the form fails — a resume of the same agent
+with the one failure named is that dispatch, and the cheaper one (measured:
+24 seconds and 3 tool uses); if it fails again, send the
 brief as it stands and tell the human in one line. Never edit it, and do not
 read the document's prose to validate it — `grep '^#'` for its headings is
 the whole read you make; a point that misreads the document is caught by the
@@ -1014,7 +1016,8 @@ whole-branch reviewer; its seven subcommands
 are `lint`, `replay`, `diff`, `verify`, `sections`, `frame`, and `boundary`,
 and `roles/keikaku.md`, `roles/jisso.md` and `roles/kanri.md` name them.
 `scripts/reading.js` is the instrument every role measures itself with, run at
-every boundary and every exit; it prints three lines always, and its two forms
+every exit and every boundary — at a boundary Kanri's is run by the
+`boundary.verify` subagent on its behalf; it prints three lines always, and its two forms
 are the reading of one transcript
 — with `--role kanri|jisso`, `--presence` and `--backstop` each adding a line,
 and `--now`, `--config`, `--project-config` and `--settings` fixing what the
@@ -1033,8 +1036,8 @@ this skill, and the role files spell the runnable form `$TANTO`: set it to the
 skill's own directory, which the harness names when it invokes the skill,
 **in the same tool call as the command** — shell state does not persist
 between calls, and an unset `$TANTO` makes every one of these commands read a
-path at the filesystem root. Neither is ever invoked bare —
-neither file carries a shebang, so `node` is part of the command and not
+path at the filesystem root. None is ever invoked bare —
+no file of the three carries a shebang, so `node` is part of the command and not
 decoration.
 
 `.tanto/<topic>/` is created by Kanri when the topic opens — its first file is

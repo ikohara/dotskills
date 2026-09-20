@@ -5,7 +5,11 @@ Kanri is the only writer, and writes it at a plan close: the roster rows whose
 status is `dead`, `replaced`, `refused`, or `cleared` — a `queued` row that
 never ran moving as `cleared` — each with its last Residency
 reading, and the closed plan's Events lines move here, so that the roster
-holds only the live run and this file holds the record across runs. Nothing
+holds only the live run and this file holds the record across runs. Events
+lines of a topic that ran concurrently, interleaved with the closed plan's,
+move with them and sit under the closing plan's heading — so a topic's own
+opening history may be filed under a sibling topic's heading, by design, not
+by error. Nothing
 is rewritten here; rows and lines are appended in the order they arrive.
 
 ## Sessions

@@ -67,8 +67,8 @@ one implementation plan.
   hosts.
 - **Node 22 or newer on `PATH`**, for `scripts/passage-check.js`,
   `scripts/reading.js`, and `scripts/boundary.js`. Every role runs the second
-  at every boundary and every
-  exit, so it is no longer needed only by a plan that carries passages; a
+  at every exit and every boundary — Kanri's at a boundary through the
+  `boundary.verify` subagent — so it is no longer needed only by a plan that carries passages; a
   session on which `node` will not run sends
   `transcript: unavailable — <one line why>` in place of its reading and
   carries on, which costs the run its cost signal and nothing else. Claude Code

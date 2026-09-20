@@ -69,7 +69,10 @@ it, and neither can ask you what you meant without a round trip.
 
 In Fixed inputs, name the requirement each decision serves — `req-<id>` and
 the bullet — or say that none does; the brief's third section reads it from
-there. Commit the spec unless it is a draft, then hold brainstorming's review
+there. Before writing "Issues this design closes", grep each term the design
+retires across `docs/issues/open/` — one grep per term, not one for a phrase:
+a three-phrase grep found none where four open issues named `kanri-address`.
+Commit the spec unless it is a draft, then hold brainstorming's review
 gate: the human reads the spec only after Step 2's brief has come back, and
 the edits after the human's answers are further commits, or further edits to
 the draft.

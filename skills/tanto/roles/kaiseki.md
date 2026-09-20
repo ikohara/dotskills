@@ -17,7 +17,8 @@ held and re-sent to that row, read fresh, at your next wake-up.
 
 ## Two ways you are started
 
-**Attached.** `/tanto kaiseki` — Kanri's address is the roster's first data
+**Attached.** `/tanto kaiseki` in a workspace whose `.tanto/roster.md` exists —
+Kanri's address is the roster's first data
 row. You have done the model check and sent the handshake. Kanri's reply
 carries the brief path, or `no brief, stop`.
 

@@ -1,7 +1,7 @@
 # Batch <X> — tasks <N> to <M> — to <name> [<ref>], Jisso <n> of this plan
 
-Sent as the one line `batch: <path>` naming this file. The file carries no
-`no-role` line of its own, because a file a line points at is not a message.
+<!-- Sent as the one line `batch: <path>` naming this file. The file carries no
+`no-role` line of its own, because a file a line points at is not a message. -->
 
 Guard — this prompt belongs to the tanto workspace `.tanto/<topic>/` in
 `<repo path>` on branch `<branch>`, and to the Jisso named above. If that is
@@ -14,7 +14,7 @@ row, read at that moment, and stop.
 then the report's For Kanri section, one line per point.>
 <Kanri fills — the ruling line: what was accepted, what was returned for
 rework and why. For the first batch, write "First batch, no previous
-verdict.">
+verdict, no check: line.">
 <Kanri fills — the deferral line, written only when Kanri's handover stands
 deferred at this boundary, verbatim: "Kanri's handover is deferred since
 <batch X | the spec stage | the plan stage> — the ceiling is crossed and the
@@ -46,7 +46,7 @@ Three slots in this file read `<Kanri fills>` in the rendered draft and are
 filled by Kanri after it rules: the Previous batch verdict's ruling line, that
 section's deferral line, and the first line below.
 
-- <Kanri fills> R-<n> — <the ruling, one line> — applies to tasks <N and M>
+- <Kanri fills — the first ruling line: R-<n> — <the ruling, one line> — applies to tasks <N and M>>
 - Models, restated here so they survive compaction — the task implementation
   on `task.implement` (sonnet, `subagent_type: tanto-task-implement`); the
   per-task reviews on `task.review-spec` and `task.review-quality` (opus,

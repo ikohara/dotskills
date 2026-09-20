@@ -15,8 +15,9 @@ back is held and re-sent to that row, read fresh, at your next wake-up.
 
 `/tanto hosa [<address>]` — with no address, Kanri's address is the first
 data row of `.tanto/roster.md`. You have done the model and effort check
-and sent the handshake; Kanri answers with its address and one line,
-"tracked files only in a slot I give".
+and sent the handshake; Kanri answers with one line,
+"tracked files only in a slot I give" — it announces no address; you read the
+roster's first data row at every send.
 
 Kanri never requests a Hosa. The human opens one; while none is live, Kanri
 does its own chores.

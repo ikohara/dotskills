@@ -65,8 +65,8 @@ function tantoDir(values) {
 }
 
 /**
- * A child `node <script> <args...>`, its two streams joined in the order a
- * reader sees them and its exit code mapped from a signal to 1.
+ * A child `node <script> <args...>`, its stdout then its stderr joined —
+ * interleaving is lost — and its exit code mapped from a signal to 1.
  */
 function child(script, args) {
   const result = spawnSync(process.execPath, [script, ...args], {
@@ -245,7 +245,7 @@ function readingFigures(text) {
  * alone, so the reason text after the dash never has to be parsed.
  */
 function isUnavailableReading(text) {
-  return /^transcript: unavailable\b/.test(String(text));
+  return /^\s*transcript: unavailable\b/.test(String(text));
 }
 
 /** The cache regime a reading string carries, or `unknown`. */
@@ -320,7 +320,7 @@ function writeCellEntry(doc, rowPrefix, batch, body, written) {
     const current = cells(doc.lines[i]);
     if (!current[0].startsWith(rowPrefix)) continue;
     const entry = `batch ${batch}: ${body}`;
-    const raw = current[2].split(";");
+    const raw = current[2].trim().startsWith("<") ? [] : current[2].split(";");
     const entries = raw.map((part) => part.trim()).filter((part) => part.length > 0);
     const at = entries.findIndex((part) => part.startsWith(`batch ${batch}:`));
     if (at === -1) entries.push(entry);
@@ -556,7 +556,7 @@ function cmdRecord(argv) {
     for (const line of values.status) {
       const found = /^(.*)\s+(live|cleared|queued)$/.exec(String(line).trim());
       if (!found) {
-        note(`a --status that parses (got ${line})`);
+        note(`a --status ending in live, cleared, or queued (got ${line})`);
         continue;
       }
       note(writeStatus(roster, found[1].trim(), found[2], written));

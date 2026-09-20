@@ -33,7 +33,7 @@ rewritten to `present` when the file lands and dropped once the spec cites it>
 ## Batches
 
 Columns: Batch, the letter; Tasks, the plan's task numbers; State, one of
-planned, sent, reported, accepted, or rework; Prompt and Report, the two file
+planned, reported, accepted, or rework; Prompt and Report, the two file
 names under `.tanto/<topic>/`; Verdict, one line — accepted, or what must
 change. One row per batch, added as the batch is planned; the placeholder row
 stays until the first one is.
@@ -124,11 +124,12 @@ ledger of the topic that raised it, never a compound value.
 | top-family one-shots per plan, counted by kind | <YYYY-MM-DD, the plan close> | <one count per kind dispatched on the top family> |
 | each role's last reading | <YYYY-MM-DD, the plan close> | <the roster's Residency figures, copied, one role per line> |
 | the day's cost, uncached input, cache miss, cache hit, and hit rate | <YYYY-MM-DD> | <the five figures as the human pastes them from the Claude Code Usage extension> |
-| Kanri's context at the topic's opening and at the plan's landing, then Kanri's at each boundary with the delta per batch, and each Jisso's at its own boundary | <YYYY-MM-DD, each check> | <opening: kanri context=<n>; landing: kanri context=<n> (+<d>); batch <X>: kanri context=<n>, jisso context=<n>, ttl=<v>>, entries separated by `;` — the opening and the landing written by Kanri, every `batch <X>` entry by `boundary.js record`, which replaces its own batch's entry and leaves every other entry alone |
+| Kanri's context at the topic's opening and at the plan's landing with the landing's delta, then Kanri's and each Jisso's at each boundary with the cache regime | <YYYY-MM-DD, each check> | <opening: kanri context=<n>; landing: kanri context=<n> (+<d>); batch <X>: kanri context=<n>, jisso context=<n>, ttl=<v>>, entries separated by `;` — the opening and the landing written by Kanri, every `batch <X>` entry by `boundary.js record`, which replaces its own batch's entry and leaves every other entry alone |
 | deferrals: where, the context, and the presence verdict | <YYYY-MM-DD, the check> | <batch letter or stage, context=<n>, last human turn <m> min ago>, one entry per deferred handover, or `none` |
 | the share of usage at context over the threshold | <YYYY-MM-DD, the plan close> | <the share line, the names it ran over> |
 
-These seven rows are fixed and always present. Kanri fills the first at the
+These seven rows are always present; the rows the last paragraph adds sit
+below them. Kanri fills the first at the
 plan close from this ledger's Session events, where it writes one line each
 time a second top-family session goes live; the second by counting those same
 events' one-shot lines by kind and not by stage, since one kind is dispatched

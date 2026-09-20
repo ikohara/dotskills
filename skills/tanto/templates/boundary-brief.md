@@ -14,6 +14,7 @@ topic=<topic> batch=<X> plan=<plan path> report=<report path>
 ledger=<.tanto/<topic>/kanri.md> roster=<.tanto/roster.md> base=<merge base>
 kanri-transcript=<Kanri's transcript path, from the roster's first data row>
 tanto=<the skill's own directory>
+measurement=<the measurement report's path on a measurement batch, or none>
 peer readings since the last boundary, one per line, or none: <…>
 top-family dispatches since the last boundary, one per line, or none: <…>
 ```
@@ -77,7 +78,9 @@ only the resident can compare with its roster row.
 5. Render `.tanto/<topic>/batch-<Y>-prompt.md` for the next batch from
    `templates/batch-prompt.md`: the plan's Batches table gives the next
    batch's tasks, and the roster's `queued` rows in handshake order give the
-   Jisso. Fill the Previous batch verdict section's first line from the
+   Jisso — when no row is `queued`, render with the addressee left as
+   `<name> [<ref>]` and say so under Next prompt; the resident's create
+   request fills it. Fill the Previous batch verdict section's first line from the
    `check:` line and the report's For Kanri section, and leave the three slots
    that template names as `<Kanri fills>` — that section's ruling line, its
    deferral line, and the Rulings section's first line. Then make your second
