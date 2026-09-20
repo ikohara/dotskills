@@ -39,14 +39,9 @@ change. One row per batch, added as the batch is planned; the placeholder row
 stays until the first one is.
 
 The boundary-verify brief writes a next batch's row as `planned` once it has
-rendered that batch's prompt file, because rendering is not sending: `sent` is
-written only by Kanri's own step-6 `record` call, for the batch it is
-actually accepting and dispatching, once it rules accept rather than rework.
-When the resident instead rules the current batch a rework, the next batch's
-already-rendered prompt is never sent, so that row is never carried past
-`planned` for that reason — do not "fix" the brief to write `sent` directly;
-the transition rides on Kanri's own accept-and-send act, not on a second
-explicit `record` call.
+rendered that batch's prompt file, because rendering is not sending; no
+`record` call ever writes a row `sent` — its next explicit write is
+`reported`, from that batch's own boundary's brief once its report lands.
 
 | Batch | Tasks | State | Prompt | Report | Verdict |
 | --- | --- | --- | --- | --- | --- |
