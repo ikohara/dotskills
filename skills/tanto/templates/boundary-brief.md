@@ -85,14 +85,17 @@ only the resident can compare with its roster row.
 
    ```bash
    node "<tanto>/scripts/boundary.js" record --ledger <ledger> \
-     --batch <Y> --tasks <N-M> --state sent --prompt <the rendered path>
+     --batch <Y> --tasks <N-M> --state planned --prompt <the rendered path>
    ```
 
    That row is bookkeeping, not a ruling — the prompt exists and the ledger
    should say so — which is why it is yours and not the resident's: the
    resident's one `record` call carries batch `<X>`'s acceptance, and nothing
-   else. When the batch is the plan's last, write no prompt, make no second
-   `record` call, and say so under Next prompt.
+   else. The state is `planned`, not `sent` — you have rendered the file, not
+   dispatched it, and the resident is the one who sends it (or rules a rework,
+   in which case the prompt is never sent at all). When the batch is the
+   plan's last, write no prompt, make no second `record` call, and say so
+   under Next prompt.
 6. Write `.tanto/<topic>/batch-<X>-verdict.md`, below.
 7. Reply with the one line, below, and nothing else.
 
