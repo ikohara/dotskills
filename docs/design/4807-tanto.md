@@ -70,11 +70,15 @@ because every role runs it, and the frame command is in `roles/kanri.md`
 because Kanri alone reads it — one command per reader set, not one section for
 both (the context-cost spec dialogue, 2026-09-09).
 
-Ten templates are copied and filled, never restated in prose: the roster, the
-conductor ledger, the handover, the bug report, the batch prompt, the batch
-report, the Kaiseki brief, the Kaiseki report, the review brief, and the
-built-in expected-model defaults. With `SKILL.md`, the README, and the four role
-files, the skill is sixteen files. The templates directory is
+Fifteen templates are copied and filled, never restated in prose: the roster
+and its archive, the conductor ledger, the handover, the bug report, the batch
+prompt, the batch report, the boundary brief, the Kaiseki brief, the Kaiseki
+report, the review brief, the shoroku brief, the Kikaku decision, the agent
+definition, and the built-in expected-model defaults. Three non-test scripts
+sit beside them — `scripts/passage-check.js`, `scripts/reading.js`, and
+`scripts/boundary.js` — and `tanto.json` carries fourteen `subagents` keys,
+`boundary.verify` the newest: the kind Kanri dispatches once per boundary,
+whose brief is `templates/boundary-brief.md`. The templates directory is
 markdownlint-ignored, so skeletons carry bare blanks; the whitespace and
 line-ending hooks still apply to them.
 
@@ -210,16 +214,18 @@ Code extension the rename does not even reach the tab title the human reads.
 decision-73c3 records the choice; the human declined to amend it with this
 property on 2026-09-07, judging the rationale sufficient as written.
 
-Kanri's address reaches a role in one of three ways, in order of precedence: a
-`kanri-address:` line from a successor Kanri, the second argument of the
-invocation as the human pasted it, and the roster's first data row. Every other
-role's address is known only to Kanri, from the handshake, and Kanri is the only
-session that sends to Sekkei, Jisso or Kaiseki.
+**Kanri's address is read, never announced** — decision-0775. The roster's
+first data row, read at the moment of sending, is the address; no role caches
+it and no line carries it. The invocation's address argument survives as the
+**bootstrap** for a workspace whose roster does not exist yet, and nothing
+else. Every other role's address is known only to Kanri, from the handshake,
+and Kanri is the only session that sends to Sekkei, Jisso or Kaiseki.
 
 **Kanri sends only to `live` rows, and a queued seat reads nothing until its
 batch prompt** — decision-76a6. The Jisso queue (below) puts N windows on the
 roster at the plan's landing, and a queued row is an address that exists and is
-deliberately never used: the window is sent no `kanri-address:` broadcast, and
+deliberately never used: the window is sent nothing at all — there is no
+broadcast of any kind to send it — and
 it reads no plan and no spec while it waits. A broadcast to the run's windows
 therefore costs the waiting ones nothing, which is req-04f5's "a seat that
 waits holds the minimum context". The batch prompt is the whole start contract
@@ -247,8 +253,8 @@ role runs at each of its boundaries are the same act: one listing, then compare
 the name it prints for this session against the roster row whose Transcript
 column is this session's own path. A peer that differs re-sends its handshake
 and Kanri rewrites the row in place — status `live`, no `dead` row, one Events
-line `resumed: <old> → <new>`; Kanri rewrites its own first row and tells every
-listed peer its new address. The self-check runs at boundaries and not at every
+line `resumed: <old> → <new>`; Kanri rewrites its own first row and tells no
+one — the row is the announcement, and a peer reads it at its next send. The self-check runs at boundaries and not at every
 wake-up, because one listing per turn was the alternative and it costs a turn's
 worth of context for a state that changes once. A standalone Kaiseki has no
 roster and therefore no self-check. The Transcript column that all of this keys
@@ -344,9 +350,13 @@ cross-plan counters the skill keeps, batches accepted, plans closed and
 compactions noticed since this Kanri's own start, because the roster is the only
 file that outlives a plan. A handover resets Kanri's row to the successor with
 zero counts. A reading Kanri doubted and could not verify carries `(unverified)`
-after its Compactions figure. At a plan close every row whose session is dead,
+after its Compactions figure. At a boundary none of these rows is hand-written:
+`scripts/boundary.js record` writes the Residency rows, the Measurements
+table's per-boundary entry with its `ttl=` cache regime, the `S-n` rows and
+the Session events, all idempotently, from the readings its dispatch carried
+(decision-a8cc). At a plan close every row whose session is dead,
 replaced or refused moves, with its last reading and the closed plan's Events
-lines, to `roster-archive.md` — the eleventh template, and the file a threshold
+lines, to `roster-archive.md` — one of the fifteen templates, and the file a threshold
 will one day be read from. The archive is untracked and dies with the workspace,
 so each plan's T2 direction carries the run's Residency rows into the dogfood
 report, which is where the readings survive.
@@ -525,7 +535,8 @@ is a function of two artifacts and depends on consulting it selectively rather
 than reading it whole.
 
 **The loop, per batch**, in this order: wait for the report line, never poll;
-verify the tree *before* reading the report; read the report
+**dispatch the boundary** and read its verdict *before* reading the report;
+read the report
 and rule, adopting or rejecting each shoroku proposal item; **triage any bug report
 that arrived during the batch**; report one line to the human; **check the
 lifecycle tables and the handover trigger**, running the proposal half of a
@@ -538,6 +549,30 @@ The order is the point. Everything that needs Jisso idle or the index free —
 the triage's issues, the exits, Kanri's own commits, Sekkei's — happens before
 the prompt that wakes Jisso, and the pre-commit hooks stash every unstaged change
 while they run, so nobody edits a tracked file outside its own slot.
+
+**The boundary runs in a thrown-away context** — decision-a8cc. Kanri
+dispatches one `boundary.verify` subagent per boundary, on
+`templates/boundary-brief.md`, and that subagent does the whole mechanical
+half: `scripts/boundary.js check`, then `scripts/boundary.js record`, then the
+next batch prompt rendered from its template, then a verdict file. Kanri reads
+the verdict by `sections` — a line, not a transcript — and rules on it. At a
+boundary Kanri takes **no reading of its own** and edits **no table by hand**:
+the reading the dispatch carried is what `record` writes into the Residency
+row, and the ledger's Batches, Measurements, `S-n` and Session events rows are
+`record`'s too, written idempotently, which is what makes a rework one re-run
+of the same command instead of another Edit. The resident's own single
+`record` call is the exception the handover case needs, when the loop stops
+before the step that would have made it.
+
+Two things the subagent cannot see have to ride in the dispatch prompt: the
+peers' readings since the last boundary, and the resident's own top-family
+one-shot dispatches. A design that wanted them out of the resident's hands
+too would need peers to write their readings to a file, which no line does
+today.
+
+The Batches table's State is `planned` when the brief renders the next prompt,
+and no `record` call ever writes the word `sent`; the next state a call writes
+is `reported`.
 
 **The report line is the signal, and no tanto line carries a subscription.**
 Kanri sends every line — batch prompts, Kaiseki briefs, and the exit lines
@@ -668,9 +703,13 @@ Timing is a boundary only: a batch accepted and the next prompt not yet sent, or
 between plans. The outgoing Kanri writes its own exit shoroku first, then the
 handover file from its template, sets the ledger's progress line or a roster
 event, prints the residency line with the human's numbered commands, and stops.
-The successor reads the handover, rewrites the roster, sends every live peer the
-`kanri-address:` line, deletes the handover file so a stale one cannot start a
-false handover, and asks the human to delete the old session.
+The successor **starts in the outgoing window** — decision-0775 — so the
+address the roster's first data row already holds is the successor's too. It
+reads the handover, rewrites the roster, answers the `unanswered:` Session
+events lines first, announces nothing, and deletes the handover file so a stale
+one cannot start a false handover. A peer that sent into the gap re-sends at
+its own next wake-up; in a handover-less gap that wake-up is the human's word
+in its window or a line from the new Kanri.
 
 **A topic's spec or plan stage takes the in-plan procedure and the
 between-plans timing.** Two rules used to pick which handover procedure follows

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
 Source: session 2026-09-15
@@ -71,3 +71,21 @@ gap 1, Kanri's own check, is written into the hotfix lane ("Where the commit
 lands", `roles/kanri.md`). What remains open is gap 2: nothing tells a
 Sekkei or Keikaku about to cut a topic branch that a human-ordered
 between-plans commit may be about to land on the shared checkout.
+
+2026-09-20, `tanto-diet`: a second instance, of gap 2 again. Two commits
+touching only `docs/reports/2026-09-20-tanto-bg-seats-probe.md` landed
+directly on the `tanto-diet` branch while that topic's Keikaku had subagent
+work in flight, between two of the topic's own commits and on no other
+branch. Keikaku's exit proposal read them as a standalone session's stray
+work; the ledger's own ruling corrected the attribution — they were Kanri's
+`docs/` writes under rule 5's carve-out, made during that day's handover —
+and the disposition was recorded as R-4: cherry-pick both onto `main` and
+drop them from the branch before the merge decision.
+
+Neither `lint` nor `replay` noticed, and nothing could have: both commits are
+clean and touch nothing under `skills/tanto/`, so this is not the stray
+*uncommitted* modification rule 5's usual case describes. What it shows is
+the same missing signal as gap 2, from the committer's side rather than the
+branch-cutter's: the shared checkout tells a session nothing about which
+topic's branch it is on before it commits, and a human noticing a report on
+the wrong branch is the only detector on record.

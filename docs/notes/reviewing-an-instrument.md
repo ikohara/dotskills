@@ -103,3 +103,16 @@ plan runs against the skill itself are in
   stubbed-EPERM test now pins exit 2 and a one-line stderr. The reviewer's
   check for such a narrowing is "what does a raw fs error do now?" — walk
   each raw call under the narrowed catch and name the exit path it takes.
+
+## Locate the owner before filing
+
+- A finding's owner is the text that asked for the behavior, not the script
+  that obeyed it. Before filing against code, check what the code was told to
+  do: if it does exactly that, the defect is upstream and the fix is a word,
+  not a patch. Measured on `tanto-diet`'s whole-branch review: the reviewer
+  first read `boundary.js`'s writing of a Batches row as `sent` at render
+  time as a `writeBatch` bug and was about to file it there. The script
+  matched its brief exactly — the brief and the ledger's own state legend
+  were what asked for the wrong word, so that is where the correction landed.
+  Filing against the script would have produced a patch that made the code
+  disagree with its own specification.

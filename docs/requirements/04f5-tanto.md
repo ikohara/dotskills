@@ -38,7 +38,12 @@ artifacts.
   work in hand. Whatever resets it is a planned step — a handover to a
   successor at a boundary with no batch in flight — never a mid-batch loss
   and never a decision left to the human. When the reset happens is a
-  recorded decision, not a requirement.
+  recorded decision, not a requirement. The boundary's verification, reading,
+  and row appends run in a context that ends with the boundary; the resident
+  keeps one line and the rulings it makes on it.
+- **Kanri's address is read, never announced.** A role reads Kanri's address
+  from the roster at the moment of sending; no role caches it and no line
+  announces it.
 - **The human is interrupted only at defined checkpoints.** The spec dialogue;
   one OK before the plan is committed; batch boundaries, and there only for
   the stop classes of subagent-driven development and a scope or spec change;
@@ -134,7 +139,8 @@ artifacts.
 - **A session's cost is measured, not guessed.** Every role reads its own
   transcript at its boundaries, the roster keeps the readings of the current
   run, and the archive keeps them across runs. The reading includes the turn's
-  context in tokens, so a cost figure and a ceiling share one instrument.
+  context in tokens, so a cost figure and a ceiling share one instrument. The
+  reading says which cache regime the session is in.
 - **A seat stays under an operating context ceiling the run chooses.** No
   session is allowed to grow without a bound the run has set for it, so that
   both what the human pays per wake-up and what the model can still attend to

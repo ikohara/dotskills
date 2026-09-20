@@ -45,6 +45,20 @@ rediscover:
    `target-concurrency` — both approaches worked, neither hit the other's
    risk).
 
+6. Resuming one `plan.draft` dispatch beats a fresh one for a plan-drafting
+   seat, and the role file says nothing either way. Measured on `tanto-diet`
+   (2026-09-20): all seven dispatches of that plan's drafting cycle resumed
+   the same subagent, and every resume both fixed what it was asked to fix
+   and caught follow-on breakage the fix itself introduced without being told
+   to look — the clearest instance being the `writeEvent` dedup fix's
+   test-count growth (18 → 23), which falsified nine unrelated count claims
+   elsewhere in the plan, all found and corrected in the same turn. A fresh
+   subagent handed a text summary of the prior turns would very likely have
+   missed several, since none was named in what it was asked to do. This is
+   distinct from a `task.implement` seat, which the contract already treats
+   as disposable per batch, and it cuts the other way from item 5's
+   discriminator for a *fix round*: for drafting, the resume is the default.
+
 Reported by Hosa `kuchidome-6b [d17de0]` from `C:\Users\0000105523\devel\kuchidome`,
 2026-09-15 (delayed in transit — original addressee no longer live; relayed
 by this repository's own Kanri 2026-09-17).

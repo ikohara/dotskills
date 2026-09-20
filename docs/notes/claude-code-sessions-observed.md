@@ -372,3 +372,30 @@ sum of its context over its tool calls. The same run, measured:
 
 Kanri made about 16 tool calls per boundary, six of them Edits to the ledger's
 and the roster's tables.
+
+## A background subagent killed by a host restart resumes from its transcript (2026-09-20)
+
+A host restart killed a background `spec.review` subagent before it wrote its
+file, and nothing of its work was on disk. A `SendMessage` to the subagent's
+id after the restart **resumed it from its saved transcript**: it finished
+with 2 further tool uses, having spent 192,984 tokens in total, nearly all of
+them before the restart.
+
+Two facts for a dispatcher. A dispatched subagent's deliverable exists only
+once its file does — a killed agent with an unwritten report has produced
+nothing recoverable by looking at the tree. And the resume is the cheap
+recovery: a fresh dispatch re-reads every input, where the resume picks up a
+context already holding them.
+
+## context-mode's batch runner writes one newline to every child's stderr
+
+A test that asserts an empty stderr is sensitive to the host's `NODE_OPTIONS`.
+Under the context-mode batch runner, whose `--require` preload writes one
+newline to every child's stderr, such a test fails with `actual: '\n'`; the
+same file passes in a plain shell. Measured 2026-09-20 on
+`skills/tanto/scripts/reading.test.js` (the empty-stderr assertion at :329),
+which passed 23/23 twice in a plain shell and failed only under the wrapper.
+
+Nothing to change in the code — whoever runs `node --test` through a wrapper
+should expect the phantom failure and re-run the file directly before
+believing it.

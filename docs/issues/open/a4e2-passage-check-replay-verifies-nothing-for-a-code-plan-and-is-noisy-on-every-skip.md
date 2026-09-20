@@ -62,3 +62,12 @@ commit message.
 Reporter: `ellmx-fd [05a76d]`, repo `ellmx` (a sibling repository on the same
 machine), 2026-09-14
 (`.tanto/inbox/2026-09-14-replay-vacuous-for-code-plans.md`).
+
+2026-09-20, `tanto-diet`'s whole-branch review: the other side of the same
+complaint. `replay` prints **no headline tally** — a reader learns the verdict
+from the exit code and by scanning 513 lines for `DIFFERS:` and the needle
+sweep. One closing line — `N passages applied, M commands differed from
+Expected, K residual hits` — would let a boundary or a review read the result
+at a glance, as `boundary.js check` already does with its `check:` line. Lands
+here rather than as a text correction because it is a code change of several
+lines, in the same output path as the skip noise above.

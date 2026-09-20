@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
 Source: session 2026-09-17
@@ -26,7 +26,7 @@ own invocation, or in the handshake line itself when the human already knows
 which topic they mean.
 
 Proposed: let the invocation carry an optional topic argument for a role
-whose topic is not inferable. `SKILL.md` spells the invocation as
-`/tanto <role> [<kanri-address>]`, so the proposed form is
-`/tanto <role> <kanri-address> [<topic>]`, surfaced in the handshake line as
-`topic=<word>` when given.
+whose topic is not inferable. Since decision-0775 the address argument is no
+longer an address channel — it survives only as the bootstrap for a workspace
+with no roster — so the proposed form is `/tanto <role> [<topic>]`, surfaced
+in the handshake line as `topic=<word>` when given.
