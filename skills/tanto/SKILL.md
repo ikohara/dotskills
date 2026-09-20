@@ -31,7 +31,7 @@ This file is the shared contract. Every role reads it, then reads exactly one
 
 ## Invocation
 
-`/tanto <role> [<kanri-address>]`, or `担当して <role>` / `tantoして <role>`.
+`/tanto <role> [<address>]`, or `担当して <role>` / `tantoして <role>`.
 
 Normalize the role word to its romaji id before anything else.
 
@@ -390,10 +390,11 @@ model, or the role; the handshake carries those.
   appended to a `to` value only after `SendMessage` reports the name ambiguous,
   and never pasted from a file. Every command line (`/tanto <role> <address>`),
   every `to` value, and every "Send to" blank carries the bare name.
-- **Kanri's address** reaches a role in one of three ways, in this order of
-  precedence: the `kanri-address:` line below; the second argument of
-  `/tanto <role> <address>`, pasted by the human from Kanri's request; the
-  first data row of `.tanto/roster.md`.
+- **Kanri's address** is the first data row of `.tanto/roster.md`,
+  read at the moment of sending. No role caches it and no line announces it.
+  The second argument of `/tanto <role> <address>` is the bootstrap for a
+  workspace whose roster does not exist yet, and is otherwise not given:
+  Kanri's create requests do not carry it.
 - **Every other role's address** is known only to Kanri, from the handshake,
   and Kanri is the only session that sends to Sekkei, Keikaku, Jisso,
   Kaiseki, or Hosa. Kikaku is the human's seat: it sends Kanri a
@@ -401,18 +402,23 @@ model, or the role; the handshake carries those.
   first. A reply copies the envelope's `from` into `to` and needs no name at
   all.
 - **Kanri sends only to the names of `live` roster rows** — never to a
-  `queued` Jisso, which learns Kanri's name from the batch prompt that makes
-  it live, and never to a `cleared` one, which is a bare window. The roster
+  `queued` Jisso, which reads Kanri's row when its prompt wakes it, and never
+  to a `cleared` one, which is a bare window. The roster
   is the address book; `ListAgents` confirms that a name is listed and
   nothing more. A window keeps its name and `[ref]` across a `/clear`
   (measured 2026-09-16), so a listed name is no evidence that a role is
   behind it.
 
-Kanri's address is the first data row of the roster. A message whose first line
-is `kanri-address: <name> [<ref>] — handover accepted; the roster's first row is rewritten`
-comes from a successor Kanri and replaces Kanri's address from then on; the
-roster's first row says the same. A role whose send to Kanri errors re-reads
-that row.
+Kanri's address is the first data row of the roster,
+read at the moment of sending. A role whose send to Kanri errors, or gets
+`no-role` back, holds its line and re-sends it to that row, read fresh, at
+its next wake-up. No line announces a successor's address: a window keeps its
+name and `[ref]` across a `/clear` (measured 2026-09-16), so the row the
+successor rewrites already holds the address every peer would have been told.
+On Kanri's side, a peer line it receives and does not answer in the same turn
+becomes the ledger's `unanswered: <from> — <line>` events line, written
+through `record --event` and paired with `answered: <from> — <line>` when it
+is answered.
 
 ## The transcript reading
 
@@ -544,11 +550,9 @@ happened. If it differs, this session was resumed:
   recovery had already marked `dead` returns to `live` the same way, and the
   Events line corrects the earlier one.
 - Kanri rewrites the roster's first data row with its new name and `[ref]`,
-  and sends `kanri-address: <name> [<ref>] — resumed; the roster's first row is rewritten`
-  to every `live` roster row — never to a `queued` or a `cleared` one, and
-  a listed name is no evidence of a role. A peer not listed
-  was resumed too, and re-handshakes on its own `/tanto fukki`, finding the
-  new first row.
+  and sends nothing: every peer reads that row at its next send. A peer not
+  listed was resumed too, and re-handshakes on its own `/tanto fukki`, finding
+  the new first row.
 
 After an editor restart, which resumes every window at once, the human types
 `/tanto fukki` in Kanri's window first and then in each other window, in any
@@ -604,9 +608,8 @@ the result the same way the Start sequence does.
   and has not yet given a role — finds in it the whole of what is asked of
   it, so "act on the teammate's request" and "do nothing" coincide. In a
   message longer than one line the `no-role` line follows the first: a
-  batch prompt, whose text is what `templates/batch-prompt.md` renders,
-  carries it after its title line, and the file carries it there too, so
-  that a pasted file and a sent message are the same bytes; a `close:` line
+  batch prompt travels as the one line `batch: <path>`, and the file that
+  path names carries no such line of its own; a `close:` line
   with its clauses, or a handshake with its fields, is one line. A file a
   line points at — a report, a brief, a bug report — is not a message and
   carries no such line. The
@@ -617,7 +620,8 @@ the result the same way the Start sequence does.
   — what was lost, as far as it knows — and treats the exit as forced, a
   live Jisso's after verifying the tree; a role that receives `no-role` from
   Kanri's own name is in a handover gap, holds the line it sent, and
-  re-sends it when the next `kanri-address:` line arrives — this holds a
+  re-sends it to the roster's first data row, read fresh, at its next
+  wake-up, until it is answered — this holds a
   line only for a role with an established roster row to hold one on
   behalf of. A session with no row yet — a queued Jisso's own first
   handshake, landing in the same gap — has no line to hold: it treats the
