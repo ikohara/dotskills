@@ -498,6 +498,62 @@ test("an unavailable Jisso reading still writes the Batches row and the Kanri Re
     roster.includes("| kanri | — | kanri-z [aaaaaa] | 2026-09-19 | batch Z | 1 | 2 | 3 | 0 | context=4 |"),
     roster,
   );
+  // The joint Measurements entry needs both figures, so it is skipped, not
+  // written with a garbage or partial entry, and the skip is reported under
+  // "Rows written" rather than swallowed.
+  assert.match(result.out, /measurement skipped — jisso reading unavailable/);
+  assert.ok(!ledger.includes("batch Z: kanri context="), ledger);
+});
+
+test("both readings unavailable, and an unavailable peer reading, still write —/context=unavailable rows and report both skips", () => {
+  const fixture = ledgerAndRoster();
+  const unavailable = "transcript: unavailable — no transcript on this host";
+  const args = [
+    "record",
+    "--ledger",
+    fixture.ledger,
+    "--roster",
+    fixture.roster,
+    "--batch",
+    "Z",
+    "--kanri",
+    "kanri-z [aaaaaa]",
+    "--kanri-reading",
+    unavailable,
+    "--jisso",
+    "jisso-z [bbbbbb]",
+    "--jisso-reading",
+    unavailable,
+    "--peer-reading",
+    `keikaku keikaku-a [ccdd11] ${unavailable}`,
+    "--now",
+    "2026-09-19 14:00",
+  ];
+  const result = run(args, fixture.dir);
+  assert.strictEqual(result.code, 0, result.err);
+  // "Both sides unavailable" is its own `who` branch, distinct from the
+  // single-side wording covered above.
+  assert.match(result.out, /measurement skipped — kanri and jisso readings unavailable/);
+  const ledger = fs.readFileSync(fixture.ledger, "utf8");
+  assert.ok(!ledger.includes("batch Z: kanri context="), ledger);
+  const roster = fs.readFileSync(fixture.roster, "utf8");
+  // Kanri's and Jisso's own Residency rows both read unavailable...
+  assert.ok(
+    roster.includes("| kanri | — | kanri-z [aaaaaa] | 2026-09-19 | batch Z | — | — | — | — | context=unavailable |"),
+    roster,
+  );
+  assert.ok(
+    roster.includes("| jisso | — | jisso-z [bbbbbb] | 2026-09-19 | batch Z | — | — | — | — | context=unavailable |"),
+    roster,
+  );
+  // ...and a `--peer-reading` that arrives unavailable survives the PEER
+  // regex's own parse first and still writes the same shape of row.
+  assert.ok(
+    roster.includes(
+      "| keikaku | — | keikaku-a [ccdd11] | 2026-09-19 | batch Z | — | — | — | — | context=unavailable |",
+    ),
+    roster,
+  );
 });
 
 test("a heading record cannot find makes it write nothing and exit 1, naming the table", () => {
