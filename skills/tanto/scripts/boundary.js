@@ -93,11 +93,30 @@ function reportHeader(file) {
 }
 
 /**
+ * The comparison key for a `commit-ready:`/`commit-done:` subject.
+ * `writeEvent` stamps the line's front (`- <now> — <text>`) and appends a
+ * trailing ` (batch <X>)` when `--batch` is given, never a trailing
+ * timestamp -- so pairing must strip that trailing batch suffix (and,
+ * defensively, a leading stamp, though the capturing regex below already
+ * starts after `commit-ready: `/`commit-done: ` and so never carries one)
+ * rather than compare the raw captured text, or a peer that writes its
+ * `commit-ready:` outside a batch and is closed inside one never pairs.
+ */
+function commitSubject(text) {
+  return text
+    .replace(/^-\s*\d{4}-\d{2}-\d{2} \d{2}:\d{2}\s*—\s*/, "")
+    .replace(/\s*\(batch [^)]+\)\s*$/, "")
+    .trim();
+}
+
+/**
  * The ledger's `commit-ready:` events that have no `commit-done:` pair. A
  * peer with work to commit writes the first itself through
  * `record --event`; the boundary's own `record` call writes the second. The
  * commit window opens for the peers this prints and for no others
- * (issue-c0d0).
+ * (issue-c0d0). Pairing compares `commitSubject`'s normalized key; the
+ * printed line is always the full, original ledger line, batch suffix and
+ * all.
  */
 function unpairedCommitReady(file) {
   let lines;
@@ -111,8 +130,8 @@ function unpairedCommitReady(file) {
   for (const line of lines) {
     const found = /(commit-(?:ready|done)): (.+?)(?: — \d{4}-\d{2}-\d{2} \d{2}:\d{2})?\s*$/.exec(line);
     if (!found) continue;
-    if (found[1] === "commit-done") done.push(found[2].trim());
-    else ready.push({ who: found[2].trim(), line: line.trim() });
+    if (found[1] === "commit-done") done.push(commitSubject(found[2]));
+    else ready.push({ who: commitSubject(found[2]), line: line.trim() });
   }
   const open = ready.filter((item) => !done.includes(item.who));
   return open.length > 0 ? open.map((item) => item.line).join("\n") : "none";
@@ -123,7 +142,7 @@ function cmdCheck(argv) {
   for (const name of ["plan", "report", "base"]) {
     if (!given(values, name)) return fail(`check needs --${name}`, 2);
   }
-  for (const name of ["plan", "report", "measurement", "kanri-transcript"]) {
+  for (const name of ["plan", "report", "measurement", "kanri-transcript", "ledger"]) {
     const value = given(values, name);
     if (value !== null && !fs.existsSync(value)) {
       return fail(`check: --${name} ${value} is not on disk`, 2);

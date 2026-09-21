@@ -751,16 +751,50 @@ test("--status accepts stopped and still refuses a word the table does not name"
   assert.match(refused.err, /live, cleared, stopped, or queued/);
 });
 
-test("check prints the commit-ready events that have no commit-done pair", () => {
+test("check pairs a commit-ready with its commit-done even when only one side carries a --batch suffix, and still reports a genuinely unpaired commit-ready", () => {
   const fixture = ledgerAndRoster();
   const plan = write(fixture.dir, "plan.md", PLAN);
   const report = write(fixture.dir, "report.md", "# Report\n\n- Transcript — none\n\n## For Kanri\n\nnothing\n");
-  const events = [
-    "- commit-ready: sekkei next-topic — docs: the next spec — 2026-09-21 09:00",
-    "- commit-done: sekkei next-topic — docs: the next spec",
-    "- commit-ready: keikaku next-topic — docs: the next plan — 2026-09-21 10:00",
-  ].join("\n");
-  fs.appendFileSync(fixture.ledger, `\n${events}\n`);
+  // The paired peer: `commit-ready:` written with no `--batch`, `commit-done:`
+  // for the same subject written WITH `--batch` -- the real shape `record`
+  // itself writes (a peer's own commit-ready call rarely carries a batch; the
+  // boundary's own commit-done call for it usually does), and the shape that
+  // exposed the bug where pairing compared the raw, batch-suffixed text.
+  const readyArgs = [
+    "record",
+    "--ledger",
+    fixture.ledger,
+    "--event",
+    "commit-ready: sekkei next-topic — docs: the next spec",
+    "--now",
+    "2026-09-21 09:00",
+  ];
+  assert.strictEqual(run(readyArgs, fixture.dir).code, 0);
+  const doneArgs = [
+    "record",
+    "--ledger",
+    fixture.ledger,
+    "--batch",
+    "C",
+    "--event",
+    "commit-done: sekkei next-topic — docs: the next spec",
+    "--now",
+    "2026-09-21 09:30",
+  ];
+  assert.strictEqual(run(doneArgs, fixture.dir).code, 0);
+  // A genuinely unpaired commit-ready: no commit-done for it anywhere.
+  const unpairedArgs = [
+    "record",
+    "--ledger",
+    fixture.ledger,
+    "--batch",
+    "C",
+    "--event",
+    "commit-ready: keikaku next-topic — docs: the next plan",
+    "--now",
+    "2026-09-21 10:00",
+  ];
+  assert.strictEqual(run(unpairedArgs, fixture.dir).code, 0);
   const args = [
     "check",
     "--plan",
@@ -778,4 +812,26 @@ test("check prints the commit-ready events that have no commit-done pair", () =>
   assert.ok(result.out.includes("## commit-ready"), result.out);
   assert.ok(result.out.includes("keikaku next-topic"), result.out);
   assert.ok(!result.out.includes("sekkei next-topic"), result.out);
+});
+
+test("check exits 2 when --ledger names a path that is not on disk", () => {
+  const fixture = ledgerAndRoster();
+  const plan = write(fixture.dir, "plan.md", PLAN);
+  const report = write(fixture.dir, "report.md", "# Report\n\n- Transcript — none\n\n## For Kanri\n\nnothing\n");
+  const args = [
+    "check",
+    "--plan",
+    plan,
+    "--report",
+    report,
+    "--base",
+    "HEAD",
+    "--tanto",
+    TANTO,
+    "--ledger",
+    path.join(fixture.dir, "gone.md"),
+  ];
+  const result = run(args, fixture.dir);
+  assert.strictEqual(result.code, 2);
+  assert.match(result.err, /--ledger .* is not on disk/);
 });
