@@ -14,6 +14,7 @@ topic=<topic> batch=<X> plan=<plan path> report=<report path>
 ledger=<.tanto/<topic>/kanri.md> roster=<.tanto/roster.md> base=<merge base>
 kanri-transcript=<Kanri's transcript path, from the roster's first data row>
 tanto=<the skill's own directory>
+seat=<the spawner result file of the Jisso that ran this batch, or none>
 measurement=<the measurement report's path on a measurement batch, or none>
 peer readings since the last boundary, one per line, or none: <…>
 top-family dispatches since the last boundary, one per line, or none: <…>
@@ -86,9 +87,9 @@ only the resident can compare with its roster row.
    by workspace and branch alone. Under a plan that edits the tanto skill,
    the roster's `queued` rows in spawn order name the next seat and you say
    which under Next prompt. Fill the Previous batch verdict section's first line from the
-   `check:` line and the report's For Kanri section, and leave the three slots
-   that template names as `<Kanri fills>` — that section's ruling line, its
-   deferral line, and the Rulings section's first line. Then make your second
+   `check:` line and the report's For Kanri section, and leave the two slots
+   that template names as `<Kanri fills>` — that section's ruling line and
+   the Rulings section's first line. Then make your second
    and last `record` call, for the batch you have just rendered:
 
    ```bash
