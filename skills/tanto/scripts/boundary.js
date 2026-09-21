@@ -92,6 +92,32 @@ function reportHeader(file) {
   return found.length > 0 ? found.join("\n") : "no reading line in the report's header";
 }
 
+/**
+ * The ledger's `commit-ready:` events that have no `commit-done:` pair. A
+ * peer with work to commit writes the first itself through
+ * `record --event`; the boundary's own `record` call writes the second. The
+ * commit window opens for the peers this prints and for no others
+ * (issue-c0d0).
+ */
+function unpairedCommitReady(file) {
+  let lines;
+  try {
+    lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
+  } catch {
+    return `no ledger at ${file}`;
+  }
+  const done = [];
+  const ready = [];
+  for (const line of lines) {
+    const found = /(commit-(?:ready|done)): (.+?)(?: — \d{4}-\d{2}-\d{2} \d{2}:\d{2})?\s*$/.exec(line);
+    if (!found) continue;
+    if (found[1] === "commit-done") done.push(found[2].trim());
+    else ready.push({ who: found[2].trim(), line: line.trim() });
+  }
+  const open = ready.filter((item) => !done.includes(item.who));
+  return open.length > 0 ? open.map((item) => item.line).join("\n") : "none";
+}
+
 function cmdCheck(argv) {
   const values = parseArgs(argv);
   for (const name of ["plan", "report", "base"]) {
@@ -135,6 +161,8 @@ function cmdCheck(argv) {
     blocks.push(["measurement", child(passageCheck, args).out]);
   }
   blocks.push(["jisso reading", reportHeader(report)]);
+  const ledger = given(values, "ledger");
+  if (ledger !== null) blocks.push(["commit-ready", unpairedCommitReady(ledger)]);
   const transcript = given(values, "kanri-transcript");
   if (transcript !== null) {
     const args = [transcript, "--role", "kanri", "--presence"];
@@ -459,6 +487,46 @@ function writeStatus(doc, name, status, written) {
   return `a roster row for ${name}`;
 }
 
+/**
+ * A terminal seat's roster row, written from the spawner's result file
+ * rather than from a handshake it never sends. Idempotent: a second call
+ * rewrites the row in place, matched by the Name column, and a name the
+ * table does not hold is appended.
+ */
+function writeSeatRow(doc, file, written) {
+  let seat;
+  try {
+    seat = JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch {
+    return `a --seat file that parses (${file})`;
+  }
+  if (!seat.name) return `a name in ${file}`;
+  const table = tableByHeader(doc.lines, SESSIONS_HEADER);
+  if (!table) return "the roster's sessions table";
+  const columns = [
+    seat.role || "—",
+    seat.topic || "—",
+    seat.name,
+    seat.cwd || "—",
+    seat.model || "—",
+    seat.effort || "unknown",
+    seat.branch || "—",
+    seat.mode || "auto",
+    seat.startedAt || "—",
+    "live",
+    seat.transcript || "unavailable",
+  ];
+  const line = row(columns);
+  let at = -1;
+  for (let i = table.first; i < table.end; i++) {
+    if (cells(doc.lines[i])[2] === seat.name) at = i;
+  }
+  if (at === -1) doc.lines.splice(table.end, 0, line);
+  else doc.lines[at] = line;
+  written.push(line);
+  return null;
+}
+
 function cmdRecord(argv) {
   const values = parseArgs(argv, REPEATABLE);
   const ledgerPath = given(values, "ledger");
@@ -477,7 +545,12 @@ function cmdRecord(argv) {
   const jisso = given(values, "jisso");
   const kanriReading = given(values, "kanri-reading");
   const jissoReading = given(values, "jisso-reading");
-  const rosterRows = values["peer-reading"].length + values.status.length;
+  const seatFile = given(values, "seat");
+  if (seatFile !== null && !fs.existsSync(seatFile)) {
+    return fail(`record: --seat ${seatFile} is not on disk`, 2);
+  }
+  const seatRows = seatFile === null ? 0 : 1;
+  const rosterRows = values["peer-reading"].length + values.status.length + seatRows;
   const needRoster = kanri !== null || jisso !== null || rosterRows > 0;
   const rosterPath = given(values, "roster");
   if (needRoster && !rosterPath) return fail("record needs --roster for a roster row", 2);
@@ -537,6 +610,7 @@ function cmdRecord(argv) {
   if (residencyRows && !batch) note("--batch beside a Residency row");
   if (needRoster && !(residencyRows && !batch)) {
     roster = readDoc(rosterPath);
+    if (seatFile !== null) note(writeSeatRow(roster, seatFile, written));
     if (kanri !== null && kanriReading === null) note("--kanri-reading beside --kanri");
     if (kanri !== null && kanriReading !== null) {
       note(writeResidency(roster, "kanri", kanri, kanriReading, batch, today, written));
@@ -554,9 +628,9 @@ function cmdRecord(argv) {
       note(writeResidency(roster, found[1], found[2], found[3], batch, today, written));
     }
     for (const line of values.status) {
-      const found = /^(.*)\s+(live|cleared|queued)$/.exec(String(line).trim());
+      const found = /^(.*)\s+(live|cleared|stopped|queued)$/.exec(String(line).trim());
       if (!found) {
-        note(`a --status ending in live, cleared, or queued (got ${line})`);
+        note(`a --status ending in live, cleared, stopped, or queued (got ${line})`);
         continue;
       }
       note(writeStatus(roster, found[1].trim(), found[2], written));

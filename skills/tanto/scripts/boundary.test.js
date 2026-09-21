@@ -678,3 +678,104 @@ test("record keeps a file's own line ending (LF)", () => {
   const after = fs.readFileSync(fixture.ledger, "utf8");
   assert.ok(!after.includes("\r"), "a CRLF ending was written into an LF file");
 });
+
+const SEAT = {
+  role: "jisso",
+  topic: "bg-seats",
+  name: "seat-one [aaaaaa]",
+  cwd: "/repo",
+  model: "sonnet",
+  effort: "xhigh",
+  branch: "bg-seats",
+  mode: "auto",
+  startedAt: "2026-09-21 10:00",
+  transcript: "/tmp/seat-one.jsonl",
+  sessionId: "sess-one",
+};
+
+test("--seat writes a terminal seat's roster row, and a second call rewrites it", () => {
+  const fixture = ledgerAndRoster();
+  const seat = write(fixture.dir, "result.json", JSON.stringify(SEAT));
+  const args = ["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--seat", seat];
+  assert.strictEqual(run(args, fixture.dir).code, 0);
+  const first = fs.readFileSync(fixture.roster, "utf8");
+  assert.ok(first.includes("| jisso | bg-seats | seat-one [aaaaaa] | /repo |"), first);
+  assert.ok(first.includes("/tmp/seat-one.jsonl |"), first);
+  const moved = write(fixture.dir, "result2.json", JSON.stringify({ ...SEAT, branch: "next" }));
+  assert.strictEqual(
+    run(["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--seat", moved], fixture.dir).code,
+    0,
+  );
+  const second = fs.readFileSync(fixture.roster, "utf8");
+  assert.strictEqual(second.split("seat-one [aaaaaa]").length - 1, 1);
+  assert.ok(second.includes("| next |"), second);
+});
+
+test("--seat on a file that is not there exits 2 and writes nothing", () => {
+  const fixture = ledgerAndRoster();
+  const before = fs.readFileSync(fixture.roster, "utf8");
+  const args = [
+    "record",
+    "--ledger",
+    fixture.ledger,
+    "--roster",
+    fixture.roster,
+    "--seat",
+    path.join(fixture.dir, "gone.json"),
+  ];
+  assert.strictEqual(run(args, fixture.dir).code, 2);
+  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), before);
+});
+
+test("--status accepts stopped and still refuses a word the table does not name", () => {
+  const fixture = ledgerAndRoster();
+  const seat = write(fixture.dir, "result.json", JSON.stringify(SEAT));
+  assert.strictEqual(
+    run(["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--seat", seat], fixture.dir).code,
+    0,
+  );
+  const stop = [
+    "record",
+    "--ledger",
+    fixture.ledger,
+    "--roster",
+    fixture.roster,
+    "--status",
+    "seat-one [aaaaaa] stopped",
+  ];
+  assert.strictEqual(run(stop, fixture.dir).code, 0);
+  assert.ok(fs.readFileSync(fixture.roster, "utf8").includes("| stopped |"));
+  const bad = ["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--status", "seat-one [aaaaaa] gone"];
+  const refused = run(bad, fixture.dir);
+  assert.strictEqual(refused.code, 1);
+  assert.match(refused.err, /live, cleared, stopped, or queued/);
+});
+
+test("check prints the commit-ready events that have no commit-done pair", () => {
+  const fixture = ledgerAndRoster();
+  const plan = write(fixture.dir, "plan.md", PLAN);
+  const report = write(fixture.dir, "report.md", "# Report\n\n- Transcript — none\n\n## For Kanri\n\nnothing\n");
+  const events = [
+    "- commit-ready: sekkei next-topic — docs: the next spec — 2026-09-21 09:00",
+    "- commit-done: sekkei next-topic — docs: the next spec",
+    "- commit-ready: keikaku next-topic — docs: the next plan — 2026-09-21 10:00",
+  ].join("\n");
+  fs.appendFileSync(fixture.ledger, `\n${events}\n`);
+  const args = [
+    "check",
+    "--plan",
+    plan,
+    "--report",
+    report,
+    "--base",
+    "HEAD",
+    "--tanto",
+    TANTO,
+    "--ledger",
+    fixture.ledger,
+  ];
+  const result = run(args, fixture.dir);
+  assert.ok(result.out.includes("## commit-ready"), result.out);
+  assert.ok(result.out.includes("keikaku next-topic"), result.out);
+  assert.ok(!result.out.includes("sekkei next-topic"), result.out);
+});
