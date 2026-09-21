@@ -70,14 +70,14 @@ function launch(ws, argv) {
 function requests(ws) {
   const dir = path.join(ws.root, ".tanto", "spawner", "requests");
   const results = path.join(ws.root, ".tanto", "spawner", "results");
-  const seen = [];
+  const byName = new Map();
   for (const place of [dir, results]) {
     if (!fs.existsSync(place)) continue;
     for (const name of fs.readdirSync(place).sort()) {
-      if (name.endsWith(".json")) seen.push(JSON.parse(fs.readFileSync(path.join(place, name), "utf8")));
+      if (name.endsWith(".json")) byName.set(name, JSON.parse(fs.readFileSync(path.join(place, name), "utf8")));
     }
   }
-  return seen;
+  return [...byName.values()];
 }
 
 function calls(ws) {
@@ -143,7 +143,8 @@ test("an existing .gitignore is never overwritten", () => {
   const ws = workspace();
   fs.mkdirSync(path.join(ws.root, ".tanto"), { recursive: true });
   fs.writeFileSync(path.join(ws.root, ".tanto", ".gitignore"), "# mine\n");
-  launch(ws, [ws.root, "--timeout", "20000"]);
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  assert.equal(got.code, 0);
   assert.equal(fs.readFileSync(path.join(ws.root, ".tanto", ".gitignore"), "utf8"), "# mine\n");
 });
 
@@ -250,6 +251,7 @@ test("a stopped seat is not resumed", () => {
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   writeSeats(ws, [{ sessionId: "sess-old", id: "bg05", name: "seat-old [dddddd]", role: "jisso", status: "stopped" }]);
   const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  assert.match(got.out, /claude attach bg07/);
   assert.equal(requests(ws).filter((r) => r.op === "resume").length, 0);
   assert.equal(/tanto fukki/.test(got.out), false);
 });
