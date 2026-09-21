@@ -4,6 +4,7 @@
 // what `claude` prints.
 
 const test = require("node:test");
+const { after } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -30,7 +31,16 @@ const save = () => fs.writeFileSync(statePath, JSON.stringify(state));
 if (sub === "agents") {
   // A session marked hidden is the reboot case: the process is gone, so the
   // listing does not carry it, but --resume still finds it by sessionId.
-  process.stdout.write(JSON.stringify({ sessions: state.sessions.filter((s) => !s.hidden) }));
+  let sessions = state.sessions.filter((s) => !s.hidden);
+  // agentsHideSessionId/agentsHideCount simulate a session that exists but
+  // has not yet re-registered with the listing -- the window a single
+  // post-resume poll used to miss (Important 8, branch-review.md).
+  if (state.agentsHideSessionId && state.agentsHideCount > 0) {
+    sessions = sessions.filter((s) => s.sessionId !== state.agentsHideSessionId);
+    state.agentsHideCount -= 1;
+    save();
+  }
+  process.stdout.write(JSON.stringify({ sessions }));
   process.exit(0);
 }
 if (sub === "stop" || sub === "rm") {
@@ -90,11 +100,23 @@ process.exit(0);
 `;
 
 let counter = 0;
+const roots = [];
+after(() => {
+  for (const root of roots) {
+    try {
+      fs.rmSync(root, { recursive: true, force: true });
+    } catch {
+      // Best-effort cleanup (Minor 15, branch-review.md): a lingering handle
+      // on Windows is not worth failing the suite over.
+    }
+  }
+});
 
 /** A temp root with .tanto/spawner/ and a fake CLI beside it. */
 function workspace(sessions = []) {
   counter += 1;
   const root = fs.mkdtempSync(path.join(os.tmpdir(), `tanto-spawner-${counter}-`));
+  roots.push(root);
   fs.mkdirSync(path.join(root, ".tanto", "spawner", "requests"), { recursive: true });
   fs.mkdirSync(path.join(root, ".tanto", "spawner", "results"), { recursive: true });
   const fake = path.join(root, "fake-claude.js");
@@ -124,7 +146,7 @@ function run(ws, argv, opts = {}) {
   return { code: result.status, out: result.stdout || "", err: result.stderr || "" };
 }
 
-/** One request file, then one `run --once` pass over it. */
+/** Write one request file; the caller still runs `run --once` to take it. */
 function request(ws, body) {
   const id = `2026-09-21T10-00-00-${Math.random().toString(36).slice(2, 8)}`;
   const file = path.join(ws.root, ".tanto", "spawner", "requests", `${id}.json`);
@@ -192,12 +214,12 @@ test("notify --stdin reads the hook payload and raises one notice", () => {
     transcript_path: "/tmp/sess-1.jsonl",
     notification_type: "permission_prompt",
   });
-  const got = spawnSync(process.execPath, [SPAWNER, "notify", "--stdin"], {
-    encoding: "utf8",
-    input: payload,
-    env: { ...process.env, TANTO_NOTICE_LOG: ws.notices },
-  });
-  assert.equal(got.status, 0);
+  // Through the shared `run` helper, not a one-off spawnSync (Minor 15,
+  // branch-review.md): `notify` never touches the CLI, but going through the
+  // same TANTO_CLAUDE_NODE seam as every other test keeps this one from
+  // silently drifting off it.
+  const got = run(ws, ["notify", "--stdin"], { input: payload });
+  assert.equal(got.code, 0);
   assert.equal(notices(ws).length, 1);
   assert.match(notices(ws)[0], /permission_prompt/);
 });
@@ -208,6 +230,15 @@ test("the notice command is the platform's, and nothing is installed for it", ()
   assert.match(noticeCommand("x", "win32")[1].join(" "), /ToastNotificationManager/);
   assert.equal(noticeCommand("x", "darwin")[0], "osascript");
   assert.equal(noticeCommand("x", "linux")[0], "notify-send");
+});
+
+test("the darwin notice command escapes quotes and backslashes (Important 12)", () => {
+  const { noticeCommand } = require("./spawner.js");
+  const text = 'say "hi" \\ done';
+  const escaped = text.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  const [file, args] = noticeCommand(text, "darwin");
+  assert.equal(file, "osascript");
+  assert.equal(args[1], `display notification "${escaped}" with title "tanto"`);
 });
 
 test("a spawn writes the result, the seat, and deletes the request", () => {
@@ -286,6 +317,17 @@ test("a spawn's startedAt reaches the roster's Started cell in the same shape", 
   assert.ok(line.includes(`| ${got.startedAt} |`), line);
 });
 
+test("a pre-spawn listing failure is reported, and claude --bg never runs (Important 9)", () => {
+  const ws = workspace();
+  setState(ws, { fail: { agents: "listing broke" } });
+  const { id } = request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  const got = result(ws, id);
+  assert.match(got.error, /listing broke/);
+  assert.equal(calls(ws).filter((argv) => argv.includes("--bg")).length, 0);
+  assert.equal(seats(ws).length, 0);
+});
+
 test("a failing spawn writes error and stderr, and no seat", () => {
   const ws = workspace();
   setState(ws, { fail: { "--bg": "classifier refused" } });
@@ -347,6 +389,41 @@ test("resume passes --resume <sessionId> --bg and no other flag", () => {
   assert.equal(result(ws, id).name, "seat-back [bbbbbb]");
 });
 
+test("resume polls the listing until the resumed session reappears (Important 8)", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  setState(ws, { sessions: [] });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(seats(ws)[0].status, "gone");
+  assert.match(seats(ws)[0].goneAt, /\d/);
+  setState(ws, {
+    sessions: [
+      {
+        sessionId: "sess-new",
+        name: "seat-back [bbbbbb]",
+        cwd: ws.root,
+        kind: "background",
+        state: "running",
+        id: "bg02",
+      },
+    ],
+    next: { name: "seat-back [bbbbbb]", id: "bg02" },
+    // The session exists in the backing store already -- the fake's own
+    // "--resume" handler finds it there -- but the first listing after the
+    // resume still misses it, exactly as a single, un-retried poll used to
+    // (Important 8, branch-review.md).
+    agentsHideSessionId: "sess-new",
+    agentsHideCount: 1,
+  });
+  const { id } = request(ws, { op: "resume", sessionId: "sess-new" });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  const got = result(ws, id);
+  assert.equal(got.name, "seat-back [bbbbbb]");
+  assert.equal(seats(ws)[0].status, "running");
+  assert.equal(seats(ws)[0].goneAt, undefined);
+});
+
 test("attention fills a bare id from seats.json and names its channel", () => {
   const ws = workspace();
   request(ws, SPAWN);
@@ -385,6 +462,46 @@ test("ack clears the renamed mark of the session it names", () => {
   assert.match(result(ws, id).acked, /\d/);
   assert.equal(seats(ws)[0].renamed, undefined);
   assert.equal(seats(ws)[0].name, "seat-two [cccccc]");
+});
+
+test("an unparseable request writes an error result and a log line (Important 10)", () => {
+  const ws = workspace();
+  const file = path.join(ws.root, ".tanto", "spawner", "requests", "2026-09-21T10-00-00-zzz.json");
+  fs.writeFileSync(file, "not json");
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  const resultFile = path.join(ws.root, ".tanto", "spawner", "results", "2026-09-21T10-00-00-zzz.json");
+  assert.deepEqual(JSON.parse(fs.readFileSync(resultFile, "utf8")), { error: "request did not parse" });
+  assert.equal(fs.existsSync(file), false);
+  const log = fs.readFileSync(path.join(ws.root, ".tanto", "spawner", "log"), "utf8");
+  assert.match(log, /request did not parse/);
+});
+
+test("a pass that throws is caught, and the resident's own log carries it (Important 11)", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  // A seat transitioning to blocked calls raiseNotice, which appendFileSync's
+  // straight to TANTO_NOTICE_LOG with no guard of its own; pointing that
+  // path at a directory makes the call throw inside the census, with nothing
+  // around the first pass() to catch it before this fix (Important 11,
+  // branch-review.md).
+  fs.mkdirSync(ws.notices, { recursive: true });
+  setState(ws, {
+    sessions: [
+      {
+        sessionId: "sess-new",
+        name: "seat-new [aaaaaa]",
+        cwd: ws.root,
+        kind: "background",
+        state: "blocked",
+        id: "bg01",
+      },
+    ],
+  });
+  const got = run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(got.code, 0);
+  const log = fs.readFileSync(path.join(ws.root, ".tanto", "spawner", "log"), "utf8");
+  assert.match(log, /guard:/);
 });
 
 test("an unknown op is a result with an error and nothing else", () => {
@@ -479,8 +596,19 @@ test("nothing the spawner does reads or writes the roster", () => {
 
 test("run --once writes the pidfile and leaves no process behind", () => {
   const ws = workspace();
-  run(ws, ["run", "--root", ws.root, "--once"]);
+  const got = run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(got.code, 0);
   const pid = fs.readFileSync(path.join(ws.root, ".tanto", "spawner", "pid"), "utf8").trim();
   assert.match(pid, /^\d+$/);
   assert.notEqual(Number(pid), process.pid);
+  // `run` above is spawnSync, so it has already returned by the time the
+  // pidfile is read (Minor 15, branch-review.md): the recorded pid must no
+  // longer belong to any running process, not merely have the right shape.
+  let alive = true;
+  try {
+    process.kill(Number(pid), 0);
+  } catch {
+    alive = false;
+  }
+  assert.equal(alive, false);
 });

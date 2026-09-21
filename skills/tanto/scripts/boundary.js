@@ -96,17 +96,12 @@ function reportHeader(file) {
  * The comparison key for a `commit-ready:`/`commit-done:` subject.
  * `writeEvent` stamps the line's front (`- <now> — <text>`) and appends a
  * trailing ` (batch <X>)` when `--batch` is given, never a trailing
- * timestamp -- so pairing must strip that trailing batch suffix (and,
- * defensively, a leading stamp, though the capturing regex below already
- * starts after `commit-ready: `/`commit-done: ` and so never carries one)
- * rather than compare the raw captured text, or a peer that writes its
- * `commit-ready:` outside a batch and is closed inside one never pairs.
+ * timestamp -- so pairing must strip that trailing batch suffix rather than
+ * compare the raw captured text, or a peer that writes its `commit-ready:`
+ * outside a batch and is closed inside one never pairs.
  */
 function commitSubject(text) {
-  return text
-    .replace(/^-\s*\d{4}-\d{2}-\d{2} \d{2}:\d{2}\s*—\s*/, "")
-    .replace(/\s*\(batch [^)]+\)\s*$/, "")
-    .trim();
+  return text.replace(/\s*\(batch [^)]+\)\s*$/, "").trim();
 }
 
 /**
@@ -510,7 +505,10 @@ function writeStatus(doc, name, status, written) {
  * A terminal seat's roster row, written from the spawner's result file
  * rather than from a handshake it never sends. Idempotent: a second call
  * rewrites the row in place, matched by the Name column, and a name the
- * table does not hold is appended.
+ * table does not hold is appended. The Status cell is always written as
+ * `live`, on purpose (Minor 13, branch-review.md): `--seat` is only ever
+ * called from a spawn or resume result, and a later `stopped` in that
+ * column belongs to Kanri alone to write.
  */
 function writeSeatRow(doc, file, written) {
   let seat;

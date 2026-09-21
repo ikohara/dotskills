@@ -39,6 +39,8 @@ field explained beside it.
 - `model`, `effort` — the family and the level from `sessions.<role>` in the
   merged `tanto.json`, named on the request as every dispatch names a model.
 - `branch` — the branch the shared tree is on when the request is written.
+  Informational: `spawnArgs` never reads it; it is carried into the result
+  and then into `record --seat`'s Branch column.
 - `mode` — `auto` for every seat Kanri spawns. `manual` appears in a
   measurement and nowhere else.
 - `prompt` — the seat's whole orders. `/tanto kanri` for a Kanri;

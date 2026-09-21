@@ -33,6 +33,12 @@ after(() => {
     } catch {
       // Best-effort teardown: a spawner already stopped is the ordinary case.
     }
+    try {
+      fs.rmSync(ws.root, { recursive: true, force: true });
+    } catch {
+      // Best-effort cleanup (Minor 15, branch-review.md): a lingering handle
+      // on Windows is not worth failing the suite over.
+    }
   }
 });
 
@@ -108,6 +114,18 @@ function writeSeats(ws, seats) {
   fs.writeFileSync(path.join(dir, "seats.json"), JSON.stringify({ seats }));
 }
 
+function setState(ws, patch) {
+  const state = JSON.parse(fs.readFileSync(ws.state, "utf8"));
+  fs.writeFileSync(ws.state, JSON.stringify({ ...state, ...patch }));
+}
+
+/** Backdate a file's mtime so a later write is unambiguously newer than it,
+ * whatever the filesystem's timestamp resolution. */
+function backdate(file, seconds) {
+  const past = new Date(Date.now() - seconds * 1000);
+  fs.utimesSync(file, past, past);
+}
+
 test("--help prints the usage line and exits 2", () => {
   const ws = workspace();
   const got = launch(ws, ["--help"]);
@@ -179,6 +197,26 @@ test("a handover file asks for a Kanri whatever the roster says", () => {
   assert.match(got.out, /claude attach bg01/);
 });
 
+test("a handover file with a successor already in seats.json is attached to, not spawned again (R-12)", () => {
+  // The handover window (roles/kanri.md's step 4 until the successor accepts)
+  // is a minute or more; running `tanto` inside it must find the successor
+  // the spawner already recorded rather than write a second spawn request
+  // for `/tanto kanri` (Important 2, branch-review.md).
+  const ws = workspace([
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1" },
+  ]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  const handoverFile = path.join(ws.root, ".tanto", "kanri-handover.md");
+  fs.writeFileSync(handoverFile, "# tanto Kanri handover\n");
+  backdate(handoverFile, 5);
+  writeSeats(ws, [
+    { sessionId: "sess-new-kanri", id: "bg09", name: "seat-new [aaaaaa]", role: "kanri", status: "running" },
+  ]);
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn").length, 0);
+  assert.match(got.out, /claude attach bg09/);
+});
+
 test("a running seat the listing lost is resumed, and fukki is printed", () => {
   const ws = workspace([
     { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
@@ -223,6 +261,109 @@ test("a rebooted Kanri the listing lost is resumed, never spawned again", () => 
   );
   assert.match(got.out, /claude attach bg07/);
   assert.match(got.out, /tanto fukki/);
+});
+
+test("a Kanri seat with no roster row is resumed once, never spawned or double-resumed (Important 7)", () => {
+  // No roster.md at all: the Second Kanri rule keys on the roster's first
+  // row, and cannot fire with none. Without the fix, `row` being null spawns
+  // a fresh Kanri (the `else` branch's `held` is null) while the "every
+  // other seat" loop below resumes the same crashed seat a second time
+  // (its own `row &&` guard never matches with no row either).
+  const ws = workspace([
+    {
+      sessionId: "sess-crashed",
+      name: "seat-crashed [cccccc]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg05",
+      hidden: true,
+    },
+  ]);
+  writeSeats(ws, [
+    { sessionId: "sess-crashed", id: "bg05", name: "seat-crashed [cccccc]", role: "kanri", status: "running" },
+  ]);
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  assert.equal(got.code, 0);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn").length, 0);
+  const resumed = requests(ws).filter((r) => r.op === "resume");
+  assert.deepEqual(
+    resumed.map((r) => r.sessionId),
+    ["sess-crashed"],
+  );
+});
+
+test("claude agents failing exits 1 with the stderr, and writes no request (Important 5)", () => {
+  const ws = workspace();
+  setState(ws, { fail: { agents: "classifier refused" } });
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  assert.equal(got.code, 1);
+  assert.match(got.err, /tanto: claude agents failed — classifier refused/);
+  const dir = path.join(ws.root, ".tanto", "spawner", "requests");
+  assert.equal(fs.existsSync(dir) ? fs.readdirSync(dir).length : 0, 0);
+});
+
+test("down --seats reports a failed stop and exits 1 (Important 6)", () => {
+  const ws = workspace([
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+  ]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  launch(ws, [ws.root, "--timeout", "20000"]);
+  writeSeats(ws, [
+    { sessionId: "sess-live", id: "bg07", name: "seat-live [ffffff]", role: "kanri", status: "running" },
+    { sessionId: "sess-missing", id: "bg99", name: "seat-missing [999999]", role: "jisso", status: "running" },
+  ]);
+  const got = launch(ws, ["down", ws.root, "--seats", "--timeout", "20000"]);
+  assert.equal(got.code, 1);
+  assert.match(got.err, /tanto: stop sess-missing failed/);
+});
+
+test("--help's usage line documents --timeout (Minor 10)", () => {
+  const ws = workspace();
+  const got = launch(ws, ["--help"]);
+  assert.match(got.err, /--timeout <ms>/);
+});
+
+test("down --seats keeps a following root from being consumed as its value (Minor 10)", () => {
+  const ws = workspace([
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+  ]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  launch(ws, [ws.root, "--timeout", "20000"]);
+  const pidfile = path.join(ws.root, ".tanto", "spawner", "pid");
+  assert.equal(fs.existsSync(pidfile), true);
+  // Run from a cwd that is not ws.root: if `--seats` swallowed the following
+  // root as its own value, `positionals[0]` would be undefined and
+  // `resolveRoot` would fall back to this cwd instead.
+  const result = spawnSync(process.execPath, [LAUNCHER, "down", "--seats", ws.root, "--timeout", "20000"], {
+    encoding: "utf8",
+    cwd: os.tmpdir(),
+    env: {
+      ...process.env,
+      TANTO_CLAUDE_NODE: ws.fake,
+      TANTO_NOTICE_LOG: path.join(ws.root, "notices.txt"),
+      CLAUDE_CONFIG_DIR: ws.root,
+      FAKE_STATE: ws.state,
+      FAKE_LOG: ws.log,
+    },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(fs.existsSync(pidfile), false);
+});
+
+test("an interactive first row with a resumed peer prints no attach or fukki line (Minor 10)", () => {
+  const ws = workspace([
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1" },
+  ]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  writeSeats(ws, [
+    { sessionId: "sess-live", id: "tab1", name: "seat-live [ffffff]", role: "kanri", status: "running" },
+    { sessionId: "sess-gone", id: "bg08", name: "seat-gone [eeeeee]", role: "jisso", status: "running" },
+  ]);
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  assert.equal(requests(ws).filter((r) => r.op === "resume").length, 1);
+  assert.equal(/claude attach/.test(got.out), false);
+  assert.equal(/tanto fukki/.test(got.out), false);
 });
 
 test("down --seats retires the run, and the next tanto spawns a fresh Kanri", () => {

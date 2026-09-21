@@ -7,7 +7,7 @@
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { spawnSync, spawn } = require("node:child_process");
+const { spawnSync } = require("node:child_process");
 
 const USAGE = "Usage: spawner.js run [--root <dir>] [--once], or spawner.js notify --stdin | --text <line>";
 
@@ -25,15 +25,14 @@ const OPS = ["spawn", "stop", "rm", "resume", "attention", "ack"];
 // the roster gains `stopped` alone, and Kanri writes it.
 const LIVE = ["running", "blocked"];
 
+// No caller in this file reads `positionals` — unlike `tanto.js`'s own copy
+// of this function, which does — so this copy returns `values` alone
+// (Minor 14, branch-review.md).
 function parseArgs(argv) {
   const values = {};
-  const positionals = [];
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
-    if (!arg.startsWith("--")) {
-      positionals.push(arg);
-      continue;
-    }
+    if (!arg.startsWith("--")) continue;
     const next = argv[i + 1];
     if (next === undefined || next.startsWith("--")) {
       values[arg.slice(2)] = true;
@@ -42,7 +41,7 @@ function parseArgs(argv) {
       i++;
     }
   }
-  return { values, positionals };
+  return { values };
 }
 
 function spawnerDir(root) {
@@ -229,7 +228,11 @@ function noticeCommand(text, platform = process.platform) {
     return ["powershell", ["-NoProfile", "-Command", script]];
   }
   if (platform === "darwin") {
-    return ["osascript", ["-e", `display notification "${text}" with title "tanto"`]];
+    // Unescaped, a `"` or `\` in a topic or an `attention` message breaks or
+    // injects the osascript command; the win32 branch above already escapes
+    // its quotes (Important 12, branch-review.md).
+    const escaped = String(text).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    return ["osascript", ["-e", `display notification "${escaped}" with title "tanto"`]];
   }
   return ["notify-send", ["tanto", String(text)]];
 }
@@ -251,6 +254,12 @@ function raiseNotice(text) {
   return "log";
 }
 
+/**
+ * The `--bg` command line. `request.branch` is not read here — it is
+ * informational, carried through into the result and then into
+ * `record --seat`'s Branch column (`boundary.js`); a worktree seat's real
+ * branch is the CLI's own (Important 4, task 26; Minor 5, branch-review.md).
+ */
 function spawnArgs(request) {
   const args = ["--bg"];
   if (request.model) args.push("--model", request.model);
@@ -278,12 +287,40 @@ function findNew(root, before) {
   return null;
 }
 
+/**
+ * As `findNew`, but for a `resume`: the session already exists under
+ * `sessionId`, so a single post-`--resume` listing can still miss the
+ * harness's own re-registration window, and the seat was left with its
+ * stale name and id, a `goneAt` that never cleared, and a result reporting
+ * success with `name: undefined` (Important 8, branch-review.md).
+ */
+function findResumed(root, sessionId) {
+  for (let attempt = 0; attempt < SPAWN_POLL_TRIES; attempt++) {
+    const listing = listAgents(root);
+    const found = listing.sessions.find((s) => s.sessionId === sessionId);
+    if (found) return found;
+    sleepSync(SPAWN_POLL_MS);
+  }
+  return null;
+}
+
 function opSpawn(root, request, seats) {
-  const before = new Set(listAgents(root).sessions.map((s) => s.sessionId));
+  // A transient failure here must not be swallowed into an empty `before`
+  // set: `findNew` below would then adopt the first already-running session
+  // it sees as the new seat (Important 9, branch-review.md).
+  const listing = listAgents(root);
+  if (listing.error) return { error: `claude agents: ${listing.error}` };
+  const before = new Set(listing.sessions.map((s) => s.sessionId));
   const got = runClaude(spawnArgs(request));
   if (got.code !== 0) return { error: `claude --bg exited ${got.code}: ${got.err.trim()}` };
   const session = findNew(root, before);
-  if (!session) return { error: "claude --bg started no session the listing shows" };
+  if (!session) {
+    return {
+      error:
+        "claude --bg exited 0 but `claude agents --json --cwd <root>` listed no new session within 30 s — " +
+        "it may have started under another cwd",
+    };
+  }
 
   // The listing's first sighting is where the ad hoc-worktree guard runs
   // (issue-aa37): a `--bg` session under a mode that gates a tool has once
@@ -358,8 +395,7 @@ function handleRequest(root, request, seats) {
   if (request.op === "resume") {
     const got = runClaude(["--resume", request.sessionId, "--bg"]);
     if (got.code !== 0) return { error: `claude --resume: ${got.err.trim()}` };
-    const listing = listAgents(root);
-    const session = listing.sessions.find((s) => s.sessionId === request.sessionId);
+    const session = findResumed(root, request.sessionId);
     if (seat && session) {
       seat.name = session.name;
       seat.id = session.id || shortIdOf(got.out) || seat.id;
@@ -399,7 +435,13 @@ function takeRequests(root, seats) {
     const file = path.join(requestsDir(root), name);
     const request = readJson(file);
     if (!request) {
+      // Removing the file with no result and no log line left the requester
+      // — `tanto.js`'s `waitForResult`, or Kanri reading results — waiting
+      // out its whole timeout with no diagnostic (Important 10,
+      // branch-review.md).
+      writeJsonAtomic(path.join(resultsDir(root), name), { error: "request did not parse" });
       fs.rmSync(file, { force: true });
+      appendLog(root, `${name} error: request did not parse`);
       continue;
     }
     let outcome;
@@ -449,6 +491,25 @@ function runCensus(root, seats) {
   return seats;
 }
 
+/**
+ * Wrap `fn` so an exception it throws is caught and logged rather than
+ * ending the resident. `handleRequest`'s own call site already has this
+ * belt; the first `pass()`, the two intervals, and the `fs.watch` callback
+ * did not, and there are unguarded throws underneath all four —
+ * `writeJsonAtomic`, `appendFileSync` on `TANTO_NOTICE_LOG`, `rmSync` — any
+ * one of which ended the resident, and every seat's bookkeeping with it,
+ * silently (Important 11, branch-review.md).
+ */
+function guarded(root, fn) {
+  return (...args) => {
+    try {
+      fn(...args);
+    } catch (error) {
+      appendLog(root, `guard: ${error && error.message ? error.message : String(error)}`);
+    }
+  };
+}
+
 function cmdRun(argv) {
   const { values } = parseArgs(argv);
   const root = typeof values.root === "string" ? path.resolve(values.root) : process.cwd();
@@ -459,17 +520,32 @@ function cmdRun(argv) {
   process.chdir(root);
   ensureDirs(root);
   fs.writeFileSync(path.join(spawnerDir(root), "pid"), `${process.pid}\n`);
-  const pass = () => {
+  const pass = guarded(root, () => {
     const seats = readSeats(root);
     takeRequests(root, seats);
     runCensus(root, seats);
-  };
+  });
   pass();
   if (values.once) return 0;
-  setInterval(() => takeRequests(root, readSeats(root)), REQUEST_INTERVAL_MS);
-  setInterval(() => runCensus(root, readSeats(root)), CENSUS_INTERVAL_MS);
+  // The two intervals below and the watch callback never interleave a
+  // read-modify-write of `seats.json`, because `sleepSync`'s `Atomics.wait`
+  // — used by the transcript poll and by `findNew`/`findResumed` — blocks
+  // this event loop for up to ~40 s per spawn or resume. Making any of those
+  // polls async needs one shared array between the loops first (Minor 17,
+  // branch-review.md).
+  setInterval(
+    guarded(root, () => takeRequests(root, readSeats(root))),
+    REQUEST_INTERVAL_MS,
+  );
+  setInterval(
+    guarded(root, () => runCensus(root, readSeats(root))),
+    CENSUS_INTERVAL_MS,
+  );
   try {
-    fs.watch(requestsDir(root), () => takeRequests(root, readSeats(root)));
+    fs.watch(
+      requestsDir(root),
+      guarded(root, () => takeRequests(root, readSeats(root))),
+    );
   } catch {
     // The two-second interval is the floor; the watch is the speed-up.
   }

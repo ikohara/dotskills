@@ -11,12 +11,17 @@ const { spawnSync, spawn } = require("node:child_process");
 const { loadSessions } = require("./reading.js");
 const { readSeats, spawnerDir } = require("./spawner.js");
 
-const USAGE = "Usage: tanto [<root>], or tanto down [<root>] [--seats]";
+const USAGE = "Usage: tanto [<root>] [--timeout <ms>], or tanto down [<root>] [--seats] [--timeout <ms>]";
 const SPAWNER = path.join(__dirname, "spawner.js");
 const WAIT_MS = 60000;
 const POLL_MS = 250;
 const GITIGNORE = "*\n";
 const MARKDOWNLINT = "config:\n  default: false\n";
+
+// Flags that take a value. Every other `--flag` is boolean, so a positional
+// right after it (`tanto down --seats <root>`) is never mistaken for its
+// value (Minor 10, branch-review.md).
+const VALUE_FLAGS = new Set(["timeout"]);
 
 function parseArgs(argv) {
   const values = {};
@@ -27,12 +32,13 @@ function parseArgs(argv) {
       positionals.push(arg);
       continue;
     }
+    const name = arg.slice(2);
     const next = argv[i + 1];
-    if (next === undefined || next.startsWith("--")) {
-      values[arg.slice(2)] = true;
-    } else {
-      values[arg.slice(2)] = next;
+    if (VALUE_FLAGS.has(name) && next !== undefined && !next.startsWith("--")) {
+      values[name] = next;
       i++;
+    } else {
+      values[name] = true;
     }
   }
   return { values, positionals };
@@ -77,17 +83,90 @@ function claudeCommand(args) {
   return { file: process.env.TANTO_CLAUDE || "claude", args };
 }
 
+/**
+ * `claude agents --json --cwd <root>`, parsed. `sessions` is `null` on a
+ * non-zero exit or unparseable output, never `[]` — a real empty listing and
+ * a failed one used to look the same to every caller, which resumed or
+ * re-spawned a seat the CLI simply failed to report on (Important 5,
+ * branch-review.md). `error` then carries the reason to show the human.
+ */
 function listAgents(root) {
   const command = claudeCommand(["agents", "--json", "--cwd", root]);
   const got = spawnSync(command.file, command.args, { encoding: "utf8", windowsHide: true });
-  if (got.status !== 0) return [];
+  if (got.status !== 0) {
+    return { sessions: null, error: (got.stderr || "").trim() || `claude agents exited ${got.status}` };
+  }
   try {
     const parsed = JSON.parse(got.stdout || "");
-    if (Array.isArray(parsed)) return parsed;
-    return Array.isArray(parsed.sessions) ? parsed.sessions : [];
+    const sessions = Array.isArray(parsed) ? parsed : Array.isArray(parsed.sessions) ? parsed.sessions : [];
+    return { sessions, error: null };
+  } catch {
+    return { sessions: null, error: "claude agents --json did not print JSON" };
+  }
+}
+
+/** The most recent modification time of `file`, or `null` if it is absent. */
+function statMtimeMs(file) {
+  try {
+    return fs.statSync(file).mtimeMs;
+  } catch {
+    return null;
+  }
+}
+
+/** The `.json` files under `dir` whose mtime is after `sinceMs`, name order. */
+function jsonFilesNewerThan(dir, sinceMs) {
+  let names;
+  try {
+    names = fs.readdirSync(dir).filter((n) => n.endsWith(".json"));
   } catch {
     return [];
   }
+  return names.filter((name) => {
+    const mtime = statMtimeMs(path.join(dir, name));
+    return mtime !== null && mtime > sinceMs;
+  });
+}
+
+/**
+ * A `kanri` `spawn` already in flight or already done, newer than the
+ * handover file's own mtime: `seats.json` holding a running or blocked
+ * `kanri` row written since the handover, a still-pending request under
+ * `requests/`, or its result under `results/`. Any of the three means a
+ * successor already exists, and writing a second spawn request would raise
+ * two Kanris on the same handover (R-12, Important 2, branch-review.md).
+ */
+function kanriSuccessor(root, handoverMtimeMs, seats) {
+  const seatsMtime = statMtimeMs(path.join(spawnerDir(root), "seats.json"));
+  if (seatsMtime !== null && seatsMtime > handoverMtimeMs) {
+    const held = seats.find((s) => s.role === "kanri" && (s.status === "running" || s.status === "blocked"));
+    if (held) return { attach: held.id || held.sessionId };
+  }
+  const requestsPath = path.join(spawnerDir(root), "requests");
+  for (const name of jsonFilesNewerThan(requestsPath, handoverMtimeMs).sort()) {
+    let body;
+    try {
+      body = JSON.parse(fs.readFileSync(path.join(requestsPath, name), "utf8"));
+    } catch {
+      continue;
+    }
+    if (body && body.op === "spawn" && body.role === "kanri") {
+      return { waitId: name.slice(0, -".json".length) };
+    }
+  }
+  const resultsPath = path.join(spawnerDir(root), "results");
+  for (const name of jsonFilesNewerThan(resultsPath, handoverMtimeMs).sort()) {
+    let body;
+    try {
+      body = JSON.parse(fs.readFileSync(path.join(resultsPath, name), "utf8"));
+    } catch {
+      continue;
+    }
+    if (body && body.op === "spawn" && body.role === "kanri" && !body.error) {
+      return { attach: body.id || body.sessionId };
+    }
+  }
+  return null;
 }
 
 /** Write each of the two workspace files only when it is absent. */
@@ -218,17 +297,34 @@ function cmdUp(argv) {
   startSpawner(root);
 
   const listing = listAgents(root);
-  const byId = new Map(listing.filter((s) => s.sessionId && s.state !== "stopped").map((s) => [s.sessionId, s]));
-  const handover = fs.existsSync(path.join(root, ".tanto", "kanri-handover.md"));
+  if (listing.sessions === null) {
+    fail(`tanto: claude agents failed — ${listing.error}`);
+    return 1;
+  }
+  const byId = new Map(
+    listing.sessions.filter((s) => s.sessionId && s.state !== "stopped").map((s) => [s.sessionId, s]),
+  );
+  const handoverFile = path.join(root, ".tanto", "kanri-handover.md");
+  const handover = fs.existsSync(handoverFile);
   const row = firstRosterRow(root);
   const listed = row ? byId.get(row.sessionId) : null;
   // Step 4's own seats.json check, before it decides spawn against resume: a
   // first row the listing has lost but seats.json still holds as running or
   // blocked is the reboot or crash case (spec 1.8), and it is resumed. Spawning
   // instead would leave two Kanris — the old one resumed by the loop below, the
-  // new one stopping itself as the Second Kanri case.
-  const held = row ? seats.find((s) => s.sessionId === row.sessionId) : null;
+  // new one stopping itself as the Second Kanri case. With no roster row at
+  // all — a Kanri that crashed before writing one — the same seats.json row
+  // is found directly by role, or this same crash is what the roster-driven
+  // branches above can never see, and the loop below would resume it a
+  // second time on top of this one (Important 7, branch-review.md).
+  const held = row
+    ? seats.find((s) => s.sessionId === row.sessionId)
+    : seats.find((s) => s.role === "kanri" && (s.status === "running" || s.status === "blocked"));
   const kanriHeld = Boolean(held && (held.status === "running" || held.status === "blocked"));
+  // A handover in progress: look for the successor before writing a second
+  // spawn request for one that already exists (R-12, Important 2).
+  const handoverMtimeMs = handover ? statMtimeMs(handoverFile) : null;
+  const successor = handover && handoverMtimeMs !== null ? kanriSuccessor(root, handoverMtimeMs, seats) : null;
 
   let attach = null;
   let resumed = 0;
@@ -236,10 +332,28 @@ function cmdUp(argv) {
     attach = listed.id || row.sessionId;
   } else if (!handover && listed && row.status.startsWith("live")) {
     process.stdout.write("Kanri is an interactive tab; hand over first\n");
+  } else if (successor?.attach) {
+    attach = successor.attach;
+  } else if (successor?.waitId) {
+    const result = waitForResult(root, successor.waitId, waitMs);
+    if (!result) {
+      fail("tanto: the spawner wrote no result for the Kanri request; see .tanto/spawner/log");
+      return 1;
+    }
+    if (result.error) {
+      fail(`tanto: the Kanri spawn failed — ${result.error}`);
+      return 1;
+    }
+    attach = result.id || result.sessionId;
   } else {
     const request =
       !handover && !listed && kanriHeld
-        ? { op: "resume", role: held.role || "kanri", topic: held.topic, sessionId: row.sessionId }
+        ? {
+            op: "resume",
+            role: held.role || "kanri",
+            topic: held.topic,
+            sessionId: row ? row.sessionId : held.sessionId,
+          }
         : kanriRequest(root, sessions);
     const id = writeRequest(root, request);
     const result = waitForResult(root, id, waitMs);
@@ -259,13 +373,19 @@ function cmdUp(argv) {
     if (seat.status !== "running" && seat.status !== "blocked") continue;
     if (byId.has(seat.sessionId)) continue;
     // Kanri's own resume is step 4's, above; this loop is every other seat.
-    if (row && seat.sessionId === row.sessionId) continue;
+    // Keyed on `held` rather than `row.sessionId`, so it still skips a Kanri
+    // resumed above when there was no roster row to key on (Important 7).
+    if (held && seat.sessionId === held.sessionId) continue;
     writeRequest(root, { op: "resume", role: seat.role, topic: seat.topic, sessionId: seat.sessionId });
     resumed += 1;
   }
 
   if (attach) process.stdout.write(`claude attach ${attach}\n`);
-  if (resumed > 0) process.stdout.write("then type /tanto fukki there once\n");
+  // Only when a seat the human can reach was actually named above — an
+  // interactive first row prints its own line and sets no `attach`, and
+  // "then type /tanto fukki there" with nothing before it names nothing to
+  // attach to first (Minor 10, branch-review.md).
+  if (resumed > 0 && attach) process.stdout.write("then type /tanto fukki there once\n");
   return 0;
 }
 
@@ -275,13 +395,27 @@ function cmdDown(argv) {
   if (!root) return 2;
   const waitMs = values.timeout ? Number(values.timeout) : WAIT_MS;
 
+  // A failed or timed-out stop used to be indistinguishable from success —
+  // waitForResult was called for its side effect only, so the pidfile was
+  // removed and "spawner stopped" printed over a seat that never stopped
+  // (Important 6, branch-review.md). Every result is now checked, and the
+  // command fails loudly instead.
+  let seatsFailed = false;
   if (values.seats) {
-    const ids = [];
+    const stops = [];
     for (const seat of readSeats(root)) {
       if (seat.status !== "running" && seat.status !== "blocked") continue;
-      ids.push(writeRequest(root, { op: "stop", role: seat.role, topic: seat.topic, sessionId: seat.sessionId }));
+      const id = writeRequest(root, { op: "stop", role: seat.role, topic: seat.topic, sessionId: seat.sessionId });
+      stops.push({ sessionId: seat.sessionId, id });
     }
-    for (const id of ids) waitForResult(root, id, waitMs);
+    for (const { sessionId, id } of stops) {
+      const result = waitForResult(root, id, waitMs);
+      const error = result ? result.error : "no result; see .tanto/spawner/log";
+      if (error) {
+        fail(`tanto: stop ${sessionId} failed — ${error}`);
+        seatsFailed = true;
+      }
+    }
   }
 
   const pid = livePid(root);
@@ -292,7 +426,7 @@ function cmdDown(argv) {
     } catch {
       // Nothing to remove is the ordinary case here.
     }
-    return 0;
+    return seatsFailed ? 1 : 0;
   }
   try {
     process.kill(pid, "SIGTERM");
@@ -302,7 +436,7 @@ function cmdDown(argv) {
   for (let i = 0; i < 40 && livePid(root); i++) sleepSync(POLL_MS);
   fs.rmSync(pidPath(root), { force: true });
   process.stdout.write("tanto down: spawner stopped; the conversations are kept\n");
-  return 0;
+  return seatsFailed ? 1 : 0;
 }
 
 function main(argv) {
