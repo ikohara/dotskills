@@ -41,7 +41,8 @@ only the resident can compare with its roster row.
 
    ```bash
    node "<tanto>/scripts/boundary.js" check --plan <plan> --report <report> \
-     --base <base> --kanri-transcript <kanri-transcript> --tanto <tanto>
+     --base <base> --kanri-transcript <kanri-transcript> --tanto <tanto> \
+     --ledger <ledger>
    ```
 
    Add `--measurement <path>` when the batch carried a measurement task whose
@@ -53,7 +54,8 @@ only the resident can compare with its roster row.
    of `boundary` and of `diff`, if any; the report's sections, `Rulings needed`
    and `Verify in the tree` among them, inside `## For Kanri`; Jisso's reading
    from the report's header; Kanri's reading with its ceiling, presence, and
-   `ttl=` lines.
+   `ttl=` lines; and the `## commit-ready` section whole, which `check`
+   prints whenever `--ledger` named a ledger.
 3. Run each check the report's `Verify in the tree` names — a test command, a
    file to look at — and note its pass or fail. A failure goes under Failures as
    well as under Verify in the tree.
@@ -65,6 +67,7 @@ only the resident can compare with its roster row.
      --verdict "<the check: line>" \
      --kanri "<name [ref]>" --kanri-reading "<Kanri's reading, with its ttl= line>" \
      --jisso "<name [ref]>" --jisso-reading "<Jisso's reading>" \
+     --seat <the seat= results path, when the dispatch carried one> \
      --peer-reading "<role> <name [ref]> <reading>" \
      --s-item "<source> | <item>" --event "dispatch: <kind> on <family>"
    ```
@@ -77,10 +80,12 @@ only the resident can compare with its roster row.
    verdict file's Rows written.
 5. Render `.tanto/<topic>/batch-<Y>-prompt.md` for the next batch from
    `templates/batch-prompt.md`: the plan's Batches table gives the next
-   batch's tasks, and the roster's `queued` rows in handshake order give the
-   Jisso — when no row is `queued`, render with the addressee left as
-   `<name> [<ref>]` and say so under Next prompt; the resident's create
-   request fills it. Fill the Previous batch verdict section's first line from the
+   batch's tasks, and the title's addressee slot reads `Jisso <n> of this
+   plan` with **no name** — the seat that reads the file is the one the
+   resident's `spawn` request will create, and the Guard paragraph binds it
+   by workspace and branch alone. Under a plan that edits the tanto skill,
+   the roster's `queued` rows in spawn order name the next seat and you say
+   which under Next prompt. Fill the Previous batch verdict section's first line from the
    `check:` line and the report's For Kanri section, and leave the three slots
    that template names as `<Kanri fills>` — that section's ruling line, its
    deferral line, and the Rulings section's first line. Then make your second
@@ -110,8 +115,8 @@ only the resident can compare with its roster row.
 
 `.tanto/<topic>/batch-<X>-verdict.md`. Its first lines, before the headings,
 carry the report's `git hash-object` and the plan's, as a review brief does, so
-that a line number quoted under Failures has a fixed referent. Then ten `##`
-headings in this order — and an eleventh, `Measurement`, when the batch carried
+that a line number quoted under Failures has a fixed referent. Then eleven
+`##` headings in this order — and a twelfth, `Measurement`, when the batch carried
 a measurement task — so that the resident reads it with
 `passage-check sections` and never whole.
 
@@ -151,8 +156,17 @@ each check the report named, with the pass or fail you got, or `none`
 
 ## Ceiling
 
-Kanri's reading, its ceiling line, its presence line, and its `ttl=` line, as
-`check` printed them; then Jisso's reading line
+Kanri's reading, its ceiling line, and its `ttl=` line, as
+`check` printed them; then Jisso's reading line. The presence line, when
+`check` printed one, is copied here too and read by nothing
+
+## Commit window
+
+the `## commit-ready` section `check` printed, verbatim — every
+`commit-ready:` event of the ledger with no `commit-done:` pair — or
+`none`. Kanri opens the commit window at this boundary for the peers named
+here and for no others, so this section is the whole of what it reads on
+the question; it never queries the ledger itself
 
 ## Rows written
 
@@ -172,11 +186,13 @@ Verification sections, verbatim, for the contradiction Kanri reads them for
 One line, and nothing else:
 
 ```text
-verdict: <verdict path> — pass|fail — rulings needed: <n>; human questions: <m>; compactions: <c>; ceiling: under|over, present|absent
+verdict: <verdict path> — pass|fail — rulings needed: <n>; human questions: <m>; compactions: <c>; ceiling: under|over
 ```
 
 `<n>` and `<m>` count the items under those two headings. `<c>` is the
 compactions figure of Kanri's reading, so that handover signal 3 is read off
-the line on a clean boundary too. `ceiling:` copies the two verdicts from
-Kanri's ceiling and presence lines — `unavailable` and `absent` respectively
-when a line is missing, as `SKILL.md`'s reading section already reads them.
+the line on a clean boundary too. `ceiling:` copies the one verdict from
+Kanri's ceiling line — `unavailable` when the line is missing, as
+`SKILL.md`'s reading section already reads it. The presence verdict is no
+longer on this line: the handover has no presence gate, and nothing keys on
+it.

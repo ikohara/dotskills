@@ -7,7 +7,7 @@ and the ledgers, never a copy.
 
 ## Why
 
-<The trigger that fired — the plan close, the human's word, or a compaction noticed — and when.>
+<The trigger that fired — the plan close, the human's word, a compaction noticed, or the ceiling crossed — and when.>
 
 ## In flight
 
@@ -20,30 +20,30 @@ no topic is open. The line after the blocks is written once.
   - Ledger — <.tanto/<topic>/kanri.md>
   - Batch state — <"batch <X> accepted, batch <Y> prompt not sent", or "at the
     spec or plan stage, no batches yet">
-  - Deferred — <the ledger's Progress clause, verbatim, when a handover
-    stands deferred on the ceiling and the human's absence; "none"
-    otherwise. The successor re-checks it at its own first check, where a
-    `present` verdict runs what the outgoing session could not.>
+  - Branch — <the branch this topic's tree is on, and whether it has been
+    merged>
 - Agents of this session still running — <label and what it was to deliver,
   one per line, or "none">; lost with this session
-- A close delegated to Hosa — <`<topic>`, Hosa's `<name> [<ref>]`, the
-  `close:` line's paths and subject, and whether `close done:` has arrived,
-  or "none">; the successor verifies the commit on `close done:` and fills
-  the ledger
+- A shoki in flight — <`<topic>`, the worktree path, the time it was
+  spawned — always after this topic's merge — and `shoroku ready: not yet
+  arrived`, or "none">; the successor runs the landing checks on that line,
+  fast-forwards `main`, takes shoki's reading and then writes the `rm`
+  request, and fills the ledger
 
 ## Live peers
 
 Every `live` peer of every open topic, with its Topic as the roster carries
 it; the successor answers the marked lines first and announces nothing. Then
-the `queued` Jissos, by name and place — the successor sends them nothing;
+the `queued` Jissos, which exist only under a plan that edits the tanto
+skill, by name and place — the successor sends them nothing;
 their batch prompt is a path they read at their own wake-up.
 
 - <role> — <topic> — <name> [<ref>] — <what that session is waiting for> —
   <"answered", or the last line it sent that this session did not answer,
   which the successor answers first and which the ledger's Session events
   carry as an `unanswered:` line with no `answered:` pair>
-- <topic> — <name> [<ref>] — queued: <n>, one line per queued Jisso, in
-  queue order; the successor sends none of them anything
+- <topic> — <name> [<ref>] — queued, <n>th of the plan's queue, one line per
+  queued Jisso, in queue order; the successor sends none of them anything
 
 ## Open questions for the human
 
@@ -85,7 +85,4 @@ reading taken when this handover was written.>
 
 ## Commands for the human
 
-1. /clear this window.
-2. /model <family> and /effort <level>, as `sessions.kanri` says; /clear
-   keeps the model and resets the effort.
-3. /tanto kanri
+The successor is spawned; nothing is typed.
