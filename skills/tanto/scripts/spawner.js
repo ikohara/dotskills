@@ -95,6 +95,19 @@ function stamp(date = new Date()) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+/**
+ * `claude agents --json`'s `startedAt` is an epoch-millisecond number; the
+ * roster's Started column wants `stamp`'s shape. Formatted once here, where
+ * the value first enters a seat, so the seat, the spawn result, and every
+ * later reader (`boundary.js record --seat`, the roster template) carry the
+ * same shape without reaching back into this file. A value that is not a
+ * number — already formatted, or absent — is left alone rather than
+ * double-formatted.
+ */
+function formatStartedAt(value) {
+  return typeof value === "number" ? stamp(new Date(value)) : value;
+}
+
 function sleepSync(ms) {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 }
@@ -278,6 +291,7 @@ function opSpawn(root, request, seats) {
   const strayRoot = path.join(root, ".claude", "worktrees");
   const stray = !request.worktree && session.cwd && session.cwd.startsWith(strayRoot);
   const id = session.id || shortIdOf(got.out);
+  const startedAt = formatStartedAt(session.startedAt);
   const seat = {
     sessionId: session.sessionId,
     id,
@@ -289,7 +303,7 @@ function opSpawn(root, request, seats) {
     mode: request.mode || "auto",
     worktree: request.worktree,
     cwd: session.cwd,
-    startedAt: session.startedAt,
+    startedAt,
     status: stray ? "stopped" : "running",
   };
   seats.push(seat);
@@ -304,7 +318,7 @@ function opSpawn(root, request, seats) {
     name: session.name,
     cwd: session.cwd,
     transcript: transcriptOf(session.sessionId),
-    startedAt: session.startedAt,
+    startedAt,
   };
 }
 
@@ -438,6 +452,11 @@ function runCensus(root, seats) {
 function cmdRun(argv) {
   const { values } = parseArgs(argv);
   const root = typeof values.root === "string" ? path.resolve(values.root) : process.cwd();
+  // Every child this process spawns — `claude --bg` above all — must land in
+  // the workspace root, never wherever the spawner itself was started from
+  // (Critical 1, branch-review.md): `spawnSync` with no `cwd` inherits this
+  // process's own, so fixing it here once covers `runClaude`'s every caller.
+  process.chdir(root);
   ensureDirs(root);
   fs.writeFileSync(path.join(spawnerDir(root), "pid"), `${process.pid}\n`);
   const pass = () => {

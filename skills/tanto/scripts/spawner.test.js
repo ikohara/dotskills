@@ -11,6 +11,8 @@ const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 
 const SPAWNER = path.join(__dirname, "spawner.js");
+const BOUNDARY = path.join(__dirname, "boundary.js");
+const TEMPLATES = path.join(__dirname, "..", "templates");
 
 const FAKE = `
 const fs = require("node:fs");
@@ -64,11 +66,14 @@ if (sub === "--resume") {
 }
 if (argv.includes("--bg")) {
   const next = state.next || {};
+  state.cwdSeen = process.cwd();
   const session = {
     pid: 4321,
     cwd: next.cwd || state.root,
     kind: "background",
-    startedAt: "2026-09-21T10:00:00Z",
+    // The real CLI's --bg prints an epoch-millisecond number
+    // (branch-review.md's Important 1); 2026-09-21T10:00:00Z as a number.
+    startedAt: 1789984800000,
     sessionId: next.sessionId || "sess-new",
     name: next.name || "seat-new [aaaaaa]",
     id: next.id || "bg01",
@@ -104,7 +109,7 @@ function setState(ws, patch) {
   fs.writeFileSync(ws.state, JSON.stringify({ ...state, ...patch }));
 }
 
-function run(ws, argv) {
+function run(ws, argv, opts = {}) {
   const result = spawnSync(process.execPath, [SPAWNER, ...argv], {
     encoding: "utf8",
     env: {
@@ -114,6 +119,7 @@ function run(ws, argv) {
       FAKE_STATE: ws.state,
       FAKE_LOG: ws.log,
     },
+    ...opts,
   });
   return { code: result.status, out: result.stdout || "", err: result.stderr || "" };
 }
@@ -214,7 +220,8 @@ test("a spawn writes the result, the seat, and deletes the request", () => {
   assert.equal(got.name, "seat-new [aaaaaa]");
   assert.equal(got.cwd, ws.root);
   assert.equal(got.id, "bg01");
-  assert.equal(typeof got.startedAt, "string");
+  assert.match(got.startedAt, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
+  assert.equal(seats(ws)[0].startedAt, got.startedAt);
   assert.equal(fs.existsSync(file), false);
   assert.equal(seats(ws)[0].status, "running");
   assert.equal(seats(ws)[0].role, "jisso");
@@ -239,6 +246,44 @@ test("a spawn's command line carries the flags the request names", () => {
     ws.root,
     SPAWN.prompt,
   ]);
+});
+
+test("a --bg child's cwd is the workspace root, not wherever the spawner was started", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  // The spawner itself is started from a directory that has nothing to do
+  // with the workspace, exactly as `tanto.js` does not guarantee and a
+  // hand-run `node spawner.js run --root X` never did (Critical 1,
+  // branch-review.md).
+  const got = run(ws, ["run", "--root", ws.root, "--once"], { cwd: os.tmpdir() });
+  assert.equal(got.code, 0);
+  const state = JSON.parse(fs.readFileSync(ws.state, "utf8"));
+  assert.equal(fs.realpathSync(state.cwdSeen), fs.realpathSync(ws.root));
+});
+
+test("a spawn's startedAt reaches the roster's Started cell in the same shape", () => {
+  const ws = workspace();
+  const { id } = request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  const got = result(ws, id);
+  assert.match(got.startedAt, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
+
+  const ledger = path.join(ws.root, "kanri.md");
+  const roster = path.join(ws.root, "roster.md");
+  fs.copyFileSync(path.join(TEMPLATES, "kanri.md"), ledger);
+  fs.copyFileSync(path.join(TEMPLATES, "roster.md"), roster);
+  const seatFile = path.join(ws.root, "seat-result.json");
+  fs.writeFileSync(seatFile, JSON.stringify(got));
+  const recorded = spawnSync(
+    process.execPath,
+    [BOUNDARY, "record", "--ledger", ledger, "--roster", roster, "--seat", seatFile],
+    { encoding: "utf8", cwd: ws.root },
+  );
+  assert.equal(recorded.status, 0, recorded.stderr);
+  const rosterText = fs.readFileSync(roster, "utf8");
+  const line = rosterText.split("\n").find((l) => l.includes(got.name));
+  assert.ok(line, rosterText);
+  assert.ok(line.includes(`| ${got.startedAt} |`), line);
 });
 
 test("a failing spawn writes error and stderr, and no seat", () => {
