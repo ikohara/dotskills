@@ -423,9 +423,12 @@ test("nothing the spawner does reads or writes the roster", () => {
   const roster = path.join(ws.root, ".tanto", "roster.md");
   fs.writeFileSync(roster, "# tanto roster\n");
   const before = fs.readFileSync(roster, "utf8");
-  request(ws, SPAWN);
-  request(ws, { op: "attention", message: "x" });
-  run(ws, ["run", "--root", ws.root, "--once"]);
+  const spawnReq = request(ws, SPAWN);
+  const attentionReq = request(ws, { op: "attention", message: "x" });
+  const got = run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(got.code, 0);
+  assert.equal(result(ws, spawnReq.id).error, undefined);
+  assert.equal(result(ws, attentionReq.id).error, undefined);
   assert.equal(fs.readFileSync(roster, "utf8"), before);
 });
 
