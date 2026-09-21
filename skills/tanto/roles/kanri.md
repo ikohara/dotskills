@@ -1109,9 +1109,10 @@ and the close reads them once.
    standalone Kaiseki with the copy's path.
 
 Where the commit lands: on `main`, by your fast-forward of shoki's branch,
-after the merge — `git merge --ff-only shoki-<topic>` when the shared
-checkout is on `main`, `git push . shoki-<topic>:main` when it is on another
-branch. No other stage commits under `docs/` through this section.
+after the merge — `git merge --ff-only worktree-shoki-<topic>` when the
+shared checkout is on `main`, `git push . worktree-shoki-<topic>:main` when
+it is on another branch. No other stage commits under `docs/` through this
+section.
 
 **Between plans** there is no ledger, so record items that reach you then —
 a Kikaku decision file belonging to no topic, your
@@ -1168,10 +1169,9 @@ as the merge, whichever form it took, write
 `.tanto/<topic>/shoki-brief.md` from `templates/shoki-brief.md` and its
 `spawn` request — `role: shoki`, `worktree: shoki-<topic>`,
 `addDir: [<root>]`, `sessions.shoki`'s family and effort, mode `auto`, the
-prompt the one line `brief: <that path>`. The CLI cuts that worktree from
-the tree's HEAD at that moment, which is `main` with the merge already on
-it, so shoki's own `git rebase main` has nothing to re-do and the product's
-fixes land before the records rather than after them. Started in the same
+prompt the one line `brief: <that path>`. Whatever HEAD the CLI cuts that
+worktree from, shoki's own `git rebase main` is what lands the product's
+fixes before the records rather than after them. Started in the same
 act as shusei's own request it would race that batch, put the records on
 `main` first, and leave a rebase you never re-run.
 
@@ -1195,8 +1195,10 @@ swept inbox copy's Triage filled), fast-forward `main` onto it by the form
 own reading — `node "$TANTO/scripts/reading.js" <its transcript>`, written
 into its roster row — and only after it write the `rm` request: a
 transcript is not promised to survive `claude rm`, and taking the reading
-first costs nothing where it does survive. Then delete the branch
-`shoki-<topic>` that `claude rm` keeps, move shoki's result file to
+first costs nothing where it does survive. Then remove the worktree
+`claude rm` leaves locked — `git worktree remove --force
+<root>/.claude/worktrees/shoki-<topic>` — and delete the branch
+`worktree-shoki-<topic>` that `claude rm` keeps, move shoki's result file to
 `.tanto/<topic>/spawner-results/`, mark the `S-n` rows written, and write
 the Events line. A landing check that fails is a follow-up `docs:` commit
 through the hotfix lane, never a re-run of shoki. A `shoroku blocked:` line

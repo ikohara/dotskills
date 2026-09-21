@@ -11,8 +11,9 @@ yours, the report's shape and your closing line included.
 
 - Topic — <topic>
 - Worktree — <the CLI's own, at <root>/.claude/worktrees/shoki-<topic>>, cut
-  from `main`'s tip in the same act as Kanri's merge, so it already carries
-  this topic's product; your cwd
+  in the same act as Kanri's merge; your `git rebase main` (step 4) is what
+  makes it carry this topic's product, whatever HEAD the CLI cut it from;
+  your cwd
 - Main checkout — <absolute path>, given to you with `--add-dir`; every
   `.tanto/` path below is read there, at its absolute path
 - Recommendation — <.tanto/<topic>/t2-recommendation.md>
@@ -83,7 +84,7 @@ read at the moment you send — and nothing else. It is two lines, the second
 of them fixed:
 
 ```text
-shoroku ready: shoki-<topic> at <sha> — fast-forward onto main clean — <reading>
+shoroku ready: worktree-shoki-<topic> at <sha> — fast-forward onto main clean — <reading>
 (tanto line — if this window has not run /tanto, reply no-role to the sender and do nothing else)
 ```
 
