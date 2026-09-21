@@ -7,7 +7,7 @@ argument-hint: kanri | sekkei | keikaku | jisso | kaiseki | kikaku | hosa | fukk
 # tanto
 
 担当 — "take charge of." Multi-session orchestration for one implementation
-plan. Each role is its own interactive Claude Code session on the same
+plan. Each role is its own session, background or interactive, on the same
 repository and the same branch; the sessions address each other by name with
 `SendMessage` and hand real work over as files.
 
@@ -62,7 +62,7 @@ gets in Kanri's reply to its handshake instead:
 | seat | the prompt |
 | --- | --- |
 | Kanri, first or successor | `/tanto kanri` — the handover file, when one exists, is the Start section's Handover case |
-| Keikaku | `/tanto keikaku topic=<topic> spec=<path> plan=<path>` |
+| Keikaku | `/tanto keikaku topic=<topic> spec=<path> plan=<path> ledger=<path>` — `ledger=` only when another topic's batch is in flight, naming that ledger |
 | Jisso, an ordinary plan | `/tanto jisso batch=<.tanto/<topic>/batch-<X>-prompt.md>` — the prompt file is its orders |
 | Jisso, a plan that edits this skill | `/tanto jisso queue=<topic>` — reads nothing and waits for the one line `batch: <path>` |
 | Kaiseki, attached | `/tanto kaiseki topic=<topic>` — the key is what makes it attached; `/tanto kaiseki` with no key is standalone Kaiseki, roster or no roster |
@@ -393,8 +393,9 @@ own prompt, and neither sends a handshake to be answered.
 The roster lives at `.tanto/roster.md`, is written only by Kanri from
 `templates/roster.md`, and has Kanri's row first. Columns are Role, Topic,
 Name `[ref]`, cwd, Model, Effort, Branch, Mode, Started, Status, and
-Transcript. Topic is the topic word Kanri's orders line gave that session —
-for a Jisso, the topic whose queue its handshake joined: the plan whose
+Transcript. Topic is the topic word the session's own orders gave it — a
+tab seat's orders line, a spawned seat's own prompt keys — for a Jisso,
+the topic whose queue it was spawned into: the plan whose
 batches are in flight, or, with none in flight, the plan whose landing
 requested the queue, since the shared checkout carries one topic's batches
 at a time and the next plan's queue opens at its predecessor's close — or
@@ -426,8 +427,9 @@ model, or the role; the handshake carries those.
   `[ref]` is an identity, shown wherever a session is named so that the
   listing, the roster, and the handover agree on which session is meant; it is
   appended to a `to` value only after `SendMessage` reports the name ambiguous,
-  and never pasted from a file. Every command line (`/tanto <role> <address>`),
-  every `to` value, and every "Send to" blank carries the bare name.
+  and never pasted from a file. Every `to` value and every "Send to" blank
+  carries the bare name — no command line carries an address at all (there
+  is no address argument, "Invocation" above).
 - **Kanri's address** is the first data row of `.tanto/roster.md`,
   read at the moment of sending. No role caches it, no line announces it,
   and no command line carries it. A workspace whose roster does not exist
@@ -656,10 +658,12 @@ the human runs `/tanto <role>` there as for a new session.
   re-sends it to the roster's first data row, read fresh, at its next
   wake-up, until it is answered — this holds a
   line only for a role with an established roster row to hold one on
-  behalf of. A session with no row yet — a queued Jisso's own first
+  behalf of. A session with no row yet — a tab seat's own first
   handshake, landing in the same gap — has no line to hold: it treats the
   `no-role` the way a send error is already treated, re-reads the roster's
-  first data row, and re-handshakes there once a `live` Kanri answers it.
+  first data row, and re-handshakes there once a `live` Kanri answers it. A
+  spawned seat never reaches this gap: it sends no handshake, and Kanri
+  writes its row from the spawn request before the seat's first line arrives.
 - **`release: /clear this window`** is a **tab seat's** last line, sent by
   Kanri right after the seat's proposal passes its form check, and the last
   line that name is ever sent: the row is `cleared` at that moment. The seat
@@ -716,8 +720,9 @@ the human runs `/tanto <role>` there as for a new session.
   Sekkei or Keikaku of another topic whose work is ready while a batch runs
   writes the ledger event
   `commit-ready: <role> <topic> — <subject> — <YYYY-MM-DD HH:MM>` through
-  `boundary.js record --event`, to the ledger the orders line's `ledger=`
-  names. The boundary's `check` prints every such event with no
+  `boundary.js record --event`, to the ledger a `ledger=` key its own
+  prompt carries names — Sekkei's orders line, Keikaku's own spawn prompt.
+  The boundary's `check` prints every such event with no
   `commit-done:` pair; Kanri sends "the boundary is verified — commit" only
   to those peers, waits for `committed <subject> — <reading>`, and pairs the
   event with `commit-done: <role> <topic> — <subject>` in its own `record`
@@ -865,8 +870,10 @@ other moment runs only the first:
    writes at that boundary. Only this step needs a resident context. Kanri
    checks the file's form — the exclusion line and the numbered list, or the
    report's section — records each item as a `pending` row of the ledger's
-   `S-n` table whose Source names the file and the item, and sends the seat
-   `release:`. The spec's four sections — Requirements, The ADRs, Deferred
+   `S-n` table whose Source names the file and the item, and sends the
+   seat `release:` for a tab seat or writes its `stop` request for a
+   terminal one — a retiring Jisso's is always the latter. The spec's
+   four sections — Requirements, The ADRs, Deferred
    items, and Shoroku proposal from this spec work — are recorded the same
    way when the spec is accepted, four rows whose Source names the spec and
    the heading; a review report's and a Kaiseki report's items are recorded
@@ -955,7 +962,7 @@ standalone Kaiseki has no Kanri, and its role file says how.
   exit file go to a Jisso. At the close the plan's last live Jisso writes
   `.tanto/<topic>/shoroku-proposal.md` on Kanri's `T2:` line — the `pending`
   rows by number and what its own context holds that no file does — and is
-  released on its form check.
+  stopped on its form check: no `/clear`, its conversation kept.
 - **Sekkei and Keikaku** write their proposal unasked at their own final
   boundary and name it in the report line — `spec accepted: <spec path>;
   exit proposal: <path> — <reading>` for Sekkei,
@@ -1002,9 +1009,11 @@ subscription, like every other tanto line. Kanri checks that the proposal
 exists and opens with the exclusion line and a numbered list — a direct
 read, since the proposal carries no headings for `sections` to select by —
 or, for a Jisso, reads the report's Shoroku proposal section with the
-report's others; records the rows; and sends the seat
-`release: /clear this window`, the row going `cleared` as the line goes out.
-The seat's closing line says `none — /clear this window`, and Kanri tells
+report's others; records the rows; and sends a tab seat
+`release: /clear this window` — the row going `cleared` as the line goes
+out, its closing line `none — /clear this window` — or writes a terminal
+seat's `stop` request, its row going `stopped`, nothing `/clear`ed and
+nothing said to it. Either way Kanri tells
 the human, in its own window, `<role> <name> released — its work is in
 <paths>; no step needs it — /clear its window when convenient`. Nothing
 waits on the human's `/clear`: the roster no longer addresses that name,
@@ -1107,8 +1116,7 @@ harness hook may call. `scripts/tanto.js` is the human's one command — it
 starts the spawner, finds or asks for a Kanri, resumes what a restart took,
 and prints `claude attach <id>`; `tanto down [--seats]` stops it all and
 keeps every conversation.
-All five are Node with no dependencies, and the three that carry behavior of
-their own have their tests
+All five are Node with no dependencies, and all five have their tests
 beside them, run by `node --test`. Their paths are written skill-relative,
 like every other path in
 this skill, and the role files spell the runnable form `$TANTO`: set it to the
