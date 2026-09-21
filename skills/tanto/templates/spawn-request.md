@@ -62,8 +62,8 @@ A result carries the request's fields and the op's own: `spawn` adds `id`,
 `sessionId`, `name`, `cwd`, `transcript`, and `startedAt`; `stop` adds
 `stopped`; `rm` adds `removed` and the worktree it removed; `resume` adds the
 new `id` and `name` under the same `sessionId`; `attention` adds `notified`
-and `channel`; `ack` adds `acked`. An op that failed adds `error` and the
-command's stderr, and nothing else.
+and `channel`; `ack` adds `acked`. An op that failed adds `error`, which
+carries the command's stderr, and nothing else.
 
 At the plan close the topic's results move to
 `.tanto/<topic>/spawner-results/` with the archive move. The spawner deletes
