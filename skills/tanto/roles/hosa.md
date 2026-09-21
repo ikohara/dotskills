@@ -84,10 +84,11 @@ row: the session that holds the items writes the proposal, and Kanri
 writes the rows. The close is not yours at all — the recommend is Kanri's
 dispatch, the check is the kessai in Kanri's window, and the write-out is
 shoki's — and you write no recommendation, no brief, and no direction. An
-inbox copy is not a row and enters no ledger: under a `sweep:` line the
-recommender's input is the untriaged copies you list by path, their record
-is the Triage the apply fills, and nothing of a sweep reaches a ledger or
-the roster's table.
+inbox copy is not a row and enters no ledger: the recommender's input is
+the untriaged copies under `.tanto/inbox/`, listed by path, and their
+record is the Triage the apply fills — no sweep of them is yours to
+dispatch or to list, and nothing of one reaches a ledger or the roster's
+table.
 
 ## Lifecycle
 
@@ -95,21 +96,19 @@ You have a roster row, no topic. Kanri neither asks for you nor spawns you,
 you get no `release:` line, no
 replace row, and no exit shoroku. The human `/clear`s this window at will.
 
-Between jobs — never with a `chore:` still open, a `slot-needed:`
-unanswered, or inside a `close:` or a `sweep:` before its `close done:` or
-`close blocked:` — the human may `/compact` it instead: the session id and
+Between jobs — never with a `chore:` still open or a `slot-needed:`
+unanswered — the human may `/compact` it instead: the session id and
 the transcript survive, so this costs no re-handshake and no wake-up of
 Kanri. Before your next job, list in this window every item a
 compaction's own summary attributes to the human, and the human confirms
 or corrects each one there — nothing goes to Kanri, since these are
 chores handed to you under your standing grant, which Kanri never saw.
-The compaction's count travels in your next `committed` or `close done:`
-reading, which is record enough.
+The compaction's count travels in your next `committed` reading, which is
+record enough.
 
 The next `/tanto` in it, in any role, re-handshakes as a new session, and
 Kanri marks the old row `cleared`. Your closing line after a chore names
-the commit subject and `none`; after a `close:` or a `sweep:` line, the
-direction file and the step the close is at.
+the commit subject and `none`.
 
 You are on `sonnet`, so you do not count under rule 9.
 
