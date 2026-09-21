@@ -129,18 +129,35 @@ function jsonFilesNewerThan(dir, sinceMs) {
 }
 
 /**
- * A `kanri` `spawn` already in flight or already done, newer than the
- * handover file's own mtime: `seats.json` holding a running or blocked
- * `kanri` row written since the handover, a still-pending request under
- * `requests/`, or its result under `results/`. Any of the three means a
- * successor already exists, and writing a second spawn request would raise
- * two Kanris on the same handover (R-12, Important 2, branch-review.md).
+ * A `kanri` `spawn` already in flight or already done: a `seats.json` row
+ * distinct from the outgoing Kanri (`outgoingSessionId`, the roster's own
+ * current row) that is still `running`/`blocked` and still present in the
+ * live listing (`byId`), or a still-pending request under `requests/`, or
+ * its result under `results/`, newer than the handover file's own mtime.
+ * Any of the three means a successor already exists, and writing a second
+ * spawn request would raise two Kanris on the same handover (R-12,
+ * Important 2, branch-review.md).
+ *
+ * The first round of this fix keyed the `seats.json` check on the *file's*
+ * mtime, which was wrong: the resident's own ~15s census rewrites
+ * `seats.json` unconditionally, so within the whole handover window (a
+ * minute or more) the file is always "newer" than the handover, and the
+ * first running/blocked `kanri` row found was the OUTGOING Kanri itself —
+ * suppressing the very successor spawn this function exists to protect, in
+ * every real handover (Critical, branch-review.md, fix round 2). Excluding
+ * `outgoingSessionId` by identity needs no timestamp at all for this check.
+ * The live-listing cross-check guards the other direction: a `seats.json`
+ * row the CLI no longer lists is not trusted as an attachable id directly —
+ * the "every other seat" resume loop a few lines below `cmdUp` exists for
+ * that (Important 1, branch-review.md, fix round 2).
  */
-function kanriSuccessor(root, handoverMtimeMs, seats) {
-  const seatsMtime = statMtimeMs(path.join(spawnerDir(root), "seats.json"));
-  if (seatsMtime !== null && seatsMtime > handoverMtimeMs) {
-    const held = seats.find((s) => s.role === "kanri" && (s.status === "running" || s.status === "blocked"));
-    if (held) return { attach: held.id || held.sessionId };
+function kanriSuccessor(root, handoverMtimeMs, seats, byId, outgoingSessionId) {
+  const candidate = seats.find(
+    (s) =>
+      s.role === "kanri" && (s.status === "running" || s.status === "blocked") && s.sessionId !== outgoingSessionId,
+  );
+  if (candidate && byId.has(candidate.sessionId)) {
+    return { attach: candidate.id || candidate.sessionId };
   }
   const requestsPath = path.join(spawnerDir(root), "requests");
   for (const name of jsonFilesNewerThan(requestsPath, handoverMtimeMs).sort()) {
@@ -324,7 +341,10 @@ function cmdUp(argv) {
   // A handover in progress: look for the successor before writing a second
   // spawn request for one that already exists (R-12, Important 2).
   const handoverMtimeMs = handover ? statMtimeMs(handoverFile) : null;
-  const successor = handover && handoverMtimeMs !== null ? kanriSuccessor(root, handoverMtimeMs, seats) : null;
+  const successor =
+    handover && handoverMtimeMs !== null
+      ? kanriSuccessor(root, handoverMtimeMs, seats, byId, row ? row.sessionId : null)
+      : null;
 
   let attach = null;
   let resumed = 0;

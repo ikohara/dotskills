@@ -201,7 +201,41 @@ test("a handover file with a successor already in seats.json is attached to, not
   // The handover window (roles/kanri.md's step 4 until the successor accepts)
   // is a minute or more; running `tanto` inside it must find the successor
   // the spawner already recorded rather than write a second spawn request
-  // for `/tanto kanri` (Important 2, branch-review.md).
+  // for `/tanto kanri` (Important 2, branch-review.md). The successor must
+  // also be in the live listing: the cross-check added in fix round 2
+  // (Important 1) refuses to attach to a seats.json row the CLI does not
+  // list.
+  const ws = workspace([
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1" },
+    {
+      sessionId: "sess-new-kanri",
+      name: "seat-new [aaaaaa]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg09",
+    },
+  ]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  const handoverFile = path.join(ws.root, ".tanto", "kanri-handover.md");
+  fs.writeFileSync(handoverFile, "# tanto Kanri handover\n");
+  backdate(handoverFile, 5);
+  writeSeats(ws, [
+    { sessionId: "sess-live", id: "tab1", name: "seat-live [ffffff]", role: "kanri", status: "running" },
+    { sessionId: "sess-new-kanri", id: "bg09", name: "seat-new [aaaaaa]", role: "kanri", status: "running" },
+  ]);
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn").length, 0);
+  assert.match(got.out, /claude attach bg09/);
+});
+
+test("a handover file with only the outgoing Kanri in seats.json still spawns a successor (C-2a)", () => {
+  // Reproduces the round-1 Critical: seats.json is rewritten unconditionally
+  // by the resident's own ~15s census, so within the handover window the
+  // file is always "newer" than the handover file itself. Keying the
+  // successor check on that file mtime alone (round 1's bug) matched the
+  // OUTGOING Kanri's own row here — the only kanri row that exists — and
+  // wrongly suppressed the spawn request that creates the real successor.
   const ws = workspace([
     { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1" },
   ]);
@@ -209,12 +243,65 @@ test("a handover file with a successor already in seats.json is attached to, not
   const handoverFile = path.join(ws.root, ".tanto", "kanri-handover.md");
   fs.writeFileSync(handoverFile, "# tanto Kanri handover\n");
   backdate(handoverFile, 5);
+  // seats.json written well after the handover file, exactly as the
+  // resident's own census would during the handover window, holding only
+  // the outgoing Kanri's own (pre-handover) row.
   writeSeats(ws, [
-    { sessionId: "sess-new-kanri", id: "bg09", name: "seat-new [aaaaaa]", role: "kanri", status: "running" },
+    { sessionId: "sess-live", id: "tab1", name: "seat-live [ffffff]", role: "kanri", status: "running" },
   ]);
   const got = launch(ws, [ws.root, "--timeout", "20000"]);
-  assert.equal(requests(ws).filter((r) => r.op === "spawn").length, 0);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn" && r.role === "kanri").length, 1);
+  assert.match(got.out, /claude attach bg01/);
+});
+
+test("a handover file with both the outgoing Kanri and a live successor attaches to the successor (C-2b)", () => {
+  const ws = workspace([
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1" },
+    {
+      sessionId: "sess-successor",
+      name: "seat-new [aaaaaa]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg09",
+    },
+  ]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  const handoverFile = path.join(ws.root, ".tanto", "kanri-handover.md");
+  fs.writeFileSync(handoverFile, "# tanto Kanri handover\n");
+  backdate(handoverFile, 5);
+  writeSeats(ws, [
+    { sessionId: "sess-live", id: "tab1", name: "seat-live [ffffff]", role: "kanri", status: "running" },
+    { sessionId: "sess-successor", id: "bg09", name: "seat-new [aaaaaa]", role: "kanri", status: "running" },
+  ]);
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn" && r.role === "kanri").length, 0);
   assert.match(got.out, /claude attach bg09/);
+});
+
+test("a handover successor row the live listing has lost is not attached to directly (Important 1)", () => {
+  // A seats.json row distinct from the outgoing Kanri, but absent from the
+  // live listing, must not be trusted as an attachable id directly — the
+  // generic "every other seat" resume loop is what reconnects it instead,
+  // and the main branch falls back to a fresh spawn.
+  const ws = workspace();
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  const handoverFile = path.join(ws.root, ".tanto", "kanri-handover.md");
+  fs.writeFileSync(handoverFile, "# tanto Kanri handover\n");
+  backdate(handoverFile, 5);
+  writeSeats(ws, [
+    { sessionId: "sess-live", id: "tab1", name: "seat-live [ffffff]", role: "kanri", status: "running" },
+    { sessionId: "sess-ghost", id: "bg-ghost", name: "seat-ghost [999999]", role: "kanri", status: "running" },
+  ]);
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  assert.equal(/claude attach bg-ghost/.test(got.out), false);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn" && r.role === "kanri").length, 1);
+  assert.deepEqual(
+    requests(ws)
+      .filter((r) => r.op === "resume")
+      .map((r) => r.sessionId),
+    ["sess-ghost"],
+  );
 });
 
 test("a running seat the listing lost is resumed, and fukki is printed", () => {

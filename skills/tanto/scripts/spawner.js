@@ -492,6 +492,23 @@ function runCensus(root, seats) {
 }
 
 /**
+ * Log a caught exception, never letting the logging itself throw. `appendLog`
+ * already wraps its own `appendFileSync`, but the message it is handed here
+ * — `error && error.message ? ... : String(error)` — is evaluated in the
+ * caller's `catch` block, outside that guard; an `error` whose `.message`
+ * getter or `toString` throws would still escape and end the resident —
+ * exactly the class of failure `guarded` below exists to survive (Important
+ * 2, branch-review.md, fix round 2).
+ */
+function logGuardError(root, error) {
+  try {
+    appendLog(root, `guard: ${error && error.message ? error.message : String(error)}`);
+  } catch {
+    // As above: logging the caught error must never itself end the resident.
+  }
+}
+
+/**
  * Wrap `fn` so an exception it throws is caught and logged rather than
  * ending the resident. `handleRequest`'s own call site already has this
  * belt; the first `pass()`, the two intervals, and the `fs.watch` callback
@@ -505,7 +522,7 @@ function guarded(root, fn) {
     try {
       fn(...args);
     } catch (error) {
-      appendLog(root, `guard: ${error && error.message ? error.message : String(error)}`);
+      logGuardError(root, error);
     }
   };
 }
@@ -542,10 +559,17 @@ function cmdRun(argv) {
     CENSUS_INTERVAL_MS,
   );
   try {
-    fs.watch(
+    const watcher = fs.watch(
       requestsDir(root),
       guarded(root, () => takeRequests(root, readSeats(root))),
     );
+    // The try/catch above only catches a synchronous construction failure.
+    // An `error` event emitted later — the requests directory removed or
+    // replaced out from under the watch, which happens on Windows — is
+    // asynchronous and unrelated to `guarded`'s call-time wrapping, so it
+    // needs its own handler through the same logged, never-throwing path
+    // (Important 3, branch-review.md, fix round 2).
+    watcher.on("error", (error) => logGuardError(root, error));
   } catch {
     // The two-second interval is the floor; the watch is the speed-up.
   }
