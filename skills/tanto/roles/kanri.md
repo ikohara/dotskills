@@ -1196,7 +1196,7 @@ own reading — `node "$TANTO/scripts/reading.js" <its transcript>`, written
 into its roster row — and only after it write the `rm` request: a
 transcript is not promised to survive `claude rm`, and taking the reading
 first costs nothing where it does survive. Then remove the worktree
-`claude rm` leaves locked — `git worktree remove --force
+`claude rm` leaves locked — `git worktree remove --force --force
 <root>/.claude/worktrees/shoki-<topic>` — and delete the branch
 `worktree-shoki-<topic>` that `claude rm` keeps, move shoki's result file to
 `.tanto/<topic>/spawner-results/`, mark the `S-n` rows written, and write
