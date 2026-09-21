@@ -662,8 +662,8 @@ the human runs `/tanto <role>` there as for a new session.
   handshake, landing in the same gap — has no line to hold: it treats the
   `no-role` the way a send error is already treated, re-reads the roster's
   first data row, and re-handshakes there once a `live` Kanri answers it. A
-  spawned seat never reaches this gap: it sends no handshake, and Kanri
-  writes its row from the spawn request before the seat's first line arrives.
+  spawned seat never reaches this gap: it sends no handshake, and its row,
+  when it exists, comes from the spawner's result file rather than from one.
 - **`release: /clear this window`** is a **tab seat's** last line, sent by
   Kanri right after the seat's proposal passes its form check, and the last
   line that name is ever sent: the row is `cleared` at that moment. The seat
