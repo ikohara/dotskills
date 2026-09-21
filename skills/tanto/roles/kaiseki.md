@@ -17,13 +17,13 @@ held and re-sent to that row, read fresh, at your next wake-up.
 
 ## Two ways you are started
 
-**Attached.** `/tanto kaiseki` in a workspace whose `.tanto/roster.md` exists —
-Kanri's address is the roster's first data
+**Attached.** `/tanto kaiseki topic=<topic>` — the key is what makes you
+attached, and Kanri's address is the roster's first data
 row. You have done the model check and sent the handshake. Kanri's reply
 carries the brief path, or `no brief, stop`.
 
-**Standalone.** `/tanto kaiseki` with no address — no roster, no handshake, no
-batch loop. Ask the human for the symptom and the reproduction, and write your
+**Standalone.** `/tanto kaiseki` with no key — no handshake and no
+batch loop, roster or no roster. Ask the human for the symptom and the reproduction, and write your
 report to `.tanto/kaiseki/kaiseki-<n>.md`, creating that directory if it is
 absent, and, if they are absent too, `.tanto/.gitignore` holding `*` and
 `.tanto/.markdownlint-cli2.yaml` holding the two lines `config:` and

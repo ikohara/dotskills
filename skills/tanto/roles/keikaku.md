@@ -13,10 +13,11 @@ when the human speaks here unprompted, answer and send Kanri
 read at the moment of sending; a send that errors or gets `no-role` back is
 held and re-sent to that row, read fresh, at your next wake-up.
 
-You have done the model check and sent the handshake. Kanri asked for you at
-the boundary "the spec review is accepted", and its orders line carries the
-topic, the spec's path — committed, or a draft — the plan's path, and your
-grant.
+You have done the model check and sent **no** handshake: you are a terminal
+seat, spawned at the boundary "the spec review is accepted", and the three
+keys of your own prompt — `topic=`, `spec=`, `plan=` — are your orders. Your
+standing grant, the plan dialogue, is implied by the role and stated here;
+no orders line carries it, because there is no orders line.
 
 Steps 1 and 2 of this topic, the spec and its review, were Sekkei's, and
 Sekkei is gone before you start: the same topic's Sekkei and Keikaku never
@@ -68,12 +69,15 @@ naming them saves nothing.
 ## The branch and the spec commit
 
 When the spec is a draft — Sekkei wrote it while another topic's batch was in
-flight, so no branch was cut — this comes before any plan work. Cut the branch
-from `main`, named after the topic, and commit the spec at the final path the
-orders line names, its text **unchanged**. It is the branch's first commit,
-and the review it has already passed is the review of that text: an edit of
-your own here would put something nobody reviewed on the branch. Everything
-from here rides on that branch.
+flight — this comes before any plan work, and it waits for the checkout.
+Kanri cuts the branch and sends you the one line
+`checkout free: branch=<topic> — commit the spec and the plan`; then commit
+the spec at the final path your `spec=` key names, its text **unchanged**,
+and answer `committed <subject> — <reading>`. It is the branch's first
+commit, and the review it has already passed is the review of that text: an
+edit of your own here would put something nobody reviewed on the branch. You
+persist past the cold read until that commit is made and verified, however
+long the checkout takes.
 
 When the spec is already committed, the branch exists and you continue on it.
 
@@ -267,16 +271,19 @@ reports and prompts follow the tanto templates, and names nothing else.
    `templates/review-brief.md`, naming the plan, its inputs, the output path
    `.tanto/<topic>/review-brief-plan.md`, the template, and the chat's
    language. Run the form check of `SKILL.md`'s **The brief's form** over what
-   comes back; on a failure dispatch once more, and on a second failure send
-   the brief as it stands, with one line to the human saying what is wrong
-   with it. You never edit the brief. Send Kanri
-   `review-ready: <document path>; brief: <brief path>` — one line, before you
-   ask the human, and it waits for nothing. Then put the brief's text verbatim
-   in your request for the one OK, with both paths, and record the answers in
-   `dialogue.md` in the brief's reply shape. On the human's OK, commit under
-   your commit rule below. A new brief is written when the human asks for one,
-   or when the plan's judgment points changed after the answers — a changed
-   batch cut included — not when its prose did.
+   comes back; on a failure dispatch once more, and on a second failure take
+   the brief as it stands and say in `dialogue.md` what is wrong with it. You
+   never edit the brief. Then **answer it yourself**: read every `choose` and
+   `decide` point and take its `— If unanswered:` clause as the answer, every
+   `confirm` point as confirmed, and record them in `dialogue.md` in the
+   brief's reply shape under the heading
+   `Plan brief — answered by default`, one line per point naming the clause
+   taken. Write the ledger event
+   `review-ready: <plan path>; brief: <brief path>` through
+   `boundary.js record --event` — the human reads the brief when they like,
+   and an override is a line in Kanri's window or a Kikaku decision file, as
+   any ruling is. Then commit under your commit rule below. You wait for no
+   one.
 
 Then send Kanri one line naming both, with your reading appended:
 `plan committed: <plan path>; dryrun: <dry-run path> — <reading>`.
@@ -293,16 +300,18 @@ lost by design; that is what the cold read is for.
 That message is your own final boundary — the batch boundaries you commit
 at while drafting are another topic's, and this one is yours — and it is
 the one boundary you can see coming: one message in, one line back. So, after the edits, write your exit
-proposal as the bullet below describes, run the self-check of `SKILL.md`'s
-Resuming, and send **one** line carrying every pointer and the proposal:
+proposal as the bullet below describes and send **one** line carrying every
+pointer and the proposal — no self-check runs first, a terminal seat's
+rename being the census's to notice:
 
 ```text
 coldread answered: <pointer, one per question, or none>; exit proposal: <path> — <reading>
 ```
 
 Then idle. Kanri sends you no `exit:` at this boundary; it checks the
-proposal's form, records its items, and sends you
-`release: /clear this window` at once. The
+proposal's form, records its items, and writes your `stop` request at once —
+no line reaches you, nothing is `/clear`ed, and your conversation is kept.
+The
 `plan committed:`
 line is unchanged and still carries no exit clause: the cold read has not run
 when it is sent, and the human may still not want the plan.
@@ -323,16 +332,20 @@ when it is sent, and the human may still not want the plan.
   count toward the one top-family session rule 9 allows, but the checkout is
   shared and that is what the pause is for.
 
-You learn both from Kanri. If your work is ready and you have not heard, ask
-Kanri in one line and wait.
+You learn both from Kanri. When your work is ready and no boundary line has
+come, write the ledger event
+`commit-ready: keikaku <topic> — <subject> — <YYYY-MM-DD HH:MM>` through
+`boundary.js record --event`, to the ledger the in-flight topic's `ledger=`
+names, and go on with your work. Kanri opens the commit window for the peers
+that event names and for no others.
 
 Two more rules, one at each end of a batch boundary:
 
 - **The boundary reply.** When Kanri says the boundary is verified, commit if
   your work is ready and answer in one line, `committed <subject> — <reading>`
-  or `nothing to commit — <reading>`. Before the line, run the self-check of
-  `SKILL.md`'s Resuming — one `ListAgents`; a name that is not your row's means
-  you were resumed, and the handshake goes first. The authorization lasts until
+  — the reply is `committed <subject> — <reading>` alone, since the line
+  reaches you only when you wrote the `commit-ready:` event that opened the
+  window. No self-check runs first. The authorization lasts until
   you answer or until Kanri's next message, and a commit you did not make
   within that window waits for the next boundary line.
 - **Your exit shoroku.** You write it **unasked**, after the cold-read edits
@@ -345,12 +358,13 @@ Two more rules, one at each end of a batch boundary:
   reasons, the facts measured while drafting, the observations about the
   process, and the defects noticed. Then stop there, with your closing line
   — the plan, the dry run, and the proposal by path; the step that still
-  needs this seat, `none` — and wait for Kanri's
-  `release: /clear this window`: Kanri checks the proposal's form, records
-  its items as `pending` rows, and sends that line at once — no recommender
+  needs this seat, `none`. Kanri checks the proposal's form, records
+  its items as `pending` rows, and writes your `stop` request at once — no
+  recommender
   runs before the topic's close, where your items are recommended and
-  checked with everything else. On `release:` tell the human to `/clear`
-  this window and end your turn. Work that reaches you before it — a report
+  checked with everything else. Your turn ends with your closing line and
+  nothing else; the stop follows it, and you tell no human anything. Work
+  that reaches you before it — a report
   that conflicts with
   the plan, a second cold-read question — is answered with a second proposal
   at
