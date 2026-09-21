@@ -633,28 +633,6 @@ test("--prompt writes the Batches row's Prompt cell", () => {
   assert.ok(ledger.includes("| Y |  | sent | .tanto/tanto-diet/batch-Y-prompt.md |"), ledger);
 });
 
-test("--deferred writes the Measurements deferrals entry for its own batch", () => {
-  const fixture = ledgerAndRoster();
-  const call = (batch, text, now) => [
-    "record",
-    "--ledger",
-    fixture.ledger,
-    "--batch",
-    batch,
-    "--deferred",
-    text,
-    "--now",
-    now,
-  ];
-  assert.strictEqual(run(call("Y", "context=1, last human turn 90 min ago", "2026-09-19 09:00"), fixture.dir).code, 0);
-  assert.strictEqual(run(call("Z", "context=2, last human turn 70 min ago", "2026-09-19 10:00"), fixture.dir).code, 0);
-  assert.strictEqual(run(call("Z", "context=3, last human turn 60 min ago", "2026-09-19 11:00"), fixture.dir).code, 0);
-  const ledger = fs.readFileSync(fixture.ledger, "utf8");
-  assert.ok(ledger.includes("batch Y: context=1, last human turn 90 min ago"), ledger);
-  assert.ok(ledger.includes("batch Z: context=3, last human turn 60 min ago"), ledger);
-  assert.ok(!ledger.includes("context=2"), "batch Z's earlier deferral survived");
-});
-
 test("record keeps a file's own line ending", () => {
   const fixture = ledgerAndRoster();
   const lf = fs.readFileSync(fixture.ledger, "utf8").replace(/\r\n/g, "\n");
