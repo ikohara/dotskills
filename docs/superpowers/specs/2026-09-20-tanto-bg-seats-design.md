@@ -232,26 +232,39 @@ path given; it must be a git repository's top level. In order:
 4. Find Kanri. **When `.tanto/kanri-handover.md` exists, write the `spawn`
    request regardless of the roster**: the `live` first row is the outgoing
    Kanri — an interactive one at this plan's close (section 3) — and the
-   successor marks it `replaced`. Otherwise a `live` first data row of
+   successor marks it `replaced`. Otherwise: a `live` first data row of
    `.tanto/roster.md` whose `sessionId` (1.7) `claude agents --json --cwd
    <root>` lists **as `kind: background`** is the running Kanri; a first
    row the listing shows as an interactive session is reported in one line
    ("Kanri is an interactive tab; hand over first") and not attached to.
-   When there is no running Kanri, write a `spawn` request (1.4) for
-   `/tanto kanri` on `sessions.kanri`'s family and effort, permission mode
-   `auto`, and wait for its result file, up to sixty seconds.
-5. When the spawner's `seats.json` (1.3) lists terminal seats with status
-   `running` or `blocked` whose `sessionId` is not in
-   `claude agents --json`, write a `resume` request for each — the
-   editor-restart or reboot case, 1.8. A `stopped` seat is not resumed.
+   When the first row's `sessionId` is in neither listing but the
+   spawner's own `seats.json` (1.3) holds it as `running` or `blocked` —
+   the reboot or crash case, unreached by `claude agents --json` until the
+   spawner's own resume brings it back, 1.8 — write a `resume` request for
+   it, never a `spawn`, and wait for its result the same way. Only when the
+   first row's `sessionId` is in neither `claude agents --json` nor a
+   `running`/`blocked` `seats.json` entry does step 4 write a fresh `spawn`
+   request (1.4) for `/tanto kanri` on `sessions.kanri`'s family and
+   effort, permission mode `auto`, and wait for its result file, up to
+   sixty seconds.
+5. When the spawner's `seats.json` (1.3) lists a **terminal seat other
+   than Kanri** with status `running` or `blocked` whose `sessionId` is
+   not in `claude agents --json`, write a `resume` request for each — the
+   editor-restart or reboot case, 1.8; step 4 already resumed Kanri, if
+   resuming was what it needed. A `stopped` seat is not resumed.
 6. Print, in English (a script has no chat language), the one line the
-   human needs: `claude attach <id>` for the running or new Kanri, and, on
-   a resume, the second line "then type `/tanto fukki` there once".
+   human needs: `claude attach <id>` for the running, resumed, or new
+   Kanri, and, on any resume (Kanri's at step 4, or another seat's at step
+   5), the second line "then type `/tanto fukki` there once".
 
 `tanto down [<root>] [--seats]` — stop the spawner (its pidfile, then the
 process); with `--seats`, first write a `stop` request for every terminal
-seat `seats.json` lists as running and wait for the results. The
-conversations are kept; `tanto` resumes them.
+seat `seats.json` lists as running and wait for the results. Every
+conversation is kept, on the same terms a `stopped` seat's always is
+(issue-12d3) — but a `stopped` seat is not resumed by step 5, so
+`tanto down --seats` retires the whole run: the next `tanto` finds no
+running Kanri and no handover file, and step 4 writes a fresh `spawn` for
+one against whatever the roster's first row still names.
 
 The launcher is idempotent: run twice, it starts nothing twice, and it puts
 back what a restart took. It never runs `claude --bg` itself — its Kanri
@@ -642,9 +655,10 @@ file, the resident's one `record` call. Three changes:
   boundary dispatch gains one argument, `seat=<results path>`: the brief
   passes it as `--seat` on its first `record` call, which writes the Jisso's
   roster row from the result's `role`, `topic`, `name`, `cwd`, `model`,
-  `effort`, `branch`, `mode`, `startedAt`, and `transcript`, and takes
-  `--jisso`'s name from the same file; the resident's step-6 call names the
-  seat by the result's `name`.
+  `effort`, `branch`, `mode`, `startedAt`, and `transcript`; the brief itself
+  reads that same file's `name` and passes it explicitly as `--jisso`, so
+  neither flag derives from the other inside `record` — the resident's
+  step-6 call names the seat by the result's `name` the same explicit way.
 - **`release:` to a Jisso is a `stop` request.** The row goes `stopped` by
   the resident's `record` call, and the released line to the human goes;
   nothing is `/clear`ed. A stopped Jisso's or Keikaku's session is **never
@@ -659,7 +673,13 @@ file, the resident's one `record` call. Three changes:
   `record --event` — to the ledger of the topic whose batches are in
   flight, whose path Kanri's orders line to that peer carries as `ledger=`
   beside the out-of-scope paths it already names, the timestamp making two
-  events two lines under `record`'s text dedupe. The boundary's `check`
+  events two lines under `record`'s text dedupe. **A peer that outlives the
+  topic its `ledger=` names re-reads nothing on its own**: when that topic
+  closes and a new one's batch A lands, Kanri sends every still-live Sekkei
+  or Keikaku of another topic a fresh `ledger=` pointing at the new
+  in-flight ledger, in the same act as batch A's own request, so a
+  `commit-ready:` a peer writes always reaches a ledger some boundary's
+  `check` still reads. The boundary's `check`
   prints every `commit-ready:` line with no `commit-done:` pair; Kanri sends
   the "boundary verified — commit" line only to such a peer, waits for its
   `committed <subject> — <reading>` before the next spawn, and its own
@@ -720,9 +740,10 @@ as `decision: <path>`, or by telling a live Hosa, whose chore is then the one
 line `kessai answer: <topic> — <the human's words verbatim>` to Kanri. That
 one answer is the direction and the merge approval. Kanri writes
 `t2-direction.md` item by item, adds the Residency rows to it as today,
-records the `S-n` rows' Adopted, and starts two seats (2.5, 2.6). Until the
-answer arrives nothing else happens in that topic; the next topic's spec
-dialogue is not blocked by it.
+records the `S-n` rows' Adopted, and starts shusei (2.5); shoki is spawned
+there too, but only once the merge lands, never in this same act (2.6).
+Until the answer arrives nothing else happens in that topic; the next
+topic's spec dialogue is not blocked by it.
 
 Hosa's `close:` and `sweep:` lines, and "Delegation to Hosa", go: the
 recommend is Kanri's dispatch, the check is this message, the apply is
@@ -749,7 +770,13 @@ shusei's commit subject — today the apply's report carried it; now the
 boundary's verdict does. Then **Kanri merges**: `git merge --no-ff <topic>`
 on `main` in the shared checkout, the local branch deleted, nothing pushed
 — the default form the kessai stated, or the override the answer gave. An
-empty `fix` group merges on the answer directly. The checkout is free; Kanri
+empty `fix` group merges on the answer directly. **The merge is where shoki
+is spawned, never before it**: in the same act as the merge, whichever form
+it took, Kanri writes `.tanto/<topic>/shoki-brief.md` from
+`templates/shoki-brief.md` and shoki's `spawn` request (2.6), so that
+shoki's `git rebase main` always rebases onto a `main` that already carries
+shusei's fix — the product lands before the records, never the other way,
+as Requirements now states. The checkout is free; Kanri
 cuts the next topic's branch if not yet cut and, when that topic's spec was
 a draft, sends its persisting Keikaku (2.2) the one line
 `checkout free: branch=<topic> — commit the spec and the plan`, waits for
@@ -764,16 +791,18 @@ the branch lands.
 
 ### 2.6 Shoki — the scribe, in a worktree, after the merge
 
-On the kessai answer, in the same act as shusei's request, Kanri writes
+Right after Kanri's merge (2.5) — never in the same act as shusei's own
+`spawn` request, which runs and is verified first — Kanri writes
 `.tanto/<topic>/shoki-brief.md` from `templates/shoki-brief.md` and a
 `spawn` request: `role: shoki`, `worktree: shoki-<topic>`, `addDir: [<root>]`,
 `sessions.shoki`'s model and effort (a new key, default `sonnet`/`medium`,
 the scribe being a seat that dispatches and runs git), mode `auto`, the
 prompt `brief: <that path>`. The worktree is the CLI's, at
 `<root>/.claude/worktrees/shoki-<topic>` (already under
-`.git/info/exclude`), cut from the tree's HEAD at that moment — the topic
-branch's tip after the last batch, which is what "shusei 直前の commit"
-names; the `.tanto/worktrees/` location the 09-18 file chose is not taken,
+`.git/info/exclude`), cut from the tree's HEAD at that moment — `main`,
+right after Kanri's merge has landed there, so the worktree already
+carries shusei's fix before shoki's own `git rebase main` ever runs; the
+`.tanto/worktrees/` location the 09-18 file chose is not taken,
 because `claude -w` and `claude rm` own the lifecycle at the CLI's path and
 a second location would need a second mechanism.
 

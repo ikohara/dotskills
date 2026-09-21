@@ -120,14 +120,19 @@ The dialogue is `.tanto/tanto-bg-seats/dialogue.md` (D-0 to D-6).
   reported — a `task.implement` subagent tells Jisso one line, Jisso tells Kanri
   one line — and only Kanri decides whether it is stray. Never
   `git checkout -- <path>` and never `git clean` on such a modification. The one
-  exception is the deliberate line-ending restore named inside tasks 3 and 19
-  (below), which each run on the Markdown file it created in that same task.
+  exception is the deliberate line-ending restore named inside tasks 3, 7, and
+  19 (below), which each run on a Markdown file that same task wrote and
+  committed — task 7 on `templates/spawn-request.md`, whose `prompt` bullet its
+  own step 5 rewrites from its measurement.
 - **Line endings.** A **Markdown** file created on this host lands `w/lf` in
   `git status`'s eyes every time (measured five of five in the tanto-cost run),
   so every task that creates one runs `git checkout -- <that path>` **after** its
   own commit, inside its own steps, and the next boundary's `git status` is
-  clean. Tasks 3 (`templates/spawn-request.md`) and 19
-  (`templates/shoki-brief.md`) are the only such tasks here. The `.js` files need
+  clean. Tasks 3 (`templates/spawn-request.md`), 7 (the same file again, whose
+  step 7 commits step 5's rewrite of its `prompt` bullet and restores it after),
+  and 19 (`templates/shoki-brief.md`) are the only such tasks here. A task that
+  edits a Markdown file it did **not** create needs no restore, which is why the
+  batch C and D tasks carry none. The `.js` files need
   no restore — `.gitattributes` pins `*.js` to `eol=lf` — and neither do
   `tanto.sh` (`*.sh text eol=lf`) or `tanto.bat` (`*.bat text eol=crlf`), each
   written with the ending its pin names.
@@ -403,6 +408,17 @@ The six needles are the ones the spec's "What the plan must contain" names; the
 per-entity `O` rows of tasks 16 to 23 are the wider sweep, read from `replay`'s
 residual list.
 
+**Three sites of two of these needles had no passage over them** and were
+found by the cold read, which read `replay`'s own run of this fence and saw
+`2` for `queued: <n>` and `1` for `sweep: inbox`: `roles/kanri.md`'s
+resumed-handshake paragraph (**P21.49**) and its between-plans sweep
+(**P21.50**), and `templates/kanri-handover.md`'s Live peers bullet
+(**P23.26**). None of the three survives the design — the `queued` **row**
+stays, and only the reply `queued: <n>` a handshake used to earn goes with
+the handshake itself (spec 2.3's wake-up floor), while `sweep: inbox` goes
+with Hosa's delegation (spec 2.4) — so all three are retired rather than
+exempted, and the zero this paragraph states is the zero the tree reaches.
+
 **5. `boundary.js`'s three additive changes.** Strict from batch C's task 16.
 
 ```bash
@@ -433,7 +449,7 @@ if [ -f skills/tanto/templates/shoki-brief.md ]; then
   for needle in 'shoroku ready:' 'shoroku blocked:' 'tanto-shoroku-apply' \
     'tanto-shoroku-review' 't2-review.md' 'git rebase main' \
     '## What you never do' '## The procedure' '## The report'; do
-    grep -qF "$needle" "$brief" || exit 1
+    grep -qF -- "$needle" "$brief" || exit 1
   done
   steps=$(grep -c '^[0-9]\. ' "$brief")
   if [ "$steps" != 5 ]; then echo "brief steps: $steps"; exit 1; fi
@@ -541,6 +557,15 @@ set it; nothing in the run does. `TANTO_NOTICE_LOG` is the same kind of seam for
 the notice channel, and `templates/spawn-request.md` documents neither, because
 neither is part of the request schema.
 
+**The fake's one state flag that is not the CLI's.** A session in the fake's
+state may carry `hidden: true`: `claude agents` filters it out of the listing
+while `claude --resume <sessionId>` still finds it and clears the flag. That is
+the reboot of spec 1.8 and Verification 4 — the process is gone, so the listing
+has lost it, and the seat comes back under the same `sessionId` — and it is the
+only way a fake with one session list can model a state the real CLI reaches by
+losing a process. Task 5's launcher suite is what exercises it; no test of this
+task sets the flag, so the filter is inert here.
+
 **Named-mechanism sites.** The six `op` words asserted here —
 `spawn`, `stop`, `rm`, `resume`, `attention`, `ack` — are the six
 `templates/spawn-request.md` documents (task 3), the six `roles/kanri.md` writes
@@ -559,7 +584,7 @@ task 20's **O20.9**, **O20.30**, and **O20.31** and task 23's **O23.5**.
 
 **Whole file:**
 
-**W1.1** `skills/tanto/scripts/spawner.test.js` — new file, 400 lines
+**W1.1** `skills/tanto/scripts/spawner.test.js` — new file, 403 lines
 
 ```javascript
 // The spawner's tests. No test starts a real session: the CLI is a fake Node
@@ -590,7 +615,9 @@ if (fail[sub]) {
 }
 const save = () => fs.writeFileSync(statePath, JSON.stringify(state));
 if (sub === "agents") {
-  process.stdout.write(JSON.stringify({ sessions: state.sessions }));
+  // A session marked hidden is the reboot case: the process is gone, so the
+  // listing does not carry it, but --resume still finds it by sessionId.
+  process.stdout.write(JSON.stringify({ sessions: state.sessions.filter((s) => !s.hidden) }));
   process.exit(0);
 }
 if (sub === "stop" || sub === "rm") {
@@ -619,6 +646,7 @@ if (sub === "--resume") {
   found.name = (state.next && state.next.name) || found.name;
   found.id = (state.next && state.next.id) || found.id;
   found.state = "running";
+  delete found.hidden;
   save();
   process.stdout.write("Resumed background session " + found.id + "\\n");
   process.exit(0);
@@ -2055,13 +2083,27 @@ Expected: one commit; nothing from `git status --porcelain`.
   real — a detached Node child driving the same fake CLI — because "the
   launcher starts the spawner" is one of the properties under test. Every
   workspace is torn down with `tanto.js down`, so no resident is left behind.
-- Produces: the launcher's contract, stated as assertions. Twelve tests: the
+- Produces: the launcher's contract, stated as assertions. Fourteen tests: the
   usage line; a root that is not a git top level; the first run's two written
   files and its `spawn` request; that an existing `.gitignore` is never
   overwritten; idempotence against a live background Kanri; the interactive
   first row; the handover file overriding the roster; the resume of a lost
-  seat and the second printed line; a `stopped` seat left alone; `down`;
-  `down --seats`; and that the launcher itself never runs `claude --bg`.
+  seat and the second printed line; **a rebooted Kanri the listing lost,
+  resumed and not spawned again**; **`down --seats` followed by a fresh
+  `tanto`, which spawns rather than resumes**; a `stopped` seat left alone;
+  `down`; `down --seats`; and that the launcher itself never runs
+  `claude --bg`.
+
+**The two reboot-and-retire cases, and why they are separate tests.** The
+resume case above keeps Kanri **in** the fake's listing, so it only ever
+exercised a lost *peer*; step 4 of spec 1.2 keys on the first row alone and
+was never reached by it. The ninth test marks Kanri `hidden` in the fake's
+state — the flag task 1's fake carries for exactly this — so the listing has
+lost the first row while `--resume` can still bring it back, which is the
+reboot. The tenth is its mirror: after `tanto down --seats` every seat is
+`stopped`, a `stopped` seat is not resumed, and the next `tanto` therefore
+finds no running Kanri and writes a fresh `spawn` — the run retired, the
+conversations kept (issue-12d3).
 
 **Named-mechanism sites.** The two printed lines — `claude attach <id>` and the
 `/tanto fukki` second line — are the ones `SKILL.md`'s Resuming and fukki
@@ -2075,7 +2117,7 @@ sentence on disk.
 
 **Whole file:**
 
-**W5.1** `skills/tanto/scripts/tanto.test.js` — new file, 238 lines
+**W5.1** `skills/tanto/scripts/tanto.test.js` — new file, 287 lines
 
 ```javascript
 // The launcher's tests. The CLI is the same fake Node script the spawner's
@@ -2269,6 +2311,55 @@ test("a running seat the listing lost is resumed, and fukki is printed", () => {
   assert.match(got.out, /tanto fukki/);
 });
 
+test("a rebooted Kanri the listing lost is resumed, never spawned again", () => {
+  // The reboot of spec 1.8: seats.json still holds Kanri as running, and
+  // `claude agents --json` has not seen it since the machine came back.
+  const ws = workspace([
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      hidden: true,
+    },
+  ]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  writeSeats(ws, [
+    { sessionId: "sess-live", id: "bg07", name: "seat-live [ffffff]", role: "kanri", status: "running" },
+  ]);
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  assert.equal(got.code, 0);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn").length, 0);
+  const resumed = requests(ws).filter((r) => r.op === "resume");
+  assert.deepEqual(
+    resumed.map((r) => r.sessionId),
+    ["sess-live"],
+  );
+  assert.match(got.out, /claude attach bg07/);
+  assert.match(got.out, /tanto fukki/);
+});
+
+test("down --seats retires the run, and the next tanto spawns a fresh Kanri", () => {
+  const ws = workspace([
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+  ]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  writeSeats(ws, [
+    { sessionId: "sess-live", id: "bg07", name: "seat-live [ffffff]", role: "kanri", status: "running" },
+  ]);
+  launch(ws, [ws.root, "--timeout", "20000"]);
+  launch(ws, ["down", ws.root, "--seats", "--timeout", "20000"]);
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  assert.equal(got.code, 0);
+  // A stopped seat is not resumed, so the roster's first row is no Kanri
+  // any more and step 4 asks for a new one.
+  assert.equal(requests(ws).filter((r) => r.op === "resume").length, 0);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn" && r.role === "kanri").length, 1);
+  assert.match(got.out, /claude attach bg01/);
+});
+
 test("a stopped seat is not resumed", () => {
   const ws = workspace([
     { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
@@ -2339,7 +2430,7 @@ node --check skills/tanto/scripts/tanto.test.js
 grep -c '^test(' skills/tanto/scripts/tanto.test.js
 ```
 
-Expected: nothing from `--check`; `12`.
+Expected: nothing from `--check`; `14`.
 
 - [ ] **Step 4: Lint**
 
@@ -2390,6 +2481,31 @@ Expected: one commit; nothing from `git status --porcelain`.
   (task 20). Its printed lines are exactly two: `claude attach <id>`, and, on a
   resume, `then type /tanto fukki there once`.
 
+**Step 4 decides spawn against resume from both listings, not one.** `cmdUp`
+reads `claude agents --json` **and** the spawner's own `seats.json` before it
+writes anything for the roster's first row, and the three outcomes are: the row
+is listed as a background session, so it is attached to and nothing is written;
+the row is not listed but `seats.json` holds it `running` or `blocked` — the
+reboot or crash of spec 1.8 — so a **`resume`** request is written for that
+same `sessionId`; neither listing holds it, so a fresh **`spawn`** is written.
+A request is never both, and step 5's loop then skips the first row's
+`sessionId`, because step 4 has already settled it. Getting this wrong is not a
+cosmetic bug: a spawn in the reboot case leaves two Kanris — the old one
+brought back by step 5, the new one meeting the "Second Kanri" case (spec 2.7)
+and stopping itself — with the printed `claude attach <id>` naming the seat
+that stops. Tests nine and ten of task 5 are the two halves of this.
+
+**A session the listing still carries with `state: "stopped"` is not running.**
+Whether `claude agents --json` keeps a stopped session at all is task 9's
+measurement; `cmdUp` does not wait on the answer, and drops such a session from
+its own index, so the answer changes nothing here. This is what makes
+`tanto down --seats` a **retirement** rather than a pause: every seat goes
+`stopped`, a `stopped` seat is not resumed by step 5, and the next `tanto`
+finds no running Kanri and no handover file and spawns a fresh one against
+whatever the roster's first row still names. The conversations are kept, on the
+same terms a `stopped` seat's always is (issue-12d3); nothing in this script or
+in `README.md` (task 23) says `tanto` brings them back.
+
 **Named-mechanism sites.** `tanto` and `tanto down [--seats]` are named here,
 in `README.md`'s Usage and Prerequisites (task 23), in `SKILL.md`'s Invocation
 and Resuming (task 20), in `roles/kanri.md`'s Recovery and its close's commands
@@ -2406,7 +2522,7 @@ Requirements bullet that states it is the close's, not this plan's.
 
 **Whole file:**
 
-**W6.1** `skills/tanto/scripts/tanto.js` — new file, 300 lines
+**W6.1** `skills/tanto/scripts/tanto.js` — new file, 317 lines
 
 ```javascript
 // No shebang: the two wrappers beside this file are what is invoked bare,
@@ -2622,34 +2738,51 @@ function cmdUp(argv) {
   startSpawner(root);
 
   const listing = listAgents(root);
-  const byId = new Map(listing.filter((s) => s.sessionId).map((s) => [s.sessionId, s]));
+  const byId = new Map(
+    listing.filter((s) => s.sessionId && s.state !== "stopped").map((s) => [s.sessionId, s]),
+  );
   const handover = fs.existsSync(path.join(root, ".tanto", "kanri-handover.md"));
   const row = firstRosterRow(root);
   const listed = row ? byId.get(row.sessionId) : null;
+  const seats = readSeats(root);
+  // Step 4's own seats.json check, before it decides spawn against resume: a
+  // first row the listing has lost but seats.json still holds as running or
+  // blocked is the reboot or crash case (spec 1.8), and it is resumed. Spawning
+  // instead would leave two Kanris — the old one resumed by the loop below, the
+  // new one stopping itself as the Second Kanri case.
+  const held = row ? seats.find((s) => s.sessionId === row.sessionId) : null;
+  const kanriHeld = Boolean(held && (held.status === "running" || held.status === "blocked"));
 
   let attach = null;
+  let resumed = 0;
   if (!handover && listed && row.status.startsWith("live") && listed.kind === "background") {
     attach = listed.id || row.sessionId;
   } else if (!handover && listed && row.status.startsWith("live")) {
     process.stdout.write("Kanri is an interactive tab; hand over first\n");
   } else {
-    const id = writeRequest(root, kanriRequest(root, sessions));
+    const request =
+      !handover && !listed && kanriHeld
+        ? { op: "resume", role: held.role || "kanri", topic: held.topic, sessionId: row.sessionId }
+        : kanriRequest(root, sessions);
+    const id = writeRequest(root, request);
     const result = waitForResult(root, id, waitMs);
     if (!result) {
       fail("tanto: the spawner wrote no result for the Kanri request; see .tanto/spawner/log");
       return 1;
     }
     if (result.error) {
-      fail(`tanto: the Kanri spawn failed — ${result.error}`);
+      fail(`tanto: the Kanri ${request.op} failed — ${result.error}`);
       return 1;
     }
     attach = result.id || result.sessionId;
+    if (request.op === "resume") resumed += 1;
   }
 
-  let resumed = 0;
-  for (const seat of readSeats(root)) {
+  for (const seat of seats) {
     if (seat.status !== "running" && seat.status !== "blocked") continue;
     if (byId.has(seat.sessionId)) continue;
+    // Kanri's own resume is step 4's, above; this loop is every other seat.
+    if (row && seat.sessionId === row.sessionId) continue;
     writeRequest(root, { op: "resume", role: seat.role, topic: seat.topic, sessionId: seat.sessionId });
     resumed += 1;
   }
@@ -2742,7 +2875,7 @@ names and neither needs a restore.
 node --test 'skills/tanto/scripts/tanto.test.js' 2>&1 | tail -20
 ```
 
-Expected: `# pass 12`, `# fail 0`. Each test starts a real spawner and stops it
+Expected: `# pass 14`, `# fail 0`. Each test starts a real spawner and stops it
 in teardown, so the suite takes a few seconds per case; a case that hangs means
 a spawner was left running, and `node skills/tanto/scripts/tanto.js down <root>`
 against that temp root is the cleanup.
@@ -3791,11 +3924,16 @@ real transcript file written by a real session and a real `claude rm`.
 
 - Consumes: tasks 2 and 6; task 9 records the same figure from the other side
   and each report says so.
-- Produces: the ordering rule for the close. If the transcript does **not**
-  survive `rm`, shoki's `rm` waits until Kanri has taken shoki's reading for
-  the archive — and since `reading.js --share`'s list does not include shoki's
-  transcript at all (spec 2.6), what actually waits is any reading Kanri wants
-  of it. The answer is written into task 21's close as one clause either way.
+- Produces: the confirmation, or the refutation, of an ordering task 21
+  already carries. **P21.26**'s landing paragraph takes shoki's own reading —
+  `reading.js` over its transcript, into its roster row — and writes the `rm`
+  request only after it, which is what spec Verification 5 requires if the
+  transcript does not survive `rm` and costs nothing if it does. Since
+  `reading.js --share`'s list does not include shoki's transcript at all (spec
+  2.6), that one reading is the whole of what waits. A measurement showing the
+  transcript **does** survive makes dropping the wait a fix-wave item against
+  `roles/kanri.md`, named in this report; the plan does not assume the answer
+  in either direction.
 
 **Named-mechanism sites.** `reading.js --share` at the plan close is
 `roles/kanri.md`'s Release table row (task 21) and `SKILL.md`'s archive
@@ -3849,9 +3987,9 @@ node skills/tanto/scripts/reading.js "$transcript" | head -1
 ```
 
 Expected: either the same byte count, which means `rm` keeps the transcript and
-shoki's `rm` waits for nothing; or `transcript gone` and
+the wait task 21 carries is redundant; or `transcript gone` and
 `transcript: unavailable — <why>`, which means the `rm` request at the close
-must follow every reading Kanri wants of that session.
+must follow every reading Kanri wants of that session, as task 21 has it.
 
 - [ ] **Step 3: Check the second half — what `rm` does to a stopped session**
 
@@ -3869,10 +4007,11 @@ both.
 
 Write `.tanto/tanto-bg-seats/verification-5-transcript.md`: the spec's
 Verification item 5 quoted, the byte count before and after, the one-line
-answer, and the clause task 21 must carry — either
-`shoki's rm follows the landing directly` or
-`shoki's rm follows Kanri's reading of its transcript`. Say that task 9's
-report holds the same figure. Then:
+answer, and one line on the clause task 21 already carries — either
+`the reading-before-rm order task 21 carries is required` or
+`the transcript survives; dropping that order is a fix-wave item against
+roles/kanri.md`. Nothing in this task edits a role file either way. Say that
+task 9's report holds the same figure. Then:
 
 ```bash
 scratch="${TMPDIR:-/tmp}/tanto-bg-seats-v5"
@@ -4616,7 +4755,7 @@ for needle in 'One row per session that handshook' "the plan's other Jissos" 'St
   'records a window Kanri released' "A queued Jisso's stay blank until its boundary" \
   'every row whose session is dead' 'the roster rows whose' 'never ran moving as' \
   '| <dead, replaced, refused, or cleared> |'; do
-  printf '%s\t%s\n' "$(grep -rF -c "$needle" skills/tanto | grep -v ':0$' | tr '\n' ' ')" "$needle"
+  printf '%s\t%s\n' "$(grep -rF -c -- "$needle" skills/tanto | grep -v ':0$' | tr '\n' ' ')" "$needle"
 done
 ```
 
@@ -4639,7 +4778,7 @@ for needle in 'One row per session that handshook' 'Status is one of' \
   'records a window Kanri released' "A queued Jisso's stay blank until its boundary" \
   'every row whose session is dead' 'the roster rows whose' 'never ran moving as' \
   '| <dead, replaced, refused, or cleared> |'; do
-  printf '%s\t%s\n' "$(grep -rF -c "$needle" skills/tanto | grep -v ':0$' | wc -l)" "$needle"
+  printf '%s\t%s\n' "$(grep -rF -c -- "$needle" skills/tanto | grep -v ':0$' | wc -l)" "$needle"
 done
 grep -rF -c "the plan's other Jissos" skills/tanto | grep -v ':0$'
 grep -c stopped skills/tanto/templates/roster.md
@@ -4967,7 +5106,7 @@ seat today.
 
 **Whole file:**
 
-**W19.1** `skills/tanto/templates/shoki-brief.md` — new file, 117 lines
+**W19.1** `skills/tanto/templates/shoki-brief.md` — new file, 118 lines
 
 ````markdown
 # tanto shoki brief — <topic>
@@ -4983,7 +5122,8 @@ yours, the report's shape and your closing line included.
 
 - Topic — <topic>
 - Worktree — <the CLI's own, at <root>/.claude/worktrees/shoki-<topic>>, cut
-  from the topic branch's tip; your cwd
+  from `main`'s tip in the same act as Kanri's merge, so it already carries
+  this topic's product; your cwd
 - Main checkout — <absolute path>, given to you with `--add-dir`; every
   `.tanto/` path below is read there, at its absolute path
 - Recommendation — <.tanto/<topic>/t2-recommendation.md>
@@ -5102,7 +5242,7 @@ brief=skills/tanto/templates/shoki-brief.md
 for needle in 'shoroku ready:' 'shoroku blocked:' 'tanto-shoroku-apply' \
   'tanto-shoroku-review' 't2-review.md' 'git rebase main' \
   '## What you never do' '## The procedure' '## The report'; do
-  printf '%s %s\n' "$(grep -cF "$needle" "$brief")" "$needle"
+  printf '%s %s\n' "$(grep -cF -- "$needle" "$brief")" "$needle"
 done
 grep -c '^[0-9]\. ' "$brief"
 ```
@@ -5692,7 +5832,7 @@ duplicate the basename.
 | a tab seat resumed by the editor | the human types `/tanto fukki` there; the seat re-handshakes with the same `transcript=`, and Kanri rewrites that row's name in place and writes `resumed: <old name> → <new name>` |
 | a terminal seat renamed | the spawner's census sees a known `sessionId` under a new name and marks `renamed` in `seats.json`; Kanri rewrites the row, writes the same Events line, and clears the mark with an `ack` request. The seat itself does nothing and checks nothing |
 | an editor restart | the terminal seats are still running — separate processes, unreached by the restart. Only the tab seats came back renamed |
-| a reboot or a crash | `tanto` writes a `resume` request for every terminal seat `seats.json` lists as `running` or `blocked`, with `claude --resume <sessionId> --bg` and no other flag; a `stopped` seat is not resumed |
+| a reboot or a crash | `tanto` writes a `resume` request for every terminal seat `seats.json` lists as `running` or `blocked`, with `claude --resume <sessionId> --bg` and no other flag. The roster's first row is settled first and separately, so a Kanri the listing has lost but `seats.json` still holds is **resumed and never spawned again**; a `stopped` seat is not resumed at all, which is why `tanto down --seats` retires a run rather than pausing it |
 
 `tanto` is fukki. It is idempotent: run twice it starts nothing twice, and it
 puts back what a restart took. A resumed background Kanri idles until a line
@@ -6285,7 +6425,7 @@ file that carries that word.
 
 ```bash
 while IFS= read -r needle; do
-  printf '%s\t%s\n' "$(grep -rF -c "$needle" skills/tanto | grep -v ':0$' | tr '\n' ' ')" "$needle"
+  printf '%s\t%s\n' "$(grep -rF -c -- "$needle" skills/tanto | grep -v ':0$' | tr '\n' ' ')" "$needle"
 done <<'NEEDLES'
 /tanto <role> [<address>]
 1 live per topic, the plan's others queued
@@ -6358,9 +6498,16 @@ grep -cF '.tanto/spawner/' skills/tanto/SKILL.md
 node -e 'const t=require("fs").readFileSync("skills/tanto/SKILL.md","utf8");const m=t.match(/^---\n([\s\S]*?)\n---/);console.log(/: /.test(m[1].split("\n").find((l)=>l.startsWith("description:")).slice(12)) ? "colon-space in description" : "description clean")'
 ```
 
-Expected: `1`, `1`, `1`, at least `2`, at least `1`, and
+Expected: `3`, `1`, `1`, at least `2`, at least `1`, and
 `description clean` — the frontmatter's `description` must carry no
-colon-space, which silently breaks the YAML parse.
+colon-space, which silently breaks the YAML parse. The first figure is `3`
+and not `1` because this line confirms that the **replacement** landed at
+every site the old spelling held, and `fourteen kinds` held three: the kind
+list (**O20.10**, one site) and the user-scope and project-scope passes
+(**O20.11**, two sites), rewritten by **P20.10**, **P20.13**, and
+**P20.14**. Step 3's sweep is the other half — `fourteen kinds`
+gone — and a `1` here would mean two of the three sites still read
+`fourteen`.
 
 - [ ] **Step 5: Lint and verify**
 
@@ -6470,6 +6617,8 @@ whole of `skills/tanto/` at batch D's boundary.
 **O21.36** `Line 5 carries, after the command` — 1. The pasteable list's gloss, which names the Create table and the four old arguments; line 5 becomes `/tanto <role> topic=<topic>`. The list's own line 5 is not a needle of its own, because the new spelling contains the old one.
 **O21.37** `the Create table's Jisso row's request goes out` — 1. Loop step 6's queue-empty sentence, which waits for a handshake nobody sends.
 **O21.38** `row re-handshook — the next queued Jisso resumes the batch otherwise` — 1. The terminal Jisso's resume is the launcher's own affair (spec 1.2 step 5), never a re-handshake. Gone at **P21.48**.
+**O21.39** `row keeps its status, and its reply is` — 1. The resumed-handshake paragraph's `queued: <n>` reply, which no seat earns any more; gone at **P21.49**. This is one of the two sites that kept fence 4's `queued: <n>` needle above zero.
+**O21.40** `Hosa row, send it one line, without an` — 1. The between-plans sweep's delegation to Hosa, whose `sweep: inbox` line goes with it; gone at **P21.50**. This is the site that kept fence 4's `sweep: inbox` needle above zero.
 
 **Passages:**
 
@@ -7124,16 +7273,25 @@ yourself, and add to your close line the suggestion to open one
 
 On the kessai answer, in one act: render
 `.tanto/<topic>/batch-shusei-prompt.md` when the direction accepted a
-non-empty `fix` group and write its `spawn` request on `sessions.jisso`;
-write `.tanto/<topic>/shoki-brief.md` from `templates/shoki-brief.md` and
-its `spawn` request — `role: shoki`, `worktree: shoki-<topic>`,
-`addDir: [<root>]`, `sessions.shoki`'s family and effort, mode `auto`, the
-prompt the one line `brief: <that path>`. Shusei runs as any batch and its
+non-empty `fix` group and write its `spawn` request on `sessions.jisso`.
+**Shoki is not started here.** Shusei runs as any batch and its
 boundary fills the `fix` rows' Written column; then **you merge**:
 `git merge --no-ff <topic>` on `main` in the shared checkout, the local
 branch deleted, nothing pushed — the default form the kessai stated, or the
 override the answer gave. An empty `fix` group merges on the answer
 directly.
+
+**The merge is where shoki is spawned, never before it.** In the same act
+as the merge, whichever form it took, write
+`.tanto/<topic>/shoki-brief.md` from `templates/shoki-brief.md` and its
+`spawn` request — `role: shoki`, `worktree: shoki-<topic>`,
+`addDir: [<root>]`, `sessions.shoki`'s family and effort, mode `auto`, the
+prompt the one line `brief: <that path>`. The CLI cuts that worktree from
+the tree's HEAD at that moment, which is `main` with the merge already on
+it, so shoki's own `git rebase main` has nothing to re-do and the product's
+fixes land before the records rather than after them. Started in the same
+act as shusei's own request it would race that batch, put the records on
+`main` first, and leave a rebase you never re-run.
 
 **The checkout is free the moment that merge lands, and two acts follow at
 once.** Cut the next topic's branch if it is not cut yet — `git checkout -b
@@ -7151,7 +7309,11 @@ On shoki's `shoroku ready:` line — one wake-up — run the landing checks on
 its worktree's tip (the repository's lint on the changed paths, the
 frontmatter check, every new or amended issue carrying `Source:`, every
 swept inbox copy's Triage filled), fast-forward `main` onto it by the form
-"Where the commit lands" names, write the `rm` request, delete the branch
+"Where the commit lands" names, and then, **in this order**, take shoki's
+own reading — `node "$TANTO/scripts/reading.js" <its transcript>`, written
+into its roster row — and only after it write the `rm` request: a
+transcript is not promised to survive `claude rm`, and taking the reading
+first costs nothing where it does survive. Then delete the branch
 `shoki-<topic>` that `claude rm` keeps, move shoki's result file to
 `.tanto/<topic>/spawner-results/`, mark the `S-n` rows written, and write
 the Events line. A landing check that fails is a follow-up `docs:` commit
@@ -7262,7 +7424,8 @@ The requests you write, and the asks you make. **Requests:**
 | a plan is committed and your cold read has no open questions | one `spawn` for batch A's Jisso — or N at once, each `queue=<topic>`, on a plan that edits this skill | `/tanto jisso batch=<path>`, or `/tanto jisso queue=<topic>` |
 | every later batch, and the fix wave | one `spawn` per batch, at its boundary | `/tanto jisso batch=<path>` |
 | the spec review is accepted | one `spawn` for Keikaku | `/tanto keikaku topic=<topic> spec=<path> plan=<path>` |
-| the kessai is answered | one `spawn` for the shusei batch, and one for shoki | `/tanto jisso batch=<path>`, and `brief: <path>` |
+| the kessai is answered | one `spawn` for the shusei batch, when the direction accepted a `fix` group | `/tanto jisso batch=<path>` |
+| the merge lands | one `spawn` for shoki, in the same act as the merge and never before it | `brief: <path>` |
 | a handover is due | one `spawn` for your successor | `/tanto kanri` |
 | a seat retires, or the run goes down | one `stop` per seat | — |
 
@@ -7758,6 +7921,100 @@ it. No address is ever pasted: the new session reads the roster's first
 data row. The
 ````
 
+**P21.49** `skills/tanto/roles/kanri.md` — replace exactly these 6 lines
+
+```markdown
+A handshake whose `transcript=` equals a row's Transcript column is that
+session resumed under a new name, not a second session: rewrite the row in
+place with the new name and `[ref]`, status `live`, write the Events line
+`resumed: <old name> → <new name>`, and send nothing but your address — a
+`queued` row keeps its status, and its reply is `queued: <n>` again. Step
+2's one-live-row-per-role check does not refuse it.
+```
+
+**P21.49 →**
+
+```markdown
+A handshake whose `transcript=` equals a row's Transcript column is that
+session resumed under a new name, not a second session: rewrite the row in
+place with the new name and `[ref]`, status `live`, write the Events line
+`resumed: <old name> → <new name>`, and send nothing but your address. Only
+a tab seat reaches this paragraph — a terminal seat sends no handshake, and
+its rename is reconciled from `seats.json`'s `renamed` mark instead
+("Recovery"). Step
+2's one-live-row-per-role check does not refuse it.
+```
+
+**P21.50** `skills/tanto/roles/kanri.md` — replace exactly these 6 lines
+
+````markdown
+the commits on `main`, checked as "Where the commit lands" says. With a `live` Hosa row, send it one line, without an
+idle subscription,
+`sweep: inbox — recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now`,
+and verify on its `close done:` as above; no `S-n` rows are written, since
+an inbox item's record is its copy's Triage. Write the sweep as one Events
+line of the roster.
+````
+
+**P21.50 →**
+
+````markdown
+the commits on `main`, checked as "Where the commit lands" says. All three
+steps are yours and a live Hosa is delegated none of them: the recommend
+dispatch, a kessai message with no merge question in it, and — once the
+direction is written — a shoki `spawn` whose brief names those three files
+and the subject, landed as "Shusei, shoki, and the landing" says. A sweep's
+`fix` items are a shusei batch on `main`, verified against no plan. No
+`S-n` rows are written, since
+an inbox item's record is its copy's Triage. Write the sweep as one Events
+line of the roster.
+````
+
+**P21.51** `skills/tanto/roles/kanri.md` — insert after these 1 lines
+
+```markdown
+6. Enter the batch loop below at step 1.
+```
+
+**P21.51 →**
+
+```markdown
+
+**In the same act, re-point every peer of another topic at the new ledger.**
+A Sekkei or Keikaku that outlives the topic its orders line's `ledger=`
+named goes on writing `commit-ready:` to a ledger no boundary reads any
+more, and nothing re-reads it on its own. So at this landing, beside batch
+A's own request, send every still-`live` Sekkei or Keikaku of another topic
+the one line `ledger=<.tanto/<topic>/kanri.md>`, this topic's, to each named
+seat and never as a broadcast. A peer that gets it writes its next event
+there; one that is stopped or has no open work gets nothing.
+```
+
+**Fixed at the cold read (2026-09-21).** Five of its ten items land in this
+task, four of them in the text above:
+
+- **Item 7 — shoki raced shusei.** **P21.26**'s new text started shoki "in
+  one act" with shusei's own request, so its write-out could reach `main`
+  before the product did, and a rebase onto the pre-merge `main` would have
+  needed a re-rebase the landing paragraph forbids. Spec 2.5 and 2.6 now fix
+  the spawn to the merge's own act; **P21.26** says so in its own paragraph,
+  **P21.30**'s Requests table splits the one row into two — the kessai's
+  shusei and the merge's shoki — and task 19's **W19.1** and task 23's
+  **P23.21** lose the "topic branch's tip" base with it.
+- **Item 8 — task 14 promised a clause this passage did not carry.**
+  **P21.26** now takes shoki's own reading **before** the `rm` request, the
+  order spec Verification 5 requires if a transcript does not survive
+  `claude rm`, and costs nothing if it does. Task 14's Interfaces say the
+  same thing from the other side, and name the simplification a fix-wave
+  item.
+- **Item 9 — a peer's `ledger=` went stale.** **P21.51**, with **A21.4**.
+  This is the one passage of this round that **adds** a rule rather than
+  retiring one, so it carries no `O` row: there is no old spelling to sweep
+  to zero, and what a reviewer checks instead is the anchor's count.
+- **Item 1 — fence 4's `queued: <n>` and `sweep: inbox` needles.**
+  **P21.49** and **P21.50**, with **O21.39** and **O21.40**; the third
+  surviving site is task 23's, at **P23.26**.
+
 **Anchors:**
 
 **A21.1** `skills/tanto/roles/kanri.md` — `grep -c seat= skills/tanto/roles/kanri.md` — before: 0, after: 1
@@ -7770,6 +8027,8 @@ change, so the new argument's own spelling is what `verify` measures.
 
 **A21.3** `skills/tanto/roles/kanri.md` — `grep -cF 'git checkout -b' skills/tanto/roles/kanri.md` — before: 0, after: 2
 
+**A21.4** `skills/tanto/roles/kanri.md` — `grep -cF 'ledger=<.tanto/' skills/tanto/roles/kanri.md` — before: 1, after: 2
+
 These two are the branch's, and they are anchors rather than `O` rows
 because the branch cut is the one change of this task that retires **no**
 old spelling: nothing in this file cuts a branch today, and nothing sends
@@ -7780,11 +8039,19 @@ the topic's opening in **P21.46** and the merge in **P21.26**, which is the
 whole of spec 2.1's "at the opening, or right after the predecessor's
 merge".
 
+**A21.4** is **P21.51**'s, and an anchor for the same reason **A21.1** is
+**P21.11**'s: the passage is an insertion, so the property to measure is the
+new spelling's own count, not the disappearance of an old one. The needle is
+`ledger=<.tanto/` rather than the bare `ledger=` because the bare form is
+also in **P21.8**'s Sekkei orders line, where it names the key and not a
+path; `ledger=<.tanto/` occurs once today, in the boundary dispatch's prompt,
+and twice after this task, the second being the re-point line.
+
 - [ ] **Step 1: Run every needle before the edit**
 
 ```bash
 while IFS= read -r needle; do
-  printf '%s\t%s\n' "$(grep -rF -c "$needle" skills/tanto | grep -v ':0$' | tr '\n' ' ')" "$needle"
+  printf '%s\t%s\n' "$(grep -rF -c -- "$needle" skills/tanto | grep -v ':0$' | tr '\n' ' ')" "$needle"
 done <<'NEEDLES'
 Resuming, once: the listing shows your own name
 resumed, and the roster's first row is rewritten before anything else
@@ -7823,6 +8090,8 @@ Delegation to Hosa
 Line 5 carries, after the command
 the Create table's Jisso row's request goes out
 row re-handshook — the next queued Jisso resumes the batch otherwise
+row keeps its status, and its reply is
+Hosa row, send it one line, without an
 NEEDLES
 grep -c 'create request' skills/tanto/roles/kanri.md
 ```
@@ -7834,9 +8103,9 @@ except `over, present`, which is
 and `Delegation to Hosa`, which is `skills/tanto/roles/kanri.md:3`; and
 `15` from the last line.
 
-- [ ] **Step 2: Apply the forty-eight passages**
+- [ ] **Step 2: Apply the fifty-one passages**
 
-Apply **P21.1** through **P21.48** to `skills/tanto/roles/kanri.md`. They
+Apply **P21.1** through **P21.51** to `skills/tanto/roles/kanri.md`. They
 are all in one file and none overlaps another, so the order is free; id
 order is as good as any.
 
@@ -7867,12 +8136,17 @@ grep -cF 'checkout free:' skills/tanto/roles/kanri.md
 grep -cF 'git checkout -b' skills/tanto/roles/kanri.md
 grep -cF -- '--deferred' skills/tanto/roles/kanri.md
 grep -cF 'tanto-shoroku-apply' skills/tanto/roles/kanri.md
+grep -cF 'The merge is where shoki is spawned' skills/tanto/roles/kanri.md
+grep -cF 'ledger=<.tanto/' skills/tanto/roles/kanri.md
 ```
 
 Expected: a count above `5` for the first; `1`; at least `1`; `1`; above
 `4`; at least `2` — the `record` call's argument and loop step 5's pairing
-sentence; `1`; `2`, the opening's cut and the merge's; `0`; and `1`, the
-apply named once as shoki's dispatch and nowhere as yours.
+sentence; `1`; `2`, the opening's cut and the merge's; `0`; `1`, the
+apply named once as shoki's dispatch and nowhere as yours; `1`, the one
+sentence that fixes shoki's start to the merge and not to shusei's request;
+and `2`, the boundary dispatch's own `ledger=` argument and the re-point
+line **P21.51** adds, which is **A21.4**.
 
 - [ ] **Step 5: Lint and verify**
 
@@ -8550,7 +8824,7 @@ self-check sentence on the next line is **kept**: Sekkei is a tab seat, and
 
 ```bash
 while IFS= read -r needle; do
-  printf '%s\t%s\n' "$(grep -rF -c "$needle" skills/tanto | grep -v ':0$' | tr '\n' ' ')" "$needle"
+  printf '%s\t%s\n' "$(grep -rF -c -- "$needle" skills/tanto | grep -v ':0$' | tr '\n' ' ')" "$needle"
 done <<'NEEDLES'
 When Kanri's orders line says no batch is in flight, cut the branch from
 If your work is ready and you have not heard, ask
@@ -8683,6 +8957,7 @@ The shoki-in-flight line → `roles/kanri.md`'s landing paragraph (task 21) and
 **O23.16** `- Deferred — <the ledger's Progress clause` — 1 (`kanri-handover.md`).
 **O23.17** `- A close delegated to Hosa — ` — 1 (`kanri-handover.md`).
 **O23.18** `1. /clear this window.` — 1 (`kanri-handover.md`).
+**O23.19** `queued: <n>, one line per queued Jisso` — 1 (`kanri-handover.md`), the last site of the `queued: <n>` reply outside `roles/kanri.md`, which task 21's **P21.49** takes.
 
 **Passages:**
 
@@ -8849,7 +9124,8 @@ session keeps running either way. `tanto` is also the way back after a
 restart, and it is idempotent: run twice, it starts nothing twice. Without
 `PATH`, `node <skill>/scripts/tanto.js` does the same. `tanto down` stops
 the spawner and keeps every conversation; `tanto down --seats` stops the
-seats too.
+seats too, which retires the run — the conversations are kept, but a
+stopped seat is not resumed, and the next `tanto` starts a fresh Kanri.
 
 The tab seats are the human's own, opened as before — or
 `担当して <role>` / `tantoして <role>`, the role word in hiragana, kanji, or
@@ -9171,9 +9447,10 @@ the first line below.
 
 ```markdown
 - A shoki in flight — <`<topic>`, the worktree path, the time it was
-  spawned, and `shoroku ready: not yet arrived`, or "none">; the successor
-  runs the landing checks on that line, fast-forwards `main`, writes the
-  `rm` request, and fills the ledger
+  spawned — always after this topic's merge — and `shoroku ready: not yet
+  arrived`, or "none">; the successor runs the landing checks on that line,
+  fast-forwards `main`, takes shoki's reading and then writes the `rm`
+  request, and fills the ledger
 ```
 
 **P23.22** `skills/tanto/templates/kanri-handover.md` — replace exactly these 4 lines
@@ -9213,6 +9490,30 @@ their batch prompt is a path they read at their own wake-up.
 
 The successor is spawned; nothing is typed.
 ```
+
+**P23.26** `skills/tanto/templates/kanri-handover.md` — replace exactly these 2 lines
+
+```markdown
+- <topic> — <name> [<ref>] — queued: <n>, one line per queued Jisso, in
+  queue order; the successor sends none of them anything
+```
+
+**P23.26 →**
+
+```markdown
+- <topic> — <name> [<ref>] — queued, <n>th of the plan's queue, one line per
+  queued Jisso, in queue order; the successor sends none of them anything
+```
+
+**Fixed at the cold read (2026-09-21).** Item 1: the `queued: <n>` needle of
+"How a batch is verified" fence 4 has to reach `0` over the whole tree at batch
+D's boundary, and this line was the one site of it in
+`templates/kanri-handover.md` that no passage covered — the replay's residual
+list printed `2` for that needle, this line and one in `roles/kanri.md`
+(**P21.49**). The `queued` **row** stays, here and everywhere: what goes is the
+reply `queued: <n>` that a Jisso's handshake used to earn, and a terminal Jisso
+sends no handshake (spec 2.3's wake-up floor). So this bullet keeps its content
+and loses the spelling.
 
 **P23.24** `skills/tanto/templates/boundary-brief.md` — replace exactly these 2 lines
 
@@ -9257,7 +9558,7 @@ question.
 
 ```bash
 while IFS= read -r needle; do
-  printf '%s\t%s\n' "$(grep -rF -c "$needle" skills/tanto | grep -v ':0$' | tr '\n' ' ')" "$needle"
+  printf '%s\t%s\n' "$(grep -rF -c -- "$needle" skills/tanto | grep -v ':0$' | tr '\n' ' ')" "$needle"
 done <<'NEEDLES'
 Open one session per role and run
 role and takes it away; Kanri is the only role that asks.
@@ -9273,7 +9574,10 @@ ceiling: under|over, present|absent
 present|absent
 render with the addressee left as
 its presence line
+<The trigger that fired — the plan close, the human's word, or a compaction noticed — and when.>
+- Deferred — <the ledger's Progress clause
 - A close delegated to Hosa —
+queued: <n>, one line per queued Jisso
 1. /clear this window.
 NEEDLES
 ```
@@ -9281,14 +9585,18 @@ NEEDLES
 Expected: `README.md:1` for the first eight — `with no address is standalone
 Kaiseki` and `create request` having been reduced to `README.md` alone by
 tasks 20, 21, and 22 — then one hit each in `batch-prompt.md`,
-`boundary-brief.md`, and `kanri-handover.md` for the rest.
+`boundary-brief.md`, and `kanri-handover.md` for the rest. Two of these
+needles, **O23.16** and **O23.17**, begin with `-`, which is why this
+loop's `grep` carries `--`; and **O23.17** is written here without the
+trailing space its `O` row carries, because a Markdown file cannot hold a
+trailing space and the shorter string matches the same one site.
 
-- [ ] **Step 2: Apply the twenty-five passages, file by file**
+- [ ] **Step 2: Apply the twenty-six passages, file by file**
 
 Apply **P23.1** to **P23.8** to `README.md`, **P23.9** to **P23.14** with
 **P23.24** and **P23.25** to
 `templates/boundary-brief.md`, **P23.15** to **P23.18** to
-`templates/batch-prompt.md`, and **P23.19** to **P23.23** to
+`templates/batch-prompt.md`, and **P23.19** to **P23.23** with **P23.26** to
 `templates/kanri-handover.md`.
 
 - [ ] **Step 3: Run every needle again, and the whole-tree sweep**
@@ -9370,7 +9678,7 @@ that implements it:
 | Spec section | Task |
 | --- | --- |
 | 1.1 the two kinds of seat | 20 (`SKILL.md`'s roles table, Invocation, Handshake), 17 (the roster's keeping rule) |
-| 1.2 the launcher | 6 (`tanto.js` and the two wrappers), 5 (its suite), 4 (`loadSessions`) |
+| 1.2 the launcher | 6 (`tanto.js` and the two wrappers, step 4's spawn-against-resume decision and `down --seats`'s retirement), 5 (its suite, tests nine and ten), 4 (`loadSessions`) |
 | 1.3 the spawner | 2 (`spawner.js`), 1 (its suite) |
 | 1.4 request and result files | 3 (`templates/spawn-request.md`), 2 (the ops), 21 (the two lifecycle tables) |
 | 1.5 the notice, and the optional hook | 2 (`noticeCommand`, `raiseNotice`, `notify --stdin`), 11 (measured), 20 (Human access's numbered list) |
@@ -9379,10 +9687,10 @@ that implements it:
 | 1.8 fukki | 6 (the launcher's step 5), 20 (Resuming, replaced whole), 21 (Recovery) |
 | 2.1 the branch, and the spec kessai | 21 (Kanri cuts), 22 (`sekkei.md`, `keikaku.md`), 20 (Workspace), 18 (the ledger's Branch line) |
 | 2.2 the plan stage | 22 (`keikaku.md`'s Step 4 item 6, its Start, its persistence), 21 (When the plan lands, steps 4 and 5) |
-| 2.3 the batch loop, and the wake-up floor | 21 (loop steps 4 and 6), 16 (`check`'s unpaired events), 22 (the two peers' events), 20 (rule 3, Messages) |
+| 2.3 the batch loop, and the wake-up floor | 21 (loop steps 4 and 6, and **P21.51**'s `ledger=` re-point at the next plan's landing), 16 (`check`'s unpaired events), 22 (the two peers' events), 20 (rule 3, Messages) |
 | 2.4 the close kessai | 20 (Session exit step 3), 21 (The final batch step 3), 22 (`hosa.md`'s relay) |
-| 2.5 shusei | 21 (the close's one act, the merge), 22 (`jisso.md`'s Shusei paragraph), 20 (Session exit step 4) |
-| 2.6 shoki | 19 (`templates/shoki-brief.md`), 21 (the spawn, the landing, the two forms), 20 (Artifacts, Session exit), 3 (`sessions.shoki`, `shoroku.review`) |
+| 2.5 shusei | 21 (the kessai's one act, then the merge, which is also shoki's spawn), 22 (`jisso.md`'s Shusei paragraph), 20 (Session exit step 4) |
+| 2.6 shoki | 19 (`templates/shoki-brief.md`, whose worktree is cut from `main` after the merge), 21 (the spawn in the merge's own act, the landing, the two forms), 20 (Artifacts, Session exit), 3 (`sessions.shoki`, `shoroku.review`) |
 | 2.7 the handover without the gate | 21 (the trigger, the three writings, Timing, the procedure), 23 (the handover template), 18 (the ledger), 20 (the config's `presence_minutes`) |
 | 2.8 Hosa after this design | 22 (`hosa.md`, four sections) |
 | 3 rule 11, and this plan | Global Constraints, the Batches section, and 20's **P20.42** |
@@ -9435,19 +9743,39 @@ each was run against the tree to confirm the counts Step 1 states.
 line it names gains text rather than losing it, so the new spelling contains
 the old one and the sweep keys on the gloss beneath it instead.
 
+**Every sweep loop's `grep` carries `--`.** A needle may begin with `-`
+— **O23.16** and **O23.17** do — and `grep -rF -c "$needle"` reads such a
+string as an option bundle and dies with `grep: unknown option --`, printing
+no count for it and none for anything after it in that run. The cold read
+found this in task 23's Step 1, in `replay`'s own output. The fix is the
+end-of-options marker in the loop rather than a re-chosen needle, and it is
+applied in **every** place a sweep interpolates `"$needle"` — tasks 17, 20,
+21, 22, and 23's Step 1 and Step 3 loops, task 19's Step 2 loop, and fence 6
+of "How a batch is verified" — because this is an authoring pattern of the
+plan, not one task's bug, and the next needle to begin with `-` may be
+anyone's. Two needles of task 23 were also missing from its sweep altogether
+— **O23.16**, and the Why-block trigger line whose row's needle begins with
+`<` and is therefore not a parsed `O` block at all — and both are in it now,
+where the loop measures them like any other.
+
 **2a. What `lint` reports.** `node "$TANTO/scripts/passage-check.js" lint` was
-run against this plan while drafting and again after the review's pass, and
-reports `lint: clean`: every lead is
+run against this plan while drafting, again after the review's pass, and again
+after the cold read's, and reports `lint: clean`: every lead is
 well formed, every `N` matches its block's real line count, every id is
-unique, every cited id exists, both insertions (**P20.37**, **P21.11**) carry
-an anchor step (**A20.1**, **A21.1**), and no `O` needle occurs in the plan's
-own new-passage text. Beside `lint`, the review's pass ran three checks of
-its own over the working tree, by script: every one of the 166 `P` blocks'
+unique, every cited id exists, all three insertions (**P20.37**, **P21.11**,
+**P21.51**) carry
+an anchor step (**A20.1**, **A21.1**, **A21.4**), and no `O` needle occurs in
+the plan's own new-passage text. Beside `lint`, each pass ran three checks of
+its own over the working tree, by script: every one of the 171 `P` blocks'
 old text occurs **exactly once** in the file its lead names; applying all of
 them leaves every new passage occurring exactly as often as its group
-declares; and sweeping all 129 `O` needles over that applied tree leaves one
+declares; and sweeping all 133 `O` needles over that applied tree leaves one
 nonzero residual, **O22.18** at `2`, which is the one needle whose stated
-target is not zero. **`replay --base main` is still Keikaku's step 4** — it
+target is not zero. The applied tree also reads `0` for each of fence 4's own
+six needles, which it did not before the cold read's pass: three sites of
+`queued: <n>` and `sweep: inbox` had no passage over them, and **P21.49**,
+**P21.50**, and **P23.26** are what take them. **`replay --base main` is still
+Keikaku's step 4** — it
 runs the plan's own fenced commands, which those three checks do not, and it
 is the one check this draft cannot stand in for. Six blocks were the ones to
 watch there, because their old text was transcribed from a reading rather
@@ -9455,7 +9783,10 @@ than from a `sed` of the file at authoring time — **P22.17** (44 lines of
 `roles/hosa.md`), **P21.26** (25 lines), **P21.31** (10 table rows),
 **P20.24** (40 lines of Resuming), **P23.5** (44 lines of the README's Usage),
 and **P20.39** (31 lines of the executables paragraph) — and all six are
-among the 166 the first check passed.
+among the 171 the first check passed. **P21.49** and **P21.50**, added at the
+cold read, are a seventh and an eighth of that kind and passed the same check:
+each was transcribed from a `sed` of `roles/kanri.md` at authoring time, not
+from the cold read's own quotation of it.
 
 **3. Type and name consistency.** The spawner's result fields are spelled the
 same in task 1's assertions, task 2's `opSpawn` and `handleRequest`, task 3's
@@ -9480,12 +9811,12 @@ blocks:
 
 | Task | Plan lines | Steps | Blocks |
 | --- | --- | --- | --- |
-| 1 | 524 | 6 | 1 W (400 lines) |
+| 1 | 536 | 6 | 1 W (403 lines) |
 | 2 | 606 | 6 | 1 W (493 lines) |
 | 3 | 205 | 6 | 2 P, 2 A, 1 W (70 lines) |
 | 4 | 208 | 7 | 3 P, 1 A |
-| 5 | 328 | 6 | 1 W (238 lines) |
-| 6 | 429 | 7 | 3 W (300, 2, 2 lines) |
+| 5 | 391 | 6 | 1 W (287 lines) |
+| 6 | 471 | 7 | 3 W (317, 2, 2 lines) |
 | 7 | 194 | 7 | none |
 | 8 | 140 | 6 | none |
 | 9 | 153 | 6 | none |
@@ -9493,25 +9824,27 @@ blocks:
 | 11 | 113 | 5 | none |
 | 12 | 103 | 6 | none |
 | 13 | 139 | 6 | none |
-| 14 | 116 | 5 | none |
+| 14 | 122 | 5 | none |
 | 15 | 124 | 6 | none |
 | 16 | 353 | 7 | 7 P, 1 A, 2 O |
 | 17 | 313 | 7 | 7 P, 2 A, 11 O |
 | 18 | 253 | 6 | 6 P, 2 A, 4 O |
-| 19 | 213 | 5 | 1 W (117 lines) |
-| 20 | 1235 | 6 | 44 P, 1 A, 38 O |
-| 21 | 1489 | 6 | 48 P, 3 A, 38 O |
+| 19 | 214 | 5 | 1 W (118 lines) |
+| 20 | 1242 | 6 | 44 P, 1 A, 38 O |
+| 21 | 1639 | 6 | 51 P, 4 A, 40 O |
 | 22 | 734 | 6 | 25 P, 19 O |
-| 23 | 731 | 6 | 25 P, 18 O |
+| 23 | 765 | 6 | 26 P, 19 O |
 
-Every figure above was recounted by script after the plan review's pass, not
-carried over.
+Every figure above was recounted by script after the cold read's pass, not
+carried over; the run before it left four of them stale, and the whole table
+is regenerated rather than adjusted for that reason.
 
-**The largest task is task 21** at **1,468 plan lines and 6 steps** —
-forty-seven passages and thirty-seven `O` rows over `roles/kanri.md`, the
+**The largest task is task 21** at **1,639 plan lines and 6 steps** —
+fifty-one passages and forty `O` rows over `roles/kanri.md`, the
 resident's whole procedure, twelve of each added at the review, which found
 eight sites of the old close and the old commit window that the first draft
-left standing. **Task 20 is next** at **1,235 lines** — forty-four
+left standing, and three passages more at the cold read. **Task 20 is next**
+at **1,242 lines** — forty-four
 passages and thirty-eight `O` rows over `SKILL.md`, the one file whose every
 section this design touches. Neither can be split without splitting batch D,
 which the spec forbids: `SKILL.md`'s Invocation, its roster paragraph, its
