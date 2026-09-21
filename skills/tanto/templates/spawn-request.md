@@ -47,6 +47,8 @@ field explained beside it.
   `/tanto jisso queue=<topic>` for a plan that edits this skill; for shoki,
   the one line `brief: <.tanto/<topic>/shoki-brief.md>`, which is not a
   `/tanto` invocation at all.
+  A slash command in a `--bg` initial prompt invokes the skill, measured
+  2026-09-21 against CLI 2.1.278; no other form is needed.
 - `worktree` — shoki's `shoki-<topic>`, and absent for every other seat. The
   spawner passes it as `-w`, and the worktree is the CLI's own, under
   `.claude/worktrees/`.
