@@ -46,7 +46,8 @@ taking over mid-plan must not create a second ledger.
    the chat's language: auto-compact would fire before your handover, and
    `/autocompact <value>` — `<value>` being the ceiling plus two more of
    `ceiling.kanri.per_batch`, rounded up to the nearest 50000, about 350000 at
-   the defaults — would leave two batches of room beneath the ceiling. It is a
+   the defaults — would leave two batches of room between the ceiling and the
+   compaction. It is a
    recommendation and not an ask of yours: the human sets the window or
    does not, the roster records nothing about it, and nothing re-checks it
    mid-run, because the human can change it in any window at any time and you
