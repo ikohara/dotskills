@@ -891,24 +891,23 @@ the next batch inherits, Residency, Next step, Not reconstructed, and Commands
 for the human. Everything else is a pointer to the roster and the ledgers,
 never a copy.
 
-In flight carries one block — Plan, Ledger, Batch state, Deferred — **per open
+In flight carries one block — Plan, Ledger, Batch state — **per open
 ledger**,
 so that a topic still in its spec or plan stage is handed over together with
-the topic whose batches were in flight. Deferred is the ledger's Progress
-clause, verbatim, when a handover stands deferred on the
-ceiling and the human's absence, and `none` otherwise: the successor re-checks
-it at its own first check, where a `present` verdict runs what this session
-could not. Live peers lists every peer of every
+the topic whose batches were in flight. There is no `Deferred` line: nothing
+defers any more, and every handover that fires runs in full before this file
+is even written. Live peers lists every peer of every
 open topic, each with its Topic and what it is waiting for, and marks the ones
 whose last line you had not answered: the successor answers those marked lines
 first, pairing them with the ledger's `unanswered:` events, and announces
 nothing. The `queued` Jissos are listed after them by
 name and place and get nothing, since their batch prompt is a path they read
 at their own wake-up.
-A Sekkei or Keikaku whose last line named an exit proposal is waiting
-for nothing but `release:`, and your successor's first act for it is that
-line, if the proposal's form check is recorded in the ledger and the line
-was not sent.
+A Sekkei whose last line named an exit proposal is waiting
+for nothing but `release:`, and a Keikaku whose last line did the same is
+waiting for its `stop` request instead; your successor's first act for it
+is that line, if the proposal's form check is recorded in the ledger and
+the line was not sent.
 
 ### The handover, in a plan and between plans
 
@@ -1488,9 +1487,8 @@ family and the level are `sessions.<role>` from
 `tanto.json`, and they come before the command because the human forgets the
 effort more often than the model — and because `/clear` resets the effort
 to the default while it keeps the model (measured 2026-09-16), so line 3 is
-never redundant in a reused window. For the plan's Jissos the list is sent
-once and says how many windows it is for. There is no delete request: a
-seat's exit ends with your `release:` line to it, and one line to the
+never redundant in a reused window. There is no delete request for a tab
+seat: its exit ends with your `release:` line to it, and one line to the
 human in your own window — `<role> <name> released — its work is in <paths>;
 no step needs it — /clear its window when convenient`. A line of yours that
 speaks of a release and of a creation keeps them in two clauses with their
@@ -1547,9 +1545,9 @@ confirm the session is gone first — uncommitted work may be in the tree.
 | --- | --- |
 | a batch is accepted at loop step 4 — the Jisso whose boundary is the plan's last excepted: the last implementation batch's while the review is pending, and the fix wave's — see "The final batch", steps 2 and 3 | its Jisso is done; write its `stop` request, its row `stopped` by loop step 6's `record` call; no released line and no `/clear`, and its conversation is kept. The next batch's Jisso is a `spawn` request of its own |
 | the spec review is accepted, the human's answers to the spec brief are in `dialogue.md`, and the `spec accepted:` line named the exit proposal | Sekkei is done; record its proposal's items and the spec's four sections as `pending` rows, Source the spec's path as it stands now — rewritten at the landing if that path was a draft's ("When the plan lands", step 3) — and send `release:` as soon as the proposal passes the form check — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
-| the `coldread answered:` line named the exit proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; record its proposal's items as `pending` rows and send `release:` as soon as the proposal passes the form check; a Keikaku is never reused across topics (decision-f496) |
+| the `coldread answered:` line named the exit proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; record its proposal's items as `pending` rows and write its `stop` request as soon as the proposal passes the form check — no released line and no `/clear`, its conversation kept; a Keikaku is never reused across topics (decision-f496) |
 | Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; record its proposal's items as `pending` rows and send `release:` as soon as the proposal passes the form check, or keep it if more of the same bug is expected |
-| the final batch is accepted, T2's proposal is written and passes the form check, and leftovers are clean | the last Jisso is done; `release:` at once, T2 being its exit — the recommendation, the human's check, the apply, and the merge decision run with it gone, and a merge declined with fixes wanted is a new batch on a new Jisso either way; a queued Jisso that never ran is named in the same released line for the human to `/clear`, its row `cleared` |
+| the final batch is accepted, T2's proposal is written and passes the form check, and leftovers are clean | the last Jisso is done; write its `stop` request at once, T2 being its exit — no released line and no `/clear`, its conversation kept — the recommendation and the kessai run with it gone, and a merge declined with fixes wanted is a new batch on a new Jisso either way; a `queued` Jisso that never ran gets a `stop` request the same way, its row `stopped` |
 | the kessai is answered, shusei's batch is verified, the merge is done, and the ledger's Progress line says closed | this plan is closed. **First, while every row still carries its Transcript column**, run `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]` over the sessions of **this topic**: every seat the ledger's Session events accepted for it — Sekkei, Keikaku, every Jisso, `queued` ones that never ran included, an attached Kaiseki — and every Kanri whose tenure overlapped it, the current one and any predecessor the Events' handover lines name, each path taken from its roster or archive row. Shoki's transcript is not in the list: it is not a session of the ledger's Session events. A refused handshake has no row and no transcript and is not in the list; rows of another plan that a shared roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not of this topic and are left out. A path that is denied, `unavailable`, or on another host is skipped and named by the script, and is never read by asking the peer. Record the share line, the sessions it ran over, and the ones it skipped in the Measurements share row; the target is 30% or less. Then mark `dead` the rows of any session the census lost and no resume brought back, move the stopped, dead, replaced, refused, and cleared rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet — move the topic's result files to `.tanto/<topic>/spawner-results/`, fill the ledger's remaining Measurements fixed rows, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
 
 The role is resident; the session that carries it is not. A plan's end is a
