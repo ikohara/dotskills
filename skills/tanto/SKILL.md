@@ -1047,8 +1047,8 @@ signal says, and continues.
 | `.tanto/<topic>/review-brief-spec.md`, `.tanto/<topic>/review-brief-plan.md` | the brief writer the document's author dispatches | the author, then the human; Kanri by the path in `review-ready:` | the review brief, from `templates/review-brief.md`, in the chat's language |
 | `.tanto/<topic>/plan-dryrun.md` | Keikaku | the plan reviewer, Kanri | from `lint` and `replay` — the two commands, each one's output, and Keikaku's ruling on every failure |
 | `.tanto/<topic>/coldread.md` | the `plan.coldread` subagent Kanri dispatches | Kanri, by `sections` | the cold read of the committed plan: a numbered list of open questions, or `none`; Kanri sends Keikaku one numbered message carrying all of them, or `coldread: none`, and Keikaku answers with one `coldread answered:` line |
-| `.tanto/<topic>/batch-<X>-prompt.md` | the `boundary.verify` subagent, from `templates/batch-prompt.md`; Kanri for its three `<Kanri fills>` slots and for a rework prompt | the Jisso it names, human | the prompt; sent as the one line `batch: <path>`, which the human pastes if the message did not arrive |
-| `.tanto/<topic>/batch-<X>-verdict.md` | the `boundary.verify` kind Kanri dispatches | Kanri, by `sections` | the boundary's verdict: ten fixed sections, and an eleventh, `Measurement`, when the batch carried a measurement task |
+| `.tanto/<topic>/batch-<X>-prompt.md` | the `boundary.verify` subagent, from `templates/batch-prompt.md`; Kanri for its two `<Kanri fills>` slots and for a rework prompt | the Jisso it names, human | the prompt; sent as the one line `batch: <path>`, which the human pastes if the message did not arrive |
+| `.tanto/<topic>/batch-<X>-verdict.md` | the `boundary.verify` kind Kanri dispatches | Kanri, by `sections` | the boundary's verdict: eleven fixed sections, and a twelfth, `Measurement`, when the batch carried a measurement task |
 | `.tanto/<topic>/batch-<X>-report.md` | the Jisso of that batch | Kanri; the close's recommender, its Shoroku proposal section by path and item | fixed skeleton; its Shoroku proposal section is that Jisso's exit shoroku |
 | `.tanto/<topic>/kaiseki-<n>-brief.md` | Kanri | Kaiseki | fixed skeleton |
 | `.tanto/<topic>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
@@ -1070,7 +1070,7 @@ signal says, and continues.
 | `.tanto/<topic>/shoki-brief.md` | Kanri, from `templates/shoki-brief.md` | shoki, as its whole prompt | the scribe's contract: the arguments, what it never does, the five steps, the report line |
 | `.tanto/<topic>/t2-review.md` | the `shoroku.review` kind shoki dispatches | shoki, then Kanri | the review of shoki's own diff against `main`, before it reports |
 | `.tanto/<topic>/batch-shusei-prompt.md` | Kanri, from `templates/batch-prompt.md` | the shusei Jisso | the one-task fix batch of the close |
-| `<root>/.claude/worktrees/shoki-<topic>` | the CLI, on `claude --bg -w` | shoki | shoki's worktree; never written by a role, removed by the `rm` request at the landing, its branch deleted by Kanri after |
+| `<root>/.claude/worktrees/shoki-<topic>` | the CLI, on `claude --bg -w` | shoki | shoki's worktree; never written by a role, removed by Kanri (`git worktree remove --force --force`) along with its branch, after the `rm` request |
 
 Templates are copied and filled, never restated in prose. Seventeen of them:
 `templates/roster.md`, `templates/roster-archive.md`, `templates/kanri.md`,

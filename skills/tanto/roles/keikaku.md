@@ -282,7 +282,8 @@ reports and prompts follow the tanto templates, and names nothing else.
    taken. Write the ledger event
    `review-ready: <plan path>; brief: <brief path>` through
    `boundary.js record --event`, to the ledger the in-flight topic's
-   `ledger=` names — the human reads the brief when they like,
+   `ledger=` names, else your own topic's `.tanto/<topic>/kanri.md` — the
+   human reads the brief when they like,
    and an override is a line in Kanri's window or a Kikaku decision file, as
    any ruling is. Then commit under your commit rule below. You wait for no
    one.

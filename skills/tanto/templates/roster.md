@@ -34,7 +34,7 @@ Kept by Kanri at `.tanto/roster.md`. Kanri is the only writer.
   its Residency row, until the plan closes, then both move to
   `roster-archive.md` as one row, so the run stays readable after a
   replacement and the roster stays short.
-- This is the address book: one row per session, Kanri's row first, the
+- This is the address book: one row per seat, Kanri's row first, the
   `Name [ref]` column being the address the row's session answers to, used
   as the bare name, and Kanri sends only to `live` rows. It stays correct
   because nothing renames a session, and a `/clear` keeps the name. The
@@ -60,7 +60,8 @@ The status words are seven: `queued`, `live`, `stopped`, `cleared`,
 idles and the intake's address rule reads, so a reader tests the cell's
 first word, not the whole cell. `queued` is a Jisso of a skill-editing plan
 waiting for its batch prompt, in spawn order. `stopped` is a terminal seat
-the spawner stopped on Kanri's request, its conversation kept. `cleared`
+the spawner stopped on Kanri's request, its conversation kept, or a `queued`
+row that never ran. `cleared`
 records a tab seat Kanri released — `release:` sent, the row marked as the
 line goes out — or whose `/clear` came to light another way: a handshake
 under a name already here with a different transcript, in any role, or a

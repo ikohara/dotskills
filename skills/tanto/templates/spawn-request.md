@@ -41,10 +41,12 @@ field explained beside it.
 - `branch` — the branch the shared tree is on when the request is written.
   Informational: `spawnArgs` never reads it; it is carried into the result
   and then into `record --seat`'s Branch column.
-- `mode` — `auto` for every seat Kanri spawns. `manual` appears in a
-  measurement and nowhere else.
+- `mode` — passed to the spawned session as `--permission-mode`; `auto` is
+  the default when absent, and is what Kanri sets for every seat it spawns.
+  `manual` appears in a measurement and nowhere else.
 - `prompt` — the seat's whole orders. `/tanto kanri` for a Kanri;
-  `/tanto keikaku topic=<topic> spec=<path> plan=<path>`;
+  `/tanto keikaku topic=<topic> spec=<path> plan=<path>`, with `ledger=<path>`
+  added when another topic's batch is in flight, naming that ledger;
   `/tanto jisso batch=<path>` for an ordinary plan and
   `/tanto jisso queue=<topic>` for a plan that edits this skill; for shoki,
   the one line `brief: <.tanto/<topic>/shoki-brief.md>`, which is not a
@@ -67,7 +69,9 @@ A result carries the request's fields and the op's own: `spawn` adds `id`,
 `stopped`; `rm` adds `removed` and the worktree it removed; `resume` adds the
 new `id` and `name` under the same `sessionId`; `attention` adds `notified`
 and `channel`; `ack` adds `acked`. An op that failed adds `error`, which
-carries the command's stderr, and nothing else.
+carries the command's stderr, and nothing else — except `spawn`'s ad
+hoc-worktree guard, which also records the seat as `stopped` before
+returning `error`.
 
 At the plan close the topic's results move to
 `.tanto/<topic>/spawner-results/` with the archive move. The spawner deletes

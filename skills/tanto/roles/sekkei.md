@@ -127,7 +127,8 @@ of its value here.
 Write the ledger event `review-ready: <document path>; brief: <brief path>`
 yourself, through
 `node "$TANTO/scripts/boundary.js" record --ledger <path> --event "<line>"`,
-the ledger being the one your orders line's `ledger=` names — not a message,
+the ledger being the one your orders line's `ledger=` names, else your own
+topic's `.tanto/<topic>/kanri.md` — not a message,
 and no wake-up of Kanri's. Then put
 brainstorming's review gate to the human with the brief's text verbatim, the
 spec's path, and the brief's, and record the human's answers in `dialogue.md`

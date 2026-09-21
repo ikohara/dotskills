@@ -46,8 +46,7 @@ taking over mid-plan must not create a second ledger.
    the chat's language: auto-compact would fire before your handover, and
    `/autocompact <value>` — `<value>` being the ceiling plus two more of
    `ceiling.kanri.per_batch`, rounded up to the nearest 50000, about 350000 at
-   the defaults — would leave two batches between the ceiling and the
-   compaction, room for one deferral and the boundary after it. It is a
+   the defaults — would leave two batches of room beneath the ceiling. It is a
    recommendation and not an ask of yours: the human sets the window or
    does not, the roster records nothing about it, and nothing re-checks it
    mid-run, because the human can change it in any window at any time and you
@@ -198,8 +197,7 @@ Four steps, in this order.
    `sessions.<role>.effort`. A mismatch of either is one line to the human
    saying which of the two differs and what runs.
 2. Check the roster and the listing — no live roster row for that role and
-   topic, a Jisso handshake with a live Jisso row being queued rather than
-   refused, and the
+   topic, and the
    `name [ref]` the handshake carries appears in `ListAgents`.
 3. Write or rewrite that role's roster row.
 4. Reply with the role's standing orders as **one line carrying the variables**.
@@ -488,7 +486,7 @@ Per batch, in this order.
    batch's while the review is pending, and the fix wave's — see
    "The final batch", steps 2 and 3; if a
    release or a replace of another live, coherent session is due, or a
-   handover trigger has fired and is not deferred, send the `exit:` lines to
+   handover trigger has fired, send the `exit:` lines to
    the sessions whose proposal is not already named — a Sekkei or Keikaku at
    its own final boundary named it in its report line and is waiting for
    nothing — check each proposal's form, name its items as `--s-item`
@@ -572,11 +570,12 @@ Per batch, in this order.
    have: this batch's `--state` and `--verdict` and the `--status` changes
    step 4 decided — the loop having stopped before
    step 6 — and the loop stops here; the next prompt is the successor's.
-6. **Record and send.** Fill the rendered prompt's three `<Kanri fills>`
-   slots — the Previous batch verdict's ruling line and its deferral line,
+6. **Record and send.** Fill the rendered prompt's two `<Kanri fills>`
+   slots — the Previous batch verdict's ruling line
    and the Rulings section's first line — and save it. The render is the
-   brief's, from `templates/batch-prompt.md`, addressed to the next `queued`
-   Jisso in handshake order, and it already carries the resume line and, on
+   brief's, from `templates/batch-prompt.md`, addressed to no name — the
+   seat the `spawn` request below will create — or, under a skill-editing
+   plan's queue, to the next `queued` seat in spawn order, and it already carries the resume line and, on
    its Models line, the four kinds Jisso dispatches —
    `task.implement`, `task.review-spec`, `task.review-quality`, and
    `task.escalate` — each with the family `tanto.json` gives it and the
@@ -604,7 +603,7 @@ Per batch, in this order.
    proposal step 4 form-checked, and one `commit-done:` event per boundary
    reply step 5 took. That
    call is the whole of your table writing: at a boundary no table is edited
-   by hand, the deferrals entry included. A batch returned for rework is a
+   by hand. A batch returned for rework is a
    prompt you write yourself from the same template, for the same Jisso, and
    send the same way.
    There is no queue to empty on an ordinary plan: the prompt exists, so the
@@ -891,7 +890,7 @@ the next batch inherits, Residency, Next step, Not reconstructed, and Commands
 for the human. Everything else is a pointer to the roster and the ledgers,
 never a copy.
 
-In flight carries one block — Plan, Ledger, Batch state — **per open
+In flight carries one block — Plan, Ledger, Batch state, Branch — **per open
 ledger**,
 so that a topic still in its spec or plan stage is handed over together with
 the topic whose batches were in flight. There is no `Deferred` line: nothing
@@ -906,8 +905,8 @@ at their own wake-up.
 A Sekkei whose last line named an exit proposal is waiting
 for nothing but `release:`, and a Keikaku whose last line did the same is
 waiting for its `stop` request instead; your successor's first act for it
-is that line, if the proposal's form check is recorded in the ledger and
-the line was not sent.
+is that line or that request, if the proposal's form check is recorded in
+the ledger and it had not yet gone out.
 
 ### The handover, in a plan and between plans
 

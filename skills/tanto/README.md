@@ -6,14 +6,15 @@ one implementation plan.
 ## What it does
 
 - Runs one plan through separate Claude Code sessions in the same
-  repository and on the same branch: **Kanri** (管理) manages, **Sekkei** (設計)
+  repository, on the same branch except shoki's, which works in the CLI's
+  own worktree: **Kanri** (管理) manages, **Sekkei** (設計)
   writes the spec, **Keikaku** (計画) writes the plan, **Jisso** (実装)
   implements, **Kaiseki** (解析) root-causes. A seat whose work is dialogue
   with the human — Sekkei, Kaiseki, and the two below — is a tab the human
-  opens; every other seat is a background session an instrument of the
+  opens; every other seat is a background session, an instrument of the
   skill's starts, stops, and resumes on a request file the run writes, so
   that no session ever issues a session-creating command. The human reaches
-  a background seat with `claude attach` in the editor's own terminal.
+  a terminal seat with `claude attach` in the editor's own terminal.
 - Adds two seats outside that lifecycle, opened by the human and never
   requested by Kanri: **Kikaku** (企画) thinks with the human about what the
   next work is and hands Kanri a decision file, and **Hosa** (補佐) takes the
@@ -72,8 +73,9 @@ one implementation plan.
   `wayaku`, it is not host-agnostic and does not run on other Agent Skills
   hosts.
 - **Claude Code CLI 2.1.277 or newer**, for `claude --bg`,
-  `claude agents --json`, `claude attach`, and `claude --resume <id> --bg` —
-  the four commands the spawner and the launcher are built on.
+  `claude agents --json`, `claude attach`, `claude --resume <id> --bg`,
+  `claude stop`, and `claude rm` — the six commands the spawner and the
+  launcher are built on.
 - **Node 22 or newer on `PATH`**, for `scripts/passage-check.js`,
   `scripts/reading.js`, `scripts/boundary.js`, `scripts/spawner.js`, and
   `scripts/tanto.js`. Every role runs the second
@@ -115,7 +117,7 @@ tanto
 ```
 
 It starts the spawner if none is running, finds the run's Kanri or asks the
-spawner for one, resumes any background seat a reboot took, and prints the
+spawner for one, resumes any terminal seat a reboot took, and prints the
 one line to type next:
 
 ```console
@@ -144,13 +146,13 @@ romaji (`かんり` / `管理` / `kanri`):
 Each finds Kanri in the roster's first data row, read at the moment it
 sends, and there is no address argument. `/tanto kaiseki` with no key is
 standalone Kaiseki — the strong model leads one debugging session, with no
-batch loop. The background seats — Keikaku, every Jisso, the scribe that
-writes the records, and Kanri's own successors — are never typed: the run
-starts them with the keys they need.
+batch loop. The terminal seats — Keikaku, every Jisso, the shusei batch, the
+scribe that writes the records, and Kanri's own successors — are never
+typed: the run starts them with the keys they need.
 
 A tab that comes back after an editor restart keeps its context and its
 transcript but gets a new name, and `/tanto fukki` (復帰), typed there,
-matches it to its roster row and rejoins it to the run. A background seat is
+matches it to its roster row and rejoins it to the run. A terminal seat is
 unaffected by the restart, and after a reboot `tanto` resumes it under the
 same session id. The desktop notice tells the human when a seat is waiting
 on them; an optional harness hook makes it immediate, and nothing requires
