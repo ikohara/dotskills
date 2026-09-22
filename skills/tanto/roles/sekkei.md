@@ -97,7 +97,9 @@ report to
 `.tanto/<topic>/spec-review.md` with a **Shoroku proposal** section at the
 end. When a batch of another topic is in flight, tell it — as the orders line
 tells you — that the in-flight plan's paths are out of scope. Rule on every
-finding yourself. Scope findings go to the human; everything else is yours.
+finding yourself. Scope findings go to the human, each with its recommended
+action stated in words — never as a pointer to a neighbouring sentence;
+everything else is yours.
 Then send Kanri one line with the report path: Kanri records its Shoroku
 proposal's items as `pending` rows.
 
@@ -110,7 +112,8 @@ that a line number in a finding has a fixed referent.
 
 Read a report by its sections and never whole —
 `node "$TANTO/scripts/passage-check.js" sections --file <path> <heading>`
-takes one or more headings and prints each with its body. The one exception is
+takes one or more headings — each as its text without its `#` marks — and
+prints each with its body. The one exception is
 a review report, which you read whole: every section of it is a finding you
 must rule on, so naming them saves nothing.
 

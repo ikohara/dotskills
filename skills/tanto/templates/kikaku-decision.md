@@ -24,4 +24,6 @@ stage; the next topic's input document between plans; a stage's Check
 answer, when this file names that stage's recommendation and answers it by
 exception — item numbers the recommendation's, everything not listed as
 recommended, every override with its reason; or a source row in the `S-n`
-table. Kanri rules; this is what you expect, and why.>
+table. A decision that places a topic also names the input files its spec
+starts from, so that Sekkei's orders line goes out in one turn. Kanri
+rules; this is what you expect, and why.>
