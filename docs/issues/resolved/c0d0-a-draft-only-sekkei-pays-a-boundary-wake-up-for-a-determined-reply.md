@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-09-22
 ---
 
 Source: shoroku shoroku-at-close
@@ -26,3 +26,12 @@ ledger records it as draft-only, or the boundary line carries
 appears in `roles/kanri.md` today.
 
 A cost gap, not a user-stated need, so no paired requirement.
+
+Resolved by decision-b59a: a wake-up is spent only on a decision, and the
+boundary's `committed` reply is kept only for the peers that write a
+`commit-ready:` ledger event and dropped for the rest. A draft-only Sekkei
+writes no such event, so it is no longer asked for a reply its own ledger rule
+already determines. The second shape of fix this issue named — a `draft-only:`
+annotation on the boundary line — was not needed: the event the peer does or
+does not write carries the same fact, and it is written by the peer rather than
+inferred by Kanri.

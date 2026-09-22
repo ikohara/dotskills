@@ -1397,3 +1397,30 @@ parallel `delet` sweep's three exceptions — so without this line every future
 run of this check hits one predictable, explainable false positive. Confirmed
 by the confirmatory opus-tier review of the `seat-lineage` run and parked as a
 Minor there.
+
+## 26. Every "step N" pointer resolves against the count its target has
+
+```bash
+grep -rnE '\b(step|signal|trigger) [0-9]+' docs/superpowers/specs/ .tanto/kikaku/
+```
+
+Expected: a list to **read**, not a count. Every hit that names a role file or
+a template — "`roles/kanri.md`'s step 8", "the handover template's three
+triggers" — is resolved against the count that file actually has, by opening
+it and counting. A pointer into a file the hit does not name is out of scope:
+this check is only for the pointers that cross a file boundary, where nothing
+else holds the two numbers together.
+
+The check exists because the same defect class was caught twice in one spec
+review of the `tanto-bg-seats` run. `roles/kanri.md`'s batch loop has six
+steps, and the spec cited "step 8" twice; `templates/kanri-handover.md` listed
+three triggers where the role file has four. Both survived the drafting and
+were found only by a reviewer reading the target file — a spec is frozen once
+accepted, so a stale pointer in it can never be repaired, and the check is
+where the lesson lives instead.
+
+The failure is silent in the same way check 22's and check 23's are: a reader
+who trusts the pointer simply follows it to the wrong step, and nothing
+errors. It is also the cross-file shape of check 21 — a number is a named
+mechanism with two sites, and the site that moves is never the site that
+cites.

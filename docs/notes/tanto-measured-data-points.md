@@ -99,6 +99,16 @@ re-dispatch, four spec commits, no `I-n` beyond the relay above. The first
 fable-Sekkei cost figure, beside the opus/max Sekkei figure the `seat-lineage`
 dogfood report holds.
 
+**The reviewer half, from `tanto-bg-seats` (2026-09-22).** The `spec.review`
+dispatch on fable read the spec, thirty-six ADRs, the requirements, every skill
+file the spec touches, and the four Kikaku files, and returned **31 findings in
+18 minutes for about 397k subagent tokens**; four were high. One of the four
+(F-1: the launcher would have attached to the outgoing interactive Kanri and
+never spawned the first background one) closed the one path by which the design
+comes into existence. A reviewer that re-runs the spec's own "Measured" figures
+and reads the files the change list touches earns the top family's cost at a
+spec that rewires the run's lifecycle.
+
 ## Where a plan review's defects were, and what the review read (2026-09-19)
 
 Every defect that review found lives in prose no tool reads — a stop condition,
@@ -111,6 +121,20 @@ executions (a `pre-commit` run, a `verify` run, a `grep -c`), not reading.
 
 For calibration: the review read roughly 1,900 of the plan's 3,359 lines and
 700 of the spec's 2,076, and ran ten command batches.
+
+**Where `tanto-bg-seats`'s were, across three passes (2026-09-22).** The single
+most repeated defect class in that topic was a `P` block's *old* text
+transcribed from memory or from a paraphrase instead of copied verbatim from
+the file on disk: **six** such mismatches at the dry run (three truncated
+lead-ins, one fabricated phrase, two miscounted or malformed anchors), and the
+plan review's own major finding was the same error in reverse — **nine missing
+passages**, text the drafter correctly identified for retirement but never
+wrote a block for, because what was being transcribed was the spec's "Old
+values" list, itself written from *a reading* of the file rather than from a
+fresh sweep of it. `replay`'s residual-needle sweep catches only a retirement
+that already has a declared `O` needle; it is structurally blind to one that
+was never named at all. Dry run, plan review, and Kanri's own cold read each
+found sites the other two did not — **three passes were not redundant here**.
 
 ## Sampling a plan versus reading it whole, at one cost tier (2026-09-19)
 
@@ -283,6 +307,44 @@ SDD's combined task-reviewer role into `task.review-spec` and
   naming question on its own, and this was the second batch in a row where
   the narrow view produced a resolvable-but-real-looking question.
 
+**Five more instances, from `tanto-bg-seats` (2026-09-22).** Four of the five
+are convergence readings — independently dispatched reviewers, no shared
+context, reaching the same verdict from the source rather than from each
+other's output.
+
+- **A finding a spec reading had no reason to look for.** Task 2's
+  `task.review-quality` reviewer surfaced a security-flavored finding (a darwin
+  AppleScript injection) that a spec-scoped reading of the same diff would never
+  have gone looking for, since it is invisible from "does this match the brief"
+  alone. The split paid for itself at least once on that batch.
+- **Convergence on an implementer's own declared deviation.** Task 6's
+  implementer returned `DONE_WITH_CONCERNS` over a `readSeats` reordering,
+  surfaced honestly with a reproducible before/after (both orderings rerun 3×
+  each) and a named root cause in another task's already-landed code. Both
+  reviewers independently traced the same `spawner.js` census/`readSeats`
+  interaction from source and reached the same verdict — a stronger form of
+  confirmation than either review alone, and the pattern's first case.
+- **Convergence on a plan-authored bug.** Task 16's pairing-key mismatch: both
+  reviewers converged on the identical root cause, derived from the actual
+  behavior of `writeEvent` rather than from reading each other's output. The
+  second convergence of the plan, on a different class of defect from task 6's.
+- **Convergence on a regression the fix wave itself introduced.** Task 25: both
+  reviewers converged on the identical root cause *and* produced independent
+  reproductions of the same regression — the R-12 fix keying on `seats.json`'s
+  file mtime rather than on per-seat identity, which would have attached the
+  human to the outgoing Kanri and suppressed the successor spawn at every real
+  handover. The first case of the convergence pattern catching a genuine
+  functional regression introduced by a fix wave, rather than a pre-existing
+  defect the plan shipped.
+- **The methods differ, not only the scopes.** Task 27's ten-site enumeration
+  was read two ways: one reviewer verified each site in turn against its cited
+  cross-reference, catching every arithmetic and citation error but reading the
+  addressing fix as complete once `roles/kanri.md`'s own text checked out; the
+  other ran a deliberate side-by-side cross-file consistency pass and caught
+  that `SKILL.md`'s own copy of the same fact had been left stale. "Does every
+  site agree with every other site" is a distinct check from "is each site
+  individually correct".
+
 issue-cb19 is the standing question these feed: the two-dispatch reviewer
 split is an inference rather than an instruction.
 
@@ -336,6 +398,19 @@ exists precisely to trade this growth against stalling the run, and this is
 the first full five-boundary example of what that trade costs one resident in
 one sitting.
 
+**The mechanism's last major tenure, from `tanto-bg-seats` (2026-09-22).** The
+presence-gated deferral worked exactly as designed in what may be its final
+tenure before decision-345b retires it. Signal 4 (ceiling crossed) fired at
+every boundary from batch A1 through batch B1 — that tenure never once dropped
+below `ceiling.kanri`'s threshold after the plan landed — and deferred each
+time because the human was genuinely absent: `reading.js --presence` read
+**243, 315 and 406 minutes** since the last human turn. The moment the human
+returned and drove the reboot-recovery exchange directly, the very next
+boundary (B2) read `present` and the handover ran for real rather than
+deferring a fourth time. Never stall the run while the human is away, never let
+a resident grow past its close unnoticed once the human is back — the
+before-picture for whatever measures the gate's removal.
+
 ## What a three-fix wave landing inside mandated spans cost (2026-09-20)
 
 `tanto-diet`'s fix wave, beside this note's single-clause fix-wave figure.
@@ -354,3 +429,181 @@ of work from one that does not, and this plan's own batch prompt did not flag
 that risk in advance for either fix. For whoever scopes the next plan's
 post-review fix wave. issue-96f2 is the standing gap: a fix wave has no
 instrument aimed at it.
+
+**The opposite reading, from `tanto-bg-seats` (2026-09-22).** That plan's fix
+wave closed **all four tasks — 29 findings — at one boundary**, with exactly
+one fix round per task that needed one (three of the four), none reaching a
+second round and no Kaiseki trigger: every fix round's own scoped re-review
+verdicted all findings addressed on its first attempt. The fastest per-task
+convergence of any multi-task batch in that plan, against batch D's two fix
+rounds on two of its four tasks. Beside the two figures above, it is the third
+shape a fix wave has taken in this note, and the cheapest.
+
+## Six of six dialogue questions, 28 of 28 brief points, all as recommended (2026-09-22)
+
+`tanto-bg-seats`'s spec dialogue asked the human six design questions, and each
+was answered as recommended in a single word of assent (D-1 through D-6, three
+distinct one-word forms between them); the spec brief's 28 points came back as
+one `all OK`. The same pattern the
+second Kikaku file measured for plan briefs — five reviews, zero edits.
+
+One topic is one data point. If it repeats, the question it raises is whether
+the spec dialogue's design questions could be answered by default too, with the
+human overriding by exception, the way a plan brief's `— If unanswered:`
+clauses already work. That question belongs to a Kikaku consultation, not to a
+spec, and nothing here decides it.
+
+## Two self-handshakes into new roles, covered by the re-invocation rule (2026-09-22)
+
+Two peers (`dotskills-9d`, `dotskills-03`) self-handshook into new roles on
+`tanto-bg-seats` with no Kanri create request going out first — both were
+windows the human had open from the previous topic and reused directly.
+`SKILL.md`'s "On a handshake" re-invocation handling (a name already on a row,
+different transcript → mark the old row `cleared`, accept the new handshake as
+any other) covered both cleanly, with no special-casing needed.
+
+A positive reading of a standing mechanism, worth one line and no change. It is
+distinct from the create-request path, which that tenure never used at all:
+Keikaku's handshake arrived before any create request had been sent for it.
+
+## An `O`-needle count grew 116 → 129 → 132 across three passes (2026-09-22)
+
+Across the dry run's fixes, the plan review's fixes, and the cold read's fixes,
+`tanto-bg-seats`'s plan grew its own `O`-needle count from **116 to 129 to
+132** (the exit's last reading), tracking almost exactly the number of
+retirements found missing at each stage.
+
+A rough proxy, across one topic, for how much of a plan's real coverage a first
+draft actually has, against how much is found only by a reviewer or a cold
+read. Worth a second reading if the measurement is ever repeated on another
+plan.
+
+## A pre-flight conflict scan reads a plan's headers, not its bodies (2026-09-22)
+
+A pre-flight producer/consumer scan over a large plan (**9893 lines, 23 tasks,
+~442KB**) is tractable without reading every task's full code. Extracting only
+each task's Files, Interfaces, Named-mechanism-sites and
+Old-values-contradicted sections — stopping before the Whole-file, Passages and
+Anchors bodies — with a small Node script cut the read from ~442KB to **~99KB**
+while still catching every producer/consumer pair the scan needs.
+
+A technique figure for the next Jisso 1 facing a plan of that size.
+
+## The commit-trailer drift stopped when the dispatch wording got forceful (2026-09-22)
+
+Task 2 of `tanto-bg-seats` wrote `Co-Authored-By: Claude Sonnet 5
+<noreply@anthropic.com>` although both the dispatch prompt and the plan's
+Global Constraints specified the shorter exact text. It reproduced **once** and
+did not reproduce again once the dispatch prompt was made more forceful and
+explicit about overriding the implementer's own environment default.
+
+The fix is in the dispatch wording, not in `task.implement`'s model or effort —
+which is the reading a later model-choice decision would otherwise reach for.
+
+## The review layer earned its cost with no subagent-produced artifact (2026-09-22)
+
+Batch B2's two direct-execution tasks — the ones whose defining act only the
+controller session could perform — still each got the full two-reviewer
+treatment (`task.review-spec`, `task.review-quality`) against the report they
+produced. Task 12's review loop caught **two real Important gaps** its Jisso's
+own first draft had not noticed: a silently substituted acceptance criterion,
+and a missing negative control.
+
+The review layer's value did not depend on a subagent having produced the
+artifact. A data point against "no subagent means no review" as a safe
+simplification — it would not have been one here.
+
+## Twenty-five neighbor sentences contradicted a landed passage (2026-09-22)
+
+Every one of batch D's four tasks turned up the identical defect class on
+review: an old sentence sitting just *outside* a passage's own stated old-text
+scope, now contradicting a neighboring passage the same task had just landed.
+**7 sites in task 20, 5 in task 21, 11 in task 22, and 2 fixed plus 4 more
+found-but-out-of-scope in task 23 — 25+ sites across one batch.**
+
+Every one was caught by the two-reviewer pass, and none by the plan's own three
+earlier passes (dry run, plan review, cold read) or by any needle sweep,
+because none of these sentences was itself the *target* of a passage — each was
+a neighbor of one. A plan authored as literal old-text/new-text passages may
+have a structural blind spot at exactly this seam, distinct from batch C's
+task-16 case (a passage's own mandated text being wrong on arrival): here the
+passage's own text was right, and the damage was in what it left standing next
+to itself. `docs/notes/authoring-a-passage-plan.md` carries the authoring half.
+
+## "Name, not fix" for stray text, across four tasks (2026-09-22)
+
+Instructing each implementer to *name, not fix* any stray text it noticed —
+rather than silently leaving it, or silently fixing it — worked cleanly across
+all four of batch D's tasks. Every one of the implementers' own self-flagged
+spots (4 of 4 in task 20, implicitly via its own concern; 4 in task 22; 2 in
+task 23) was independently confirmed real by both reviewers, and one (task 23's
+"three slots") was upgraded from the implementer's own framing to **Critical**
+on independent grounds: the file is read from disk at every real boundary,
+including the plan's own next one.
+
+The reviewers' own further sweeps then found more of the same class the
+implementers had missed — 2 more in task 20, 1 in task 21, 3 in task 22, 4 in
+task 23. The two-reviewer pass caught, consistently, what a single
+implementer's self-check did not.
+
+## The whole-tree sweep read zero on the final batch's first landing (2026-09-22)
+
+The whole-tree sweep — fence 4 of "How a batch is verified", and the single
+property batch D's four tasks exist to deliver — read `0` across **all six
+needles and all 36 files** of `skills/tanto/` on task 23's very first landing,
+before any fix round ran.
+
+The plan's own needle set, built across three review passes before
+implementation began, held on first contact with the applied tree.
+
+## A subagent told to verify a fact before writing it did not (2026-09-22)
+
+A `plan.draft` dispatch drafting the fix-wave batch prompt was explicitly
+instructed to verify its stated base commit's subject against `git log -1
+--format=%s` before writing it, and did not: the file it returned named a stale
+subject, several commits behind HEAD. The controller's own independent check
+before sending caught and fixed it.
+
+A data point on whether an environment-fact instruction inside a subagent's
+prompt ("check X before writing Y") is reliably followed — or whether a
+dispatcher should re-verify any fact a brief asked a subagent to look up, even
+when it was told to.
+
+## The two free-form dispatches had no form defect; three templated ones did (2026-09-22)
+
+The whole-branch review (36 findings) and the fix-wave draft (a 29-item
+coverage table) both arrived internally consistent and needed no second
+dispatch to fix a form failure — unlike three of the same plan's earlier
+subagent artifacts (the review brief's Japanese-heading defect, the
+passage-check heading-format defect, and `exit-sekkei`'s own two).
+
+Both of the clean dispatches carried substantially more free-form judgment —
+severity triage, task grouping — than a templated brief render does. The
+correlation runs against the direction that would be guessed: more room for
+judgment did not produce more form defects here.
+
+## A plan-mandated passage carried a functional bug no static pass could see (2026-09-22)
+
+A plan-mandated passage (P16.5) containing a genuine *functional* bug, rather
+than an inconsistency or a stale reference, is a new category for this run: the
+plan's own literal, verbatim-required text was wrong on arrival, not merely out
+of date. The plan's earlier plan-defect rulings — R-3, and batch D's own case —
+were about implementation choices diverging from stale plan text.
+
+It was invisible to all three of the plan's static passes (dry run, plan
+review, cold read) because nothing in the plan exercises `--ledger` until task
+23. A load-bearing defect in **not-yet-wired** code is structurally harder for
+a static review to catch than one in code a test suite already exercises — a
+bound on what a static pass can be expected to find in additive,
+forward-declared mechanisms.
+
+## Every reviewer of a prose-only task re-ran the suite or the sweep itself (2026-09-22)
+
+Batch C's tasks 17-19 (templates and prose, zero application code) each still
+received the full two-reviewer treatment, and every one of the **six review
+dispatches** — two per task across three tasks, beside task 16's initial two
+and its one scoped re-review — independently re-ran the relevant test suite or
+grep sweep itself rather than trusting the implementer's report.
+
+A consistent, load-bearing pattern across a documentation-only stretch of a
+batch, not only across its code-bearing task.

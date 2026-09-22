@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-19
+updated: 2026-09-22
 ---
 
 Source: session 2026-09-16
@@ -53,3 +53,9 @@ cut is a clean, isolated act does not hold when two queued topics are released
 at once. The fix that Keikaku asked for is the one this issue already names: a
 sequencing point Kanri serializes by hand, a few seconds apart, rather than a
 design gap a plan's own text has to cover.
+
+Resolved by decision-6b6b: Kanri alone cuts, switches, merges, and deletes the
+branch. Sekkei and Keikaku commit on the branch the tree is already on and cut
+none of their own, so two released Keikaku sessions have no branch cut to race
+on. The serialization this issue asked Kanri to perform by hand is now the only
+shape the design admits.

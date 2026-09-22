@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-20
+updated: 2026-09-22
 ---
 
 Source: inbox 2026-09-14-fukki-config-dir-mismatch
@@ -116,3 +116,12 @@ manual side-step is itself evidence for the first proposed fix above
 available and unchanged throughout, but the ground-truth check that
 actually worked here was the roster's own path plus growth over time, not
 that filename.
+
+**2026-09-22, `tanto-bg-seats` — narrowed to tab seats.** The landed design
+gives a spawned seat its `sessionId` as identity, read from the spawner's own
+result files (decision-8320), so a terminal seat is re-identified across a
+restart without the transcript path entering the comparison at all. What is left
+of this issue is the tab seats the human opens — Kaiseki, and any seat a human
+resumes by hand — where `/tanto fukki` still matches by transcript path and
+still breaks when `CLAUDE_CONFIG_DIR` changes under an identical file. The two
+proposed fixes stand as written for that narrower case.

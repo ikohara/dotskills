@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-09-22
 ---
 
 Source: session 2026-09-14
@@ -40,3 +40,7 @@ the automatic signals, and that the human's word is obeyed wherever it is given
 
 Nothing is being fixed now; a reader of the role file today can reach either
 reading, and the filed shape matches issue-7ba4 and issue-2e19.
+
+Resolved by decision-345b: with the presence gate gone, the handover has no
+human signal to be unconditional about. The trigger fires and the successor is
+spawned, so the two readings this issue held apart collapse into one.

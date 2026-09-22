@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-19
+updated: 2026-09-22
 ---
 
 Source: shoroku tanto-workspace
@@ -50,3 +50,19 @@ new.
 
 Related: req-04f5, design-4807, issue-4eef, issue-d0f4, issue-f851,
 `docs/notes/tanto-consistency-checks.md` section 12.
+
+**2026-09-22, `tanto-bg-seats` — six blocks whose `verify` now exits 1
+permanently, and two reviewers flagging the gap unprompted.** `verify`'s
+exact-match design has no way to represent "this passage's own landed text was
+correctly revised after the fact". Three of batch D's four tasks hit it: task 20
+on P20.6, P20.27 and P20.39, task 21 on P21.30, task 22 on P22.4 and P22.6. Task
+23 alone escaped, both its fixes happening to sit outside every P23 block.
+
+`verify --task 20`, `--task 21` and `--task 22` will now exit 1 for anyone who
+re-runs them, for a reason that is not a defect. Two independent task reviewers
+this batch both named the same tooling gap without being asked to look for it,
+which is a second signal that the reading is not obvious from the output alone.
+If a later pass wants a clean `verify` as a standing invariant, the six blocks
+would have to be amended in the plan text to the ruled wording — plan-text
+housekeeping, not a code fix, and the opposite of what the deviation marker this
+issue proposes would cost.

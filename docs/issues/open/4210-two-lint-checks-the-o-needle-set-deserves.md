@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-09-22
 ---
 
 Source: session 2026-09-13
@@ -44,3 +44,16 @@ Under contract rule 11. Related: issue-d0f4 (the survivor form), issue-4d53
 (the sweep's path scope), issue-f36d (the needle check's other blind spot),
 issue-b1e4 (checked, never generated), issue-10bc (resolved; the convention
 these rules would enforce).
+
+**2026-09-22, `tanto-bg-seats` — a third check: every sweep loop carries `--`.**
+A `replay`/`boundary` Step 1/3 needle-sweep loop that interpolates a needle into
+`grep -rF -c "$needle"` breaks the moment a needle's own text begins with `-`:
+`grep` reads it as an option and errors. Found at this plan's cold read, in task
+23's own sweep, after two rows had already been drafted that way. The fix is the
+end-of-options marker — `grep -rF -c -- "$needle"` — and it is needed in every
+sweep loop of that shape, not only the one that happened to draft a leading-`-`
+needle first. As a `lint` rule it is the cheapest of the three: does every sweep
+loop in the plan already include `--`? It catches the class before any needle
+triggers it, where the other two rules measure the needles themselves. The
+authoring-side convention is recorded in
+`docs/notes/authoring-a-passage-plan.md`, "Needles".

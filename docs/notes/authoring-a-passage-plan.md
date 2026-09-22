@@ -80,6 +80,20 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   occurrence. Measured: one needle swept a stale table header to zero while six
   body rows and a parenthetical kept the retired label, and the paraphrase
   elsewhere was found only by a reviewer's read of the neighbourhood.
+- **Every sweep loop passes `--` before the needle:** `grep -rF -c --
+  "$needle"`. Without the end-of-options marker, a needle whose own text begins
+  with `-` is read as an option and the loop errors out. Found at the cold read
+  of `tanto-bg-seats`'s task 23, in that task's own sweep, after two rows had
+  already been drafted without it — the shape needs `--` in every sweep loop,
+  not only the one that happened to draft a leading-`-` needle first.
+- **A needle sweep is structurally blind to the neighbour of a passage.** The
+  sentences that break are the ones sitting just outside a passage's own stated
+  old-text scope, now contradicting the passage the same task has just landed:
+  the passage's text is right, and the damage is in what it left standing next
+  to it. No needle names such a sentence, because it was never the target of a
+  passage — so no dry run, plan review, or cold read reaches it either, and
+  only a reading of the neighbourhood does. `docs/notes/tanto-measured-data-points.md`
+  carries the count from the batch that measured it.
 
 ## An entity-level sweep beside the phrase-level one
 
@@ -461,3 +475,47 @@ departure was correct and went unverified.
 The Expectations section above is this rule's neighbor: a stated reason is a
 prediction, and a prediction a plan states is a prediction a plan should
 run.
+
+## Extend the block that already covers a span
+
+When a finding or a needle names a span of text, check every **existing** block
+whose path matches before drafting a new one. The search for "does something
+already touch this text" is cheaper than drafting a new block and discovering
+the overlap by a `replay` failure afterward.
+
+Measured on `tanto-bg-seats`. The plan review's follow-up dispatch fixed two
+missing passages in `roles/keikaku.md`, and its first attempt added a new,
+separately numbered block over a span an existing block (`P22.11`) already
+partly covered. The result doubly covered four of `P22.11`'s six lines and
+broke `P22.11` itself — `occurrence-count: P22.11 — expected 1, found 0` — on
+the very next `replay`. The correction was to revert the new block and extend
+`P22.11` by its two missing leading lines instead.
+
+## A stray `$scratch` is data, not an obstacle
+
+A real-CLI measurement task's Step 1 checks `$scratch` **before** any `rm -rf`,
+and reads a stray non-empty `$scratch` as evidence of an earlier, incomplete
+attempt at the same task rather than as something in the way. Worth stating in
+a real-CLI plan's Global Constraints, so the next task does by rule what this
+one did by hand.
+
+Measured twice in one plan — `tanto-bg-seats`'s task 9 and task 14 — where the
+task's own `$scratch` path was found pre-populated with dead debris from an
+earlier attempt. Both times the debris was diagnosable as dead from static
+evidence alone (pid liveness, an empty `seats.json`, no completed clone),
+without touching it; both times the diagnosis was done by hand because nothing
+in the plan asked for it.
+
+## A measurement batch ends by diffing the fake against what it measured
+
+A fake written from a spec's guesses has to be re-derived from the real listing
+once the real listing has been measured. Give a measurement batch one last task
+whose only job is to diff the fake against the output the batch measured.
+
+Measured on `tanto-bg-seats`: `spawner.test.js`'s fake was written from the
+spec's guesses at task 1, and nine measurements later (tasks 7-15) it still
+printed an ISO `startedAt`, a `Removed worktree` line, and a `shoki-<topic>`
+branch — none of which the real CLI does. The divergence passed seven batches,
+and reached the roster, because the per-task reviewers read the fake against
+the spawner and never against the verification reports. Nothing in the plan
+paired the two.

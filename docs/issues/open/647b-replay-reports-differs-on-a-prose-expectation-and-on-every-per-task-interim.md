@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-20
+updated: 2026-09-22
 ---
 
 Source: shoroku shoroku-at-close
@@ -73,3 +73,18 @@ that replays only up to a cut, which also fixes issue-e2b1's unread `before:`
 value; and either a `--repo <checkout>` option or a "needs git / needs paths
 outside the written set → skipped" classification, like the one `replay`
 already has for `git` fences, so the output is readable at all.
+
+**2026-09-22, `tanto-bg-seats` — a second cause, and a remedy the plan author
+writes.** This run's replay printed `DIFFERS` 22 times on a run with **zero**
+passage failures. Two causes, both structural: the fences that sweep for the
+*old* text before an edit run in the *applied* tree, where those needles are
+already gone by construction; and a multi-line output compared to prose by
+substring, the shape already measured twice above.
+
+The first cause is new here, and it points at a remedy none of the fixes above
+names. Rejected alternative, with its reason: tightening the comparison inside
+`passage-check.js` would turn a crude but honest "look here" into a false
+`MATCH`. What helps instead is a fence annotation the plan author writes —
+`before:` / `after:` — so that `replay` knows which sweeps it should expect to
+read zero. That puts the knowledge where it exists: the author knows which side
+of the edit a sweep belongs to; the instrument cannot infer it.

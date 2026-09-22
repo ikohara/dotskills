@@ -1,13 +1,13 @@
 ---
 id: "a1ae"
 title: the close's recommend, check, and apply are a live Hosa's, and Kanri hands over without waiting for them
-status: accepted
+status: superseded
 supersedes: []
-superseded_by: null
+superseded_by: "26fd"
 amends: []
 amended_by: []
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-22
 ---
 
 ## Context

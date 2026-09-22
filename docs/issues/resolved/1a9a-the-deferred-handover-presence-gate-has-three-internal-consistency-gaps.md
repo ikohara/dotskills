@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-09-22
 ---
 
 Source: session 2026-09-14
@@ -63,3 +63,8 @@ the count.
   landed edits (the Timing-section sentences), which do not touch this
   sentence — so it was not absorbed and remains open. A wording fix on the
   scale of a clause, wherever `roles/kanri.md`'s "The trigger" is next opened.
+
+Resolved by decision-345b: the presence gate is removed. The handover fires on
+its signal and the successor is spawned, so the deferral logic these gaps were
+internal to no longer exists to be inconsistent. The gate existed for hands the
+landed design removes, and it had read `absent` at eighteen boundaries in a row.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-20
+updated: 2026-09-22
 ---
 
 Source: session 2026-09-17
@@ -30,3 +30,10 @@ whose topic is not inferable. Since decision-0775 the address argument is no
 longer an address channel — it survives only as the bootstrap for a workspace
 with no roster — so the proposed form is `/tanto <role> [<topic>]`, surfaced
 in the handshake line as `topic=<word>` when given.
+
+Resolved by decision-8320: a spawned seat does not handshake at all. Its
+identity is the `sessionId`, and the roster rows are written by Kanri from the
+spawner's own result files, which carry the topic the spawn request named. The
+ambiguity this issue costs a round-trip for arises only where a seat announces
+itself, and the seats that still do are the tab seats the human opens for a
+named topic.

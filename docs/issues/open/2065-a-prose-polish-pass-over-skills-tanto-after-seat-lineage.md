@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-20
+updated: 2026-09-22
 ---
 
 Source: shoroku seat-lineage
@@ -294,5 +294,25 @@ topic's own renumbering had to chase all eleven. Naming the steps (`the send`,
 cheap. Not a defect on its own — the eleven cross-references are the measured
 cost of the current numbering, and this pass is where a change of that size
 belongs.
+
+**2026-09-22, `tanto-bg-seats` — two more sites, from that plan's fix wave.**
+
+- **The `worktree:` request key.** Nothing in the skill states that the CLI
+  derives the worktree's branch name, `worktree-shoki-<topic>`, from the spawn
+  request's own `worktree: shoki-<topic>` key. Task 26 fixed every site that
+  named the wrong branch, but the derivation itself is still implicit; one
+  half-clause at the request key's own definition keeps a future editor from
+  reading the two spellings as a typo. Related, and deliberately not adopted:
+  the literal branch spelling used at every fixed site rests on one
+  CLI-version measurement, where `git -C <worktree> branch --show-current`
+  would survive a future CLI naming change.
+- **`README.md` line 14.** The defining sentence for the class of session the
+  human does not type into reads "every other seat is a background session, an
+  instrument of the skill's starts, stops, and resumes …". It should read
+  "every other seat is a terminal seat, a background session an instrument of
+  the skill's starts, stops, and resumes …", so that the term is defined before
+  it is used. Task 27 corrected every site that later *uses* the retired term
+  "background seat", but not the one sentence that defines its replacement — so
+  a README-only reader now meets "terminal seat" before it is ever defined.
 
 A prose-quality backlog, not a user-stated need, so no paired requirement.

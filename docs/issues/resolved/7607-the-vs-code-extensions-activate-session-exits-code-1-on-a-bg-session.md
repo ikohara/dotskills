@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-09-22
 ---
 
 Source: shoroku tanto-diet S-29
@@ -27,3 +27,10 @@ the CLI's; whoever re-checks should capture both.
 Re-check on the extension's next update. Until it passes, a background seat is
 reachable by terminal attach only, which is the state the
 `2026-09-20-tanto-bg-seats-probe.md` report froze.
+
+Resolved by decision-363c: the extension's "Activate session" is not a premise
+of the design. A terminal seat is reachable from the editor's integrated
+terminal by the CLI's own `attach`, precisely because the extension's bundled
+binary and the CLI drift — which is what this issue measured. The failure
+stands as recorded; it simply no longer blocks anything, so there is nothing
+left to re-check on the extension's account.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-09-22
 ---
 
 Source: inbox 2026-09-16-queued-keikaku-coldread-delete-collision
@@ -39,3 +39,10 @@ table row for Keikaku.
 
 Alongside issue-bb8c (broadcasting `checkout free:` to two queued Keikaku
 sessions), the precedent `shoroku-at-close`'s own R-18 named.
+
+Resolved by decision-363c and decision-8320: a Keikaku is a terminal seat that
+the run starts and stops, and its lifetime is the work it was started for rather
+than a row in a table the human reads. The Delete table's `coldread answered:`
+row no longer decides whether a queued topic's Keikaku persists — the run does,
+by holding or releasing the seat, and a seat that is stopped and later needed
+again is spawned again against the same topic with no identity lost.

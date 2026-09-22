@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-09-22
 ---
 
 Source: shoroku tanto-diet S-25
@@ -35,3 +35,11 @@ untracked Kikaku decision file. Related: issue-11db (rule 11 does not cover a
 live session of another topic when the skill changes under it) and issue-28f2
 (whether a session adopts its own role file's text once it has landed
 mid-tenure) — the same family, both about which text a session is running on.
+
+Resolved by decision-b909: a plan that edits the skill the seats read spawns all
+its Jissos at the plan's landing, where they wait reading nothing, so every one
+of them reads the same skill. Every other plan keeps the one-per-batch shape
+this issue was filed against, where the hazard does not arise. Rule 11's
+boundary needed neither a pinned copy nor a rewritten clause — the pinned
+snapshot was weighed and rejected in that ADR's Options, for want of a
+per-session load path.

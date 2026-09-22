@@ -5,9 +5,9 @@ status: accepted
 supersedes: []
 superseded_by: null
 amends: ["6dea", "eee2", "f496"]
-amended_by: []
+amended_by: ["b909"]
 created: 2026-09-18
-updated: 2026-09-18
+updated: 2026-09-22
 ---
 
 ## Context

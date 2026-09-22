@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-09-22
 ---
 
 Source: shoroku bug-report-hold S-33
@@ -27,3 +27,10 @@ rule already reads — the right transcript, the wrong record set.
 
 The fix direction is a record kind rather than a wider read: count a human
 message anywhere in the transcript, not only one that woke the session.
+
+Resolved by decision-345b: the presence read no longer gates anything the
+handover does. `reading.js --presence` survives as a reading, but nothing in the
+run branches on it, so a blind spot in what it counts costs a deferral no
+longer. Should a later design give the presence read a decision to make again,
+this issue's measurement — a human message that arrives mid-turn leaves no
+record the read looks at — is the one to re-file against it.

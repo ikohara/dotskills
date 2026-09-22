@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-19
+updated: 2026-09-22
 ---
 
 Source: shoroku seat-lineage
@@ -36,3 +36,18 @@ change to `subagent-driven-development`: that is a composed skill this
 repository does not edit (design-4807, "Deviations from the composed skills").
 
 A process gap, not a user-stated need, so no paired requirement.
+
+**2026-09-22, `tanto-bg-seats` — the same class, on a review's own remedy text.**
+Task 26's brief specified `git worktree remove --force <path>` verbatim, copied
+from the whole-branch review's own suggested fix. That suggested fix was itself
+technically incomplete: git needs `--force` twice for a *locked* worktree, and
+the same brief's own sentence establishes the worktree as locked. A further
+ruling and fix round followed.
+
+This is the first case in this run where a *review's own remedy text*, rather
+than the original defect, needed the fix round — which widens the issue by one
+author. The dispatcher's improvised wording is one source of unreviewed text; a
+reviewer's suggested fix, copied verbatim into a task brief, is another, and it
+arrives carrying a reviewer's authority. Whether a review's suggested fix should
+be spot-checked against the tool's own documented behavior before it is quoted
+into a brief is the same sentence's work.

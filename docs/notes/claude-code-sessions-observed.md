@@ -399,3 +399,56 @@ which passed 23/23 twice in a plain shell and failed only under the wrapper.
 Nothing to change in the code — whoever runs `node --test` through a wrapper
 should expect the phantom failure and re-run the file directly before
 believing it.
+
+## `attach` detaches without stopping; `claude agents` needs a TTY (2026-09-20)
+
+Read from the CLI's own help on 2.1.278, not measured by a probe.
+
+`claude attach --help` documents the detach outright: "← returns to agent
+view, Ctrl+Z drops back to your shell. The session keeps running either way."
+Leaving a visit is therefore not an exit, and a design that spawns a seat and
+has the human drop in on it needs no separate "how do I leave without killing
+it" mechanism.
+
+`claude agents` without `--json` requires a TTY. A session's own Bash tool
+gets the refusal text instead of the listing, so the TUI view is the human's
+alone; anything a session reads about the seats it shares a machine with comes
+through `--json`.
+
+## An identical `SendMessage` resend is dropped by the harness
+
+Measured 2026-09-21 in the `tanto-bg-seats` run. A `SendMessage` whose content
+is identical to the immediately preceding send to the same recipient is
+silently dropped rather than delivered twice. The only signal is a
+`[Cross-session delivery notice]`, and it arrives to the **sender** — not as a
+poll result, and not to the recipient at all.
+
+The exposure is any role that resends a status line. A legitimate resend — the
+same status re-asserted after an intervening unrelated message — is swallowed
+with no visible symptom beyond that notice, which a role that does not read
+every notification carefully will miss. No `tanto` role file warns about this;
+a resend that must land needs a word changed in it.
+
+## A weekly-quota 429's stated reset did not gate the retry (2026-09-22)
+
+A `boundary.verify` dispatch was refused with a weekly-quota 429 naming
+`resets Sep 26, 7am Asia/Tokyo`. The same dispatch, unchanged, was retried the
+next day — 2026-09-22, well before the stated reset — and succeeded outright.
+The stated reset time therefore does not reliably predict when a retry will
+succeed; the behavior looks closer to a burst or per-session throttle that a
+plain retry-later already clears.
+
+Beside it, a gap in the skill's own text: `SKILL.md`'s Limits section is
+written for a **peer** sending Kanri a `paused:` line, and does not name
+Kanri's own dispatch hitting the limit directly, which is what happened here.
+
+## The context-mode sandbox read `.tanto/` and refused `.superpowers/`
+
+Measured 2026-09-22 by the `branch.review` seat of the `tanto-bg-seats` run.
+The context-mode sandbox the seat ran under could read `.tanto/` normally but
+refused `.superpowers/` with a localized access-denied error, so the SDD ledger
+had to be read through the plain Bash tool instead.
+
+The consequence for a dispatcher: a `branch.review` brief that names the
+ledger should also say which tool reads it, or the seat spends a round
+discovering the refusal.

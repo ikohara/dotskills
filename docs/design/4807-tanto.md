@@ -2,7 +2,7 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-09-20
+updated: 2026-09-22
 ---
 
 ## Purpose and shape
@@ -191,6 +191,11 @@ and no `tanto` session is renamed after it has started — decision-73c3. Kanri
 skips the handshake and receives them; its start line prints its own name and
 ref, which is the address every lifecycle request carries. Standalone Kaiseki
 sends no handshake.
+
+The run's first Kanri is started the same way as every other terminal seat —
+the launcher asks the spawner for it rather than running `claude --bg` itself
+— so that the rule that the spawner is the only process that runs
+`claude --bg` has no exception a reader has to remember.
 
 ## Addressing, and why by born name
 
@@ -606,7 +611,11 @@ watchdog — is what the measurement rejected.
 verified and whenever Kaiseki is created or deleted — Sekkei's commit rule and
 its pause both depend on facts only Kanri holds, and Sekkei is forbidden to poll
 for them. Sekkei answers that line with `committed <subject>` or
-`nothing to commit`, which is the pair Kanri waits for before moving on.
+`nothing to commit`, which is the pair Kanri waits for before moving on. The
+wake-up table that first sized this channel called that reply droppable, on
+the reasoning that `git log` carries the same fact; the reply gates Kanri's
+next prompt, so it is kept for the peers that write a `commit-ready:` ledger
+event and dropped for the rest.
 
 The side channel runs the other way too, through a file rather than a message:
 the spec dialogue happens in Sekkei's window under a standing grant, and its
@@ -954,6 +963,15 @@ line on what comes next. Kanri reads four of those sections first, and the batch
 prompt names which four. The questions section is the only one written in the
 human's chat language.
 
+**When a plan-mandated finding is fixed now, and when it is parked.** Fix it
+in the batch only when the change is both mechanically verifiable against
+downstream code the executor has already read and confined to prose or test
+assertions rather than to runtime behavior; a finding in production code that
+carries an architectural trade-off — an event-loop serialization assumption,
+an error-handling contract — is parked for the fix wave, which judges it once
+against the whole branch instead of rippling a mid-batch patch into the
+measurements the later batches take (req-04f5).
+
 ## The Kaiseki branch and standalone mode
 
 The branch runs **only when the cause of a failure is unknown**. A known cause
@@ -1005,6 +1023,12 @@ with the complete findings list, runs **exactly one** scoped re-review of the fi
 wave, adjudicates residuals in the SDD ledger, and reports. There is no second
 fix wave; residual load-bearing findings reach the human through Kanri's merge
 question.
+
+A ruling that hands a fix to the fix wave names the fix's **mechanism**, not
+only its outcome, whenever the fix is itself an identity or a race question: a
+ruling that asked for a `seats.json` entry "newer than the handover file's
+mtime" was implemented against the file's own mtime rather than per row, and
+inverted the behavior it was written to produce.
 
 **Why the step earns its seat after every per-batch check has passed clean.** A
 check that reruns the derivation the drafting itself used re-derives the
@@ -1063,6 +1087,22 @@ doing. Measured three times in the tanto-workspace run — two task reviews and
 the fix wave's re-review — each reviewer agreed with the ruling independently,
 and one weighed three alternatives before doing so, which is evidence the seat
 was genuinely free to disagree rather than merely told it was.
+
+**A dependent task is dispatched against the file as committed, not against
+the plan's text.** Whenever an earlier task's fix round diverges a file from
+its own plan-mandated block, the very next task that depends on that file
+carries, in as many words, the instruction to satisfy it as committed on disk
+rather than as the plan's now-stale text.
+
+**A task whose implementer must be the controlling session is still reviewed
+twice.** A measurement task whose defining act needs the controller's own
+identity — a `SendMessage` whose reply routes to the sender, a reboot the
+controlling session carries across — cannot be delegated to a subagent, so
+the executor performs it itself. The Model Selection table's premise that the
+implementer is always a dispatched subagent has this one exception, and it is
+an exception in the implementer alone: the record the task produces goes to
+the two review seats exactly as a subagent's diff would, which is what caught
+the gaps the executor's own first draft did not see.
 
 ## Shoroku staging, session exits, and the adoption rule
 

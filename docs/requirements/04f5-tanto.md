@@ -2,7 +2,7 @@
 id: "04f5"
 title: tanto — multi-session orchestration of one implementation plan in Claude Code
 created: 2026-09-06
-updated: 2026-09-20
+updated: 2026-09-22
 ---
 
 ## Purpose
@@ -28,10 +28,13 @@ artifacts.
   role that builds or runs is placed where that would be assumed; roles that
   write only documents may draft anywhere, and the checkout belongs to the
   role whose batches are in flight.
-- **Roles in separate sessions, at the human's hand.** Each role is its own
-  session on the same repository and branch. The human creates and deletes
-  sessions; Kanri is the only role that asks, and every request is a numbered
-  list of commands the human can paste as they are.
+- **Roles in separate sessions; the human opens the seats that talk to them,
+  the run starts the rest.** Each role is its own session on the same
+  repository and branch. A seat whose work is dialogue with the human is
+  opened by the human in the editor; every other seat is started, stopped, and
+  resumed by an instrument of the skill's that runs outside any Claude
+  session, on a request the run writes to a file, so that no session issues a
+  session-creating command and the human opens no window for a machine seat.
 - **Kanri is resident, but its context cost does not grow with its tenure.**
   Kanri's role stays across plans; the session that carries it is reset so
   that the human never pays for a conductor's accumulated context beyond the
@@ -44,18 +47,20 @@ artifacts.
 - **Kanri's address is read, never announced.** A role reads Kanri's address
   from the roster at the moment of sending; no role caches it and no line
   announces it.
-- **The human is interrupted only at defined checkpoints.** The spec dialogue;
-  one OK before the plan is committed; batch boundaries, and there only for
-  the stop classes of subagent-driven development and a scope or spec change;
-  the shoroku recommendation once per topic, at its close, answered by
-  exception — `OK` as recommended, or the items that go the other way; and
-  the merge decision.
-  Beyond those, the human is asked only for what only the human can do:
-  create or retire a session when Kanri requests it, confirm the items a
-  compaction summary attributes to the human, settle a triage or handover
-  question Kanri cannot decide alone, and give, at a plan close, a figure
-  only the human's own account view shows, answerable with silence.
+- **The human is interrupted only at defined checkpoints.** The spec dialogue
+  and its kessai; the close kessai — the recommendation, the merge decision,
+  and the merge's form as one question, answered by exception; a batch
+  boundary only for the stop classes of subagent-driven development and a
+  scope or spec change; and a seat that blocks on a prompt only the human can
+  answer. The plan's brief is written for the human to read and is not waited
+  for. Beyond those, the human is asked only to confirm the items a compaction
+  summary attributes to them, to settle a question Kanri cannot decide alone,
+  and to give, at a plan close, a figure only their account view shows.
   Everything else is a ruling a role records in a file.
+- **The run tells the human when it needs them.** A seat that blocks, and a
+  kessai that waits, raise a notice on the machine without the human
+  configuring anything; a harness hook may be added for immediacy and is
+  never required.
 - **The human's counterpart is Kanri.** A role addresses the human directly
   only for what needs the human's eyes or hands, such as a visual check in a
   browser or a GUI, an OS dialog, or a credential, and only after Kanri has
@@ -110,8 +115,14 @@ artifacts.
   for it. The artifacts of the composed skills stay where those skills put
   them and are reached by the path Kanri names, so that a spec or a plan
   written by another skill changes nothing in tanto.
-- **A session resumed under a new name rejoins the run as easily as
-  possible.**
+- **A repository that uses tanto carries no launcher of it.** The launcher and
+  the spawner ship with the skill; a consuming repository's tree holds the
+  untracked state directory, the project config it chooses to keep, and the
+  ignored project-scope definitions — nothing else, and no script.
+- **A run is resumed with one command, and a session's identity survives its
+  renaming.** The identity is the session's id, read from the CLI; the human's
+  part after a restart is one command and, for the resident, one word in its
+  terminal.
 - **A seat's last words say whether the seat can be released.** Whenever a
   session ends a turn by going idle, the text it leaves in its own window
   names where its work landed and which step of the contract, if any, still
@@ -127,15 +138,20 @@ artifacts.
   nothing until the work that names it arrives, and is sent nothing before
   that, so that a broadcast to the run's windows costs the waiting ones
   nothing.
-- **A run's windows are reused, not multiplied.** A session that has finished
-  is released to be `/clear`ed and given its next role by the human, never
-  closed, and the run's lines reach only the windows the roster says hold a
-  role, so that a bare window is never asked to act.
-- **The sessions a plan needs are opened while the human is present.** Where
-  the number of seats a plan will consume is known at its landing, the run
-  asks for them then, in one list, rather than asking again at a boundary
-  the human may not be watching. A seat that has not been given its work
-  yet is not a decision the run has to make later.
+- **A run's windows are reused, not multiplied, among the seats the human
+  opens.** Such a session, once it has finished, is released to be `/clear`ed
+  and given its next role by the human, never closed, and the run's lines
+  reach only the windows the roster says hold a role, so that a bare window is
+  never asked to act.
+- **A seat is started when its work exists.** An executor is started for one
+  batch when that batch's prompt exists, and stopped at its boundary; the one
+  exception is a plan that edits the skill the seats read, whose executors are
+  all started at its landing and wait, reading nothing, so that every one of
+  them read the same skill.
+- **The human reaches any seat from the editor.** A machine seat is reachable
+  from the editor's integrated terminal by the CLI's own attach; the editor
+  extension's session list is not a premise, because its binary and the CLI's
+  drift.
 - **A session's cost is measured, not guessed.** Every role reads its own
   transcript at its boundaries, the roster keeps the readings of the current
   run, and the archive keeps them across runs. The reading includes the turn's
@@ -146,9 +162,9 @@ artifacts.
   both what the human pays per wake-up and what the model can still attend to
   stay inside known limits rather than being discovered after the fact. The
   bound is measured in the unit the harness bills — tokens of context per
-  turn — and the run's response to crossing it is timed to the human, since
-  the seat's replacement is the human's act. What the ceiling is, and how it
-  is arrived at, is a recorded decision, not a requirement.
+  turn — and the run's response to crossing it is a handover that needs no one
+  present, since the successor is started by the run. What the ceiling is, and
+  how it is arrived at, is a recorded decision, not a requirement.
 - **Root cause before more fixing.** When fix rounds fail for a reason nobody
   can name, the strong model leads an interactive root-cause pass; the fix it
   prescribes goes through the ordinary implementation review.
@@ -159,7 +175,9 @@ artifacts.
   human confirms what lands without having to read every item cold. Every
   planned exit of a session, in any role, carries its own shoroku before the
   human closes it, so that nothing a session learned is lost with it. An exit
-  forced by a failure is the exception, and the record says what was lost.
+  forced by a failure is the exception, and the record says what was lost. The
+  write-out leaves the critical path: the product's fixes land before the
+  merge, the records after it, and the records are verified at their landing.
 - **A seat's replacement never waits on a document review.** What a retiring
   seat has to excerpt accumulates where its successor can add to it, and the
   human checks that material once per plan, not once per seat change. Nothing
@@ -170,19 +188,23 @@ artifacts.
 - **The human reviews through a brief of the judgment points.** Before the
   human reads a spec or a plan, a third party that shares no context with the
   author writes a brief, in the chat's language, of only the points that need
-  the human's judgment, each with a pointer into the document. The human's answers to those points
-  are the confirmation the review asks for, and the human reads the document
-  where a point sends them. The human's own words in the spec dialogue are
-  kept as a record, so that Kanri and the write-outs read them rather than a
-  paraphrase.
+  the human's judgment, each with a pointer into the document. The human's
+  answers to a spec brief's points are the confirmation that review asks for;
+  a plan brief is written for the human to read, and its `— If unanswered:`
+  clauses are the plan's answers unless the human overrides one in Kanri's
+  window or by a decision file. The human reads the document where a point
+  sends them. The human's own words in the spec dialogue are kept as a record,
+  so that Kanri and the write-outs read them rather than a paraphrase.
 - **Escalated wording reaches the human in the chat's language too.** When
   the wording of a requirement or an ADR that Kanri escalates is in a language
   other than the chat's, the escalation carries the original followed by a
   reference translation in the chat's language; the original is what is
   written, the translation is what the human reads it by.
-- **Claude Code only, and says so.** The skill depends on session discovery and
-  cross-session messaging that no other Agent Skills host provides, and its
-  documentation states this next to the host-agnostic skills in this repo.
+- **Claude Code only, and says so.** The skill depends on session discovery,
+  cross-session messaging, and its CLI's background sessions, which no other
+  Agent Skills host provides, and its documentation states this next to the
+  host-agnostic skills in this repo, naming the background sessions with the
+  version that first carried them.
 
 ## Out of scope
 

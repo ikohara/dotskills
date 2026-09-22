@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-09-22
 ---
 
 Source: session 2026-09-13
@@ -64,3 +64,19 @@ built-in `git` and `verify` skips, which `boundary` does not inherit, for the
 two checks that must run in one subject and not the other. That narrowing is a
 plan author's workaround, not a fix: it has to be redone, by hand and
 correctly, in every plan that declares a skip.
+
+**2026-09-22, `tanto-bg-seats` — a pattern that matched nothing, and the lint
+rule that would have said so.** A `replay-skip:` pattern is matched by plain
+substring against a fence's own text (`fence.command.includes(pattern)`), not by
+matching the *intent* the pattern's prose describes. This plan's first-draft
+patterns were written as descriptions — "scratch clone", "git worktree" as two
+words — rather than as literal excerpts of the fenced text, and so silently
+skipped nothing. Nothing in `lint` catches that: a `replay-skip:` pattern
+matching zero fences is not itself a lint error.
+
+The consequence was measured, and it was not cheap: the fence those patterns
+were meant to skip started a resident process, and `replay` hung on it for 86
+minutes (issue-126e). A `passage-check.js lint` check — does each declared
+`replay-skip:` pattern occur as a literal substring in at least one fence the
+plan actually contains? — would have caught this on the first `lint` run instead
+of the first `replay`.

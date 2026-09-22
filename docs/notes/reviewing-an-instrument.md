@@ -116,3 +116,24 @@ plan runs against the skill itself are in
   were what asked for the wrong word, so that is where the correction landed.
   Filing against the script would have produced a patch that made the code
   disagree with its own specification.
+
+## A comment that promises behavior implemented elsewhere
+
+- A cross-file invariant — "component A's comment promises component B catches
+  case X" — is checked by a measurement across both, never by either file's own
+  review. Neither reviewer is wrong: A's reviewer reads a comment that
+  correctly names a real safeguard, B's reviewer reads a safeguard that is
+  correctly implemented, and the gap sits in the one window where the two meet.
+- Measured on `tanto-bg-seats`'s task 10. A second Kanri spawns when the first
+  crashes before writing `.tanto/roster.md`, and that was found by a real
+  reboot, not by code review — although `tanto.js:225-229`'s own comment names
+  the exact failure mode it believes it prevents. The comment's claim and the
+  code's behavior diverged precisely because the safeguard it describes lives
+  in `roles/kanri.md`'s "Second Kanri" rule and depends on state
+  (`.tanto/roster.md`) that does not yet exist in the very window the comment
+  is about.
+- The reviewer's move: read such a comment as an unverified claim about another
+  file, and either resolve it there — open the named file, find the rule, check
+  what it reads and when — or name it as unchecked. A comment that cites a
+  safeguard is the cheapest place a reading review can notice that it is being
+  asked to trust something it cannot see.
