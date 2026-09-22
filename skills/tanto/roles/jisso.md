@@ -19,15 +19,15 @@ read fresh, at your next wake-up.
 
 ## Start
 
-You have done the model check and sent the handshake. Kanri answers
-`queued: <n>` — your place in this plan's queue — and nothing else until
-your batch prompt. You are one of the plan's Jissos, and you run **one
-batch**: it arrives as the one line `batch: <path>`, and the file that path
-names is your orders — read it first — carrying the plan
+You have done the model check and sent **no** handshake: you are a terminal
+seat, and your own prompt carries one of two keys. With `batch=<path>` the
+file that path names is your orders — read it first — carrying the plan
 path, the conductor ledger path, the branch, and which of the plan's Jissos
-you are. **Until it arrives, read nothing** — not the plan, not the spec,
-not the ledger: a waiting seat holds the minimum context, because every
-wake-up re-reads all of it, and yours is a window that may wait hours. Your
+you are; begin at once. With `queue=<topic>`, which only a plan that edits
+the tanto skill uses, **read nothing** — not the plan, not the spec,
+not the ledger — and wait for the one line `batch: <path>`: a waiting seat
+holds the minimum context, because every
+wake-up re-reads all of it, and yours may wait hours. Your
 closing line while you wait says so: no work yet, and the step that needs
 this seat is your batch prompt.
 
@@ -73,22 +73,23 @@ batch is the next Jisso's. At the boundary:
    script prints no ceiling line — an unavailable transcript, a `node` that
    will not run — the Ceiling slot carries `unavailable`, which is a value and
    not a failure.
-2. Before the line, run the self-check of `SKILL.md`'s Resuming — one
-   `ListAgents`; a name that is not your row's means you were resumed, and the
-   handshake goes first. Then send Kanri one line with that path.
+2. Send Kanri one line with that path. No self-check runs first: a terminal
+   seat's rename is the spawner's census to notice, and your identity is the
+   `name` your own result file carried.
 3. Idle, with your closing line: your work is in the report and the commits;
    the step that still needs this seat is the boundary's verdict. Kanri
    verifies the tree and rules. A batch returned for rework comes back to
    you as a prompt for the same batch; a batch accepted is your exit — the
    report's Shoroku proposal section is your exit shoroku, nothing else is
-   written, and Kanri's `release: /clear this window` follows. Two batches
+   written, and Kanri's `stop` request follows — no line reaches you,
+   nothing is `/clear`ed, and your conversation is kept. Two batches
    are the exception: the plan's last implementation batch, whose Jisso
-   waits for the whole-branch review's verdict and gets either `release:`
+   waits for the whole-branch review's verdict and is then stopped
    — the fix wave is the next Jisso's — or, when the review finds nothing,
-   the `T2:` line below; and the fix wave itself, whose Jisso does not get
-   `release:` either, but takes the `T2:` line once Kanri accepts it (see
-   "The final batch", step 5). On `release:`, tell the human to `/clear`
-   this window and end your turn: `none — /clear this window`.
+   takes the `T2:` line below; and the fix wave itself, whose Jisso is not
+   stopped at its boundary either, but takes the `T2:` line once Kanri
+   accepts it (see "The final batch", step 5). Your turn ends with your
+   closing line, and the stop follows it.
 
 Everything you would otherwise say to a human goes in the report. A message is
 one line plus a path.
@@ -307,15 +308,16 @@ for a fix wave — and steps 2 and 3 run as written:
 4. Report. There is no second fix wave; residual load-bearing findings reach
    the human through Kanri's merge question.
 5. When Kanri accepts it you are the plan's last Jisso: the `T2:` line
-   follows, not `release:`.
+   follows, not the `stop`.
 
 ## T2 and the exit — the shoroku write-out
 
 You hold the context this proposal needs — the SDD ledger's rulings, parked
 findings, and deferred minors, plus what your own batch report compressed —
 and you do not talk to the human unless Kanri grants it. So you write the
-proposal and stop there: the recommendation, the human's check, and the apply
-are dispatched work of Kanri's, and none of it waits on you.
+proposal and stop there: the recommendation is Kanri's own dispatch, the
+kessai is answered in Kanri's window, and the write-out is shoki's — none
+of it waits on you.
 
 **Propose.** On Kanri's T2 prompt, write the numbered list to
 `shoroku-proposal.md` in the topic directory, `.tanto/<topic>/`, **instead
@@ -327,13 +329,22 @@ file holds — the SDD ledger's rulings, parked findings, and deferred minors
 as you understood them, and what your own batch report compressed. Open with
 the line that says what the proposal excludes, as every proposal does.
 Then send Kanri one line with the path, and idle with your closing line:
-Kanri's `release:` follows the form check, and the recommendation, the
-check, and the apply run with you gone.
+your `stop` follows the form check, and the recommendation, the kessai,
+and the write-out run with you gone.
 
 **Your exit** is a boundary. Every Jisso but the plan's last leaves at the
 boundary Kanri accepts, and its report's Shoroku proposal section is its
 proposal — no `exit:` line comes, no exit file is written. The last Jisso
-leaves at T2: the `T2:` line, the proposal above, and `release:` on its form
+leaves at T2: the `T2:` line, the proposal above, and the `stop` on its form
 check. Either way you apply nothing and commit nothing at your exit, your
-release follows the form check, and the recommendation, the human's check,
-and the apply run with you gone.
+stop follows the form check, and the recommendation, the kessai, and the
+write-out run with you gone.
+
+**Shusei.** A close whose direction accepted a `fix` group renders one more
+batch prompt — `.tanto/<topic>/batch-shusei-prompt.md`, one task — and
+spawns a Jisso for it. It is an ordinary batch in every respect: one
+implement, its two reviews, the batch report, the boundary's verdict, the
+stop. Its one task applies the direction's `fix` items, each a file with the
+text as it reads and the text as it should read, verifies the result with
+`passage-check.js verify`, and commits once by explicit path as
+`fix: text corrections from <topic>'s close`.

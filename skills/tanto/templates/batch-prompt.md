@@ -1,12 +1,13 @@
-# Batch <X> — tasks <N> to <M> — to <name> [<ref>], Jisso <n> of this plan
+# Batch <X> — tasks <N> to <M> — Jisso <n> of this plan
 
 <!-- Sent as the one line `batch: <path>` naming this file. The file carries no
 `no-role` line of its own, because a file a line points at is not a message. -->
 
 Guard — this prompt belongs to the tanto workspace `.tanto/<topic>/` in
-`<repo path>` on branch `<branch>`, and to the Jisso named above. If that is
-not your workspace or your name, reply `not me` to the roster's first data
-row, read at that moment, and stop.
+`<repo path>` on branch `<branch>`. If that is not your workspace or your
+branch, reply `not me` to the roster's first data
+row, read at that moment, and stop. No name binds it: the seat that reads
+this file is the one the request that named it created.
 
 ## Previous batch verdict
 
@@ -15,10 +16,8 @@ then the report's For Kanri section, one line per point.>
 <Kanri fills — the ruling line: what was accepted, what was returned for
 rework and why. For the first batch, write "First batch, no previous
 verdict, no check: line.">
-<Kanri fills — the deferral line, written only when Kanri's handover stands
-deferred at this boundary, verbatim: "Kanri's handover is deferred since
-<batch X | the spec stage | the plan stage> — the ceiling is crossed and the
-human is absent; this batch runs under the same Kanri".>
+<!-- The deferral line is gone with the presence gate: a handover that is due
+runs at the boundary that found it, and its successor is spawned. -->
 
 ## What changes in this batch
 
@@ -42,9 +41,9 @@ where they are, anything the previous batch parked that these tasks touch.>
 
 ## Rulings to carry into dispatches
 
-Three slots in this file read `<Kanri fills>` in the rendered draft and are
-filled by Kanri after it rules: the Previous batch verdict's ruling line, that
-section's deferral line, and the first line below.
+Two slots in this file read `<Kanri fills>` in the rendered draft and are
+filled by Kanri after it rules: the Previous batch verdict's ruling line and
+the first line below.
 
 - <Kanri fills — the first ruling line: R-<n> — <the ruling, one line> — applies to tasks <N and M>>
 - Models, restated here so they survive compaction — the task implementation

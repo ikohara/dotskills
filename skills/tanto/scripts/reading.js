@@ -147,6 +147,40 @@ function loadCeiling(explicitConfig, explicitProjectConfig) {
   return { ceiling, warnings, paths: { personal: configFile, project: projectFile } };
 }
 
+/**
+ * The merged `sessions` map for a repository root: the shipped
+ * `templates/tanto.json`, then the personal file, then
+ * `<root>/.claude/tanto.json`, overlaid field by field, with a bare string
+ * setting `model` and leaving `effort` to the layers below.
+ *
+ * `root` is a parameter rather than `process.cwd()` because the one caller
+ * is the launcher, which the human runs from wherever they are standing;
+ * every other reader of this config is a session already bound to its cwd.
+ * Unknown keys are not reported here: this is a lookup for one seat's family
+ * and effort, and the start sequence is where a config file is audited.
+ */
+function loadSessions(root, explicitConfig, explicitProjectConfig) {
+  const sessions = {};
+  const layers = [
+    readJson(path.join(__dirname, "..", "templates", "tanto.json")),
+    readJson(configPathOf(explicitConfig)),
+    readJson(explicitProjectConfig || path.join(root, ".claude", "tanto.json")),
+  ];
+  for (const layer of layers) {
+    const source = layer && layer.sessions;
+    if (!source || typeof source !== "object") continue;
+    for (const [role, value] of Object.entries(source)) {
+      if (!sessions[role]) sessions[role] = {};
+      if (typeof value === "string") {
+        sessions[role].model = value;
+      } else if (value && typeof value === "object") {
+        Object.assign(sessions[role], value);
+      }
+    }
+  }
+  return sessions;
+}
+
 /** A usage field as a number, or 0 when it is absent or not one. */
 function tokens(value) {
   return typeof value === "number" ? value : 0;
@@ -464,6 +498,7 @@ function main(argv) {
 module.exports = {
   readTranscript,
   loadCeiling,
+  loadSessions,
   ceilingOf,
   main,
 };

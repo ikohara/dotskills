@@ -6,7 +6,8 @@
     "keikaku": { "model": "sonnet", "effort": "high" },
     "jisso": { "model": "sonnet", "effort": "xhigh" },
     "kaiseki": { "model": "fable", "effort": "xhigh" },
-    "hosa": { "model": "sonnet", "effort": "medium" }
+    "hosa": { "model": "sonnet", "effort": "medium" },
+    "shoki": { "model": "sonnet", "effort": "medium" }
   },
   "subagents": {
     "task.implement": { "model": "sonnet", "effort": "high" },
@@ -22,6 +23,7 @@
     "brief.write": { "model": "sonnet", "effort": "high" },
     "shoroku.recommend": { "model": "fable", "effort": "high" },
     "shoroku.apply": { "model": "opus", "effort": "medium" },
+    "shoroku.review": { "model": "opus", "effort": "medium" },
     "default": { "model": "sonnet", "effort": "medium" }
   },
   "ceiling": {

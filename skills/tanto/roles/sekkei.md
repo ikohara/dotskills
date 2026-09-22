@@ -56,13 +56,14 @@ not record is indistinguishable, to every later reader, from one you invented
 — and the reader who finds it is a reviewer filing a scope finding against
 your own document.
 
-When Kanri's orders line says no batch is in flight, cut the branch from
-`main`, named after the topic, **before** the spec commit; everything from
-here rides on that branch. When a batch of another topic **is** in flight,
-the spec is a draft: write it to `.tanto/<topic>/spec-draft.md`, run Step 2's
-review and the gate on that file, cut no branch, and commit nothing. The
-checkout belongs to the topic whose batches are running; the Keikaku created
-after that topic's merge cuts the branch and commits your text unchanged.
+Kanri cuts the branch, at the topic's opening or right after the
+predecessor's merge, and its orders line's `branch=` names the branch the
+tree is on: you commit there and cut nothing. When a batch of another topic
+**is** in flight, the spec is a draft: write it to
+`.tanto/<topic>/spec-draft.md`, run Step 2's review and the gate on that
+file, and commit nothing. The
+checkout belongs to the topic whose batches are running; the Keikaku spawned
+after that topic's merge commits your text unchanged, at its final path.
 
 Write the spec at the path above, self-contained. Kanri and Jisso both cold-read
 it, and neither can ask you what you meant without a round trip.
@@ -96,7 +97,9 @@ report to
 `.tanto/<topic>/spec-review.md` with a **Shoroku proposal** section at the
 end. When a batch of another topic is in flight, tell it — as the orders line
 tells you — that the in-flight plan's paths are out of scope. Rule on every
-finding yourself. Scope findings go to the human; everything else is yours.
+finding yourself. Scope findings go to the human, each with its recommended
+action stated in words — never as a pointer to a neighbouring sentence;
+everything else is yours.
 Then send Kanri one line with the report path: Kanri records its Shoroku
 proposal's items as `pending` rows.
 
@@ -109,7 +112,8 @@ that a line number in a finding has a fixed referent.
 
 Read a report by its sections and never whole —
 `node "$TANTO/scripts/passage-check.js" sections --file <path> <heading>`
-takes one or more headings and prints each with its body. The one exception is
+takes one or more headings — each as its text without its `#` marks — and
+prints each with its body. The one exception is
 a review report, which you read whole: every section of it is a finding you
 must rule on, so naming them saves nothing.
 
@@ -123,8 +127,12 @@ stands, with one line to the human saying what is wrong with it. You never
 edit the brief: a subagent shares none of your context, and that is the whole
 of its value here.
 
-Send Kanri `review-ready: <document path>; brief: <brief path>` — one line,
-sent before you ask the human, and it waits for nothing. Then put
+Write the ledger event `review-ready: <document path>; brief: <brief path>`
+yourself, through
+`node "$TANTO/scripts/boundary.js" record --ledger <path> --event "<line>"`,
+the ledger being the one your orders line's `ledger=` names, else your own
+topic's `.tanto/<topic>/kanri.md` — not a message,
+and no wake-up of Kanri's. Then put
 brainstorming's review gate to the human with the brief's text verbatim, the
 spec's path, and the brief's, and record the human's answers in `dialogue.md`
 in the brief's reply shape. A new brief is written when the human asks for
@@ -158,14 +166,21 @@ once, and the plan is Keikaku's from then on.
   is active at once, Kikaku excepted as human-paced; Keikaku and Hosa, on the
   cheaper families, do not count.
 
-You learn both from Kanri. If your work is ready and you have not heard, ask
-Kanri in one line and wait.
+You learn both from Kanri. When your work is ready and no boundary line has
+come, write the ledger event
+`commit-ready: sekkei <topic> — <subject> — <YYYY-MM-DD HH:MM>` through
+`boundary.js record --event`, to the ledger your orders line's `ledger=`
+names, and go on with your work. Kanri opens the commit window at the next
+boundary for the peers that event names, and for no others; you ask nothing
+and wait for nothing.
 
 Two more rules, one at each end of a batch boundary:
 
 - **The boundary reply.** When Kanri says the boundary is verified, commit if
   your work is ready and answer in one line, `committed <subject> — <reading>`
-  or `nothing to commit — <reading>`. Before the line, run the self-check of
+  — the reply is `committed <subject> — <reading>` alone, since the line
+  reaches you only when you wrote the `commit-ready:` event that opened the
+  window. Before the line, run the self-check of
   `SKILL.md`'s Resuming — one `ListAgents`; a name that is not your row's means
   you were resumed, and the handshake goes first. The authorization lasts until
   you answer or until Kanri's next message, and a commit you did not make

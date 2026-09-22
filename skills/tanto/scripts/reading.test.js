@@ -449,3 +449,33 @@ test("the unavailable form still prints three lines", () => {
   assert.strictEqual(lines[1], "effort=unknown");
   assert.strictEqual(lines[2], "ttl=unknown");
 });
+
+test("loadSessions returns the built-in seats when no file overrides them", () => {
+  const { loadSessions } = require("./reading.js");
+  const root = tmpDir();
+  const sessions = loadSessions(root, path.join(EMPTY_CONFIG_DIR, "tanto.json"));
+  assert.strictEqual(Object.keys(sessions).length, 8);
+  assert.deepStrictEqual(sessions.kanri, { model: "sonnet", effort: "high" });
+  assert.deepStrictEqual(sessions.shoki, { model: "sonnet", effort: "medium" });
+});
+
+test("loadSessions overlays the project file field by field", () => {
+  const { loadSessions } = require("./reading.js");
+  const root = tmpDir();
+  fs.mkdirSync(path.join(root, ".claude"));
+  fs.writeFileSync(
+    path.join(root, ".claude", "tanto.json"),
+    JSON.stringify({ sessions: { kanri: { effort: "medium" } } }),
+  );
+  const sessions = loadSessions(root, path.join(EMPTY_CONFIG_DIR, "tanto.json"));
+  assert.deepStrictEqual(sessions.kanri, { model: "sonnet", effort: "medium" });
+});
+
+test("loadSessions takes a bare string as the model alone", () => {
+  const { loadSessions } = require("./reading.js");
+  const root = tmpDir();
+  const personal = path.join(tmpDir(), "tanto.json");
+  fs.writeFileSync(personal, JSON.stringify({ sessions: { shoki: "opus" } }));
+  const sessions = loadSessions(root, personal);
+  assert.deepStrictEqual(sessions.shoki, { model: "opus", effort: "medium" });
+});

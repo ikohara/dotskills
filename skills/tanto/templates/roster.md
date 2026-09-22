@@ -4,26 +4,37 @@ Kept by Kanri at `.tanto/roster.md`. Kanri is the only writer.
 
 ## Keeping rule
 
-- One row per session that handshook, Kanri's own row first — a plan's
-  queued Jissos each have one.
-- One live session per role and topic, the plan's other Jissos `queued`;
-  Kanri, Kikaku, and Hosa one each. A second handshake for a role and topic
-  that already has a live row gets no row and is reported to the human; a
-  Jisso handshake while one is live is queued, not refused.
+- One row per seat, Kanri's own row first. A tab seat's row is written from
+  its handshake; a terminal seat's is written from the spawner's result
+  file, by `boundary.js record --seat <results path>` for a Jisso and by
+  Kanri's own hand for a Keikaku or a Kanri successor. A row that does not
+  exist yet while its seat is already working is not an error: the address
+  is not needed until Kanri sends to it.
+- One live session per role and topic; Kanri, Kikaku, and Hosa one each. A
+  second handshake for a role and topic that already has a live row gets no
+  row and is reported to the human. A plan that edits the tanto skill has
+  all its Jissos spawned at its landing and their rows `queued`; every other
+  plan has one Jisso at a time, spawned per batch.
+- A `renamed` mark in the spawner's `seats.json` — a known `sessionId` under
+  a new name — is Kanri's to reconcile: rewrite the row's Name column, write
+  the Events line `resumed: <old name> → <new name>`, and clear the mark
+  with an `ack` request. A tab seat that was resumed re-handshakes with
+  `/tanto fukki` instead, as it always did.
 - Every handshake rewrites that role's row in full. A handshake whose
   `transcript=` matches a row's Transcript column is that row's session
   resumed, and rewrites the row in place with the new name and `[ref]`, its
   status unchanged. A handshake whose name is on a `live` or `queued` row
   with a different transcript is that window `/clear`ed and re-invoked, in
   any role: the old row goes `cleared`, and a new row is written.
-- A row whose session is no longer listed by `ListAgents` gets status `dead`
-  — a closed tab, a crash, an editor restart before `/tanto fukki`; a
-  cleared window stays listed under its name, so this never detects a
-  `/clear`. A dead, replaced, refused, or cleared row stays, with its
-  Residency row, until the plan closes, then both move to
+- A row whose session has gone gets status `dead` — a closed tab, a crash,
+  an editor restart before `/tanto fukki` for a tab seat; the spawner's
+  census marking a terminal seat `gone` that no resume brought back. A
+  cleared window stays listed under its name, so neither route detects a
+  `/clear`. A stopped, dead, replaced, refused, or cleared row stays, with
+  its Residency row, until the plan closes, then both move to
   `roster-archive.md` as one row, so the run stays readable after a
   replacement and the roster stays short.
-- This is the address book: one row per session, Kanri's row first, the
+- This is the address book: one row per seat, Kanri's row first, the
   `Name [ref]` column being the address the row's session answers to, used
   as the bare name, and Kanri sends only to `live` rows. It stays correct
   because nothing renames a session, and a `/clear` keeps the name. The
@@ -43,20 +54,23 @@ flight, or, with none in flight, the plan whose landing requested the queue
 — or `—` for Kanri, Kikaku, Hosa, and a standalone Kaiseki. Effort is what
 the handshake's `effort=` carried.
 
-Status is one of `queued`, `live`, `cleared`, `replaced`, `dead`, and
-`refused`; a `live` cell may carry the suffix `(idle since <HH:MM>)`, which
-Kanri writes while a Kikaku, Hosa, or Kaiseki idles and the intake's
-address rule reads, so a reader tests the cell's first word, not the whole
-cell. `queued` is a Jisso waiting for its batch prompt, in handshake
-order. `cleared` records a window Kanri released — `release:` sent, the row
-marked as the line goes out — or whose `/clear` came to light another way: a
-handshake under a name already here with a different transcript, in any
-role, or a `no-role` reply to a line Kanri sent. `replaced` is the old row
-of a Kanri that handed over. `refused` records a handshake that got no row —
-a second live session for the same role and topic, or a model that did not
-match `sessions.<role>` — and is always followed by an Events line saying
-which; a second Sekkei or Keikaku whose topic differs from the live one's is
-not a duplicate and gets its own row.
+The status words are seven: `queued`, `live`, `stopped`, `cleared`,
+`replaced`, `dead`, and `refused`. A `live` cell may carry the suffix
+`(idle since <HH:MM>)`, which Kanri writes while a Kikaku, Hosa, or Kaiseki
+idles and the intake's address rule reads, so a reader tests the cell's
+first word, not the whole cell. `queued` is a Jisso of a skill-editing plan
+waiting for its batch prompt, in spawn order. `stopped` is a terminal seat
+the spawner stopped on Kanri's request, its conversation kept, or a `queued`
+row that never ran. `cleared`
+records a tab seat Kanri released — `release:` sent, the row marked as the
+line goes out — or whose `/clear` came to light another way: a handshake
+under a name already here with a different transcript, in any role, or a
+`no-role` reply to a line Kanri sent. `replaced` is the old row of a Kanri
+that handed over. `refused` records a handshake that got no row — a second
+live session for the same role and topic, or a model that did not match
+`sessions.<role>` — and is always followed by an Events line saying which; a
+second Sekkei or Keikaku whose topic differs from the live one's is not a
+duplicate and gets its own row.
 
 ## Residency
 
@@ -73,8 +87,8 @@ trigger check. Context holds the reading's fifth figure in the spelling the
 reading itself prints, `context=<n>`, so that a sweep for that spelling finds
 every place a reading lands. Kikaku sends no reading and its reading columns
 stay blank: it is the human's own seat, and its cost is the human's own
-pacing. A queued Jisso's stay blank until its boundary, and a queued row
-that never ran moves to the archive with its blanks. The last three columns
+pacing. A `queued` row's stay blank until its boundary, and one that never
+ran moves to the archive as `stopped`, with its blanks. The last three columns
 are Kanri's only — batches accepted,
 plans closed, and compactions noticed by the session itself, cumulative since
 its own start; a declined handover leaves Noticed incremented, so the count
@@ -82,8 +96,8 @@ stays a record, and a handover resets Kanri's row to the successor with zero
 counts. A reading Kanri doubted and could not verify carries `(unverified)`
 after its Compactions figure; when the session sent `transcript: unavailable`,
 `—` stands in the four figure columns and `context=unavailable` in Context, so
-that a `context=` sweep still finds the row. At the plan close every row whose session is dead,
-replaced, refused, or cleared moves to `roster-archive.md`, joined with its
+that a `context=` sweep still finds the row. At the plan close every row whose session is stopped,
+dead, replaced, refused, or cleared moves to `roster-archive.md`, joined with its
 status row above, and the archive's Context column across runs is the data any
 later ceiling for the roles that only measure would be read from — Kanri's and
 Jisso's come from `tanto.json`'s `ceiling` map, and issue-40ed's two halves

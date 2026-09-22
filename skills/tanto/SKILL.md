@@ -1,13 +1,13 @@
 ---
 name: tanto
-description: Use when the user starts or joins a tanto multi-session orchestration run in Claude Code, invoked as `/tanto <role>`, `担当して <role>`, or `tantoして <role>`, where the role word is kanri (管理), sekkei (設計), keikaku (計画), jisso (実装), kaiseki (解析), kikaku (企画), or hosa (補佐) in hiragana, kanji, or romaji. Drives one implementation plan through separate interactive sessions that message each other, composing superpowers brainstorming, writing-plans, subagent-driven development, systematic-debugging, and the shoroku write-out. Claude Code only, because it needs ListAgents and SendMessage.
+description: Use when the user starts or joins a tanto multi-session orchestration run in Claude Code, invoked as `/tanto <role>`, `担当して <role>`, or `tantoして <role>`, where the role word is kanri (管理), sekkei (設計), keikaku (計画), jisso (実装), kaiseki (解析), kikaku (企画), or hosa (補佐) in hiragana, kanji, or romaji. Drives one implementation plan through separate sessions, background and interactive, that message each other, composing superpowers brainstorming, writing-plans, subagent-driven development, systematic-debugging, and the shoroku write-out. Claude Code only, because it needs ListAgents and SendMessage.
 argument-hint: kanri | sekkei | keikaku | jisso | kaiseki | kikaku | hosa | fukki
 ---
 
 # tanto
 
 担当 — "take charge of." Multi-session orchestration for one implementation
-plan. Each role is its own interactive Claude Code session on the same
+plan. Each role is its own session, background or interactive, on the same
 repository and the same branch; the sessions address each other by name with
 `SendMessage` and hand real work over as files.
 
@@ -21,17 +21,17 @@ This file is the shared contract. Every role reads it, then reads exactly one
 
 | Role | Count | Owns | Talks to |
 | --- | --- | --- | --- |
-| Kanri (管理) | exactly 1 | roster, conductor ledger, batch prompts, rulings, the recommendations and the directions, the bug intake when no Hosa is live, the create requests and the `release:` lines | human, Sekkei, Keikaku, Jisso, Kaiseki, Hosa; Kikaku at its handshake only |
+| Kanri (管理) | exactly 1 | roster, conductor ledger, batch prompts, rulings, the recommendations and the directions, the bug intake when no Hosa is live, the spawn, stop, and attention requests, the kessai, and the `release:` lines to tab seats | human, Sekkei, Keikaku, Jisso, Kaiseki, Hosa; Kikaku at its handshake only |
 | Sekkei (設計) | 0 or 1 per topic | the spec and its review | Kanri; the human by grant |
 | Keikaku (計画) | 0 or 1 per topic | the plan, its dry run, and its review | Kanri; the human by grant |
-| Jisso (実装) | 1 live per topic, the plan's others queued | one batch of the SDD run each, its batch report and its commits; the last one, the T2 shoroku proposal | Kanri; the human by grant |
+| Jisso (実装) | 1 live per topic, spawned per batch — a self-editing plan's all at its landing | one batch of the SDD run each, its batch report and its commits; the last one, the T2 shoroku proposal | Kanri; the human by grant |
 | Kaiseki (解析) | 0 or 1, on demand | root-cause reports; never a fix; no commit | Kanri; the human by grant |
 | Kikaku (企画) | 0 or 1, opened by the human | the consultation, and the decision files under `.tanto/kikaku/` | the human; Kanri, one `decision:` line |
-| Hosa (補佐) | 0 or 1, opened by the human | the human's small chores, the bug intake, the hotfix lane's edits Kanri hands over, and the close's recommend, check, and apply, each in a slot Kanri gives | the human; Kanri |
+| Hosa (補佐) | 0 or 1, opened by the human | the human's small chores, the bug intake, the hotfix lane's edits Kanri hands over in a slot Kanri gives, and the kessai relay | the human; Kanri |
 
 ## Invocation
 
-`/tanto <role> [<address>]`, or `担当して <role>` / `tantoして <role>`.
+`/tanto <role> [<key>=<value> …]`, or `担当して <role>` / `tantoして <role>`.
 
 Normalize the role word to its romaji id before anything else.
 
@@ -49,11 +49,24 @@ Normalize the role word to its romaji id before anything else.
 Any other word: say the role is unknown, list those eight ids, and stop.
 
 `/tanto fukki` skips the start sequence — no model check, no first
-handshake — and runs "Resuming" below.
+handshake — and runs "Resuming" below. It is typed in a **tab seat**; a
+terminal seat is resumed by the launcher, `tanto`, and is told to run
+`/tanto fukki` only when it is the Kanri the human then attaches to.
 
-The optional second argument is Kanri's address, pasted by the human from
-Kanri's create request. Kanri runs `/tanto kanri` with no address.
-`/tanto kaiseki` with no address is standalone Kaiseki — see `roles/kaiseki.md`.
+There is no address argument: Kanri's address is the roster's first data
+row, for every role, and a workspace with no roster yet has no peer to
+bootstrap — its first session is the Kanri the launcher spawns, and Kanri
+writes the roster. The keys carry a spawned seat's orders, which a tab seat
+gets in Kanri's reply to its handshake instead:
+
+| seat | the prompt |
+| --- | --- |
+| Kanri, first or successor | `/tanto kanri` — the handover file, when one exists, is the Start section's Handover case |
+| Keikaku | `/tanto keikaku topic=<topic> spec=<path> plan=<path> ledger=<path>` — `ledger=` only when another topic's batch is in flight, naming that ledger |
+| Jisso, an ordinary plan | `/tanto jisso batch=<.tanto/<topic>/batch-<X>-prompt.md>` — the prompt file is its orders |
+| Jisso, a plan that edits this skill | `/tanto jisso queue=<topic>` — reads nothing and waits for the one line `batch: <path>` |
+| Kaiseki, attached | `/tanto kaiseki topic=<topic>` — the key is what makes it attached; `/tanto kaiseki` with no key is standalone Kaiseki, roster or no roster |
+| shoki | not a `/tanto` invocation at all: the prompt is the one line `brief: <.tanto/<topic>/shoki-brief.md>`, and shoki reads no role file and no `SKILL.md` |
 
 ## Start sequence
 
@@ -63,9 +76,13 @@ Two steps, in this order, before any role work.
 
 Read the expected-model config below and compare `sessions.<role>.model` with
 your own model id, which your system prompt states; a configured family
-matches when it occurs inside that id. On a mismatch, tell the human what was
-expected and what is running, ask them to run `/model <family>` and then
-`/tanto` again, and stop.
+matches when it occurs inside that id. On a mismatch in a **tab seat**, tell
+the human what was expected and what is running, ask them to run
+`/model <family>` and then `/tanto` again, and stop. A mismatch in a
+**spawned seat** never stops it: it appends `model: expected <a>, running
+<b>` to the first tanto line it sends, and Kanri writes an `attention`
+request on reading it (decision-08bc: the mismatch reaches the human either
+way).
 
 Then read your own effort as "The transcript reading" below says, and compare
 it with `sessions.<role>.effort`. Say both results in your start line —
@@ -80,7 +97,14 @@ model, and never switch an effort: the effort is the human's to change with
 ### 2. Handshake
 
 Kanri skips the handshake and runs the start sequence in `roles/kanri.md`
-instead. Every other role does the handshake below.
+instead. A **tab seat** — Kikaku, Hosa, Sekkei, Kaiseki — does the handshake
+below. A **spawned seat** — Keikaku, Jisso, and a spawned Kanri —
+sends none: its role, topic, model, effort, branch, and mode are in the
+request Kanri wrote, and its `sessionId`, name, cwd, and transcript are in
+the result the spawner wrote back. It runs the model check and the
+definitions write-out, then does what its keys say. Shoki is neither: its
+prompt is not a `/tanto` invocation, it reads no role file and no contract,
+and it runs no start sequence at all — its brief is the whole of it.
 
 ## The expected-model config
 
@@ -104,20 +128,25 @@ Three maps, three mechanisms. Every value of the first two maps is
   file's presence as much as its content, since a personal or a project
   override can be created, edited, or deleted at any time, and "it existed
   when I last checked" is never evidence that it exists now. Nothing switches
-  a session's model or its effort.
+  a session's model or its effort. Its eight keys are the seven roles and
+  `sessions.shoki`, the scribe the close spawns, which is a seat with a
+  family and an effort and no role file; the launcher reads
+  `sessions.kanri` from it through `reading.js`'s `loadSessions`, and Kanri
+  reads the rest when it writes a spawn request.
 - `subagents.<kind>` is **effective**. Its `model` goes into the `model`
   parameter of every subagent that role dispatches, and its `effort` into the
-  agent definition below. The fourteen kinds are `task.implement`,
+  agent definition below. The fifteen kinds are `task.implement`,
   `task.escalate`, `task.review-spec`, `task.review-quality`, `plan.draft`,
   `plan.review`, `plan.coldread`, `spec.review`, `branch.review`,
-  `boundary.verify`, `brief.write`, `shoroku.recommend`, `shoroku.apply`, and
-  `default`.
+  `boundary.verify`, `brief.write`, `shoroku.recommend`, `shoroku.apply`,
+  `shoroku.review`, and `default`.
 - A key inside `subagents` whose `<object>` is a **skill name** and whose
   `<act>` is one of that skill's modes means "run that mode of the skill in a
   subagent on that model instead of inline". When the key is absent, the mode
-  runs inline on the session's model. `shoroku.recommend` and `shoroku.apply`
-  are the two built-in skill-name keys, naming the `shoroku` skill's
-  recommend and apply modes; any other is a personal addition.
+  runs inline on the session's model. `shoroku.recommend`, `shoroku.apply`,
+  and `shoroku.review` are the three built-in skill-name keys, naming the
+  `shoroku` skill's recommend and apply modes and the review shoki runs over
+  its own diff before it reports; any other is a personal addition.
 - `ceiling` is **effective** in the sense `subagents` is: `scripts/reading.js`
   reads it, and the verdict `roles/kanri.md` acts on comes out of it — Jisso's
   is measured and kept, and acts on nothing, since one Jisso runs one batch.
@@ -125,7 +154,10 @@ Three maps, three mechanisms. Every value of the first two maps is
   `{ "batches": <N>, "per_batch": <tokens> }` — how many batches of measured
   consumption that seat may grow by above its own measured baseline, and what
   one batch costs it. `ceiling.presence_minutes` is the window inside which
-  the human's last turn in Kanri's own transcript still counts as present, and
+  the human's last turn in Kanri's own transcript still counts as present —
+  **informational only**: `reading.js --presence` still prints the verdict
+  and the ledger still records it, and no rule acts on it, the handover
+  having lost its presence gate — and
   `ceiling.share_threshold` the context above which a wake-up's usage counts
   toward the share Kanri reports at the plan close. A `ceiling.<role>` for any
   role but those two is an unknown key: Kanri is the one seat the ceiling
@@ -187,7 +219,7 @@ A kind's effort cannot ride in a dispatch; it rides in an agent definition,
 which the harness reads when a session starts. So, after reading the merged
 config and before any other work, make two passes.
 
-**User scope.** Write for each of the fourteen kinds the file
+**User scope.** Write for each of the fifteen kinds the file
 `~/.claude/agents/tanto-<object>-<act>.md` — the kind's name with its `.`
 turned into a `-`, under `$CLAUDE_CONFIG_DIR/agents/` when that variable is
 set — from `templates/agent.md`, when the file is absent or its content
@@ -203,7 +235,7 @@ identically for the same personal file, and it is what keeps the user-scope
 files stable across repositories: a project's effort written where every other
 project reads it is the failure this whole mechanism exists to prevent.
 
-**Project scope.** Then compute, for each of the fourteen kinds, the three-layer
+**Project scope.** Then compute, for each of the fifteen kinds, the three-layer
 effort. For every kind whose three-layer effort **differs** from the
 user-scope effort, write `<cwd>/.claude/agents/tanto-<object>-<act>.md` from
 the same template with that effort and with the `<scope>` slot rendered as
@@ -215,7 +247,7 @@ rides in the dispatch's own `model` parameter, and a definition carries none.
 For every kind whose three-layer effort does **not** differ, remove
 `<cwd>/.claude/agents/tanto-<object>-<act>.md` if it exists. That removal
 sweep runs whenever `<cwd>/.claude/agents/` exists, whether or not a project
-file does, and only those fourteen names and the retired `tanto-shoroku.md`
+file does, and only those fifteen names and the retired `tanto-shoroku.md`
 are ever removed — nothing else under
 that directory is touched. Without it, a project file edited to drop an effort
 would leave a project-scope copy that keeps winning while your start line
@@ -238,7 +270,7 @@ assume every tool. The description is protocol against the harness's
 proactive agent selection, not enforcement.
 
 Then read your own system prompt's list of available agent types and count
-the fourteen names in it, and among them the ones whose description carries the
+the fifteen names in it, and among them the ones whose description carries the
 project-scope clause. A definition written during a session is not visible to
 that session at either scope, so the first session on a machine that writes
 them dispatches without them, and a project effort takes effect from the
@@ -258,7 +290,7 @@ fields came from the personal file, and that the rest are built-in defaults,
 or `all keys built-in defaults` when both files are absent; the unknown keys,
 each named with its file; the ladder result if the check failed; and
 `agents: <n> current, <m> written, <k> not visible to this session; project: <p> current, <q> written, <r> removed, <s> in effect`,
-with `<s>` the number of the fourteen names whose description in this session's
+with `<s>` the number of the fifteen names whose description in this session's
 own agent list carries the project-scope clause, and with the kinds named when
 `<k>` is above zero. The `project:` half is printed even when all four of its
 numbers are zero, so that a start line always says which scope the session
@@ -309,17 +341,17 @@ reads as progress. The dispatcher verifies the file, not the reply.
 
 ## Handshake and roster
 
-A Sekkei, Keikaku, or Jisso started with no address on the command line reads
-the first data row of `.tanto/roster.md`, which is Kanri's own row, for it,
-and so do a Kikaku and a Hosa, whose address argument is optional because the
-human opens them and Kanri never requests them.
-Kaiseki with no address is standalone and does not shake hands; an attached
-Kaiseki always receives the address on the command line.
+This is a **tab seat's** act. Kikaku, Hosa, Sekkei, and an attached Kaiseki
+read the first data row of `.tanto/roster.md`, which is Kanri's own row, and
+send it the one line below. A spawned seat sends none: the request that
+created it carried its orders, and the result carried its identity. A
+Kaiseki started with no `topic=` key is standalone and does not shake hands,
+roster or no roster.
 
 Send Kanri exactly one message:
 
 ```text
-handshake role=<role> name=<name [ref]> cwd=<path> model=<model id> effort=<level|unknown> branch=<branch> mode=<auto|unknown> transcript=<absolute path|unavailable>
+handshake role=<role> topic=<topic|—> name=<name [ref]> cwd=<path> model=<model id> effort=<level|unknown> branch=<branch> mode=<auto|unknown> transcript=<absolute path|unavailable>
 ```
 
 `name [ref]` is what `ListAgents` prints for this session on its first line
@@ -335,7 +367,10 @@ read is the effort half of the start sequence's model check. Kanri compares
 `sessions.<role>.effort`; a mismatch of either is one line to the human, and
 the handshake still gets its roster row when only the effort differs — the
 effort is the human's to change with `/effort` in that window, and the roster
-records what runs. A model mismatch is refused, as today.
+records what runs. A model mismatch in a tab seat's handshake is refused, as
+today; a spawned seat's mismatch is not refusable — it arrives appended to a
+line the seat has already acted on — and becomes an `attention` request
+instead.
 
 `mode=` is what you can see about your own permission mode — `auto` when your
 system prompt says auto mode is active, otherwise `unknown`. It is advisory,
@@ -349,31 +384,35 @@ reported and Kanri's warning stays keyed on the absence of `auto` (measured
 reading", so that Kanri can record it and, where its session may read that
 path, verify a reading it doubts.
 
-Jisso and Keikaku then **wait** for Kanri's reply. Jisso's is `queued: <n>`,
-its place in the plan's queue, and Jisso then waits for its batch prompt —
-the prompt is its orders, and carries the plan path, the ledger path, and the
-branch — reading nothing until it arrives. Keikaku's carries the topic, the
-spec path, and the plan path it cannot start without. Sekkei, Kikaku, Hosa,
-and Kaiseki start reading while they wait — the human is in the room, and
-the reply arrives as a `<cross-session-message>`.
+Sekkei, Kikaku, Hosa, and an attached Kaiseki start reading while they wait —
+the human is in the room, and the reply arrives as a
+`<cross-session-message>`. Keikaku and Jisso wait for nothing and no longer
+appear here: both are spawned, both take their orders from the keys of their
+own prompt, and neither sends a handshake to be answered.
 
 The roster lives at `.tanto/roster.md`, is written only by Kanri from
 `templates/roster.md`, and has Kanri's row first. Columns are Role, Topic,
 Name `[ref]`, cwd, Model, Effort, Branch, Mode, Started, Status, and
-Transcript. Topic is the topic word Kanri's orders line gave that session —
-for a Jisso, the topic whose queue its handshake joined: the plan whose
+Transcript. Topic is the topic word the session's own orders gave it — a
+tab seat's orders line, a spawned seat's own prompt keys — for a Jisso,
+the topic whose queue it was spawned into: the plan whose
 batches are in flight, or, with none in flight, the plan whose landing
 requested the queue, since the shared checkout carries one topic's batches
 at a time and the next plan's queue opens at its predecessor's close — or
-`—` for Kanri, Kikaku, Hosa, and a standalone Kaiseki. Status is `queued`, `live`,
-`cleared`, `replaced`, `dead`, or `refused`: `queued` a Jisso waiting for its
-batch prompt; `cleared` a window Kanri released with `release:`, or whose
-`/clear` a re-handshake under a new transcript or a `no-role` reply
-revealed; `replaced` a Kanri that handed over; `dead` a session `ListAgents`
-no longer lists — a closed tab, a crash, a restart before `/tanto fukki`;
-`refused` a handshake that got no row. The keeping rule is one live session
-per role and topic, the plan's other Jissos `queued`; Kanri, Kikaku, and
-Hosa one each.
+`—` for Kanri, Kikaku, Hosa, and a standalone Kaiseki. The Status column
+carries one of seven
+words: `queued` a Jisso of a skill-editing plan waiting for its batch prompt;
+`live`; `stopped` a terminal seat the spawner stopped on Kanri's request, its
+conversation kept; `cleared` a tab seat Kanri released with `release:`, or
+whose `/clear` a re-handshake under a new transcript or a `no-role` reply
+revealed; `replaced` a Kanri that handed over; `dead` a session that has gone
+— a closed tab, a crash, a restart before `/tanto fukki`, or a terminal seat
+the census marked `gone` that no resume brought back; `refused` a handshake
+that got no row. A terminal seat's row is written from the spawner's result
+file rather than from a handshake — by `boundary.js record --seat` for a
+Jisso, by Kanri's own hand for a Keikaku or a successor — and a row that does
+not exist yet while its seat works is not an error. The keeping rule is one
+live seat per role and topic; Kanri, Kikaku, and Hosa one each.
 `ListAgents` shows name, `[ref]`, kind, and start time — not the cwd, the
 model, or the role; the handshake carries those.
 
@@ -388,13 +427,14 @@ model, or the role; the handshake carries those.
   `[ref]` is an identity, shown wherever a session is named so that the
   listing, the roster, and the handover agree on which session is meant; it is
   appended to a `to` value only after `SendMessage` reports the name ambiguous,
-  and never pasted from a file. Every command line (`/tanto <role> <address>`),
-  every `to` value, and every "Send to" blank carries the bare name.
+  and never pasted from a file. Every `to` value and every "Send to" blank
+  carries the bare name — no command line carries an address at all (there
+  is no address argument, "Invocation" above).
 - **Kanri's address** is the first data row of `.tanto/roster.md`,
-  read at the moment of sending. No role caches it and no line announces it.
-  The second argument of `/tanto <role> <address>` is the bootstrap for a
-  workspace whose roster does not exist yet, and is otherwise not given:
-  Kanri's create requests do not carry it.
+  read at the moment of sending. No role caches it, no line announces it,
+  and no command line carries it. A workspace whose roster does not exist
+  yet has no peer to bootstrap: its first session is the Kanri the launcher
+  spawns, and that Kanri writes the roster.
 - **Every other role's address** is known only to Kanri, from the handshake,
   and Kanri is the only session that sends to Sekkei, Keikaku, Jisso,
   Kaiseki, or Hosa. Kikaku is the human's seat: it sends Kanri a
@@ -528,44 +568,39 @@ are in the dialogue file, the ledger, and the human's own window.
 
 ## Resuming
 
-A Claude Code conversation that is resumed — after an editor restart, a
-closed tab, an ended terminal — keeps its context, its session id, and its
-transcript, and comes back under a new name and `[ref]`; nothing in the
-transcript marks the resume (measured 2026-09-09). Its old address is dead
-from then on. The transcript path the handshake carried is the identity that
-survives, and the roster's Transcript column holds it.
+**Identity is the `sessionId`.** The transcript path is a function of it —
+`<config dir>/projects/<project slug>/<sessionId>.jsonl` — the name is what
+`claude agents --json` and `ListAgents` currently print for it, and a resume
+keeps the id while it changes the name. The roster's Transcript column holds
+the path and therefore the id; no `Sess` column is added, because it would
+duplicate the basename.
 
-`/tanto fukki`, typed by the human in a window, and the self-check every
-role runs at each of its boundaries are the same act: run `ListAgents` once;
-find the roster row whose Transcript column is this session's own transcript
-path; if the name the listing prints for this session is that row's, nothing
-happened. If it differs, this session was resumed:
+| what happened | what the run does |
+| --- | --- |
+| a tab seat resumed by the editor | the human types `/tanto fukki` there; the seat re-handshakes with the same `transcript=`, and Kanri rewrites that row's name in place and writes `resumed: <old name> → <new name>` |
+| a terminal seat renamed | the spawner's census sees a known `sessionId` under a new name and marks `renamed` in `seats.json`; Kanri rewrites the row, writes the same Events line, and clears the mark with an `ack` request. The seat itself does nothing and checks nothing |
+| an editor restart | the terminal seats are still running — separate processes, unreached by the restart. Only the tab seats came back renamed |
+| a reboot or a crash | `tanto` writes a `resume` request for every terminal seat `seats.json` lists as `running` or `blocked`, with `claude --resume <sessionId> --bg` and no other flag. The roster's first row is settled first and separately, so a Kanri the listing has lost but `seats.json` still holds is **resumed and never spawned again**; a `stopped` seat is not resumed at all, which is why `tanto down --seats` retires a run rather than pausing it |
 
-- A role sends its handshake line again, to the roster's first data row,
-  with the same `transcript=`. Kanri matches the path, rewrites the row in
-  place with the new name and `[ref]` — its status as it was, a `queued` row
-  staying `queued`, no `dead` row — writes
-  an Events line `resumed: <old name> → <new name>`, and answers with its own
-  address. The role continues where it was; its context is the same. A row a
-  recovery had already marked `dead` returns to `live` the same way, and the
-  Events line corrects the earlier one.
-- Kanri rewrites the roster's first data row with its new name and `[ref]`,
-  and sends nothing: every peer reads that row at its next send. A peer not
-  listed was resumed too, and re-handshakes on its own `/tanto fukki`, finding
-  the new first row.
+`tanto` is fukki. It is idempotent: run twice it starts nothing twice, and it
+puts back what a restart took. A resumed background Kanri idles until a line
+reaches it, so the launcher prints the one act that is the human's —
+`claude attach <id>`, and `/tanto fukki` typed there once. That Kanri's fukki
+reconciles the roster with `seats.json`'s `renamed` marks and
+`claude agents --json`, answers the ledger's unanswered lines, sends a Jisso
+resumed mid-batch the one line `resume batch X from task N`, and continues
+where the Progress line says.
 
-After an editor restart, which resumes every window at once, the human types
-`/tanto fukki` in Kanri's window first and then in each other window, in any
-order; no address is pasted. A session whose path matches no row is not a
-resumed role: `/tanto fukki` says so and stops, and the human runs
-`/tanto <role> <address>` there as for a new session.
-
-`/tanto fukki` reads this file and nothing else. The role file is already in
-the session's context, which is what a resume preserves. It also re-runs the
-Start sequence's definitions write-and-count in both scopes (a resume can
-carry a new `CLAUDE_CONFIG_DIR`, and re-writing may nudge the harness to
-re-scan) and says
-the result the same way the Start sequence does.
+`/tanto fukki` is a **tab seat's** word everywhere else, and the
+`ListAgents` self-check that used to run at every boundary is a tab seat's
+too: a terminal seat's rename is the census's to detect, and a seat with no
+roster row yet would otherwise handshake, which it must not. A tab seat's
+`/tanto fukki` reads this file and nothing else — its role file is already
+in the session's context, which is what a resume preserves — and it re-runs
+the Start sequence's definitions write-and-count in both scopes, saying the
+result the same way the Start sequence does. A session whose transcript path
+matches no row is not a resumed role: `/tanto fukki` says so and stops, and
+the human runs `/tanto <role>` there as for a new session.
 
 ## Messages
 
@@ -623,22 +658,30 @@ the result the same way the Start sequence does.
   re-sends it to the roster's first data row, read fresh, at its next
   wake-up, until it is answered — this holds a
   line only for a role with an established roster row to hold one on
-  behalf of. A session with no row yet — a queued Jisso's own first
+  behalf of. A session with no row yet — a tab seat's own first
   handshake, landing in the same gap — has no line to hold: it treats the
   `no-role` the way a send error is already treated, re-reads the roster's
-  first data row, and re-handshakes there once a `live` Kanri answers it.
-- **`release: /clear this window`** is the line that ends every exit, sent by
+  first data row, and re-handshakes there once a `live` Kanri answers it. A
+  spawned seat never reaches this gap: it sends no handshake, and its row,
+  when it exists, comes from the spawner's result file rather than from one.
+- **`release: /clear this window`** is a **tab seat's** last line, sent by
   Kanri right after the seat's proposal passes its form check, and the last
   line that name is ever sent: the row is `cleared` at that moment. The seat
   tells the human, in its own window, to `/clear` it, and ends its turn;
-  nothing else is expected of it.
+  nothing else is expected of it. A **terminal seat** gets no such line: at
+  the same moment, and on the same form check, Kanri writes a `stop`
+  request, the spawner stops the session, the conversation is kept, and the
+  row goes `stopped`. Nothing is `/clear`ed and nothing is said to the
+  human.
 - **A seat's turn ends with its closing line**, in its own window and in the
   chat's language: an identity, then two facts, and never an opinion. The
-  identity is `<name> [<ref>]` — the word its own last `ListAgents` printed
-  for it, at the handshake, at its latest boundary self-check, or at
-  `/tanto fukki`, so the window and Kanri's own lines about it (its idle
-  block, its released line to the human, the roster) always name it the
-  same way — then
+  identity is `<name> [<ref>]` — for a tab seat, the word its own last
+  `ListAgents` printed for it, at the handshake or at `/tanto fukki`; for a
+  terminal seat, the `name` its request's result carried, or the one
+  `claude agents --json` prints for its own `sessionId`, never a
+  `ListAgents` reading of its own — so the window and Kanri's own lines
+  about it (its idle block, its released line to the human, the roster)
+  always name it the same way — then
   `<role>[/<topic>]` (the topic named for a Sekkei, Keikaku, Jisso, or
   attached Kaiseki; bare for Kanri, Kikaku, Hosa) and `<family>`, the model
   word its own system prompt currently reads, fresh across a `/model`
@@ -673,20 +716,27 @@ the result the same way the Start sequence does.
   seat: none — /clear this window.` This shapes the text the harness already
   requires when a turn ends; it opens no channel, and "Human access" stands
   as it is.
-- At a batch boundary Kanri has verified, Sekkei or Keikaku answers in one
-  line, `committed <subject>` or `nothing to commit`, each with its reading
-  appended after ` — `; Kanri sends the next batch prompt only after that
-  reply, or, when the reply is overdue, after the notice of a subscription
-  made then.
+- **The commit window opens only for a peer with a commit waiting.** A
+  Sekkei or Keikaku of another topic whose work is ready while a batch runs
+  writes the ledger event
+  `commit-ready: <role> <topic> — <subject> — <YYYY-MM-DD HH:MM>` through
+  `boundary.js record --event`, to the ledger a `ledger=` key its own
+  prompt carries names — Sekkei's orders line, Keikaku's own spawn prompt.
+  The boundary's `check` prints every such event with no
+  `commit-done:` pair; Kanri sends "the boundary is verified — commit" only
+  to those peers, waits for `committed <subject> — <reading>`, and pairs the
+  event with `commit-done: <role> <topic> — <subject>` in its own `record`
+  call. A peer with no event is sent nothing and answers nothing, and the
+  `nothing to commit` reply is retired with the question.
 - Before the human reviews a spec or a plan, the document's author dispatches
   the **review brief** on `brief.write` — a subagent that reads, and writes
   exactly one file,
   `.tanto/<topic>/review-brief-spec.md` for Sekkei, or `review-brief-plan.md`
   for Keikaku, from `templates/review-brief.md`, in the chat's language —
-  checks its form against "The brief's form" below, and sends Kanri one line,
-  `review-ready: <document path>; brief: <brief path>`, which waits for
-  nothing: Kanri records it in the ledger's Session events and does nothing
-  else. The author puts the brief's text verbatim in its review request, with
+  checks its form against "The brief's form" below, and writes the ledger
+  event `review-ready: <document path>; brief: <brief path>` itself, through
+  `boundary.js record --event` — not a message, and no wake-up of Kanri's.
+  The author puts the brief's text verbatim in its review request, with
   both paths. The human's answers to the brief's points are the confirmation
   that review asks for; the document is what the points point into, and the
   human reads it where a point sends them. When a lookup the document
@@ -768,8 +818,9 @@ Jisso and an attached Kaiseki never address the human unless granted, and a
 role addresses the human directly only for what needs the human's eyes or
 hands — a visual check in a browser or a GUI, an OS dialog, a credential — and
 only after Kanri has judged it necessary and granted it for that scope. Four
-standing grants exist: Sekkei's spec dialogue and Keikaku's plan dialogue,
-each given at that session's creation and named in Kanri's orders line; an
+standing grants exist: Sekkei's spec dialogue, named in Kanri's orders line
+at its handshake, and Keikaku's plan dialogue, implied by the role and
+stated in `roles/keikaku.md`, since a spawned seat has no orders line; an
 attached Kaiseki's debugging conversation, written in its brief; and Hosa's
 chores, named in Kanri's answer to its handshake. Kikaku needs no grant: it
 is the human's own seat, and the human in that window is its counterpart by
@@ -781,8 +832,13 @@ The request is one line to Kanri,
 and the role idles until the answer. Kanri answers in one line,
 `human-access: granted — <scope> — <until>` or
 `human-access: denied — <alternative>`, recorded as `R-n`. On a grant Kanri
-tells the human, as a numbered list, to go to the role's window
-(`<name> [<ref>]`), do `<what>`, and come back. The role's direct exchange
+tells the human, as a numbered list: 1. `claude attach <id>` for a terminal
+seat, or go to `<name> [<ref>]` for a tab seat; 2. do `<what>`; 3. ← back to
+the agent view, or the tab. For a terminal seat Kanri also writes an
+`attention` request, whose message is
+`human-needed: <role> <topic> — claude attach <id>`, because a seat that
+idles on a grant is not `blocked` in the harness's sense and the census
+alone would miss it. The role's direct exchange
 stays within the scope and ends with one line to Kanri,
 `human-access: done — <what the human did or decided>`.
 
@@ -814,8 +870,10 @@ other moment runs only the first:
    writes at that boundary. Only this step needs a resident context. Kanri
    checks the file's form — the exclusion line and the numbered list, or the
    report's section — records each item as a `pending` row of the ledger's
-   `S-n` table whose Source names the file and the item, and sends the seat
-   `release:`. The spec's four sections — Requirements, The ADRs, Deferred
+   `S-n` table whose Source names the file and the item, and sends the
+   seat `release:` for a tab seat or writes its `stop` request for a
+   terminal one — a retiring Jisso's is always the latter. The spec's
+   four sections — Requirements, The ADRs, Deferred
    items, and Shoroku proposal from this spec work — are recorded the same
    way when the spec is accepted, four rows whose Source names the spec and
    the heading; a review report's and a Kaiseki report's items are recorded
@@ -839,49 +897,54 @@ other moment runs only the first:
    recommendation, the template `templates/shoroku-brief.md`, and the chat's
    language; the recommender writes both files in one run.
    <!-- markdownlint-disable MD038 -->
-3. **Check.** Kanri checks the brief's form by `grep` — the five headings
-   present and in order, every `###` item heading's text, its `### ` marker
-   stripped, appearing exactly once after `See:` in the brief — dispatches
-   the recommender once more on a failure and pastes the brief as it stands
-   on a second, then gives the human both paths, the three counts, and the
-   brief's text verbatim; the human answers by exception, in Kanri's window
-   or through a Kikaku decision file whose third section names this
-   recommendation and answers it; Kanri writes `t2-direction.md` beside the
-   recommendation, item by item, with the `S-n` rows in the conductor
-   ledger.
+3. **Check — the close kessai.** Kanri checks the brief's form by `grep` —
+   the five headings present and in order, every `###` item heading's text,
+   its `### ` marker stripped, appearing exactly once after `See:` in the
+   brief — dispatches the recommender once more on a failure and pastes the
+   brief as it stands on a second. Then it writes an `attention` request
+   whose message is `kessai: <topic> — claude attach <id>`, and prints in its
+   own window **one** question carrying the recommendation's path, the
+   brief's path, the three counts, the merge decision, and the merge's
+   default form — `--no-ff` into `main`, the local branch deleted, nothing
+   pushed — with the brief's text verbatim below it. The human answers by
+   exception: in Kanri's window by `claude attach`, through a Kikaku decision
+   file whose third section names this recommendation and answers it, or by
+   telling a live Hosa, whose chore is then the one line
+   `kessai answer: <topic> — <the human's words verbatim>`. That one answer
+   is the direction and the merge approval. Kanri writes `t2-direction.md`
+   beside the recommendation, item by item, with the `S-n` rows in the
+   conductor ledger.
    <!-- markdownlint-enable MD038 -->
-4. **Apply.** Kanri dispatches the `shoroku.apply` kind with the
-   recommendation, the direction, the commit subject, the inbox copies to
-   fill by path, and the fix subject; that subagent
-   writes the accepted subset per `docs/AGENTS.md` — every issue opening
-   with the `Source:` line its item's heading names — fills the Triage
-   section of every swept inbox copy with the direction's outcome, runs the
-   repository's lint on the changed paths — or on the whole repository where
-   the lint script takes no path arguments, which satisfies the step — and
-   commits once by explicit path, on the topic's branch, before the merge
-   decision; then, when the direction accepted a `fix` item, applies those
-   sentences to their files under `skills/` and commits them once more as
-   `fix: text corrections from <topic>'s close`. No session applies the
-   accepted subset of its own proposal. Kanri verifies both diffs as for any
-   commit and marks the `S-n` rows written.
+4. **Apply — shusei, then the merge, then shoki.** A non-empty `fix` group
+   is a **Jisso batch of one task** on the topic branch, rendered from
+   `templates/batch-prompt.md` and spawned like any batch, committed once as
+   `fix: text corrections from <topic>'s close` and verified at its boundary
+   like any batch. Then Kanri merges. Then the `docs/` write-out is
+   **shoki**, a seat spawned into a worktree with `--add-dir` to the main
+   checkout, whose whole contract is `templates/shoki-brief.md`: it
+   dispatches `shoroku.apply` for the accepted subset per `docs/AGENTS.md` —
+   every issue opening with the `Source:` line its item's heading names, the
+   Triage section of every swept inbox copy filled — commits once as
+   `docs: T2 shoroku for <topic>`, dispatches `shoroku.review` over its own
+   diff and applies its findings once, rebases onto `main`, and reports
+   `shoroku ready:` or `shoroku blocked:`. Kanri runs the landing checks and
+   fast-forwards `main` onto that branch. No session applies the accepted
+   subset of its own proposal, and no machine ever resolves a conflict.
 
-When a Hosa is live, steps 2 to 4 are its: Kanri sends one line,
-`close: <topic> — proposal <path>; ledger <path>; recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now`,
-and Hosa dispatches the recommender, form-checks and pastes the brief in
-its own window under its chores grant, writes the direction from the
-human's answer — or from a `decision: <path>` line Kanri relays — dispatches
-the apply in that slot, and answers `close done: <commit subject> — <reading>`
-or `close blocked: <one line>`; Kanri, or the successor it has handed over
-to, verifies the commit — and the fix commit, when the direction accepted a
-`fix` item — and fills the ledger. With no Hosa live, Kanri runs the three
-steps itself. **Between plans**, when the human asks in Kanri's window for
-the inbox to be swept, the same three steps run over the inbox alone — the
-files `.tanto/inbox-<YYYY-MM-DD>-recommendation.md`, `-brief.md`, and
-`-direction.md` beside the roster, the commits `docs: inbox sweep
-<YYYY-MM-DD>` and `fix: text corrections from the inbox sweep <YYYY-MM-DD>`
-on `main` — by a live Hosa on Kanri's line
-`sweep: inbox — recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now`,
-or by Kanri.
+The recommend is Kanri's own dispatch, the check is the kessai in Kanri's
+window, and the apply is shusei's and shoki's. A live Hosa is delegated none
+of it and relays one line when the human answers in its tab,
+`kessai answer: <topic> — <the human's words verbatim>`. **Between plans**,
+when the human asks in Kanri's window for the inbox to be swept, the same
+shape runs over the inbox alone — the recommend dispatch, a kessai message
+with no merge question, an `attention` request, the direction, and a shoki
+spawn whose brief names the three files
+`.tanto/inbox-<YYYY-MM-DD>-recommendation.md`, `-brief.md`, and
+`-direction.md` beside the roster and the subject
+`docs: inbox sweep <YYYY-MM-DD>`; a sweep's `fix` items are a shusei batch
+on `main` with the subject
+`fix: text corrections from the inbox sweep <YYYY-MM-DD>`, verified by a
+`boundary.verify` dispatch against no plan.
 
 Nothing is adopted before the close, and no item is decided by Kanri alone:
 the human sees the whole recommendation, grouped, once per topic. Proposal
@@ -899,7 +962,7 @@ standalone Kaiseki has no Kanri, and its role file says how.
   exit file go to a Jisso. At the close the plan's last live Jisso writes
   `.tanto/<topic>/shoroku-proposal.md` on Kanri's `T2:` line — the `pending`
   rows by number and what its own context holds that no file does — and is
-  released on its form check.
+  stopped on its form check: no `/clear`, its conversation kept.
 - **Sekkei and Keikaku** write their proposal unasked at their own final
   boundary and name it in the report line — `spec accepted: <spec path>;
   exit proposal: <path> — <reading>` for Sekkei,
@@ -931,11 +994,13 @@ standalone Kaiseki has no Kanri, and its role file says how.
 second file at the same boundary takes `-2` before `-proposal` — or, for
 Kanri, `.tanto/exit-kanri-<YYYY-MM-DD>-<name>[-2]-proposal.md` next to the
 roster. A Jisso has no proposal file but the close's
-`.tanto/<topic>/shoroku-proposal.md`. The close's three files —
-`t2-recommendation.md`, `t2-brief.md`, `t2-direction.md` — live in the topic
-directory; there are no others. The apply subagent's commit subjects are
-`docs: T2 shoroku for <topic>` and, when a `fix` item was accepted,
-`fix: text corrections from <topic>'s close` — the two fixed prefixes,
+`.tanto/<topic>/shoroku-proposal.md`. The close's six files —
+`t2-recommendation.md`, `t2-brief.md`, `t2-direction.md`, `t2-review.md`,
+`shoki-brief.md`, and `batch-shusei-prompt.md` — live in the topic
+directory; there are no others. The close's commit subjects are
+`docs: T2 shoroku for <topic>`, `docs: T2 shoroku for <topic>, review fixes`
+when shoki's review found anything, and, when the direction accepted a `fix`
+item, `fix: text corrections from <topic>'s close` — the two fixed prefixes,
 `docs: T2 shoroku` and `fix: text corrections`, that the whole-branch review
 package excludes.
 
@@ -944,9 +1009,11 @@ subscription, like every other tanto line. Kanri checks that the proposal
 exists and opens with the exclusion line and a numbered list — a direct
 read, since the proposal carries no headings for `sections` to select by —
 or, for a Jisso, reads the report's Shoroku proposal section with the
-report's others; records the rows; and sends the seat
-`release: /clear this window`, the row going `cleared` as the line goes out.
-The seat's closing line says `none — /clear this window`, and Kanri tells
+report's others; records the rows; and sends a tab seat
+`release: /clear this window` — the row going `cleared` as the line goes
+out, its closing line `none — /clear this window` — or writes a terminal
+seat's `stop` request, its row going `stopped`, nothing `/clear`ed and
+nothing said to it. Either way Kanri tells
 the human, in its own window, `<role> <name> released — its work is in
 <paths>; no step needs it — /clear its window when convenient`. Nothing
 waits on the human's `/clear`: the roster no longer addresses that name,
@@ -967,8 +1034,8 @@ signal says, and continues.
 | the spec, at the path the orders line names — by default `docs/superpowers/specs/<date>-<topic>-design.md` | Sekkei | Kanri, Keikaku, Jisso | the spec; committed by Sekkei, or by the Keikaku created after the merge when it was a draft |
 | `.tanto/<topic>/spec-draft.md` | Sekkei | the spec reviewer, Kanri, Keikaku | the spec while another topic's batch is in flight; nothing is committed and no branch is cut until Keikaku commits it at its final path |
 | the plan, at the path the orders line names — by default `docs/superpowers/plans/<date>-<topic>.md` | Keikaku | Kanri, Jisso | the plan; committed; carries Global Constraints, a Batches section, and how a batch is verified |
-| `.tanto/roster.md` | Kanri | all roles; a bug-report sender, its live Hosa row or its first data row | one row per session that handshook — a plan's queued Jissos included |
-| `.tanto/roster-archive.md` | Kanri | Kanri | from `templates/roster-archive.md`; the roster's dead, replaced, refused, and cleared rows with their last readings, and the closed plans' Events lines, appended at each plan close |
+| `.tanto/roster.md` | Kanri | all roles; a bug-report sender, its live Hosa row or its first data row | one row per seat — a tab seat's from its handshake, a terminal seat's from the spawner's result file |
+| `.tanto/roster-archive.md` | Kanri | Kanri | from `templates/roster-archive.md`; the roster's stopped, dead, replaced, refused, and cleared rows with their last readings, and the closed plans' Events lines, appended at each plan close |
 | `.tanto/kanri-handover.md` | the outgoing Kanri | the successor Kanri | the handover; deleted by the successor once accepted. In flight, Live peers, and Not reconstructed in full; the rest pointers |
 | `.tanto/inbox/<date>-<slug>.md` | the intake — a live Hosa, else Kanri | the close's recommender, by path; the apply, for the Triage section | a bug report received, under the sender's basename, with its Received line; its Triage section is filled by the close's apply and marks the copy triaged |
 | `.tanto/sent/<date>-<slug>.md` | the session that noticed the defect — any role, or Hosa from the human's words | the intake of the target workspace, by the path the `bug-report:` line carries | a bug report sent, from `templates/bug-report.md`; kept, never deleted by a rule |
@@ -980,8 +1047,8 @@ signal says, and continues.
 | `.tanto/<topic>/review-brief-spec.md`, `.tanto/<topic>/review-brief-plan.md` | the brief writer the document's author dispatches | the author, then the human; Kanri by the path in `review-ready:` | the review brief, from `templates/review-brief.md`, in the chat's language |
 | `.tanto/<topic>/plan-dryrun.md` | Keikaku | the plan reviewer, Kanri | from `lint` and `replay` — the two commands, each one's output, and Keikaku's ruling on every failure |
 | `.tanto/<topic>/coldread.md` | the `plan.coldread` subagent Kanri dispatches | Kanri, by `sections` | the cold read of the committed plan: a numbered list of open questions, or `none`; Kanri sends Keikaku one numbered message carrying all of them, or `coldread: none`, and Keikaku answers with one `coldread answered:` line |
-| `.tanto/<topic>/batch-<X>-prompt.md` | the `boundary.verify` subagent, from `templates/batch-prompt.md`; Kanri for its three `<Kanri fills>` slots and for a rework prompt | the Jisso it names, human | the prompt; sent as the one line `batch: <path>`, which the human pastes if the message did not arrive |
-| `.tanto/<topic>/batch-<X>-verdict.md` | the `boundary.verify` kind Kanri dispatches | Kanri, by `sections` | the boundary's verdict: ten fixed sections, and an eleventh, `Measurement`, when the batch carried a measurement task |
+| `.tanto/<topic>/batch-<X>-prompt.md` | the `boundary.verify` subagent, from `templates/batch-prompt.md`; Kanri for its two `<Kanri fills>` slots and for a rework prompt | the seat the `spawn` request creates, or the `queued` seat under a skill-editing plan; human | the prompt; sent as the one line `batch: <path>`, which the human pastes if the message did not arrive |
+| `.tanto/<topic>/batch-<X>-verdict.md` | the `boundary.verify` kind Kanri dispatches | Kanri, by `sections` | the boundary's verdict: eleven fixed sections, and a twelfth, `Measurement`, when the batch carried a measurement task |
 | `.tanto/<topic>/batch-<X>-report.md` | the Jisso of that batch | Kanri; the close's recommender, its Shoroku proposal section by path and item | fixed skeleton; its Shoroku proposal section is that Jisso's exit shoroku |
 | `.tanto/<topic>/kaiseki-<n>-brief.md` | Kanri | Kaiseki | fixed skeleton |
 | `.tanto/<topic>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
@@ -998,17 +1065,25 @@ signal says, and continues.
 | `<cwd>/.claude/tanto.json` | the repository | every role at start, Kanri at each handshake, `scripts/reading.js` | the project expected-model config, overlaid on the personal one; committed or ignored as the repository decides |
 | `~/.claude/agents/tanto-*.md`, or `$CLAUDE_CONFIG_DIR/agents/` when that variable is set | every role at its start, from the built-in and personal layers | the harness, at the next session start | one definition per kind, from `templates/agent.md`; a definition is dispatchable only from the sessions started after it was written |
 | `<cwd>/.claude/agents/tanto-*.md`, and `<cwd>/.claude/agents/.gitignore` beside them | every role at its start, for the kinds whose effort the project file changes | the harness, at the next session start; git | the project-scope definitions, from the same template with its `<scope>` clause rendered; the `.gitignore` holds `tanto-*.md` and `.gitignore`, is written once and never overwritten |
+| `.tanto/spawner/` — `pid`, `log`, `seats.json`, `requests/<id>.json`, `results/<id>.json` | the spawner, and Kanri for a request file | the launcher, Kanri | the spawner's own state: one seat entry per session it started, one request and one result per act. The roster is not here and the spawner never reads it |
+| `.tanto/<topic>/spawner-results/` | Kanri, at the plan close | Kanri | the topic's result files, moved with the archive move |
+| `.tanto/<topic>/shoki-brief.md` | Kanri, from `templates/shoki-brief.md` | shoki, as its whole prompt | the scribe's contract: the arguments, what it never does, the five steps, the report line |
+| `.tanto/<topic>/t2-review.md` | the `shoroku.review` kind shoki dispatches | shoki, then Kanri | the review of shoki's own diff against `main`, before it reports |
+| `.tanto/<topic>/batch-shusei-prompt.md` | Kanri, from `templates/batch-prompt.md` | the shusei Jisso | the one-task fix batch of the close |
+| `<root>/.claude/worktrees/shoki-<topic>` | the CLI, on `claude --bg -w` | shoki | shoki's worktree; never written by a role, removed by Kanri (`git worktree remove --force --force`) along with its branch, after the `rm` request |
 
-Templates are copied and filled, never restated in prose. Fifteen of them:
+Templates are copied and filled, never restated in prose. Seventeen of them:
 `templates/roster.md`, `templates/roster-archive.md`, `templates/kanri.md`,
 `templates/kanri-handover.md`, `templates/bug-report.md`,
 `templates/batch-prompt.md`, `templates/batch-report.md`,
 `templates/boundary-brief.md`, `templates/kaiseki-brief.md`,
 `templates/kaiseki-report.md`, `templates/review-brief.md`,
-`templates/shoroku-brief.md`, `templates/tanto.json`,
+`templates/shoroku-brief.md`, `templates/shoki-brief.md`,
+`templates/spawn-request.md`, `templates/tanto.json`,
 `templates/kikaku-decision.md`, and `templates/agent.md`.
 
-The skill also ships three executables. `scripts/passage-check.js` is the
+The skill also ships five Node scripts and two wrappers.
+`scripts/passage-check.js` is the
 instrument a plan that carries passages checks itself with, run by Keikaku in
 place of an agent dry run, by Jisso at every batch boundary, by the
 `boundary.verify` subagent at every boundary in Kanri's place, and by the
@@ -1023,22 +1098,36 @@ are the reading of one transcript
 and `--now`, `--config`, `--project-config` and `--settings` fixing what the
 tests and a verifying Kanri need fixed — and `--share` over several
 transcripts, which Kanri runs at
-the plan close. `scripts/boundary.js` is the boundary's own instrument, run by
+the plan close; it also exports `loadSessions(root)`, which the launcher
+reads a seat's family and effort from. `scripts/boundary.js` is the
+boundary's own instrument, run by
 the `boundary.verify` subagent Kanri dispatches — and, under the shape 2 the
 tanto-diet design leaves as a seam, by a headless session running the same
 brief; its two subcommands are `check`, which runs the boundary's read-only
 commands and prints their output under fixed headings, and `record`, which
 writes the ledger's and the roster's rows idempotently.
-All three are Node with no dependencies, and all three have their tests
+`scripts/spawner.js` is the one process in a run that issues `claude --bg`,
+`claude stop`, `claude rm`, and `claude --resume`: a resident started by the
+launcher and never by a session, which takes request files, writes result
+files, keeps `seats.json`, runs a census of `claude agents --json` every
+fifteen seconds, and raises a desktop notice on a blocked seat and on an
+`attention` request; `spawner.js notify --stdin` is the one-shot an optional
+harness hook may call. `scripts/tanto.js` is the human's one command — it
+starts the spawner, finds or asks for a Kanri, resumes what a restart took,
+and prints `claude attach <id>`; `tanto down [--seats]` stops it all and
+keeps every conversation.
+All five are Node with no dependencies, and all five have their tests
 beside them, run by `node --test`. Their paths are written skill-relative,
 like every other path in
 this skill, and the role files spell the runnable form `$TANTO`: set it to the
 skill's own directory, which the harness names when it invokes the skill,
 **in the same tool call as the command** — shell state does not persist
 between calls, and an unset `$TANTO` makes every one of these commands read a
-path at the filesystem root. None is ever invoked bare —
-no file of the three carries a shebang, so `node` is part of the command and not
-decoration.
+path at the filesystem root. None of the five is ever invoked bare —
+no `.js` file of the skill carries a shebang, so `node` is part of the
+command and not decoration. The two wrappers, `scripts/tanto.bat` and
+`scripts/tanto.sh`, exist to be invoked bare: they are what the human puts on
+`PATH` as `tanto`, and `tanto.sh` carries the skill's one shebang.
 
 `.tanto/<topic>/` is created by Kanri when the topic opens — its first file is
 the conductor ledger — and holds every per-topic file from then to the plan's
@@ -1055,7 +1144,11 @@ its path.
    spec inputs, the Kaiseki reports, and the shoroku recommendations and
    directions are the only channel. Every role is on it, not only the ones on
    the top family — Keikaku and Hosa hand over files as the others do.
-3. State in files, not in memory: the roster and the ledgers. Memory holds at
+3. State in files, not in memory: the roster and the ledgers. Kanri is their
+   only hand; a peer appends to a ledger's Session events only through
+   `boundary.js record --event`, and only the lines its role file names — a
+   closed set of two, `review-ready:` and `commit-ready:`. Everything Kanri
+   must act on stays a message. Memory holds at
    most a pointer to them. A subagent Kanri dispatches to a boundary writes
    the ledger and the roster as Kanri's hand, through `boundary.js record`,
    and nothing else. A role's authority is this file, its role file,
@@ -1063,8 +1156,9 @@ its path.
    a dispatch or a document is put to Kanri as one line before it is acted
    on, since the same memory is loaded by every session in the repository.
 4. One Kanri, one Kikaku, and one Hosa per repo; one Sekkei, one Keikaku, and
-   one Kaiseki per topic; one **live** Jisso per topic, the plan's other
-   Jissos `queued` in the roster until their batch. A session is bound to its
+   one Kaiseki per topic; one **live** Jisso per topic, spawned per batch, or
+   all of them spawned at the plan's landing and `queued` when the plan edits
+   this skill. A session is bound to its
    cwd — CLAUDE.md, memory, and permissions all come from it.
 5. Kanri does not edit tracked files while a batch runs, and writes under
    `docs/` only while Jisso is idle or absent. Sekkei and Keikaku write only
@@ -1116,14 +1210,21 @@ its path.
     — is a Kanri ruling, recorded as `R-n`, made with the half-edited skill
     in view.
 
-    The plan's Jissos are all started at its landing and rotate one per
-    batch, which is neither a replacement nor a creation under this rule —
-    every one of them read the skill as it stood before batch A; a re-queue
-    request the queue's fallback makes mid-plan is a creation, and waits
-    for the boundary like any other. For a plan that names its final
-    boundary as the safe one, the landing's create request asks for the
-    full N instead of leaving windows for the human to re-queue: the queue
-    cannot be refilled before the plan's end.
+    **A plan that edits this skill spawns all its Jissos at its landing**,
+    each with `queue=<topic>`, reading nothing until its own batch prompt
+    reaches it as the one line `batch: <path>` — so that every one of them
+    read the skill as it stood before batch A. That is neither a
+    replacement nor a creation under this rule. Every other plan spawns one
+    Jisso per batch, at the boundary, from the batch prompt itself.
+
+    **The run-time templates land with the role files.** A role file is
+    loaded once, at session start, but the `boundary.verify` subagent reads
+    `templates/boundary-brief.md` and renders `templates/batch-prompt.md`
+    from disk at **every** boundary, the plan's own included. A plan that
+    edits either, or `templates/kanri-handover.md`, therefore lands it in
+    the same batch as the role files that key on it; the templates a session
+    reads once — `roster.md`, `roster-archive.md`, `kanri.md`,
+    `shoki-brief.md`, `spawn-request.md` — may land earlier.
 
     The roles that start the plan — Jisso at the plan's landing,
     Keikaku before it, Sekkei before that — read the skill as it stands then,
@@ -1145,11 +1246,17 @@ reach the human, and they reach the human through Kanri.
 
 ## Workspace
 
-All roles share one working tree and one branch. Sekkei, or Keikaku when the
-spec was a draft, cuts the branch from `main` before the first commit, named
-after the topic; Jisso continues on it;
-the merge decision is the human's. **No worktree by default** — Kanri verifies
-the tree in place and the human can watch it. Every batch prompt restates that
+All roles share one working tree and one branch. **Kanri alone cuts,
+switches, merges, and deletes the branch**: it cuts `<topic>` from `main` at
+the topic's opening when no batch is in flight, and right after the
+predecessor's merge otherwise, and Sekkei and Keikaku commit on the branch
+the tree is on. Jisso continues on it;
+the merge decision is the human's, taken with the close kessai's one answer.
+**No worktree by default** — Kanri verifies
+the tree in place and the human can watch it. The one exception is shoki, the
+close's scribe, which works in the CLI's own worktree under
+`.claude/worktrees/shoki-<topic>` and holds no runtime resource. Every batch
+prompt restates that
 as a Kanri directive. A modification in the shared tree that a session or its
 own subagent did not make is not its to discard (Rule 5): it is reported, never
 run through `git checkout --` or `git clean` on its own judgment, and only
@@ -1163,8 +1270,8 @@ is the only cost (issue-12d3).
 
 `.tanto/` reserves these names, and a topic slug is none of them and begins
 with neither prefix: the
-directories `inbox`, `sent`, `kikaku`, and `kaiseki`; the files `roster.md`,
-`roster-archive.md`, `kanri-handover.md`, `.gitignore`, and
+directories `inbox`, `sent`, `kikaku`, `kaiseki`, and `spawner`; the files
+`roster.md`, `roster-archive.md`, `kanri-handover.md`, `.gitignore`, and
 `.markdownlint-cli2.yaml`; and the prefixes `exit-kanri-` and `inbox-`.
 Kanri checks a new slug against this list by name, before any directory
 exists, and lists the root against the same names at every start and every

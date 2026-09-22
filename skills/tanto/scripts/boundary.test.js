@@ -633,28 +633,6 @@ test("--prompt writes the Batches row's Prompt cell", () => {
   assert.ok(ledger.includes("| Y |  | sent | .tanto/tanto-diet/batch-Y-prompt.md |"), ledger);
 });
 
-test("--deferred writes the Measurements deferrals entry for its own batch", () => {
-  const fixture = ledgerAndRoster();
-  const call = (batch, text, now) => [
-    "record",
-    "--ledger",
-    fixture.ledger,
-    "--batch",
-    batch,
-    "--deferred",
-    text,
-    "--now",
-    now,
-  ];
-  assert.strictEqual(run(call("Y", "context=1, last human turn 90 min ago", "2026-09-19 09:00"), fixture.dir).code, 0);
-  assert.strictEqual(run(call("Z", "context=2, last human turn 70 min ago", "2026-09-19 10:00"), fixture.dir).code, 0);
-  assert.strictEqual(run(call("Z", "context=3, last human turn 60 min ago", "2026-09-19 11:00"), fixture.dir).code, 0);
-  const ledger = fs.readFileSync(fixture.ledger, "utf8");
-  assert.ok(ledger.includes("batch Y: context=1, last human turn 90 min ago"), ledger);
-  assert.ok(ledger.includes("batch Z: context=3, last human turn 60 min ago"), ledger);
-  assert.ok(!ledger.includes("context=2"), "batch Z's earlier deferral survived");
-});
-
 test("record keeps a file's own line ending", () => {
   const fixture = ledgerAndRoster();
   const lf = fs.readFileSync(fixture.ledger, "utf8").replace(/\r\n/g, "\n");
@@ -677,4 +655,161 @@ test("record keeps a file's own line ending (LF)", () => {
   assert.strictEqual(result.code, 0, result.err);
   const after = fs.readFileSync(fixture.ledger, "utf8");
   assert.ok(!after.includes("\r"), "a CRLF ending was written into an LF file");
+});
+
+const SEAT = {
+  role: "jisso",
+  topic: "bg-seats",
+  name: "seat-one [aaaaaa]",
+  cwd: "/repo",
+  model: "sonnet",
+  effort: "xhigh",
+  branch: "bg-seats",
+  mode: "auto",
+  startedAt: "2026-09-21 10:00",
+  transcript: "/tmp/seat-one.jsonl",
+  sessionId: "sess-one",
+};
+
+test("--seat writes a terminal seat's roster row, and a second call rewrites it", () => {
+  const fixture = ledgerAndRoster();
+  const seat = write(fixture.dir, "result.json", JSON.stringify(SEAT));
+  const args = ["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--seat", seat];
+  assert.strictEqual(run(args, fixture.dir).code, 0);
+  const first = fs.readFileSync(fixture.roster, "utf8");
+  assert.ok(first.includes("| jisso | bg-seats | seat-one [aaaaaa] | /repo |"), first);
+  assert.ok(first.includes("/tmp/seat-one.jsonl |"), first);
+  const moved = write(fixture.dir, "result2.json", JSON.stringify({ ...SEAT, branch: "next" }));
+  assert.strictEqual(
+    run(["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--seat", moved], fixture.dir).code,
+    0,
+  );
+  const second = fs.readFileSync(fixture.roster, "utf8");
+  assert.strictEqual(second.split("seat-one [aaaaaa]").length - 1, 1);
+  assert.ok(second.includes("| next |"), second);
+});
+
+test("--seat on a file that is not there exits 2 and writes nothing", () => {
+  const fixture = ledgerAndRoster();
+  const before = fs.readFileSync(fixture.roster, "utf8");
+  const args = [
+    "record",
+    "--ledger",
+    fixture.ledger,
+    "--roster",
+    fixture.roster,
+    "--seat",
+    path.join(fixture.dir, "gone.json"),
+  ];
+  assert.strictEqual(run(args, fixture.dir).code, 2);
+  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), before);
+});
+
+test("--status accepts stopped and still refuses a word the table does not name", () => {
+  const fixture = ledgerAndRoster();
+  const seat = write(fixture.dir, "result.json", JSON.stringify(SEAT));
+  assert.strictEqual(
+    run(["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--seat", seat], fixture.dir).code,
+    0,
+  );
+  const stop = [
+    "record",
+    "--ledger",
+    fixture.ledger,
+    "--roster",
+    fixture.roster,
+    "--status",
+    "seat-one [aaaaaa] stopped",
+  ];
+  assert.strictEqual(run(stop, fixture.dir).code, 0);
+  assert.ok(fs.readFileSync(fixture.roster, "utf8").includes("| stopped |"));
+  const bad = ["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--status", "seat-one [aaaaaa] gone"];
+  const refused = run(bad, fixture.dir);
+  assert.strictEqual(refused.code, 1);
+  assert.match(refused.err, /live, cleared, stopped, or queued/);
+});
+
+test("check pairs a commit-ready with its commit-done even when only one side carries a --batch suffix, and still reports a genuinely unpaired commit-ready", () => {
+  const fixture = ledgerAndRoster();
+  const plan = write(fixture.dir, "plan.md", PLAN);
+  const report = write(fixture.dir, "report.md", "# Report\n\n- Transcript — none\n\n## For Kanri\n\nnothing\n");
+  // The paired peer: `commit-ready:` written with no `--batch`, `commit-done:`
+  // for the same subject written WITH `--batch` -- the real shape `record`
+  // itself writes (a peer's own commit-ready call rarely carries a batch; the
+  // boundary's own commit-done call for it usually does), and the shape that
+  // exposed the bug where pairing compared the raw, batch-suffixed text.
+  const readyArgs = [
+    "record",
+    "--ledger",
+    fixture.ledger,
+    "--event",
+    "commit-ready: sekkei next-topic — docs: the next spec",
+    "--now",
+    "2026-09-21 09:00",
+  ];
+  assert.strictEqual(run(readyArgs, fixture.dir).code, 0);
+  const doneArgs = [
+    "record",
+    "--ledger",
+    fixture.ledger,
+    "--batch",
+    "C",
+    "--event",
+    "commit-done: sekkei next-topic — docs: the next spec",
+    "--now",
+    "2026-09-21 09:30",
+  ];
+  assert.strictEqual(run(doneArgs, fixture.dir).code, 0);
+  // A genuinely unpaired commit-ready: no commit-done for it anywhere.
+  const unpairedArgs = [
+    "record",
+    "--ledger",
+    fixture.ledger,
+    "--batch",
+    "C",
+    "--event",
+    "commit-ready: keikaku next-topic — docs: the next plan",
+    "--now",
+    "2026-09-21 10:00",
+  ];
+  assert.strictEqual(run(unpairedArgs, fixture.dir).code, 0);
+  const args = [
+    "check",
+    "--plan",
+    plan,
+    "--report",
+    report,
+    "--base",
+    "HEAD",
+    "--tanto",
+    TANTO,
+    "--ledger",
+    fixture.ledger,
+  ];
+  const result = run(args, fixture.dir);
+  assert.ok(result.out.includes("## commit-ready"), result.out);
+  assert.ok(result.out.includes("keikaku next-topic"), result.out);
+  assert.ok(!result.out.includes("sekkei next-topic"), result.out);
+});
+
+test("check exits 2 when --ledger names a path that is not on disk", () => {
+  const fixture = ledgerAndRoster();
+  const plan = write(fixture.dir, "plan.md", PLAN);
+  const report = write(fixture.dir, "report.md", "# Report\n\n- Transcript — none\n\n## For Kanri\n\nnothing\n");
+  const args = [
+    "check",
+    "--plan",
+    plan,
+    "--report",
+    report,
+    "--base",
+    "HEAD",
+    "--tanto",
+    TANTO,
+    "--ledger",
+    path.join(fixture.dir, "gone.md"),
+  ];
+  const result = run(args, fixture.dir);
+  assert.strictEqual(result.code, 2);
+  assert.match(result.err, /--ledger .* is not on disk/);
 });

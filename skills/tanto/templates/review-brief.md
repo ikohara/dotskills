@@ -5,7 +5,9 @@ Written by the brief writer the document's author dispatches, at
 review reports and untracked under `.tanto/.gitignore`.
 Every part of the brief is written in the chat's language, which the dispatch
 names, the headings included; this template is the English source the writer
-renders. The form markers are the exception and stay exactly as they are
+renders. The `#` title line is the first of the eight headings: render it
+like the other seven and never drop it. The form markers are the exception
+and stay exactly as they are
 here: the bracketed tag words `confirm`, `choose`, `decide`, `nothing`, the
 labels `Q:`, `A:`, `Serves:`, `Adds or changes:`, `See:`,
 `— If unanswered:`, the `## <n>.` numbers, and the pointer after `See:`. The

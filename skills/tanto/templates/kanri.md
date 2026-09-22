@@ -9,13 +9,8 @@ the plan's close, and never moves.
 ## Progress
 
 <one line, rewritten in place: which batch is in flight or accepted, what is
-being waited on, "handover written", or "closed"; plus, while one stands, the
-clause `handover deferred (absent, context=<n>, since <batch X | the spec
-stage | the plan stage>)`, kept
-until that handover runs or the plan closes; or, once a
-deferred handover's decline is recorded, `handover declined (present,
-context=<n>, at <batch X | the spec stage | the plan stage>)` in its
-place; and, for each pre-spec act ruled before Sekkei's spec — a diagnosis, a
+being waited on, "handover written", "spawner results moved", or "closed";
+and, for each pre-spec act ruled before Sekkei's spec — a diagnosis, a
 dump analysis — the clause `<act> — result: <path> (absent | present)`,
 rewritten to `present` when the file lands and dropped once the spec cites it>
 
@@ -23,8 +18,8 @@ rewritten to `present` when the file lands and dropped once the spec cites it>
 
 - Spec — <the spec's path, or "not yet written">
 - Plan — <the plan's path, or "not yet written">
-- Branch — <branch name; Sekkei cuts it from main when no batch is in flight,
-  Keikaku after the merge otherwise>
+- Branch — <branch name; Kanri cuts it from main at the topic's opening when
+  no batch is in flight, and right after the predecessor's merge otherwise>
 - Topic directory — <.tanto/<topic>/>
 - SDD ledger — <.superpowers/sdd/<plan-basename>/progress.md, written by Jisso>
 - Hotfixes since the previous plan — <the hotfix lines copied from the roster's
@@ -94,9 +89,9 @@ ledger of the topic that raised it, never a compound value.
 
 ## Session events
 
-- <YYYY-MM-DD HH:MM> — <a create request and the human's answer, a `release:`
-  sent, a `queued: <n>` answered, a `no-role` received; a replace and the human's
-  answer; a handshake accepted or refused; a session declared dead and what was
+- <YYYY-MM-DD HH:MM> — <a spawn, stop, rm, or resume request and its result; an
+  ask of the human and their answer; a `release:` sent to a tab seat, a
+  `no-role` received; a handshake accepted or refused; a session declared dead and what was
   verified; a recovery after a VS Code restart; a handover written or accepted;
   a peer line you received and did not answer in the same turn, as
   `unanswered: <from> — <line>`, paired with `answered: <from> — <line>`
@@ -125,10 +120,9 @@ ledger of the topic that raised it, never a compound value.
 | each role's last reading | <YYYY-MM-DD, the plan close> | <the roster's Residency figures, copied, one role per line> |
 | the day's cost, uncached input, cache miss, cache hit, and hit rate | <YYYY-MM-DD> | <the five figures as the human pastes them from the Claude Code Usage extension> |
 | Kanri's context at the topic's opening and at the plan's landing with the landing's delta, then Kanri's and each Jisso's at each boundary with the cache regime | <YYYY-MM-DD, each check> | <opening: kanri context=<n>; landing: kanri context=<n> (+<d>); batch <X>: kanri context=<n>, jisso context=<n>, ttl=<v>>, entries separated by `;` — the opening and the landing written by Kanri, every `batch <X>` entry by `boundary.js record`, which replaces its own batch's entry and leaves every other entry alone |
-| deferrals: where, the context, and the presence verdict | <YYYY-MM-DD, the check> | <batch letter or stage, context=<n>, last human turn <m> min ago>, one entry per deferred handover, or `none` |
 | the share of usage at context over the threshold | <YYYY-MM-DD, the plan close> | <the share line, the names it ran over> |
 
-These seven rows are always present; the rows the last paragraph adds sit
+These six rows are always present; the rows the last paragraph adds sit
 below them. Kanri fills the first at the
 plan close from this ledger's Session events, where it writes one line each
 time a second top-family session goes live; the second by counting those same
@@ -137,11 +131,10 @@ at several stages; the third by copying the roster's Residency rows; the
 fourth from what the human pastes. The fifth is filled at the topic's opening
 (Start step 5), at the plan's landing, and at every boundary by
 `boundary.js record`, from the two readings the boundary's dispatch carried;
-the sixth at any deferred handover, in whichever
-stage, and carries `none` when a plan's Kanri never deferred; the seventh at
-the plan close from `reading.js --share`, with the sessions it ran over and the
-ones it skipped. The fifth and sixth are the record
-behind a rule — the ceiling of `roles/kanri.md`'s trigger — and the other five
+the sixth at the plan close from `reading.js --share`, with the sessions it
+ran over and the ones it skipped. The fifth is the record
+behind a rule — the ceiling of `roles/kanri.md`'s trigger, which fires
+without asking whether anyone is present — and the other five
 are the record the next measurement starts from.
 
 A `paused: <dispatch> on <family> — resets <time>` line a role sends is

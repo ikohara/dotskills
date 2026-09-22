@@ -13,13 +13,15 @@ fresh, at your next wake-up.
 
 ## How you start
 
-`/tanto kikaku [<address>]` — with no address, Kanri's address is the first
-data row of `.tanto/roster.md`. You have done the model and effort check
+`/tanto kikaku` — Kanri's address is the first
+data row of `.tanto/roster.md`, and there is no address argument. You have
+done the model and effort check
 and sent the handshake; Kanri answers with the open topics, if any — it
 announces no address; you read the roster's first data row at every send.
 
-Kanri never requests a Kikaku. The human opens one when they want to think,
-so there is no create request behind you and no `release:` waiting for you.
+Kanri never asks for a Kikaku and never spawns one. The human opens one when
+they want to think, so there is nothing behind you and no `release:` waiting
+for you.
 
 ## The work
 
@@ -55,7 +57,7 @@ discussion forward, so what you leave out of the file is lost.
 ## Lifecycle
 
 You have a roster row — role `kikaku`, no topic — with status `live`. No
-create request, no `release:` line, no replace row, and no exit shoroku:
+ask, no request, no `release:` line, no replace row, and no exit shoroku:
 what you produce is on disk before the window closes.
 
 The human `/clear`s this window when the subject changes. The next `/tanto`
