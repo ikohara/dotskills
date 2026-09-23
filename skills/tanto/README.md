@@ -72,10 +72,15 @@ one implementation plan.
   `SendMessage` to address them by name. Unlike `kisou`, `shoroku`, and
   `wayaku`, it is not host-agnostic and does not run on other Agent Skills
   hosts.
-- **Claude Code CLI 2.1.277 or newer**, for `claude --bg`,
+- **Claude Code CLI 2.1.280 or newer**, for `claude --bg`,
   `claude agents --json`, `claude attach`, `claude --resume <id> --bg`,
   `claude stop`, and `claude rm` — the six commands the spawner and the
-  launcher are built on.
+  launcher are built on. The spawner names each background seat and passes
+  it `--settings '{"worktree":{"bgIsolation":"none"}}'` — the CLI's
+  `worktree.bgIsolation`, `worktree` by default and undocumented upstream
+  (anthropics/claude-code#59580) — because the seats share one checkout that
+  the default would move them out of; a managed policy that forces
+  `worktree` wins over the flag, and no settings file is written.
 - **Node 22 or newer on `PATH`**, for `scripts/passage-check.js`,
   `scripts/reading.js`, `scripts/boundary.js`, `scripts/spawner.js`, and
   `scripts/tanto.js`. Every role runs the second
@@ -124,13 +129,19 @@ one line to type next:
 claude attach <id>
 ```
 
-`←` returns to the agent view and `Ctrl+Z` drops back to the shell; the
-session keeps running either way. `tanto` is also the way back after a
+Every way out of a seat — `←` or `/exit` to the agent view, `Ctrl+Z` to the
+shell, closing the terminal — leaves it running; `/stop` alone stops it,
+and a Kanri you `/stop` comes back with `tanto`. `claude agents` lists every
+seat by name, `<repo>-<role>[-<topic>]-<hex>`, and terminal panes, one
+`claude attach <id>` each, show several at once; no multiplexer is needed,
+since a seat outlives its terminal. `tanto` is also the way back after a
 restart, and it is idempotent: run twice, it starts nothing twice. Without
-`PATH`, `node <skill>/scripts/tanto.js` does the same. `tanto down` stops
-the spawner and keeps every conversation; `tanto down --seats` stops the
-seats too, which retires the run — the conversations are kept, but a
-stopped seat is not resumed, and the next `tanto` starts a fresh Kanri.
+`PATH`, `node <skill>/scripts/tanto.js` does the same. A seat `seats.json`
+holds as `running` or `blocked` — or, for Kanri alone, `gone` — is resumed;
+one it holds as `stopped` or `removed` is not. `tanto down` stops the
+spawner and keeps every conversation; `tanto down --seats` stops the seats
+too, which retires the run — the conversations are kept, but a seat the run
+stopped is not resumed.
 
 The tab seats are the human's own, opened as before — or
 `担当して <role>` / `tantoして <role>`, the role word in hiragana, kanji, or
@@ -151,8 +162,8 @@ scribe that writes the records, and Kanri's own successors — are never
 typed: the run starts them with the keys they need.
 
 A tab that comes back after an editor restart keeps its context and its
-transcript but gets a new name, and `/tanto fukki` (復帰), typed there,
-matches it to its roster row and rejoins it to the run. A terminal seat is
+transcript and gets a new name, which Kanri matches to its roster row by its
+session id; nothing is typed there. A terminal seat is
 unaffected by the restart, and after a reboot `tanto` resumes it under the
 same session id. The desktop notice tells the human when a seat is waiting
 on them; an optional harness hook makes it immediate, and nothing requires
@@ -184,7 +195,9 @@ it.
 - `scripts/boundary.js` — the boundary's own instrument, run by the subagent
   Kanri dispatches there: `check`, which runs the boundary's read-only
   commands and prints their output under fixed headings, and `record`, which
-  writes the conductor ledger's and the roster's rows idempotently, with
+  writes the conductor ledger's and the roster's rows idempotently; and
+  `census`, which Kanri runs itself, read-only, to place the roster's rows
+  against the sessions `claude agents --json` lists under the repository.
   `scripts/boundary.test.js` beside it.
 - `scripts/spawner.js` — the one process in a run that issues `claude --bg`,
   `claude stop`, `claude rm`, and `claude --resume`: a resident started by
@@ -220,5 +233,6 @@ The designs this skill implements are
 `docs/superpowers/specs/2026-09-11-tanto-workspace-design.md`, and
 `docs/superpowers/specs/2026-09-12-tanto-cost-design.md`,
 `docs/superpowers/specs/2026-09-15-shoroku-at-close-design.md`,
-`docs/superpowers/specs/2026-09-19-tanto-diet-design.md`, and
-`docs/superpowers/specs/2026-09-20-tanto-bg-seats-design.md`.
+`docs/superpowers/specs/2026-09-19-tanto-diet-design.md`,
+`docs/superpowers/specs/2026-09-20-tanto-bg-seats-design.md`, and
+`docs/superpowers/specs/2026-09-23-bg-seat-ergonomics-design.md`.
