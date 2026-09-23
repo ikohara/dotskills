@@ -3,7 +3,7 @@
 Written by Sekkei `dotskills-1a [240a33]` (opus, max) on 2026-09-23 on the
 branch `bg-seat-ergonomics`, cut from `main` with no batch in flight
 (Kanri's orders line: write and commit normally, no draft). The dialogue is
-`.tanto/bg-seat-ergonomics/dialogue.md`, decisions D-0 to D-10; the
+`.tanto/bg-seat-ergonomics/dialogue.md`, decisions D-0 to D-11; the
 measurements it ran are its "Measurements under D-1" section and its Q9
 entries.
 
@@ -27,10 +27,16 @@ except where a line here names a reversal and the human's word for it.
   and `--resume … --bg`" becomes the spawn only, because a flag on
   `--resume … --bg` starts a copy under a new id
   (`docs/reports/2026-09-20-tanto-bg-seats-probe.md`, item 6) and a
-  flag-less resume keeps the name (Measured 4).
+  flag-less resume keeps the name (Measured 4). The name ends in four
+  random hexadecimal digits where the decision has `<short id>`, since the
+  CLI assigns the short id only after the spawn (D-3).
 - **Item 2 — Kanri reports no session that its listing does not place under
   the repository** (2.7). Serves the new bullet "A session another
-  repository runs is never reported as this run's" (Requirements).
+  repository runs is never reported as this run's" (Requirements). Where
+  the decision names `claude agents --json --cwd <root>`, the census reads
+  the unfiltered listing and keeps the sessions under the root by its own
+  path comparison (2.2), since the CLI's filter is measured for the root
+  itself only (the spec review's F-20).
 - **Item 3 — the CLI's background isolation is settled before any seat
   runs, and Kanri no longer asks** — settled by the spawner, per seat, with
   `--settings`, and nothing written to a settings file (1.2). **Reversed with
@@ -38,11 +44,17 @@ except where a line here names a reversal and the human's word for it.
   writes `.claude/settings.local.json`. req-04f5 "tanto's own state lives in
   its own directory … so the repository's own configuration is never edited
   for it" stands as written. Item 5's user-scope measurement is moot with it.
+  The README's note is as short as D-8 asks and keeps what the decision and
+  Q2's B named: the setting and its two values, why the seats need `none`,
+  that the setting is undocumented upstream, and that a managed policy
+  forcing `worktree` wins over the flag (4.4).
 - **Item 4 — every way out of an attached seat but `/stop` leaves it
   running, and the README and the attach line say so** (4.1, 4.4). Serves
   req-04f5 "The human reaches any seat from the editor", amended below.
   Item 5's measurement of the detach keys ran in the dialogue (Measured 5),
-  not in the plan.
+  not in the plan. The decision's operating note — the agent view or
+  terminal panes for watching several seats, no multiplexer needed — is one
+  sentence of the README (4.4).
 - **The four issue groups** (the decision's "Scope, the four issue groups
   fixed alongside"): issue-aa37 (1.2, 1.4); issue-02ab, issue-894d,
   issue-d92f, and issue-261c on one rule (section 2); issue-7f28 (2.8).
@@ -50,7 +62,9 @@ except where a line here names a reversal and the human's word for it.
   closed by decision-363c at the `tanto-bg-seats` close, so the decision's
   re-measurement has no issue to close or keep. Serves req-04f5 "A run is
   resumed with one command, and a session's identity survives its
-  renaming", rewritten below.
+  renaming", rewritten below. As the decision expects, the plan carries a
+  task per issue group, each in the batch that lands its fix ("What the plan
+  must contain").
 - **Added with the human's word (D-5 to D-7, D-9) — the shoroku vocabulary**
   (section 3). "Exit shoroku", which
   `.tanto/kikaku/2026-09-16-exit-proposal-term-and-brief-rendering.md` §2
@@ -71,6 +85,15 @@ except where a line here names a reversal and the human's word for it.
   the repository's folder trust is not recorded (4.3), and a new issue for
   the CLI's unanswerable trust question ("Issues this design closes").
   Serves "The human reaches any seat from the editor".
+- **Added by Sekkei, taken with the human's word (D-11): a census marks
+  nothing `dead` while a restart is being recovered** (2.3). It carries into
+  the census what `roles/kanri.md`'s "Recovery after a VS Code restart"
+  already does — "Mark `dead` only a row whose session neither `ListAgents`
+  lists nor re-handshakes by the time the human says the windows are done"
+  — since a census run before the editor restores the tabs would mark them
+  `dead`, and it keeps the window in the roster's Events lines, so that it
+  survives a handover. Serves req-04f5 "State lives in files, not in
+  sessions".
 - **The README stays short** (D-8): the additions of 4.4 and nothing else.
 - **Standing decisions this spec amends — the one list; "The ADRs" points
   here.** decision-73c3 (tanto sessions addressed by born name): a terminal
@@ -81,7 +104,11 @@ except where a line here names a reversal and the human's word for it.
   seat, the tab seats included, read from the census. decision-ded8 (the
   clear rule is every role's, and dead stays for the unlisted): the
   handshake-by-name route to `cleared` retires, `cleared` keeps `release:`
-  and `no-role`, and a `/clear` reads as `dead` through the census.
+  and `no-role`, and a `/clear` reads as `dead` through the census; its
+  consequence "one status per fact" holds by order — whichever of a
+  `no-role` and a census sees the `/clear` first sets the status, and the
+  other leaves a row that is no longer `live` alone (2.8); and `stopped`
+  gains the seat the spawner's guard stopped (1.4).
   decision-84c8 (the launcher is one command that is also fukki): it
   resumes a Kanri that left the listing, the tab seats type nothing after a
   restart, and it prints the trust hint. decision-2db1 (the names are
@@ -180,28 +207,33 @@ except where a line here names a reversal and the human's word for it.
    (`opSpawn`: "The listing's first sighting is where the ad hoc-worktree
    guard runs"), a second or two after the spawn — before a seat's first
    write, which is where Measured 4's S2 moved.
-9. The terms, by `grep` over `skills/tanto/`, in lines: "exit shoroku" 36
+9. The terms, in lines, each a case-insensitive `grep` over
+   `skills/tanto/SKILL.md`, `skills/tanto/roles/`, `skills/tanto/templates/`,
+   and `skills/tanto/README.md` unless a scope is named: "exit shoroku" 36
    in 10 files, among them the heading `### Exit shoroku` of
    `roles/kanri.md` and thirteen pointers to it, six of them in its Replace
-   table; "candidate" 0 (decision-2db1's
-   sweep held; this repository's live `.tanto/roster.md` still carries the
-   pre-rename "Shoroku candidates" table); "stage word" 6; "T2" or "t2"
-   about 65 in 7 files, among them the heading
-   `## T2 and the exit — the shoroku write-out` of `roles/jisso.md`;
-   `exit: propose your shoroku; write it to <path>` 5; the Stage column in
-   two templates and in `scripts/boundary.js` line 405, the one script that
-   writes a Stage cell. No other script keys on any of these strings, and
-   the `shoroku` skill keys on none. `docs/notes/tanto-consistency-checks.md`
-   pins several (its checks 6, 7, 20, and 24).
-10. Open issues naming a term this design retires, one grep per term over
-    `docs/issues/open/`: "exit shoroku" 9 and "exit proposal" 8, each in
-    passing; "stage word" cca9, e3e4; "cleared:" 7f28; "idle since" 7f28,
-    bd69; "transcript path" 5f98, 894d, ce69, d92f, dace; "ListAgents" 02ab,
-    2065, 261c, 894d, c3d1, d92f; "fukki" 9; "bgIsolation" cafd, fd4b;
-    `.claude/worktrees` aa37; "Stage column" or "Stage value" 7f28, 8c74,
-    d502, de29, e3e4; "timeout" 126e, 261c, 7fa4, fd4b; "inference" 02ab
-    and five unrelated. "Issues this design closes" rules on every one the
-    design touches.
+   table; "candidate" 0 (decision-2db1's sweep held there; over the whole of
+   `skills/tanto/`, 15 lines in 2 files, `scripts/tanto.js`'s identifiers
+   and a `scripts/passage-check.test.js` fixture; this repository's live
+   `.tanto/roster.md` still carries the pre-rename "Shoroku candidates"
+   table); "stage word" 6; `\bt2\b` 65 lines in 7 files, and 66 in 8 over
+   the whole of `skills/tanto/`, `scripts/boundary.js` line 405 the eighth
+   — among them the heading `## T2 and the exit — the shoroku write-out` of
+   `roles/jisso.md`; `exit: propose your shoroku; write it to <path>` 5; the
+   Stage column in two templates and in `scripts/boundary.js` line 405, the
+   one script that writes a Stage cell. No other script keys on any of these
+   strings, and the `shoroku` skill keys on none.
+   `docs/notes/tanto-consistency-checks.md` pins several (its checks 6, 7,
+   20, and 24).
+10. Open issues naming a term this design retires, one case-insensitive
+    `grep -l -E` per pattern over `docs/issues/open/`: `exit shoroku` 9 and
+    `exit proposal` 8, each in passing; `stage word` cca9, e3e4; `cleared:`
+    7f28; `idle since` 7f28, bd69; `transcript path` 5f98, 894d, ce69, d92f,
+    dace; `ListAgents` 02ab, 2065, 261c, 894d, c3d1, d92f; `fukki` 9;
+    `bgIsolation|worktree isolation` cafd, fd4b; `\.claude/worktrees` aa37;
+    `Stage column|Stage value` 7f28, 8c74, d502, de29, e3e4; `timeout` 126e,
+    261c, 7fa4, fd4b; `inference|inferred` 02ab and five unrelated.
+    "Issues this design closes" rules on every one the design touches.
 
 ## 1. The spawner
 
@@ -226,12 +258,15 @@ For instance `dotskills-jisso-bg-seat-ergonomics-3f2a` and
 `dotskills-kanri-9c01`. The name is the seat's for its life: the CLI
 registers it as the user's own, which no auto-title replaces (Measured 3,
 4). The result's `name` — the listing's first sighting — is that name, and
-`boundary.js record --seat` writes it into the roster as today. The census's
-`renamed` mark stays, as the net for a human's `/rename`.
+`boundary.js record --seat` writes it into the roster as today. The
+`renamed` mark of the spawner's census stays, as the net for a human's
+`/rename`.
 
 `shortIdOf`, the fallback parse of `--bg`'s output for a listing that
-carries no `id`, reads the line the CLI prints today,
-`backgrounded · <short id> · <name>` (Measured 4).
+carries no `id`, is rewritten to read the two lines the CLI prints today —
+`backgrounded · <short id> · <name>` on a spawn, and
+`backgrounded · <short id> · <name> (idle — send a prompt to start)` on a
+resume (Measured 4); today's pattern, `session\s+<id>`, matches neither.
 
 Rule 10 gains one sentence: the spawner names a terminal seat at its spawn,
 before its prompt runs, and nothing renames it after.
@@ -256,34 +291,50 @@ spawner runs; section 5 says when this repository's may go.
 
 ### 1.3 A seat that returns to the listing
 
-The census revives a seat `seats.json` holds as `gone` when the listing
-holds its `sessionId` again — a seat the human `/stop`ped and reopened with
+This spec calls the spawner's fifteen-second pass over `seats.json` **the
+spawner's census**, and `boundary.js census` (section 2) **the census**.
+
+The spawner's census revives a seat `seats.json` holds as `gone` when the
+listing holds its `sessionId` again — a seat the human `/stop`ped and reopened with
 `claude attach <id>`: its status becomes `running`, or `blocked` as the
 listing's `state` says, `goneAt` is deleted, and the log says
 `census: <sessionId> back`. A seat the run's own `stop` request stopped
 (`stopped`) and one removed (`removed`) are not revived. With it, the
 blocked-seat notice and `tanto down --seats` reach the reopened seat.
 
-### 1.4 The ad hoc-worktree guard at every census pass
+### 1.4 The ad hoc-worktree guard at every pass of the spawner's census
 
-The guard moves from the first sighting alone to every census pass, because
-a seat reaches `.claude/worktrees/` at its first write, after the first
-sighting (Measured 4, 8). On each pass, a `running` or `blocked` seat whose
-request carried no `worktree` and whose listed `cwd` is under
-`<root>/.claude/worktrees/` — the paths compared with the separators unified
-and, on Windows, the case folded — is stopped with its short id, marked
-`stopped` with `strayed: <cwd>` beside its status, logged, and toasted once:
-`strayed: <role> <topic> <name> — <cwd>`. The first-sighting check stays;
-it costs nothing. Kanri's Replace table reads a `strayed` mark as a Jisso
-gone mid-batch (6.2): its commits, if any, are on the worktree's branch.
+The guard moves from the first sighting alone to every pass of the
+spawner's census, because a seat reaches `.claude/worktrees/` at its first
+write, after the first sighting (Measured 4, 8). On each pass, a `running`
+or `blocked` seat whose request carried no `worktree` and whose listed `cwd`
+is under `<root>/.claude/worktrees/` — the paths compared with the
+separators unified and, on Windows, the case folded — is stopped with its
+short id, marked `stopped` with `strayed: <cwd>` beside its status, logged,
+and toasted once: `strayed: <role> <topic> <name> — <cwd>`. The
+first-sighting check stays; it costs nothing.
+
+Kanri marks the seat's row `stopped` too — its conversation is kept, and
+`SKILL.md`'s and `templates/roster.md`'s `stopped` gain "or the spawner's
+guard" beside "on Kanri's request" — with an Events line naming the guard
+and the worktree's branch. For a Jisso the Replace table's first row
+applies (6.2): the tree verified, the batch spawned again with its resume
+line, and the worktree branch's commits, if any, put to the human as a
+ruling.
 
 ### 1.5 `templates/spawn-request.md`
 
 The schema says that the spawner adds `--name` and `--settings` itself, so
 a request carries neither; that a spawn result's `name` is the seat's name
-from its spawn; and that a `resume` passes no flag, the CLI bringing back
-the seat's saved options — its name, its setting, its model, its effort,
-and its permission mode.
+from its spawn; that a `resume` passes no flag, the CLI bringing back the
+options the spawn passed, as its note on the resume lists them — measured
+for the name, the setting, the model, and the permission mode (Measured 4),
+and for the effort by the plan's measurement task; and that a guard stop at
+a pass of the spawner's census writes no result file — `strayed: <cwd>` in
+`seats.json`, the log line, and the toast carry it — where the schema's
+sentence today, "except `spawn`'s ad hoc-worktree guard, which also records
+the seat as `stopped` before returning `error`", names the first-sighting
+stop alone.
 
 ## 2. Identity and the census
 
@@ -302,6 +353,14 @@ does not list has gone, and Kanri marks it `dead` on that signal alone — no
 timeout (issue-261c), no inference (issue-02ab), no name. A listing that
 fails is no signal: nothing is marked on it.
 
+A send error is a reason to run the census, not a signal of its own: the
+census's "Not listed" marks the row `dead`, and a send that errors to a
+session the census still lists is a message failure — the row stays, and
+Kanri tells the human in one line. A tab seat's own `ListAgents` self-check
+of `SKILL.md`'s Resuming stays as it is: it is the seat's trigger to
+re-handshake after its name changed, and the match that follows is Kanri's,
+by `sessionId`.
+
 ### 2.2 `boundary.js census`
 
 A third subcommand, read-only:
@@ -311,9 +370,14 @@ node "$TANTO/scripts/boundary.js" census [--root <dir>] [--roster <path>]
 ```
 
 `--root` defaults to the current directory and `--roster` to
-`<root>/.tanto/roster.md`. It runs `claude agents --json --cwd <root>`
-through the seam `spawner.js` and `tanto.js` already use
-(`TANTO_CLAUDE_NODE`, `TANTO_CLAUDE`), reads the roster's session table —
+`<root>/.tanto/roster.md`. It runs `claude agents --json` through the seam
+`spawner.js` and `tanto.js` already use (`TANTO_CLAUDE_NODE`,
+`TANTO_CLAUDE`) and keeps the sessions whose `cwd` is the root or a path
+under it, the paths compared with the separators unified and, on Windows,
+the case folded — the set `--cwd <root>` returned for the root (Measured
+2), with a subdirectory and the drive letter's two spellings settled by the
+census's own comparison rather than by the CLI's filter, which is measured
+for the root itself only. It reads the roster's session table —
 the table whose header begins `| Role | Topic | Name [ref] | cwd |` — and
 prints four headings in this order, in the `## <heading>` form `check`
 already prints, each followed by one line per entry, or by `none`:
@@ -339,12 +403,13 @@ nothing: Kanri, the roster's one writer, acts on what it prints.
 
 At its start, before taking a case (2.4) — Start step 1's read of its own
 name stays as it is, and the census follows it; at every handshake (2.5);
-after a
-send to a peer errors; once the human says the windows are back after a
-restart (2.6); at the plan close, before the archive move, where "mark
-`dead` the rows of any session the census lost" now covers the tab seats
-too; and before it says anything about a listed session it does not hold
-(2.7). What it does with the output:
+after a send to a peer errors (2.1); once the human says the windows are
+back after a restart (2.6); at the plan close, before the archive move,
+where the close row's "mark `dead` the rows of any session the census lost
+and no resume brought back" — the spawner's census today — becomes the
+census's "Not listed", which covers the tab seats too; and before it says
+anything about a listed session it does not hold (2.7). What it does with
+the output:
 
 - **Not listed** — mark the row `dead`, with the Events line a seat whose
   shoroku proposal was not written gets, and what was lost as far as Kanri
@@ -362,7 +427,11 @@ too; and before it says anything about a listed session it does not hold
 **While a restart is being recovered** — from Kanri's own `/tanto fukki`,
 or its Recovery case, until the human says the windows are back — a census
 places sessions and marks nothing `dead`: a tab the editor has not restored
-yet is not listed, and has not gone.
+yet is not listed, and has not gone. The window lives in the roster, not in
+Kanri's context: Kanri opens it with the Events line `recovery: begun` and
+closes it with `recovery: windows back` on the human's word, a successor
+reads the last of the two before it marks anything, and until the word
+comes the human's part is an open act in the idle block's `for you:` list.
 
 ### 2.4 Kanri's start: four cases
 
@@ -388,8 +457,8 @@ yet is not listed, and has not gone.
 
 Step 2 runs the census and places the handshake's `sessionId` — the
 basename of its `transcript=` — in it. A handshake whose `sessionId` the
-census does not list under this root is not this repository's session and
-gets no row: `refused`, an Events line, one line to the human.
+census does not list is not a session under this repository (2.2) and gets
+no row: `refused`, an Events line, one line to the human.
 `transcript=unavailable` is accepted as today; its row carries `unavailable`
 and the census leaves it alone.
 
@@ -414,13 +483,17 @@ Kanri's census finds it under the new name and rewrites the row (2.3), and
 the seat re-reads its own name for its closing line and re-runs the
 definitions write-out, and its match is the row whose Transcript basename is
 its own `sessionId` — which closes issue-d92f for the tab seats that
-`tanto-bg-seats` left it open for.
+`tanto-bg-seats` left it open for. When typed, it still sends the handshake:
+a handshake whose row the census already renamed rewrites the row in place
+with the same values, so that the two orders end the same.
 
 `roles/kanri.md`'s "Recovery after a VS Code restart": the human types
 `/tanto fukki` once, in Kanri's window — after `claude attach` for a
-terminal Kanri — and nowhere else. Kanri runs the census once the human says the windows are back,
-renames what it lists under a new name, and marks `dead` what it does not
-list; a terminal seat's `renamed` marks and their acks are as today.
+terminal Kanri — and nowhere else. Kanri writes `recovery: begun` (2.3),
+runs the census once the human says the windows are back, writes
+`recovery: windows back`, renames what the census lists under a new name,
+and marks `dead` what it does not list; a terminal seat's `renamed` marks
+and their acks are as today.
 
 ### 2.7 A session the roster does not hold
 
@@ -442,6 +515,12 @@ another transcript — retires with 2.5. `SKILL.md`'s status list,
 `cleared: <old name> → <new name>` leaves `templates/roster.md` with its
 last writer (issue-7f28, item 1). A row the census marked `dead` takes the
 existing Events shape "a session declared dead and what was verified".
+
+One `/clear` can reach Kanri by either route first, and whichever does sets
+the status: a `no-role` from a row the census already marked `dead` changes
+nothing, and the census leaves a row a `no-role` already marked `cleared`
+alone, since it marks only `live` and `queued` rows. decision-ded8's "one
+status per fact" holds by that order.
 
 `idle since` is the suffix ` (idle since <HH:MM>)` of a `live` cell:
 `roles/kanri.md` says "append" where it says "write `idle since <HH:MM>`
@@ -475,16 +554,19 @@ proposal", as nouns, leave the skill.
 Every proposal file is `shoroku-proposal-<role>-<short id>.md`, `<short id>`
 being the first eight hexadecimal digits of the writing session's
 `sessionId` — the same eight digits as a background seat's CLI short id —
-and `-2` before `.md` a second file by the same session, never a rewrite of
-the first. A proposal file lives in the topic directory, Kanri's beside the
-roster. The close's other files are named by the step.
+and `-<n>` before `.md`, `n` from 2 upward, a further file by the same
+session, never a rewrite of one already written: a Sekkei answering a
+second cold-read question, or a Kanri whose close handover was declined and
+which proposes again at its next close, takes the next `n`. A proposal file
+lives in the topic directory, Kanri's beside the roster. The close's other
+files are named by the step.
 
 | Today | After |
 | --- | --- |
-| `.tanto/<topic>/exit-sekkei-proposal.md`, `exit-sekkei-2-proposal.md` | `.tanto/<topic>/shoroku-proposal-sekkei-<short id>.md`, `…-<short id>-2.md` |
+| `.tanto/<topic>/exit-sekkei-proposal.md`, `exit-sekkei-2-proposal.md` | `.tanto/<topic>/shoroku-proposal-sekkei-<short id>.md`, `…-<short id>-<n>.md` |
 | `.tanto/<topic>/exit-keikaku-proposal.md` | `.tanto/<topic>/shoroku-proposal-keikaku-<short id>.md` |
 | `.tanto/<topic>/exit-kaiseki-<n>-proposal.md` | `.tanto/<topic>/shoroku-proposal-kaiseki-<short id>.md` |
-| `.tanto/exit-kanri-<YYYY-MM-DD>-<name>[-2]-proposal.md` | `.tanto/shoroku-proposal-kanri-<short id>[-2].md` |
+| `.tanto/exit-kanri-<YYYY-MM-DD>-<name>[-2]-proposal.md` | `.tanto/shoroku-proposal-kanri-<short id>[-<n>].md` |
 | `.tanto/<topic>/shoroku-proposal.md` (the close's, the last Jisso's) | `.tanto/<topic>/shoroku-proposal-jisso-<short id>.md` |
 | `.tanto/<topic>/t2-recommendation.md` | `.tanto/<topic>/shoroku-recommendation.md` |
 | `.tanto/<topic>/t2-brief.md` | `.tanto/<topic>/shoroku-brief.md` |
@@ -510,9 +592,9 @@ and `-direction.md` are already step-named and stay.
 | `T2: propose the shoroku write-out; write it to .tanto/<topic>/shoroku-proposal.md` | `close: propose; write it to .tanto/<topic>/shoroku-proposal-jisso-<short id>.md` |
 
 `close:` is free: `SKILL.md`'s Messages still names "a `close:` line with
-its clauses", which was Hosa's line before `tanto-bg-seats` retired it; the
-sentence becomes "a `close:` line, or a handshake with its fields, is one
-line".
+its clauses", which was Hosa's line under decision-a1ae until
+decision-26fd superseded it and `tanto-bg-seats` retired it; the sentence
+becomes "a `close:` line, or a handshake with its fields, is one line".
 
 ### 3.4 The commit subjects
 
@@ -560,7 +642,8 @@ moves its pointers in the same commit.
 in `.tanto/`, the prefixes `shoroku-proposal-kanri-` and `inbox-`, and keep
 `exit-kanri-` for the files written before this change, so that a start's
 listing of `.tanto/` does not report a predecessor's old file. A topic slug
-begins with none of the three.
+begins with none of the three, where `SKILL.md` says "begins with neither
+prefix" and `roles/kanri.md` "begins with neither of its prefixes".
 
 ### 3.8 What is not renamed
 
@@ -577,7 +660,7 @@ which keys on none of them (Measured 9); and the kind names in `tanto.json`
 Wherever `tanto` prints `claude attach <id>`, it prints one line after it:
 
 ```text
-← or /exit returns to the agent view, Ctrl+Z to the shell; the seat keeps running — /stop alone stops it, and tanto resumes a stopped Kanri
+← or /exit returns to the agent view, Ctrl+Z to the shell; the seat keeps running — /stop alone stops it, and a Kanri you /stop comes back with tanto
 ```
 
 and, as today, `then type /tanto fukki there once` when it resumed a seat.
@@ -595,6 +678,12 @@ the spawn request as today. A Kanri the run's own request stopped
 `tanto down --seats` still retires a run. The loop over the other seats is
 unchanged; a Jisso or a Keikaku that left the listing is Kanri's Replace
 table's.
+
+The rule, in the one sentence `SKILL.md`'s Resuming and the README both
+copy: a seat `seats.json` holds as `running` or `blocked` — or, for Kanri
+alone, `gone` — is resumed; one it holds as `stopped` or `removed` is not. A
+resumed Kanri idles until a line reaches it, so `then type /tanto fukki
+there once` follows its attach line, as it does for a Kanri a reboot took.
 
 ### 4.3 The trust hint
 
@@ -618,15 +707,23 @@ As short as it can be (D-8):
 
 - **Prerequisites** — "Claude Code CLI 2.1.277 or newer" becomes 2.1.280,
   and the bullet gains one sentence: the spawner names each background seat
-  and passes it `--settings '{"worktree":{"bgIsolation":"none"}}'`, because
-  the seats share one checkout that the CLI's default isolation would move
-  them out of, and it writes no settings file.
+  and passes it `--settings '{"worktree":{"bgIsolation":"none"}}'` — the
+  CLI's `worktree.bgIsolation`, `worktree` by default and undocumented
+  upstream (anthropics/claude-code#59580) — because the seats share one
+  checkout that the default would move them out of; a managed policy that
+  forces `worktree` wins over the flag, and no settings file is written.
 - **Usage** — "`←` returns to the agent view and `Ctrl+Z` drops back to the
   shell; the session keeps running either way." becomes: every way out —
   `←` or `/exit` to the agent view, `Ctrl+Z` to the shell, closing the
-  terminal — leaves the seat running; `/stop` alone stops it, and `tanto`
-  brings a stopped Kanri back. `claude agents` lists every seat by name,
-  `<repo>-<role>[-<topic>]-<hex>`.
+  terminal — leaves the seat running; `/stop` alone stops it, and a Kanri
+  you `/stop` comes back with `tanto` (D-11). `claude agents` lists every
+  seat by name,
+  `<repo>-<role>[-<topic>]-<hex>`, and terminal panes, one
+  `claude attach <id>` each, show several at once; no multiplexer is
+  needed, since a seat outlives its terminal.
+- **Usage** — "a stopped seat is not resumed, and the next `tanto` starts a
+  fresh Kanri" becomes "a seat the run stopped is not resumed", after 4.2's
+  rule.
 - **Usage** — the restart sentence: a tab keeps its context and transcript
   and gets a new name, which Kanri matches to its roster row by its session
   id; nothing is typed there.
@@ -676,11 +773,15 @@ Four facts of this plan's own run, which its Global Constraints state:
 - Handshake and roster: the census paragraph (2.1) beside the `ListAgents`
   sentence; the status list (2.8: `cleared`'s two routes, the `idle since`
   suffix; `dead`'s "a restart before `/tanto fukki`" becomes "a session the
-  census no longer lists").
-- Resuming: the identity paragraph for every seat; the table's tab-seat row
-  (2.6); `/tanto fukki`'s match by the Transcript basename.
+  census no longer lists"; `stopped` gains "or the spawner's guard", 1.4).
+- Resuming: the identity paragraph for every seat, whose "a resume keeps the
+  id while it changes the name" holds for a tab seat and no longer for a
+  terminal seat (1.1); the table's tab-seat row (2.6); the reboot row gains
+  4.2's rule; `/tanto fukki`'s match by the Transcript basename.
 - Messages: the `close:` sentence (3.3); "the Events line an unrun exit
-  shoroku gets" → "… an unwritten shoroku proposal gets".
+  shoroku gets" → "… an unwritten shoroku proposal gets"; "a send error
+  stays the signal that a session is gone" → a send error is a reason to run
+  the census (2.1).
 - The intake: Kanri "writes `idle since <HH:MM>` into that cell" →
   "appends".
 - Session exit: the stage word and the Stage sentences; the four steps'
@@ -689,63 +790,83 @@ Four facts of this plan's own run, which its Global Constraints state:
 - Artifacts: the rows of every renamed file; the scripts paragraph's
   `boundary.js` gains `census` ("its two subcommands" → three).
 - Rule 10: the spawner's naming sentence (1.1).
-- Workspace: the reserved prefixes (3.7).
+- Workspace: the reserved prefixes, and "begins with neither prefix" →
+  "none" (3.7).
 
 ### 6.2 `skills/tanto/roles/kanri.md`
 
 - Start step 2's listing of `.tanto/` and step 5's slug check: the reserved
-  prefixes (3.7).
-- "The five cases" → "The four cases" (2.4).
+  prefixes, and "begins with neither of its prefixes" → "none" (3.7).
+- Start step 4's "compare your own `name [ref]` with its first data row" →
+  its `sessionId`; "The five cases" → "The four cases" (2.4), the Handover
+  case's `ListAgents` clauses and the Second Kanri's and the Recovery's
+  name-keyed conditions with them.
 - On a handshake: step 2 (2.5), the resumed paragraph by basename, the
   `/clear`-by-name paragraph retired, and the `no-role` paragraph's
   wording (3.1).
-- The idle block: the `idle since` suffix (2.8).
+- The idle block: the `idle since` suffix (2.8), and the open act of a
+  restart's recovery (2.3).
 - A new paragraph under Session lifecycle: a session the roster does not
-  hold (2.7), and the census's moments (2.3).
+  hold (2.7), the census's moments (2.3), a send error as a reason to run it
+  (2.1), and the Events lines `recovery: begun` and `recovery: windows back`
+  (2.3).
 - The final batch and the close: the `close:` line (3.3), Kanri's own
   proposal path (3.2), the file names and the subjects (3.2, 3.4), and "One
   stage per topic, the **close**, stage word `t2`" → "One stage per topic,
   the **close**".
+- Every "Stage `t2`" clause that tells Kanri to write the cell — lines 340,
+  445, 639, 720, 925, 932, 1121, 1267, and 1296 — goes (3.5); every bare
+  "exit proposal" — 347, 906, 1549, and 1550 — becomes "shoroku proposal";
+  `shoroku-proposal.md` at 987 and 1138, and the `-2-proposal` of 688, 916,
+  1119, and 1292–1293, take 3.2's names.
 - `### Exit shoroku` → `### A seat's exit` and its thirteen pointers (3.6);
   step 1's lines (3.3); step 2's "Stage `t2`" clause goes, and its release
   sentence gains the terminal seat's `stop` request, as `SKILL.md`'s "The
-  exit itself" already has it; the forced-exit paragraph gains the census's
-  "Not listed" and says "its shoroku proposal was not written".
-- Replace table: the first row's symptoms gain "or the spawner's guard
-  stopped it (`strayed` in `seats.json`)" (1.4); the "Exit shoroku"
-  pointers.
+  exit itself" already has it; the forced-exit paragraph's "`dead` on a send
+  error or an empty listing" becomes the census's "Not listed" (2.1), and it
+  says "its shoroku proposal was not written".
+- Replace table: the first row's "the census marked it `gone`" → "the
+  spawner's census marked it `gone`", and its symptoms gain "or the
+  spawner's guard stopped it (`strayed` in `seats.json`)", whose row goes
+  `stopped` (1.4); the "Exit shoroku" pointers.
 - Release table, the close row: "mark `dead` the rows of any session the
-  census lost" names `boundary.js census` (2.3), and the roster migration
-  (3.5).
+  census lost and no resume brought back" → the census's "Not listed" (2.3),
+  and the roster migration (3.5).
 - "Recovery after a VS Code restart" (2.6).
 
 ### 6.3 The other role files
 
-- `roles/sekkei.md` — "exit shoroku" (3.1); `**Your exit shoroku.**` (3.6);
-  the stage-word sentence goes and the path is
-  `shoroku-proposal-sekkei-<short id>.md`, with `-2` for a second (3.2); the
+- `roles/sekkei.md` — "exit shoroku" and the bare "exit proposal" of 144
+  (3.1); `**Your exit shoroku.**` (3.6); the stage-word sentence goes and the
+  path is `shoroku-proposal-sekkei-<short id>.md`, with `-<n>` for a further
+  one — the literal `exit-sekkei` of 199 and 210 with it (3.2); the
   `spec accepted:` line and the `exit:` line (3.3).
-- `roles/keikaku.md` — the same four, for Keikaku and its
+- `roles/keikaku.md` — the same, for Keikaku: the bare "exit proposal" of
+  305–306, the literal `exit-keikaku` of 357 and 374, and its
   `coldread answered:` line.
 - `roles/jisso.md` — line 5 (3.1); the heading (3.6); the `T2:` lines and
-  "at T2" (3.3); the close's file (3.2).
-- `roles/kaiseki.md` — the `exit:` line and the answer (3.3); its file
+  "at T2" (3.3); the close's file, `shoroku-proposal.md` at 289 and 323
   (3.2).
+- `roles/kaiseki.md` — the `exit:` line and the answer (3.3); its file,
+  the literal `exit-kaiseki` of 85 (3.2).
 - `roles/hosa.md`, `roles/kikaku.md` — "no exit shoroku" (3.1).
 
 ### 6.4 Templates
 
 - `templates/roster.md` — the keeping rule's bullets on the resumed tab
-  seat, the handshake by basename, and the census's `dead`, whose "an
-  editor restart before `/tanto fukki` for a tab seat" and "neither route
-  detects a `/clear`" no longer hold (2.1, 2.5, 2.6); the status
-  paragraph (2.8); the Shoroku proposal items table without Stage and its
-  sentence (3.5); the Events catalogue without `cleared: <old name> → <new
-  name>` and with "a shoroku proposal written by <name> [<ref>], or not
-  written and what was lost" (3.1).
+  seat (21–22), the handshake by basename (23–25), and the census's `dead`,
+  whose "an editor restart before `/tanto fukki` for a tab seat" and
+  "neither route detects a `/clear`" no longer hold (2.1, 2.5, 2.6); the
+  status paragraph — `cleared`'s routes (66–67, 2.8) and `stopped`'s "or the
+  spawner's guard" (62–63, 1.4); the Shoroku proposal items table without
+  Stage, its sentence, and its `-2-proposal` (110) (3.2, 3.5); the Events
+  catalogue without `cleared: <old name> → <new name>` and with "a shoroku
+  proposal written by <name> [<ref>], or not written and what was lost"
+  (3.1).
 - `templates/kanri.md` — the Shoroku proposal items table without Stage and
   its sentences (3.5); "an exit shoroku not run" → "a shoroku proposal not
-  written".
+  written", and the bare "exit proposal" of 68 and 101 → "shoroku
+  proposal".
 - `templates/batch-report.md` — "This section is this Jisso's exit shoroku"
   → "… this Jisso's shoroku proposal".
 - `templates/shoki-brief.md` — the file names and the subjects (3.2, 3.4).
@@ -758,7 +879,7 @@ Four facts of this plan's own run, which its Global Constraints state:
 - `scripts/spawner.js` — 1.1 to 1.4 and `shortIdOf`; tests in
   `spawner.test.js` with the fake `claude`: the name's shape and its
   re-draw, `--settings` on every spawn, a resume with no flag, the revived
-  seat, and the guard at a census pass.
+  seat, and the guard at a pass of the spawner's census.
 - `scripts/tanto.js` — 4.1 to 4.3; tests in `tanto.test.js`: the attach
   line, a `gone` Kanri resumed and the spawn on a failed resume, and the
   trust hint against a fake config directory (recorded, unrecorded, missing
@@ -766,8 +887,9 @@ Four facts of this plan's own run, which its Global Constraints state:
 - `scripts/boundary.js` — `census` (2.2) with its usage line, and the
   header-driven `S-n` writer (3.5); tests in `boundary.test.js`: every
   heading and exit code of `census` against a fake listing and a fixture
-  roster, and an `S-n` row written to a six-column and to a seven-column
-  table.
+  roster; its own path comparison — the root, a subdirectory, another
+  repository, and the drive letter's other case; and an `S-n` row written to
+  a six-column and to a seven-column table.
 
 ### 6.6 `skills/tanto/README.md`
 
@@ -779,8 +901,13 @@ Four facts of this plan's own run, which its Global Constraints state:
   strings follow them: check 6 (the `exit-<role>` counts, the `S-n` header
   with Stage, `cleared: <old name> → <new name>`, `exit proposal:`), check 7
   (the strings that must be absent gain the retired ones), check 16 (the
-  usage line names `census`), check 20, and check 24 ("the stage word that
-  is left" is gone).
+  usage line names `census`), check 20, and check 24 — "the stage word that
+  is left" is gone, and its fourth grep, which has read `0` against its
+  expected `1` since `tanto-bg-seats` retired Hosa's `close:` line
+  (decision-26fd superseding decision-a1ae), is re-pinned to the new
+  `close:` line of 3.3 in each file that sends or receives it —
+  `SKILL.md`, `roles/kanri.md`, and `roles/jisso.md` — at the count the
+  landed text has, as check 21 wants for a named mechanism.
 - `docs/issues/` — the resolutions and the new issue listed under "Issues
   this design closes", each moved with `git mv` and its `updated:` bumped,
   as `docs/issues/AGENTS.md` prescribes.
@@ -804,7 +931,9 @@ Quoted as they read on 2026-09-23, with the file and the line. Each is an
 `O` needle for the plan, measured over every path it touches; the renamed
 strings of section 3 are needles too, over `skills/tanto/`.
 
-- `SKILL.md`, the role table: "the last one, the T2 shoroku proposal"
+- `SKILL.md` 27, the role table: "the last one, the T2 shoroku proposal"
+- `SKILL.md` 405: "`stopped` a terminal seat the spawner stopped on Kanri's
+  request, its conversation kept"
 - `SKILL.md` 406–408: "`cleared` a tab seat Kanri released with `release:`,
   or whose `/clear` a re-handshake under a new transcript or a `no-role`
   reply revealed"
@@ -812,17 +941,25 @@ strings of section 3 are needles too, over `skills/tanto/`.
   crash, a restart before `/tanto fukki`, or a terminal seat …"
 - `SKILL.md` 416–417: "`ListAgents` shows name, `[ref]`, kind, and start time
   — not the cwd, the model, or the role; the handshake carries those."
+- `SKILL.md` 571–574: "the name is what `claude agents --json` and
+  `ListAgents` currently print for it, and a resume keeps the id while it
+  changes the name."
 - `SKILL.md` 580: "| a tab seat resumed by the editor | the human types
   `/tanto fukki` there; the seat re-handshakes with the same `transcript=`,
   and Kanri rewrites that row's name in place …"
+- `SKILL.md` 583: "`tanto` writes a `resume` request for every terminal seat
+  `seats.json` lists as `running` or `blocked` … a `stopped` seat is not
+  resumed at all, which is why `tanto down --seats` retires a run rather
+  than pausing it"
 - `SKILL.md` 601–603: "A session whose transcript path matches no row is not
   a resumed role"
 - `SKILL.md` 647: "a `close:` line with its clauses"
+- `SKILL.md` 652–653: "a send error stays the signal that a session is gone"
 - `SKILL.md` 654: "writes the Events line an unrun exit shoroku gets"
 - `SKILL.md` 759: "Kanri writes `idle since <HH:MM>` into that cell"
 - `SKILL.md` 856: "at its topic's **close**, stage word `t2`"
-- `SKILL.md`, Session exit: "every row of a ledger's `S-n` table carries
-  Stage `t2`, the stage that recommends it"
+- `SKILL.md` 861–862: "every row of a ledger's `S-n` table carries Stage
+  `t2`, the stage that recommends it"
 - `SKILL.md` 954: "Kikaku and Hosa have no exit shoroku"
 - `SKILL.md` 960: "and that section is its exit shoroku"
 - `SKILL.md` 963: "`.tanto/<topic>/shoroku-proposal.md` on Kanri's `T2:`
@@ -840,14 +977,28 @@ strings of section 3 are needles too, over `skills/tanto/`.
 - `SKILL.md` 1189–1195, rule 10: "A rename before `/tanto <role>` is the
   human's own choice: the skill neither asks for one nor forbids it" (kept;
   the spawner's sentence joins it)
+- `SKILL.md` 1271–1272: "a topic slug is none of them and begins with
+  neither prefix"
 - `SKILL.md` 1275: "and the prefixes `exit-kanri-` and `inbox-`."
+- `roles/kanri.md` 83–84: "cold-read the roster and compare your own
+  `name [ref]` with its first data row, then take exactly one case from
+  "The five cases" below."
+- `roles/kanri.md` 94: "begins with neither of its prefixes"
 - `roles/kanri.md` 132: "### The five cases"
+- `roles/kanri.md` 139: "for another's, whether `ListAgents` still lists it"
+- `roles/kanri.md` 145: "(or `dead` when it is another name and not
+  listed)"
 - `roles/kanri.md` 162–164: "**Kept Kanri** — no handover file, the first
   data row is you, and that row's Transcript column is this session's own
   transcript path."
+- `roles/kanri.md` 171–172: "**Second Kanri** — no handover file, the first
+  data row is another name, and that session is still listed."
 - `roles/kanri.md` 176–178: "**Resumed Kanri** — no handover file, the first
   data row is another name that `ListAgents` does not list, and that row's
   Transcript column is your own transcript path."
+- `roles/kanri.md` 184–185: "**Recovery** — no handover file, the first data
+  row is another name, that session is not listed, and its Transcript column
+  is not your own path."
 - `roles/kanri.md` 200–202: "2. Check the roster and the listing — no live
   roster row for that role and topic, and the `name [ref]` the handshake
   carries appears in `ListAgents`."
@@ -867,6 +1018,12 @@ strings of section 3 are needles too, over `skills/tanto/`.
   carries its own shoroku"
 - `roles/kanri.md` 1266–1268: "Stage `t2`, since the close is what
   recommends it — and you send the session `release: /clear this window`"
+- `roles/kanri.md` 1286–1287: "mark the row `cleared` on a `no-role` or
+  `dead` on a send error or an empty listing"
+- `roles/kanri.md` 1527, the Replace table's first row: "the census marked
+  it `gone`"
+- `roles/kanri.md` 1553, the Release table's close row: "mark `dead` the
+  rows of any session the census lost and no resume brought back"
 - `roles/kanri.md` 1595–1597: "The human types `/tanto fukki` once, in your
   window, after `claude attach`, and then in each tab seat's window, in any
   order. Mark `dead` only a row whose session neither `ListAgents` lists nor
@@ -881,6 +1038,12 @@ strings of section 3 are needles too, over `skills/tanto/`.
   `exit-keikaku`, no suffix"
 - `roles/jisso.md` 5: "the plan's last Jisso owns the T2 shoroku proposal"
 - `roles/jisso.md` 313: "## T2 and the exit — the shoroku write-out"
+- `roles/kaiseki.md` 84–85: "`exit: propose your shoroku; write it to
+  <path>`, write them to `.tanto/<topic>/exit-kaiseki-<n>-proposal.md`"
+- `templates/roster.md` 21–22: "A tab seat that was resumed re-handshakes
+  with `/tanto fukki` instead, as it always did."
+- `templates/roster.md` 23–25: "A handshake whose `transcript=` matches a
+  row's Transcript column is that row's session resumed"
 - `templates/roster.md` 26–28: "A handshake whose name is on a `live` or
   `queued` row with a different transcript is that window `/clear`ed and
   re-invoked, in any role: the old row goes `cleared`"
@@ -888,13 +1051,22 @@ strings of section 3 are needles too, over `skills/tanto/`.
   before `/tanto fukki` for a tab seat"
 - `templates/roster.md` 31–33: "A cleared window stays listed under its
   name, so neither route detects a `/clear`."
+- `templates/roster.md` 62–63: "`stopped` is a terminal seat the spawner
+  stopped on Kanri's request, its conversation kept"
+- `templates/roster.md` 66–67: "or whose `/clear` came to light another way:
+  a handshake under a name already here with a different transcript, in any
+  role"
 - `templates/roster.md` 117: "Stage the stage word `t2` for every row"
 - `templates/roster.md` 135: "`cleared: <old name> → <new name>;`"
 - `templates/kanri.md` 55: "the stage word — `t2` for every row of this
   table"
+- `templates/spawn-request.md` 72–74: "except `spawn`'s ad hoc-worktree
+  guard, which also records the seat as `stopped` before returning `error`"
 - `README.md` 75: "**Claude Code CLI 2.1.277 or newer**"
 - `README.md` 127–128: "`←` returns to the agent view and `Ctrl+Z` drops back
   to the shell; the session keeps running either way."
+- `README.md` 133: "stopped seat is not resumed, and the next `tanto` starts
+  a fresh Kanri."
 - `README.md` 153–155: "and `/tanto fukki` (復帰), typed there, matches it to
   its roster row and rejoins it to the run."
 - `scripts/spawner.js` 325–329: the ad hoc-worktree guard "at the first
@@ -917,20 +1089,23 @@ reference translation where it asks about one.
   checkout: the instrument that starts it turns off, for that seat alone,
   the CLI's isolation of background sessions into worktrees, and writes no
   settings file to do so."
-- **Rewrite** "A run is resumed with one command, and a session's identity
-  survives its renaming" as: "The identity is the session's id, read from
-  the CLI's listing of the sessions under the repository — the human's own
-  tabs included — and never a name, a reference, or a path; a row whose id
-  the listing no longer holds has gone, with no timeout and no inference.
-  The human's part after a restart is one command and, for the resident, one
-  word in its terminal; nothing is typed in the other tabs."
+- **Rewrite** the body of "**A run is resumed with one command, and a
+  session's identity survives its renaming.**", its bold lead kept, as: "The
+  identity is the session's own id, whichever name the session goes by, for
+  the seats the human opens as for the ones the run starts; a seat whose
+  session has gone is known to have gone without a wait or a guess. The
+  human's part after a restart is one command and, for the resident, one
+  word in its terminal; nothing is typed in the other tabs." The mechanism —
+  the listing, the census, no timeout — is ADR 3's.
 - **Add** "**A session another repository runs is never reported as this
   run's.** The run speaks only of the sessions its listing places under the
   repository, so that two repositories' runs on one machine are never
   mistaken for each other."
 - **Amend** "The human reaches any seat from the editor" with: "Every way
-  out of a seat's terminal leaves the seat running; one command stops it,
-  and a stopped resident comes back with the run's one command."
+  out of a seat's terminal leaves the seat running; the seat's own stop
+  command is the one way to stop it, and a resident the human stopped that
+  way comes back with the run's one command." (D-11: a resident the run
+  itself retired, by `tanto down --seats`, stays retired.)
 - **Amend** "Docs are kept current as part of the flow": "Every planned exit
   of a session, in any role, carries its own shoroku before the human closes
   it" → "Every planned exit of a session, in any role, writes its shoroku
@@ -953,7 +1128,8 @@ the Fixed inputs' one list, repeated here per ADR.
    `--settings`; no settings file is written.** A control seat went into a
    worktree at its first write (issue-aa37 reproduced); the flagged seat
    wrote in the root, before and after a flag-less resume. The guard moves
-   to every census pass, since the relocation happens mid-turn. Rejected:
+   to every pass of the spawner's census, since the relocation happens
+   mid-turn. Rejected:
    the launcher asking and writing `.claude/settings.local.json` (the Kikaku
    decision's item 3, reversed with the human's word, D-2) — it edits the
    repository's configuration, which req-04f5 forbids, and turns the
@@ -963,8 +1139,9 @@ the Fixed inputs' one list, repeated here per ADR.
    carried; worktrees for the seats — a rewrite of the workspace contract.
    Amends decision-1ea3.
 3. **Identity is the `sessionId` for every seat, and the census is its one
-   signal.** `boundary.js census` reads `claude agents --json --cwd <root>`;
-   a row whose `sessionId` it does not list is `dead` — no timeout, no
+   signal.** `boundary.js census` reads `claude agents --json` and keeps the
+   sessions whose cwd is the root or under it, by its own comparison; a row
+   whose `sessionId` it does not list is `dead` — no timeout, no
    inference, no name match; the tab seats type nothing after a restart; a
    session the census does not place under the root is another
    repository's and is never reported. Rejected: a timeout (issue-261c's
@@ -999,27 +1176,38 @@ the Fixed inputs' one list, repeated here per ADR.
 - A batch of the instruments: `spawner.js`, `tanto.js`, `boundary.js`, and
   `templates/spawn-request.md`, with their tests — the tests run with the
   fake `claude` and a fake config directory, never the real CLI.
-- A measurement task, against the real CLI in a scratch clone, through the
-  new spawner run from the working tree, never through the resident one:
-  a `spawn` request's result carries a name of 1.1's shape; the seat, on
-  sonnet (haiku has no auto mode, Measured 4), writes a file in the clone's
-  root with no worktree; `claude stop`, then a `resume` request, keeps the
-  `sessionId` and the name; a second write lands in the root. Its report
-  goes to `.tanto/<topic>/`.
+- A measurement task, against the real CLI in a scratch clone, through a
+  spawner run from the working tree's `scripts/spawner.js` on the clone,
+  never through the resident one, every act a request file: a `spawn`
+  request's result carries a name of 1.1's shape; the seat, on sonnet
+  (haiku has no auto mode, Measured 4), writes a file in the clone's root
+  with no worktree; a `stop` request, then a `resume` request, keeps the
+  `sessionId` and the name, and the CLI's note on the resume lists the
+  effort among the saved options; a second write lands in the root. No
+  session issues `claude --bg`, `claude stop`, or `claude rm` itself
+  (decision-1ea3). Its report goes to `.tanto/<topic>/`.
 - The contract and the roles: `SKILL.md`, the seven role files, and the
   templates of 6.4 — in one batch or two, the final batch among them.
-- The docs: the README (4.4), `docs/notes/tanto-consistency-checks.md`, and
-  the issues ("Issues this design closes"), the new issue among them.
+- The docs: the README (4.4) and `docs/notes/tanto-consistency-checks.md`.
+- The issues — a task per issue group, as the Kikaku decision expects, each
+  in the batch that lands its fix: aa37 with the spawner; 02ab, 894d, d92f,
+  261c, and 7f28 with the identity rule; e3e4, 5a2d, de29, 8c74, ce69, and
+  bdad's third item with the vocabulary; and the new issue with the
+  launcher's trust hint.
 - The whole-branch review and its fix wave, as every plan.
 - How a batch is verified: `node --test` over the scripts' tests;
   `passage-check.js verify` over the plan's passages; the `O` needles above
-  at zero over `skills/tanto/`, among them `exit shoroku`,
-  `exit: propose your shoroku`, `exit proposal:`, `stage word`, `` `T2:` ``,
-  `T2 proposal`, `t2-recommendation`, `t2-brief`, `t2-direction`,
-  `t2-review`, `docs: T2 shoroku`, `| Stage |`, `exit-kanri-<`,
-  `exit-<role>`, `cleared: <old name>`, and `The five cases`; and
-  `boundary.js census` run against this repository's live roster, read-only,
-  printing its four headings.
+  at zero over `skills/tanto/SKILL.md`, `skills/tanto/roles/`,
+  `skills/tanto/templates/`, and `skills/tanto/README.md` — among them
+  `exit shoroku`, `exit proposal`, `exit: propose your shoroku`,
+  `stage word`, `` Stage `t2` ``, `` `T2:` ``, `T2 proposal`,
+  `t2-recommendation`, `t2-brief`, `t2-direction`, `t2-review`,
+  `docs: T2 shoroku`, `| Stage |`, `shoroku-proposal.md`, `-2-proposal`,
+  `exit-kanri-<`, `exit-<role>`, `exit-sekkei`, `exit-keikaku`,
+  `exit-kaiseki`, `candidate`, `cleared: <old name>`, and `The five cases`;
+  the scripts' test fixtures keep their strings, which are data a test
+  writes, not the skill's vocabulary; and `boundary.js census` run against
+  this repository's live roster, read-only, printing its four headings.
 
 ## Verification
 
@@ -1042,7 +1230,7 @@ that forces `worktree` outranks the flag (1.2).
   issue-483c, issue-e73b, and every other open issue the Kikaku decision
   excluded; a wider prose polish (issue-2065).
 - issue-fd4b (a `--bg` worktree spawn stuck on a startup dialog, the
-  seat-side neighbour of the new issue), issue-c820 (two live sessions
+  seat-side neighbor of the new issue), issue-c820 (two live sessions
   sharing a bare name), issue-cafd, and issue-bdad's first two items.
 - A multiplexer, and a `tanto watch` view: `claude agents` is the view, and
   a seat outlives its terminal.
@@ -1056,7 +1244,7 @@ Each retired term grepped once across `docs/issues/open/` (Measured 10).
 - **issue-aa37** (a `--bg` session reported its cwd under
   `.claude/worktrees/` with no `-w`) — the cause measured (Measured 4: the
   default isolation's guard, then `EnterWorktree`), removed per seat (1.2),
-  and the guard at every census pass (1.4).
+  and the guard at every pass of the spawner's census (1.4).
 - **issue-02ab** (a stale `live` row read as superseded by inference) — the
   census is the mechanical signal (2.1, 2.5).
 - **issue-894d** (a `/clear` can reuse a name and a ref for a new session) —
