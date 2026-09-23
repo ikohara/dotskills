@@ -402,19 +402,36 @@ at a time and the next plan's queue opens at its predecessor's close — or
 `—` for Kanri, Kikaku, Hosa, and a standalone Kaiseki. The Status column
 carries one of seven
 words: `queued` a Jisso of a skill-editing plan waiting for its batch prompt;
-`live`; `stopped` a terminal seat the spawner stopped on Kanri's request, its
-conversation kept; `cleared` a tab seat Kanri released with `release:`, or
-whose `/clear` a re-handshake under a new transcript or a `no-role` reply
-revealed; `replaced` a Kanri that handed over; `dead` a session that has gone
-— a closed tab, a crash, a restart before `/tanto fukki`, or a terminal seat
-the census marked `gone` that no resume brought back; `refused` a handshake
-that got no row. A terminal seat's row is written from the spawner's result
-file rather than from a handshake — by `boundary.js record --seat` for a
-Jisso, by Kanri's own hand for a Keikaku or a successor — and a row that does
-not exist yet while its seat works is not an error. The keeping rule is one
-live seat per role and topic; Kanri, Kikaku, and Hosa one each.
-`ListAgents` shows name, `[ref]`, kind, and start time — not the cwd, the
-model, or the role; the handshake carries those.
+`live`, which may carry the suffix `(idle since <HH:MM>)`; `stopped` a
+terminal seat the spawner stopped on Kanri's request or the spawner's guard
+stopped, its conversation kept; `cleared` a tab seat Kanri released with
+`release:`, or whose `/clear` a `no-role` reply revealed; `replaced` a
+Kanri that handed over; `dead` a session the census no longer lists;
+`refused` a handshake that got no row. A terminal seat's row is written from
+the spawner's result file rather than from a handshake — by
+`boundary.js record --seat` for a Jisso, by Kanri's own hand for a Keikaku
+or a successor — and a row that does not exist yet while its seat works is
+not an error. The keeping rule is one live seat per role and topic; Kanri,
+Kikaku, and Hosa one each. `ListAgents` shows name, `[ref]`, kind, and start
+time for every session on the machine — not the cwd, the model, or the
+role; the handshake carries those, and the census places a session under
+this repository by its cwd.
+
+**The census.** A session is its `sessionId`, and a roster row's is the
+basename of its Transcript column without `.jsonl`. Every match of a
+session to a row — a handshake, `/tanto fukki`, Kanri's start, the census —
+compares `sessionId`s, never a name, a `[ref]`, or a full path: a name and
+a `[ref]` pass to another session across a `/clear`, one file has two paths
+under a changed config directory, and a transcript moves when its session
+enters a worktree. `node "$TANTO/scripts/boundary.js" census` lists every
+session under the repository, the tab seats included, and Kanri marks a
+`live` or `queued` row whose `sessionId` it does not list `dead` on that
+signal alone — no timeout, no inference, no name — except while a restart
+is being recovered (`roles/kanri.md`). A listing that fails is no signal,
+and nothing is marked on it. A send error is a reason to run the census,
+not a signal of its own: a send that errors to a session the census still
+lists is a message failure, the row stays, and Kanri tells the human in one
+line.
 
 ### The address
 
@@ -568,39 +585,46 @@ are in the dialogue file, the ledger, and the human's own window.
 
 ## Resuming
 
-**Identity is the `sessionId`.** The transcript path is a function of it —
-`<config dir>/projects/<project slug>/<sessionId>.jsonl` — the name is what
-`claude agents --json` and `ListAgents` currently print for it, and a resume
-keeps the id while it changes the name. The roster's Transcript column holds
-the path and therefore the id; no `Sess` column is added, because it would
-duplicate the basename.
+**Identity is the `sessionId`**, for every seat, the tab seats included. The
+transcript path is a function of it —
+`<config dir>/projects/<project slug>/<sessionId>.jsonl` — and the name is
+what `claude agents --json` and `ListAgents` currently print for it. The
+editor's resume of a tab seat keeps the id and changes the name; a terminal
+seat's flag-less resume keeps both, since the spawner named it at its spawn.
+The roster's Transcript column holds the path and therefore the id — the
+basename, which holds when the path does not — and no `Sess` column is
+added, because it would duplicate the basename.
 
 | what happened | what the run does |
 | --- | --- |
-| a tab seat resumed by the editor | the human types `/tanto fukki` there; the seat re-handshakes with the same `transcript=`, and Kanri rewrites that row's name in place and writes `resumed: <old name> → <new name>` |
+| a tab seat resumed by the editor | nothing is typed there: Kanri's census finds the row's `sessionId` under a new name, rewrites that row's name in place, and writes `resumed: <old name> → <new name>`. `/tanto fukki` stays accepted there, and its handshake rewrites the same row with the same values |
 | a terminal seat renamed | the spawner's census sees a known `sessionId` under a new name and marks `renamed` in `seats.json`; Kanri rewrites the row, writes the same Events line, and clears the mark with an `ack` request. The seat itself does nothing and checks nothing |
 | an editor restart | the terminal seats are still running — separate processes, unreached by the restart. Only the tab seats came back renamed |
-| a reboot or a crash | `tanto` writes a `resume` request for every terminal seat `seats.json` lists as `running` or `blocked`, with `claude --resume <sessionId> --bg` and no other flag. The roster's first row is settled first and separately, so a Kanri the listing has lost but `seats.json` still holds is **resumed and never spawned again**; a `stopped` seat is not resumed at all, which is why `tanto down --seats` retires a run rather than pausing it |
+| a reboot or a crash | `tanto` writes a `resume` request for every terminal seat `seats.json` lists as `running` or `blocked`, with `claude --resume <sessionId> --bg` and no other flag. The roster's first row is settled first and separately, so a Kanri the listing has lost but `seats.json` still holds — `gone` included, a Kanri the human `/stop`ped or one that crashed while the spawner ran — is **resumed and never spawned again**. A seat `seats.json` holds as `running` or `blocked` — or, for Kanri alone, `gone` — is resumed; one it holds as `stopped` or `removed` is not, which is why `tanto down --seats` retires a run rather than pausing it |
 
 `tanto` is fukki. It is idempotent: run twice it starts nothing twice, and it
 puts back what a restart took. A resumed background Kanri idles until a line
 reaches it, so the launcher prints the one act that is the human's —
 `claude attach <id>`, and `/tanto fukki` typed there once. That Kanri's fukki
 reconciles the roster with `seats.json`'s `renamed` marks and
-`claude agents --json`, answers the ledger's unanswered lines, sends a Jisso
+the census, answers the ledger's unanswered lines, sends a Jisso
 resumed mid-batch the one line `resume batch X from task N`, and continues
 where the Progress line says.
 
 `/tanto fukki` is a **tab seat's** word everywhere else, and the
 `ListAgents` self-check that used to run at every boundary is a tab seat's
-too: a terminal seat's rename is the census's to detect, and a seat with no
-roster row yet would otherwise handshake, which it must not. A tab seat's
-`/tanto fukki` reads this file and nothing else — its role file is already
-in the session's context, which is what a resume preserves — and it re-runs
-the Start sequence's definitions write-and-count in both scopes, saying the
-result the same way the Start sequence does. A session whose transcript path
-matches no row is not a resumed role: `/tanto fukki` says so and stops, and
-the human runs `/tanto <role>` there as for a new session.
+too: a terminal seat's rename is for the spawner's census to detect, and a
+seat with no roster row yet would otherwise handshake, which it must not.
+The self-check stays the tab seat's own trigger to re-handshake after its
+name changed; the match that follows is Kanri's, by `sessionId`. A tab
+seat's `/tanto fukki` reads this file and nothing else — its role file is
+already in the session's context, which is what a resume preserves —
+re-reads its own name for its closing line, and re-runs the Start
+sequence's definitions write-and-count in both scopes, saying the result
+the same way the Start sequence does. Its match is the row whose Transcript
+basename is its own `sessionId`; a session whose `sessionId` is no row's
+Transcript basename is not a resumed role: `/tanto fukki` says so and stops,
+and the human runs `/tanto <role>` there as for a new session.
 
 ## Messages
 
@@ -649,9 +673,10 @@ the human runs `/tanto <role>` there as for a new session.
   line points at — a report, a brief, a bug report — is not a message and
   carries no such line. The
   `no-role` reply is the one word, carries no second line of its own, and
-  is the signal that a window was cleared under a role; a send error stays
-  the signal that a session is gone. What each side does on `no-role`: Kanri marks the
-  sender's row `cleared`, writes the Events line an unrun exit shoroku gets
+  is the signal that a window was cleared under a role; a send error is a
+  reason to run the census, whose "Not listed" is the signal that a session
+  is gone. What each side does on `no-role`: Kanri marks the sender's row
+  `cleared`, writes the Events line a shoroku proposal not written gets
   — what was lost, as far as it knows — and treats the exit as forced, a
   live Jisso's after verifying the tree; a role that receives `no-role` from
   Kanri's own name is in a handover gap, holds the line it sent, and
@@ -755,8 +780,8 @@ when the human noticed the defect, they hand it to a live Hosa as a chore, or
 say it in Kanri's window. **The intake is the target repository's `live`
 Hosa, else its Kanri**: the sender reads `<workspace>/.tanto/roster.md`,
 takes the bare `<name>` before the bracket of the `Name [ref]` column of the
-row whose Role is `hosa` and whose Status begins with `live` — Kanri writes
-`idle since <HH:MM>` into that cell while a Hosa idles — or, when there is
+row whose Role is `hosa` and whose Status begins with `live` — Kanri appends
+the suffix `(idle since <HH:MM>)` to that cell while a Hosa idles — or, when there is
 none, of the first data row, the human supplying the workspace's path where the sender
 does not know it; checks that name against `ListAgents`; and asks the human
 for the address when the roster is absent — a workspace not yet migrated, or
@@ -837,8 +862,8 @@ seat, or go to `<name> [<ref>]` for a tab seat; 2. do `<what>`; 3. ← back to
 the agent view, or the tab. For a terminal seat Kanri also writes an
 `attention` request, whose message is
 `human-needed: <role> <topic> — claude attach <id>`, because a seat that
-idles on a grant is not `blocked` in the harness's sense and the census
-alone would miss it. The role's direct exchange
+idles on a grant is not `blocked` in the harness's sense and the spawner's
+census alone would miss it. The role's direct exchange
 stays within the scope and ends with one line to Kanri,
 `human-access: done — <what the human did or decided>`.
 
@@ -1103,15 +1128,20 @@ reads a seat's family and effort from. `scripts/boundary.js` is the
 boundary's own instrument, run by
 the `boundary.verify` subagent Kanri dispatches — and, under the shape 2 the
 tanto-diet design leaves as a seam, by a headless session running the same
-brief; its two subcommands are `check`, which runs the boundary's read-only
-commands and prints their output under fixed headings, and `record`, which
-writes the ledger's and the roster's rows idempotently.
+brief; its three subcommands are `check`, which runs the boundary's
+read-only commands and prints their output under fixed headings, `record`,
+which writes the ledger's and the roster's rows idempotently, and `census`,
+which Kanri runs itself: read-only, it prints the roster's `live` and
+`queued` rows against the sessions `claude agents --json` lists under the
+root, under four headings — Listed, Not listed, No session id, and Not held.
 `scripts/spawner.js` is the one process in a run that issues `claude --bg`,
 `claude stop`, `claude rm`, and `claude --resume`: a resident started by the
 launcher and never by a session, which takes request files, writes result
-files, keeps `seats.json`, runs a census of `claude agents --json` every
-fifteen seconds, and raises a desktop notice on a blocked seat and on an
-`attention` request; `spawner.js notify --stdin` is the one-shot an optional
+files, keeps `seats.json`, names each seat it spawns, runs the spawner's
+census of `claude agents --json` every fifteen seconds — which revives a
+seat that returns to the listing and stops one that strays into
+`.claude/worktrees/` — and raises a desktop notice on a blocked seat, on a
+strayed one, and on an `attention` request; `spawner.js notify --stdin` is the one-shot an optional
 harness hook may call. `scripts/tanto.js` is the human's one command — it
 starts the spawner, finds or asks for a Kanri, resumes what a restart took,
 and prints `claude attach <id>`; `tanto down [--seats]` stops it all and
@@ -1192,7 +1222,8 @@ its path.
     name stops delivering even with the ref attached (measured 2026-09-06). A
     rename before `/tanto <role>` is the human's own choice: the skill neither
     asks for one nor forbids it, and the handshake carries whatever the name
-    is.
+    is. The spawner names a terminal seat at its spawn, before its prompt
+    runs, and nothing renames it after.
 11. A plan that edits this skill's own files runs on the skill it is
     editing: when the skill the sessions load is the working tree's own
     copy — a link into it, as in the repository that ships this skill — a
