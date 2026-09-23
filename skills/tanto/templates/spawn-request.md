@@ -66,9 +66,11 @@ field explained beside it.
   neither. A `resume` passes no flag at all: the CLI brings back the options
   the spawn passed, as its note on the resume, which the spawner logs, lists
   them — measured for the name, the setting, the model, and the permission
-  mode; the effort is not among them — neither this batch's own attempt nor
-  the design's original by-hand measurement has observed it, blocked here by
-  issue-b7e1's trust gate before the resume step was reached.
+  mode; whether it also brings back the effort is unmeasured. The
+  bg-seat-ergonomics design's own by-hand probe never listed it either, and
+  the plan's own measurement task could not check: issue-b7e1's
+  workspace-trust gate refused the spawn before the resume step was
+  reached.
 - `sessionId` — the seat's identity, for `stop`, `rm`, `resume`, and `ack`.
   Never a short id: the spawner maps one to the other from `seats.json`.
 - `message` — `attention`'s one line. A bare `<id>` in it is filled by the
