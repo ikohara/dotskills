@@ -67,10 +67,10 @@ field explained beside it.
   the spawn passed, as its note on the resume, which the spawner logs, lists
   them — measured for the name, the setting, the model, and the permission
   mode; whether it also brings back the effort is unmeasured. The
-  bg-seat-ergonomics design's own by-hand probe never listed it either, and
-  the plan's own measurement task could not check: issue-b7e1's
-  workspace-trust gate refused the spawn before the resume step was
-  reached.
+  bg-seat-ergonomics design's own by-hand probe never listed it, and the
+  bg-seat-ergonomics plan's own measurement task could not check: a
+  workspace-trust gate refused the spawn — a fresh clone's folder trust
+  unset in `.claude.json` — before the resume step was reached.
 - `sessionId` — the seat's identity, for `stop`, `rm`, `resume`, and `ack`.
   Never a short id: the spawner maps one to the other from `seats.json`.
 - `message` — `attention`'s one line. A bare `<id>` in it is filled by the
