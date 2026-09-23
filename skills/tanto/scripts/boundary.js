@@ -1,9 +1,11 @@
 // tanto's boundary instrument, beside `passage-check.js` and `reading.js`.
-// Two subcommands: `check`, which runs the boundary's read-only commands and
-// prints their output under fixed headings, and `record`, which writes the
-// ledger's and the roster's rows. Run by the `boundary.verify` kind from
-// `templates/boundary-brief.md`, and, under the design's shape 2, by a
-// headless session running the same brief. It judges nothing.
+// Three subcommands: `check`, which runs the boundary's read-only commands
+// and prints their output under fixed headings, and `record`, which writes
+// the ledger's and the roster's rows — both run by the `boundary.verify` kind
+// from `templates/boundary-brief.md`, and, under the design's shape 2, by a
+// headless session running the same brief — and `census`, which Kanri runs
+// itself: the roster's `live` and `queued` rows against the CLI's listing of
+// the sessions under the root, read-only. It judges nothing.
 //
 // Node, no dependencies, no shebang: always
 // `node "$TANTO/scripts/boundary.js" <subcommand>`.
@@ -376,9 +378,34 @@ function writeCellEntry(doc, rowPrefix, batch, body, written) {
 }
 
 /**
+ * The seventh column of an `S-n` table, which a ledger or a roster opened
+ * before it was retired keeps (spec 3.5). Spelled with one bracketed
+ * character, as the consistency note's check 7 spells every retired string.
+ */
+const RETIRED_COLUMN = /^Stag[e]$/;
+
+/** An `S-n` row's cells, one per column the table's own header names. */
+function sItemCells(header, number, source, text) {
+  const byColumn = {
+    "S-n": `S-${number}`,
+    Source: source,
+    Item: text,
+    Destination: "",
+    Adopted: "pending",
+    Written: "no",
+  };
+  return header.map((column) => {
+    if (Object.hasOwn(byColumn, column)) return byColumn[column];
+    return RETIRED_COLUMN.test(column) ? "t2" : "";
+  });
+}
+
+/**
  * One `S-n` row, numbered from the table's highest existing `S-n`, so that a
  * `pending` row a Kanri exit wrote there since the last boundary is counted
- * and not overwritten. A row with the same Source and Item is already there.
+ * and not overwritten, and written by the header it finds: six cells, or
+ * seven with `t2` in the retired column, nothing migrated. A row with the
+ * same Source and Item is already there.
  */
 function writeSItem(doc, item, written) {
   const span = sectionSpan(doc.lines, "Shoroku proposal items");
@@ -402,7 +429,7 @@ function writeSItem(doc, item, written) {
     if (found) highest = Math.max(highest, Number(found[1]));
     if (current[0] === "(no item yet)") placeholders.push(i);
   }
-  const line = row([`S-${highest + 1}`, source, text, "", "pending", "t2", "no"]);
+  const line = row(sItemCells(cells(doc.lines[table.header]), highest + 1, source, text));
   doc.lines.splice(table.end, 0, line);
   for (const i of placeholders.reverse()) doc.lines.splice(i, 1);
   written.push(line);
@@ -665,11 +692,128 @@ function cmdRecord(argv) {
   return 0;
 }
 
+/** The CLI, as a command: the seam `spawner.js` and `tanto.js` use. */
+function claudeCommand(args) {
+  const viaNode = process.env.TANTO_CLAUDE_NODE;
+  if (viaNode) return { file: process.execPath, args: [viaNode, ...args] };
+  return { file: process.env.TANTO_CLAUDE || "claude", args };
+}
+
+/** A path with its separators unified, no trailing one, and, on Windows, its case folded. */
+function comparablePath(p) {
+  const unified = String(p).replace(/\\/g, "/").replace(/\/+$/, "");
+  return process.platform === "win32" ? unified.toLowerCase() : unified;
+}
+
+/**
+ * Whether a listed cwd is the root or a path under it. The census compares
+ * the paths itself rather than pass `--cwd`: the CLI's filter is measured for
+ * the root alone, and a subdirectory and the drive letter's two spellings are
+ * settled here (spec 2.2).
+ */
+function underRoot(root, cwd) {
+  if (!cwd) return false;
+  const base = comparablePath(root);
+  const here = comparablePath(cwd);
+  return here === base || here.startsWith(`${base}/`);
+}
+
+/** A Transcript cell's `sessionId` — its basename without `.jsonl` — or null for `unavailable`. */
+function sessionIdOf(transcript) {
+  const cell = String(transcript || "").trim();
+  if (cell === "" || cell === "unavailable") return null;
+  return cell
+    .split(/[\\/]/)
+    .pop()
+    .replace(/\.jsonl$/, "");
+}
+
+/** The four headings `census` prints, in order. */
+const CENSUS_HEADINGS = ["Listed", "Not listed", "No session id", "Not held"];
+
+/**
+ * `census [--root <dir>] [--roster <path>]` (spec 2.2): the roster's `live`
+ * and `queued` rows against `claude agents --json`'s sessions under the root.
+ * Read-only — Kanri, the roster's one writer, acts on what it prints.
+ */
+function cmdCensus(argv) {
+  const values = parseArgs(argv);
+  for (const name of ["root", "roster"]) {
+    if (values[name] === true) return fail(`census: --${name} needs a value`, 2);
+  }
+  const root = path.resolve(given(values, "root") || process.cwd());
+  const rosterPath = given(values, "roster") || path.join(root, ".tanto", "roster.md");
+  let lines;
+  try {
+    lines = fs.readFileSync(rosterPath, "utf8").split(/\r?\n/);
+  } catch {
+    return fail(`census: cannot read the roster at ${rosterPath}`, 2);
+  }
+  const table = tableByHeader(lines, SESSIONS_HEADER);
+  if (!table) return fail(`census: no sessions table in ${rosterPath}`, 2);
+
+  const command = claudeCommand(["agents", "--json"]);
+  const got = spawnSync(command.file, command.args, { encoding: "utf8", windowsHide: true });
+  if (got.status !== 0) {
+    const said = (got.stderr || "").trim().split(/\r?\n/)[0];
+    console.log(`census: unavailable — ${said || `claude agents exited ${got.status}`}`);
+    return 1;
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(got.stdout || "");
+  } catch {
+    console.log("census: unavailable — claude agents --json printed no JSON");
+    return 1;
+  }
+  const all = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.sessions) ? parsed.sessions : [];
+  const listed = new Map(all.filter((s) => s?.sessionId && underRoot(root, s.cwd)).map((s) => [s.sessionId, s]));
+
+  const out = { Listed: [], "Not listed": [], "No session id": [], "Not held": [] };
+  const held = new Set();
+  const others = new Map();
+  for (let i = table.first; i < table.end; i++) {
+    const row = cells(lines[i]);
+    if (row.length < 11) continue;
+    const [role, topic, name] = row;
+    const status = row[9].split(/\s+/)[0];
+    const sessionId = sessionIdOf(row[10]);
+    if (status !== "live" && status !== "queued") {
+      if (sessionId) others.set(sessionId, status);
+      continue;
+    }
+    if (!sessionId) {
+      out["No session id"].push(`${role} ${topic} ${name}`);
+      continue;
+    }
+    held.add(sessionId);
+    const session = listed.get(sessionId);
+    if (!session) {
+      out["Not listed"].push(`${role} ${topic} ${name} — ${sessionId}`);
+      continue;
+    }
+    const bare = name.replace(/\s*\[[^\]]*\]$/, "");
+    const renamed = session.name && session.name !== bare ? " — renamed" : "";
+    out.Listed.push(`${role} ${topic} ${name} — ${sessionId} — listed as ${session.name} (${session.kind})${renamed}`);
+  }
+  for (const [sessionId, session] of listed) {
+    if (held.has(sessionId)) continue;
+    const other = others.has(sessionId) ? ` — row ${others.get(sessionId)}` : "";
+    out["Not held"].push(`${session.name} (${session.kind}) — ${sessionId}${other}`);
+  }
+  for (const heading of CENSUS_HEADINGS) {
+    console.log(`\n## ${heading}\n`);
+    console.log(out[heading].length > 0 ? out[heading].join("\n") : "none");
+  }
+  return 0;
+}
+
 function main(argv) {
   const sub = argv[0];
   if (sub === "check") return cmdCheck(argv.slice(1));
   if (sub === "record") return cmdRecord(argv.slice(1));
-  return fail("usage: boundary.js check|record <options>", 2);
+  if (sub === "census") return cmdCensus(argv.slice(1));
+  return fail("usage: boundary.js check|record|census <options>", 2);
 }
 
 process.exitCode = main(process.argv.slice(2));
