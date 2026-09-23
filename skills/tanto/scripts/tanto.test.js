@@ -126,6 +126,28 @@ function backdate(file, seconds) {
   fs.utimesSync(file, past, past);
 }
 
+// The two lines spec 4.1 and 4.3 fix, byte for byte.
+const LEAVE =
+  "← or /exit returns to the agent view, Ctrl+Z to the shell; the seat keeps running — /stop alone stops it, and a Kanri you /stop comes back with tanto";
+const TRUST =
+  "this folder's trust is not recorded: run claude here once and answer \"Yes, I trust this folder\" — the agent view's own trust question after ← or /exit takes no input";
+
+/** `.claude.json` in the fake config directory, keyed as the CLI keys the root. */
+function writeTrust(ws, accepted) {
+  const key = ws.root.replace(/\\/g, "/");
+  const body = { projects: { [key]: { hasTrustDialogAccepted: accepted } } };
+  fs.writeFileSync(path.join(ws.root, ".claude.json"), JSON.stringify(body));
+}
+
+const LIVE_KANRI = {
+  sessionId: "sess-live",
+  name: "seat-live [ffffff]",
+  cwd: null,
+  kind: "background",
+  state: "running",
+  id: "bg07",
+};
+
 test("--help prints the usage line and exits 2", () => {
   const ws = workspace();
   const got = launch(ws, ["--help"]);
@@ -522,4 +544,76 @@ test("the launcher itself never runs claude --bg", () => {
   assert.equal(own.length, 1);
   const seats = JSON.parse(fs.readFileSync(path.join(ws.root, ".tanto", "spawner", "seats.json"), "utf8")).seats;
   assert.equal(seats[0].role, "kanri");
+});
+
+test("the attach line is followed by the line on leaving and stopping a seat", () => {
+  const ws = workspace([LIVE_KANRI]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  const lines = got.out.split(/\r?\n/);
+  const at = lines.indexOf("claude attach bg07");
+  assert.notEqual(at, -1, got.out);
+  assert.equal(lines[at + 1], LEAVE);
+});
+
+test("a Kanri seats.json holds as gone is resumed, never spawned again", () => {
+  // The human's `/stop`, or a crash while the spawner ran: the listing has
+  // lost it, and --resume still finds it by sessionId (spec 4.2).
+  const ws = workspace([{ ...LIVE_KANRI, hidden: true }]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  writeSeats(ws, [
+    { sessionId: "sess-live", id: "bg07", name: "seat-live [ffffff]", role: "kanri", status: "gone", goneAt: "x" },
+  ]);
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  assert.equal(got.code, 0, got.err);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn").length, 0);
+  assert.deepEqual(
+    requests(ws)
+      .filter((r) => r.op === "resume")
+      .map((r) => r.sessionId),
+    ["sess-live"],
+  );
+  const lines = got.out.split(/\r?\n/);
+  const at = lines.indexOf("claude attach bg07");
+  assert.notEqual(at, -1, got.out);
+  assert.equal(lines[at + 1], LEAVE);
+  assert.equal(lines[at + 2], "then type /tanto fukki there once");
+});
+
+test("a Kanri resume that fails says so in one line and spawns a new Kanri", () => {
+  const ws = workspace();
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  writeSeats(ws, [{ sessionId: "sess-live", id: "bg07", name: "seat-live [ffffff]", role: "kanri", status: "gone" }]);
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  assert.equal(got.code, 0, got.err);
+  assert.match(got.err, /^tanto: the Kanri resume failed — .*unknown session sess-live.*; spawning a new Kanri$/m);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn" && r.role === "kanri").length, 1);
+  assert.match(got.out, /claude attach bg01/);
+});
+
+test("the trust hint comes before the attach line when .claude.json does not record the folder's trust", () => {
+  const ws = workspace([LIVE_KANRI]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  writeTrust(ws, false);
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  const lines = got.out.split(/\r?\n/);
+  const at = lines.indexOf("claude attach bg07");
+  assert.notEqual(at, -1, got.out);
+  assert.equal(lines[at - 1], TRUST);
+});
+
+test("no trust hint when .claude.json records the trust, is missing, or does not parse, and the file is never written", () => {
+  const ws = workspace([LIVE_KANRI]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  const file = path.join(ws.root, ".claude.json");
+  writeTrust(ws, true);
+  const recorded = fs.readFileSync(file, "utf8");
+  assert.equal(launch(ws, [ws.root, "--timeout", "20000"]).out.includes(TRUST), false);
+  assert.equal(fs.readFileSync(file, "utf8"), recorded);
+  fs.rmSync(file);
+  assert.equal(launch(ws, [ws.root, "--timeout", "20000"]).out.includes(TRUST), false);
+  assert.equal(fs.existsSync(file), false);
+  fs.writeFileSync(file, "{ not json");
+  assert.equal(launch(ws, [ws.root, "--timeout", "20000"]).out.includes(TRUST), false);
+  assert.equal(fs.readFileSync(file, "utf8"), "{ not json");
 });
