@@ -107,9 +107,12 @@ sit in `text` fences, which `replay` never runs.
   `.tanto/bg-seat-ergonomics/review-brief-spec.md` ("all OK"). It covers
   exactly the edits this plan's tasks carry out — no task extends an edit
   beyond its own passages on the strength of this rule.
-- Task 6 edits `skills/tanto/README.md`, which the same file's sibling rule
-  asks a `SKILL.md` edit to keep current; the two land in the same batch (B)
-  so neither drifts from the other.
+- Task 6 edits `skills/tanto/README.md` in batch B, before `SKILL.md`'s own
+  edits (Tasks 10 and 11, batch C) land; `AGENTS.md`'s sibling rule ("after
+  editing a skill's `SKILL.md`, review its sibling `README.md` for drift")
+  fires the other way around from usual, once `SKILL.md` changes exist to
+  compare — Task 10's own Step 3 reads the two together against the
+  README Task 6 already landed, which is the guard, not a same-batch cut.
 
 **Model families (`tanto.json`, read at this plan's landing, not restated as
 a fixed table here — a personal or project override can change them before
