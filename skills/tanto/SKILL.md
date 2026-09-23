@@ -24,7 +24,7 @@ This file is the shared contract. Every role reads it, then reads exactly one
 | Kanri (管理) | exactly 1 | roster, conductor ledger, batch prompts, rulings, the recommendations and the directions, the bug intake when no Hosa is live, the spawn, stop, and attention requests, the kessai, and the `release:` lines to tab seats | human, Sekkei, Keikaku, Jisso, Kaiseki, Hosa; Kikaku at its handshake only |
 | Sekkei (設計) | 0 or 1 per topic | the spec and its review | Kanri; the human by grant |
 | Keikaku (計画) | 0 or 1 per topic | the plan, its dry run, and its review | Kanri; the human by grant |
-| Jisso (実装) | 1 live per topic, spawned per batch — a self-editing plan's all at its landing | one batch of the SDD run each, its batch report and its commits; the last one, the T2 shoroku proposal | Kanri; the human by grant |
+| Jisso (実装) | 1 live per topic, spawned per batch — a self-editing plan's all at its landing | one batch of the SDD run each, its batch report and its commits; the last one, the close's shoroku proposal | Kanri; the human by grant |
 | Kaiseki (解析) | 0 or 1, on demand | root-cause reports; never a fix; no commit | Kanri; the human by grant |
 | Kikaku (企画) | 0 or 1, opened by the human | the consultation, and the decision files under `.tanto/kikaku/` | the human; Kanri, one `decision:` line |
 | Hosa (補佐) | 0 or 1, opened by the human | the human's small chores, the bug intake, the hotfix lane's edits Kanri hands over in a slot Kanri gives, and the kessai relay | the human; Kanri |
@@ -668,8 +668,8 @@ and the human runs `/tanto <role>` there as for a new session.
   it, so "act on the teammate's request" and "do nothing" coincide. In a
   message longer than one line the `no-role` line follows the first: a
   batch prompt travels as the one line `batch: <path>`, and the file that
-  path names carries no such line of its own; a `close:` line
-  with its clauses, or a handshake with its fields, is one line. A file a
+  path names carries no such line of its own; a `close:` line, or a
+  handshake with its fields, is one line. A file a
   line points at — a report, a brief, a bug report — is not a message and
   carries no such line. The
   `no-role` reply is the one word, carries no second line of its own, and
@@ -878,13 +878,13 @@ beyond the exchange.
 
 ## Session exit
 
-A session's items reach `docs/` once, at its topic's **close**, stage word
-`t2`, after the final batch. An exit — a seat done with its work, a Kanri
-handing over, a Jisso retiring at its boundary — writes those items to a
-file and nothing more; nothing is recommended, checked, or applied at an
-exit. `R-n` numbers Kanri's rulings and `S-n` the proposal items, both in
-the conductor ledger, and every row of a ledger's `S-n` table carries Stage
-`t2`, the stage that recommends it.
+A session's items reach `docs/` once, at its topic's **close**, after the
+final batch. An exit — a seat done with its work, a Kanri handing over, a
+Jisso retiring at its boundary — writes those items to a file, its
+**shoroku proposal**, and nothing more; nothing is recommended, checked, or
+applied at an exit. `R-n` numbers Kanri's rulings and `S-n` the proposal
+items, both in the conductor ledger, whose `S-n` table's columns are S-n,
+Source, Item, Destination, Adopted, and Written.
 
 The close runs four steps — **propose, recommend, check, apply** — and every
 other moment runs only the first:
@@ -906,11 +906,11 @@ other moment runs only the first:
    a pointer, and the rows are the lineage — however many sessions carried a
    seat, its items are in one table.
 2. **Recommend.** At the close, Kanri dispatches the `shoroku.recommend`
-   kind over the T2 proposal, every source the `pending` rows name — the
-   spec's sections by heading, each proposal by path, each report by path
-   and item, each with its `S-n` — and every untriaged copy under
+   kind over the close's shoroku proposal, every source the `pending` rows
+   name — the spec's sections by heading, each proposal by path, each report
+   by path and item, each with its `S-n` — and every untriaged copy under
    `.tanto/inbox/`, by path, names `skills/` as the paths a `fix` item may
-   touch, and names the output, `t2-recommendation.md`:
+   touch, and names the output, `shoroku-recommendation.md`:
    every item once, quoted in full from its source, its heading carrying the
    pointer its `Source:` line will take, in four groups — Recommended adopt,
    Recommended fix, Recommended reject, Unsure — each with its destination
@@ -918,7 +918,7 @@ other moment runs only the first:
    `fix — <file>`, `redirect — <where it belongs>`, `kaiseki — <one line>`,
    `relay — <topic>`, or `dismissed — <one line>`; a `fix` item carries the
    file, the text as it reads, and the text as it should read.
-   The same dispatch names the brief path, `t2-brief.md` beside the
+   The same dispatch names the brief path, `shoroku-brief.md` beside the
    recommendation, the template `templates/shoroku-brief.md`, and the chat's
    language; the recommender writes both files in one run.
    <!-- markdownlint-disable MD038 -->
@@ -936,7 +936,7 @@ other moment runs only the first:
    file whose third section names this recommendation and answers it, or by
    telling a live Hosa, whose chore is then the one line
    `kessai answer: <topic> — <the human's words verbatim>`. That one answer
-   is the direction and the merge approval. Kanri writes `t2-direction.md`
+   is the direction and the merge approval. Kanri writes `shoroku-direction.md`
    beside the recommendation, item by item, with the `S-n` rows in the
    conductor ledger.
    <!-- markdownlint-enable MD038 -->
@@ -950,7 +950,7 @@ other moment runs only the first:
    dispatches `shoroku.apply` for the accepted subset per `docs/AGENTS.md` —
    every issue opening with the `Source:` line its item's heading names, the
    Triage section of every swept inbox copy filled — commits once as
-   `docs: T2 shoroku for <topic>`, dispatches `shoroku.review` over its own
+   `docs: shoroku for <topic>`, dispatches `shoroku.review` over its own
    diff and applies its findings once, rebases onto `main`, and reports
    `shoroku ready:` or `shoroku blocked:`. Kanri runs the landing checks and
    fast-forwards `main` onto that branch. No session applies the accepted
@@ -976,34 +976,37 @@ the human sees the whole recommendation, grouped, once per topic. Proposal
 items are what is not yet in any file — a rejected alternative and its
 reason, a fact measured, a defect noticed, an observation about the run —
 never a restatement of a spec, a plan, a report, or a ledger. Kikaku and
-Hosa have no exit shoroku; the human `/clear`s those windows at will. A
+Hosa write no shoroku proposal; the human `/clear`s those windows at will. A
 standalone Kaiseki has no Kanri, and its role file says how.
 
 **Who proposes when.**
 
 - **Jisso** proposes at every boundary, in its report's Shoroku proposal
-  section, and that section is its exit shoroku: one Jisso runs one batch,
-  and the boundary Kanri accepts is where it retires. No `exit:` line and no
-  exit file go to a Jisso. At the close the plan's last live Jisso writes
-  `.tanto/<topic>/shoroku-proposal.md` on Kanri's `T2:` line — the `pending`
-  rows by number and what its own context holds that no file does — and is
-  stopped on its form check: no `/clear`, its conversation kept.
+  section, and that section is its shoroku proposal: one Jisso runs one
+  batch, and the boundary Kanri accepts is where it retires. No `exit:` line
+  and no proposal file go to a Jisso. At the close the plan's last live
+  Jisso writes the close's shoroku proposal on Kanri's line
+  `close: propose; write it to .tanto/<topic>/shoroku-proposal-jisso-<short id>.md`
+  — the `pending` rows by number and what its own context holds that no
+  file does — and is stopped on its form check: no `/clear`, its
+  conversation kept.
 - **Sekkei and Keikaku** write their proposal unasked at their own final
-  boundary and name it in the report line — `spec accepted: <spec path>;
-  exit proposal: <path> — <reading>` for Sekkei,
-  `coldread answered: <pointer, one per question, or none>; exit proposal: <path> — <reading>`
+  boundary and name it in the report line —
+  `spec accepted: <spec path>; shoroku proposal: <path> — <reading>` for
+  Sekkei,
+  `coldread answered: <pointer, one per question, or none>; shoroku proposal: <path> — <reading>`
   for Keikaku. An exit that falls away from that boundary — a compaction in
   the reading, the human not wanting the plan now — takes the `exit:` line
   like a Kaiseki's.
-- **Kaiseki**, attached, is sent `exit: propose your shoroku; write it to <path>`
-  when its case closes, writes the proposal, runs the resume self-check, and
-  answers `exit proposal: <path> — <reading>`.
+- **Kaiseki**, attached, is sent `exit: propose; write it to <path>` when
+  its case closes, writes the proposal, runs the resume self-check, and
+  answers `shoroku proposal: <path> — <reading>`.
 - **Kanri** writes its own proposal from the ledger and the roster, never
   from recollection, at two kinds of moment. **At every plan close**, after
-  Jisso's T2 proposal and before the recommender is dispatched, so that the
+  Jisso's proposal and before the recommender is dispatched, so that the
   close's one check covers Kanri's items with everything else — whether or
   not the close's handover is then declined; what the close teaches after
-  that file is written goes to a second file, `-2-proposal.md`, whose rows
+  that file is written goes to a further file, the next `-<n>`, whose rows
   go to the roster's Shoroku proposal items table. **At a handover** that is
   not a close: while any ledger is open, the items are `pending` rows in the
   ledger of the topic whose batches are in flight, else the oldest open;
@@ -1011,23 +1014,29 @@ standalone Kaiseki has no Kanri, and its role file says how.
   which move into the next topic's ledger when it opens. No Kanri exit runs
   a recommend, a check, or an apply of its own. A topic the human ends
   before its final batch still gets its close, over what is on disk, with
-  Kanri writing the T2 proposal in Jisso's absence.
+  Kanri writing the close's shoroku proposal in Jisso's absence.
 
-**The files.** A proposal is `exit-<role>[-<suffix>]-proposal.md` in
-`.tanto/<topic>/` — no suffix for Sekkei (`exit-sekkei`) and Keikaku
-(`exit-keikaku`), the case number for Kaiseki (`exit-kaiseki-1`), and a
-second file at the same boundary takes `-2` before `-proposal` — or, for
-Kanri, `.tanto/exit-kanri-<YYYY-MM-DD>-<name>[-2]-proposal.md` next to the
-roster. A Jisso has no proposal file but the close's
-`.tanto/<topic>/shoroku-proposal.md`. The close's six files —
-`t2-recommendation.md`, `t2-brief.md`, `t2-direction.md`, `t2-review.md`,
-`shoki-brief.md`, and `batch-shusei-prompt.md` — live in the topic
-directory; there are no others. The close's commit subjects are
-`docs: T2 shoroku for <topic>`, `docs: T2 shoroku for <topic>, review fixes`
-when shoki's review found anything, and, when the direction accepted a `fix`
-item, `fix: text corrections from <topic>'s close` — the two fixed prefixes,
-`docs: T2 shoroku` and `fix: text corrections`, that the whole-branch review
-package excludes.
+**The files.** Every proposal file is
+`shoroku-proposal-<role>-<short id>.md`, `<short id>` being the first eight
+hexadecimal digits of the writing session's `sessionId` — the same eight
+digits as a background seat's CLI short id — with `-<n>` before `.md`, `n`
+from 2 upward, for a further file by the same session, never a rewrite of
+one already written. A proposal file lives in the topic directory,
+`.tanto/<topic>/`, and Kanri's in `.tanto/` beside the roster. A session
+knows its own `sessionId` from its transcript path; Kanri knows a seat's
+from the Transcript column of its row. A Jisso's proposal is its report's
+section, and the close's is
+`.tanto/<topic>/shoroku-proposal-jisso-<short id>.md`, the last live
+Jisso's. The close's other files are named by the step —
+`shoroku-recommendation.md`, `shoroku-brief.md`, `shoroku-direction.md`,
+`shoroku-review.md`, `shoki-brief.md`, and `batch-shusei-prompt.md` — and
+live in the topic directory; there are no others. The close's commit
+subjects are `docs: shoroku for <topic>`,
+`docs: shoroku for <topic>, review fixes` when shoki's review found
+anything, and, when the direction accepted a `fix` item,
+`fix: text corrections from <topic>'s close` — the two fixed prefixes,
+`docs: shoroku for` and `fix: text corrections`, that the whole-branch
+review package excludes.
 
 **The exit itself.** Every line above is sent without an idle
 subscription, like every other tanto line. Kanri checks that the proposal
@@ -1043,14 +1052,15 @@ the human, in its own window, `<role> <name> released — its work is in
 <paths>; no step needs it — /clear its window when convenient`. Nothing
 waits on the human's `/clear`: the roster no longer addresses that name,
 and the next `/tanto <role>` typed in that window handshakes as a new
-session under the same name, which the roster's clear rule expects. A seat
-that has stopped answering is past answering, and Kanri learns it the way it
-learns of a missing batch report — the human says the window is gone, a
-send errors, a `no-role` comes back, or Kanri's window wakes for another
-reason and the answer has not arrived. Kanri then treats the exit as forced
-— the roster's Events line says the exit shoroku did not run and what was
-lost, as far as Kanri knows — marks the row `cleared` or `dead` as the
-signal says, and continues.
+session under the same name and a new `sessionId`. A seat that has stopped
+answering is past answering, and Kanri learns it the way it learns of a
+missing batch report — the human says the window is gone, a send errors
+and the census that follows no longer lists it, a `no-role` comes back, the
+census's "Not listed" names it, or Kanri's window wakes for another reason
+and the answer has not arrived. Kanri then treats the exit as forced — the
+roster's Events line says its shoroku proposal was not written and what was
+lost, as far as Kanri knows — marks the row `cleared` on a `no-role` or
+`dead` on the census's "Not listed", and continues.
 
 ## Artifacts
 
@@ -1074,14 +1084,14 @@ signal says, and continues.
 | `.tanto/<topic>/coldread.md` | the `plan.coldread` subagent Kanri dispatches | Kanri, by `sections` | the cold read of the committed plan: a numbered list of open questions, or `none`; Kanri sends Keikaku one numbered message carrying all of them, or `coldread: none`, and Keikaku answers with one `coldread answered:` line |
 | `.tanto/<topic>/batch-<X>-prompt.md` | the `boundary.verify` subagent, from `templates/batch-prompt.md`; Kanri for its two `<Kanri fills>` slots and for a rework prompt | the seat the `spawn` request creates, or the `queued` seat under a skill-editing plan; human | the prompt; sent as the one line `batch: <path>`, which the human pastes if the message did not arrive |
 | `.tanto/<topic>/batch-<X>-verdict.md` | the `boundary.verify` kind Kanri dispatches | Kanri, by `sections` | the boundary's verdict: eleven fixed sections, and a twelfth, `Measurement`, when the batch carried a measurement task |
-| `.tanto/<topic>/batch-<X>-report.md` | the Jisso of that batch | Kanri; the close's recommender, its Shoroku proposal section by path and item | fixed skeleton; its Shoroku proposal section is that Jisso's exit shoroku |
+| `.tanto/<topic>/batch-<X>-report.md` | the Jisso of that batch | Kanri; the close's recommender, its Shoroku proposal section by path and item | fixed skeleton; its Shoroku proposal section is that Jisso's shoroku proposal |
 | `.tanto/<topic>/kaiseki-<n>-brief.md` | Kanri | Kaiseki | fixed skeleton |
 | `.tanto/<topic>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
-| `.tanto/<topic>/shoroku-proposal.md` | the plan's last live Jisso | Kanri, for its form; the close's recommender, by path | the close's proposal: the `pending` rows by number and what that Jisso's own context holds that no file does, written to a file instead of printed |
-| `.tanto/<topic>/exit-<role>[-<suffix>][-2]-proposal.md`, or `.tanto/exit-kanri-<YYYY-MM-DD>-<name>[-2]-proposal.md` | the exiting session — Sekkei, Keikaku, an attached Kaiseki; Kanri at every plan close and at every handover; never Jisso, whose proposal is its report's section | Kanri, for its form; the close's recommender, by path | the exit shoroku proposal, opening with the line that says what it excludes; `-2` a second file at the same boundary, never a rewrite of the first |
-| `.tanto/<topic>/t2-recommendation.md` | the `shoroku.recommend` kind Kanri dispatches at the close | Kanri, the human, the apply subagent | every proposal item once, quoted in full from the source its `pending` row names, in four groups — Recommended adopt, Recommended fix, Recommended reject, Unsure — each with its destination and its one-line reason |
-| `.tanto/<topic>/t2-brief.md` | the `shoroku.recommend` kind, in the same dispatch as the recommendation | Kanri, by `grep` for its form and by `sections` (its bare heading text) for the `Unsure` group; the human, verbatim | the check brief, from `templates/shoroku-brief.md`, in the chat's language: one line per item, grouped as the recommendation groups them, each pointing at the item's `###` heading |
-| `.tanto/<topic>/t2-direction.md`, beside the recommendation | Kanri, from the human's answer — in its window, or a Kikaku decision file whose third section answers the recommendation | the `shoroku.apply` kind | what the human accepted, item by item; the apply never runs without it |
+| `.tanto/<topic>/shoroku-proposal-jisso-<short id>.md` | the plan's last live Jisso | Kanri, for its form; the close's recommender, by path | the close's shoroku proposal: the `pending` rows by number and what that Jisso's own context holds that no file does, written to a file instead of printed |
+| `.tanto/<topic>/shoroku-proposal-<role>-<short id>[-<n>].md`, or `.tanto/shoroku-proposal-kanri-<short id>[-<n>].md` | the exiting session — Sekkei, Keikaku, an attached Kaiseki; Kanri at every plan close and at every handover; never Jisso, whose proposal is its report's section | Kanri, for its form; the close's recommender, by path | the session's shoroku proposal, opening with the line that says what it excludes; `-<n>` a further file by the same session, never a rewrite of one already written |
+| `.tanto/<topic>/shoroku-recommendation.md` | the `shoroku.recommend` kind Kanri dispatches at the close | Kanri, the human, the apply subagent | every proposal item once, quoted in full from the source its `pending` row names, in four groups — Recommended adopt, Recommended fix, Recommended reject, Unsure — each with its destination and its one-line reason |
+| `.tanto/<topic>/shoroku-brief.md` | the `shoroku.recommend` kind, in the same dispatch as the recommendation | Kanri, by `grep` for its form and by `sections` (its bare heading text) for the `Unsure` group; the human, verbatim | the check brief, from `templates/shoroku-brief.md`, in the chat's language: one line per item, grouped as the recommendation groups them, each pointing at the item's `###` heading |
+| `.tanto/<topic>/shoroku-direction.md`, beside the recommendation | Kanri, from the human's answer — in its window, or a Kikaku decision file whose third section answers the recommendation | the `shoroku.apply` kind | what the human accepted, item by item; the apply never runs without it |
 | `.tanto/<topic>/compaction-<role>-<n>.md` | the compacted session | Kanri | every item a compaction summary attributes to the human, one per line, rewritten with the human's answers |
 | `.tanto/kaiseki/kaiseki-<n>.md` | a standalone Kaiseki | the human | its report, outside any run |
 | `.superpowers/sdd/<plan-basename>/progress.md` | Jisso, through the SDD skill | Kanri | the SDD ledger; Kanri reads it and never writes it; the one artifact tanto reads under `.superpowers/` |
@@ -1093,7 +1103,7 @@ signal says, and continues.
 | `.tanto/spawner/` — `pid`, `log`, `seats.json`, `requests/<id>.json`, `results/<id>.json` | the spawner, and Kanri for a request file | the launcher, Kanri | the spawner's own state: one seat entry per session it started, one request and one result per act. The roster is not here and the spawner never reads it |
 | `.tanto/<topic>/spawner-results/` | Kanri, at the plan close | Kanri | the topic's result files, moved with the archive move |
 | `.tanto/<topic>/shoki-brief.md` | Kanri, from `templates/shoki-brief.md` | shoki, as its whole prompt | the scribe's contract: the arguments, what it never does, the five steps, the report line |
-| `.tanto/<topic>/t2-review.md` | the `shoroku.review` kind shoki dispatches | shoki, then Kanri | the review of shoki's own diff against `main`, before it reports |
+| `.tanto/<topic>/shoroku-review.md` | the `shoroku.review` kind shoki dispatches | shoki, then Kanri | the review of shoki's own diff against `main`, before it reports |
 | `.tanto/<topic>/batch-shusei-prompt.md` | Kanri, from `templates/batch-prompt.md` | the shusei Jisso | the one-task fix batch of the close |
 | `<root>/.claude/worktrees/shoki-<topic>` | the CLI, on `claude --bg -w` | shoki | shoki's worktree; never written by a role, removed by Kanri (`git worktree remove --force --force`) along with its branch, after the `rm` request |
 
@@ -1295,15 +1305,18 @@ Kanri decides whether it is stray.
 
 `.tanto/<topic>/` outlives the plan, and so does the SDD workspace
 `.superpowers/sdd/<plan-basename>/`. Jisso never deletes either, and nothing
-asks the human to delete either: after T2 the two have the same standing —
+asks the human to delete either: after the close the two have the same standing —
 untracked, local to one machine, useful only for a later re-read — and disk
 is the only cost (issue-12d3).
 
 `.tanto/` reserves these names, and a topic slug is none of them and begins
-with neither prefix: the
+with none of the prefixes: the
 directories `inbox`, `sent`, `kikaku`, `kaiseki`, and `spawner`; the files
 `roster.md`, `roster-archive.md`, `kanri-handover.md`, `.gitignore`, and
-`.markdownlint-cli2.yaml`; and the prefixes `exit-kanri-` and `inbox-`.
+`.markdownlint-cli2.yaml`; and the prefixes `shoroku-proposal-kanri-` and
+`inbox-`, with `exit-kanri-` kept for the files written before the shoroku
+proposal was named, so that a start's listing of `.tanto/` does not report
+a predecessor's old file.
 Kanri checks a new slug against this list by name, before any directory
 exists, and lists the root against the same names at every start and every
 close.
