@@ -23,6 +23,7 @@ const state = JSON.parse(fs.readFileSync(statePath, "utf8"));
 fs.appendFileSync(process.env.FAKE_LOG, JSON.stringify(argv) + "\\n");
 const fail = state.fail || {};
 const sub = argv[0];
+const flag = (name) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : undefined);
 if (fail[sub]) {
   process.stderr.write(fail[sub] + "\\n");
   process.exit(1);
@@ -71,7 +72,10 @@ if (sub === "--resume") {
   found.state = "running";
   delete found.hidden;
   save();
-  process.stdout.write("Resumed background session " + found.id + "\\n");
+  process.stderr.write(
+    "note: woke session " + found.id + " with its saved options (--name, --settings, --model, --effort, --permission-mode).\\n",
+  );
+  process.stdout.write("backgrounded · " + found.id + " · " + found.name + " (idle — send a prompt to start)\\n");
   process.exit(0);
 }
 if (argv.includes("--bg")) {
@@ -85,15 +89,19 @@ if (argv.includes("--bg")) {
     // (branch-review.md's Important 1); 2026-09-21T10:00:00Z as a number.
     startedAt: 1789984800000,
     sessionId: next.sessionId || "sess-new",
-    name: next.name || "seat-new [aaaaaa]",
+    name: next.name || flag("--name") || "seat-new [aaaaaa]",
     id: next.id || "bg01",
     status: "running",
     state: next.state || "running",
   };
   if (next.worktree) session.worktree = next.worktree;
+  // The CLI prints the short id and the name. A listing entry may lack the
+  // id, which is what the spawner's fallback parse of this line is for.
+  const printed = session.id;
+  if (next.noListedId) delete session.id;
   state.sessions.push(session);
   save();
-  process.stdout.write("Started background session " + session.id + "\\n");
+  process.stdout.write("backgrounded · " + printed + " · " + session.name + "\\n");
   process.exit(0);
 }
 process.exit(0);
@@ -181,6 +189,16 @@ function notices(ws) {
     .filter((line) => line.length > 0);
 }
 
+/** The name the spawner gives a seat of this workspace, as a pattern (spec 1.1). */
+function namePattern(ws, role, topic) {
+  const repo = path
+    .basename(ws.root)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return new RegExp(`^${repo}-${role}${topic ? `-${topic}` : ""}-[0-9a-f]{4}$`);
+}
+
 const SPAWN = {
   op: "spawn",
   role: "jisso",
@@ -241,6 +259,35 @@ test("the darwin notice command escapes quotes and backslashes (Important 12)", 
   assert.equal(args[1], `display notification "${escaped}" with title "tanto"`);
 });
 
+test("a seat's name is <repo>-<role>[-<topic>]-<hex>, drawn again while seats.json holds it", () => {
+  const { seatName } = require("./spawner.js");
+  const root = path.join(os.tmpdir(), "My Repo!");
+  const draws =
+    (...values) =>
+    () =>
+      values.shift();
+  assert.equal(seatName(root, { role: "kanri", topic: "—" }, [], draws("9c01")), "my-repo-kanri-9c01");
+  assert.equal(
+    seatName(root, { role: "jisso", topic: "BG Seat_Ergonomics" }, [], draws("3f2a")),
+    "my-repo-jisso-bg-seat-ergonomics-3f2a",
+  );
+  assert.equal(seatName(root, { role: "shoki" }, [], draws("0a0b")), "my-repo-shoki-0a0b");
+  assert.equal(
+    seatName(path.join(os.tmpdir(), "!!!"), { role: "jisso", topic: "t" }, [], draws("0001")),
+    "jisso-t-0001",
+  );
+  const held = [{ name: "my-repo-jisso-t-3f2a" }];
+  assert.equal(seatName(root, { role: "jisso", topic: "t" }, held, draws("3f2a", "9c01")), "my-repo-jisso-t-9c01");
+  assert.match(seatName(root, { role: "jisso", topic: "t" }, []), /^my-repo-jisso-t-[0-9a-f]{4}$/);
+});
+
+test("the short id is read from the spawn line and from the resume line", () => {
+  const { shortIdOf } = require("./spawner.js");
+  assert.equal(shortIdOf("backgrounded · ced66c9a · probe-named-s1\n"), "ced66c9a");
+  assert.equal(shortIdOf("backgrounded · ced66c9a · probe-named-s1 (idle — send a prompt to start)\n"), "ced66c9a");
+  assert.equal(shortIdOf("session ced66c9a started\n"), null);
+});
+
 test("a spawn writes the result, the seat, and deletes the request", () => {
   const ws = workspace();
   const { id, file } = request(ws, SPAWN);
@@ -248,7 +295,7 @@ test("a spawn writes the result, the seat, and deletes the request", () => {
   const got = result(ws, id);
   assert.equal(got.op, "spawn");
   assert.equal(got.sessionId, "sess-new");
-  assert.equal(got.name, "seat-new [aaaaaa]");
+  assert.match(got.name, namePattern(ws, "jisso", "t"));
   assert.equal(got.cwd, ws.root);
   assert.equal(got.id, "bg01");
   assert.match(got.startedAt, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
@@ -258,13 +305,18 @@ test("a spawn writes the result, the seat, and deletes the request", () => {
   assert.equal(seats(ws)[0].role, "jisso");
 });
 
-test("a spawn's command line carries the flags the request names", () => {
+test("a spawn's command line carries the name, the isolation setting, and the flags the request names", () => {
   const ws = workspace();
   request(ws, { ...SPAWN, role: "shoki", worktree: "shoki-t", addDir: [ws.root] });
   run(ws, ["run", "--root", ws.root, "--once"]);
   const spawned = calls(ws).find((argv) => argv.includes("--bg"));
+  assert.match(spawned[2], namePattern(ws, "shoki", "t"));
   assert.deepEqual(spawned, [
     "--bg",
+    "--name",
+    spawned[2],
+    "--settings",
+    '{"worktree":{"bgIsolation":"none"}}',
     "--model",
     "sonnet",
     "--effort",
@@ -277,6 +329,24 @@ test("a spawn's command line carries the flags the request names", () => {
     ws.root,
     SPAWN.prompt,
   ]);
+});
+
+test("every spawn passes --settings, a Kanri's included, and a topic of — is left out of the name", () => {
+  const ws = workspace();
+  const { id } = request(ws, { ...SPAWN, role: "kanri", topic: "—", prompt: "/tanto kanri" });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  const spawned = calls(ws).find((argv) => argv.includes("--bg"));
+  assert.equal(spawned[spawned.indexOf("--settings") + 1], '{"worktree":{"bgIsolation":"none"}}');
+  assert.match(spawned[spawned.indexOf("--name") + 1], namePattern(ws, "kanri", ""));
+  assert.equal(result(ws, id).name, spawned[spawned.indexOf("--name") + 1]);
+});
+
+test("a listing entry with no id takes the short id the --bg line printed", () => {
+  const ws = workspace();
+  setState(ws, { next: { id: "ced66c9a", noListedId: true } });
+  const { id } = request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(result(ws, id).id, "ced66c9a");
 });
 
 test("a --bg child's cwd is the workspace root, not wherever the spawner was started", () => {
@@ -387,6 +457,8 @@ test("resume passes --resume <sessionId> --bg and no other flag", () => {
   assert.deepEqual(resumed, ["--resume", "sess-new", "--bg"]);
   assert.equal(result(ws, id).sessionId, "sess-new");
   assert.equal(result(ws, id).name, "seat-back [bbbbbb]");
+  const log = fs.readFileSync(path.join(ws.root, ".tanto", "spawner", "log"), "utf8");
+  assert.match(log, /resume sess-new: note: woke session bg02 with its saved options/);
 });
 
 test("resume polls the listing until the resumed session reappears (Important 8)", () => {
@@ -456,7 +528,7 @@ test("ack clears the renamed mark of the session it names", () => {
     ],
   });
   run(ws, ["run", "--root", ws.root, "--once"]);
-  assert.equal(seats(ws)[0].renamed, "seat-new [aaaaaa]");
+  assert.match(seats(ws)[0].renamed, namePattern(ws, "jisso", "t"));
   const { id } = request(ws, { op: "ack", sessionId: "sess-new" });
   run(ws, ["run", "--root", ws.root, "--once"]);
   assert.match(result(ws, id).acked, /\d/);
@@ -577,7 +649,78 @@ test("the guard stops a seat whose cwd is an ad hoc worktree", () => {
   run(ws, ["run", "--root", ws.root, "--once"]);
   assert.match(result(ws, id).error, /ad hoc worktree/);
   assert.equal(seats(ws)[0].status, "stopped");
+  assert.equal(seats(ws)[0].strayed, stray);
   assert.equal(calls(ws).filter((argv) => argv[0] === "stop").length, 1);
+});
+
+test("the guard stops a seat that reaches an ad hoc worktree after its first sighting, and toasts once", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  const stray = path.join(ws.root, ".claude", "worktrees", "probe-task");
+  const listed = JSON.parse(fs.readFileSync(ws.state, "utf8")).sessions;
+  setState(ws, { sessions: listed.map((s) => ({ ...s, cwd: stray })) });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(seats(ws)[0].status, "stopped");
+  assert.equal(seats(ws)[0].strayed, stray);
+  assert.deepEqual(
+    calls(ws)
+      .filter((argv) => argv[0] === "stop")
+      .map((argv) => argv[1]),
+    ["bg01"],
+  );
+  assert.equal(notices(ws).length, 1);
+  assert.match(notices(ws)[0], /^strayed: jisso t \S+ — /);
+});
+
+test("the guard compares the paths with the separators unified and, on Windows, the case folded", {
+  skip: process.platform !== "win32",
+}, () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  const stray = `${ws.root.toUpperCase().replace(/\\/g, "/")}/.CLAUDE/WORKTREES/wt-2`;
+  const listed = JSON.parse(fs.readFileSync(ws.state, "utf8")).sessions;
+  setState(ws, { sessions: listed.map((s) => ({ ...s, cwd: stray })) });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(seats(ws)[0].status, "stopped");
+});
+
+test("the guard leaves a seat whose request named a worktree alone", () => {
+  const ws = workspace();
+  setState(ws, { next: { cwd: path.join(ws.root, ".claude", "worktrees", "shoki-t") } });
+  request(ws, { ...SPAWN, role: "shoki", worktree: "shoki-t", addDir: [ws.root] });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(seats(ws)[0].status, "running");
+  assert.equal(calls(ws).filter((argv) => argv[0] === "stop").length, 0);
+});
+
+test("the census revives a gone seat the listing holds again, and never a stopped one", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  const listed = JSON.parse(fs.readFileSync(ws.state, "utf8")).sessions;
+  setState(ws, { sessions: [] });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(seats(ws)[0].status, "gone");
+  setState(ws, { sessions: listed.map((s) => ({ ...s, state: "blocked" })) });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(seats(ws)[0].status, "blocked");
+  assert.equal(seats(ws)[0].goneAt, undefined);
+  assert.equal(notices(ws).length, 1);
+  const log = fs.readFileSync(path.join(ws.root, ".tanto", "spawner", "log"), "utf8");
+  assert.match(log, /census: sess-new back/);
+
+  // The fake keeps a stopped session listed, as a reopened one would be.
+  const second = workspace();
+  request(second, SPAWN);
+  run(second, ["run", "--root", second.root, "--once"]);
+  request(second, { op: "stop", sessionId: "sess-new" });
+  run(second, ["run", "--root", second.root, "--once"]);
+  run(second, ["run", "--root", second.root, "--once"]);
+  assert.equal(seats(second)[0].status, "stopped");
 });
 
 test("nothing the spawner does reads or writes the roster", () => {

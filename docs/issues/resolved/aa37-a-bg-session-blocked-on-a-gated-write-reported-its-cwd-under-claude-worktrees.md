@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-09-23
 ---
 
 Source: shoroku tanto-diet S-30
@@ -36,3 +36,13 @@ Two responses, and only the first is a fix:
 
 Related: issue-0673 (a Kaiseki in a worktree) and issue-1bff (a fresh Jisso's
 own branch checkout racing a concurrent topic's apply).
+
+Resolved by the bg-seat-ergonomics design
+(`docs/superpowers/specs/2026-09-23-bg-seat-ergonomics-design.md`, 1.2 and
+1.4). The cause was the CLI's default `worktree.bgIsolation`: a seat's first
+Write fails its guard, and the model moves the seat into
+`.claude/worktrees/` with `EnterWorktree` — reproduced with no `-w`. The
+spawner passes `--settings '{"worktree":{"bgIsolation":"none"}}'` on every
+spawn, which a flag-less resume keeps, and its ad hoc-worktree guard now
+runs at every pass of the spawner's census rather than at the first sighting
+alone.

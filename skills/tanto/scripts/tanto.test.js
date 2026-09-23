@@ -21,7 +21,7 @@ const FAKE = fs
   .split("const FAKE = `")[1]
   .split("`;")[0]
   .replace(/\\\\n/g, "\\n");
-if (!FAKE.includes("Started background session")) {
+if (!FAKE.includes("backgrounded · ")) {
   throw new Error("the fake CLI could not be read out of spawner.test.js");
 }
 
