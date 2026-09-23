@@ -80,8 +80,12 @@ taking over mid-plan must not create a second ledger.
    step 1 checked; its Transcript column your own transcript path, since you
    send no handshake — and a Residency
    row carrying today's date, your own reading, and zero counts, then go to step 5.
-4. Otherwise cold-read the roster and compare your own `name [ref]` with its
-   first data row, then take exactly one case from "The five cases" below.
+4. Otherwise cold-read the roster, run the census
+   (`node "$TANTO/scripts/boundary.js" census`, from the repository root;
+   "Session lifecycle" says what it prints), and compare your own
+   `sessionId`, the basename of your transcript path, with the first data
+   row's, the basename of its Transcript column; then take exactly one case
+   from "The four cases" below.
 5. Open a topic when every open topic has passed its spec stage — its spec
    review accepted — which the bootstrap, a kept Kanri between plans, and a
    recovery whose last ledger says closed all satisfy. A second topic may
@@ -129,21 +133,23 @@ taking over mid-plan must not create a second ledger.
    suggestion in your own line, not an ask and not a roster
    action.
 
-### The five cases
+### The four cases
 
 **Handover** — `.tanto/kanri-handover.md` exists. In order: read the
 handover and the ledger it names, and `progress.md` if a plan is in flight;
 note whether the roster's first row carries your own name — the outgoing
 Kanri `/clear`ed its window and you started in it, so the name and the
-`[ref]` are the same and only the transcript differs — or another's, and,
-for another's, whether `ListAgents` still lists it; rewrite the roster —
+`[ref]` are the same and only the transcript differs — or another's (the
+comparison that decides the Name-column rewrite below, not the row's
+identity, which is its `sessionId`), and, for another's, whether the census
+lists that row's `sessionId`; rewrite the roster —
 your own row first with status `live`, your own transcript path in its
 Transcript column, and today, your model, and your effort in its Started,
 Model, and Effort columns — and its Name column too when
 you started in a window other than the outgoing Kanri's, the same-window case
 needing no Name rewrite because a window keeps its name and `[ref]` across a
-`/clear` — the old Kanri's row `replaced` (or `dead` when it is
-another name and not listed), the Residency row reset to your name and today
+`/clear` — the old Kanri's row `replaced` (or `dead` when the census does
+not list its `sessionId`), the Residency row reset to your name and today
 with zero counts and your own reading, and one Events line "handover
 accepted by `<you>` from `<old>`", the two names equal in the same-window
 case; read the ledger's Session events for `unanswered:` lines that have no
@@ -159,33 +165,26 @@ remind the human in one line to `/clear` that window when convenient;
 continue at the handover's Next step, which decides whether a plan is in
 flight.
 
-**Kept Kanri** — no handover file, the first data row is you, and that row's
-Transcript column is this session's own transcript path. This is a
-`/tanto kanri` typed by the human in an attached Kanri: continue where the
-current ledger's Progress line says, or, if none is open, wait for the human
-to say what the next work is and open the topic as step 5 says. The
-stale-transcript sub-case is gone with the `/clear`: a terminal seat has
-none, and a first row that is you under another transcript can only be a tab
-Kanri, which the Handover case above covers.
+**Yours** — no handover file, and the first data row's `sessionId` is your
+own. This is a `/tanto kanri` typed by the human in an attached Kanri, or
+your own conversation resumed: continue where the current ledger's Progress
+line says, or, if none is open, wait for the human to say what the next
+work is and open the topic as step 5 says. When the row's Name is not your
+name, rewrite it in place with your name and `[ref]`, status `live`, and
+write the Events line `resumed: <old name> → <new name>`. No row is marked
+`dead` on this case alone, and there is no tree recovery beyond
+`git status`.
 
-**Second Kanri** — no handover file, the first data row is another name, and
-that session is still listed. Stop, tell the human there is a live Kanri
-already, and ask whether that one should hand over or this window should be
-`/clear`ed. Write nothing.
+**Second Kanri** — no handover file, the first data row's `sessionId` is
+another's, and the census lists it. Stop, tell the human there is a live
+Kanri already, and ask whether that one should hand over or this window
+should be `/clear`ed. Write nothing.
 
-**Resumed Kanri** — no handover file, the first data row is another name that
-`ListAgents` does not list, and that row's Transcript column is your own
-transcript path. This is your own conversation resumed under a new name:
-rewrite the first row in place with your new name and `[ref]`, status `live`,
-write the Events line `resumed: <old name> → <new name>`, and continue where
-the ledger's Progress line says. No row is marked `dead`, and there is no tree
-recovery beyond `git status`.
-
-**Recovery** — no handover file, the first data row is another name, that
-session is not listed, and its Transcript column is not your own path. Mark
-every row whose session is gone `dead`, with an Events line per row saying
-whether its exit shoroku ran and what was lost, and run "Recovery after a VS
-Code restart" below.
+**Recovery** — no handover file, the first data row's `sessionId` is
+another's, and the census does not list it. Run "Recovery after a VS Code
+restart" below, whose census, once the human says the windows are back,
+marks `dead` every `live` row it does not list, with an Events line per row
+saying whether its shoroku proposal was written and what was lost.
 
 ## On a handshake
 
@@ -197,9 +196,16 @@ Four steps, in this order.
    and check `model=` against `sessions.<role>.model` and `effort=` against
    `sessions.<role>.effort`. A mismatch of either is one line to the human
    saying which of the two differs and what runs.
-2. Check the roster and the listing — no live roster row for that role and
-   topic, and the
-   `name [ref]` the handshake carries appears in `ListAgents`.
+2. Run the census and place the handshake's `sessionId` — the basename of
+   its `transcript=` — in it. A `sessionId` the census does not list is not
+   a session under this repository and gets no row: `refused`, an Events
+   line, one line to the human. `transcript=unavailable` is accepted as
+   before; its row carries `unavailable`, and the census leaves it alone.
+   Mark `dead` every `live` or `queued` row the census does not list —
+   except while a restart is being recovered ("Session lifecycle") — before
+   the new row is written, so that a stale row of the same role and topic
+   refuses no fresh handshake as a duplicate. Then check that no live
+   roster row is left for that role and topic.
 3. Write or rewrite that role's roster row.
 4. Reply with the role's standing orders as **one line carrying the variables**.
    There is no orders file.
@@ -225,24 +231,19 @@ Four steps, in this order.
      about or a small job to hand off, and its handshake is the first you
      hear of it.
 
-A handshake whose `transcript=` equals a row's Transcript column is that
-session resumed under a new name, not a second session: rewrite the row in
-place with the new name and `[ref]`, status `live`, write the Events line
-`resumed: <old name> → <new name>`, and send nothing but your address. Only
+A handshake whose `sessionId` equals a row's Transcript basename is that
+row's session resumed, not a second session, whatever path its
+`transcript=` spells: rewrite the row in place with the new name and
+`[ref]`, status `live`, write the Events line
+`resumed: <old name> → <new name>`, and send nothing but your address. A
+handshake whose row the census already renamed rewrites it with the same
+values and no second Events line, so that the two orders end the same. Only
 a tab seat reaches this paragraph — a terminal seat sends no handshake, and
 its rename is reconciled from `seats.json`'s `renamed` mark instead
-("Recovery"). Step
-2's one-live-row-per-role check does not refuse it.
-
-A handshake whose name is already on a `live` or `queued` row with a
-different transcript is that window `/clear`ed and re-invoked, in any role
-— the rule the roster template stated for Kikaku and Hosa, now every
-role's. Mark the old row `cleared`: with the Events line an unrun exit
-shoroku gets when no `release:` had been sent to it, and, when the old row
-was the live Jisso's, after verifying the tree as the Replace table's first
-row says, the next queued Jisso then resuming the batch. Write the new row
-and answer as for any handshake. Expect nothing about which role a released
-window takes next: the same, another, or your own successor.
+("Recovery"). Step 2's one-live-row-per-role check does not refuse it. A
+`/clear`ed window's old session is simply not listed, and the census, not
+the handshake, decides its row; expect nothing about which role a window
+takes next: the same, another, or your own successor.
 
 A second handshake for a role and topic that already has a live row — a
 Jisso's excepted, which joins that topic's queue while one Jisso is live —
@@ -257,11 +258,13 @@ Send nothing to a name whose roster row is not `live`: a `queued` Jisso
 waits for the batch prompt that makes it live, a `cleared` one is a bare
 window, and a session with no accepted row is nobody's. A reply of
 `no-role` from a name you sent to means that window was `/clear`ed before
-your line arrived: mark its row `cleared`, write the Events line an unrun
-exit shoroku gets — what was lost, as far as you know — and treat the exit
-as forced; when the row was the live Jisso's, verify the tree first as the
-Replace table's first row says, and send the next queued Jisso the resume
-prompt.
+your line arrived: mark its row `cleared`, write the Events line a shoroku
+proposal not written gets — what was lost, as far as you know — and treat
+the exit as forced; when the row was the live Jisso's, verify the tree
+first as the Replace table's first row says, and send the next queued Jisso
+the resume prompt. A `no-role` from a row the census has already marked
+`dead` changes nothing: whichever of the two sees the `/clear` first sets
+the status, and the census marks only `live` and `queued` rows.
 
 When the human gives you scope input during spec work, relay it to Sekkei as a
 file, not as a paraphrase: append a numbered `I-n` item with your advisory note
@@ -526,12 +529,13 @@ Per batch, in this order.
    list, one item per act the human has been asked for and has not done —
    `—` for an act that belongs to no topic: the `/clear` of an idle Kikaku
    or Hosa window, your own handover, a quota's return, a Kaiseki's release
-   after its exit shoroku, an answer you are waiting on. An item is a
-   pointer to the request already made, not a restatement of it. Draw the
-   block from files, never from memory: the roster's Status column — write
-   `idle since <HH:MM>` there the moment a Kikaku, Hosa, or Kaiseki reports
-   to you and goes idle, so that the reminder is not forgotten across a
-   wake-up — and each open ledger's `## Open questions for the human`,
+   after its shoroku proposal, the human's word that the windows are back
+   while a restart is being recovered, an answer you are waiting on. An
+   item is a pointer to the request already made, not a restatement of it.
+   Draw the block from files, never from memory: the roster's Status column
+   — append `(idle since <HH:MM>)` to a `live` cell the moment a Kikaku,
+   Hosa, or Kaiseki reports to you and goes idle, so that the reminder is
+   not forgotten across a wake-up — and each open ledger's `## Open questions for the human`,
    which holds every open act asked of the human, one line each, added
    when the request is made and removed when it is done. A successor Kanri
    prints the same block from the same files.
@@ -1280,12 +1284,13 @@ proposal.
 
 A session that has stopped answering is past answering, and you learn it the
 way you learn of a missing batch report: the human says the window is gone,
-a send errors, a `no-role` comes back, or your window wakes for another
-reason and the answer has not arrived. Treat the exit as forced, write a
-roster Events line saying its exit shoroku did not run and what was lost as
-far as you know, mark the row `cleared` on a `no-role` or `dead` on a send
-error or an empty listing, and continue. The same Events line goes in
-whenever you mark a row `dead`.
+a send errors and the census that follows no longer lists it, a `no-role`
+comes back, the census's "Not listed" names it, or your window wakes for
+another reason and the answer has not arrived. Treat the exit as forced,
+write a roster Events line saying its shoroku proposal was not written and
+what was lost as far as you know, mark the row `cleared` on a `no-role` or
+`dead` on the census's "Not listed", and continue. The same Events line
+goes in whenever you mark a row `dead`.
 
 **Your own exit.** Propose from the ledger and the roster rather than from
 recollection, to `.tanto/exit-kanri-<YYYY-MM-DD>-<name>-proposal.md`,
@@ -1434,7 +1439,7 @@ lines, and these are your steps.
    `<what>`; 3. ← back to the agent view, or the tab. For a terminal seat,
    also write an `attention` request whose message is
    `human-needed: <role> <topic> — claude attach <id>`, because a seat that
-   idles on a grant is not `blocked` and the census would miss it. The
+   idles on a grant is not `blocked` and the spawner's census would miss it. The
    role's exchange
    ends with `human-access: done — <what the human did or decided>`; note that
    line in the ledger's Session events.
@@ -1497,6 +1502,53 @@ speaks of a release and of a creation keeps them in two clauses with their
 own times — "released now; a fresh Keikaku is requested at
 `<topic>`'s merge" — never one clause for both.
 
+**The census.** `node "$TANTO/scripts/boundary.js" census`, from the
+repository root, prints the roster's `live` and `queued` rows against the
+sessions `claude agents --json` lists under the root, under four headings —
+Listed, Not listed, No session id, and Not held — and writes nothing: you,
+the roster's one writer, act on what it prints. A session is its
+`sessionId`, a row's being the basename of its Transcript column, and every
+match of a session to a row compares `sessionId`s, never a name, a `[ref]`,
+or a full path. Run the census at your start, before taking a case (Start
+step 1's read of your own name stays, and the census follows it); at every
+handshake; after a send to a peer errors; once the human says the windows
+are back after a restart; at the plan close, before the archive move; and
+before you say anything about a listed session your roster does not hold.
+What it prints decides:
+
+- **Not listed** — mark the row `dead`, with the Events line a seat whose
+  shoroku proposal was not written gets and what was lost as far as you
+  know — except while a restart is being recovered, below; a row that was
+  the live Jisso's is the Replace table's first row, the tree verified
+  first.
+- **Listed**, marked `renamed` — rewrite the row's Name column with the
+  listed name and the `[ref]` one `ListAgents` call prints, and write
+  `resumed: <old name> → <new name>`; for a terminal seat, clear the
+  spawner's `renamed` mark with an `ack` request.
+- **Not held** — nothing to the human. A session becomes the run's through
+  a handshake or a result file, never by being listed.
+- **No session id** — nothing.
+- `census: unavailable — <reason>` — nothing is marked; the next census
+  decides.
+
+A send error is a reason to run the census, not a signal of its own: its
+"Not listed" marks the row `dead`, and a send that errors to a session the
+census still lists is a message failure — the row stays, and you tell the
+human in one line. `ListAgents` lists every session on the machine and
+shows no cwd, so say nothing about a listed session your roster does not
+hold: the census lists only the sessions under this repository, so a
+session it does not list is another repository's, and one it lists that no
+row holds is a window not yet handshaken or the human's own.
+
+**While a restart is being recovered** — from your own `/tanto fukki`, or
+your Recovery case, until the human says the windows are back — a census
+places sessions and marks nothing `dead`: a tab the editor has not restored
+yet is not listed, and has not gone. The window lives in the roster, not in
+your context: open it with the Events line `recovery: begun` and close it
+with `recovery: windows back` on the human's word; a successor reads the
+last of the two before it marks anything, and until the word comes the
+human's part is an open act in your idle block's `for you:` list.
+
 ### Create
 
 The requests you write, and the asks you make. **Requests:**
@@ -1524,7 +1576,7 @@ The requests you write, and the asks you make. **Requests:**
 
 | Symptom | Action |
 | --- | --- |
-| the live Jisso is gone — the census marked it `gone`, `SendMessage` errors, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers); mark the row `dead` with the Events line saying its exit shoroku did not run and what was lost; write a `spawn` request with the **same** `batch=` file, its resume line rewritten to `resume batch X from task N`. Under a skill-editing plan's queue, send that line to the next `queued` seat instead, and put the lost seat to the human as a ruling, since the queue cannot be refilled early |
+| the live Jisso is gone — the spawner's census marked it `gone`, or the spawner's guard stopped it (`strayed` in `seats.json`), the census does not list it, `SendMessage` errors, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers); mark the row `dead` with the Events line saying its shoroku proposal was not written and what was lost — or `stopped`, when the spawner's guard stopped it, its conversation kept, with an Events line naming the guard and the worktree's branch, whose commits, if any, go to the human as a ruling; write a `spawn` request with the **same** `batch=` file, its resume line rewritten to `resume batch X from task N`. Under a skill-editing plan's queue, send that line to the next `queued` seat instead, and put the lost seat to the human as a ruling, since the queue cannot be refilled early |
 | Sekkei's reading shows a compaction | at its next commit — a verified boundary, or, with no batch in flight, when its work is ready — run "Exit shoroku", then the ask; the dialogue, the drafts, and the reviews on disk are the recovery point, and the new Sekkei takes the spec inputs and `dialogue.md` as its own |
 | Keikaku's reading shows a compaction | at its next commit, as for Sekkei (decision-6dea): run "Exit shoroku", then a `spawn` request with the same three keys; the spec, `dialogue.md`, and the plan draft on disk are the recovery point, and the new Keikaku takes them as its own |
 | a Kikaku's reading shows a compaction | not replaced: mark the row `cleared`, add its `/clear` as a `for you` item instead of saying it inline, and let the next `/tanto kikaku` handshake write a new row — what the session produced is already on disk or committed |
@@ -1550,7 +1602,7 @@ confirm the session is gone first — uncommitted work may be in the tree.
 | the `coldread answered:` line named the exit proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; record its proposal's items as `pending` rows and write its `stop` request as soon as the proposal passes the form check — no released line and no `/clear`, its conversation kept; a Keikaku is never reused across topics (decision-f496) |
 | Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; record its proposal's items as `pending` rows and send `release:` as soon as the proposal passes the form check, or keep it if more of the same bug is expected |
 | the final batch is accepted, T2's proposal is written and passes the form check, and leftovers are clean | the last Jisso is done; write its `stop` request at once, T2 being its exit — no released line and no `/clear`, its conversation kept — the recommendation and the kessai run with it gone, and a merge declined with fixes wanted is a new batch on a new Jisso either way; a `queued` Jisso that never ran gets a `stop` request the same way, its row `stopped` |
-| the kessai is answered, shusei's batch is verified, the merge is done, and the ledger's Progress line says closed | this plan is closed. **First, while every row still carries its Transcript column**, run `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]` over the sessions of **this topic**: every seat the ledger's Session events accepted for it — Sekkei, Keikaku, every Jisso, `queued` ones that never ran included, an attached Kaiseki — and every Kanri whose tenure overlapped it, the current one and any predecessor the Events' handover lines name, each path taken from its roster or archive row. Shoki's transcript is not in the list: it is not a session of the ledger's Session events. A refused handshake has no row and no transcript and is not in the list; rows of another plan that a shared roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not of this topic and are left out. A path that is denied, `unavailable`, or on another host is skipped and named by the script, and is never read by asking the peer. Record the share line, the sessions it ran over, and the ones it skipped in the Measurements share row; the target is 30% or less. Then mark `dead` the rows of any session the census lost and no resume brought back, move the stopped, dead, replaced, refused, and cleared rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet — move the topic's result files to `.tanto/<topic>/spawner-results/`, fill the ledger's remaining Measurements fixed rows, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
+| the kessai is answered, shusei's batch is verified, the merge is done, and the ledger's Progress line says closed | this plan is closed. **First, while every row still carries its Transcript column**, run `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]` over the sessions of **this topic**: every seat the ledger's Session events accepted for it — Sekkei, Keikaku, every Jisso, `queued` ones that never ran included, an attached Kaiseki — and every Kanri whose tenure overlapped it, the current one and any predecessor the Events' handover lines name, each path taken from its roster or archive row. Shoki's transcript is not in the list: it is not a session of the ledger's Session events. A refused handshake has no row and no transcript and is not in the list; rows of another plan that a shared roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not of this topic and are left out. A path that is denied, `unavailable`, or on another host is skipped and named by the script, and is never read by asking the peer. Record the share line, the sessions it ran over, and the ones it skipped in the Measurements share row; the target is 30% or less. Then run the census and mark `dead` every row it prints under "Not listed", which covers the tab seats too; bring the roster's Shoroku proposal items table to the template's shape if it still has its pre-rename heading or the retired seventh column, its rows kept; move the stopped, dead, replaced, refused, and cleared rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet — move the topic's result files to `.tanto/<topic>/spawner-results/`, fill the ledger's remaining Measurements fixed rows, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
 
 The role is resident; the session that carries it is not. A plan's end is a
 boundary like any other for the run, and the next topic starts with a new topic
@@ -1592,14 +1644,15 @@ severity-high issue is filed on such a claim alone.
 
 The terminal seats were never reached by the restart — separate processes,
 still running — and after a reboot `tanto` resumes each of them under the
-same `sessionId`. The human types `/tanto fukki` once, in your window, after
-`claude attach`, and then in each tab seat's window, in any order. Mark `dead` only a
-row whose session neither `ListAgents` lists nor re-handshakes by the time the
-human says the windows are done, and, for a terminal seat, reconcile the
-roster with `seats.json`'s `renamed` marks and `claude agents --json`:
-rewrite a renamed row's Name column, write the Events line
-`resumed: <old name> → <new name>`, and clear each mark with an `ack`
-request. Answer every ledger line marked `unanswered:`. A Jisso resumed
+same `sessionId`. The human types `/tanto fukki` once, in your window —
+after `claude attach` for a terminal Kanri — and nowhere else: a tab seat
+the editor resumed keeps its `sessionId`, and nothing is typed there.
+Write the Events line `recovery: begun`; once the human says the windows
+are back, run the census, write `recovery: windows back`, rename what it
+lists under a new name — rewrite the row's Name column and write
+`resumed: <old name> → <new name>` — and mark `dead` what it does not list;
+for a terminal seat, clear each of `seats.json`'s `renamed` marks with an
+`ack` request, as before. Answer every ledger line marked `unanswered:`. A Jisso resumed
 mid-batch with no prompt idles at its last message: write the `spawn`
 request the same `batch=` file names, its prompt's resume line rewritten to
 `resume batch X from task N`, and continue where the Progress line says; you
