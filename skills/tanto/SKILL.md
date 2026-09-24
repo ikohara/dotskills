@@ -63,7 +63,7 @@ gets in Kanri's reply to its handshake instead:
 | --- | --- |
 | Kanri, first or successor | `/tanto kanri` — the handover file, when one exists, is the Start section's Handover case |
 | Keikaku | `/tanto keikaku topic=<topic> spec=<path> plan=<path> ledger=<path>` — `ledger=` only when another topic's batch is in flight, naming that ledger |
-| Jisso, an ordinary plan | `/tanto jisso batch=<.tanto/<topic>/batch-<X>-prompt.md>` — the prompt file is its orders |
+| Jisso, an ordinary plan | `/tanto jisso batch=<.tanto/<topic>/batch-<key>-prompt.md>` — the prompt file is its orders |
 | Jisso, a plan that edits this skill | `/tanto jisso queue=<topic>` — reads nothing and waits for the one line `batch: <path>` |
 | Kaiseki, attached | `/tanto kaiseki topic=<topic>` — the key is what makes it attached; `/tanto kaiseki` with no key is standalone Kaiseki, roster or no roster |
 | shoki | not a `/tanto` invocation at all: the prompt is the one line `brief: <.tanto/<topic>/shoki-brief.md>`, and shoki reads no role file and no `SKILL.md` |
@@ -406,8 +406,12 @@ words: `queued` a Jisso of a skill-editing plan waiting for its batch prompt;
 terminal seat the spawner stopped on Kanri's request or the spawner's guard
 stopped, its conversation kept; `cleared` a tab seat Kanri released with
 `release:`, or whose `/clear` a `no-role` reply revealed; `replaced` a
-Kanri that handed over; `dead` a session the census no longer lists;
-`refused` a handshake that got no row. A terminal seat's row is written from
+Kanri that handed over; `dead` a session the census no longer lists — for
+a terminal seat whose transcript is on disk not final, since its process is
+gone and its conversation kept, and a resume puts the row back to `live`
+when a line is next due to it ("Resuming"), while `stopped` keeps meaning a
+stop the run made; `refused` a handshake that got no row. A terminal seat's
+row is written from
 the spawner's result file rather than from a handshake — by
 `boundary.js record --seat` for a Jisso, by Kanri's own hand for a Keikaku
 or a successor — and a row that does not exist yet while its seat works is
@@ -425,13 +429,18 @@ a `[ref]` pass to another session across a `/clear`, one file has two paths
 under a changed config directory, and a transcript moves when its session
 enters a worktree. `node "$TANTO/scripts/boundary.js" census` lists every
 session under the repository, the tab seats included, and Kanri marks a
-`live` or `queued` row whose `sessionId` it does not list `dead` on that
-signal alone — no timeout, no inference, no name — except while a restart
-is being recovered (`roles/kanri.md`). An entry with no `pid` is not
-listed. A listing that fails is no signal, and nothing is marked on it. A send error is a reason to run the census,
-not a signal of its own: a send that errors to a session the census still
-lists is a message failure, the row stays, and Kanri tells the human in one
-line.
+`live` row whose `sessionId` it does not list `dead` on that signal alone —
+no timeout, no inference, no name — except while a restart is being
+recovered (`roles/kanri.md`); a `queued` row it does not list stays
+`queued`, since a waiting seat's absence is expected and the send of its
+prompt resumes it. An entry with no `pid` is not listed, whatever its
+`state` says: its process is gone, and the census prints its row under Not
+listed, the line ending `— listed without a pid (a stale entry)`. A listing
+that fails is no signal, and nothing is marked on it. A send error is a
+reason to run the census, not a signal of its own: a send that errors to a
+session the census still lists is a message failure, the row stays, and
+Kanri tells the human in one line; a terminal seat the census does not list
+is resumed and the line sent again ("Resuming").
 
 ### The address
 
@@ -599,6 +608,7 @@ added, because it would duplicate the basename.
 | --- | --- |
 | a tab seat resumed by the editor | nothing is typed there: Kanri's census finds the row's `sessionId` under a new name, rewrites that row's name in place, and writes `resumed: <old name> → <new name>`. `/tanto fukki` stays accepted there, and its handshake rewrites the same row with the same values |
 | a terminal seat renamed | the spawner's census sees a known `sessionId` under a new name and marks `renamed` in `seats.json`; Kanri rewrites the row, writes the same Events line, and clears the mark with an `ack` request. The seat itself does nothing and checks nothing |
+| a terminal seat gone while the run is up — a send to it errors, or the roster records its row `dead` | Kanri sends on the roster as recorded, with no census first; either signal runs the census, and a terminal seat it does not list — a stale entry with no `pid` included — gets a `resume` request, `claude --resume <sessionId> --bg` with no other flag, which keeps the `sessionId` and the whole conversation. The line is sent again when the result lands, to the name the result carries, and the row goes `live` with it; a result that carries no name is answered by the census again, which names the session by its `sessionId`. A `queued` row goes `live` before its `batch:` line is sent, resumed or not, so that Kanri still sends only to `live` rows. A seat the census does list after a send error is a message failure: the row stays, and Kanri tells the human in one line. A resume is never a spawn and never a replacement; it covers every line to a terminal seat — a queued Jisso's `batch:` line, a rework prompt's, the `close:` line, a `coldread:` line, a `continue:` after a pause — and costs nothing for a seat that is alive. It fails when its result carries an error or the seat's transcript is not on disk, and the seat is then lost: `roles/kanri.md`'s Replace table decides what follows |
 | an editor restart | the terminal seats are still running — separate processes, unreached by the restart. Only the tab seats came back renamed |
 | a reboot or a crash | `tanto` writes a `resume` request for every terminal seat `seats.json` lists as `running` or `blocked`, with `claude --resume <sessionId> --bg` and no other flag. The roster's first row is settled first and separately, so a Kanri the listing has lost but `seats.json` still holds — `gone` included, a Kanri the human `/stop`ped or one that crashed while the spawner ran — is **resumed and never spawned again**. A seat `seats.json` holds as `running` or `blocked` — or, for Kanri alone, `gone` — is resumed; one it holds as `stopped` or `removed` is not, which is why `tanto down --seats` retires a run rather than pausing it |
 
@@ -675,8 +685,10 @@ and the human runs `/tanto <role>` there as for a new session.
   `no-role` reply is the one word, carries no second line of its own, and
   is the signal that a window was cleared under a role; a send error is a
   reason to run the census, whose "Not listed" is the signal that a session
-  is gone. What each side does on `no-role`: Kanri marks the sender's row
-  `cleared`, writes the Events line a shoroku proposal not written gets
+  is gone — and, for a terminal seat, the reason to resume it and send the
+  line again ("Resuming"). What each side does on `no-role`: Kanri marks
+  the sender's row `cleared`, writes the Events line a shoroku proposal not
+  written gets
   — what was lost, as far as it knows — and treats the exit as forced, a
   live Jisso's after verifying the tree; a role that receives `no-role` from
   Kanri's own name is in a handover gap, holds the line it sent, and
@@ -1052,15 +1064,20 @@ the human, in its own window, `<role> <name> released — its work is in
 <paths>; no step needs it — /clear its window when convenient`. Nothing
 waits on the human's `/clear`: the roster no longer addresses that name,
 and the next `/tanto <role>` typed in that window handshakes as a new
-session under the same name and a new `sessionId`. A seat that has stopped
-answering is past answering, and Kanri learns it the way it learns of a
-missing batch report — the human says the window is gone, a send errors
-and the census that follows no longer lists it, a `no-role` comes back, the
-census's "Not listed" names it, or Kanri's window wakes for another reason
-and the answer has not arrived. Kanri then treats the exit as forced — the
-roster's Events line says its shoroku proposal was not written and what was
-lost, as far as Kanri knows — marks the row `cleared` on a `no-role` or
-`dead` on the census's "Not listed", and continues.
+session under the same name and a new `sessionId`. A tab seat that has
+stopped answering is past answering; a terminal seat whose transcript is on
+disk is not, since a resume brings it back with its whole conversation
+("Resuming"). Kanri learns of either the way it learns of a missing batch
+report — the human says the window is gone, a send errors and the census
+that follows no longer lists it, a `no-role` comes back, the census's "Not
+listed" names it, or Kanri's window wakes for another reason and the answer
+has not arrived. A terminal seat is then marked `dead`, with an Events line
+naming what showed its process gone and saying its conversation is kept,
+and is resumed when a line is next due to it. A tab seat, and a terminal
+seat whose resume failed, is a forced exit — the roster's Events line says
+its shoroku proposal was not written and what was lost, as far as Kanri
+knows — and Kanri marks the row `cleared` on a `no-role` or `dead` on the
+census's "Not listed", and continues.
 
 ## Artifacts
 
@@ -1082,9 +1099,9 @@ lost, as far as Kanri knows — marks the row `cleared` on a `no-role` or
 | `.tanto/<topic>/review-brief-spec.md`, `.tanto/<topic>/review-brief-plan.md` | the brief writer the document's author dispatches | the author, then the human; Kanri by the path in `review-ready:` | the review brief, from `templates/review-brief.md`, in the chat's language |
 | `.tanto/<topic>/plan-dryrun.md` | Keikaku | the plan reviewer, Kanri | from `lint` and `replay` — the two commands, each one's output, and Keikaku's ruling on every failure |
 | `.tanto/<topic>/coldread.md` | the `plan.coldread` subagent Kanri dispatches | Kanri, by `sections` | the cold read of the committed plan: a numbered list of open questions, or `none`; Kanri sends Keikaku one numbered message carrying all of them, or `coldread: none`, and Keikaku answers with one `coldread answered:` line |
-| `.tanto/<topic>/batch-<X>-prompt.md` | the `boundary.verify` subagent, from `templates/batch-prompt.md`; Kanri for its two `<Kanri fills>` slots and for a rework prompt | the seat the `spawn` request creates, or the `queued` seat under a skill-editing plan; human | the prompt; sent as the one line `batch: <path>`, which the human pastes if the message did not arrive |
-| `.tanto/<topic>/batch-<X>-verdict.md` | the `boundary.verify` kind Kanri dispatches | Kanri, by `sections` | the boundary's verdict: eleven fixed sections, and a twelfth, `Measurement`, when the batch carried a measurement task |
-| `.tanto/<topic>/batch-<X>-report.md` | the Jisso of that batch | Kanri; the close's recommender, its Shoroku proposal section by path and item | fixed skeleton; its Shoroku proposal section is that Jisso's shoroku proposal |
+| `.tanto/<topic>/batch-<key>-prompt.md` — `<key>` the batch's letter, `fixwave` for the fix wave, or `<X>-rework-<n>` for a batch returned for rework, `<n>` 1 for its first rework and one more than its highest so far after that | the `boundary.verify` subagent, from `templates/batch-prompt.md`; Kanri for its two `<Kanri fills>` slots, and for a rework's own prompt at `batch-<X>-rework-<n>-prompt.md` | the seat the `spawn` request creates, or the `queued` seat under a skill-editing plan; for a rework, the Jisso of the batch it runs again; human | the prompt; sent as the one line `batch: <path>`, which the human pastes if the message did not arrive. The send freezes it: a prompt, a report, or a verdict of a batch a seat has run is never written again, and a rework's three files are new files beside the first pass's. The one file written again is the next batch's prompt, rendered at every boundary and not yet sent |
+| `.tanto/<topic>/batch-<key>-verdict.md` | the `boundary.verify` kind Kanri dispatches, the dispatch's `batch=` carrying the key | Kanri, by `sections` | the boundary's verdict: eleven fixed sections, and a twelfth, `Measurement`, when the batch carried a measurement task |
+| `.tanto/<topic>/batch-<key>-report.md` | the Jisso of that batch, at the path its prompt's Report section names | Kanri; the close's recommender, its Shoroku proposal section by path and item | fixed skeleton; its Shoroku proposal section is that Jisso's shoroku proposal |
 | `.tanto/<topic>/kaiseki-<n>-brief.md` | Kanri | Kaiseki | fixed skeleton |
 | `.tanto/<topic>/kaiseki-<n>.md` | Kaiseki | Kanri, Jisso | fixed skeleton |
 | `.tanto/<topic>/shoroku-proposal-jisso-<short id>.md` | the plan's last live Jisso | Kanri, for its form; the close's recommender, by path | the close's shoroku proposal: the `pending` rows by number and what that Jisso's own context holds that no file does, written to a file instead of printed |
@@ -1255,8 +1272,12 @@ its path.
     each with `queue=<topic>`, reading nothing until its own batch prompt
     reaches it as the one line `batch: <path>` — so that every one of them
     read the skill as it stood before batch A. That is neither a
-    replacement nor a creation under this rule. Every other plan spawns one
-    Jisso per batch, at the boundary, from the batch prompt itself.
+    replacement nor a creation under this rule. Such a seat is never
+    stopped while it waits, and may still be collected: when its prompt is
+    due it is resumed with the conversation that read the skill before
+    batch A ("Resuming"), so the reason above holds, and a resume is neither
+    a replacement nor a creation either. Every other plan spawns one Jisso
+    per batch, at the boundary, from the batch prompt itself.
 
     **The run-time templates land with the role files.** A role file is
     loaded once, at session start, but the `boundary.verify` subagent reads
