@@ -427,8 +427,8 @@ enters a worktree. `node "$TANTO/scripts/boundary.js" census` lists every
 session under the repository, the tab seats included, and Kanri marks a
 `live` or `queued` row whose `sessionId` it does not list `dead` on that
 signal alone — no timeout, no inference, no name — except while a restart
-is being recovered (`roles/kanri.md`). A listing that fails is no signal,
-and nothing is marked on it. A send error is a reason to run the census,
+is being recovered (`roles/kanri.md`). An entry with no `pid` is not
+listed. A listing that fails is no signal, and nothing is marked on it. A send error is a reason to run the census,
 not a signal of its own: a send that errors to a session the census still
 lists is a message failure, the row stays, and Kanri tells the human in one
 line.

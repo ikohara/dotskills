@@ -920,13 +920,13 @@ test("census prints the live and queued rows under its four headings, by its own
       sessionRow("jisso", "t", "jisso-f", "queued", "C:\\Users\\u\\.claude\\projects\\p\\sess-queued.jsonl"),
     ],
     (root, dir) => [
-      { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root },
-      { sessionId: "sess-sekkei", name: "dotskills-4d", kind: "interactive", cwd: path.join(root, "sub") },
-      { sessionId: "sess-queued", name: "jisso-f", kind: "background", cwd: root },
-      { sessionId: "sess-old", name: "old-seat", kind: "background", cwd: root },
-      { sessionId: "sess-human", name: "human-own", kind: "interactive", cwd: root },
-      { sessionId: "sess-other", name: "other-repo", kind: "background", cwd: path.join(dir, "other") },
-      { sessionId: "sess-sibling", name: "sibling", kind: "background", cwd: `${root}-two` },
+      { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, pid: 1111 },
+      { sessionId: "sess-sekkei", name: "dotskills-4d", kind: "interactive", cwd: path.join(root, "sub"), pid: 1112 },
+      { sessionId: "sess-queued", name: "jisso-f", kind: "background", cwd: root, pid: 1113 },
+      { sessionId: "sess-old", name: "old-seat", kind: "background", cwd: root, pid: 1114 },
+      { sessionId: "sess-human", name: "human-own", kind: "interactive", cwd: root, pid: 1115 },
+      { sessionId: "sess-other", name: "other-repo", kind: "background", cwd: path.join(dir, "other"), pid: 1116 },
+      { sessionId: "sess-sibling", name: "sibling", kind: "background", cwd: `${root}-two`, pid: 1117 },
     ],
   );
   const result = census(f, "");
@@ -962,7 +962,7 @@ test("census prints the live and queued rows under its four headings, by its own
 
 test("census prints none under a heading with no entry, and writes nothing", () => {
   const f = censusFixture([KANRI_ROW], (root) => [
-    { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root },
+    { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, pid: 1111 },
   ]);
   const before = fs.readFileSync(f.roster, "utf8");
   const result = census(f, "");
@@ -985,12 +985,24 @@ test("census exits 1 with one line on a failed or non-JSON listing, and 2 on a u
   assert.strictEqual(census(f, "", ["--root"]).code, 2);
 });
 
+test("a pid-less listing entry is not listed (fix 1)", () => {
+  const f = censusFixture([KANRI_ROW], (root) => [
+    // The measured real shape (R-11, S-54): a sessionId with no pid and no
+    // status, for a process that already exited hours earlier.
+    { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, state: "blocked" },
+  ]);
+  const result = census(f, "");
+  assert.strictEqual(result.code, 0, result.err);
+  assert.ok(result.out.includes("\n## Listed\n\nnone\n"), result.out);
+  assert.ok(result.out.includes("\n## Not listed\n\nkanri — kanri-a [aaaaaa] — sess-kanri\n"), result.out);
+});
+
 test("census places a session whose cwd spells the root's drive letter in the other case", {
   skip: process.platform !== "win32",
 }, () => {
   const f = censusFixture([KANRI_ROW], (root) => {
     const letter = root[0] === root[0].toUpperCase() ? root[0].toLowerCase() : root[0].toUpperCase();
-    return [{ sessionId: "sess-kanri", name: "kanri-a", kind: "interactive", cwd: letter + root.slice(1) }];
+    return [{ sessionId: "sess-kanri", name: "kanri-a", kind: "interactive", cwd: letter + root.slice(1), pid: 1111 }];
   });
   const result = census(f, "");
   assert.strictEqual(result.code, 0, result.err);

@@ -377,7 +377,8 @@ under it, the paths compared with the separators unified and, on Windows,
 the case folded — the set `--cwd <root>` returned for the root (Measured
 2), with a subdirectory and the drive letter's two spellings settled by the
 census's own comparison rather than by the CLI's filter, which is measured
-for the root itself only. It reads the roster's session table —
+for the root itself only. An entry with no `pid` is not listed. It reads
+the roster's session table —
 the table whose header begins `| Role | Topic | Name [ref] | cwd |` — and
 prints four headings in this order, in the `## <heading>` form `check`
 already prints, each followed by one line per entry, or by `none`:

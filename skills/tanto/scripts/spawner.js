@@ -78,7 +78,7 @@ function writeJsonAtomic(file, value) {
 
 function readSeats(root) {
   const doc = readJson(path.join(spawnerDir(root), "seats.json"));
-  return Array.isArray(doc && doc.seats) ? doc.seats : [];
+  return Array.isArray(doc?.seats) ? doc.seats : [];
 }
 
 function writeSeats(root, seats) {
@@ -424,7 +424,7 @@ function opSpawn(root, request, seats) {
 function runWithEitherId(verb, seat, sessionId) {
   const first = runClaude([verb, sessionId]);
   if (first.code === 0) return first;
-  if (seat && seat.id && seat.id !== sessionId) {
+  if (seat?.id && seat.id !== sessionId) {
     const second = runClaude([verb, seat.id]);
     if (second.code === 0) return second;
     return second;
@@ -450,7 +450,7 @@ function handleRequest(root, request, seats) {
     if (got.code !== 0) return { error: `claude rm: ${got.err.trim()}` };
     if (seat) seat.status = "removed";
     const printed = /Removed worktree (.+)/i.exec(got.out);
-    return { removed: stamp(), worktree: printed ? printed[1].trim() : seat && seat.worktree };
+    return { removed: stamp(), worktree: printed ? printed[1].trim() : seat?.worktree };
   }
 
   if (request.op === "resume") {
@@ -474,7 +474,7 @@ function handleRequest(root, request, seats) {
   }
 
   if (request.op === "attention") {
-    const text = String(request.message || "").replace("<id>", (seat && seat.id) || "<id>");
+    const text = String(request.message || "").replace("<id>", seat?.id || "<id>");
     const channel = raiseNotice(text);
     appendLog(root, `attention ${text}`);
     return { notified: stamp(), channel };
@@ -512,7 +512,7 @@ function takeRequests(root, seats) {
     try {
       outcome = handleRequest(root, request, seats);
     } catch (error) {
-      outcome = { error: String(error && error.message) };
+      outcome = { error: String(error?.message) };
     }
     writeJsonAtomic(path.join(resultsDir(root), name), { ...request, ...outcome });
     fs.rmSync(file, { force: true });
@@ -586,7 +586,7 @@ function runCensus(root, seats) {
     appendLog(root, `census: ${listing.error}`);
     return seats;
   }
-  const byId = new Map(listing.sessions.filter((s) => s.sessionId).map((s) => [s.sessionId, s]));
+  const byId = new Map(listing.sessions.filter((s) => s.sessionId && s.pid).map((s) => [s.sessionId, s]));
   for (const seat of seats) {
     const session = byId.get(seat.sessionId);
     if (seat.status === "gone" && session) revive(root, seat);
@@ -607,7 +607,7 @@ function runCensus(root, seats) {
  */
 function logGuardError(root, error) {
   try {
-    appendLog(root, `guard: ${error && error.message ? error.message : String(error)}`);
+    appendLog(root, `guard: ${error?.message ? error.message : String(error)}`);
   } catch {
     // As above: logging the caught error must never itself end the resident.
   }

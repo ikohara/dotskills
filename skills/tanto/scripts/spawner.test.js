@@ -478,6 +478,7 @@ test("resume polls the listing until the resumed session reappears (Important 8)
         kind: "background",
         state: "running",
         id: "bg02",
+        pid: 1111,
       },
     ],
     next: { name: "seat-back [bbbbbb]", id: "bg02" },
@@ -524,6 +525,7 @@ test("ack clears the renamed mark of the session it names", () => {
         kind: "background",
         state: "running",
         id: "bg01",
+        pid: 1111,
       },
     ],
   });
@@ -567,6 +569,7 @@ test("a pass that throws is caught, and the resident's own log carries it (Impor
         kind: "background",
         state: "blocked",
         id: "bg01",
+        pid: 1111,
       },
     ],
   });
@@ -613,6 +616,7 @@ test("the census raises one notice per block, not one per pass", () => {
         state: "blocked",
         waitingFor: "permission prompt",
         id: "bg01",
+        pid: 1111,
       },
     ],
   });
@@ -735,6 +739,41 @@ test("nothing the spawner does reads or writes the roster", () => {
   assert.equal(result(ws, spawnReq.id).error, undefined);
   assert.equal(result(ws, attentionReq.id).error, undefined);
   assert.equal(fs.readFileSync(roster, "utf8"), before);
+});
+
+test("a pid-less listing entry is treated as absent by the census (fix 1)", () => {
+  const ws = workspace();
+  // A seat already gone: the census must not revive it from a pid-less
+  // entry -- the measured real shape (R-11, S-54) is a sessionId with no
+  // pid and no status, for a process that already exited hours earlier.
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  setState(ws, { sessions: [] });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(seats(ws)[0].status, "gone");
+  setState(ws, {
+    sessions: [
+      { sessionId: "sess-new", name: "seat-new [aaaaaa]", cwd: ws.root, kind: "background", state: "blocked" },
+    ],
+  });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(seats(ws)[0].status, "gone");
+
+  // A seat that IS live: when the listing only offers a pid-less entry for
+  // it, it must not be read as blocked or kept running -- exactly as if the
+  // entry were missing from the listing.
+  const second = workspace();
+  request(second, SPAWN);
+  run(second, ["run", "--root", second.root, "--once"]);
+  const listed = JSON.parse(fs.readFileSync(second.state, "utf8")).sessions;
+  setState(second, {
+    sessions: listed.map((s) => {
+      const { pid, ...rest } = s;
+      return rest;
+    }),
+  });
+  run(second, ["run", "--root", second.root, "--once"]);
+  assert.equal(seats(second)[0].status, "gone");
 });
 
 test("run --once writes the pidfile and leaves no process behind", () => {

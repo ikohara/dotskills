@@ -146,6 +146,7 @@ const LIVE_KANRI = {
   kind: "background",
   state: "running",
   id: "bg07",
+  pid: 1111,
 };
 
 test("--help prints the usage line and exits 2", () => {
@@ -190,7 +191,15 @@ test("an existing .gitignore is never overwritten", () => {
 
 test("a live background Kanri is attached to, not spawned again", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      pid: 1111,
+    },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   const got = launch(ws, [ws.root, "--timeout", "20000"]);
@@ -200,7 +209,7 @@ test("a live background Kanri is attached to, not spawned again", () => {
 
 test("an interactive first row is reported and not attached to", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1" },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   const got = launch(ws, [ws.root, "--timeout", "20000"]);
@@ -210,7 +219,7 @@ test("an interactive first row is reported and not attached to", () => {
 
 test("a handover file asks for a Kanri whatever the roster says", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1" },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   fs.writeFileSync(path.join(ws.root, ".tanto", "kanri-handover.md"), "# tanto Kanri handover\n");
@@ -228,7 +237,7 @@ test("a handover file with a successor already in seats.json is attached to, not
   // (Important 1) refuses to attach to a seats.json row the CLI does not
   // list.
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1" },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
     {
       sessionId: "sess-new-kanri",
       name: "seat-new [aaaaaa]",
@@ -236,6 +245,7 @@ test("a handover file with a successor already in seats.json is attached to, not
       kind: "background",
       state: "running",
       id: "bg09",
+      pid: 1112,
     },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
@@ -259,7 +269,7 @@ test("a handover file with only the outgoing Kanri in seats.json still spawns a 
   // OUTGOING Kanri's own row here — the only kanri row that exists — and
   // wrongly suppressed the spawn request that creates the real successor.
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1" },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   const handoverFile = path.join(ws.root, ".tanto", "kanri-handover.md");
@@ -278,7 +288,7 @@ test("a handover file with only the outgoing Kanri in seats.json still spawns a 
 
 test("a handover file with both the outgoing Kanri and a live successor attaches to the successor (C-2b)", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1" },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
     {
       sessionId: "sess-successor",
       name: "seat-new [aaaaaa]",
@@ -286,6 +296,7 @@ test("a handover file with both the outgoing Kanri and a live successor attaches
       kind: "background",
       state: "running",
       id: "bg09",
+      pid: 1112,
     },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
@@ -328,7 +339,15 @@ test("a handover successor row the live listing has lost is not attached to dire
 
 test("a running seat the listing lost is resumed, and fukki is printed", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      pid: 1111,
+    },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   writeSeats(ws, [
@@ -414,7 +433,15 @@ test("claude agents failing exits 1 with the stderr, and writes no request (Impo
 
 test("down --seats reports a failed stop and exits 1 (Important 6)", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      pid: 1111,
+    },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   launch(ws, [ws.root, "--timeout", "20000"]);
@@ -435,7 +462,15 @@ test("--help's usage line documents --timeout (Minor 10)", () => {
 
 test("down --seats keeps a following root from being consumed as its value (Minor 10)", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      pid: 1111,
+    },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   launch(ws, [ws.root, "--timeout", "20000"]);
@@ -462,7 +497,7 @@ test("down --seats keeps a following root from being consumed as its value (Mino
 
 test("an interactive first row with a resumed peer prints no attach or fukki line (Minor 10)", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1" },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   writeSeats(ws, [
@@ -477,7 +512,15 @@ test("an interactive first row with a resumed peer prints no attach or fukki lin
 
 test("down --seats retires the run, and the next tanto spawns a fresh Kanri", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      pid: 1111,
+    },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   writeSeats(ws, [
@@ -496,7 +539,15 @@ test("down --seats retires the run, and the next tanto spawns a fresh Kanri", ()
 
 test("a stopped seat is not resumed", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      pid: 1111,
+    },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   writeSeats(ws, [{ sessionId: "sess-old", id: "bg05", name: "seat-old [dddddd]", role: "jisso", status: "stopped" }]);
@@ -508,7 +559,15 @@ test("a stopped seat is not resumed", () => {
 
 test("down stops the spawner and removes its pidfile", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      pid: 1111,
+    },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   launch(ws, [ws.root, "--timeout", "20000"]);
@@ -521,7 +580,15 @@ test("down stops the spawner and removes its pidfile", () => {
 
 test("down --seats writes a stop request for every running seat", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      pid: 1111,
+    },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   launch(ws, [ws.root, "--timeout", "20000"]);
@@ -578,6 +645,23 @@ test("a Kanri seats.json holds as gone is resumed, never spawned again", () => {
   assert.notEqual(at, -1, got.out);
   assert.equal(lines[at + 1], LEAVE);
   assert.equal(lines[at + 2], "then type /tanto fukki there once");
+});
+
+test("a pid-less listing entry is not read as a live seat, and gets a resume request (fix 1)", () => {
+  const ws = workspace([
+    // The measured real shape (R-11, S-54): a sessionId with no pid and no
+    // status, for a process that already exited hours earlier.
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "blocked" },
+  ]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  writeSeats(ws, [
+    { sessionId: "sess-live", id: "bg07", name: "seat-live [ffffff]", role: "kanri", status: "running" },
+    { sessionId: "sess-gone", id: "bg08", name: "seat-gone [eeeeee]", role: "jisso", status: "running" },
+  ]);
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  const resumed = requests(ws).filter((r) => r.op === "resume");
+  assert.deepEqual(resumed.map((r) => r.sessionId).sort(), ["sess-gone", "sess-live"]);
+  assert.match(got.out, /tanto fukki/);
 });
 
 test("a Kanri resume that fails says so in one line and spawns a new Kanri", () => {

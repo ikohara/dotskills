@@ -282,7 +282,7 @@ function firstRosterRow(root) {
   const head = lines.findIndex((line) => /^\|\s*Role\s*\|/.test(line));
   if (head === -1) return null;
   const row = lines[head + 2];
-  if (!row || !row.startsWith("|")) return null;
+  if (!row?.startsWith("|")) return null;
   const cells = row
     .split("|")
     .slice(1, -1)
@@ -354,7 +354,7 @@ function cmdUp(argv) {
     return 1;
   }
   const byId = new Map(
-    listing.sessions.filter((s) => s.sessionId && s.state !== "stopped").map((s) => [s.sessionId, s]),
+    listing.sessions.filter((s) => s.sessionId && s.pid && s.state !== "stopped").map((s) => [s.sessionId, s]),
   );
   const handoverFile = path.join(root, ".tanto", "kanri-handover.md");
   const handover = fs.existsSync(handoverFile);

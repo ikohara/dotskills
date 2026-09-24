@@ -767,7 +767,9 @@ function cmdCensus(argv) {
     return 1;
   }
   const all = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.sessions) ? parsed.sessions : [];
-  const listed = new Map(all.filter((s) => s?.sessionId && underRoot(root, s.cwd)).map((s) => [s.sessionId, s]));
+  const listed = new Map(
+    all.filter((s) => s?.sessionId && s.pid && underRoot(root, s.cwd)).map((s) => [s.sessionId, s]),
+  );
 
   const out = { Listed: [], "Not listed": [], "No session id": [], "Not held": [] };
   const held = new Set();
