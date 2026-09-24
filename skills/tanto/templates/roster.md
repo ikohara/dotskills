@@ -18,22 +18,20 @@ Kept by Kanri at `.tanto/roster.md`. Kanri is the only writer.
 - A `renamed` mark in the spawner's `seats.json` — a known `sessionId` under
   a new name — is Kanri's to reconcile: rewrite the row's Name column, write
   the Events line `resumed: <old name> → <new name>`, and clear the mark
-  with an `ack` request. A tab seat that was resumed re-handshakes with
-  `/tanto fukki` instead, as it always did.
+  with an `ack` request. A tab seat the editor resumed is renamed the same
+  way by Kanri's census, which finds its `sessionId` under the new name;
+  nothing is typed in the tab.
 - Every handshake rewrites that role's row in full. A handshake whose
-  `transcript=` matches a row's Transcript column is that row's session
-  resumed, and rewrites the row in place with the new name and `[ref]`, its
-  status unchanged. A handshake whose name is on a `live` or `queued` row
-  with a different transcript is that window `/clear`ed and re-invoked, in
-  any role: the old row goes `cleared`, and a new row is written.
-- A row whose session has gone gets status `dead` — a closed tab, a crash,
-  an editor restart before `/tanto fukki` for a tab seat; the spawner's
-  census marking a terminal seat `gone` that no resume brought back. A
-  cleared window stays listed under its name, so neither route detects a
-  `/clear`. A stopped, dead, replaced, refused, or cleared row stays, with
-  its Residency row, until the plan closes, then both move to
-  `roster-archive.md` as one row, so the run stays readable after a
-  replacement and the roster stays short.
+  `sessionId` — the basename of its `transcript=` — is a row's Transcript
+  basename is that row's session resumed, and rewrites the row in place with
+  the new name and `[ref]`, its status unchanged.
+- A row whose session has gone gets status `dead`: a `live` or `queued` row
+  whose `sessionId` the census does not list — a closed tab, a crash, a
+  `/clear`ed window, whose session is no longer the one listed — except
+  while a restart is being recovered. A stopped, dead, replaced, refused, or
+  cleared row stays, with its Residency row, until the plan closes, then
+  both move to `roster-archive.md` as one row, so the run stays readable
+  after a replacement and the roster stays short.
 - This is the address book: one row per seat, Kanri's row first, the
   `Name [ref]` column being the address the row's session answers to, used
   as the bare name, and Kanri sends only to `live` rows. It stays correct
@@ -56,16 +54,16 @@ the handshake's `effort=` carried.
 
 The status words are seven: `queued`, `live`, `stopped`, `cleared`,
 `replaced`, `dead`, and `refused`. A `live` cell may carry the suffix
-`(idle since <HH:MM>)`, which Kanri writes while a Kikaku, Hosa, or Kaiseki
+`(idle since <HH:MM>)`, which Kanri appends while a Kikaku, Hosa, or Kaiseki
 idles and the intake's address rule reads, so a reader tests the cell's
 first word, not the whole cell. `queued` is a Jisso of a skill-editing plan
 waiting for its batch prompt, in spawn order. `stopped` is a terminal seat
-the spawner stopped on Kanri's request, its conversation kept, or a `queued`
-row that never ran. `cleared`
-records a tab seat Kanri released — `release:` sent, the row marked as the
-line goes out — or whose `/clear` came to light another way: a handshake
-under a name already here with a different transcript, in any role, or a
-`no-role` reply to a line Kanri sent. `replaced` is the old row of a Kanri
+the spawner stopped on Kanri's request or the spawner's guard stopped, its
+conversation kept, or a `queued` row that never ran. `cleared` records a
+tab seat Kanri released — `release:` sent, the row marked as the line goes
+out — or whose `/clear` a `no-role` reply to a line Kanri sent revealed;
+whichever of that reply and the census sees a `/clear` first sets the
+status. `dead` is a session the census no longer lists. `replaced` is the old row of a Kanri
 that handed over. `refused` records a handshake that got no row — a second
 live session for the same role and topic, or a model that did not match
 `sessions.<role>` — and is always followed by an Events line saying which; a
@@ -107,21 +105,20 @@ closed with decision-b6cb and with that map.
 
 Between plans there is no conductor ledger, so an item raised then — by a
 Kikaku file belonging to no topic, by Kanri's own
-between-plans exit, or by a close's `-2-proposal.md` — is recorded here with
-the same seven columns the ledger uses. When a topic opens, Kanri moves the
-rows into the new ledger's table; nothing is written out from this table
+between-plans exit, or by a close's further proposal file — is recorded here
+with the same six columns the ledger uses. When a topic opens, Kanri moves
+the rows into the new ledger's table; nothing is written out from this table
 itself, so every row here says `no` until it moves.
 
 Columns as the ledger's, with Source the file, report, or session that
 raised it; Destination one of requirements, design, decisions, issues, notes,
-or reports; Adopted one of `pending`, `yes`, and `no`; Stage the stage word
-`t2` for every row, the close of the topic the row moves into being what
-recommends it; and Written `no` or the subject of the commit that wrote the
-row out. The placeholder row stays until the first item arrives.
+or reports; Adopted one of `pending`, `yes`, and `no`; and Written `no` or
+the subject of the commit that wrote the row out. The placeholder row stays
+until the first item arrives.
 
-| S-n | Source | Item | Destination | Adopted | Stage | Written |
-| --- | --- | --- | --- | --- | --- | --- |
-| (no item yet) | | | | | | |
+| S-n | Source | Item | Destination | Adopted | Written |
+| --- | --- | --- | --- | --- | --- |
+| (no item yet) | | | | | |
 
 ## Events
 
@@ -131,14 +128,15 @@ list holds the current run.
 - <YYYY-MM-DD HH:MM> — <one line: a handshake accepted, or refused and why; a
   session declared dead and what was verified; the plan landed and the SDD
   ledger's path recorded; a VS Code restart and which roles were recreated;
+  recovery: begun; recovery: windows back;
   resumed: <old name> → <new name>;
-  cleared: <old name> → <new name>;
   queued: <name> [<ref>] as Jisso <n> of <topic>;
   released: <name> [<ref>] — <role>, <what it left on disk>;
   no-role from <name> [<ref>] — <what was lost>;
+  a seat the spawner's guard stopped, and its worktree's branch;
   a handover written by <name> [<ref>];
-  a handover accepted by <name> [<ref>] from <name> [<ref>]; an exit shoroku
-  proposed by <name> [<ref>], or not run and what was lost;
+  a handover accepted by <name> [<ref>] from <name> [<ref>]; a shoroku
+  proposal written by <name> [<ref>], or not written and what was lost;
   an inbox sweep: its three files and its commit subjects;
   decision: <path> received from <name>;
   a hotfix committed between plans>

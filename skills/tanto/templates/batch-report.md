@@ -34,7 +34,7 @@ Every ruling made in this batch, in the order made.
 
 ## Shoroku proposal
 
-<This section is this Jisso's exit shoroku: the items this batch raised
+<This section is this Jisso's shoroku proposal: the items this batch raised
 that no file holds — a rejected alternative and its reason, a fact measured,
 a defect noticed, an observation about the run — never a restatement of the
 plan, the SDD ledger, or this report. Kanri records each as a `pending` row;
