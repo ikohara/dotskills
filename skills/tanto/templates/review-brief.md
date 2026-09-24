@@ -75,8 +75,11 @@ pointer, so it follows the line's own trailing clause instead (issue-867f).
 Two questions per item: which requirement this design serves — read from the
 document's own `req-<id>` citations, "not stated" when it has none — and
 whether it adds to or changes a requirement or an ADR. A point that adds or
-changes one asks you to confirm its wording; a point that serves one and
-changes nothing asks nothing.
+changes one asks you to confirm its wording — and, for an ADR the
+document amends, the part of the old ADR it replaces, since
+`docs/decisions/AGENTS.md` records that scope nowhere else and an
+amendment that names no part is a point of its own; a point that serves
+one and changes nothing asks nothing.
 
 1. [confirm | nothing] Serves: <req-<id>, the bullet, or "not stated"> — Adds or changes: <yes: what, or no> — See: <section>
 

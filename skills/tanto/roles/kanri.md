@@ -25,8 +25,10 @@ taking over mid-plan must not create a second ledger.
    both scopes as its start sequence prescribes, read your own `name [ref]`
    — from `claude agents --json` by your own `sessionId`, the basename of
    your transcript path, when you are a spawned Kanri, and from
-   `ListAgents` when the human typed `/tanto kanri` in a tab — and say your
-   start line: the
+   `ListAgents` when the human typed `/tanto kanri` in a tab — and carry it
+   into your row exactly as the listing prints it, never a tail of it
+   copied by hand, since the census compares the row against the listing
+   and reads an abbreviation as a rename — and say your start line: the
    two config files and which fields came from which, the ladder result if
    that check failed, `language: <tag> (<layer>)` or `language: — (unset)`,
    and
@@ -282,10 +284,15 @@ next topic's input document, named in its Sekkei's orders line; a file
 whose "What Kanri should do with it" section names a stage's recommendation
 and answers it by exception is that stage's Check answer, read whole (the
 Check step of "Shoroku"); otherwise it is a source row in the `S-n` table.
-A decision that amends an earlier one is handled as its own ruling naming the
-one it supersedes; the superseded ruling row is marked withdrawn in place, and
-neither decision file is rewritten. Note
-`decision: <path> received from <name>` in the roster's Events either way. You
+A decision that amends an earlier one is handled as its own ruling naming
+the one it supersedes; the superseded ruling row is marked withdrawn in
+place, and neither decision file is rewritten. A decision's checkable
+technical claim — what a commit changed, which flags a command line
+takes, a file's state — is checked against the tree with `git log`, `git
+show --stat`, or a read of a path your session may read before a ruling
+or a line to a seat relays it, as you check a report's claims; one you
+cannot check is relayed marked `(unverified)`. Note `decision: <path>
+received from <name>` in the roster's Events either way. You
 never send to Kikaku: it is the human's seat, not yours.
 
 ## When the plan lands
@@ -417,10 +424,10 @@ Per batch, in this order.
    ```
 
    `<key>` is the batch's letter, or, at the boundary of a batch returned for
-   rework, the rework's own key, `<X>-rework-<n>` (step 6), and, at the fix
-   wave's own boundary, the dispatch's `batch=` is `fixwave` while step 6's
-   `record --batch` carries the ledger row's own key, `fix wave` — see 'The
-   verdict file' in `templates/boundary-brief.md`. The last two
+   rework, the rework's own key, `<X>-rework-<n>` (step 6). At the fix wave's
+   own boundary the dispatch's `batch=` is `fixwave`, while step 6's `record
+   --batch` carries the ledger row's own key, `fix wave` — see "The verdict
+   file" in `templates/boundary-brief.md`. The last two
    lines are the two things the subagent cannot see and you hold
    as text. The readings are the ones peers' last lines carried since the
    previous boundary, one `<role> <name> [<ref>] <reading>` per line. The
@@ -610,7 +617,9 @@ Per batch, in this order.
    `batch: .tanto/<topic>/batch-<Y>-prompt.md` with the `no-role` line
    after it instead, without an idle subscription. That send goes on the
    roster as recorded, with no census first, and the seat's row goes `live`
-   before it: a send that errors, or a row the roster records `dead`, is
+   before it — the send and the rewrite are one act, whether the prompt is
+   this boundary's render or one a handover left you already rendered for
+   an already-`queued` seat: a send that errors, or a row the roster records `dead`, is
    `SKILL.md`'s Resuming — the census, a `resume` request for a terminal
    seat it does not list, a stale entry with no `pid` included, and the line
    sent again when the result lands, to the name the result carries. Then
@@ -1287,8 +1296,12 @@ an inbox item's record is its copy's Triage. Write the sweep as one Events
 line of the roster.
 
 **A topic the human ends before its final batch** — the plan not wanted,
-the branch abandoned — still gets its close, over what is on disk: write
-the close's shoroku proposal yourself, in Jisso's absence, as you write your own — the
+the branch abandoned — and a completed plan whose final batch ran through
+no Jisso — the human retired it by their own word and carried the last
+task with Kikaku directly, its record a decision file and commits you
+verify as any other — still get their close, over what is on disk: write
+the close's shoroku proposal yourself, in Jisso's absence, as you write
+your own — the
 `pending` rows by number and what the ledger's Session events and Rulings
 hold that no row does — then your own, and run the kessai and shoki,
 writing a `stop` request for every live and `queued` Jisso of the topic,
@@ -1640,6 +1653,7 @@ The requests you write, and the asks you make. **Requests:**
 | the merge lands | one `spawn` for shoki, in the same act as the merge and never before it | `brief: <path>` |
 | a handover is due | one `spawn` for your successor | `/tanto kanri` |
 | a seat retires, or the run goes down | one `stop` per seat | — |
+| the human asks in your window for a live terminal seat to be held for a while — a priority call, not a lifecycle signal | one `stop` for that seat, its row `stopped` with an Events line quoting the human's word, its conversation kept and no shoroku proposal asked, since nothing of the seat's is lost; when the human says so, one `resume` on the same `sessionId`, the resumed seat sent the Resuming line for its role, its row `live` again | — |
 
 **Asks**, which are the numbered list above:
 

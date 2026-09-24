@@ -2,9 +2,12 @@
 
 Written by Kanri at `.tanto/spawner/requests/<id>.json`, and by the launcher
 for the first Kanri. `<id>` is `<ISO time>-<random>`, so a directory listing
-in name order is the write order. Write the file atomically — write
-`<id>.json.tmp`, then rename — because the spawner watches the directory and
-takes a file the moment it appears.
+in name order is the write order. Write the file atomically — write `<id>.json.tmp`, or the whole file in a
+directory the spawner does not watch, then rename or `mv` it to
+`<id>.json` as the last step, never `<id>.json` in place — because the
+spawner takes any `*.json` the moment it appears: a `<id>.json` written
+there by a heredoc was read before it was closed and came back `request
+did not parse`, three times in one session.
 
 The spawner writes `.tanto/spawner/results/<id>.json`, the request's own
 fields with the op's fields added, and deletes the request. Kanri reads a

@@ -41,7 +41,10 @@ and passes after. Jisso writes it.>
 
 <Keep one bullet per defect, carrying the tag that applies, and delete the
 example bullets that do not. An empty list is fine. Never leave an example
-bullet standing.>
+bullet standing. The tag is scoped to the task in this report's title, not
+to the batch or the arc: a `no` item can still block a later task of the
+same batch, so name in the bullet the later step it would block, if any;
+Kanri reads a `no` as "not this task" and nothing wider.>
 
 ## Uncertainties
 

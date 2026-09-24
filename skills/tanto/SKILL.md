@@ -237,7 +237,11 @@ ceiling field — an older file's, for instance — is reported in
 your start line as `unknown key <name> in <path>, ignored` —
 `subagents.shoroku`, the kind's name before it was split into
 `shoroku.recommend` and `shoroku.apply`, is one such key, and a personal file
-that still carries it sets neither half — or as
+that still carries it sets neither half, and a top-level key whose own name
+is a role's or a kind's, `kikaku` or `task.implement`, is reported as
+`unknown key <name> in <path>, ignored — likely meant sessions.<name>` or
+`subagents.<name>`, since a hand-edited override that drops the nesting is
+the common mistake and sets nothing — or as
 `unknown key ceiling.<name> in <path>, ignored` for one under that map, which
 `scripts/reading.js` writes on `stderr` every time it reads a file; either
 way it is otherwise ignored.
@@ -728,9 +732,11 @@ and the human runs `/tanto <role>` there as for a new session.
   live Jisso's after verifying the tree; a role that receives `no-role` from
   Kanri's own name is in a handover gap, holds the line it sent, and
   re-sends it to the roster's first data row, read fresh, at its next
-  wake-up, until it is answered — this holds a
-  line only for a role with an established roster row to hold one on
-  behalf of. A session with no row yet — a tab seat's own first
+  wake-up, until it is answered — or, when that row's own name is stale,
+  to the name `claude agents --json` prints for the `sessionId` its
+  Transcript basename carries, since only a wake-up makes Kanri rewrite
+  its row — this holds a line only for a role with an established roster
+  row to hold one on behalf of. A session with no row yet — a tab seat's own first
   handshake, landing in the same gap — has no line to hold: it treats the
   `no-role` the way a send error is already treated, re-reads the roster's
   first data row, and re-handshakes there once a `live` Kanri answers it. A
@@ -840,8 +846,10 @@ it in the sender's window — the harness's own prompt, like the model-mismatch
 stop, and not a failure of the route. A defect that surfaces in a spec
 dialogue reaches Kanri as an `I-n` in `spec-inputs.md`, not as a bug report.
 
-The intake answers with one line, `received: <inbox path>`, after one act
-that reads nothing of the report: the file is copied to
+The intake answers with one line, `received: <inbox path>` — a burst of
+reports from one sender in one message carrying one such line per report,
+each pairing with its `bug-report:` line by path — after one act that
+reads nothing of the report: the file is copied to
 `.tanto/inbox/<YYYY-MM-DD>-<slug>.md` under the same basename, and one line
 is appended under its `## Received` heading. No triage, no ruling, no filing,
 no Events line: a report pends nothing until a **close**, where the
@@ -1106,10 +1114,10 @@ disk is not, since a resume brings it back with its whole conversation
 report — the human says the window is gone, a send errors and the census
 that follows no longer lists it, a `no-role` comes back, the census's "Not
 listed" names it, or Kanri's window wakes for another reason and the answer
-has not arrived. A terminal seat is then run through the census, whose Not
-listed marks it `dead`, with an Events line naming what showed its process
-gone and saying its conversation is kept,
-and is resumed when a line is next due to it. A tab seat, and a terminal
+has not arrived. A terminal seat is then looked for by the census, whose "Not listed" marks
+its row `dead` — with an Events line naming what showed its process gone
+and saying its conversation is kept — and is resumed when a line is next
+due to it. A tab seat, and a terminal
 seat whose resume failed, is a forced exit — the roster's Events line says
 its shoroku proposal was not written and what was lost, as far as Kanri
 knows — and Kanri marks the row `cleared` on a `no-role` or `dead` on the
