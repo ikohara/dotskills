@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-19
+updated: 2026-09-23
 ---
 
 Source: shoroku seat-lineage
@@ -41,3 +41,12 @@ Related: issue-e18b is the same class of enumeration drift in `SKILL.md`'s
 Artifacts row; issue-de29 is the Stage column's own missing value.
 
 A template-consistency gap, not a user-stated need, so no paired requirement.
+
+Resolved by the bg-seat-ergonomics design
+(`docs/superpowers/specs/2026-09-23-bg-seat-ergonomics-design.md`, 2.8).
+Item 1: the handshake-by-name route to `cleared` retired, and the `cleared:`
+Events shape left `templates/roster.md` with its last writer; `cleared` has
+two routes left, `release:` and a `no-role` reply. Item 2 was already gone
+from `roles/kanri.md`. Item 3: `idle since` is the suffix
+`(idle since <HH:MM>)` of a `live` cell, which `roles/kanri.md` now says
+Kanri appends and `SKILL.md`'s status list names beside the seven words.

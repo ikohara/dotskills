@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-09-23
 ---
 
 Source: shoroku bug-report-hold S-35
@@ -29,3 +29,11 @@ there is no proactive warning.
 The decision this needs from the human: does the protocol accept the inference
 as a third path, with its conditions written down, or must the mechanical
 signal always be obtained first?
+
+Resolved by the bg-seat-ergonomics design
+(`docs/superpowers/specs/2026-09-23-bg-seat-ergonomics-design.md`, 2.1 and
+2.5): the mechanical signal is always obtained, and it is cheap.
+`boundary.js census` lists every session under the repository, and at every
+handshake Kanri marks `dead` each `live` or `queued` row whose `sessionId`
+it does not list, before the new row is written — so a stale row no longer
+refuses a fresh handshake, and nothing is settled by inference.
