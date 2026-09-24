@@ -118,23 +118,22 @@ ledger of the topic that raised it, never a compound value.
 | top-family sessions active at once, the peak, and whether a 429 was seen | <YYYY-MM-DD, the plan close> | <the peak count, and yes or no for the 429> |
 | top-family one-shots per plan, counted by kind | <YYYY-MM-DD, the plan close> | <one count per kind dispatched on the top family> |
 | each role's last reading | <YYYY-MM-DD, the plan close> | <the roster's Residency figures, copied, one role per line> |
-| the day's cost, uncached input, cache miss, cache hit, and hit rate | <YYYY-MM-DD> | <the five figures as the human pastes them from the Claude Code Usage extension> |
 | Kanri's context at the topic's opening and at the plan's landing with the landing's delta, then Kanri's and each Jisso's at each boundary with the cache regime | <YYYY-MM-DD, each check> | <opening: kanri context=<n>; landing: kanri context=<n> (+<d>); batch <X>: kanri context=<n>, jisso context=<n>, ttl=<v>>, entries separated by `;` — the opening and the landing written by Kanri, every `batch <X>` entry by `boundary.js record`, which replaces its own batch's entry and leaves every other entry alone |
 | the share of usage at context over the threshold | <YYYY-MM-DD, the plan close> | <the share line, the names it ran over> |
 
-These six rows are always present; the rows the last paragraph adds sit
+These five rows are always present; the rows the last paragraph adds sit
 below them. Kanri fills the first at the
 plan close from this ledger's Session events, where it writes one line each
 time a second top-family session goes live; the second by counting those same
 events' one-shot lines by kind and not by stage, since one kind is dispatched
-at several stages; the third by copying the roster's Residency rows; the
-fourth from what the human pastes. The fifth is filled at the topic's opening
+at several stages; the third by copying the roster's Residency rows. The
+fourth is filled at the topic's opening
 (Start step 5), at the plan's landing, and at every boundary by
 `boundary.js record`, from the two readings the boundary's dispatch carried;
-the sixth at the plan close from `reading.js --share`, with the sessions it
-ran over and the ones it skipped. The fifth is the record
+the fifth at the plan close from `reading.js --share`, with the sessions it
+ran over and the ones it skipped. The fourth is the record
 behind a rule — the ceiling of `roles/kanri.md`'s trigger, which fires
-without asking whether anyone is present — and the other five
+without asking whether anyone is present — and the other four
 are the record the next measurement starts from.
 
 A `paused: <dispatch> on <family> — resets <time>` line a role sends is
