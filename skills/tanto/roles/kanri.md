@@ -417,7 +417,10 @@ Per batch, in this order.
    ```
 
    `<key>` is the batch's letter, or, at the boundary of a batch returned for
-   rework, the rework's own key, `<X>-rework-<n>` (step 6). The last two
+   rework, the rework's own key, `<X>-rework-<n>` (step 6), and, at the fix
+   wave's own boundary, the dispatch's `batch=` is `fixwave` while step 6's
+   `record --batch` carries the ledger row's own key, `fix wave` — see 'The
+   verdict file' in `templates/boundary-brief.md`. The last two
    lines are the two things the subagent cannot see and you hold
    as text. The readings are the ones peers' last lines carried since the
    previous boundary, one `<role> <name> [<ref>] <reading>` per line. The
@@ -601,9 +604,10 @@ Per batch, in this order.
    `task.escalate` — each with the family `tanto.json` gives it and the
    definition name that family is dispatched with, so that the prompt still
    says them after a compaction. Then **write the `spawn` request** for the
-   next Jisso with `batch=.tanto/<topic>/batch-<key>-prompt.md`; under a
+   next Jisso — `<Y>` the next batch's letter, the path the boundary brief
+   rendered — with `batch=.tanto/<topic>/batch-<Y>-prompt.md`; under a
    skill-editing plan's queue, send the next `queued` seat the one line
-   `batch: .tanto/<topic>/batch-<key>-prompt.md` with the `no-role` line
+   `batch: .tanto/<topic>/batch-<Y>-prompt.md` with the `no-role` line
    after it instead, without an idle subscription. That send goes on the
    roster as recorded, with no census first, and the seat's row goes `live`
    before it: a send that errors, or a row the roster records `dead`, is

@@ -114,13 +114,14 @@ only the resident can compare with its roster row.
 
    That row is bookkeeping, not a ruling — the prompt exists and the ledger
    should say so — which is why it is yours and not the resident's: the
-   resident's one `record` call carries batch `<X>`'s acceptance, and nothing
+   resident's one `record` call carries batch `<key>`'s acceptance, and nothing
    else. The state is `planned`, not `sent`: you have rendered the file, not
    dispatched it, and no `record` call — not yours, not the resident's
    step-6 one — ever writes a row `sent`. Its next explicit write is
    `reported`, from that batch's own boundary's brief once its report lands;
    the resident's actually sending the prompt (or ruling a rework instead, in
-   which case it is never sent) shows up in the roster's `--status ... live`,
+   which case this render is replaced by the one the rework's boundary makes,
+   and that one is sent) shows up in the roster's `--status ... live`,
    not in this table. Do not "fix" this to write the row's state as `sent`.
    When the batch is the plan's last, the fix wave, or a rework of either,
    there is no next batch: write no prompt, make no second `record` call,

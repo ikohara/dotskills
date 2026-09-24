@@ -29,7 +29,7 @@ rewritten to `present` when the file lands and dropped once the spec cites it>
 
 Columns: Batch, the batch's key — its letter, `fix wave` for the fix wave,
 or `<X>-rework-<n>` for a batch returned for rework; Tasks, the plan's task
-numbers; State, one of planned, reported, accepted, or rework; Prompt and
+numbers, or for a rework the tasks it runs again; State, one of planned, reported, accepted, or rework; Prompt and
 Report, the two file names under `.tanto/<topic>/`; Verdict, one line —
 accepted, or what must change. One row per batch, added as the batch is
 planned, and one per rework: a batch returned for rework keeps its row,

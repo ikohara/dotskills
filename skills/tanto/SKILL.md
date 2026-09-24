@@ -1106,8 +1106,9 @@ disk is not, since a resume brings it back with its whole conversation
 report — the human says the window is gone, a send errors and the census
 that follows no longer lists it, a `no-role` comes back, the census's "Not
 listed" names it, or Kanri's window wakes for another reason and the answer
-has not arrived. A terminal seat is then marked `dead`, with an Events line
-naming what showed its process gone and saying its conversation is kept,
+has not arrived. A terminal seat is then run through the census, whose Not
+listed marks it `dead`, with an Events line naming what showed its process
+gone and saying its conversation is kept,
 and is resumed when a line is next due to it. A tab seat, and a terminal
 seat whose resume failed, is a forced exit — the roster's Events line says
 its shoroku proposal was not written and what was lost, as far as Kanri
