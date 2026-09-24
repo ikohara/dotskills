@@ -35,7 +35,8 @@ Kept by Kanri at `.tanto/roster.md`. Kanri is the only writer.
 - This is the address book: one row per seat, Kanri's row first, the
   `Name [ref]` column being the address the row's session answers to, used
   as the bare name, and Kanri sends only to `live` rows. It stays correct
-  because nothing renames a session, and a `/clear` keeps the name. The
+  because Kanri rewrites the Name column at every rename the census or a
+  handshake shows, and a `/clear` keeps the name. The
   `[ref]` is load-bearing: it identifies a window across the listing, the
   roster, and the handover.
 - Kanri sends only to `live` rows, and dispatches nothing to a session that

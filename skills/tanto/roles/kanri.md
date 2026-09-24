@@ -177,9 +177,10 @@ write the Events line `resumed: <old name> → <new name>`. No row is marked
 `git status`.
 
 **Second Kanri** — no handover file, the first data row's `sessionId` is
-another's, and the census lists it. Stop, tell the human there is a live
-Kanri already, and ask whether that one should hand over or this window
-should be `/clear`ed. Write nothing.
+another's, and the census lists it. Read for the handover file once more first
+— a predecessor still `busy` may be mid-write — and if it is still absent,
+stop, tell the human there is a live Kanri already, and ask whether that one
+should hand over or this window should be `/clear`ed. Write nothing.
 
 **Recovery** — no handover file, the first data row's `sessionId` is
 another's, and the census does not list it. Run "Recovery after a VS Code
@@ -278,7 +279,10 @@ the next `I-n` in that topic's `spec-inputs.md`; between plans it is the
 next topic's input document, named in its Sekkei's orders line; a file
 whose "What Kanri should do with it" section names a stage's recommendation
 and answers it by exception is that stage's Check answer, read whole (the
-Check step of "Shoroku"); otherwise it is a source row in the `S-n` table. Note
+Check step of "Shoroku"); otherwise it is a source row in the `S-n` table.
+A decision that amends an earlier one is handled as its own ruling naming the
+one it supersedes; the superseded ruling row is marked withdrawn in place, and
+neither decision file is rewritten. Note
 `decision: <path> received from <name>` in the roster's Events either way. You
 never send to Kikaku: it is the human's seat, not yours.
 
@@ -439,6 +443,11 @@ Per batch, in this order.
    ```bash
    node "$TANTO/scripts/passage-check.js" sections --file <path> <heading> [<heading>...]
    ```
+
+   A verdict whose own sections disagree — two blocks labeled the same command
+   showing different output — is spot-checked by re-running that read-only
+   command yourself before you rule on it, separately from whether the
+   deviation it reports is already known.
 
    For each item under "Rulings needed": a **known cause** you
    rule on yourself, recorded as `R-n` in the ledger with what it costs if
@@ -654,7 +663,9 @@ After the last implementation batch is accepted:
    this run already built and used — Keikaku for `lint` and `replay`, Jisso
    for `diff` at every boundary (issue-7481). Its report says what the replay
    printed, and the review seat goes to the cross-file contracts and the
-   human-facing questions, which no script judges.
+   human-facing questions, which no script judges. Name in the same prompt what the replay skips
+   — the test suites, the census, `verify` — so that the reviewer runs those in
+   the working tree itself instead of deriving the list.
 2. Turn its findings into one more batch prompt — the final batch — and send
    it to the next queued Jisso, as any batch. In that same turn send
    `release:` to the Jisso that ran the last implementation batch — its wait

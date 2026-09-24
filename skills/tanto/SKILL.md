@@ -820,8 +820,8 @@ headings — the title, the how-to-answer section, the five numbered sections,
 and the unsettled section — present and in that order, the headings
 themselves in the chat's language (for a spec, section 5's body is the one
 line the template gives, rendered); every point opening with one of the four
-tags — confirm, choose, decide, nothing — and every unsettled line saying
-whether an answer is needed, and a decide line among them carrying the
+tags — confirm, choose, decide, nothing — and every unsettled line opening with one of them too and
+saying whether an answer is needed, and a decide line among them carrying the
 `— If unanswered:` clause after that; every point in its parts — the two
 before `See:`, then the pointer, and on a choose or decide point the
 `— If unanswered:` clause after it, so three parts or four, any of which may

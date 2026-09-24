@@ -34,7 +34,10 @@ where they are, anything the previous batch parked that these tasks touch.>
 - Branch — <branch>, base is the commit with subject <commit subject>
 - Jisso — <"the first of this plan: run Start steps 1 to 4, the pre-flight
   scan included", or "the <n>th of this plan: run Start steps 1 to 3, resume
-  `progress.md` through `sdd-workspace`, and start at task <N> — no scan";
+  `progress.md` through `sdd-workspace`, and start at task <N> — no scan", or,
+  for the fix wave, "the fix wave's: run Start steps 1 to 3, reading the plan
+  and the spec only where a finding cites them — the findings arrive
+  diagnosed, and this prompt's fix section is the brief";
   after a Jisso gone mid-batch, the second form's "start at task <N>" is
   replaced, not joined, by "resume batch <X> from task <N>", naming the
   batch the departed Jisso left mid-run rather than a new one>

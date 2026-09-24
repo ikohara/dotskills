@@ -74,8 +74,9 @@ batch is the next Jisso's. At the boundary:
    will not run — the Ceiling slot carries `unavailable`, which is a value and
    not a failure.
 2. Send Kanri one line with that path. No self-check runs first: a terminal
-   seat's rename is the spawner's census to notice, and your identity is the
-   `name` your own result file carried.
+   seat's rename is the spawner's census to notice, and the identity word
+   your closing line carries is the `name` your own result file carried —
+   your identity itself is your `sessionId`.
 3. Idle, with your closing line: your work is in the report and the commits;
    the step that still needs this seat is the boundary's verdict. Kanri
    verifies the tree and rules. A batch returned for rework comes back to

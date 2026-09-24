@@ -41,7 +41,9 @@ never an omitted `model`, which would inherit this session's fable.
 
 When something is decided, write `.tanto/kikaku/<YYYY-MM-DD>-<slug>.md`
 from `templates/kikaku-decision.md` and send Kanri one line,
-`decision: <path>`.
+`decision: <path>`. A decision that names an issue or a CLI behavior checks each issue's directory under `docs/issues/`
+and each CLI claim against the report it would cite before the file is sent,
+so that the Sekkei it reaches does not start by correcting its premises.
 
 Kanri's handling is one of four, and the file's third section is where you
 say which one you expect: a topic in its spec stage relays it as the next
