@@ -770,6 +770,10 @@ function cmdCensus(argv) {
   const listed = new Map(
     all.filter((s) => s?.sessionId && s.pid && underRoot(root, s.cwd)).map((s) => [s.sessionId, s]),
   );
+  // An entry with no pid is a process gone, whatever its state says (spec
+  // 3.1): its row prints under Not listed with the signal named, by its
+  // sessionId alone, since the row is already this repository's.
+  const stale = new Set(all.filter((s) => s?.sessionId && !s.pid).map((s) => s.sessionId));
 
   const out = { Listed: [], "Not listed": [], "No session id": [], "Not held": [] };
   const held = new Set();
@@ -791,7 +795,8 @@ function cmdCensus(argv) {
     held.add(sessionId);
     const session = listed.get(sessionId);
     if (!session) {
-      out["Not listed"].push(`${role} ${topic} ${name} — ${sessionId}`);
+      const note = stale.has(sessionId) ? " — listed without a pid (a stale entry)" : "";
+      out["Not listed"].push(`${role} ${topic} ${name} — ${sessionId}${note}`);
       continue;
     }
     const bare = name.replace(/\s*\[[^\]]*\]$/, "");
