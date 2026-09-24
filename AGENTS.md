@@ -11,7 +11,7 @@ American English for everything in the repo:
 Exceptions:
 
 - User-facing strings: follow i18n conventions
-- Chat with the agent: use the language of the user's first message
+- Chat with the agent: use the language the user has configured, else the language of the user's first message
 
 ## Document management
 

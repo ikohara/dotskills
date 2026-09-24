@@ -25,10 +25,14 @@ Kept by Kanri at `.tanto/roster.md`. Kanri is the only writer.
   `sessionId` — the basename of its `transcript=` — is a row's Transcript
   basename is that row's session resumed, and rewrites the row in place with
   the new name and `[ref]`, its status unchanged.
-- A row whose session has gone gets status `dead`: a `live` or `queued` row
-  whose `sessionId` the census does not list — a closed tab, a crash, a
-  `/clear`ed window, whose session is no longer the one listed — except
-  while a restart is being recovered. A stopped, dead, replaced, refused, or
+- A row whose session has gone gets status `dead`: a `live` row whose
+  `sessionId` the census does not list — a closed tab, a crash, a
+  `/clear`ed window, whose session is no longer the one listed, a terminal
+  seat whose process was collected — except while a restart is being
+  recovered. A `queued` row the census does not list stays `queued`, since
+  the send of its prompt resumes it, and a terminal seat's `dead` row whose
+  transcript is on disk goes `live` again when a line due to it resumes it.
+  A stopped, dead, replaced, refused, or
   cleared row stays, with its Residency row, until the plan closes, then
   both move to `roster-archive.md` as one row, so the run stays readable
   after a replacement and the roster stays short.
@@ -64,7 +68,7 @@ conversation kept, or a `queued` row that never ran. `cleared` records a
 tab seat Kanri released — `release:` sent, the row marked as the line goes
 out — or whose `/clear` a `no-role` reply to a line Kanri sent revealed;
 whichever of that reply and the census sees a `/clear` first sets the
-status. `dead` is a session the census no longer lists. `replaced` is the old row of a Kanri
+status. `dead` is a session the census no longer lists — for a terminal seat whose transcript is on disk, not final: a resume puts it back to `live`. `replaced` is the old row of a Kanri
 that handed over. `refused` records a handshake that got no row — a second
 live session for the same role and topic, or a model that did not match
 `sessions.<role>` — and is always followed by an Events line saying which; a

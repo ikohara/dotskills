@@ -3,7 +3,7 @@
 Written by the brief writer the document's author dispatches, at
 `.tanto/<topic>/review-brief-spec.md` or `review-brief-plan.md`, next to the
 review reports and untracked under `.tanto/.gitignore`.
-Every part of the brief is written in the chat's language, which the dispatch
+Every part of the brief is written in the human's language, which the dispatch
 names, the headings included; this template is the English source the writer
 renders. The `#` title line is the first of the eight headings: render it
 like the other seven and never drop it. The form markers are the exception
@@ -15,7 +15,7 @@ brief selects and renders; it does
 not analyze anew.
 
 Document: <path> — hash <git hash-object of the document as read> — brief
-written <YYYY-MM-DD> on <model family> for the chat
+written <YYYY-MM-DD> on <model family> for the human's
 language <language>. Inputs read: <the document; for a spec also
 spec-inputs.md and dialogue.md; for a plan also the spec>.
 
@@ -46,7 +46,7 @@ one; **decide** — the document left it open, your answer decides it;
 question, in one sentence; the document's answer, in one sentence; and the
 pointer — the document's section heading that answers it, copied as it
 stands in the document and not translated, never a line number; the pointer,
-like the labels and the tags, is not rendered into the chat's language. A
+like the labels and the tags, is not rendered into the human's language. A
 **decide** point whose answer approves an edit to the document names the
 proposed text, or points to where the document quotes it, rather than only
 describing the edit in prose. At most five points per section; what does not
@@ -57,7 +57,7 @@ Every point tagged **choose** or **decide** ends with `— If unanswered: <what>
 after the pointer. For a **decide** point it names the document's own answer
 where one exists, and otherwise the recommendation the author states with the
 brief; for a **choose** point it names one of the options the point lists. The
-clause is the writer's, it is rendered in the chat's language like the rest of
+clause is the writer's, it is rendered in the human's language like the rest of
 the point, and the marker `— If unanswered:` itself is a form marker and stays
 as it is. The unsettled section's `decide` lines carry it too; they have no
 pointer, so it follows the line's own trailing clause instead (issue-867f).
@@ -75,8 +75,11 @@ pointer, so it follows the line's own trailing clause instead (issue-867f).
 Two questions per item: which requirement this design serves — read from the
 document's own `req-<id>` citations, "not stated" when it has none — and
 whether it adds to or changes a requirement or an ADR. A point that adds or
-changes one asks you to confirm its wording; a point that serves one and
-changes nothing asks nothing.
+changes one asks you to confirm its wording — and, for an ADR the
+document amends, the part of the old ADR it replaces, since
+`docs/decisions/AGENTS.md` records that scope nowhere else and an
+amendment that names no part is a point of its own; a point that serves
+one and changes nothing asks nothing.
 
 1. [confirm | nothing] Serves: <req-<id>, the bullet, or "not stated"> — Adds or changes: <yes: what, or no> — See: <section>
 

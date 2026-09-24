@@ -332,6 +332,45 @@ test("a second call rewrites only the cells its arguments name", () => {
   assert.ok(ledger.includes("check: pass — boundary pass, diff pass"));
 });
 
+test("a rework's key is a row of its own, and every earlier row keeps its cells (spec 1.3)", () => {
+  const fixture = ledgerAndRoster();
+  const record = (...args) => {
+    const result = run(["record", "--ledger", fixture.ledger, ...args], fixture.dir);
+    assert.strictEqual(result.code, 0, result.err);
+  };
+  const rowOf = (key) =>
+    fs
+      .readFileSync(fixture.ledger, "utf8")
+      .split(/\r?\n/)
+      .find((line) => line.startsWith(`| ${key} |`));
+  record("--batch", "B", "--tasks", "4-7", "--state", "rework", "--prompt", "batch-B-prompt.md");
+  record("--batch", "B", "--report", "batch-B-report.md", "--verdict", "Task 5 returned: its test pins the old line");
+  record("--batch", "fix wave", "--tasks", "fix wave", "--state", "rework", "--verdict", "one finding left open");
+  const firstPass = rowOf("B");
+  const fixWave = rowOf("fix wave");
+  record("--batch", "B-rework-1", "--tasks", "5", "--state", "planned", "--prompt", "batch-B-rework-1-prompt.md");
+  record("--batch", "B-rework-1", "--state", "rework", "--report", "batch-B-rework-1-report.md", "--verdict", "open");
+  record("--batch", "B-rework-2", "--tasks", "5", "--state", "planned", "--prompt", "batch-B-rework-2-prompt.md");
+  record("--batch", "fixwave-rework-1", "--tasks", "fix wave", "--state", "planned");
+  const ledger = fs.readFileSync(fixture.ledger, "utf8");
+  assert.strictEqual(rowOf("B"), firstPass, ledger);
+  assert.strictEqual(rowOf("fix wave"), fixWave, ledger);
+  assert.strictEqual(
+    rowOf("B-rework-1"),
+    "| B-rework-1 | 5 | rework | batch-B-rework-1-prompt.md | batch-B-rework-1-report.md | open |",
+  );
+  assert.strictEqual(rowOf("B-rework-2"), "| B-rework-2 | 5 | planned | batch-B-rework-2-prompt.md |  |  |");
+  assert.strictEqual(rowOf("fixwave-rework-1"), "| fixwave-rework-1 | fix wave | planned |  |  |  |");
+  const order = ["B", "fix wave", "B-rework-1", "B-rework-2", "fixwave-rework-1"].map((key) =>
+    ledger.indexOf(`| ${key} |`),
+  );
+  assert.deepStrictEqual(
+    [...order].sort((a, b) => a - b),
+    order,
+    ledger,
+  );
+});
+
 test("a State the Batches table does not name is refused and nothing is written", () => {
   const fixture = ledgerAndRoster();
   const before = fs.readFileSync(fixture.ledger, "utf8");
@@ -985,16 +1024,30 @@ test("census exits 1 with one line on a failed or non-JSON listing, and 2 on a u
   assert.strictEqual(census(f, "", ["--root"]).code, 2);
 });
 
-test("a pid-less listing entry is not listed (fix 1)", () => {
-  const f = censusFixture([KANRI_ROW], (root) => [
-    // The measured real shape (R-11, S-54): a sessionId with no pid and no
-    // status, for a process that already exited hours earlier.
-    { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, state: "blocked" },
-  ]);
+test("a pid-less listing entry is not listed, and its row is noted as a stale entry (spec 3.2 item 3)", () => {
+  const f = censusFixture(
+    [KANRI_ROW, sessionRow("jisso", "t", "jisso-g", "live", "/home/u/.claude/projects/p/sess-moved.jsonl")],
+    (root, dir) => [
+      // The measured real shape (R-11, S-54): a sessionId with no pid and no
+      // status, for a process that already exited hours earlier.
+      { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, state: "blocked" },
+      // A stale entry is noted by its sessionId, wherever its cwd.
+      { sessionId: "sess-moved", name: "jisso-g", kind: "background", cwd: path.join(dir, "other"), state: "blocked" },
+      { sessionId: "sess-stray", name: "stray", kind: "background", cwd: root, state: "blocked" },
+    ],
+  );
   const result = census(f, "");
   assert.strictEqual(result.code, 0, result.err);
   assert.ok(result.out.includes("\n## Listed\n\nnone\n"), result.out);
-  assert.ok(result.out.includes("\n## Not listed\n\nkanri — kanri-a [aaaaaa] — sess-kanri\n"), result.out);
+  const stale = " — listed without a pid (a stale entry)";
+  assert.ok(
+    result.out.includes(
+      `\n## Not listed\n\nkanri — kanri-a [aaaaaa] — sess-kanri${stale}\njisso t jisso-g — sess-moved${stale}\n`,
+    ),
+    result.out,
+  );
+  // Not held lists no entry without a pid.
+  assert.ok(result.out.includes("\n## Not held\n\nnone\n"), result.out);
 });
 
 test("census places a session whose cwd spells the root's drive letter in the other case", {

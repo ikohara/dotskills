@@ -4,7 +4,7 @@ Written by the `shoroku.recommend` kind in the same dispatch as the
 recommendation, at `.tanto/<topic>/shoroku-brief.md`, beside the recommendation
 and untracked under `.tanto/.gitignore`.
 Every part of the
-brief is written in the chat's language, which the dispatch names; this
+brief is written in the human's language, which the dispatch names; this
 template is the English source the recommender renders. The form markers are
 the exception and stay exactly as they are here: the five `##` headings, the
 bracketed tag word, the `<n>.` numbers, and the label `See:` with the heading
@@ -13,7 +13,7 @@ judgment; it does not analyze anew, and the recommendation stays the file the
 apply reads.
 
 Document: <the recommendation's path> — written <YYYY-MM-DD> on
-<model family> for the chat language
+<model family> for the human's language
 <language>.
 
 Each group below holds one line per item of that group, in the

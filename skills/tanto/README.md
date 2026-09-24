@@ -53,7 +53,7 @@ one implementation plan.
   reporter's repository.
 - Puts a **review brief** in front of the human before each spec and plan
   review: the points that need the human's judgment, each with a pointer into
-  the document, in the chat's language, written by a subagent the document's
+  the document, in the human's language, written by a subagent the document's
   author dispatches — Sekkei for the spec, Keikaku for the plan — so the
   human confirms those and reads the rest only where a point sends them.
 - Uses superpowers as it is — brainstorming, writing-plans, subagent-driven
@@ -109,7 +109,11 @@ one implementation plan.
   field, and a key written as a bare model name takes its effort from the
   layers below. An effort the project file changes is carried by project-scope
   agent definitions the roles generate under `<repo>/.claude/agents/`, ignored
-  by a `.gitignore` the roles write there.
+  by a `.gitignore` the roles write there. The same files carry `language`,
+  the language the run speaks to the human in, as a BCP 47 tag:
+  `{"language": "ja"}` in the personal file sets it for every repository, and
+  a project file may override it; unset, the repository's own language rule
+  decides (`SKILL.md`, "The expected-model config").
 
 ## Usage
 

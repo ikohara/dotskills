@@ -29,7 +29,15 @@ not the ledger — and wait for the one line `batch: <path>`: a waiting seat
 holds the minimum context, because every
 wake-up re-reads all of it, and yours may wait hours. Your
 closing line while you wait says so: no work yet, and the step that needs
-this seat is your batch prompt.
+this seat is your batch prompt. Your process may be collected while you
+wait; Kanri resumes it with this conversation when your prompt is due, and
+you do nothing about it — the `batch:` line arrives after the resume.
+
+**Every `batch:` line's file is read from disk** before you judge anything,
+whatever its path and whether or not you have read a file at that path
+before, and you act on what the file says, never on your memory of an
+earlier prompt. A file that is the prompt of a batch you have already
+reported is answered as before, with your report's path.
 
 On the prompt, in order:
 
@@ -55,7 +63,9 @@ A batch is the task range Kanri's prompt names. Execute those tasks, then
 **stop and idle** — do not start the next task, and expect none: the next
 batch is the next Jisso's. At the boundary:
 
-1. Write `batch-<X>-report.md` in the topic directory, `.tanto/<topic>/`, from
+1. Write the report at the path your prompt's Report section names —
+   `.tanto/<topic>/batch-<key>-report.md`, `<key>` the batch's letter, or
+   `<X>-rework-<n>` for a rework — from
    the tanto skill's `templates/batch-report.md`, taking your own reading
    (`SKILL.md`, "The transcript reading") into its `- Transcript — <reading>`
    line and your own ceiling line — ending `context=<n> <under|over>` — into
@@ -80,7 +90,10 @@ batch is the next Jisso's. At the boundary:
 3. Idle, with your closing line: your work is in the report and the commits;
    the step that still needs this seat is the boundary's verdict. Kanri
    verifies the tree and rules. A batch returned for rework comes back to
-   you as a prompt for the same batch; a batch accepted is your exit — the
+   you as a rework prompt at its own path,
+   `.tanto/<topic>/batch-<X>-rework-<n>-prompt.md`, in a `batch:` line whose
+   file you read from disk like every other (Start); a batch accepted is
+   your exit — the
    report's Shoroku proposal section is your shoroku proposal, nothing else is
    written, and Kanri's `stop` request follows — no line reaches you,
    nothing is `/clear`ed, and your conversation is kept. Two batches
@@ -121,8 +134,23 @@ Also quoted verbatim:
 > Implementer subagents report one of four statuses. Handle each appropriately:
 
 They are `DONE`, `DONE_WITH_CONCERNS`, `NEEDS_CONTEXT`, and `BLOCKED`. Handle
-each as subagent-driven-development says, with one addition: a `BLOCKED` return
-whose cause you cannot name, at any round, is the Kaiseki trigger below.
+each as subagent-driven-development says, with two additions. First, a
+`BLOCKED` return whose cause you cannot name, at any round, is the Kaiseki
+trigger below.
+
+Second, a notification that carries no hand-back is not a hand-back: an
+interim `completed` whose note says the agent stopped with background work
+of its own still running, or a result that says the agent is waiting.
+Answer it in the same turn, by `SendMessage` to that agent's id: stop any
+command of its own still running, run what remains in the foreground with a
+timeout, and hand back with its status — a reviewer, with its verdict.
+Never end your turn on such a notification without that message: the
+promised second notice comes only if the background work ends, and nothing
+in the run notices when it does not. At most two such messages to one
+dispatch; a third notification without a hand-back is that task's
+`BLOCKED`, handled as subagent-driven-development says. Its cause is named
+— the dispatch will not finish in the foreground — so it is not the
+Kaiseki trigger.
 
 ## Models
 
@@ -289,7 +317,10 @@ text, these win.
 | SDD fix loop — five rounds, then the breaker | unchanged, plus the Kaiseki trigger at round 2 with an unknown cause, and again whenever an implementer returns blocked with an unknown cause at any round | root cause before more fixing |
 | `shoroku` — propose in chat, wait for the human's `Direction?`, never start without their explicit confirmation | write the proposal to a file — the report's section at a boundary, `shoroku-proposal-jisso-<short id>.md` at the close — and stop there; a dispatched recommender reads it at the close and the human checks the recommendation by exception | you do not talk to the human unless Kanri grants it, and every item reaches the human that way |
 | SDD task reviewer prompt — "Do not re-run the suite to confirm their report" | for a verification-only task, tell the reviewer to re-run the checks | the recorded output is the deliverable, so a reviewer that trusts the report verifies nothing |
+| SDD task reviewer prompt — the reviewer reads the task's own diff | for a batch whose tasks build one cross-file mechanism in sequence, tell the `task.review-quality` reviewer to read, at HEAD, the sibling files the batch's earlier tasks landed | a same-file-only review misses the drift between them: at `bg-seat-fixes` batch B that read caught the batch's two most substantive findings |
 | SDD implementer — clean up anything unexpected in the tree before starting | tell each `task.implement` dispatch to report an unrecognized modification it did not make, one line to you, instead of discarding it | a modification in the shared tree that a session or its subagent did not make is not its to discard (Rule 5); only Kanri decides whether it is stray |
+| SDD `scripts/task-brief` — a task's text runs from its `Task N` heading to the next | for the plan's last task, cut the brief at the plan's next `##` heading yourself before dispatching on it | the script stops only at another `Task N` heading, so the last task's brief sweeps in every section after it (323 lines for 87 at `bg-seat-fixes` Task 11) |
+| SDD's dispatch prompts — the implementer's, the task reviewers', and the escalation's — used as they are | add three sentences to every dispatch you send — `task.implement`, `task.escalate`, and the two task reviews: run every command in the foreground with an explicit timeout, the Bash tool's `timeout`, ten minutes at most, never as a background job, and a command that cannot finish inside that ceiling is not started but named in the hand-back for you to rule on; never end a turn while a command of your own is still running, or while "waiting" on anything; end every turn with a hand-back — an implementer's one of the four implementer statuses, a reviewer's verdict | a dispatch that ends its turn with work of its own running leaves you idle on a promise with no bound, since you hold no clock; the sentences are best effort, and "The four implementer statuses" is the bound behind them |
 
 ## The final batch
 

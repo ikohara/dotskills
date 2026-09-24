@@ -18,7 +18,7 @@ Read it first, then start.
 ## Task
 
 - Task number — <N>
-- Batch report — <.tanto/<topic>/batch-<X>-report.md>
+- Batch report — <.tanto/<topic>/batch-<key>-report.md>
 - SDD ledger — <.superpowers/sdd/<plan-basename>/progress.md>
 - WIP commit — <the subject of the commit holding the failing state>
 - Branch — <branch>

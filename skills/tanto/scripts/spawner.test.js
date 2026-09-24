@@ -41,6 +41,19 @@ if (sub === "agents") {
     state.agentsHideCount -= 1;
     save();
   }
+  // A resumed session whose process has not registered yet: the listing
+  // still shows the collected seat's stale entry -- its old name and id, no
+  // pid -- for stale.listings more listings (spec 3.2 item 2).
+  let staleShown = false;
+  sessions = sessions.map((s) => {
+    if (!s.stale) return s;
+    const { pid, stale, ...rest } = s;
+    stale.listings -= 1;
+    if (stale.listings <= 0) delete s.stale;
+    staleShown = true;
+    return { ...rest, name: stale.name, id: stale.id, state: "blocked" };
+  });
+  if (staleShown) save();
   process.stdout.write(JSON.stringify({ sessions }));
   process.exit(0);
 }
@@ -67,9 +80,16 @@ if (sub === "--resume") {
     process.stderr.write("unknown session " + argv[1] + "\\n");
     process.exit(1);
   }
+  // A collected seat's entry has no pid; with resumeStaleListings set, the
+  // listing keeps showing it that way for that many listings after the
+  // resume. The resumed process itself always registers with a pid.
+  if (!found.pid && state.resumeStaleListings > 0) {
+    found.stale = { name: found.name, id: found.id, listings: state.resumeStaleListings };
+  }
   found.name = (state.next && state.next.name) || found.name;
   found.id = (state.next && state.next.id) || found.id;
   found.state = "running";
+  found.pid = found.pid || 4322;
   delete found.hidden;
   save();
   process.stderr.write(
@@ -493,6 +513,35 @@ test("resume polls the listing until the resumed session reappears (Important 8)
   run(ws, ["run", "--root", ws.root, "--once"]);
   const got = result(ws, id);
   assert.equal(got.name, "seat-back [bbbbbb]");
+  assert.equal(seats(ws)[0].status, "running");
+  assert.equal(seats(ws)[0].goneAt, undefined);
+});
+
+test("resume waits past the stale pid-less entry of its own sessionId, for the entry with a pid (spec 3.2 item 2)", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  const spawned = seats(ws)[0];
+  // The seat is collected: its entry stays listed with no pid, and the
+  // spawner's census marks it gone.
+  const listed = JSON.parse(fs.readFileSync(ws.state, "utf8")).sessions;
+  setState(ws, {
+    sessions: listed.map((s) => {
+      const { pid, ...rest } = s;
+      return { ...rest, state: "blocked" };
+    }),
+  });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(seats(ws)[0].status, "gone");
+  // The first listing after the resume still shows the stale entry, with the
+  // old name and id; the next one shows the resumed process, with a pid.
+  setState(ws, { next: { name: "seat-back [bbbbbb]", id: "bg02" }, resumeStaleListings: 1 });
+  const { id } = request(ws, { op: "resume", sessionId: "sess-new" });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  const got = result(ws, id);
+  assert.notEqual(got.name, spawned.name);
+  assert.equal(got.name, "seat-back [bbbbbb]");
+  assert.equal(got.id, "bg02");
   assert.equal(seats(ws)[0].status, "running");
   assert.equal(seats(ws)[0].goneAt, undefined);
 });

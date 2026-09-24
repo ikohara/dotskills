@@ -357,7 +357,10 @@ function findNew(root, before) {
 function findResumed(root, sessionId) {
   for (let attempt = 0; attempt < SPAWN_POLL_TRIES; attempt++) {
     const listing = listAgents(root);
-    const found = listing.sessions.find((s) => s.sessionId === sessionId);
+    // A collected seat leaves a stale entry of its own sessionId, with no
+    // pid, which the listing shows before the resumed process registers
+    // (spec 3.1).
+    const found = listing.sessions.find((s) => s.sessionId === sessionId && s.pid);
     if (found) return found;
     sleepSync(SPAWN_POLL_MS);
   }

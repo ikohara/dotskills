@@ -145,7 +145,10 @@ reason to ask for either, and each omission cost one resume round at
   created file lands `w/lf` on this host every time (measured five of five in
   the tanto-cost run).
 
-Name those sections exactly as they are named here, and the Self-Review with
+A count the spec states — a site total, an occurrence count — is re-run by
+the plan, never copied: at `bg-seat-fixes` the spec's own "10 files" was a
+miscount of the list it itself gave, and the plan's fresh grep read 9. Name
+those sections exactly as they are named here, and the Self-Review with
 them: `frame --stage 1` finds them by their headings, and a plan's frame is
 what Kanri reads in place of the plan. End "How a batch is verified" with a
 `##` heading of its own (`## Tasks`, say) before the first `### Task`: `frame`
@@ -156,8 +159,11 @@ about 93,000 tokens into the reading Kanri's context, at `tanto-diet`.
 A plan that carries passages rather than whole files wraps each new passage
 at its destination file's column, chosen when the block is authored, and
 writes every block in the shape `scripts/passage-check.js` parses — `$TANTO`
-being the skill's own directory, as `SKILL.md` sets it — so that the
-plan is machine-checkable and not only readable:
+being the skill's own directory, as `SKILL.md` sets it — so that the plan is machine-checkable and not only readable. A
+task's `<n>` is one sequence across its four kinds: a block added late
+takes the task's highest number plus one whatever its kind, since the
+tooling keys on `(kind, id)` and flags no `<task>.<n>` reused across
+kinds:
 
 - a replacement is ``**P<task>.<n>** `<path>` — replace exactly these <N> lines``,
   the old block, then `**P<task>.<n> →**` and the new block; an insertion says
@@ -270,7 +276,7 @@ reports and prompts follow the tanto templates, and names nothing else.
 6. Dispatch the brief writer yourself, on `brief.write` —
    `subagent_type: tanto-brief-write` with its `model` — from
    `templates/review-brief.md`, naming the plan, its inputs, the output path
-   `.tanto/<topic>/review-brief-plan.md`, the template, and the chat's
+   `.tanto/<topic>/review-brief-plan.md`, the template, and the human's
    language. Run the form check of `SKILL.md`'s **The brief's form** over what
    comes back; on a failure dispatch once more, and on a second failure take
    the brief as it stands and say in `dialogue.md` what is wrong with it. You
