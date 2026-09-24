@@ -60,7 +60,7 @@ your exit.>
 ## Questions for the human
 
 <Only the four SDD stop classes and a scope or spec change belong here.
-Numbered, one line each. This is the only section written in the human's chat
+Numbered, one line each. This is the only section written in the human's
 language.>
 
 ## Next

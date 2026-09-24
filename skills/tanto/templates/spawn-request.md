@@ -26,7 +26,7 @@ field explained beside it.
   "worktree": "shoki-<topic>",
   "addDir": ["<repository root>"],
   "sessionId": "<for stop, rm, resume, ack>",
-  "message": "<for attention: one line, in the chat's language>"
+  "message": "<for attention: one line, in the human's language>"
 }
 ```
 
