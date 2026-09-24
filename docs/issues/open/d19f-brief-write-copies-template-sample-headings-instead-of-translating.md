@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-20
+updated: 2026-09-24
 ---
 
 Source: inbox 2026-09-14-brief-write-template-headings-invite-copying
@@ -49,3 +49,10 @@ named Japanese and the template says the headings are rendered. One
 re-dispatch fixed it. The earlier two instances were on one family; this one
 says the copying is not a family's quirk but a property of a template that
 ships an English original beside an instruction to translate it.
+
+**2026-09-24, `bg-seat-fixes` — the first measured pass of the second
+candidate fix** (shoroku bg-seat-fixes S-12). The spec brief (sonnet)
+rendered all eight headings in Japanese and passed the form check on its
+first dispatch, the dispatch having said "translate every heading, the `#`
+title line too, and never copy an English sample heading (a known failure of
+this step)".

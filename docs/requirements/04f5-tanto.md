@@ -110,7 +110,9 @@ artifacts.
 - **State lives in files, not in sessions.** Everything a role needs to resume
   is in the repository's workspace, so any session can be replaced or recreated
   and the run continues from disk. A message between sessions carries one line
-  and a path, nothing that would be lost with the session.
+  and a path, nothing that would be lost with the session. A file a seat has
+  acted on keeps its content: a batch that runs again is given new files, so
+  that what every seat read and wrote stays on disk.
 - **tanto's own state lives in its own directory.** Everything a role writes
   for tanto sits in one directory of tanto's own inside the workspace, apart
   from the directories of the skills tanto composes. That directory is kept
@@ -157,7 +159,9 @@ artifacts.
   batch when that batch's prompt exists, and stopped at its boundary; the one
   exception is a plan that edits the skill the seats read, whose executors are
   all started at its landing and wait, reading nothing, so that every one of
-  them read the same skill.
+  them read the same skill. A seat that has gone while it waits is resumed
+  with its whole conversation, never replaced, and its work reaches it after
+  the resume, so that nothing in the run rests on an idle seat's survival.
 - **The human reaches any seat from the editor.** A machine seat is reachable
   from the editor's integrated terminal by the CLI's own attach; the editor
   extension's session list is not a premise, because its binary and the CLI's
@@ -182,6 +186,11 @@ artifacts.
   prescribes goes through the ordinary implementation review.
 - **Small batches.** Work is delivered in batches of a few tasks, so that each
   boundary is a checkpoint for rulings and for the sessions' lifecycle.
+- **A batch never waits on a promise without a bound.** A subagent the run
+  dispatches ends its turn with its hand-back, never with work of its own
+  still running, and a notice that carries no hand-back is answered at once,
+  so that a command that hangs inside a dispatch cannot hold a batch for hours
+  with no signal.
 - **Docs are kept current as part of the flow.** Excerpting into the project's
   `docs/` happens once per topic, at its close, not as an afterthought, and the
   human confirms what lands without having to read every item cold. Every
@@ -196,10 +205,21 @@ artifacts.
   a seat learned is lost by the deferral, and no handover is held for a check.
 - **Composes without modifying.** The skills tanto composes — superpowers, the
   `kisou` document system, `shoroku`, and the like — are used as they are;
-  every override tanto needs is written into tanto's own files.
+  every override tanto needs is written into tanto's own files. The one
+  exception is a composed skill's own rule on how a setting the human made is
+  read, where that rule would otherwise overrule tanto's use of the setting:
+  it is changed in that skill on the human's explicit word, in words that name
+  no tool, and stands as that skill's own rule — as the kisou template's
+  language rule puts a configured language before the first message.
+- **The run speaks to the human in the human's language.** The language the
+  human has configured, for every repository or for one — else what the
+  repository's own language rule gives — is the language of every word a seat
+  addresses to the human: its closing line, a brief, a question, a notice. The
+  lines between sessions keep their fixed forms, and the repository's
+  documents keep the repository's language.
 - **The human reviews through a brief of the judgment points.** Before the
   human reads a spec or a plan, a third party that shares no context with the
-  author writes a brief, in the chat's language, of only the points that need
+  author writes a brief, in the human's language, of only the points that need
   the human's judgment, each with a pointer into the document. The human's
   answers to a spec brief's points are the confirmation that review asks for;
   a plan brief is written for the human to read, and its `— If unanswered:`
@@ -207,10 +227,10 @@ artifacts.
   window or by a decision file. The human reads the document where a point
   sends them. The human's own words in the spec dialogue are kept as a record,
   so that Kanri and the write-outs read them rather than a paraphrase.
-- **Escalated wording reaches the human in the chat's language too.** When
+- **Escalated wording reaches the human in the human's language too.** When
   the wording of a requirement or an ADR that Kanri escalates is in a language
-  other than the chat's, the escalation carries the original followed by a
-  reference translation in the chat's language; the original is what is
+  other than the human's, the escalation carries the original followed by a
+  reference translation in the human's language; the original is what is
   written, the translation is what the human reads it by.
 - **Claude Code only, and says so.** The skill depends on session discovery,
   cross-session messaging, and its CLI's background sessions, which no other

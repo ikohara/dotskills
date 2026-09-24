@@ -550,3 +550,15 @@ Measured on `bg-seat-ergonomics`: Task 15 struck issue-bdad's third item and
 bumped its `updated:`, while the issue's severity paragraph ("Medium because
 the exit-file collision is a real path collision that has already happened
 more than once…") still rests partly on that item.
+
+## A site under a bold paragraph lead is named by the heading and the lead
+
+A spec pinned across a moving branch names its sites by heading, not by line.
+Where the skill's text uses a bold paragraph lead as a pseudo-heading —
+**The census.** in `SKILL.md`'s "Handshake and roster" and in
+`roles/kanri.md`'s "Session lifecycle" — the heading alone does not find the
+site. Name it by the heading plus the lead's bold text, so that `grep '^#'`
+and a bold-lead grep (`grep -n '^\*\*The census\.\*\*'`) together find it.
+
+Measured on `bg-seat-fixes`: its spec review's F-13 was a site named by
+heading alone that sat under such a lead.

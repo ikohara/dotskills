@@ -630,3 +630,57 @@ grep sweep itself rather than trusting the implementer's report.
 
 A consistent, load-bearing pattern across a documentation-only stretch of a
 batch, not only across its code-bearing task.
+
+## The opening restatement caught three premise errors of one decision (2026-09-24)
+
+`roles/sekkei.md`'s rule — restate the mechanism a Kikaku decision
+presupposes before the first design question — found three premise errors in
+the `bg-seat-fixes` input decision in the Sekkei's first turn: item 1's
+overwrite reached three files rather than one; item 4's "sixty-minute
+collector" was not what other background sessions on the machine showed; and
+item 6's "`reading.js` learns the key" rested on an audit the script does not
+make. A fourth, item 2's premise of a cause unknown, fell later when its
+report arrived. The human corrected nothing of the restatement and extended
+two items from it.
+
+## A "coincides with" claim compared the wrong interval (2026-09-24)
+
+The `bg-seat-fixes` retrospective measurement's first report tied three
+exits of the 2026-09-23 sweep to a CLI version change by comparing the
+version on the records before each exit with the version on the seat's
+resume, hours later. The install time — read from
+`~/.local/share/claude/versions/` and the renamed old binary's epoch suffix —
+put the update two hours after the sweep. A "coincides with" claim needs the
+event's own time on both sides, and a brief for a measurement asks for it.
+
+## The passage check found one behavior change; the reviewer's third input found five neighbors (2026-09-24)
+
+On `bg-seat-fixes`, Kanri's passage check (P-1) answered on the spec's §1,
+§3, §5, and §6 passages and found one behavior change. The spec review then
+found five Old values and ADR amendments the draft had missed, all in
+neighboring procedure of `roles/kanri.md` the check was never shown — the
+Replace table's gone-Jisso row, "A seat's exit", the census paragraph — and
+in decisions ded8, 9a3a, and a8cc. The reviewer's third input, the files the
+change list touches with the question which sentences the design
+contradicts, is what found them: the passage check covers the passages sent,
+and the third input covers their neighbors. The same seam as "Twenty-five
+neighbor sentences contradicted a landed passage" above, one stage earlier.
+
+## Half of a skill-editing plan's Jissos read the live text (2026-09-24)
+
+`bg-seat-fixes`'s R-3 stated the plan's invariant: every Jisso is spawned at
+the landing with `queue=bg-seat-fixes`, reading nothing until its batch
+prompt reaches it, so every one reads the skill as it stood before batch A.
+It held for the `queue=`-spawned seats, whose Start read `roles/jisso.md` at
+the landing. It did not hold for the two fresh Jissos R-4 spawned directly
+with `batch=` — batch C's, after Tasks 1-7 had landed, and the fix wave's,
+after all eleven tasks and the whole-branch review: a `batch=`-spawned seat
+runs its ordinary Start whenever the spawn executes, so both read the live,
+already self-edited `roles/jisso.md`.
+
+Nothing went wrong, and the fix wave's Jisso needed the live text, since its
+fixes were checked against the post-Task-11 wording. But a future
+skill-editing plan whose correctness depends on every Jisso reading identical
+pre-batch-A text does not get that from an R-4-style fresh respawn.
+Cross-reference decision-b909 (the queue at the landing) and issue-28f2
+(whether a session adopts its own role-file text once it has landed).

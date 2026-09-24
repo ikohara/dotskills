@@ -26,3 +26,11 @@ file.
 
 A fix to this surface touches both files at once, which is why it is one
 issue to schedule rather than four sentences.
+
+**2026-09-24, `bg-seat-fixes` — a fifth case, measured** (shoroku
+bg-seat-fixes S-39). A `dead` tab-seat row whose session the editor later
+resumed under a new name — `hosa dotskills-4d [1cd021]`, `0cc8043d…`, now
+listed as `dotskills-c6` with a `pid` — prints under the census's Not held
+as `row dead`. The `renamed` rewrite applies to live rows only, and nothing
+in the contract says what Kanri does with a dead row's session that is
+answering again.

@@ -535,3 +535,32 @@ had exited) carried neither, and the listing kept it under `state: blocked`.
 This is the fact the `bg-seat-ergonomics` fix wave's `pid` filter rests on:
 an entry with no `pid` is a process that is not running, whatever its
 `state` says.
+
+## A collected seat's entry stays for hours; a seat on a question never idles (2026-09-24)
+
+Measured by the `bg-seat-fixes` design. The CLI's listing keeps a collected
+background seat's entry, with no `pid`, no `status`, and `state: blocked`,
+for hours (CLI `2.1.281`).
+
+A seat waiting on an `AskUserQuestion` is mid-turn, so a transcript's
+turn-end measure never sees it idle: `blocked` has no idle interval to
+measure.
+
+## An exit time and an install time are readable after the fact (2026-09-24)
+
+Measured by the `bg-seat-fixes` design. A background seat's exit time is its
+transcript's `cost-state` record's first `startTime` plus its
+`totalDuration`, which accumulates across resumes; the sum matched a
+recorded `stop` to within a second.
+
+The CLI's install times are readable from
+`~/.local/share/claude/versions/<version>`'s modification time and the
+renamed old binary's epoch suffix. Together the two test an "it was the
+update" hypothesis against an exit time — each event's own time, on both
+sides.
+
+## `$CLAUDE_CONFIG_DIR/projects` is a link on this machine (2026-09-24)
+
+Measured by the `bg-seat-fixes` design: on this machine
+`$CLAUDE_CONFIG_DIR/projects` is a link to `~/.claude/projects`, so one set
+of transcripts is reachable under two config directories.

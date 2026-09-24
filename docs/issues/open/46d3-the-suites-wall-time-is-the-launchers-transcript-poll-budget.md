@@ -31,3 +31,11 @@ tanto suites take 257 s wall after that plan's Tasks 1-3 land;
 `tanto.test.js`'s "a Kanri resume that fails" alone takes 11.6 s, the
 launcher's poll timeouts being the cost, with `--timeout` at `20000` in those
 tests. A batch boundary that runs the whole suite pays this every time.
+
+**2026-09-24, `bg-seat-fixes` — 304 s for 215 tests** (shoroku bg-seat-fixes
+S-42). Under `mise exec node@22` the suite took 304 s at the whole-branch
+review, 301.6 s at the fix wave's boundary, and about five minutes at batch
+A's — half the ten-minute foreground ceiling `roles/jisso.md` now sets for a
+dispatch's command, and past the Bash tool's 120 s default, which moved
+batch A's own run to the background. The figure has grown from 133 s for
+175 tests since this issue was filed.

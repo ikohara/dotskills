@@ -5,7 +5,7 @@ status: accepted
 supersedes: []
 superseded_by: null
 amends: ["8320", "ded8", "84c8"]
-amended_by: []
+amended_by: ["ebbd"]
 created: 2026-09-24
 updated: 2026-09-24
 ---

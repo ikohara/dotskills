@@ -5,9 +5,9 @@ status: accepted
 supersedes: []
 superseded_by: null
 amends: []
-amended_by: ["03f9", "eee2", "0352"]
+amended_by: ["03f9", "eee2", "0352", "692e"]
 created: 2026-09-06
-updated: 2026-09-17
+updated: 2026-09-24
 ---
 
 ## Context

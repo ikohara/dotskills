@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-20
-updated: 2026-09-22
+updated: 2026-09-24
 ---
 
 Source: shoroku tanto-diet S-20
@@ -55,3 +55,31 @@ A spec/plan-stage tenure accrues by turn count, a batch-boundary tenure by
 dispatch overhead, and a review-heavy stretch faster than either. Whether the
 ceiling model should separate them, or fit one number to the worst of the three,
 is now a question with measurements behind it rather than a guess.
+
+**2026-09-24, `bg-seat-fixes` — ten tenures in one day, each paying the
+fixed per-start cost** (shoroku bg-seat-fixes S-36). The roster shows roughly
+ten `replaced` Kanri rows within 2026-09-24 alone, several lasting one batch
+boundary, one handing over at the boundary after accepting its own handover.
+Each tenure pays the same fixed cost however little it does before handing
+over again: reading both `tanto.json` files, writing and checking fifteen
+agent definitions at two scopes, reading the full role file, and, on a
+handover, every open ledger and the handover file. The measurement that
+would decide `ceiling.kanri.batches=2`: the fixed per-tenure share of a day's
+Kanri cost against its boundary work — whether the default multiplies the
+fixed cost across more tenures than the batch cadence needs.
+
+**2026-09-24, a received report — resumes with no batch progress**
+(inbox 2026-09-24-ceiling-kanri-many-resumes-no-progress). Two measured data
+points from another repository's run, restated against this repository's
+`roles/kanri.md` Handover derivation and `scripts/reading.js --role kanri`:
+
+- A stalled batch resumed at least seven times by `/tanto fukki` across
+  roughly two days, with no batch boundary between the resumes, crossed the
+  derived ceiling (baseline + 2 × 65000) past three times over from resume
+  overhead alone — each resume pays a config re-read, a definitions
+  write-and-count pass, and a tree and roster cold-read.
+- A handover-accepting Kanri's first turn crossed the ceiling before any
+  batch: baseline 91177 + 2 × 65000 = 221177 against a first-turn context of
+  254579, since the baseline is captured from the handover-acceptance turn.
+
+The reporter proposes no fix; both are data for whoever derives `per_batch`.

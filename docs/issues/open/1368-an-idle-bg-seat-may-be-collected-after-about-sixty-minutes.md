@@ -49,3 +49,16 @@ minutes of idleness as the ceiling.
 
 Related: issue-6c44 (a queued window's own idle cost is unmeasured) — that
 one is the cost of waiting, this one is whether the seat survives it.
+
+**2026-09-24, `bg-seat-fixes` — two more data points, about 64 and about 119
+minutes** (shoroku bg-seat-fixes S-40). That plan's two queued Jissos,
+spawned at 15:11-15:12, were found `gone` by the spawner's census at 16:16
+(`4d212332…`, about 64 minutes) and 17:11 (`c0726f0d…`, about 119 minutes) —
+one at the sixty-minute mark, one well past it, in the same run, on the same
+host, with the same prompt. `goneAt` is when the spawner noticed, not the
+exit; the transcripts' `cost-state` records (the design's Measured 2) give
+the exit times. The design "bg-seat-fixes" (2026-09-24) replaced the
+sixty-minute interim rule with decision-39fb, which rests on no idle time;
+this issue stays open for the collection's condition alone, and the design's
+section 4 is the procedure a later measurement follows (shoroku
+bg-seat-fixes S-16, deferred item 1).

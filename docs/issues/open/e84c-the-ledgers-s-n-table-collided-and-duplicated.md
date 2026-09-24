@@ -54,3 +54,18 @@ prescribes, is ambiguous between two items today. Either a mechanical
 de-duplication at the close or a documented rule that a re-used number is
 disambiguated by Source; issue-d502 (no helper rewrites the ledger's columns)
 is where a mechanical fix would live.
+
+**2026-09-24, `bg-seat-fixes` — a third instance, after the `record` change,
+and a second defect of the same mechanism** (shoroku bg-seat-fixes S-6).
+`.tanto/bg-seat-ergonomics/kanri.md`'s `S-n` table holds six numbers twice
+each, with different items — S-28, S-29, S-30, S-34, S-35, and S-36: hand
+rows from a verdict and an exit proposal, and brief-written rows from a batch
+report, numbered independently — after `bg-seat-ergonomics`'s Task 3 ("S-n
+rows written to the header they find") landed. The invariant this issue
+names — refuse a number in use, derive the next from the highest — is still
+unwritten. The same table's brief-written rows (the second S-34 to S-36, and
+S-37 to S-39) carry a destination word ("notes (process)", "issues") in
+their Source cell: the batch report's Shoroku proposal items read
+`- <destination> — <item>`, and the brief passed that as
+`--s-item "<source> | <item>"`, so the one pointer a recommender follows
+names no file.

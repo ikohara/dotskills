@@ -96,3 +96,16 @@ output" that held, and a reviewer re-derived each by hand. A reviewer-facing
 `matches expectation` line for the two common shapes — empty output, and a
 list of literal numbers — would remove that class without any annotation from
 the plan author.
+
+**2026-09-24, `bg-seat-fixes` — five false `DIFFERS` on a second plan, and
+the workspace-bound half** (shoroku bg-seat-fixes S-41). The scratch tree
+holds only the plan's touched blobs, so a check that runs
+`$TANTO/scripts/boundary.js census` (it needs `.tanto/roster.md`) or
+`$TANTO/scripts/passage-check.js diff` (it needs the script itself, when the
+plan's passages do not touch it) fails with a file-not-found, and a check
+whose expectation describes the pre-edit state (`0` before Task 11's edit)
+is compared against the applied state (`2`). Either a `replay-skip:`
+convention for workspace-bound checks, or the replay running a task's checks
+before applying that task's passages — the second being this issue's own
+per-task-interim remedy — would remove all five. issue-483c holds the
+`$TANTO` resolution half.

@@ -24,3 +24,10 @@ on its next pass.
 The fix is the same one-line `&& s.pid` guard, with a test whose fake listing
 returns a pid-less entry. The Kikaku decision `2026-09-24-bg-seat-fixes.md`
 item 3 takes it on `bg-seat-fixes` as that item's verify-only residue.
+
+**Resolved 2026-09-24 on the `bg-seat-fixes` branch** (shoroku bg-seat-fixes
+S-1). The spec review measured `findResumed` as the one reader the
+`bg-seat-ergonomics` fix wave missed, and the plan wrote the condition, per
+the design's section 3.4: `spawner.js`'s `findResumed` now reads
+`s.sessionId === sessionId && s.pid`, with its test. decision-ebbd records
+the rule for all four readers.

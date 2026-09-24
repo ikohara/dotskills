@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-09-24
 ---
 
 Source: session 2026-09-17
@@ -73,3 +73,14 @@ flow. That is this issue's question answered in the measured case — the text
 that governs is the one the orders line names — and the argument for saying so
 in the skill rather than leaving each run to re-derive it. issue-11db is the
 other-topic case; this is the same-plan one.
+
+**2026-09-24, `bg-seat-fixes` — the case reached a session's own exit
+procedure** (shoroku bg-seat-fixes S-9). Between that topic's Sekkei's start
+and its exit, `bg-seat-ergonomics` landed the shoroku vocabulary in
+`roles/sekkei.md`: the "exit proposal" became the "shoroku proposal", its
+file `exit-sekkei-proposal.md` became `shoroku-proposal-sekkei-<short id>.md`,
+and the `spec accepted:` line's second field was renamed. The seat exited by
+the landed text, because the successor Kanri form-checks against it — this
+issue's question answered by practice in one measured case, with the reason
+the seat chose the landed text. issue-11db's notices (R-8) covered the
+draft's sites, not the session's own exit.

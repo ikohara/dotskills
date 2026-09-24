@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-09-24
 ---
 
 Source: shoroku tanto-sweep-2
@@ -63,3 +63,12 @@ The notice has now run twice under Kanri rulings without incident, so the fix
 on this side is the codification of a working practice, not a new mechanism;
 the reader-side sentence proposed above is its counterpart. One gap, two
 sides, one issue.
+
+**2026-09-24, `bg-seat-fixes` — the pin at a dirty tree is not a commit**
+(shoroku bg-seat-fixes S-8). At that topic's Sekkei's start HEAD was
+`00a1ab9` while the tree held `bg-seat-ergonomics` batch C's uncommitted
+`SKILL.md` edit, which the working-tree link had already loaded into the
+session; it was committed minutes later. R-8's mitigation — pin the commit
+the session read the skill at, `git rev-parse HEAD` — names a commit the
+session did not read. A pin that records `git status --short` beside it
+would say what was read.

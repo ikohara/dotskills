@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-20
+updated: 2026-09-24
 ---
 
 Source: session 2026-09-16
@@ -88,3 +88,11 @@ evidence on the side the paragraphs above do not measure: the split's cost is
 now priced twice over, and this is the first reading of what the second
 dispatch actually buys — or, on this shape of plan, does not, since the
 convergence says the second verdict added confidence rather than a finding.
+
+**2026-09-24, `bg-seat-fixes` — a third run, clean** (shoroku bg-seat-fixes
+S-21). Batch A's three tasks ran the split as `task.review-spec` and
+`task.review-quality` dispatches, each reading the same diff, brief, and
+report package and returning only its own half's verdict: six review
+dispatches, all Approved, no disagreement between the two halves of any
+task. Every clean run is evidence for writing the split down as it is
+practiced, since the SDD template as written assumes one combined reviewer.
