@@ -1580,7 +1580,7 @@ case reads, a rework's included, and the key vocabulary already means
 session the census no longer lists." carry backticks at every span across
 the change, so P7.13's and P7.14's old blocks are their check.
 
-**O7.4** `batch-<X>-report.md` — the Batch report slot (`templates/kaiseki-brief.md` 21, O4.4's fourth site); before: 1 in `skills/tanto/templates/kaiseki-brief.md`, after: 0.
+**O7.17** `batch-<X>-report.md` — the Batch report slot (`templates/kaiseki-brief.md` 21, O4.4's fourth site); before: 1 in `skills/tanto/templates/kaiseki-brief.md`, after: 0.
 
 - [ ] **Step 1: Apply the passages**
 
@@ -2683,7 +2683,7 @@ fixed three things the drafter's own checks above could not see:** F-1 —
 `templates/kaiseki-brief.md`'s "Batch report" slot (`batch-<X>-report.md`)
 survived every sweep below untouched, which contradicted the Batches
 section's own "every O-needle … is 0" wording; Task 7 now changes it too
-(P7.16, O7.4), and O4.4 no longer carries an exception. F-2 — Task 8
+(P7.16, O7.17), and O4.4 no longer carries an exception. F-2 — Task 8
 (batch C) defined the repository's language fallback as Task 11 (then
 batch D) would leave it, a state that never held between the two batches;
 Task 11 moved into batch C, which F-3 emptied of its other occupant.
@@ -2692,9 +2692,15 @@ would have made `bg-seat-ergonomics`'s close's own `docs/` write-out
 `unaccounted-added` at every boundary after, for the fixed `diff --base
 8e37dee` check above; the task is dropped, its four resolution paragraphs
 kept as "Issues for the close", which the spec's own section 7 already
-routes correctly. `lint`, `verify --task 1` through `11`, and the two
-fixed checks (`census`, `diff --base 8e37dee`) were rerun live against the
-working tree after these edits and read clean; see
+routes correctly. `lint`, the two fixed checks (`census`, `diff --base
+8e37dee`), and `replay --base 8e37dee` were rerun live against the working
+tree after these edits and read clean — 31 residual `O` needles (30 plus
+the new O7.17), all at 0, every anchor at its stated `after:`. `verify
+--task N` is a post-apply check: run directly against the live (pristine,
+pre-landing) tree, it correctly reports `passage-absent` for every task's
+new passages, not a clean result — the drafter's own full-checkout run is
+what read `verify` clean for all its tasks (twelve at the time it ran,
+eleven of which survive this review's fixes); see
 `.tanto/bg-seat-fixes/plan-dryrun.md` for the dry run and
 `.tanto/bg-seat-fixes/plan-review.md` for the review these fixes answer.
 
