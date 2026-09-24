@@ -2,7 +2,7 @@
 id: "04f5"
 title: tanto — multi-session orchestration of one implementation plan in Claude Code
 created: 2026-09-06
-updated: 2026-09-22
+updated: 2026-09-24
 ---
 
 ## Purpose
@@ -35,6 +35,10 @@ artifacts.
   resumed by an instrument of the skill's that runs outside any Claude
   session, on a request the run writes to a file, so that no session issues a
   session-creating command and the human opens no window for a machine seat.
+  A seat the run starts carries its repository, its role, and its topic in its
+  name, and works in the shared checkout: the instrument that starts it turns
+  off, for that seat alone, the CLI's isolation of background sessions into
+  worktrees, and writes no settings file to do so.
 - **Kanri is resident, but its context cost does not grow with its tenure.**
   Kanri's role stays across plans; the session that carries it is reset so
   that the human never pays for a conductor's accumulated context beyond the
@@ -120,9 +124,15 @@ artifacts.
   untracked state directory, the project config it chooses to keep, and the
   ignored project-scope definitions — nothing else, and no script.
 - **A run is resumed with one command, and a session's identity survives its
-  renaming.** The identity is the session's id, read from the CLI; the human's
-  part after a restart is one command and, for the resident, one word in its
-  terminal.
+  renaming.** The identity is the session's own id, whichever name the session
+  goes by, for the seats the human opens as for the ones the run starts; a
+  seat whose session has gone is known to have gone without a wait or a guess.
+  The human's part after a restart is one command and, for the resident, one
+  word in its terminal; nothing is typed in the other tabs.
+- **A session another repository runs is never reported as this run's.** The
+  run speaks only of the sessions its listing places under the repository, so
+  that two repositories' runs on one machine are never mistaken for each
+  other.
 - **A seat's last words say whether the seat can be released.** Whenever a
   session ends a turn by going idle, the text it leaves in its own window
   names where its work landed and which step of the contract, if any, still
@@ -151,7 +161,9 @@ artifacts.
 - **The human reaches any seat from the editor.** A machine seat is reachable
   from the editor's integrated terminal by the CLI's own attach; the editor
   extension's session list is not a premise, because its binary and the CLI's
-  drift.
+  drift. Every way out of a seat's terminal leaves the seat running; the
+  seat's own stop command is the one way to stop it, and a resident the human
+  stopped that way comes back with the run's one command.
 - **A session's cost is measured, not guessed.** Every role reads its own
   transcript at its boundaries, the roster keeps the readings of the current
   run, and the archive keeps them across runs. The reading includes the turn's
@@ -173,8 +185,8 @@ artifacts.
 - **Docs are kept current as part of the flow.** Excerpting into the project's
   `docs/` happens once per topic, at its close, not as an afterthought, and the
   human confirms what lands without having to read every item cold. Every
-  planned exit of a session, in any role, carries its own shoroku before the
-  human closes it, so that nothing a session learned is lost with it. An exit
+  planned exit of a session, in any role, writes its shoroku proposal before
+  the seat is released, so that nothing a session learned is lost with it. An exit
   forced by a failure is the exception, and the record says what was lost. The
   write-out leaves the critical path: the product's fixes land before the
   merge, the records after it, and the records are verified at their landing.

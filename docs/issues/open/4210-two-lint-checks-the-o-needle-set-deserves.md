@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-22
+updated: 2026-09-24
 ---
 
 Source: session 2026-09-13
@@ -57,3 +57,21 @@ loop in the plan already include `--`? It catches the class before any needle
 triggers it, where the other two rules measure the needles themselves. The
 authoring-side convention is recorded in
 `docs/notes/authoring-a-passage-plan.md`, "Needles".
+
+**2026-09-24, a received report — two more gaps in what the needle set
+catches** (inbox bug-report-plan-drafting-passage-check-guidance, its items
+4-5).
+
+- **The eye-check is literal-identifier-only and catches no prose.** A rename
+  swept every identifier clean but left six source comments still describing
+  the old mechanism by name. A case-insensitive prose needle per touched
+  source file, with an expected residual count, would have caught what the
+  identifier needle could not; the report proposes it as a documented
+  convention for a rename-shaped plan.
+- **An `O` eye-check's expected count has no "report it, let the boundary
+  rule" affordance.** One eye-check said "expect 0"; the implementation
+  legitimately kept four historical references with forward pointers, backed
+  by review. A `P` / `W` block's formatter-reformat clause already lets a
+  documented deviation be reported and ruled at the boundary; an `O`
+  eye-check has no equivalent, so a better-informed choice made mid-execution
+  reads as a silent contradiction. Related to issue-d0f4's survivor form.

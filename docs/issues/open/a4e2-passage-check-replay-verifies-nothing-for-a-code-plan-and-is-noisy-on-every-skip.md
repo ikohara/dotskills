@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-20
+updated: 2026-09-24
 ---
 
 Source: inbox 2026-09-14-replay-vacuous-for-code-plans
@@ -71,3 +71,13 @@ Expected, K residual hits` — would let a boundary or a review read the result
 at a glance, as `boundary.js check` already does with its `check:` line. Lands
 here rather than as a text correction because it is a code change of several
 lines, in the same output path as the skip noise above.
+
+**2026-09-24, a received report — a clean run prints nothing to read**
+(inbox bug-report-dispatch-mechanics-isolation-tanto-var-replay-silence, its
+item 3). On a plan whose `P` blocks and `A` anchors all pass, `replay` prints
+nothing but the `O` sweep. A reviewer told to "read every `P` block's
+presence, every `A` value" has no line to read, and the silence that means a
+pass is easy to misread as "the tool produced no output". One summary line,
+`replay: N passages, M anchors clean`, would make a clean run legible to a
+reader who did not write the tool — the same headline the paragraph above
+asks for, from the passing side.

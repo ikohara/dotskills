@@ -901,11 +901,11 @@ grep -n 'argument-hint' skills/tanto/SKILL.md
 ```
 
 Expected: one line, whose value reads
-`kanri | sekkei | keikaku | jisso | kaiseki | kikaku | hosa | fukki | resume`
-— nine arguments, every one the contract accepts, the alias included
-(issue-260c). The line is unique in the file, so reading it settles both
-halves at once: the nine-argument value is there, and the four-role value it
-replaced is not.
+`kanri | sekkei | keikaku | jisso | kaiseki | kikaku | hosa | fukki`
+— eight arguments, every one the contract accepts; `fukki` is the resume
+word, and `resume` is not an argument (issue-260c). The line is unique in the
+file, so reading it settles both halves at once: the eight-argument value is
+there, and the four-role value it replaced is not.
 
 The one wording invariant that must be **present**:
 
@@ -1345,11 +1345,14 @@ grep -c 'subagent_type: tanto-shoroku-apply' skills/tanto/roles/kanri.md
 grep -cE 'tanto-shoroku([^-.]|$)' skills/tanto/SKILL.md skills/tanto/roles/kanri.md
 grep -cF 'close: propose; write it to .tanto/<topic>/shoroku-proposal-jisso-<short id>.md' skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/jisso.md
 grep -cE '\bt[01]\b|\bT[01]\b' skills/tanto/SKILL.md skills/tanto/README.md skills/tanto/roles/*.md skills/tanto/templates/*.md skills/shoroku/SKILL.md
+grep -c 'subagent_type: tanto-shoroku-apply' skills/tanto/templates/shoki-brief.md
 ```
 
-Expected: at least `1` from the first and at least `2` from the second —
+Expected: at least `1` from the first and at least `1` from the second —
 `SKILL.md` names the kinds, not the `subagent_type` spellings, and is not in
-those two. `0` from the third, on both files: the `.` is excluded so that the
+those two; `roles/kanri.md` keeps only its apply-mode mention, since
+bg-seat-ergonomics's Task 9 moved the close's apply dispatch into shoki's
+brief (decision-880d), and at least `1` from the sixth pins it there. `0` from the third, on both files: the `.` is excluded so that the
 contract's `tanto-shoroku.md` removal sentence is not a hit, while
 `subagent_type: tanto-shoroku` followed by a space or a period-and-space is.
 `1` from the fourth in each of the three files, which pins the `close:` line's

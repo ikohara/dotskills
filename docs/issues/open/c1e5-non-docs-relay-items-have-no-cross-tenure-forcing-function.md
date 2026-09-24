@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-09-24
 ---
 
 Source: inbox 2026-09-17-non-docs-relay-items-have-no-cross-tenure-forcing-function
@@ -38,3 +38,14 @@ by name.
 
 Reported by `kuchidome-eb [e0615a]` from `C:\Users\0000105523\devel\kuchidome`,
 2026-09-17.
+
+**2026-09-24, a received report — a second, independent occurrence of a
+claimed write** (inbox
+bug-report-second-occurrence-claimed-write-not-cross-checked). In a second
+ledger, a roster Events line claimed a ruling was "recorded in" the topic's
+ledger at the boundary where it was decided, but the row was never written.
+A later Kanri tenure caught it by chance while processing an unrelated Kikaku
+decision, not by any cross-check at write time. It is the same class this
+issue names: a claimed write with nothing that checks it against the file it
+claims to have written. Both occurrences cost only a delayed write; the value
+is the corroborating second data point that the gap recurs.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-20
+updated: 2026-09-24
 ---
 
 Source: inbox 2026-09-17-keikaku-dry-run-and-review-brief-guidance
@@ -62,3 +62,21 @@ rediscover:
 Reported by Hosa `kuchidome-6b [d17de0]` from `C:\Users\0000105523\devel\kuchidome`,
 2026-09-15 (delayed in transit — original addressee no longer live; relayed
 by this repository's own Kanri 2026-09-17).
+
+**2026-09-24, a received report — three more drafting heuristics** (inbox
+bug-report-plan-drafting-passage-check-guidance, its items 1-3):
+
+1. **Anchor a passage on the smallest byte-stable statement pair, not on a
+   comment.** A passage failed twice while anchored on a comment plus the
+   line under it, and survived once anchored on the two statements that
+   stayed identical across three tips. For a passage into a file another
+   topic is still working on: quote the statement pair the edit actually
+   wraps, and put the explanation in the new text, not in the anchor.
+2. **A renumber needs a prose grep, not just `replay`.** A stale number lived
+   in two places, a mechanism paragraph and a step; `replay` and `lint` see
+   only fenced blocks and `A` commands. After any re-anchor that changes a
+   literal, `grep -n '<old literal>' <plan>` over the whole file would have
+   caught it.
+3. **Step text drifts when blocks are split.** An off-by-one came from
+   splitting one `P` block into two without updating the step that names
+   them; the same grep applies after any block renumbering.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-09-24
 ---
 
 Source: session 2026-09-14
@@ -155,3 +155,20 @@ closed; it is recorded because it is the third of the same failure class, and
 because the drift survived a plan that edited the very row it sits in. The
 measured figures paragraph above already predicted this exact value (`the human
 by grant` 3 to 4).
+
+**2026-09-24, `bg-seat-ergonomics` — two more stale checks, and the two
+mechanisms behind them** (shoroku bg-seat-ergonomics S-4, S-21).
+
+- **A superseding ADR does not sweep the checks that pinned the superseded
+  mechanism.** Check 24's `close:` grep read `0` against its expected `1`
+  from `tanto-bg-seats`'s landing until that plan's Task 7 rewrote it, because
+  decision-26fd superseded decision-a1ae and nothing visited the check that
+  pinned a1ae's `close:` line. The check itself is corrected; the missing step
+  — a supersession that visits the checks pinning the old mechanism — is not.
+- **A `grep -cF` line check goes stale the moment prose rewraps.** Check 6's
+  `spec accepted:` form has read `0` against `1` since `seat-lineage` because
+  `SKILL.md` wrapped the line (that plan's P7.13 records the cause). The
+  note's preamble already tells a reviewer to count with wraps folded; the
+  check author's side is missing. A pinned string that must stay on one line
+  should say so, or the check should fold wraps as check 7 already does with
+  `tr` for one of its checks.

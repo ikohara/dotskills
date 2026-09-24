@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-09-24
 ---
 
 Source: shoroku bug-report-hold S-5
@@ -34,3 +34,11 @@ visible at a boundary. Alongside issue-c1e5 (non-docs relay items have no
 cross-tenure forcing function) and issue-274f (a decision touching a mechanism
 in flight does not name the block that lands it) — the same family, from three
 directions.
+
+**2026-09-24, `bg-seat-ergonomics` — a decision addressed to a later topic
+has no check that the topic took it** (shoroku bg-seat-ergonomics S-8). The
+same gap one step removed: a Kikaku decision that places an item on a later
+topic has nothing that confirms the topic took it. Two instances, neither of
+which landed: the 2026-09-16 term change was placed on `seat-lineage`, and
+issue-e3e4 on `tanto-diet`. Both surfaced only when the bg-seat-ergonomics
+spec dialogue read the decisions again.

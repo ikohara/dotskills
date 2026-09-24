@@ -410,6 +410,11 @@ Leaving a visit is therefore not an exit, and a design that spawns a seat and
 has the human drop in on it needs no separate "how do I leave without killing
 it" mechanism.
 
+The help names `←` and `Ctrl+Z` only, but more ways out leave a seat running:
+the bg-seat-ergonomics design measured on 2026-09-23 (its Measured 5) that
+`/exit` and `Ctrl+C` twice in an attached seat also leave it running. And
+`claude stop`'s own help says `claude attach <id>` reopens a stopped session.
+
 `claude agents` without `--json` requires a TTY. A session's own Bash tool
 gets the refusal text instead of the listing, so the TUI view is the human's
 alone; anything a session reads about the seats it shares a machine with comes
@@ -452,3 +457,81 @@ had to be read through the plain Bash tool instead.
 The consequence for a dispatcher: a `branch.review` brief that names the
 ledger should also say which tool reads it, or the seat spends a round
 discovering the refusal.
+
+A second reading on 2026-09-24, by the `bg-seat-ergonomics` plan review: the
+sandbox (`ctx_execute`, `ctx_execute_file`) was denied the repository's own
+files on this host, with the same localized access-denied error, and the
+review ran its analysis through Bash and Node scripts written under `%TEMP%`
+instead. A subagent told to use the sandbox should be told that fallback too.
+
+## A session-issued `claude --bg` through `spawnSync` was not refused (2026-09-23)
+
+A tab-seat Sekkei ran `claude --bg`, `claude stop`, and `claude rm` through
+`spawnSync` with an argument array from its own Bash, with the human's word
+(the bg-seat-ergonomics dialogue's D-1), and no classifier refused any of
+them. decision-1ea3's context records the auto-mode classifier refusing a
+session-issued `claude --bg`. Whether the difference is the seat's mode, the
+argument-array form, or the CLI version is unmeasured; a session that plans a
+measurement task around either behavior should measure it first.
+
+## `--permission-mode auto` on a haiku `--bg` seat runs as `default` (2026-09-23)
+
+Measured by the bg-seat-ergonomics design (its Measured 4): a haiku seat
+started with `--permission-mode auto` runs as `default`, with the CLI's "auto
+mode unavailable for this model". A real-CLI measurement that needs auto mode
+runs on sonnet.
+
+## A session that enters a worktree moves its transcript (2026-09-23)
+
+Measured by the bg-seat-ergonomics design (its Measured 4): a session that
+enters a worktree moves its transcript to the worktree path's project
+directory. A roster's Transcript column can therefore go stale mid-session in
+its full path while its basename — the `sessionId` — holds.
+
+## The CLI binary is a readable instrument for what its documentation leaves out (2026-09-23)
+
+`grep -a -o -E '.{0,200}<term>.{0,300}'` over the native binary
+(`~/.local/bin/claude`, 237 MB) returned, for the bg-seat-ergonomics design,
+six facts no document states: the `worktree.bgIsolation` schema and
+description, the isolation guard's own message, the name-source rule behind
+the auto-title, the job environment's whitelist, the respawn flag allowlist,
+and the "auto mode unavailable for this model" refusal.
+
+It reads minified code, so a finding from it is a lead to measure, not a
+fact: that design measured four of the six before relying on them.
+
+## `claude agents --json`'s `id` is not `ListAgents`'s `[ref]` (2026-09-23)
+
+The two session listings carry different identifiers. `claude agents
+--json`'s `id` is the CLI's own 8-hex short id; `ListAgents` prints the
+harness's `[ref]`. Neither listing carries both the `sessionId` and the
+`[ref]`, so a join between them is by the session's current `name`, taken
+from both at the same moment.
+
+Measured in the `bg-seat-ergonomics` run: a Kanri matched five
+simultaneously spawned Jisso `sessionId`s to their roster rows this way. For
+the spawn result whose `sessionId` began `c55f0a8d`, `claude agents --json`
+gave the name `bg-seat-ergonomics bash invocation`, and the immediately
+following `ListAgents` call showed a row of that exact name carrying
+`[e92e99]`. The two calls had to be close enough in time that the name had
+not auto-titled again in between. A seat the spawner names at its spawn
+(decision-7c87) keeps its name, which makes the join stable.
+
+## A ruling-needed report can reach the human as a structured question (2026-09-24)
+
+Observed once in the `bg-seat-ergonomics` run: a Kanri's rule-11
+ruling-needed report and its Sekkei-timing ask reached the human through the
+harness's structured multi-choice question tool (`AskUserQuestion`) rather
+than as a plain chat line. The substitution is the harness's; a reader of the
+transcript should expect it, not score it as a protocol deviation.
+
+## Every living `claude agents --json` entry carries `pid` and `status` (2026-09-24)
+
+Measured in this repository's live listing, over ten entries: every living
+entry of `claude agents --json`, interactive or background, carries `pid` and
+`status`. The one stale entry (`5847650f`, a background seat whose process
+had exited) carried neither, and the listing kept it under `state: blocked`.
+
+This is the fact the `bg-seat-ergonomics` fix wave's `pid` filter rests on:
+an entry with no `pid` is a process that is not running, whatever its
+`state` says.

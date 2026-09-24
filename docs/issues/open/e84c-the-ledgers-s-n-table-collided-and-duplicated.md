@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-22
-updated: 2026-09-22
+updated: 2026-09-24
 ---
 
 Source: shoroku tanto-bg-seats S-79
@@ -41,3 +41,16 @@ Related: issue-57b4 (shoroku proposal numbering does not preserve ledger `S-n`
 numbers), issue-a8c2 (`shoroku.recommend` misses a batch report's own uncopied
 candidates), issue-db7f (the same instrument's event dedup, keyed on text
 alone).
+
+**2026-09-24, `bg-seat-ergonomics` — the second ledger to collide** (shoroku
+bg-seat-ergonomics S-65). That ledger assigned two spans of numbers twice:
+S-28/S-29/S-30, once for `batch-A-verdict.md`'s Failures and again for
+`batch-A-report.md`'s own items, and S-34/S-35/S-36, once for an earlier
+Kanri's exit-proposal items and again for the rework batch's findings. The
+close's recommendation resolved both by disambiguating with each row's
+Source, and no row's content was lost — but a bare cross-ledger reference of
+the form `bg-seat-ergonomics S-30`, the form `SKILL.md`'s Artifacts table
+prescribes, is ambiguous between two items today. Either a mechanical
+de-duplication at the close or a documented rule that a re-used number is
+disambiguated by Source; issue-d502 (no helper rewrites the ledger's columns)
+is where a mechanical fix would live.

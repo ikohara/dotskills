@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-22
+updated: 2026-09-24
 ---
 
 Source: shoroku shoroku-at-close
@@ -88,3 +88,11 @@ names. Rejected alternative, with its reason: tightening the comparison inside
 `before:` / `after:` — so that `replay` knows which sweeps it should expect to
 read zero. That puts the knowledge where it exists: the author knows which side
 of the edit a sweep belongs to; the instrument cannot infer it.
+
+**2026-09-24, `bg-seat-ergonomics` — four of seven, and a shape for the
+common cases** (shoroku bg-seat-ergonomics S-56). Four of that plan's seven
+`DIFFERS` were expectations written as a sentence ("`13`, then `1`") or as "no
+output" that held, and a reviewer re-derived each by hand. A reviewer-facing
+`matches expectation` line for the two common shapes — empty output, and a
+list of literal numbers — would remove that class without any annotation from
+the plan author.

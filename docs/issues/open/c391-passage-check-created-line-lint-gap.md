@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-20
+updated: 2026-09-24
 ---
 
 Source: inbox 2026-09-14-passage-check-created-line-lint-gap
@@ -40,3 +40,12 @@ or wrapped in backticks) instead of bare. `lint` prints no warning about
 the malformed `created:` lines; the miss only surfaces at `diff` time
 against a real boundary, when every new-file line is flagged
 unaccounted-added.
+
+**2026-09-23, `bg-seat-ergonomics` — the sibling gap: the parser is not
+fence-aware** (shoroku bg-seat-ergonomics S-16). The same `CREATED_RE`
+reader has a second defect in `diff`: it reads `created:` lines inside a `W`
+block too. With that plan's W2.10 in place, `diff` printed "1 path exempt as
+created: 2026-09-23" — the frontmatter line of the issue file the block
+writes, read as a created-path exemption. Harmless there, but any frontmatter
+`created:` inside a `W` block leaks into the exemption list, and a path
+spelled like a date would be silently exempt.

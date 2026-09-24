@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-19
+updated: 2026-09-24
 ---
 
 Source: shoroku tanto-sweep
@@ -211,3 +211,23 @@ boundary's exit-shoroku commits accumulate in the flagged set. Two readings of
 one growing set per boundary is the cost trend for the path-scope fix this issue
 proposes; the cheaper interim is trusting a Jisso report's own reconciliation
 more directly at a late boundary rather than fully re-deriving it.
+
+**2026-09-24, `bg-seat-ergonomics` — an unlanded spec commit as the base, and
+a verdict that mislabeled its command** (shoroku bg-seat-ergonomics S-26,
+S-45). `diff --base main` is the wrong default for a branch that already
+carries an accepted-but-unlanded spec commit ahead of `main`: it reported the
+whole spec file `unaccounted-added` at every boundary, since `main` never
+moves and the spec was never one of the plan's tasks, until the spec's own
+accepted commit was used as `--base`. The fix is easy once suspected and easy
+to miss otherwise, and `roles/keikaku.md`'s guidance on "How a batch is
+verified" does not name it. The same base problem then showed from inside a
+dispatched verdict: at batch C, a `boundary.verify` verdict's boundary
+triple ran `diff --base 2d396cd` and reported only
+`skills/tanto/templates/spawn-request.md`, while a second block labeled "the
+same … run in full, un-summarized" also listed the whole spec file — exactly
+what a `diff` with the default merge base prints. Kanri's two direct runs
+against the live tree reproduced only the `spawn-request.md` result, and
+`git diff --stat 2d396cd HEAD -- <the spec file>` is empty. The likely cause
+is the subagent's second run silently using the default base while printing
+the `--base 2d396cd` label; not reproduced, but real enough in the verdict to
+need a cause before such a block is trusted unread.

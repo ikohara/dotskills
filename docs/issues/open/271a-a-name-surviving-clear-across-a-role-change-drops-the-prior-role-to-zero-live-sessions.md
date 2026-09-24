@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-09-24
 ---
 
 Source: session 2026-09-17
@@ -39,3 +39,16 @@ row for the role being started, and report a match to the human as a
 collision rather than leave it to be spotted by eye.
 
 Related: issue-894d, issue-c820.
+
+**2026-09-24, a received report — the same reuse seen from the other side**
+(inbox bug-report-roster-progress-order-resumed-role-exit-shoroku-gaps, its
+item 2). A Kikaku handshake arrived from the exact name and ref of a
+just-replaced Kanri session, with a different transcript path — most likely
+the human running `/clear` and then `/tanto kikaku` in that window, the
+harness reusing the name and ref. The Handshake section's "no live roster row
+for that role" check resolved it correctly by treating the transcript path as
+authoritative, but the Resuming section covers a name or ref changing for the
+*same* role and transcript, and nothing states that a name and ref recurring
+for a *different* role is not evidence of role continuity. The report's
+proposed line: name-and-ref reuse is not evidence of role continuity; only
+the transcript path is — under decision-cdc4, the `sessionId`.

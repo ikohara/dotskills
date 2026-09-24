@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-19
+updated: 2026-09-24
 ---
 
 Source: shoroku seat-lineage
@@ -35,3 +35,10 @@ issue-e047 (`skills/tanto/templates/` is unlinted) are the neighbouring
 lint-scope gaps; neither covers the editor-side config under `.tanto/`.
 
 A documentation-accuracy gap, not a user-stated need, so no paired requirement.
+
+**2026-09-23, `bg-seat-ergonomics` — a second instance** (shoroku
+bg-seat-ergonomics S-14). The editor showed `MD033/no-inline-html` for
+`.tanto/bg-seat-ergonomics/dialogue.md`, although
+`.tanto/.markdownlint-cli2.yaml` holds `config:` / `default: false` — the file
+issue-6aa8's fix placed to keep the editor quiet under `.tanto/`. Cause not
+looked into.

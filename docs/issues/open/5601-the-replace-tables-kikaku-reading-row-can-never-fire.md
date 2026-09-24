@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-19
+updated: 2026-09-24
 ---
 
 Source: shoroku seat-lineage
@@ -31,3 +31,11 @@ Related: issue-a1a7 and issue-8312 concern other rows of the same table and do
 not cover this one.
 
 A runtime-text defect, not a user-stated need, so no paired requirement.
+
+**2026-09-24, `bg-seat-ergonomics` — the case that did happen** (shoroku
+bg-seat-ergonomics S-36, from the first exit-kanri proposal). A Kikaku
+vanished outright — no reading, no compaction, absent from `ListAgents` — and
+was handled by analogy, not by a documented rule. Under that plan's census,
+such a row is marked `dead` (decision-cdc4), so the row's one case is the
+wrong one twice over: it names a signal that cannot arrive and omits the
+"gone outright" case the census now decides.

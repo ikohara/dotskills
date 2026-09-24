@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-22
-updated: 2026-09-22
+updated: 2026-09-24
 ---
 
 Source: shoroku tanto-bg-seats S-64
@@ -24,3 +24,10 @@ Either of two remedies brings the suite under 20 seconds: a
 try. The second keeps the production constants untouched and exercises the real
 poll path, which is the reason it is worth weighing against the seam rather than
 taking the seam by default.
+
+**2026-09-24, `bg-seat-ergonomics` — the cost after that plan's tests**
+(shoroku bg-seat-ergonomics S-18). Measured on Windows 11, Node 22: the three
+tanto suites take 257 s wall after that plan's Tasks 1-3 land;
+`tanto.test.js`'s "a Kanri resume that fails" alone takes 11.6 s, the
+launcher's poll timeouts being the cost, with `--timeout` at `20000` in those
+tests. A batch boundary that runs the whole suite pays this every time.

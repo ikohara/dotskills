@@ -153,6 +153,22 @@ decision weighs `plan.review`'s sampling depth against its cost, beside
 `roles/keikaku.md`'s existing instruction that it "spot-checks a few of its
 commands rather than re-running the set."
 
+## The cold read is the one layer that reads a plan as prose (2026-09-23)
+
+In the `bg-seat-ergonomics` plan stage, Kanri's `plan.coldread` caught a
+contradiction in Keikaku's own added Global Constraints prose: a claim that
+Task 6 and the `SKILL.md` tasks land in "the same batch", where the plan's own
+batch cut puts them one batch apart. Neither Keikaku's dry run (`lint`,
+`replay`, `frame`, `boundary`, which check passages and headings against each
+other, not narrative claims about batch scheduling) nor the dispatched
+`plan.review`'s independent re-run of the same checks surfaced it.
+
+Both of those are re-execution checks. A prose inconsistency about which batch
+a task lands in is not checked against the Batches table by any tool today;
+the cold read is the one layer that reads the plan as prose rather than
+re-running it, and it is what caught this one. Beside the sampling entry
+above, for the same review-depth decision.
+
 ## The ceiling-crossed handover deferred once, then fired (2026-09-19)
 
 The handover signal deferred once on an `absent` presence verdict (the known
@@ -344,6 +360,13 @@ other's output.
   that `SKILL.md`'s own copy of the same fact had been left stale. "Does every
   site agree with every other site" is a distinct check from "is each site
   individually correct".
+
+One more from `bg-seat-ergonomics` (2026-09-24): Task 3's `task.review-quality`
+reviewer independently re-derived the "malformed listing read as empty"
+failure mode of `boundary.js census` that the plan review had already found
+and accepted as a known gap (issue-5e5b) — two readers, at two stages,
+catching the same thing, which is the pipeline's redundancy working as
+intended rather than wasted effort.
 
 issue-cb19 is the standing question these feed: the two-dispatch reviewer
 split is an inference rather than an instruction.

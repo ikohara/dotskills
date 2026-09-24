@@ -394,6 +394,12 @@ catch.
   multi-hit replacement is the failure the script cannot report afterwards.
 - **Count the file's level-two headings after a batch of edits.** The
   duplication above was caught by that count and by nothing else; lint passed.
+- **Match fence lengths when scripting over a plan by hand.** A block whose own
+  content is fenced sits in a four-backtick fence, and a script that ends a
+  fence at the first three-backtick line reads the wrong block. Measured on
+  `bg-seat-ergonomics` (P13.23): a reviewer's first pass reported
+  `roles/keikaku.md` line 311 as unrenamed — a false survivor — until it
+  matched fence lengths. `passage-check.js`'s `readFence` already does.
 
 The same call applies a plan's `W` and `P` blocks, so this is the drafting side
 of an instrument gap, not a one-off scripting accident.
@@ -519,3 +525,28 @@ branch — none of which the real CLI does. The divergence passed seven batches,
 and reached the roster, because the per-task reviewers read the fake against
 the spawner and never against the verification reports. Nothing in the plan
 paired the two.
+
+## Global Constraints name the one trailer a commit must carry
+
+A plan's Global Constraints name the one literal trailer every commit must
+carry, and say nothing that reads as a second one. The harness's own
+attribution line is not a second requirement, and a sentence that mentions
+both reads, on a fast pass, as if both must coexist.
+
+Measured on `bg-seat-ergonomics`: its Global Constraints said every commit
+ends with the plan's trailer and that "the harness supplies each session's own
+attribution line". A Jisso's Task 8 dispatch over-read it as two required
+trailers and made one avoidable empty commit before the reading was corrected
+at Task 9; the binding requirement was only the plan's own trailer.
+
+## A task that strikes one item of a multi-item issue reads the rest of it
+
+A task that strikes one item of a multi-item issue reads the issue's severity
+and closing prose for a dependency on the struck item, not only the item's own
+text. A paragraph outside the task's blocks can rest on the item the task
+resolves and go quietly stale.
+
+Measured on `bg-seat-ergonomics`: Task 15 struck issue-bdad's third item and
+bumped its `updated:`, while the issue's severity paragraph ("Medium because
+the exit-file collision is a real path collision that has already happened
+more than once…") still rests partly on that item.
