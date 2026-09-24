@@ -119,9 +119,9 @@ and says so. Whether a repository commits its own file is that repository's
 decision: the skill only reads it, requires it tracked no more than it ignores
 it, and ships no `.local` variant.
 
-Three maps, three mechanisms. Every value of the first two maps is
-`{ "model": <family>, "effort": <level> }`, or a bare string, which sets
-`model` and leaves `effort` to the layers below.
+Three maps and one scalar, each with its own mechanism. Every value of the
+first two maps is `{ "model": <family>, "effort": <level> }`, or a bare
+string, which sets `model` and leaves `effort` to the layers below.
 
 - `sessions.<role>` is **advisory**. The checks above and Kanri's handshake
   check compare against it, read at the moment of each comparison — each
@@ -165,6 +165,37 @@ Three maps, three mechanisms. Every value of the first two maps is
   line is kept for the archive, its rotation being its replacement; and
   every other role measures and sends the five figures and is replaced on
   none of them.
+- `language`, the one top-level key that is not a map, is a BCP 47 tag —
+  `"ja"`, `"en"` — overlaid across the three layers like every other key,
+  the last one winning; the built-in file sets none, the personal file is
+  where the human sets it for every repository, and a project file may
+  override it. Its mechanism is one definition, written here and nowhere
+  else: **the human's language** is the merged `language` when one is set;
+  otherwise it is what the repository's own language rule gives — a
+  language the user has configured elsewhere, such as in a user-level
+  instruction file, else the language of the human's first message in the
+  window — and English only when nothing names a language. Under such a
+  rule the key is how a tanto seat reads "the language the user has
+  configured": a user-level instruction file is read only when the key is
+  unset, so the two never compete. Every other site says "the human's
+  language" and points nowhere else. It governs the human-facing text
+  alone: every seat's closing line; the review briefs; the shoroku briefs,
+  the close's check brief and the inbox sweep's; the kessai question and
+  every line Kanri prints for the human in its own window — its start line,
+  the `R-n` notices, the released lines, the human-access steps, and the
+  idle block, its fixed labels included; an `attention` request's message;
+  the batch report's Questions for the human section; the dialogues a seat
+  holds with the human — Sekkei's spec dialogue, Keikaku's plan dialogue,
+  Kaiseki's debugging conversation, Hosa's chores, and a `human-contact:`
+  exchange; and the text of every AskUserQuestion. It does not govern the
+  tanto lines between sessions, which keep their fixed English forms;
+  anything under `docs/`, which the repository's own language rule covers;
+  the ledger, the roster, the reports, the subagent prompts, and the
+  decision files, which stay agent-facing English with the human's words
+  quoted verbatim; or the launcher's printed lines. Every role reads it at
+  start with the rest of this file, a spawned seat included — which is the
+  point: a seat with no human first message to detect from still knows the
+  language — and no script reads it.
 
 The ceilings and the threshold are the **human's operating choice**, not a
 documented quality limit. No Anthropic document names 150000 tokens as a point
@@ -200,8 +231,9 @@ below. A partial file is complete at either layer; an absent file is the case
 where every key comes from the layers below it. The `ceiling` map overlays the
 same way and at the same granularity: a personal
 `{"ceiling": {"kanri": {"batches": 1}}}` sets Kanri's batch count to 1 and
-leaves every other value of all three maps alone. A key that names no role, no
-kind and no ceiling field — an older file's, for instance — is reported in
+leaves every other value of all three maps alone; `language` overlays as
+one value. A key that is not `language` and names no role, no kind, and no
+ceiling field — an older file's, for instance — is reported in
 your start line as `unknown key <name> in <path>, ignored` —
 `subagents.shoroku`, the kind's name before it was split into
 `shoroku.recommend` and `shoroku.apply`, is one such key, and a personal file
@@ -287,8 +319,11 @@ Say once, in your start line: the two config files with their state, as
 the project file, at the granularity of a field — for instance
 `project: subagents.task.implement.effort, ceiling.kanri.batches` — which
 fields came from the personal file, and that the rest are built-in defaults,
-or `all keys built-in defaults` when both files are absent; the unknown keys,
-each named with its file; the ladder result if the check failed; and
+or `all keys built-in defaults` when both files are absent;
+`language: <tag> (<layer>)`, the layer being the file the effective value
+was read from — `personal` or `project` — or `language: — (unset)`; the
+unknown keys, each named with its file; the ladder result if the check
+failed; and
 `agents: <n> current, <m> written, <k> not visible to this session; project: <p> current, <q> written, <r> removed, <s> in effect`,
 with `<s>` the number of the fifteen names whose description in this session's
 own agent list carries the project-scope clause, and with the kinds named when
@@ -711,7 +746,7 @@ and the human runs `/tanto <role>` there as for a new session.
   row goes `stopped`. Nothing is `/clear`ed and nothing is said to the
   human.
 - **A seat's turn ends with its closing line**, in its own window and in the
-  chat's language: an identity, then two facts, and never an opinion. The
+  human's language: an identity, then two facts, and never an opinion. The
   identity is `<name> [<ref>]` — for a tab seat, the word its own last
   `ListAgents` printed for it, at the handshake or at `/tanto fukki`; for a
   terminal seat, the `name` its request's result carried, or the one
@@ -736,7 +771,7 @@ and the human runs `/tanto <role>` there as for a new session.
   absent on a turn that sends nothing. Kanri's own idle block carries the
   same identity as its first line after `---`; it needs no `sent:`, since
   Kanri's own lines are already files or `R-n` text. The form, rendered in
-  the chat's language:
+  the human's language:
 
   ```text
   <name> [<ref>] · <role>[/<topic>] · <family> — Work: <paths, or the commit subject>. Still needs this seat: <step — its site> | none.
@@ -769,7 +804,7 @@ and the human runs `/tanto <role>` there as for a new session.
   the **review brief** on `brief.write` — a subagent that reads, and writes
   exactly one file,
   `.tanto/<topic>/review-brief-spec.md` for Sekkei, or `review-brief-plan.md`
-  for Keikaku, from `templates/review-brief.md`, in the chat's language —
+  for Keikaku, from `templates/review-brief.md`, in the human's language —
   checks its form against "The brief's form" below, and writes the ledger
   event `review-ready: <document path>; brief: <brief path>` itself, through
   `boundary.js record --event` — not a message, and no wake-up of Kanri's.
@@ -830,7 +865,7 @@ stands second.
 The document's author checks the brief's form, not the document: eight
 headings — the title, the how-to-answer section, the five numbered sections,
 and the unsettled section — present and in that order, the headings
-themselves in the chat's language (for a spec, section 5's body is the one
+themselves in the human's language (for a spec, section 5's body is the one
 line the template gives, rendered); every point opening with one of the four
 tags — confirm, choose, decide, nothing — and every unsettled line opening with one of them too and
 saying whether an answer is needed, and a decide line among them carrying the
@@ -931,7 +966,7 @@ other moment runs only the first:
    `relay — <topic>`, or `dismissed — <one line>`; a `fix` item carries the
    file, the text as it reads, and the text as it should read.
    The same dispatch names the brief path, `shoroku-brief.md` beside the
-   recommendation, the template `templates/shoroku-brief.md`, and the chat's
+   recommendation, the template `templates/shoroku-brief.md`, and the human's
    language; the recommender writes both files in one run.
    <!-- markdownlint-disable MD038 -->
 3. **Check — the close kessai.** Kanri checks the brief's form by `grep` —
@@ -1096,7 +1131,7 @@ census's "Not listed", and continues.
 | `.tanto/<topic>/kanri.md` | Kanri, or the `boundary.verify` subagent it dispatches, through `boundary.js record` | Sekkei, Keikaku, Jisso, Kaiseki, Kikaku, Hosa | the conductor ledger; it never moves |
 | `.tanto/<topic>/spec-inputs.md` (optional) | Kanri | Sekkei | scope inputs the human gave Kanri during spec work, numbered `I-n`, each with Kanri's advisory notes |
 | `.tanto/<topic>/dialogue.md` | Sekkei | Kanri, the brief writer, the close's recommender | the spec dialogue: each question Sekkei put and the human's answer, verbatim, in order |
-| `.tanto/<topic>/review-brief-spec.md`, `.tanto/<topic>/review-brief-plan.md` | the brief writer the document's author dispatches | the author, then the human; Kanri by the path in `review-ready:` | the review brief, from `templates/review-brief.md`, in the chat's language |
+| `.tanto/<topic>/review-brief-spec.md`, `.tanto/<topic>/review-brief-plan.md` | the brief writer the document's author dispatches | the author, then the human; Kanri by the path in `review-ready:` | the review brief, from `templates/review-brief.md`, in the human's language |
 | `.tanto/<topic>/plan-dryrun.md` | Keikaku | the plan reviewer, Kanri | from `lint` and `replay` — the two commands, each one's output, and Keikaku's ruling on every failure |
 | `.tanto/<topic>/coldread.md` | the `plan.coldread` subagent Kanri dispatches | Kanri, by `sections` | the cold read of the committed plan: a numbered list of open questions, or `none`; Kanri sends Keikaku one numbered message carrying all of them, or `coldread: none`, and Keikaku answers with one `coldread answered:` line |
 | `.tanto/<topic>/batch-<key>-prompt.md` — `<key>` the batch's letter, `fixwave` for the fix wave, or `<X>-rework-<n>` for a batch returned for rework, `<n>` 1 for its first rework and one more than its highest so far after that | the `boundary.verify` subagent, from `templates/batch-prompt.md`; Kanri for its two `<Kanri fills>` slots, and for a rework's own prompt at `batch-<X>-rework-<n>-prompt.md` | the seat the `spawn` request creates, or the `queued` seat under a skill-editing plan; for a rework, the Jisso of the batch it runs again; human | the prompt; sent as the one line `batch: <path>`, which the human pastes if the message did not arrive. The send freezes it: a prompt, a report, or a verdict of a batch a seat has run is never written again, and a rework's three files are new files beside the first pass's. The one file written again is the next batch's prompt, rendered at every boundary and not yet sent |
@@ -1107,13 +1142,13 @@ census's "Not listed", and continues.
 | `.tanto/<topic>/shoroku-proposal-jisso-<short id>.md` | the plan's last live Jisso | Kanri, for its form; the close's recommender, by path | the close's shoroku proposal: the `pending` rows by number and what that Jisso's own context holds that no file does, written to a file instead of printed |
 | `.tanto/<topic>/shoroku-proposal-<role>-<short id>[-<n>].md`, or `.tanto/shoroku-proposal-kanri-<short id>[-<n>].md` | the exiting session — Sekkei, Keikaku, an attached Kaiseki; Kanri at every plan close and at every handover; never Jisso, whose proposal is its report's section | Kanri, for its form; the close's recommender, by path | the session's shoroku proposal, opening with the line that says what it excludes; `-<n>` a further file by the same session, never a rewrite of one already written |
 | `.tanto/<topic>/shoroku-recommendation.md` | the `shoroku.recommend` kind Kanri dispatches at the close | Kanri, the human, the apply subagent | every proposal item once, quoted in full from the source its `pending` row names, in four groups — Recommended adopt, Recommended fix, Recommended reject, Unsure — each with its destination and its one-line reason |
-| `.tanto/<topic>/shoroku-brief.md` | the `shoroku.recommend` kind, in the same dispatch as the recommendation | Kanri, by `grep` for its form and by `sections` (its bare heading text) for the `Unsure` group; the human, verbatim | the check brief, from `templates/shoroku-brief.md`, in the chat's language: one line per item, grouped as the recommendation groups them, each pointing at the item's `###` heading |
+| `.tanto/<topic>/shoroku-brief.md` | the `shoroku.recommend` kind, in the same dispatch as the recommendation | Kanri, by `grep` for its form and by `sections` (its bare heading text) for the `Unsure` group; the human, verbatim | the check brief, from `templates/shoroku-brief.md`, in the human's language: one line per item, grouped as the recommendation groups them, each pointing at the item's `###` heading |
 | `.tanto/<topic>/shoroku-direction.md`, beside the recommendation | Kanri, from the human's answer — in its window, or a Kikaku decision file whose third section answers the recommendation | the `shoroku.apply` kind | what the human accepted, item by item; the apply never runs without it |
 | `.tanto/<topic>/compaction-<role>-<n>.md` | the compacted session | Kanri | every item a compaction summary attributes to the human, one per line, rewritten with the human's answers |
 | `.tanto/kaiseki/kaiseki-<n>.md` | a standalone Kaiseki | the human | its report, outside any run |
 | `.superpowers/sdd/<plan-basename>/progress.md` | Jisso, through the SDD skill | Kanri | the SDD ledger; Kanri reads it and never writes it; the one artifact tanto reads under `.superpowers/` |
 | `.tanto/.gitignore` holding `*`, and `.tanto/.markdownlint-cli2.yaml` holding `config:` / `default: false` | Kanri at start, a standalone Kaiseki, or a bug-report writer — whichever finds them absent first; never overwritten | git; the editor's markdownlint | keeps everything above untracked, so nothing is ever staged, and keeps the editor quiet on files the commit path never lints |
-| `$CLAUDE_CONFIG_DIR/tanto.json` | the user | every role at start, Kanri at each handshake | the personal expected-model config |
+| `$CLAUDE_CONFIG_DIR/tanto.json` | the user | every role at start, Kanri at each handshake | the personal expected-model config, and where the human sets `language` for every repository |
 | `<cwd>/.claude/tanto.json` | the repository | every role at start, Kanri at each handshake, `scripts/reading.js` | the project expected-model config, overlaid on the personal one; committed or ignored as the repository decides |
 | `~/.claude/agents/tanto-*.md`, or `$CLAUDE_CONFIG_DIR/agents/` when that variable is set | every role at its start, from the built-in and personal layers | the harness, at the next session start | one definition per kind, from `templates/agent.md`; a definition is dispatchable only from the sessions started after it was written |
 | `<cwd>/.claude/agents/tanto-*.md`, and `<cwd>/.claude/agents/.gitignore` beside them | every role at its start, for the kinds whose effort the project file changes | the harness, at the next session start; git | the project-scope definitions, from the same template with its `<scope>` clause rendered; the `.gitignore` holds `tanto-*.md` and `.gitignore`, is written once and never overwritten |
