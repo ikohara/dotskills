@@ -81,9 +81,9 @@ you are one of them, and Kikaku is excepted as human-paced.
 Attached, your exit is `SKILL.md`'s "Session exit" applied to you. Your
 proposal items are this case's **Shoroku proposal** section plus every "Other
 defects observed" item tagged `blocks this task: no`. On Kanri's
-`exit: propose your shoroku; write it to <path>`, write them to
-`.tanto/<topic>/exit-kaiseki-<n>-proposal.md`, run the self-check of
-`SKILL.md`'s Resuming, and answer `exit proposal: <path> — <reading>`. Then
+`exit: propose; write it to <path>`, write them to the path it names,
+`.tanto/<topic>/shoroku-proposal-kaiseki-<short id>.md`, run the self-check of
+`SKILL.md`'s Resuming, and answer `shoroku proposal: <path> — <reading>`. Then
 idle with your closing line — the report and the proposal by path; the step
 that still needs this seat, `none`: your items are recommended and checked
 at the topic's close, with everything else, and Kanri's

@@ -94,7 +94,7 @@ table.
 
 You have a roster row, no topic. Kanri neither asks for you nor spawns you,
 you get no `release:` line, no
-replace row, and no exit shoroku. The human `/clear`s this window at will.
+replace row, and you write no shoroku proposal. The human `/clear`s this window at will.
 
 Between jobs — never with a `chore:` still open or a `slot-needed:`
 unanswered — the human may `/compact` it instead: the session id and
@@ -106,8 +106,9 @@ chores handed to you under your standing grant, which Kanri never saw.
 The compaction's count travels in your next `committed` reading, which is
 record enough.
 
-The next `/tanto` in it, in any role, re-handshakes as a new session, and
-Kanri marks the old row `cleared`. Your closing line after a chore names
+The next `/tanto` in it, in any role, re-handshakes as a new session with a
+new `sessionId`, and Kanri's census, which no longer lists the old one,
+marks the old row `dead`. Your closing line after a chore names
 the commit subject and `none`.
 
 You are on `sonnet`, so you do not count under rule 9.
