@@ -203,10 +203,11 @@ Four steps, in this order.
    a session under this repository and gets no row: `refused`, an Events
    line, one line to the human. `transcript=unavailable` is accepted as
    before; its row carries `unavailable`, and the census leaves it alone.
-   Mark `dead` every `live` or `queued` row the census does not list —
-   except while a restart is being recovered ("Session lifecycle") — before
-   the new row is written, so that a stale row of the same role and topic
-   refuses no fresh handshake as a duplicate. Then check that no live
+   Mark `dead` every `live` row the census does not list — except while a
+   restart is being recovered ("Session lifecycle") — before the new row is
+   written, so that a stale row of the same role and topic refuses no fresh
+   handshake as a duplicate; a `queued` row the census does not list stays
+   `queued`, as "Session lifecycle" says. Then check that no live
    roster row is left for that role and topic.
 3. Write or rewrite that role's roster row.
 4. Reply with the role's standing orders as **one line carrying the variables**.
@@ -402,7 +403,7 @@ Per batch, in this order.
 
    ```text
    Run the tanto boundary brief at <skill dir>/templates/boundary-brief.md with:
-   topic=<topic> batch=<X> plan=<plan path> report=<report path>
+   topic=<topic> batch=<key> plan=<plan path> report=<report path>
    ledger=<.tanto/<topic>/kanri.md> roster=<.tanto/roster.md> base=<merge base>
    kanri-transcript=<your transcript path, from the roster's first data row>
    tanto=<skill dir>
@@ -410,11 +411,13 @@ Per batch, in this order.
    measurement=<the measurement report's path on a measurement batch, or none>
    peer readings since the last boundary, one per line, or none: <…>
    top-family dispatches since the last boundary, one per line, or none: <…>
-   Write .tanto/<topic>/batch-<X>-verdict.md in your own turn. Dispatch no agents.
+   Write .tanto/<topic>/batch-<key>-verdict.md in your own turn. Dispatch no agents.
    Reply with the verdict line only.
    ```
 
-   The last two lines are the two things the subagent cannot see and you hold
+   `<key>` is the batch's letter, or, at the boundary of a batch returned for
+   rework, the rework's own key, `<X>-rework-<n>` (step 6). The last two
+   lines are the two things the subagent cannot see and you hold
    as text. The readings are the ones peers' last lines carried since the
    previous boundary, one `<role> <name> [<ref>] <reading>` per line. The
    dispatches are every one since the previous boundary whose kind
@@ -495,7 +498,8 @@ Per batch, in this order.
    row `stopped`; no `release:` line goes to it and nothing is `/clear`ed,
    and its conversation is kept on the same terms as `.tanto/<topic>/` — it
    is never `rm`ed — a batch returned for rework
-   is not accepted, and its Jisso stays live for the rework prompt, and the
+   is not accepted, and its Jisso stays live for the rework prompt — a file
+   of its own, which step 6 writes — and the
    Jisso whose boundary is the plan's last waits — the last implementation
    batch's while the review is pending, and the fix wave's — see
    "The final batch", steps 2 and 3; if a
@@ -596,15 +600,20 @@ Per batch, in this order.
    `task.escalate` — each with the family `tanto.json` gives it and the
    definition name that family is dispatched with, so that the prompt still
    says them after a compaction. Then **write the `spawn` request** for the
-   next Jisso with `batch=.tanto/<topic>/batch-<X>-prompt.md`; under a
+   next Jisso with `batch=.tanto/<topic>/batch-<key>-prompt.md`; under a
    skill-editing plan's queue, send the next `queued` seat the one line
-   `batch: .tanto/<topic>/batch-<X>-prompt.md` with the `no-role` line after
-   it instead, without an idle subscription. Then the one
-   `record` call of this boundary:
+   `batch: .tanto/<topic>/batch-<key>-prompt.md` with the `no-role` line
+   after it instead, without an idle subscription. That send goes on the
+   roster as recorded, with no census first, and the seat's row goes `live`
+   before it: a send that errors, or a row the roster records `dead`, is
+   `SKILL.md`'s Resuming — the census, a `resume` request for a terminal
+   seat it does not list, a stale entry with no `pid` included, and the line
+   sent again when the result lands, to the name the result carries. Then
+   this boundary's `record` call:
 
    ```bash
    node "$TANTO/scripts/boundary.js" record --ledger <.tanto/<topic>/kanri.md> \
-     --roster <.tanto/roster.md> --batch <X> --state accepted|rework \
+     --roster <.tanto/roster.md> --batch <key> --state accepted|rework \
      --verdict "<one line>" --progress "<one line>" \
      --status "<name [ref]> cleared" --status "<name [ref]> live" \
      --s-item "<source> | <item>" \
@@ -616,11 +625,35 @@ Per batch, in this order.
    Jisso `stopped`, the Jisso you have just started `live`, a tab seat
    released at step 4 `cleared` — one `--s-item` per item of a shoroku
    proposal step 4 form-checked, and one `commit-done:` event per boundary
-   reply step 5 took. That
-   call is the whole of your table writing: at a boundary no table is edited
-   by hand. A batch returned for rework is a
-   prompt you write yourself from the same template, for the same Jisso, and
-   send the same way.
+   reply step 5 took; `<key>` is the key of the batch whose boundary this
+   is. At a boundary no table is edited by hand: that call, and for a
+   rework the second call below, are all of it.
+
+   A batch returned for rework runs again under a key of its own,
+   `<X>-rework-<n>`: `<X>` the batch's file letter — `fixwave` for the fix
+   wave — and `<n>` 1 for the batch's first rework and one more than its
+   highest so far after that, so a rework returned again is
+   `<X>-rework-2`, never a rework of a rework's key. Its files are new,
+   beside the first pass's, which are never written again (`SKILL.md`'s
+   Artifacts). Write `.tanto/<topic>/batch-<X>-rework-<n>-prompt.md`
+   yourself from the same template, for the same Jisso: its title naming
+   the rework's key and the tasks it runs again, its Report section naming
+   `.tanto/<topic>/batch-<X>-rework-<n>-report.md`, and its Previous batch
+   verdict's ruling line saying what was returned and why. Send it the one
+   line `batch: <that path>`, as any `batch:` line goes. The call above
+   writes the first pass's row `rework`, its Verdict the reason; the
+   rework's own row is a second `record` call of this boundary, beside it,
+   as the boundary brief's second call writes the next batch's `planned`
+   row:
+
+   ```bash
+   node "$TANTO/scripts/boundary.js" record --ledger <.tanto/<topic>/kanri.md> \
+     --batch <X>-rework-<n> --tasks <N-M> --state planned \
+     --prompt .tanto/<topic>/batch-<X>-rework-<n>-prompt.md
+   ```
+
+   The rework's boundary is dispatched at step 2 with the rework's key, and
+   its brief renders the next batch's prompt again, as at the first pass's.
    There is no queue to empty on an ordinary plan: the prompt exists, so the
    request for the seat that reads it goes out in the same act. Under a
    skill-editing plan's queue, a queue that has run out is a ruling for the
@@ -687,8 +720,10 @@ After the last implementation batch is accepted:
    the live Jisso one line, `<short id>` being the first eight hexadecimal
    digits of its `sessionId`, the basename of its row's Transcript column —
    `close: propose; write it to .tanto/<topic>/shoroku-proposal-jisso-<short id>.md`
-   — check the proposal's form, record its rows, and write its `stop`
-   request.
+   — sent on the roster as recorded, as loop step 6 sends a `batch:` line,
+   so that a Jisso gone while it waited through the review and the fix wave
+   is resumed first and the line sent again — check the proposal's form,
+   record its rows, and write its `stop` request.
    Then your own: write `.tanto/shoroku-proposal-kanri-<short id>.md`, the
    `<short id>` your own, from the ledger and the roster, as "A seat's exit"
    says for your own exit, and record its items as `pending` rows of this
@@ -1304,15 +1339,21 @@ it: the close's recommender quotes every item in full from that file, which
 is what the human checks. What another session pays for an exit is the
 proposal.
 
-A session that has stopped answering is past answering, and you learn it the
-way you learn of a missing batch report: the human says the window is gone,
-a send errors and the census that follows no longer lists it, a `no-role`
-comes back, the census's "Not listed" names it, or your window wakes for
-another reason and the answer has not arrived. Treat the exit as forced,
-write a roster Events line saying its shoroku proposal was not written and
-what was lost as far as you know, mark the row `cleared` on a `no-role` or
-`dead` on the census's "Not listed", and continue. The same Events line
-goes in whenever you mark a row `dead`.
+A tab seat that has stopped answering is past answering; a terminal seat
+whose transcript is on disk is not, since a resume brings it back with its
+whole conversation (`SKILL.md`'s Resuming). You learn of either the way you
+learn of a missing batch report: the human says the window is gone, a send
+errors and the census that follows no longer lists it, a `no-role` comes
+back, the census's "Not listed" names it, or your window wakes for another
+reason and the answer has not arrived. A terminal seat is marked `dead`
+with an Events line naming what showed its process gone — the stale entry,
+the send error — and saying its conversation is kept, and is resumed when
+a line is next due to it ("Session lifecycle", **The census.**); only when
+that resume fails is its exit forced ("Replace", its first row). A tab
+seat's exit, and a failed resume's, is forced: write a roster Events line
+saying its shoroku proposal was not written and what was lost as far as you
+know, mark the row `cleared` on a `no-role` or `dead` on the census's "Not
+listed", and continue.
 
 **Your own exit.** Propose from the ledger and the roster rather than from
 recollection, to `.tanto/shoroku-proposal-kanri-<short id>.md`,
@@ -1540,11 +1581,18 @@ are back after a restart; at the plan close, before the archive move; and
 before you say anything about a listed session your roster does not hold.
 What it prints decides:
 
-- **Not listed** — mark the row `dead`, with the Events line a seat whose
-  shoroku proposal was not written gets and what was lost as far as you
-  know — except while a restart is being recovered, below; a row that was
-  the live Jisso's is the Replace table's first row, the tree verified
-  first.
+- **Not listed** — a `queued` row stays `queued`: a waiting seat's absence
+  is expected, and the send of its prompt resumes it. Any other row is
+  marked `dead` — except while a restart is being recovered, below. For a
+  terminal seat whose transcript is on disk, `dead` is not final: its Events
+  line names what showed the process gone — the stale entry, its census
+  line ending `— listed without a pid (a stale entry)`, or the send error — and says
+  the conversation is kept, and when a line is next due to that seat you
+  resume it (`SKILL.md`'s Resuming) and its row goes `live` again. A tab
+  seat's Events line, and a terminal seat's whose resume fails, is the one
+  a seat whose shoroku proposal was not written gets, with what was lost as
+  far as you know. A row that was the live Jisso's is the Replace table's
+  first row, the tree verified first.
 - **Listed**, marked `renamed` — rewrite the row's Name column with the
   listed name and the `[ref]` one `ListAgents` call prints, and write
   `resumed: <old name> → <new name>`; for a terminal seat, clear the
@@ -1556,9 +1604,10 @@ What it prints decides:
   decides.
 
 A send error is a reason to run the census, not a signal of its own: its
-"Not listed" marks the row `dead`, and a send that errors to a session the
-census still lists is a message failure — the row stays, and you tell the
-human in one line. `ListAgents` lists every session on the machine and
+"Not listed" marks the row `dead`, and a terminal seat is then resumed and
+the line sent again, as loop step 6 says; a send that errors to a session
+the census still lists is a message failure — the row stays, and you tell
+the human in one line. `ListAgents` lists every session on the machine and
 shows no cwd, so say nothing about a listed session your roster does not
 hold: the census lists only the sessions under this repository, so a
 session it does not list is another repository's, and one it lists that no
@@ -1600,7 +1649,7 @@ The requests you write, and the asks you make. **Requests:**
 
 | Symptom | Action |
 | --- | --- |
-| the live Jisso is gone — the spawner's census marked it `gone`, or the spawner's guard stopped it (`strayed` in `seats.json`), the census does not list it, `SendMessage` errors, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers); mark the row `dead` with the Events line saying its shoroku proposal was not written and what was lost — or `stopped`, when the spawner's guard stopped it, its conversation kept, with an Events line naming the guard and the worktree's branch, whose commits, if any, go to the human as a ruling; write a `spawn` request with the **same** `batch=` file, its resume line rewritten to `resume batch X from task N`. Under a skill-editing plan's queue, send that line to the next `queued` seat instead, and put the lost seat to the human as a ruling, since the queue cannot be refilled early |
+| the live Jisso is gone — the spawner's census marked it `gone`, or the spawner's guard stopped it (`strayed` in `seats.json`), the census does not list it, `SendMessage` errors, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers). A seat the spawner's guard stopped is marked `stopped`, its conversation kept, with an Events line naming the guard and the worktree's branch, whose commits, if any, go to the human as a ruling, and is not resumed. Any other gone Jisso is **resumed first**: mark the row `dead` with an Events line naming what showed its process gone and saying its conversation is kept, write a `resume` request, and when the result lands send the resumed seat `resume batch X from task N`, the line `SKILL.md`'s Resuming gives a Jisso resumed after a restart, its row `live` again. Only when that resume fails — its result carries an error, or the seat's transcript is not on disk — is the seat lost: its Events line says its shoroku proposal was not written and what was lost. For a lost seat, and for a guard-stopped one, write a `spawn` request with the same `batch=` file, its resume line rewritten to `resume batch X from task N`, or, under a skill-editing plan's queue, send that line to the next `queued` seat and put the lost seat to the human as a ruling, since the queue cannot be refilled early |
 | Sekkei's reading shows a compaction | at its next commit — a verified boundary, or, with no batch in flight, when its work is ready — run "A seat's exit", then the ask; the dialogue, the drafts, and the reviews on disk are the recovery point, and the new Sekkei takes the spec inputs and `dialogue.md` as its own |
 | Keikaku's reading shows a compaction | at its next commit, as for Sekkei (decision-6dea): run "A seat's exit", then a `spawn` request with the same three keys; the spec, `dialogue.md`, and the plan draft on disk are the recovery point, and the new Keikaku takes them as its own |
 | a Kikaku's reading shows a compaction | not replaced: mark the row `cleared`, add its `/clear` as a `for you` item instead of saying it inline, and let the next `/tanto kikaku` handshake write a new row — what the session produced is already on disk or committed |
