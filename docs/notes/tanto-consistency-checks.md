@@ -583,8 +583,8 @@ grep -cF 'kanri-address:' skills/tanto/roles/sekkei.md
 grep -cF 'kanri-address:' skills/tanto/roles/jisso.md
 grep -cF 'kanri-address:' skills/tanto/roles/kaiseki.md
 grep -cF 'bug-report:' skills/tanto/SKILL.md
-grep -cF 'exit-<role>' skills/tanto/SKILL.md
-grep -cF 'exit-<role>' skills/tanto/roles/kanri.md
+grep -cF 'shoroku-proposal-<role>' skills/tanto/SKILL.md
+grep -cF 'shoroku-proposal-<role>' skills/tanto/roles/kanri.md
 grep -c '^## Residency$' skills/tanto/templates/roster.md
 grep -c '^## Shoroku proposal items$' skills/tanto/templates/roster.md
 grep -cF -- '- Kanri — ' skills/tanto/templates/batch-prompt.md
@@ -596,8 +596,8 @@ grep -cF 'human-needed:' skills/tanto/SKILL.md
 grep -cF 'the human by grant' skills/tanto/SKILL.md
 grep -cF '| Role | Topic | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Context | Batches | Plans | Noticed |' skills/tanto/templates/roster.md
 grep -cF '| Role | Topic | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Context | Batches | Plans | Noticed |' skills/tanto/templates/kanri-handover.md
-grep -cF '| S-n | Source | Item | Destination | Adopted | Stage | Written |' skills/tanto/templates/roster.md
-grep -cF '| S-n | Source | Item | Destination | Adopted | Stage | Written |' skills/tanto/templates/kanri.md
+grep -cF '| S-n | Source | Item | Destination | Adopted | Written |' skills/tanto/templates/roster.md
+grep -cF '| S-n | Source | Item | Destination | Adopted | Written |' skills/tanto/templates/kanri.md
 grep -cF 'bug-report: <absolute path>' skills/tanto/SKILL.md
 grep -cF 'bug-report: <absolute path>' skills/tanto/templates/bug-report.md
 grep -cF 'transcript=<absolute path|unavailable>' skills/tanto/SKILL.md
@@ -605,7 +605,7 @@ grep -cF 'compacted: <path>' skills/tanto/SKILL.md
 grep -cF 'compacted: <path>' skills/tanto/roles/kanri.md
 grep -cF 'confirmed: <path>' skills/tanto/SKILL.md
 grep -cF 'confirmed: <path>' skills/tanto/roles/kanri.md
-grep -cF 'cleared: <old name> → <new name>' skills/tanto/templates/roster.md
+grep -cF 'recovery: begun; recovery: windows back;' skills/tanto/templates/roster.md
 grep -cF 'decision: <path> received from <name>' skills/tanto/templates/roster.md
 ```
 
@@ -614,9 +614,10 @@ Expected, one number per line, in order: `2`, `1`, `1`, `4`, `1`, `1`, `1`,
 `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`, `1`. The eighth moved from `1`
 to `2` when `bug-report-hold` added the `.tanto/sent/` row to the Artifacts
 table, whose Readers cell names the `bug-report:` line a second time. The
-ninth is `2` because
-the seat-lineage plan rewrote "Session exit" whole and its new text names
-the `exit-<role>[-<suffix>]` pattern twice and no more. The fourth is `4` because
+ninth and the tenth are `2` and `3` because bg-seat-ergonomics named every
+proposal file `shoroku-proposal-<role>-<short id>.md`, which the contract
+spells in "The files" and in its Artifacts row, and Kanri's role file in "The
+four steps" and twice in "A seat's exit". The fourth is `4` because
 `SKILL.md` spells `kanri-address:` four times: the handshake section's
 handover form, the Resuming section's resumed form, the `<kanri-address>`
 blank's own paragraph, and the `no-role` paragraph's held-line rule, naming
@@ -626,14 +627,15 @@ and Kaiseki — carry `the human by grant`; it read `3` here from before the
 `seat-lineage` branch was cut until that topic's close corrected it on
 2026-09-18, the tree having read `4` since the 2026-09-13 commit that named
 seven roles and eight ids in `SKILL.md` (issue-9d84). The six `1`s at positions 20 to 25 pin the three
-cross-file pairs — the Residency table header, the seven-column `S-n` header,
+cross-file pairs — the Residency table header, the six-column `S-n` header,
 and the bug-report line — each copy once, so that a change to one copy shows
 up as a mismatch. The Residency header carries the Topic column because the
 roster does, and the two copies of it gain the column together or the pair
 goes loud. The five after them pin the strings the reading and the compaction
 rule route on: the handshake's `transcript=` blank in the contract, and
 `compacted:` and `confirmed:` in the contract and in Kanri's role file. The
-last two pin the roster's two new Events forms. The
+last two pin two of the roster's Events forms: the recovery window's pair,
+which bg-seat-ergonomics added, and the Kikaku decision's. The
 `--` before the
 `- Kanri` pattern is required: without it `grep` reads the leading `-` as an
 option.
@@ -642,7 +644,7 @@ The line forms the new seats and the limit rule route on, each exactly once
 in the contract:
 
 ```bash
-for s in 'decision: <path>' 'chore: <one line>' 'chore: <what> — <paths> — slot: now | at the next boundary' 'slot-needed: <what> — <paths>' 'slot: now — commit and report' 'slot: at the next boundary' 'paused: <dispatch> on <family> — resets <time>' 'continue: <dispatch> — same model' 'exit proposal: <path> — <reading>' 'spec accepted: <spec path>; exit proposal: <path> — <reading>' 'coldread answered: <pointer, one per question, or none>; exit proposal: <path> — <reading>'; do
+for s in 'decision: <path>' 'chore: <one line>' 'chore: <what> — <paths> — slot: now | at the next boundary' 'slot-needed: <what> — <paths>' 'slot: now — commit and report' 'slot: at the next boundary' 'paused: <dispatch> on <family> — resets <time>' 'continue: <dispatch> — same model' 'shoroku proposal: <path> — <reading>' 'spec accepted: <spec path>; shoroku proposal: <path> — <reading>' 'coldread answered: <pointer, one per question, or none>; shoroku proposal: <path> — <reading>'; do
   printf '%s -> %s\n' "$s" "$(grep -cF "$s" skills/tanto/SKILL.md)"
 done
 ```
@@ -651,11 +653,14 @@ Expected: eleven lines. Ten end `-> 1`; two of those ten are `chore:` forms
 and two are `slot:` forms, because each of those lines has a form the sender
 writes and a form Kanri writes, and a prefix grep cannot tell one from the
 other — the rule at the head of this check. The remaining one,
-`exit proposal: <path> — <reading>`, ends `-> 3`: that form is both the bare
-answer line a Jisso, Kaiseki, or Kanri exit sends on its own, and the tail
-of each of the two combined report lines that follow it (`spec accepted:
-...` and `coldread answered: ...`), so a count of `2` there means one of
-those two seats lost its unasked form. These are the contract's copies
+`shoroku proposal: <path> — <reading>`, ends `-> 3`: that form is both the
+bare answer line a Jisso, Kaiseki, or Kanri exit sends on its own, and the
+tail of each of the two combined report lines that follow it
+(`spec accepted: ...` and `coldread answered: ...`), so a count of `2`
+there means one of those two seats lost its unasked form. The
+`spec accepted:` form read `0` against its expected `1` from the
+seat-lineage plan until bg-seat-ergonomics, because the contract wrapped it
+across two lines; it is on one line now. These are the contract's copies
 only; a role
 file that repeats a form is pinned where that file's own rows are.
 
@@ -818,10 +823,28 @@ grep -rnE 'asks for your deletio[n]' skills/tanto/SKILL.md skills/tanto/roles sk
 grep -rnE 'your deletion follow[s]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
 grep -rnE 'Replace sympto[m]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
 grep -rnE 'Jisso replacement deferre[d]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates
+grep -rniE 'exit shorok[u]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates skills/tanto/README.md
+grep -rniE 'exit proposa[l]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates skills/tanto/README.md
+grep -rnE 'exit: propose your shorok[u]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates skills/tanto/README.md
+grep -rniE 'stage wor[d]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates skills/tanto/README.md
+grep -rnE 'Stag[e]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates skills/tanto/README.md
+grep -rnE '\bT[2]\b' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates skills/tanto/README.md
+grep -rnE 't2-(recommendation|brief|direction|revie[w])' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates skills/tanto/README.md
+grep -rnE '— t[2] —' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates skills/tanto/README.md
+grep -rnE 'shoroku-proposal[.]md' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates skills/tanto/README.md
+grep -rnE -- '-2-proposa[l]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates skills/tanto/README.md
+grep -rnE 'exit-kanri-[<]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates skills/tanto/README.md
+grep -rnE 'exit-[<]role>' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates skills/tanto/README.md
+grep -rnE 'exit-(sekkei|keikaku|kaisek[i])' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates skills/tanto/README.md
+grep -rnE 'cleared: [<]old name>' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates skills/tanto/README.md
+grep -rnE 'The five case[s]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates skills/tanto/README.md
+grep -rniE 'candidat[e]' skills/tanto/SKILL.md skills/tanto/roles skills/tanto/templates skills/tanto/README.md
 ```
 
 Expected: no output from the first thirteen, nor from the fifteenth through
-the twenty-third, which the seat-lineage plan added (each exits 1). Those
+the twenty-third, which the seat-lineage plan added, nor from the
+twenty-fourth through the thirty-ninth, which the bg-seat-ergonomics plan
+added and which sweep the skill's `README.md` as well (each exits 1). Those
 nine sweep the three places this check already sweeps rather than
 `skills/tanto/` whole, because the scripts' tests carry the retired strings
 as fixtures by design; and each is written as a regular expression with one
@@ -1068,11 +1091,15 @@ node skills/tanto/scripts/passage-check.js 2>&1 | head -n 1
 node skills/tanto/scripts/passage-check.js 2>&1 | head -n 1 | grep -oE 'lint|replay|diff|verify|sections|frame|boundary' | sort -u | wc -l
 node skills/tanto/scripts/reading.js 2>&1 | head -n 1
 node skills/tanto/scripts/reading.js 2>&1 | head -n 1 | grep -oE '\-\-role|\-\-presence|\-\-backstop|\-\-share|\-\-now|\-\-config|\-\-project-config|\-\-settings' | sort -u | wc -l
+node skills/tanto/scripts/boundary.js 2>&1 | head -n 1
+node skills/tanto/scripts/boundary.js 2>&1 | head -n 1 | grep -oE 'check|record|census' | sort -u | wc -l
 grep -cF 'scripts/reading.js' skills/tanto/SKILL.md skills/tanto/README.md
 ```
 
 Expected: the first script's usage line, then `7`; the second script's usage
-line, naming **both** its forms on that one line, then `8`; then one
+line, naming **both** its forms on that one line, then `8`; the third's,
+`boundary.js: usage: boundary.js check|record|census <options>`, then `3`,
+since bg-seat-ergonomics added `census`; then one
 `<path>:<n>` line per file with `<n>` at least `1`. The usage lines are read,
 not
 matched: the wording belongs to each script, and a plan that rewords one is not
@@ -1200,8 +1227,8 @@ group section, of which there are now four.
 grep -c 'dead, replaced, refused, and cleared' skills/tanto/SKILL.md
 grep -c 'dead, replaced, refused, and cleared' skills/tanto/roles/kanri.md
 grep -rc 'dead, replaced, and refused' skills/tanto/
-grep -cF '`exit-keikaku`' skills/tanto/templates/kanri.md
-grep -cF '`exit-keikaku`' skills/tanto/SKILL.md
+grep -cE 'exit-keikak[u]' skills/tanto/templates/kanri.md
+grep -cE 'exit-keikak[u]' skills/tanto/SKILL.md
 grep -rcF 'continue: <dispatch> — same model' skills/tanto/SKILL.md skills/tanto/roles/kanri.md
 grep -rcF 'task-implement.md' skills/tanto/templates/
 grep -cF 'Fourteen of them:' skills/tanto/SKILL.md
@@ -1210,16 +1237,16 @@ grep -rc 'two top-family' skills/tanto/
 grep -rcF 'third top-family' skills/tanto/
 ```
 
-Expected: `1 1`, then `0` on every file of the old enumeration, `0 1`, `1 1`
+Expected: `1 1`, then `0` on every file of the old enumeration, `0 0`, `1 1`
 for the `continue:` spelling, `0` on every template for the `.md` form, `1`,
 `1 1`, then `0` on every file for the two spellings of the old cap. The
-`exit-keikaku` pair's first count moved from `1` to `0`: Task 4 ("Kanri's
-Shoroku section is one stage per topic, and Hosa may hold it") replaced the
-ledger template's old concrete Stage-word list —
-which spelled out `` `exit-jisso-B` ``, `` `exit-sekkei` ``, `` `exit-keikaku` ``,
-and `` `exit-kaiseki-1` `` — with generic wording naming only `t2` and
-`exit-<role>[-<suffix>]`; this plan's own Task 10 brief already names that
-retirement as expected, not an omission. The five
+pair of `exit-keikak[u]` counts reads `0 0`: the ledger template's concrete
+example list went first, with Task 4 of the plan that made Kanri's Shoroku
+section one stage per topic, and the contract's list went when
+bg-seat-ergonomics named every proposal file by the step and the writing
+session, `shoroku-proposal-<role>-<short id>.md`. The pair is written as a
+pattern with one bracketed character, as check 7 writes a retired string,
+so that the plan that retired the name finds no literal of it here. The five
 sites of the cap are `SKILL.md` rule 9, `roles/sekkei.md`, `roles/keikaku.md`,
 `roles/kikaku.md`, and `templates/kanri.md`'s paragraph under the Measurements
 table; the last two say "one" in their own words, which is why the sweep is for
@@ -1310,13 +1337,13 @@ for a quote character immediately followed by `#` on a line naming `sections`,
 so a prose sentence that merely mentions a heading elsewhere on the line does
 not trip it.
 
-## 24. The two shoroku kinds, and the stage word that is left
+## 24. The two shoroku kinds, and Jisso's `close:` line
 
 ```bash
 grep -c 'subagent_type: tanto-shoroku-recommend' skills/tanto/roles/kanri.md
 grep -c 'subagent_type: tanto-shoroku-apply' skills/tanto/roles/kanri.md
 grep -cE 'tanto-shoroku([^-.]|$)' skills/tanto/SKILL.md skills/tanto/roles/kanri.md
-grep -cF 'close: <topic> — proposal <path>; ledger <path>; recommendation <path>; brief <path>; direction <path>; subject <commit subject>; slot: now' skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/hosa.md
+grep -cF 'close: propose; write it to .tanto/<topic>/shoroku-proposal-jisso-<short id>.md' skills/tanto/SKILL.md skills/tanto/roles/kanri.md skills/tanto/roles/jisso.md
 grep -cE '\bt[01]\b|\bT[01]\b' skills/tanto/SKILL.md skills/tanto/README.md skills/tanto/roles/*.md skills/tanto/templates/*.md skills/shoroku/SKILL.md
 ```
 
@@ -1326,7 +1353,12 @@ those two. `0` from the third, on both files: the `.` is excluded so that the
 contract's `tanto-shoroku.md` removal sentence is not a hit, while
 `subagent_type: tanto-shoroku` followed by a space or a period-and-space is.
 `1` from the fourth in each of the three files, which pins the `close:` line's
-three copies to one spelling, as §21 asks of a named mechanism. `0` from the
+three copies to one spelling, as §21 asks of a named mechanism: Jisso's line
+at the close, which Kanri's role file sends, Jisso's receives, and the
+contract states. The grep pinned Hosa's retired `close:` line until
+bg-seat-ergonomics, and read `0` against that expected `1` from
+`tanto-bg-seats` on, since decision-26fd superseded decision-a1ae and the
+line went. `0` from the
 fifth in every file, `skills/shoroku/SKILL.md` included: the stage words `t0`
 and `t1` are retired, and the root listing's glob for a predecessor's stage
 files is gone. This file and `docs/` are outside
@@ -1384,8 +1416,8 @@ Every surviving line must be about a **file** or about a role the Replace
 table still holds. A line about a session being deleted, or about a Jisso
 being replaced on a symptom, is drift. Three lines are the known
 exceptions, all stating an absence rather than a practice:
-`roles/kanri.md`'s Start → The five cases → the Handover case, "no deletion
-is asked"; its "Exit shoroku" step 2, "no delete request goes out"; and its
+`roles/kanri.md`'s Start → The four cases → the Handover case, "no deletion
+is asked"; its "A seat's exit" step 2, "no delete request goes out"; and its
 "Session lifecycle" opening, "There is no delete request".
 
 The `replacement` sweep has one exception of its own, on a **third** sense of

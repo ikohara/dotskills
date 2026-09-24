@@ -51,27 +51,23 @@ rendered that batch's prompt file, because rendering is not sending; no
 
 Columns: S-n, the row id; Source, the file the item lives in and its place there — a report and its item, a proposal and its number, the spec and a section heading — so that the close's recommender can follow it;
 Item, one line; Destination, one of requirements, design, decisions,
-issues, notes, or reports; Adopted, one of `pending`, `yes`, and `no`; Stage,
-the stage word — `t2` for every row of this table, whichever moment raised
-it, since the close is the one stage that recommends a ledger's rows, and
-`exit-<role>[-<suffix>]` names a proposal file, never a Stage value; Written,
-`no` or the subject of the commit
-that wrote the row out. The placeholder row stays until the first item
-arrives.
+issues, notes, or reports; Adopted, one of `pending`, `yes`, and `no`;
+Written, `no` or the subject of the commit that wrote the row out. The
+placeholder row stays until the first item arrives.
 
-| S-n | Source | Item | Destination | Adopted | Stage | Written |
-| --- | --- | --- | --- | --- | --- | --- |
-| (no item yet) | | | | | | |
+| S-n | Source | Item | Destination | Adopted | Written |
+| --- | --- | --- | --- | --- | --- |
+| (no item yet) | | | | | |
 
 Nothing is adopted here by a ruling. Every row arrives `pending` — from a
 batch report's Shoroku proposal, a Kaiseki report's
-`blocks this task: no` items, a review report, a session's exit proposal,
+`blocks this task: no` items, a review report, a session's shoroku proposal,
 the spec's four sections, or a Kanri exit that fell while this ledger was
 open — and stays `pending` until the close. At the close Kanri dispatches
 the `shoroku.recommend` kind over Jisso's proposal and every source these
-rows name, to write `t2-recommendation.md` and `t2-brief.md`; gives the
-human both paths, the three counts, and the brief verbatim; and writes
-`t2-direction.md` from the human's answer, and these rows with it, Adopted
+rows name, to write `shoroku-recommendation.md` and `shoroku-brief.md`;
+gives the human both paths, the three counts, and the brief verbatim; and
+writes `shoroku-direction.md` from the human's answer, and these rows with it, Adopted
 `yes` or `no` as the direction says. No item is put to the human apart from
 the rest and none is settled by Kanri alone: the human sees the whole list,
 grouped, once, and answers by exception.
@@ -97,9 +93,9 @@ ledger of the topic that raised it, never a compound value.
   `unanswered: <from> — <line>`, paired with `answered: <from> — <line>`
   when it is answered, both written through `record --event`, which ends a
   line it writes at a boundary with `(batch <X>)` so that the same event in
-  two batches is two lines and twice in one batch is one; an exit
+  two batches is two lines and twice in one batch is one; a shoroku
   proposal form-checked and its
-  rows recorded, or an exit shoroku not run and what was lost; a human access
+  rows recorded, or a shoroku proposal not written and what was lost; a human access
   grant and the human-access: done line that
   closed it; a human-contact: line and what was said>
 

@@ -242,11 +242,11 @@ test("check exits 2 when an argument is unnamed and when a path is absent", () =
   assert.match(gone.err, /--report .* is not on disk/);
 });
 
-test("an unknown subcommand exits 2 and names the two that exist", () => {
+test("an unknown subcommand exits 2 and names the three that exist", () => {
   const f = fixture();
   const result = run(["verify"], f.dir);
   assert.strictEqual(result.code, 2);
-  assert.match(result.err, /check\|record/);
+  assert.match(result.err, /check\|record\|census/);
 });
 
 // The ledger and the roster the tests write to are copies of the templates
@@ -812,4 +812,199 @@ test("check exits 2 when --ledger names a path that is not on disk", () => {
   const result = run(args, fixture.dir);
   assert.strictEqual(result.code, 2);
   assert.match(result.err, /--ledger .* is not on disk/);
+});
+
+// The two shapes of a proposal items table: the six columns the templates
+// carry, and the seven a ledger opened before the retired column went keeps.
+const RETIRED = ["Stag", "e"].join("");
+
+function itemsLedger(columns) {
+  const dir = tmpDir();
+  const body = [
+    "# Conductor ledger — t",
+    "",
+    "## Shoroku proposal items",
+    "",
+    `| ${columns.join(" | ")} |`,
+    `| ${columns.map(() => "---").join(" | ")} |`,
+    `| (no item yet) |${" |".repeat(columns.length - 1)}`,
+    "",
+    "## Session events",
+    "",
+  ].join("\n");
+  return { dir, ledger: write(dir, "kanri.md", body) };
+}
+
+test("an S-n row takes the columns its table's header names, six or seven", () => {
+  const six = ["S-n", "Source", "Item", "Destination", "Adopted", "Written"];
+  const seven = ["S-n", "Source", "Item", "Destination", "Adopted", RETIRED, "Written"];
+  const cases = [
+    [six, "| S-1 | report.md item 1 | an item |  | pending | no |"],
+    [seven, "| S-1 | report.md item 1 | an item |  | pending | t2 | no |"],
+  ];
+  for (const [columns, expected] of cases) {
+    const f = itemsLedger(columns);
+    const result = run(["record", "--ledger", f.ledger, "--s-item", "report.md item 1 | an item"], f.dir);
+    assert.strictEqual(result.code, 0, result.err);
+    const ledger = fs.readFileSync(f.ledger, "utf8");
+    assert.ok(ledger.includes(expected), ledger);
+    assert.ok(!ledger.includes("(no item yet)"), ledger);
+  }
+});
+
+// `census`: a fake `claude` that prints a fixed listing, fails, or prints no
+// JSON, and records the arguments it was given.
+const CENSUS_FAKE = [
+  'const fs = require("node:fs");',
+  "fs.writeFileSync(process.env.FAKE_ARGS, JSON.stringify(process.argv.slice(2)));",
+  'if (process.env.FAKE_MODE === "fail") {',
+  '  process.stderr.write("listing broke\\n");',
+  "  process.exit(1);",
+  "}",
+  'if (process.env.FAKE_MODE === "garbage") {',
+  '  process.stdout.write("not json");',
+  "  process.exit(0);",
+  "}",
+  'process.stdout.write(fs.readFileSync(process.env.FAKE_LISTING, "utf8"));',
+].join("\n");
+
+const SESSIONS_HEAD = [
+  "| Role | Topic | Name [ref] | cwd | Model | Effort | Branch | Mode | Started | Status | Transcript |",
+  "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+];
+
+function sessionRow(role, topic, name, status, transcript) {
+  return `| ${role} | ${topic} | ${name} | /repo | sonnet | high | main | auto | 2026-09-23 10:00 | ${status} | ${transcript} |`;
+}
+
+/** A root with a roster of `rows`, and a listing `sessionsOf(root, dir)` returns. */
+function censusFixture(rows, sessionsOf) {
+  const dir = tmpDir();
+  const root = path.join(dir, "repo");
+  fs.mkdirSync(path.join(root, ".tanto"), { recursive: true });
+  const roster = write(
+    path.join(root, ".tanto"),
+    "roster.md",
+    ["# tanto roster", "", ...SESSIONS_HEAD, ...rows, ""].join("\n"),
+  );
+  const listing = write(dir, "listing.json", JSON.stringify({ sessions: sessionsOf(root, dir) }));
+  const fake = write(dir, "fake-claude.js", CENSUS_FAKE);
+  return { dir, root, roster, listing, fake, args: path.join(dir, "fake-args.json") };
+}
+
+function census(f, mode, args = ["--root", f.root, "--roster", f.roster]) {
+  const result = spawnSync(process.execPath, [SCRIPT, "census", ...args], {
+    encoding: "utf8",
+    cwd: f.dir,
+    env: { ...process.env, TANTO_CLAUDE_NODE: f.fake, FAKE_LISTING: f.listing, FAKE_ARGS: f.args, FAKE_MODE: mode },
+  });
+  return { code: result.status, out: (result.stdout || "").replace(/\r\n/g, "\n"), err: result.stderr || "" };
+}
+
+const KANRI_ROW = sessionRow("kanri", "—", "kanri-a [aaaaaa]", "live", "/home/u/.claude/projects/p/sess-kanri.jsonl");
+
+test("census prints the live and queued rows under its four headings, by its own path comparison", () => {
+  const f = censusFixture(
+    [
+      KANRI_ROW,
+      sessionRow(
+        "sekkei",
+        "t",
+        "sekkei-b [bbbbbb]",
+        "live (idle since 10:00)",
+        "/home/u/.claude/projects/p/sess-sekkei.jsonl",
+      ),
+      sessionRow("hosa", "—", "hosa-c [cccccc]", "live", "/home/u/.claude/projects/p/sess-hosa.jsonl"),
+      sessionRow("kikaku", "—", "kikaku-d [dddddd]", "live", "unavailable"),
+      sessionRow("jisso", "t", "jisso-e", "stopped", "/home/u/.claude/projects/p/sess-old.jsonl"),
+      sessionRow("jisso", "t", "jisso-f", "queued", "C:\\Users\\u\\.claude\\projects\\p\\sess-queued.jsonl"),
+    ],
+    (root, dir) => [
+      { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, pid: 1111 },
+      { sessionId: "sess-sekkei", name: "dotskills-4d", kind: "interactive", cwd: path.join(root, "sub"), pid: 1112 },
+      { sessionId: "sess-queued", name: "jisso-f", kind: "background", cwd: root, pid: 1113 },
+      { sessionId: "sess-old", name: "old-seat", kind: "background", cwd: root, pid: 1114 },
+      { sessionId: "sess-human", name: "human-own", kind: "interactive", cwd: root, pid: 1115 },
+      { sessionId: "sess-other", name: "other-repo", kind: "background", cwd: path.join(dir, "other"), pid: 1116 },
+      { sessionId: "sess-sibling", name: "sibling", kind: "background", cwd: `${root}-two`, pid: 1117 },
+    ],
+  );
+  const result = census(f, "");
+  assert.strictEqual(result.code, 0, result.err);
+  assert.strictEqual(
+    result.out,
+    [
+      "",
+      "## Listed",
+      "",
+      "kanri — kanri-a [aaaaaa] — sess-kanri — listed as kanri-a (background)",
+      "sekkei t sekkei-b [bbbbbb] — sess-sekkei — listed as dotskills-4d (interactive) — renamed",
+      "jisso t jisso-f — sess-queued — listed as jisso-f (background)",
+      "",
+      "## Not listed",
+      "",
+      "hosa — hosa-c [cccccc] — sess-hosa",
+      "",
+      "## No session id",
+      "",
+      "kikaku — kikaku-d [dddddd]",
+      "",
+      "## Not held",
+      "",
+      "old-seat (background) — sess-old — row stopped",
+      "human-own (interactive) — sess-human",
+      "",
+    ].join("\n"),
+  );
+  // The unfiltered listing: the census keeps what is under the root itself.
+  assert.deepStrictEqual(JSON.parse(fs.readFileSync(f.args, "utf8")), ["agents", "--json"]);
+});
+
+test("census prints none under a heading with no entry, and writes nothing", () => {
+  const f = censusFixture([KANRI_ROW], (root) => [
+    { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, pid: 1111 },
+  ]);
+  const before = fs.readFileSync(f.roster, "utf8");
+  const result = census(f, "");
+  assert.strictEqual(result.code, 0, result.err);
+  for (const heading of ["Not listed", "No session id", "Not held"]) {
+    assert.ok(result.out.includes(`## ${heading}\n\nnone\n`), result.out);
+  }
+  assert.strictEqual(fs.readFileSync(f.roster, "utf8"), before);
+});
+
+test("census exits 1 with one line on a failed or non-JSON listing, and 2 on a usage error or an unreadable roster", () => {
+  const f = censusFixture([KANRI_ROW], () => []);
+  const failed = census(f, "fail");
+  assert.strictEqual(failed.code, 1);
+  assert.strictEqual(failed.out, "census: unavailable — listing broke\n");
+  const garbage = census(f, "garbage");
+  assert.strictEqual(garbage.code, 1);
+  assert.match(garbage.out, /^census: unavailable — .+\n$/);
+  assert.strictEqual(census(f, "", ["--root", f.root, "--roster", path.join(f.dir, "gone.md")]).code, 2);
+  assert.strictEqual(census(f, "", ["--root"]).code, 2);
+});
+
+test("a pid-less listing entry is not listed (fix 1)", () => {
+  const f = censusFixture([KANRI_ROW], (root) => [
+    // The measured real shape (R-11, S-54): a sessionId with no pid and no
+    // status, for a process that already exited hours earlier.
+    { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, state: "blocked" },
+  ]);
+  const result = census(f, "");
+  assert.strictEqual(result.code, 0, result.err);
+  assert.ok(result.out.includes("\n## Listed\n\nnone\n"), result.out);
+  assert.ok(result.out.includes("\n## Not listed\n\nkanri — kanri-a [aaaaaa] — sess-kanri\n"), result.out);
+});
+
+test("census places a session whose cwd spells the root's drive letter in the other case", {
+  skip: process.platform !== "win32",
+}, () => {
+  const f = censusFixture([KANRI_ROW], (root) => {
+    const letter = root[0] === root[0].toUpperCase() ? root[0].toLowerCase() : root[0].toUpperCase();
+    return [{ sessionId: "sess-kanri", name: "kanri-a", kind: "interactive", cwd: letter + root.slice(1), pid: 1111 }];
+  });
+  const result = census(f, "");
+  assert.strictEqual(result.code, 0, result.err);
+  assert.ok(result.out.includes("kanri — kanri-a [aaaaaa] — sess-kanri — listed as kanri-a (interactive)"), result.out);
 });

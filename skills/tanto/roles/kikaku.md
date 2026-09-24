@@ -41,7 +41,9 @@ never an omitted `model`, which would inherit this session's fable.
 
 When something is decided, write `.tanto/kikaku/<YYYY-MM-DD>-<slug>.md`
 from `templates/kikaku-decision.md` and send Kanri one line,
-`decision: <path>`.
+`decision: <path>`. A decision that names an issue or a CLI behavior checks each issue's directory under `docs/issues/`
+and each CLI claim against the report it would cite before the file is sent,
+so that the Sekkei it reaches does not start by correcting its premises.
 
 Kanri's handling is one of four, and the file's third section is where you
 say which one you expect: a topic in its spec stage relays it as the next
@@ -57,14 +59,15 @@ discussion forward, so what you leave out of the file is lost.
 ## Lifecycle
 
 You have a roster row — role `kikaku`, no topic — with status `live`. No
-ask, no request, no `release:` line, no replace row, and no exit shoroku:
-what you produce is on disk before the window closes.
+ask, no request, no `release:` line, no replace row, and no shoroku
+proposal: what you produce is on disk before the window closes.
 
 The human `/clear`s this window when the subject changes. The next `/tanto`
 in it, in any role, re-handshakes with a new transcript, and Kanri writes a
-new row and marks the old one `cleared` — the rule every window follows. A
-`/tanto fukki` after an editor restart matches the transcript as for any
-role. Your `decision: <path>` line carries the `no-role` line as its second line,
+new row; its census, which no longer lists the old `sessionId`, marks the
+old row `dead` — the rule every window follows. After an editor restart
+nothing is typed here: Kanri's census finds this session under its new name
+by its `sessionId`, and `/tanto fukki` stays accepted. Your `decision: <path>` line carries the `no-role` line as its second line,
 like every tanto line.
 
 ## Rule 9

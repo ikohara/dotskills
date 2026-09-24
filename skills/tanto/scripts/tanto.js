@@ -6,6 +6,7 @@
 // like every other seat.
 
 const fs = require("node:fs");
+const os = require("node:os");
 const path = require("node:path");
 const { spawnSync, spawn } = require("node:child_process");
 const { loadSessions } = require("./reading.js");
@@ -15,6 +16,19 @@ const USAGE = "Usage: tanto [<root>] [--timeout <ms>], or tanto down [<root>] [-
 const SPAWNER = path.join(__dirname, "spawner.js");
 const WAIT_MS = 60000;
 const POLL_MS = 250;
+
+// The line printed after every attach line (spec 4.1): every way out of a
+// seat but `/stop` leaves it running.
+const LEAVE_LINE =
+  "← or /exit returns to the agent view, Ctrl+Z to the shell; the seat keeps running — /stop alone stops it, and a Kanri you /stop comes back with tanto";
+
+// The trust hint (spec 4.3), printed before the attach line.
+const TRUST_LINE =
+  "this folder's trust is not recorded: run claude here once and answer \"Yes, I trust this folder\" — the agent view's own trust question after ← or /exit takes no input";
+
+// A seat `seats.json` holds as `running` or `blocked` — or, for Kanri alone,
+// `gone` — is resumed; one it holds as `stopped` or `removed` is not (spec 4.2).
+const KANRI_RESUMABLE = ["running", "blocked", "gone"];
 const GITIGNORE = "*\n";
 const MARKDOWNLINT = "config:\n  default: false\n";
 
@@ -268,13 +282,34 @@ function firstRosterRow(root) {
   const head = lines.findIndex((line) => /^\|\s*Role\s*\|/.test(line));
   if (head === -1) return null;
   const row = lines[head + 2];
-  if (!row || !row.startsWith("|")) return null;
+  if (!row?.startsWith("|")) return null;
   const cells = row
     .split("|")
     .slice(1, -1)
     .map((cell) => cell.trim());
   if (cells.length < 11) return null;
   return { name: cells[2], status: cells[9], sessionId: path.basename(cells[10], ".jsonl") };
+}
+
+/**
+ * The trust hint, or null (spec 4.3). `.claude.json` is
+ * `$CLAUDE_CONFIG_DIR/.claude.json` when that variable is set and
+ * `~/.claude.json` otherwise; its key for this folder is the root as `tanto`
+ * resolved it, every `\` turned into `/` and the drive letter as given —
+ * the key the CLI in the same terminal looks up. A missing or unparsable
+ * file prints nothing, and `tanto` never writes the file.
+ */
+function trustHint(root) {
+  const dir = process.env.CLAUDE_CONFIG_DIR;
+  const file = dir ? path.join(dir, ".claude.json") : path.join(os.homedir(), ".claude.json");
+  let config;
+  try {
+    config = JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch {
+    return null;
+  }
+  const project = config?.projects?.[root.replace(/\\/g, "/")];
+  return project?.hasTrustDialogAccepted === true ? null : TRUST_LINE;
 }
 
 /** The branch the shared tree is on, which the request schema asks for. */
@@ -319,7 +354,7 @@ function cmdUp(argv) {
     return 1;
   }
   const byId = new Map(
-    listing.sessions.filter((s) => s.sessionId && s.state !== "stopped").map((s) => [s.sessionId, s]),
+    listing.sessions.filter((s) => s.sessionId && s.pid && s.state !== "stopped").map((s) => [s.sessionId, s]),
   );
   const handoverFile = path.join(root, ".tanto", "kanri-handover.md");
   const handover = fs.existsSync(handoverFile);
@@ -334,10 +369,13 @@ function cmdUp(argv) {
   // is found directly by role, or this same crash is what the roster-driven
   // branches above can never see, and the loop below would resume it a
   // second time on top of this one (Important 7, branch-review.md).
+  // A `gone` Kanri is one the human `/stop`ped, or one that crashed while the
+  // spawner ran, and it is resumed like a `running` one (spec 4.2); a
+  // `stopped` one — after `tanto down --seats`, or a handover — is not.
   const held = row
     ? seats.find((s) => s.sessionId === row.sessionId)
-    : seats.find((s) => s.role === "kanri" && (s.status === "running" || s.status === "blocked"));
-  const kanriHeld = Boolean(held && (held.status === "running" || held.status === "blocked"));
+    : seats.find((s) => s.role === "kanri" && KANRI_RESUMABLE.includes(s.status));
+  const kanriHeld = Boolean(held && KANRI_RESUMABLE.includes(held.status));
   // A handover in progress: look for the successor before writing a second
   // spawn request for one that already exists (R-12, Important 2).
   const handoverMtimeMs = handover ? statMtimeMs(handoverFile) : null;
@@ -366,7 +404,7 @@ function cmdUp(argv) {
     }
     attach = result.id || result.sessionId;
   } else {
-    const request =
+    let request =
       !handover && !listed && kanriHeld
         ? {
             op: "resume",
@@ -375,8 +413,12 @@ function cmdUp(argv) {
             sessionId: row ? row.sessionId : held.sessionId,
           }
         : kanriRequest(root, sessions);
-    const id = writeRequest(root, request);
-    const result = waitForResult(root, id, waitMs);
+    let result = waitForResult(root, writeRequest(root, request), waitMs);
+    if (result?.error && request.op === "resume") {
+      fail(`tanto: the Kanri resume failed — ${result.error}; spawning a new Kanri`);
+      request = kanriRequest(root, sessions);
+      result = waitForResult(root, writeRequest(root, request), waitMs);
+    }
     if (!result) {
       fail("tanto: the spawner wrote no result for the Kanri request; see .tanto/spawner/log");
       return 1;
@@ -400,7 +442,9 @@ function cmdUp(argv) {
     resumed += 1;
   }
 
-  if (attach) process.stdout.write(`claude attach ${attach}\n`);
+  const hint = trustHint(root);
+  if (hint) process.stdout.write(`${hint}\n`);
+  if (attach) process.stdout.write(`claude attach ${attach}\n${LEAVE_LINE}\n`);
   // Only when a seat the human can reach was actually named above — an
   // interactive first row prints its own line and sets no `attach`, and
   // "then type /tanto fukki there" with nothing before it names nothing to

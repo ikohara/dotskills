@@ -78,7 +78,7 @@ function writeJsonAtomic(file, value) {
 
 function readSeats(root) {
   const doc = readJson(path.join(spawnerDir(root), "seats.json"));
-  return Array.isArray(doc && doc.seats) ? doc.seats : [];
+  return Array.isArray(doc?.seats) ? doc.seats : [];
 }
 
 function writeSeats(root, seats) {
@@ -255,13 +255,69 @@ function raiseNotice(text) {
 }
 
 /**
- * The `--bg` command line. `request.branch` is not read here — it is
- * informational, carried through into the result and then into
+ * One segment of a seat's name: lower-cased, every run of characters outside
+ * `a-z0-9` turned into one `-`, and no `-` at either end.
+ */
+function nameSegment(text) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/** Four random lower-case hexadecimal digits. */
+function randomHex() {
+  return Math.floor(Math.random() * 0x10000)
+    .toString(16)
+    .padStart(4, "0");
+}
+
+/**
+ * A terminal seat's name, `<repo>-<role>[-<topic>]-<hex>` (spec 1.1): the
+ * root's basename, the request's role, its topic unless absent or `—`, and
+ * four hexadecimal digits, drawn again while a seat in `seats.json` carries
+ * the whole name. The CLI registers it as the user's own, which no
+ * auto-title replaces, and a flag-less resume brings it back from the job's
+ * saved options, so the name is the seat's for its life.
+ */
+function seatName(root, request, seats, draw = randomHex) {
+  const topic = request.topic && request.topic !== "—" ? nameSegment(request.topic) : "";
+  const stem = [nameSegment(path.basename(root)), request.role, topic].filter(Boolean).join("-");
+  let name = `${stem}-${draw()}`;
+  while (seats.some((seat) => seat.name === name)) name = `${stem}-${draw()}`;
+  return name;
+}
+
+/** A path with its separators unified, no trailing one, and, on Windows, its case folded. */
+function comparablePath(p) {
+  const unified = String(p).replace(/\\/g, "/").replace(/\/+$/, "");
+  return process.platform === "win32" ? unified.toLowerCase() : unified;
+}
+
+/** Whether a listed cwd lies under `<root>/.claude/worktrees/` (issue-aa37, spec 1.4). */
+function underAdHocWorktree(root, cwd) {
+  if (!cwd) return false;
+  const worktrees = comparablePath(path.join(root, ".claude", "worktrees"));
+  return comparablePath(cwd).startsWith(`${worktrees}/`);
+}
+
+// The CLI's background isolation, off for this seat alone (spec 1.2): with
+// the default, `worktree`, a seat's first Write fails and it moves itself
+// into `.claude/worktrees/`. A flag layer outranks every settings file, no
+// file is written, and a flag-less resume keeps it.
+const NO_BG_ISOLATION = JSON.stringify({ worktree: { bgIsolation: "none" } });
+
+/**
+ * The `--bg` command line of a spawn: the seat's name and the isolation
+ * setting, then the request's own flags. A resume passes none of them — any
+ * flag on `--resume … --bg` starts a copy under a new id — and the CLI
+ * brings back the options the spawn passed. `request.branch` is not read
+ * here — it is informational, carried through into the result and then into
  * `record --seat`'s Branch column (`boundary.js`); a worktree seat's real
  * branch is the CLI's own (Important 4, task 26; Minor 5, branch-review.md).
  */
-function spawnArgs(request) {
-  const args = ["--bg"];
+function spawnArgs(request, name) {
+  const args = ["--bg", "--name", name, "--settings", NO_BG_ISOLATION];
   if (request.model) args.push("--model", request.model);
   if (request.effort) args.push("--effort", request.effort);
   args.push("--permission-mode", request.mode || "auto");
@@ -271,9 +327,13 @@ function spawnArgs(request) {
   return args;
 }
 
-/** The short id `--bg` prints, when it prints one. */
+/**
+ * The short id `--bg` prints, for a listing entry that carries no `id`: the
+ * CLI prints `backgrounded · <short id> · <name>` on a spawn, and the same
+ * line with ` (idle — send a prompt to start)` after it on a resume.
+ */
 function shortIdOf(text) {
-  const found = /session\s+([A-Za-z0-9][\w-]*)/i.exec(text || "");
+  const found = /backgrounded\s+·\s+([A-Za-z0-9][\w-]*)\s+·/.exec(text || "");
   return found ? found[1] : null;
 }
 
@@ -311,7 +371,8 @@ function opSpawn(root, request, seats) {
   const listing = listAgents(root);
   if (listing.error) return { error: `claude agents: ${listing.error}` };
   const before = new Set(listing.sessions.map((s) => s.sessionId));
-  const got = runClaude(spawnArgs(request));
+  const name = seatName(root, request, seats);
+  const got = runClaude(spawnArgs(request, name));
   if (got.code !== 0) return { error: `claude --bg exited ${got.code}: ${got.err.trim()}` };
   const session = findNew(root, before);
   if (!session) {
@@ -322,11 +383,10 @@ function opSpawn(root, request, seats) {
     };
   }
 
-  // The listing's first sighting is where the ad hoc-worktree guard runs
-  // (issue-aa37): a `--bg` session under a mode that gates a tool has once
-  // reported its cwd under `.claude/worktrees/` with no `-w`.
-  const strayRoot = path.join(root, ".claude", "worktrees");
-  const stray = !request.worktree && session.cwd && session.cwd.startsWith(strayRoot);
+  // The listing's first sighting is the guard's first look (issue-aa37); the
+  // spawner's census looks again at every pass, since a seat reaches
+  // `.claude/worktrees/` at its first Write, after this sighting (spec 1.4).
+  const stray = !request.worktree && underAdHocWorktree(root, session.cwd);
   const id = session.id || shortIdOf(got.out);
   const startedAt = formatStartedAt(session.startedAt);
   const seat = {
@@ -342,6 +402,7 @@ function opSpawn(root, request, seats) {
     cwd: session.cwd,
     startedAt,
     status: stray ? "stopped" : "running",
+    ...(stray ? { strayed: session.cwd } : {}),
   };
   seats.push(seat);
   if (stray) {
@@ -363,7 +424,7 @@ function opSpawn(root, request, seats) {
 function runWithEitherId(verb, seat, sessionId) {
   const first = runClaude([verb, sessionId]);
   if (first.code === 0) return first;
-  if (seat && seat.id && seat.id !== sessionId) {
+  if (seat?.id && seat.id !== sessionId) {
     const second = runClaude([verb, seat.id]);
     if (second.code === 0) return second;
     return second;
@@ -389,12 +450,15 @@ function handleRequest(root, request, seats) {
     if (got.code !== 0) return { error: `claude rm: ${got.err.trim()}` };
     if (seat) seat.status = "removed";
     const printed = /Removed worktree (.+)/i.exec(got.out);
-    return { removed: stamp(), worktree: printed ? printed[1].trim() : seat && seat.worktree };
+    return { removed: stamp(), worktree: printed ? printed[1].trim() : seat?.worktree };
   }
 
   if (request.op === "resume") {
+    // No flag: the CLI brings back the options the spawn passed and names
+    // them on stderr, which a result does not carry, so the log keeps it.
     const got = runClaude(["--resume", request.sessionId, "--bg"]);
     if (got.code !== 0) return { error: `claude --resume: ${got.err.trim()}` };
+    if (got.err.trim()) appendLog(root, `resume ${request.sessionId}: ${got.err.trim()}`);
     const session = findResumed(root, request.sessionId);
     if (seat && session) {
       seat.name = session.name;
@@ -410,7 +474,7 @@ function handleRequest(root, request, seats) {
   }
 
   if (request.op === "attention") {
-    const text = String(request.message || "").replace("<id>", (seat && seat.id) || "<id>");
+    const text = String(request.message || "").replace("<id>", seat?.id || "<id>");
     const channel = raiseNotice(text);
     appendLog(root, `attention ${text}`);
     return { notified: stamp(), channel };
@@ -448,7 +512,7 @@ function takeRequests(root, seats) {
     try {
       outcome = handleRequest(root, request, seats);
     } catch (error) {
-      outcome = { error: String(error && error.message) };
+      outcome = { error: String(error?.message) };
     }
     writeJsonAtomic(path.join(resultsDir(root), name), { ...request, ...outcome });
     fs.rmSync(file, { force: true });
@@ -457,35 +521,76 @@ function takeRequests(root, seats) {
   }
 }
 
+/**
+ * A seat `seats.json` holds as `gone` whose `sessionId` the listing holds
+ * again — one the human `/stop`ped and reopened with `claude attach <id>`
+ * (spec 1.3). It goes back to `running`, and the pass that follows sets
+ * `blocked` when the listing says so, the notice with it. A seat the run's
+ * own `stop` request stopped, or one removed, is never revived.
+ */
+function revive(root, seat) {
+  seat.status = "running";
+  delete seat.goneAt;
+  appendLog(root, `census: ${seat.sessionId} back`);
+}
+
+/**
+ * The ad hoc-worktree guard at a pass (spec 1.4): stop the seat by its short
+ * id, mark it `stopped` with `strayed: <cwd>`, log it, and toast once — the
+ * next pass skips a `stopped` seat, so the toast is not repeated. A stop
+ * that fails leaves the seat as it was, for the next pass to try again.
+ */
+function strand(root, seat, cwd) {
+  const got = runClaude(["stop", seat.id || seat.sessionId]);
+  if (got.code !== 0) {
+    appendLog(root, `guard: stop ${seat.sessionId} failed — ${got.err.trim()}`);
+    return;
+  }
+  seat.status = "stopped";
+  seat.strayed = cwd;
+  appendLog(root, `guard stopped ${seat.sessionId} at ${cwd}`);
+  raiseNotice(`strayed: ${seat.role} ${seat.topic} ${seat.name} — ${cwd}`);
+}
+
+/** One `running` or `blocked` seat against the listing's entry for it. */
+function censusSeat(root, seat, session) {
+  if (!session) {
+    seat.status = "gone";
+    seat.goneAt = stamp();
+    appendLog(root, `census: ${seat.sessionId} gone`);
+    return;
+  }
+  if (!seat.worktree && underAdHocWorktree(root, session.cwd)) {
+    strand(root, seat, session.cwd);
+    return;
+  }
+  if (session.name && session.name !== seat.name) {
+    seat.renamed = seat.name;
+    seat.name = session.name;
+    appendLog(root, `census: ${seat.sessionId} renamed to ${session.name}`);
+  }
+  if (session.id) seat.id = session.id;
+  if (session.state === "blocked" && seat.status !== "blocked") {
+    seat.status = "blocked";
+    raiseNotice(noticeText(seat));
+    appendLog(root, `census: ${seat.sessionId} blocked`);
+  } else if (session.state !== "blocked" && seat.status === "blocked") {
+    seat.status = "running";
+  }
+}
+
+/** The spawner's census: one pass over `seats.json` against the listing. */
 function runCensus(root, seats) {
   const listing = listAgents(root);
   if (listing.error) {
     appendLog(root, `census: ${listing.error}`);
     return seats;
   }
-  const byId = new Map(listing.sessions.filter((s) => s.sessionId).map((s) => [s.sessionId, s]));
+  const byId = new Map(listing.sessions.filter((s) => s.sessionId && s.pid).map((s) => [s.sessionId, s]));
   for (const seat of seats) {
-    if (!LIVE.includes(seat.status)) continue;
     const session = byId.get(seat.sessionId);
-    if (!session) {
-      seat.status = "gone";
-      seat.goneAt = stamp();
-      appendLog(root, `census: ${seat.sessionId} gone`);
-      continue;
-    }
-    if (session.name && session.name !== seat.name) {
-      seat.renamed = seat.name;
-      seat.name = session.name;
-      appendLog(root, `census: ${seat.sessionId} renamed to ${session.name}`);
-    }
-    if (session.id) seat.id = session.id;
-    if (session.state === "blocked" && seat.status !== "blocked") {
-      seat.status = "blocked";
-      raiseNotice(noticeText(seat));
-      appendLog(root, `census: ${seat.sessionId} blocked`);
-    } else if (session.state !== "blocked" && seat.status === "blocked") {
-      seat.status = "running";
-    }
+    if (seat.status === "gone" && session) revive(root, seat);
+    if (LIVE.includes(seat.status)) censusSeat(root, seat, session);
   }
   writeSeats(root, seats);
   return seats;
@@ -502,7 +607,7 @@ function runCensus(root, seats) {
  */
 function logGuardError(root, error) {
   try {
-    appendLog(root, `guard: ${error && error.message ? error.message : String(error)}`);
+    appendLog(root, `guard: ${error?.message ? error.message : String(error)}`);
   } catch {
     // As above: logging the caught error must never itself end the resident.
   }
@@ -607,7 +712,7 @@ function main(argv) {
   return 2;
 }
 
-module.exports = { main, noticeCommand, handleRequest, runCensus, readSeats, spawnerDir };
+module.exports = { main, noticeCommand, handleRequest, runCensus, readSeats, spawnerDir, seatName, shortIdOf };
 
 if (require.main === module) {
   process.exitCode = main(process.argv.slice(2));

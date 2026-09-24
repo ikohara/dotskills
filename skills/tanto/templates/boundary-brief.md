@@ -114,7 +114,10 @@ only the resident can compare with its roster row.
 
 ## The verdict file
 
-`.tanto/<topic>/batch-<X>-verdict.md`. Its first lines, before the headings,
+`.tanto/<topic>/batch-<X>-verdict.md`. For the fix wave, `<X>` in this path and
+in the prompt's path is `fixwave`, while the `record` call's `--batch` carries
+the ledger row's own key, `fix wave`; the two strings differ by design, and the dispatch
+names the file path explicitly. Its first lines, before the headings,
 carry the report's `git hash-object` and the plan's, as a review brief does, so
 that a line number quoted under Failures has a fixed referent. Then eleven
 `##` headings in this order — and a twelfth, `Measurement`, when the batch carried

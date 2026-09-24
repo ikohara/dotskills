@@ -1,7 +1,7 @@
 # Shoroku check brief — <topic>
 
 Written by the `shoroku.recommend` kind in the same dispatch as the
-recommendation, at `.tanto/<topic>/t2-brief.md`, beside the recommendation
+recommendation, at `.tanto/<topic>/shoroku-brief.md`, beside the recommendation
 and untracked under `.tanto/.gitignore`.
 Every part of the
 brief is written in the chat's language, which the dispatch names; this
@@ -12,7 +12,7 @@ that follows it. The brief selects and renders the recommendation's own
 judgment; it does not analyze anew, and the recommendation stays the file the
 apply reads.
 
-Document: <the recommendation's path> — t2 — written <YYYY-MM-DD> on
+Document: <the recommendation's path> — written <YYYY-MM-DD> on
 <model family> for the chat language
 <language>.
 
@@ -33,7 +33,7 @@ the human sees the sentence that will be applied.
 Answer `OK` to take every item as recommended. Name the numbers that go the
 other way instead — `2 と 5 だけ`, `3 はやめて` — or give an edit,
 `5 の severity は high で`. An item you do not mention goes as recommended.
-What you answer is what Kanri writes into `t2-direction.md`, item by item;
+What you answer is what Kanri writes into `shoroku-direction.md`, item by item;
 the apply reads that file and the
 recommendation, never this brief.
 

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-09-23
 ---
 
 Source: inbox 2026-09-17-kikaku-unreachable-row-has-no-timeout
@@ -31,3 +31,9 @@ Consider naming an explicit timeout (tied to `ceiling.presence_minutes`, or a
 separate config value) after which a `live`-but-unreachable Kikaku/Hosa row
 may be marked `dead` outright on Kanri's own ruling, with the human still
 able to override by opening a fresh session at any time regardless, as today.
+
+Resolved by the bg-seat-ergonomics design
+(`docs/superpowers/specs/2026-09-23-bg-seat-ergonomics-design.md`, 2.1),
+with no timeout: the census is the signal for a Kikaku or Hosa row as for
+any other, and a `live` row whose `sessionId` it does not list is `dead` on
+that signal alone.

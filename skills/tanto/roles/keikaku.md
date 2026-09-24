@@ -302,13 +302,13 @@ lost by design; that is what the cold read is for.
 
 That message is your own final boundary — the batch boundaries you commit
 at while drafting are another topic's, and this one is yours — and it is
-the one boundary you can see coming: one message in, one line back. So, after the edits, write your exit
+the one boundary you can see coming: one message in, one line back. So, after the edits, write your shoroku
 proposal as the bullet below describes and send **one** line carrying every
 pointer and the proposal — no self-check runs first, a terminal seat's
-rename being the census's to notice:
+rename being for the spawner's census to notice:
 
 ```text
-coldread answered: <pointer, one per question, or none>; exit proposal: <path> — <reading>
+coldread answered: <pointer, one per question, or none>; shoroku proposal: <path> — <reading>
 ```
 
 Then idle. Kanri sends you no `exit:` at this boundary; it checks the
@@ -351,10 +351,12 @@ Two more rules, one at each end of a batch boundary:
   window. No self-check runs first. The authorization lasts until
   you answer or until Kanri's next message, and a commit you did not make
   within that window waits for the next boundary line.
-- **Your exit shoroku.** You write it **unasked**, after the cold-read edits
-  and before the `coldread answered:` line above, and you name it in that same
-  line. The stage word is `exit-keikaku`, no suffix, and the proposal goes
-  to `.tanto/<topic>/exit-keikaku-proposal.md`. Your proposal items are the
+- **Your shoroku proposal.** You write it **unasked**, after the cold-read
+  edits and before the `coldread answered:` line above, and you name it in
+  that same line. The proposal goes to
+  `.tanto/<topic>/shoroku-proposal-keikaku-<short id>.md`, `<short id>` the
+  first eight hexadecimal digits of your own `sessionId`, the basename of
+  your transcript path. Your proposal items are the
   **delta**: the first line says what the proposal excludes — the plan, the
   dry-run report, and the plan review, which are on disk for anyone to read —
   and the items are the plan dialogue's rejected alternatives with their
@@ -369,14 +371,15 @@ Two more rules, one at each end of a batch boundary:
   nothing else; the stop follows it, and you tell no human anything. Work
   that reaches you before it — a report
   that conflicts with
-  the plan, a second cold-read question — is answered with a second proposal
-  at
-  `.tanto/<topic>/exit-keikaku-2-proposal.md` holding only the delta since the
-  first, named in the line that reports the work; a proposal you have named is
-  never rewritten, because Kanri may already have recorded its items. An exit that falls away from this boundary — the human not wanting the plan
+  the plan, a second cold-read question — is answered with a further
+  proposal at
+  `.tanto/<topic>/shoroku-proposal-keikaku-<short id>-<n>.md`, `n` from 2
+  upward, holding only the delta since the last, named in the line that
+  reports the work; a proposal you have named is never rewritten, because
+  Kanri may already have recorded its items. An exit that falls away from this boundary — the human not wanting the plan
   now, a compaction in your reading, a replacement — still arrives as Kanri's
-  `exit: propose your shoroku; write it to <path>`, and you answer
-  `exit proposal: <path> — <reading>` as any other role does.
+  `exit: propose; write it to <path>`, and you answer
+  `shoroku proposal: <path> — <reading>` as any other role does.
   You write nothing under `docs/`
   — not at your exit, not ever. A subagent applies the accepted subset in
   Kanri's slot, and your judgment is already in the file.

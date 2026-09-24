@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-09-23
 ---
 
 Source: shoroku shoroku-at-close
@@ -28,3 +28,10 @@ Sekkei reads open issues at its start. issue-cca9 is that diet's own subject;
 this is the separate site list it should pick up while it is in those two files.
 
 A wording gap, not a user-stated need, so no paired requirement.
+
+Resolved by the bg-seat-ergonomics design
+(`docs/superpowers/specs/2026-09-23-bg-seat-ergonomics-design.md`, 3.2 and
+3.5): `roles/sekkei.md` and `roles/keikaku.md` name their proposal file by
+the step and the writing session, `shoroku-proposal-<role>-<short id>.md`,
+and the `S-n` tables' one-valued column is gone, with every sentence that
+defined its value.

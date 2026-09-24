@@ -16,8 +16,8 @@ yours, the report's shape and your closing line included.
   your cwd
 - Main checkout — <absolute path>, given to you with `--add-dir`; every
   `.tanto/` path below is read there, at its absolute path
-- Recommendation — <.tanto/<topic>/t2-recommendation.md>
-- Direction — <.tanto/<topic>/t2-direction.md>
+- Recommendation — <.tanto/<topic>/shoroku-recommendation.md>
+- Direction — <.tanto/<topic>/shoroku-direction.md>
 - Inbox copies — <the untriaged copies the recommendation names, by absolute
   path, or "none">
 - Kanri — <the roster's first data row, read from the main checkout at the
@@ -56,7 +56,7 @@ yours, the report's shape and your closing line included.
    write by is the one on this branch.
 2. Dispatch `shoroku.apply`, `subagent_type: tanto-shoroku-apply`, with the
    recommendation, the direction, the commit subject
-   `docs: T2 shoroku for <topic>`, and the inbox copies by path. It writes
+   `docs: shoroku for <topic>`, and the inbox copies by path. It writes
    the accepted subset per `docs/AGENTS.md`, every issue opening with the
    `Source:` line its item's heading names, and fills the Triage section of
    every swept inbox copy at its absolute path in the main checkout. Then run
@@ -66,9 +66,9 @@ yours, the report's shape and your closing line included.
    branch.
 3. Dispatch `shoroku.review`, `subagent_type: tanto-shoroku-review`, over
    this worktree's diff against `main`, the direction, and `docs/AGENTS.md`;
-   it writes `.tanto/<topic>/t2-review.md` in the main checkout. On findings,
+   it writes `.tanto/<topic>/shoroku-review.md` in the main checkout. On findings,
    dispatch `shoroku.apply` once more with them and commit as
-   `docs: T2 shoroku for <topic>, review fixes`. Never a third time: a second
+   `docs: shoroku for <topic>, review fixes`. Never a third time: a second
    round of findings is reported, not applied.
 4. Run `git rebase main` in the worktree. A conflict stops you: abort the
    rebase (`git rebase --abort`), report

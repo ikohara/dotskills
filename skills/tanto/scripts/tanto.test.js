@@ -21,7 +21,7 @@ const FAKE = fs
   .split("const FAKE = `")[1]
   .split("`;")[0]
   .replace(/\\\\n/g, "\\n");
-if (!FAKE.includes("Started background session")) {
+if (!FAKE.includes("backgrounded · ")) {
   throw new Error("the fake CLI could not be read out of spawner.test.js");
 }
 
@@ -126,6 +126,29 @@ function backdate(file, seconds) {
   fs.utimesSync(file, past, past);
 }
 
+// The two lines spec 4.1 and 4.3 fix, byte for byte.
+const LEAVE =
+  "← or /exit returns to the agent view, Ctrl+Z to the shell; the seat keeps running — /stop alone stops it, and a Kanri you /stop comes back with tanto";
+const TRUST =
+  "this folder's trust is not recorded: run claude here once and answer \"Yes, I trust this folder\" — the agent view's own trust question after ← or /exit takes no input";
+
+/** `.claude.json` in the fake config directory, keyed as the CLI keys the root. */
+function writeTrust(ws, accepted) {
+  const key = ws.root.replace(/\\/g, "/");
+  const body = { projects: { [key]: { hasTrustDialogAccepted: accepted } } };
+  fs.writeFileSync(path.join(ws.root, ".claude.json"), JSON.stringify(body));
+}
+
+const LIVE_KANRI = {
+  sessionId: "sess-live",
+  name: "seat-live [ffffff]",
+  cwd: null,
+  kind: "background",
+  state: "running",
+  id: "bg07",
+  pid: 1111,
+};
+
 test("--help prints the usage line and exits 2", () => {
   const ws = workspace();
   const got = launch(ws, ["--help"]);
@@ -168,7 +191,15 @@ test("an existing .gitignore is never overwritten", () => {
 
 test("a live background Kanri is attached to, not spawned again", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      pid: 1111,
+    },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   const got = launch(ws, [ws.root, "--timeout", "20000"]);
@@ -178,7 +209,7 @@ test("a live background Kanri is attached to, not spawned again", () => {
 
 test("an interactive first row is reported and not attached to", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1" },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   const got = launch(ws, [ws.root, "--timeout", "20000"]);
@@ -188,7 +219,7 @@ test("an interactive first row is reported and not attached to", () => {
 
 test("a handover file asks for a Kanri whatever the roster says", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1" },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   fs.writeFileSync(path.join(ws.root, ".tanto", "kanri-handover.md"), "# tanto Kanri handover\n");
@@ -206,7 +237,7 @@ test("a handover file with a successor already in seats.json is attached to, not
   // (Important 1) refuses to attach to a seats.json row the CLI does not
   // list.
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1" },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
     {
       sessionId: "sess-new-kanri",
       name: "seat-new [aaaaaa]",
@@ -214,6 +245,7 @@ test("a handover file with a successor already in seats.json is attached to, not
       kind: "background",
       state: "running",
       id: "bg09",
+      pid: 1112,
     },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
@@ -237,7 +269,7 @@ test("a handover file with only the outgoing Kanri in seats.json still spawns a 
   // OUTGOING Kanri's own row here — the only kanri row that exists — and
   // wrongly suppressed the spawn request that creates the real successor.
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1" },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   const handoverFile = path.join(ws.root, ".tanto", "kanri-handover.md");
@@ -256,7 +288,7 @@ test("a handover file with only the outgoing Kanri in seats.json still spawns a 
 
 test("a handover file with both the outgoing Kanri and a live successor attaches to the successor (C-2b)", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1" },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
     {
       sessionId: "sess-successor",
       name: "seat-new [aaaaaa]",
@@ -264,6 +296,7 @@ test("a handover file with both the outgoing Kanri and a live successor attaches
       kind: "background",
       state: "running",
       id: "bg09",
+      pid: 1112,
     },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
@@ -306,7 +339,15 @@ test("a handover successor row the live listing has lost is not attached to dire
 
 test("a running seat the listing lost is resumed, and fukki is printed", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      pid: 1111,
+    },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   writeSeats(ws, [
@@ -392,7 +433,15 @@ test("claude agents failing exits 1 with the stderr, and writes no request (Impo
 
 test("down --seats reports a failed stop and exits 1 (Important 6)", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      pid: 1111,
+    },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   launch(ws, [ws.root, "--timeout", "20000"]);
@@ -413,7 +462,15 @@ test("--help's usage line documents --timeout (Minor 10)", () => {
 
 test("down --seats keeps a following root from being consumed as its value (Minor 10)", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      pid: 1111,
+    },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   launch(ws, [ws.root, "--timeout", "20000"]);
@@ -440,7 +497,7 @@ test("down --seats keeps a following root from being consumed as its value (Mino
 
 test("an interactive first row with a resumed peer prints no attach or fukki line (Minor 10)", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1" },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   writeSeats(ws, [
@@ -455,7 +512,15 @@ test("an interactive first row with a resumed peer prints no attach or fukki lin
 
 test("down --seats retires the run, and the next tanto spawns a fresh Kanri", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      pid: 1111,
+    },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   writeSeats(ws, [
@@ -474,7 +539,15 @@ test("down --seats retires the run, and the next tanto spawns a fresh Kanri", ()
 
 test("a stopped seat is not resumed", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      pid: 1111,
+    },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   writeSeats(ws, [{ sessionId: "sess-old", id: "bg05", name: "seat-old [dddddd]", role: "jisso", status: "stopped" }]);
@@ -486,7 +559,15 @@ test("a stopped seat is not resumed", () => {
 
 test("down stops the spawner and removes its pidfile", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      pid: 1111,
+    },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   launch(ws, [ws.root, "--timeout", "20000"]);
@@ -499,7 +580,15 @@ test("down stops the spawner and removes its pidfile", () => {
 
 test("down --seats writes a stop request for every running seat", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "running", id: "bg07" },
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: null,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      pid: 1111,
+    },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   launch(ws, [ws.root, "--timeout", "20000"]);
@@ -522,4 +611,93 @@ test("the launcher itself never runs claude --bg", () => {
   assert.equal(own.length, 1);
   const seats = JSON.parse(fs.readFileSync(path.join(ws.root, ".tanto", "spawner", "seats.json"), "utf8")).seats;
   assert.equal(seats[0].role, "kanri");
+});
+
+test("the attach line is followed by the line on leaving and stopping a seat", () => {
+  const ws = workspace([LIVE_KANRI]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  const lines = got.out.split(/\r?\n/);
+  const at = lines.indexOf("claude attach bg07");
+  assert.notEqual(at, -1, got.out);
+  assert.equal(lines[at + 1], LEAVE);
+});
+
+test("a Kanri seats.json holds as gone is resumed, never spawned again", () => {
+  // The human's `/stop`, or a crash while the spawner ran: the listing has
+  // lost it, and --resume still finds it by sessionId (spec 4.2).
+  const ws = workspace([{ ...LIVE_KANRI, hidden: true }]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  writeSeats(ws, [
+    { sessionId: "sess-live", id: "bg07", name: "seat-live [ffffff]", role: "kanri", status: "gone", goneAt: "x" },
+  ]);
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  assert.equal(got.code, 0, got.err);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn").length, 0);
+  assert.deepEqual(
+    requests(ws)
+      .filter((r) => r.op === "resume")
+      .map((r) => r.sessionId),
+    ["sess-live"],
+  );
+  const lines = got.out.split(/\r?\n/);
+  const at = lines.indexOf("claude attach bg07");
+  assert.notEqual(at, -1, got.out);
+  assert.equal(lines[at + 1], LEAVE);
+  assert.equal(lines[at + 2], "then type /tanto fukki there once");
+});
+
+test("a pid-less listing entry is not read as a live seat, and gets a resume request (fix 1)", () => {
+  const ws = workspace([
+    // The measured real shape (R-11, S-54): a sessionId with no pid and no
+    // status, for a process that already exited hours earlier.
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "blocked" },
+  ]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  writeSeats(ws, [
+    { sessionId: "sess-live", id: "bg07", name: "seat-live [ffffff]", role: "kanri", status: "running" },
+    { sessionId: "sess-gone", id: "bg08", name: "seat-gone [eeeeee]", role: "jisso", status: "running" },
+  ]);
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  const resumed = requests(ws).filter((r) => r.op === "resume");
+  assert.deepEqual(resumed.map((r) => r.sessionId).sort(), ["sess-gone", "sess-live"]);
+  assert.match(got.out, /tanto fukki/);
+});
+
+test("a Kanri resume that fails says so in one line and spawns a new Kanri", () => {
+  const ws = workspace();
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  writeSeats(ws, [{ sessionId: "sess-live", id: "bg07", name: "seat-live [ffffff]", role: "kanri", status: "gone" }]);
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  assert.equal(got.code, 0, got.err);
+  assert.match(got.err, /^tanto: the Kanri resume failed — .*unknown session sess-live.*; spawning a new Kanri$/m);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn" && r.role === "kanri").length, 1);
+  assert.match(got.out, /claude attach bg01/);
+});
+
+test("the trust hint comes before the attach line when .claude.json does not record the folder's trust", () => {
+  const ws = workspace([LIVE_KANRI]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  writeTrust(ws, false);
+  const got = launch(ws, [ws.root, "--timeout", "20000"]);
+  const lines = got.out.split(/\r?\n/);
+  const at = lines.indexOf("claude attach bg07");
+  assert.notEqual(at, -1, got.out);
+  assert.equal(lines[at - 1], TRUST);
+});
+
+test("no trust hint when .claude.json records the trust, is missing, or does not parse, and the file is never written", () => {
+  const ws = workspace([LIVE_KANRI]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  const file = path.join(ws.root, ".claude.json");
+  writeTrust(ws, true);
+  const recorded = fs.readFileSync(file, "utf8");
+  assert.equal(launch(ws, [ws.root, "--timeout", "20000"]).out.includes(TRUST), false);
+  assert.equal(fs.readFileSync(file, "utf8"), recorded);
+  fs.rmSync(file);
+  assert.equal(launch(ws, [ws.root, "--timeout", "20000"]).out.includes(TRUST), false);
+  assert.equal(fs.existsSync(file), false);
+  fs.writeFileSync(file, "{ not json");
+  assert.equal(launch(ws, [ws.root, "--timeout", "20000"]).out.includes(TRUST), false);
+  assert.equal(fs.readFileSync(file, "utf8"), "{ not json");
 });

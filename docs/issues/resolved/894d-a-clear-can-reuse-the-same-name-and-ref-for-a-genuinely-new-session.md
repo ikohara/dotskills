@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-20
+updated: 2026-09-23
 ---
 
 Source: session 2026-09-14
@@ -87,3 +87,10 @@ Nothing depended on the collision going unnoticed — the handover procedure's
 own transcript-path comparison caught it correctly, which is the same check the
 `seat-lineage` fix wave added above. The point for a future mechanism is the
 key: `(name, transcript)`, never `[ref]` alone.
+
+Resolved by the bg-seat-ergonomics design
+(`docs/superpowers/specs/2026-09-23-bg-seat-ergonomics-design.md`, 2.1): the
+key is the `sessionId` alone. Every match of a session to a roster row — a
+handshake, `/tanto fukki`, Kanri's start, the census — compares
+`sessionId`s, never a name, a `[ref]`, or a full path, so a name and a
+`[ref]` a `/clear` hands to a new session match no row.

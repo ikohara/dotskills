@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-22
+updated: 2026-09-23
 ---
 
 Source: inbox 2026-09-14-fukki-config-dir-mismatch
@@ -125,3 +125,11 @@ of this issue is the tab seats the human opens — Kaiseki, and any seat a human
 resumes by hand — where `/tanto fukki` still matches by transcript path and
 still breaks when `CLAUDE_CONFIG_DIR` changes under an identical file. The two
 proposed fixes stand as written for that narrower case.
+
+Resolved by the bg-seat-ergonomics design
+(`docs/superpowers/specs/2026-09-23-bg-seat-ergonomics-design.md`, 2.1 and
+2.6), for the tab seats too: the match is the Transcript column's basename,
+the `sessionId`, which is the same under either spelling of the config
+directory, and neither proposed fix is needed. After an editor restart a tab
+seat needs no `/tanto fukki` at all — Kanri's census finds it under its new
+name — and one typed there matches by the same basename.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-09-23
 ---
 
 Source: inbox 2026-09-15-roster-handshake-lifecycle-exit-guidance
@@ -28,14 +28,13 @@ a lifecycle rule the contract relies on and does not write.
   handover, then the carries for the next milestone, then the standing rulings,
   in a notes file under the topic directory. It exists today only by an
   outgoing session's own initiative.
-- **Every exit-file name needs a suffix, and the design and planning roles'
-  default has none.** `exit-sekkei-proposal.md` collides the moment a topic has
-  two Sekkei sessions in turn. One topic had three: the first claimed the bare
-  path and the later two improvised the outgoing session's own bare name as a
-  suffix, by precedent rather than by rule. The contract should name the suffix
-  rule for every role that can have more than one session in a topic's
-  lifetime, as it already does for Jisso (batch letter) and Kaiseki (case
-  number).
+- ~~**Every exit-file name needs a suffix, and the design and planning roles'
+  default has none.**~~ Closed by the bg-seat-ergonomics design
+  (`docs/superpowers/specs/2026-09-23-bg-seat-ergonomics-design.md`, 3.2):
+  every proposal file is keyed on the writing session,
+  `shoroku-proposal-<role>-<short id>.md`, with `-<n>` for a further file by
+  the same session, so a second session of one role in a topic writes a file
+  of its own. The item's evidence is in this file's history.
 
 The report's fourth item — that the expected-model config is re-read at the
 moment of each comparison — is **confirmed closed** by the contract's current

@@ -58,6 +58,19 @@ field explained beside it.
   `.claude/worktrees/`.
 - `addDir` — a list of directories, shoki's being the repository root, so
   that the scribe in its worktree can read `.tanto/`. Absent otherwise.
+- No field carries the seat's name or its settings: the spawner adds both
+  to every spawn itself — `--name <repo>-<role>[-<topic>]-<hex>`, from the
+  root's basename, `role`, and `topic`, and
+  `--settings '{"worktree":{"bgIsolation":"none"}}'`, which turns the CLI's
+  background isolation off for that seat alone — so a request carries
+  neither. A `resume` passes no flag at all: the CLI brings back the options
+  the spawn passed, as its note on the resume, which the spawner logs, lists
+  them — measured for the name, the setting, the model, and the permission
+  mode; whether it also brings back the effort is unmeasured. The
+  bg-seat-ergonomics design's own by-hand probe never listed it, and the
+  bg-seat-ergonomics plan's own measurement task could not check: a
+  workspace-trust gate refused the spawn — a fresh clone's folder trust
+  unset in `.claude.json` — before the resume step was reached.
 - `sessionId` — the seat's identity, for `stop`, `rm`, `resume`, and `ack`.
   Never a short id: the spawner maps one to the other from `seats.json`.
 - `message` — `attention`'s one line. A bare `<id>` in it is filled by the
@@ -65,13 +78,18 @@ field explained beside it.
   and not its short id, can still write the command the human types.
 
 A result carries the request's fields and the op's own: `spawn` adds `id`,
-`sessionId`, `name`, `cwd`, `transcript`, and `startedAt`; `stop` adds
-`stopped`; `rm` adds `removed` and the worktree it removed; `resume` adds the
-new `id` and `name` under the same `sessionId`; `attention` adds `notified`
-and `channel`; `ack` adds `acked`. An op that failed adds `error`, which
-carries the command's stderr, and nothing else — except `spawn`'s ad
-hoc-worktree guard, which also records the seat as `stopped` before
-returning `error`.
+`sessionId`, `name` — the seat's name from its spawn, as the listing's first
+sighting carries it — `cwd`, `transcript`, and `startedAt`; `stop` adds
+`stopped`; `rm` adds `removed` and the worktree it removed; `resume` adds
+the `id` and the `name` under the same `sessionId`, the name the one the
+spawn gave; `attention` adds `notified` and `channel`; `ack` adds `acked`.
+An op that failed adds `error`, which carries the command's stderr, and
+nothing else — except the ad hoc-worktree guard at a spawn's first
+sighting, which also records the seat as `stopped`, with `strayed: <cwd>`,
+before returning `error`. The same guard at a pass of the spawner's census
+writes no result file at all: `strayed: <cwd>` beside the seat's `stopped`
+in `seats.json`, the log line, and the toast
+`strayed: <role> <topic> <name> — <cwd>` carry it.
 
 At the plan close the topic's results move to
 `.tanto/<topic>/spawner-results/` with the archive move. The spawner deletes
