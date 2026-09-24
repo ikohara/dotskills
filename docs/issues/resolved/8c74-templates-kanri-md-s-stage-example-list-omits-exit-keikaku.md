@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-09-23
 ---
 
 Source: session 2026-09-13
@@ -28,3 +28,8 @@ be an unquoted edit to a path `diff` already treats as fully accounted for.
 
 Related: issue-e18b, issue-62e7 (the same "one file lists N things, another
 lists fewer" shape, from earlier batches of the same run).
+
+Resolved by the bg-seat-ergonomics design
+(`docs/superpowers/specs/2026-09-23-bg-seat-ergonomics-design.md`, 3.5): the
+example list and the column it described are both gone from
+`templates/kanri.md`.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-09-23
 ---
 
 Source: shoroku shoroku-at-close
@@ -26,3 +26,8 @@ literal `—` until the row is recommended, would close it; the template has to
 say which.
 
 A template gap, not a user-stated need, so no paired requirement.
+
+Resolved by the bg-seat-ergonomics design
+(`docs/superpowers/specs/2026-09-23-bg-seat-ergonomics-design.md`, 3.5):
+already closed in substance when the template gave one value for every row,
+and now the column itself is gone from `templates/roster.md`'s items table.

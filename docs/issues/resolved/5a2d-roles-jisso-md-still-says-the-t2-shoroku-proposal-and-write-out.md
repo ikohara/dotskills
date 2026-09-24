@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-09-23
 ---
 
 Source: session 2026-09-13
@@ -38,3 +38,9 @@ and an edit outside one puts an `unaccounted-added` line on
 Related: issue-7ba4, issue-c30e, issue-f902 (the same "found late, can't
 fix in-plan, self-contradiction within a role file" shape, from earlier
 batches of the same run).
+
+Resolved by the bg-seat-ergonomics design
+(`docs/superpowers/specs/2026-09-23-bg-seat-ergonomics-design.md`, 3.1):
+`roles/jisso.md`'s line 5 says the plan's last Jisso owns the close's
+shoroku proposal, as `SKILL.md` and the file's own section do; "and
+write-out" was already gone.

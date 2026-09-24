@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-22
-updated: 2026-09-22
+updated: 2026-09-23
 ---
 
 Source: shoroku tanto-bg-seats S-46
@@ -27,3 +27,10 @@ The decision is what the filename keys on when the window name recurs same-day:
 the transcript path (the identity the landed design already treats as
 authoritative, decision-8320), or a plain sequence number with the `-2` suffix
 reserved for its original meaning.
+
+Resolved by the bg-seat-ergonomics design
+(`docs/superpowers/specs/2026-09-23-bg-seat-ergonomics-design.md`, 3.2),
+by both: Kanri's proposal file is `.tanto/shoroku-proposal-kanri-<short id>.md`,
+keyed on the writing session's `sessionId`, and `-<n>` numbers a further file
+by the same session. Two tenures of one window are two sessions, and so two
+names.
