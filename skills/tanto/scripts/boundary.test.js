@@ -332,6 +332,45 @@ test("a second call rewrites only the cells its arguments name", () => {
   assert.ok(ledger.includes("check: pass — boundary pass, diff pass"));
 });
 
+test("a rework's key is a row of its own, and every earlier row keeps its cells (spec 1.3)", () => {
+  const fixture = ledgerAndRoster();
+  const record = (...args) => {
+    const result = run(["record", "--ledger", fixture.ledger, ...args], fixture.dir);
+    assert.strictEqual(result.code, 0, result.err);
+  };
+  const rowOf = (key) =>
+    fs
+      .readFileSync(fixture.ledger, "utf8")
+      .split(/\r?\n/)
+      .find((line) => line.startsWith(`| ${key} |`));
+  record("--batch", "B", "--tasks", "4-7", "--state", "rework", "--prompt", "batch-B-prompt.md");
+  record("--batch", "B", "--report", "batch-B-report.md", "--verdict", "Task 5 returned: its test pins the old line");
+  record("--batch", "fix wave", "--tasks", "fix wave", "--state", "rework", "--verdict", "one finding left open");
+  const firstPass = rowOf("B");
+  const fixWave = rowOf("fix wave");
+  record("--batch", "B-rework-1", "--tasks", "5", "--state", "planned", "--prompt", "batch-B-rework-1-prompt.md");
+  record("--batch", "B-rework-1", "--state", "rework", "--report", "batch-B-rework-1-report.md", "--verdict", "open");
+  record("--batch", "B-rework-2", "--tasks", "5", "--state", "planned", "--prompt", "batch-B-rework-2-prompt.md");
+  record("--batch", "fixwave-rework-1", "--tasks", "fix wave", "--state", "planned");
+  const ledger = fs.readFileSync(fixture.ledger, "utf8");
+  assert.strictEqual(rowOf("B"), firstPass, ledger);
+  assert.strictEqual(rowOf("fix wave"), fixWave, ledger);
+  assert.strictEqual(
+    rowOf("B-rework-1"),
+    "| B-rework-1 | 5 | rework | batch-B-rework-1-prompt.md | batch-B-rework-1-report.md | open |",
+  );
+  assert.strictEqual(rowOf("B-rework-2"), "| B-rework-2 | 5 | planned | batch-B-rework-2-prompt.md |  |  |");
+  assert.strictEqual(rowOf("fixwave-rework-1"), "| fixwave-rework-1 | fix wave | planned |  |  |  |");
+  const order = ["B", "fix wave", "B-rework-1", "B-rework-2", "fixwave-rework-1"].map((key) =>
+    ledger.indexOf(`| ${key} |`),
+  );
+  assert.deepStrictEqual(
+    [...order].sort((a, b) => a - b),
+    order,
+    ledger,
+  );
+});
+
 test("a State the Batches table does not name is refused and nothing is written", () => {
   const fixture = ledgerAndRoster();
   const before = fs.readFileSync(fixture.ledger, "utf8");
