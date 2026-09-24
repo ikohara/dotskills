@@ -1,7 +1,11 @@
-# Batch <X> — tasks <N> to <M> — Jisso <n> of this plan
+# Batch <key> — tasks <N> to <M> — Jisso <n> of this plan
 
 <!-- Sent as the one line `batch: <path>` naming this file. The file carries no
-`no-role` line of its own, because a file a line points at is not a message. -->
+`no-role` line of its own, because a file a line points at is not a message.
+`<key>` is the batch's letter — `fixwave` in the fix wave's paths — or, for a
+batch returned for rework, `<X>-rework-<n>`: a rework's prompt, report, and
+verdict are new files beside the first pass's, and the tasks in this title
+are the ones it runs again. -->
 
 Guard — this prompt belongs to the tanto workspace `.tanto/<topic>/` in
 `<repo path>` on branch `<branch>`. If that is not your workspace or your
@@ -70,7 +74,7 @@ boundary, write the report and go idle.
 
 ## Report
 
-Write `.tanto/<topic>/batch-<X>-report.md` from the tanto skill's
+Write `.tanto/<topic>/batch-<key>-report.md` from the tanto skill's
 `templates/batch-report.md`, then send the roster's first data row, read at
 that moment, one line with its
 path. Kanri reads these sections first, in this order — For Kanri, Rulings,

@@ -10,7 +10,7 @@ otherwise write by hand.
 Your dispatch names these arguments:
 
 ```text
-topic=<topic> batch=<X> plan=<plan path> report=<report path>
+topic=<topic> batch=<key> plan=<plan path> report=<report path>
 ledger=<.tanto/<topic>/kanri.md> roster=<.tanto/roster.md> base=<merge base>
 kanri-transcript=<Kanri's transcript path, from the roster's first data row>
 tanto=<the skill's own directory>
@@ -24,6 +24,12 @@ The last two lines are the two things you cannot see for yourself: the readings
 peers' last lines carried since the previous boundary, and the top-family
 dispatches a peer's line implied. They travel in the dispatch and go through
 `record`.
+
+`<key>` is the batch's own key: its letter on a first pass, and
+`<X>-rework-<n>` at the boundary of a batch returned for rework — `<X>` the
+batch's file letter, `fixwave` for the fix wave. A rework's prompt, report,
+and verdict are its own files, beside the first pass's, which you never
+write again.
 
 ## What you never do
 
@@ -64,7 +70,7 @@ only the resident can compare with its roster row.
 
    ```bash
    node "<tanto>/scripts/boundary.js" record --ledger <ledger> --roster <roster> \
-     --batch <X> --tasks <N-M> --state reported --report <report> \
+     --batch <key> --tasks <N-M> --state reported --report <report> \
      --verdict "<the check: line>" \
      --kanri "<name [ref]>" --kanri-reading "<Kanri's reading, with its ttl= line>" \
      --jisso "<name [ref]>" --jisso-reading "<Jisso's reading>" \
@@ -73,14 +79,23 @@ only the resident can compare with its roster row.
      --s-item "<source> | <item>" --event "dispatch: <kind> on <family>"
    ```
 
-   One `--s-item` per item of the report's Shoroku proposal section, one
+   `<N-M>` is the tasks the plan's Batches table gives the batch — at a
+   rework's boundary, the tasks its prompt's title names, since the plan
+   has no row for a rework. One `--s-item` per item of the report's Shoroku
+   proposal section, one
    `--peer-reading` per line the dispatch carried, one `--event` per top-family
    dispatch line it carried. The state you write is `reported` and nothing
    else: acceptance is a ruling, and the resident's own single `record` call
    carries it. Read what `record` prints — the rows it wrote — into the
    verdict file's Rows written.
 5. Render `.tanto/<topic>/batch-<Y>-prompt.md` for the next batch from
-   `templates/batch-prompt.md`: the plan's Batches table gives the next
+   `templates/batch-prompt.md`. `<Y>` is the batch after the letter the key
+   names — at a rework's boundary, the letter before `-rework-` in it — so
+   a rework's boundary renders the next batch's prompt again, as the first
+   pass's boundary did: that prompt has not been sent, so rendering it
+   again rewrites no file a seat has read, and the `planned` row you write
+   for it replaces, by `record`'s own idempotency, the one the first pass's
+   boundary wrote. The plan's Batches table gives the next
    batch's tasks, and the title's addressee slot reads `Jisso <n> of this
    plan` with **no name** — the seat that reads the file is the one the
    resident's `spawn` request will create, and the Guard paragraph binds it
@@ -107,17 +122,21 @@ only the resident can compare with its roster row.
    the resident's actually sending the prompt (or ruling a rework instead, in
    which case it is never sent) shows up in the roster's `--status ... live`,
    not in this table. Do not "fix" this to write the row's state as `sent`.
-   When the batch is the plan's last, write no prompt, make no second
-   `record` call, and say so under Next prompt.
-6. Write `.tanto/<topic>/batch-<X>-verdict.md`, below.
+   When the batch is the plan's last, the fix wave, or a rework of either,
+   there is no next batch: write no prompt, make no second `record` call,
+   and say so under Next prompt.
+6. Write `.tanto/<topic>/batch-<key>-verdict.md`, below.
 7. Reply with the one line, below, and nothing else.
 
 ## The verdict file
 
-`.tanto/<topic>/batch-<X>-verdict.md`. For the fix wave, `<X>` in this path and
-in the prompt's path is `fixwave`, while the `record` call's `--batch` carries
-the ledger row's own key, `fix wave`; the two strings differ by design, and the dispatch
-names the file path explicitly. Its first lines, before the headings,
+`.tanto/<topic>/batch-<key>-verdict.md`. For the fix wave's first pass,
+`<key>` in this path and in the prompt's path is `fixwave`, while the
+`record` call's `--batch` carries the ledger row's own key, `fix wave`; the
+two strings differ by design, there alone, and the dispatch names the file
+path explicitly. A rework of the fix wave is `fixwave-rework-<n>`, one
+string for its files and its row, as every rework key is. The file's first
+lines, before the headings,
 carry the report's `git hash-object` and the plan's, as a review brief does, so
 that a line number quoted under Failures has a fixed referent. Then eleven
 `##` headings in this order — and a twelfth, `Measurement`, when the batch carried

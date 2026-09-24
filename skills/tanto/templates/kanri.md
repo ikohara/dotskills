@@ -27,10 +27,14 @@ rewritten to `present` when the file lands and dropped once the spec cites it>
 
 ## Batches
 
-Columns: Batch, the letter; Tasks, the plan's task numbers; State, one of
-planned, reported, accepted, or rework; Prompt and Report, the two file
-names under `.tanto/<topic>/`; Verdict, one line — accepted, or what must
-change. One row per batch, added as the batch is planned; the placeholder row
+Columns: Batch, the batch's key — its letter, `fix wave` for the fix wave,
+or `<X>-rework-<n>` for a batch returned for rework; Tasks, the plan's task
+numbers; State, one of planned, reported, accepted, or rework; Prompt and
+Report, the two file names under `.tanto/<topic>/`; Verdict, one line —
+accepted, or what must change. One row per batch, added as the batch is
+planned, and one per rework: a batch returned for rework keeps its row,
+State `rework` and its Verdict the reason, and the rework runs under a row
+of its own, with its own Prompt, Report, and Verdict. The placeholder row
 stays until the first one is.
 
 The boundary-verify brief writes a next batch's row as `planned` once it has
