@@ -122,7 +122,7 @@ must rule on, so naming them saves nothing.
 Then dispatch the brief writer yourself, on `brief.write` —
 `subagent_type: tanto-brief-write` with its `model` — from
 `templates/review-brief.md`, naming the spec, its inputs, the output path
-`.tanto/<topic>/review-brief-spec.md`, the template, and the chat's language.
+`.tanto/<topic>/review-brief-spec.md`, the template, and the human's language.
 Run the form check of `SKILL.md`'s **The brief's form** over what comes back;
 on a failure dispatch once more, and on a second failure send the brief as it
 stands, with one line to the human saying what is wrong with it. You never

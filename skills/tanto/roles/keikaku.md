@@ -270,7 +270,7 @@ reports and prompts follow the tanto templates, and names nothing else.
 6. Dispatch the brief writer yourself, on `brief.write` —
    `subagent_type: tanto-brief-write` with its `model` — from
    `templates/review-brief.md`, naming the plan, its inputs, the output path
-   `.tanto/<topic>/review-brief-plan.md`, the template, and the chat's
+   `.tanto/<topic>/review-brief-plan.md`, the template, and the human's
    language. Run the form check of `SKILL.md`'s **The brief's form** over what
    comes back; on a failure dispatch once more, and on a second failure take
    the brief as it stands and say in `dialogue.md` what is wrong with it. You

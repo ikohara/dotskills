@@ -28,7 +28,8 @@ taking over mid-plan must not create a second ledger.
    `ListAgents` when the human typed `/tanto kanri` in a tab — and say your
    start line: the
    two config files and which fields came from which, the ladder result if
-   that check failed, and
+   that check failed, `language: <tag> (<layer>)` or `language: — (unset)`,
+   and
    `agents: <n> current, <m> written, <k> not visible to this session; project: <p> current, <q> written, <r> removed, <s> in effect`;
    your own `model` and `effort` against `sessions.kanri`, since you send no
    handshake and this start line is the only place your own two values are
@@ -43,7 +44,7 @@ taking over mid-plan must not create a second ledger.
    ```
 
    When the backstop's verdict is `below`, add one more line to the human, in
-   the chat's language: auto-compact would fire before your handover, and
+   the human's language: auto-compact would fire before your handover, and
    `/autocompact <value>` — `<value>` being the ceiling plus two more of
    `ceiling.kanri.per_batch`, rounded up to the nearest 50000, about 350000 at
    the defaults — would leave two batches of room between the ceiling and the
@@ -1071,7 +1072,7 @@ and the close reads them once.
    apply's input, with its destination, its one-line reason, and for a
    `design` entry the `req-<id>` it serves; a requirement or an ADR item
    carries the original wording followed by a reference translation in the
-   chat's language. An inbox item's destination is one of `issue`,
+   human's language. An inbox item's destination is one of `issue`,
    `fix — <file>`, `redirect — <where it belongs>`, `kaiseki — <one line>`,
    `relay — <topic>` (a live spec whose scope it is in), or `dismissed —
    <one line>` (no defect, or a duplicate); `issue`, `redirect`, `kaiseki`,
@@ -1079,7 +1080,7 @@ and the close reads them once.
    the human turns down goes `dismissed` with the direction's words as its
    reason. Name in the same dispatch the brief
    path — `.tanto/<topic>/shoroku-brief.md` — the template
-   `templates/shoroku-brief.md` in the skill directory, and the chat's
+   `templates/shoroku-brief.md` in the skill directory, and the human's
    language; the recommender writes both files in one run.
    <!-- markdownlint-disable MD038 -->
 3. **Check.** Check the brief's form, not its judgment, and never by reading
@@ -1097,7 +1098,7 @@ and the close reads them once.
    line what is wrong with it. Then the **kessai**: one request, one
    message, one answer. Write an `attention` request whose message is
    `kessai: <topic> — claude attach <id>`, the spawner filling the id from
-   `seats.json`, and print in your own window, in the chat's language:
+   `seats.json`, and print in your own window, in the human's language:
 
    ```text
    kessai: <topic> — recommendation <path>; brief <path>; adopt <a>, fix <f>, reject <r>, unsure <u>.
