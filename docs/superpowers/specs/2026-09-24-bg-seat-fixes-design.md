@@ -3,11 +3,14 @@
 Written by Sekkei `dotskills-1a [240a33]` (opus, max) on 2026-09-24 as a
 draft at `.tanto/bg-seat-fixes/spec-draft.md`, while `bg-seat-ergonomics`'s
 batch C was in flight (Kanri's orders line; `bg-seat-ergonomics` R-8, this
-topic's R-1). Nothing is committed until the checkout frees: the Keikaku
-spawned after `bg-seat-ergonomics`'s merge commits this text unchanged at
-`docs/superpowers/specs/2026-09-24-bg-seat-fixes-design.md`. The dialogue is
+topic's R-1). Nothing was committed until the checkout freed: when
+`bg-seat-ergonomics` merged into `main` (`a99aad2`) and Kanri cut the branch
+`bg-seat-fixes`, the Sekkei committed the reviewed text unchanged at this path
+(`ea06d80`, blob `91337603…`, the one the review brief names); the edits after
+the human's answers are the commit after it. The dialogue is
 `.tanto/bg-seat-fixes/dialogue.md`: the human's answers Q1 to Q9, the
-measurement M-1, Kanri's passage check P-1, and the reports' arrival E-1.
+measurement M-1, Kanri's passage check P-1, the reports' arrival E-1, and the
+answers to the review brief.
 
 **The skill this spec read.** Pinned at commit `a062698` ("docs: the
 contract's shoroku vocabulary — shoroku proposal, the close's files by the
@@ -21,7 +24,10 @@ whole-branch review and fix wave. Batches C and D rewrite most of the files
 this spec touches, so every site below is named by its file and heading,
 never by a line number, and a quoted phrase is a needle to find the site, not
 the text to replace. The plan re-reads every site at `bg-seat-ergonomics`'s
-merge commit before it writes a passage.
+merge commit, `a99aad2`, before it writes a passage — the review brief's one
+`decide` point, answered by the spec's own answer. Checked by the Sekkei at
+`8072b88`, that topic's last commit before the merge: every heading named here
+exists, and the language sites of 6.5 still count 22.
 
 **Item 2 was written last.** Its two reports reached this repository's inbox
 while the other items were designed; the first names its cause, so its
@@ -170,6 +176,12 @@ names the batch: `batch-<key>-prompt.md`, `batch-<key>-report.md`,
 `batch-<key>-verdict.md`, the Batches table's Batch cell, `boundary.js
 record --batch <key>`, and the boundary dispatch's `batch=<key>`.
 
+A rework's key is built from the batch's file `<X>` — its letter, or `fixwave`
+for the fix wave, whose own Batches row is keyed `fix wave` by design
+(`templates/boundary-brief.md`, "The verdict file"). So a rework of the fix
+wave is `fixwave-rework-<n>`, one string for its files and its row, as every
+rework key is.
+
 ### 1.2 What is never rewritten
 
 A prompt, a report, or a verdict under `.tanto/<topic>/` that belongs to a
@@ -212,7 +224,9 @@ a ledger that has a `B` row appends a row and leaves `B`'s cells as they were.
   brief, as at the first pass's boundary: the brief's step 5 finds the next
   batch as the one after the letter before `-rework-` in the key, and the
   `planned` row it writes for that batch replaces, by `record`'s own
-  idempotency, the one the first pass's boundary wrote.
+  idempotency, the one the first pass's boundary wrote. A rework of the
+  plan's last batch, or of the fix wave, has no next batch, and the brief
+  renders none, as for the last batch itself.
 
 ### 1.5 A Jisso reads every `batch:` line's file
 
@@ -381,7 +395,7 @@ it in `runCensus`, `cmdCensus`, and the launcher's map, with a test for each,
 and `SKILL.md`'s sentence "An entry with no `pid` is not listed." — not in
 `findResumed`, whose lookup still takes the first entry of the `sessionId`.
 What landed is verified here, not written again: the plan checks it against
-3.2 and 3.3 at `bg-seat-ergonomics`'s merge commit and writes what is still
+3.2 and 3.3 at `bg-seat-ergonomics`'s merge commit, `a99aad2`, and writes what is still
 missing — at `f50056d`, `findResumed`'s `pid` condition and its test, and
 3.2 item 3's Not listed note.
 
@@ -632,8 +646,8 @@ which does not exist today. The README's Optional paragraph says so.
 
 ## 7. File by file
 
-Sites by heading, as of `a062698` and `de267f3`; the plan re-reads each at
-`bg-seat-ergonomics`'s merge commit.
+Sites by heading, as of `a062698` and `de267f3`, checked again at `8072b88`;
+the plan re-reads each at `bg-seat-ergonomics`'s merge commit, `a99aad2`.
 
 - `skills/tanto/SKILL.md` — "The expected-model config" (6.1, its "Three
   maps" sentence; 6.2; 6.4); "Handshake and roster": the Status column's
@@ -814,9 +828,10 @@ Written by the close's apply under `docs/decisions/`.
   handled by it from the start. The plan cites Q2 as the
   approval for `AGENTS.md`'s one sentence.
 - Before any passage: every site of section 7 re-read at
-  `bg-seat-ergonomics`'s merge commit, and any site that batch C, batch D, or
-  that topic's fix wave moved or rewrote named in the plan — the review brief's
-  `decide` point.
+  `bg-seat-ergonomics`'s merge commit, `a99aad2`, and any site that batch C,
+  batch D, that topic's fix wave, or its close's text corrections (`8072b88`)
+  moved or rewrote named in the plan — the review brief's `decide` point, which
+  the human answered with the spec's own answer.
 - A batch of the instruments: section 3's four readers and their tests, and
   1.3's `record` test. The tests run with the fake `claude` and a fake config
   directory, never the real CLI. No measurement task: M-1 is the measurement
@@ -852,7 +867,7 @@ three and all three succeeded; the dogfood report records the first failure.
   of translating them) — a neighbor of 6.5's templates, not taken: a rendering
   defect the form check already catches, not a language source.
 - The duplicate `S-n` numbers of `bg-seat-ergonomics`'s ledger — issue-e84c's
-  defect recurring; the Sekkei's exit proposal carries it.
+  defect recurring; the Sekkei's shoroku proposal carries it.
 - issue-11db (rule 11 and another topic's live session) —
   `bg-seat-ergonomics`'s R-8 feeds it at that topic's close.
 
