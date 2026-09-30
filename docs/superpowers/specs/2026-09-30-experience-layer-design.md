@@ -183,8 +183,13 @@ brief's third section reads the pairing from here.)
 20. **The wait list, settled** (Q2, **D-2**): issue-3bbb and issue-a331
     enter; issue-320e is absorbed; issue-c9df closes with proposals 1, 2, 3
     and 5 met and proposal 4 rejected (Issues this design closes); issue-2c4d
-    is named and not solved; issue-c4b2, issue-13a1, issue-e916, issue-0d43,
-    issue-52fd, issue-abaf stay out, each for the reason Out of scope gives.
+    is named and not solved; issue-c4b2, issue-13a1, issue-e916,
+    issue-52fd, issue-abaf stay out, each for the reason Out of scope gives;
+    issue-0d43 is taken in passing (section 6). And, from the wait list's
+    fourth bullet, which Q2 omitted and Q4 settled (**D-7**): issue-a9c3 and
+    issue-c477 enter as one sentence each in the decisions template
+    (section 5); issue-d922 stays out by its own text — decide it when a
+    base is first retired.
 21. **The tanto riders stay out of this plan** (the decision file §10, §15;
     "Where it sits in the queue"). The T1 Sources sentence and the T2
     `exp-` citation count are for the orders line of the next tanto topic;
@@ -198,7 +203,9 @@ brief's third section reads the pairing from here.)
 23. **The exit criterion is §15's two tiers, and it is written down as a
     note** (the decision file §15; D-6). Primary: `exp-` items a topic's
     documents cite that the human did not raise in that topic's dialogue;
-    zero across several consecutive topics is the fold-back signal.
+    zero across three consecutive topics is the fold-back signal — the
+    decision file said "several", and the human set the number at three in
+    Q4 (**D-8**).
     Secondary: the counts the artifacts already carry, compared within one
     model family. Not used: "I rejected that already" remarks. Serves none.
 
@@ -763,7 +770,18 @@ language other than the documents' appears; a reader takes the four sections
 above it and reads Sources only to verify where a line came from." The
 sentence before the block, "Use these sections; keep them short, or omit any
 for a trivial decision", gains "— Sources only when there are quotes to
-hold".
+hold". Two more sentences, from the wait list's ADR-rules issues (D-7): the
+opening paragraph's "ADRs are **append-only and immutable** once accepted;
+you never rewrite the body" gains, after it, "One exception: an ADR
+accepted on a branch that has not reached the default branch may be
+corrected in place until that branch is merged, the correction dated in its
+own text — an unmerged ADR has no reader outside the run that wrote it; once
+merged, the only moves are amend and supersede below." (issue-c477). And the
+second paragraph, on citing managed entries by `<type>-<id>`, gains "A plain
+path named in an accepted body is read as of the ADR's date and is never
+repaired; what the tree looks like now is `{{design}}/`'s to say."
+(issue-a9c3). Both issues move to `resolved/` in the batch A task that
+lands the templates.
 
 **`templates/docs/issues/AGENTS.md`** — the second paragraph's "the need
 itself is a requirement fragment and the issue records only the gap — see
@@ -1058,8 +1076,8 @@ written (I-1).
    `git mv` issue-320e and issue-c9df to `docs/issues/resolved/`, bumping
    `updated:` and naming both paths of each move under `git commit --only`
    (issue-9350); apply section 8 to the three design files; this
-   repository's `CONTRIBUTING.md` and `README.md` line 54 (section 5, and
-   Answers to the spec inputs for the approval). Lint by file path; one
+   repository's `CONTRIBUTING.md` and `README.md` line 54 (section 5; the
+   human approved both edits in Q4, D-9). Lint by file path; one
    commit.
 3. Verify (Verification) and write the dogfood report (section 11).
 
@@ -1088,7 +1106,8 @@ batch A; its `# H1` is its title, no frontmatter. Content, in prose:
   Until a tanto topic gives the count to the close's recommender or to
   Kanri (Deferred items 2), it is run by hand at the close and written into
   the topic's dogfood report. **Zero across three consecutive topics is the
-  fold-back signal**: fold the hub's Cast, Drivers, and Won't into
+  fold-back signal** (the number is the human's, set 2026-09-30): fold the
+  hub's Cast, Drivers, and Won't into
   `AGENTS.md` and drop the scenes.
 - **Secondary — counts the artifacts already carry**, compared only across
   topics whose roster rows show the same model family for the seat that
@@ -1141,7 +1160,8 @@ It is not the exit criterion's baseline; section 10 says what is.
 | `docs/experience.md` | section 3, from the input §1 | A |
 | `docs/experience/<id>-<slug>.md` × 7 | the input §1 scenes, §11 corrections, §4 quotes | A |
 | `skills/kisou/SKILL.md`, `README.md` | section 6 | A |
-| `docs/issues/resolved/3bbb-…`, `a331-…` | moved, section 6 | A |
+| `docs/issues/resolved/3bbb-…`, `a331-…`, `0d43-…` | moved, section 6 | A |
+| `docs/issues/resolved/a9c3-…`, `c477-…` | moved, section 5 | A |
 | `skills/shoroku/SKILL.md`, `README.md` | section 7 | A |
 | `docs/notes/experience-layer-exit-criterion.md` | new, section 10 | A |
 | `.tanto/experience-layer/migration-recommendation.md`, `-brief.md` | the recommend dispatch's output (untracked) | B |
@@ -1151,7 +1171,7 @@ It is not the exit criterion's baseline; section 10 says what is.
 | `docs/design/**`, `docs/issues/open/**`, `docs/issues/deferred/**`, `docs/notes/**` | `req-` → `exp-` | C |
 | `docs/issues/resolved/320e-…`, `c9df-…` | moved | C |
 | `docs/design/e3f4-shoroku.md`, `c1d2-kisou.md`, `4807-tanto.md`, `a5b6-automated-release.md` | section 8 | C |
-| `CONTRIBUTING.md`, `README.md` line 54 (this repository) | section 5; root Markdown, approved by the human (Answers to the spec inputs) | C |
+| `CONTRIBUTING.md`, `README.md` line 54 (this repository) | section 5; root Markdown, approved by the human (Q4, D-9) | C |
 | `docs/reports/<date>-experience-layer-dogfood.md` | section 11 | C |
 
 Untouched: `scripts/check_md_frontmatter.py`, `.pre-commit-config.yaml`,
@@ -1339,8 +1359,8 @@ For Keikaku.
   (issue-235b); `./scripts/lint.sh` takes file paths, never a directory
   (issue-5050); the human's answers to this spec's review brief are the
   approval under which the agent-instruction files `docs/**/AGENTS.md` are
-  rewritten, and the human's answer to Q4 (Answers to the spec inputs) the
-  approval for the root `README.md` and `CONTRIBUTING.md` lines.
+  rewritten, and the human's answer to Q4 (D-9, in the dialogue) the approval for
+  the root `README.md` and `CONTRIBUTING.md` lines.
 - **Batches**: A (sections 2 to 7, 10), B (section 9's one task), C
   (section 9's tasks, sections 8, 11, and Verification). Three or four
   tasks per batch; A may be two batches if its task count asks for it, the
@@ -1377,7 +1397,8 @@ names files, never a directory (issue-5050).
   (both in the recommend-mode paragraph) and
   `grep -c 'Kano\|RFC 2119' skills/shoroku/SKILL.md` is 0 (the rule stayed
   in the type file); `test ! -e skills/kisou/templates/docs/requirements/AGENTS.md`;
-  `ls docs/issues/resolved/3bbb-* docs/issues/resolved/a331-*` lists both;
+  `ls docs/issues/resolved/3bbb-* docs/issues/resolved/a331-* docs/issues/resolved/0d43-* docs/issues/resolved/a9c3-* docs/issues/resolved/c477-*`
+  lists five;
   `grep -c '<!--' skills/kisou/templates/docs/experience.md` is 2 and
   `grep -c '<!--' docs/experience.md` is 0.
 - After B: both files exist; `grep -c '^## Recommended\|^## Unsure' .tanto/experience-layer/migration-recommendation.md`
@@ -1413,6 +1434,10 @@ names files, never a directory (issue-5050).
   `SKILL.md` changes, and the review in section 6 may fix it in passing
   without widening the plan), issue-52fd (a measurement Kanri schedules),
   issue-abaf (stays deferred; a scene is a longer item but there are fewer).
+- issue-d922 (what an amendment means once its base is retired): the
+  wait list sent it to this pass with a9c3 and c477; it stays out by its own
+  text — "decide it when a base is first retired" — and the human agreed
+  (D-7).
 - `scripts/check_md_frontmatter.py`: no per-type schema for scenes now; a
   later tooling topic may add the `[inferred]`-cap check there.
 - The chat-side custom skill's packaging: the two files are what is
@@ -1454,8 +1479,9 @@ section 9's rewrite), `pairing` (320e, c9df, e916), `seven targets` (a331),
 - **issue-235b**, **issue-ea3c**, **issue-5050**, **issue-9350** — not
   closed; their rules are carried into the Global Constraints so that this
   plan does not repeat them.
-- The three ADR-rules issues **a9c3**, **c477**, **d922** — see Answers to
-  the spec inputs, Q4.
+- **issue-a9c3** and **issue-c477** — one sentence each in the decisions
+  template, section 5 (D-7). Moved to `resolved/` in batch A. **issue-d922**
+  stays open (Out of scope).
 
 ## Answers to the spec inputs
 
@@ -1481,6 +1507,13 @@ section 9's rewrite), `pairing` (320e, c9df, e916), `seven targets` (a331),
 
 The rider (Fixed input 22) came in the orders line and is answered by
 section 5.
+
+The spec review's three scope findings went to the human as Q4 and were
+answered 2026-09-30 (the dialogue): (1) 「そのとおりで」 — a9c3 and c477 in,
+d922 out (D-7); (2) 「3で良い」 — three consecutive topics (D-8); (3)
+「承認する」 — the root `README.md` line 54 and `CONTRIBUTING.md` lines 24,
+35–36, 43 may be edited in batch C (D-9). The approval is recorded here and
+in the dialogue, which is what `AGENTS.md`'s Never-do asks for.
 
 ## Deferred items
 
