@@ -212,7 +212,7 @@ Measured 2026-09-30 on `main` at `0c492cb`, before any edit.
   `## Required behavior`, `## Out of scope`. Plus `AGENTS.md`, 62 lines.
 - `req-` references by document class: living documents 68 lines
   (`docs/design/` 29 — tanto 22, kisou 3, shoroku 3, automated-release 1;
-  `docs/issues/open/` 38 lines in 37 files; `docs/issues/deferred/` 1);
+  `docs/issues/open/` 38 lines in 36 files; `docs/issues/deferred/` 1);
   ADRs 38 lines in 23 files; dated reports 3 files; `docs/superpowers/**`
   the rest, outside the six types. By id: `req-04f5` 275, `req-3c4d` 51,
   `req-1a2b` 40, `req-d4e5` 1 (the example in `docs/AGENTS.md`), `req-7a8b`
@@ -303,14 +303,20 @@ asked about last week. …
 
 ## Sources
 
-- [75bc] 「可能なら、その明文化を独立したステップに置かず、Shoroku の中で会話の中からAIが抽出してくれるのが理想だ」 (chat, 2026-09-13)
-- [802f] inferred from 75bc and 0cfa; not stated directly. Confirmed 2026-09-15 (Kikaku, `2026-09-15-experience-layer.md` §11).
+- [75bc] 「可能なら、その明文化を独立したステップに置かず、Shoroku の中で会話の中からAIが抽出してくれるのが理想だ」 (chat, 2026-09-13 to 15)
+- [802f] inferred from 75bc and 0cfa; not stated directly. Confirmed 2026-09-15: 「あとは yes」
 ```
 
-The ids above are the input's own; the plan writes the seven scenes with the
-input's ids, titles from its scene headings, `actors` and `tags` chosen by
-the implementer from the scene's text, and `created` = `updated` = the
-commit date. Scene A's `2b72` is the one open question the input carries;
+The item ids above are the input's own; the **file id** is not — the input's
+scenes are lettered A to G and carry no document id, so the scenes task
+draws seven new ids under section 2's Identifiers (the pool check and the
+letter rule) when it writes them. The plan writes the seven scenes with the
+input's item ids, titles from its scene headings, `actors` and `tags` chosen
+by the implementer from the scene's text, `created` = `updated` = the commit
+date, and every `[confirmed]` entry quoting the decision file §11's words —
+「あとは yes」 for the seven lines confirmed as worded, the two corrections'
+quotes for 16c2 (which §11 makes `[stated]`, so its entry is a plain quote)
+and 3b2d. The four Won't items are written without a trust tag (section 3). Scene A's `2b72` is the one open question the input carries;
 the decision file §12 resolved it (f33b), but no ADR records that yet, so
 batch A writes the line with no arrow, and the close's apply appends
 `→ decision-<id>` when it writes the ADR of The ADRs 7 — the rule of
@@ -405,11 +411,13 @@ One line each:
   Sources names the basis items and gives a one-line reason. `[confirmed]`
   — inferred, then confirmed by the human. **An `[inferred]` expectation is
   SHOULD or SHOULD NOT at most**; a constraint on the agent's own inference
-  is the mistake this tag exists to prevent. The human's answer at
-  `Direction?` is the confirmation: an accepted `[inferred]` line becomes
-  `[confirmed]`; a line the human corrected becomes `[stated]`, the
-  correction quoted in Sources as given; an unanswered line stays
-  `[inferred]`.
+  is the mistake this tag exists to prevent. **The human's confirmation is
+  the gate**, and it is the existing one: the answer at `Direction?`, or the
+  direction file a caller writes from the human's answer. An accepted
+  `[inferred]` line becomes `[confirmed]`, its Sources entry quoting the
+  words of the confirmation; a line the human corrected becomes `[stated]`,
+  the correction quoted as given; an unanswered line stays `[inferred]`. No
+  expectation is written on the classifier's own judgment.
 - **Vocabulary.** An expectation that names a path, a command, a config
   key, a file format, a role count, or a tool by name reads as design.
   Offer it as a `{{design}}/` candidate, or in an abstract rewrite beside the
@@ -425,13 +433,15 @@ One line each:
 - One entry per item id, in the order the items appear:
   `- [<id>] 「<verbatim quote>」 (<where and when>)` for a stated item;
   `- [<id>] inferred from <ids> and 「<quote>」; not stated directly` for an
-  inferred one, with the confirmation noted when it came.
+  inferred one; and, once confirmed,
+  `- [<id>] inferred from <ids>; not stated directly. Confirmed <date>: 「<the human's words>」`.
 - Quotes are the actor's own words, in the language they were said in. This
   is the only place a language other than the documents' appears; there are
   no parallel translated documents.
-- **Do not read Sources unless verifying provenance.** A reader who wants
-  the scene reads the three sections above it; a heading-wise read stops
-  before Sources.
+- **Do not read Sources unless verifying where a line came from.** A
+  reader who wants the scene reads the three sections above it; a
+  heading-wise read stops before Sources. This is the one statement of that
+  rule; Reading path points here.
 - The human may redact a quote when accepting the item; a redaction is the
   human's act, never the agent's.
 
@@ -447,17 +457,24 @@ layer:
 ## Won't     — what the human has ruled out for the project, one line each, with an id
 ```
 
-No scene index and no generated region: the directory listing is the index.
-Scaffolded once from the template skeleton and never refreshed from it — its
-content is the project's.
+No scene index and no generated region: the directory listing is the index
+(File says the same of this directory). Drivers and Won't items carry no
+trust tag — the hub is the human's own words by construction. Scaffolded
+once from the template skeleton and never refreshed from it — its content is
+the project's.
 
 ## Identifiers
 
 - Scene ids are document ids, drawn as the top-level `AGENTS.md` says.
   Expectation, driver, open-question, and Won't ids are **item ids**, drawn
-  from the same pool with the same check: before using one, both
-  `{{docs}}/**/<id>-*.md` and a `**<id>**` line anywhere under
-  `{{docs}}/{{experience}}/` or in the hub must be absent.
+  from the same pool with the same checks: before using one, no file
+  `{{docs}}/<type>/**/<id>-*.md` exists, no `**<id>**` line exists under
+  `{{docs}}/{{experience}}/` or in the hub, and no commit ever used it
+  (`git log --all --oneline -S'<id>' -- {{docs}}` prints nothing) — an id
+  once written is never reused, because a frozen document may cite it.
+- An id that arrives from outside the tree — a chat handover's — and
+  collides is re-rolled at ingestion, and the bundle's references to it are
+  rewritten before anything is written.
 - A reference to a scene is `exp-<id>`; to an item, `exp-<item-id>` — one
   form. Resolve by lookup: a file `{{docs}}/{{experience}}/<id>-*.md`, else
   the `**<id>**` line inside one of them or the hub. A `←` link in the hub
@@ -491,9 +508,7 @@ express is not an expectation: drop it, salvaging any reason it embeds.
   it. Filing the issue alone loses the expectation.
 - A small want folds into an existing scene as one line; a new scene only
   for a situation no scene covers. Never one file per sentence.
-- The human's confirmation is the gate. An expectation is proposed and
-  accepted at `Direction?`; it is never written on the classifier's own
-  judgment.
+- The gate is the one Expectations names under the trust tag.
 
 ## Reading path
 
@@ -502,7 +517,7 @@ express is not an expectation: drop it, salvaging any reason it embeds.
 - Planning: the above plus `{{design}}/`.
 - Implementing: what the plan links, and nothing more.
 - A human: `README` → `CONTRIBUTING` → the hub.
-- Nobody reads `## Sources` except to verify where a line came from.
+- `## Sources` is read as Sources says: only to verify where a line came from.
 
 ## Situations
 
@@ -552,31 +567,75 @@ the code no longer has, they stop trusting the docs.
 
 Experience is a living type. A scene the project has outgrown is rewritten
 or deleted, not marked; an expectation that no longer holds is removed and
-its Sources entry with it. History is the record. Split a scene that grew a
-second situation; fold two that describe one.
+its Sources entry with it. History is the record, and a removed id is never
+drawn again (Identifiers). Split a scene that grew a second situation; fold
+two that describe one.
 ````
 
-Two remarks for the implementer. The worked example's quotes are the
+Three remarks for the implementer. The worked example's quotes are the
 input's §4 quotes for those ids, so that the example is true of this
-repository; a fresh scaffold ships the same example, which is what the
-decision file §3 asks for. And the template carries the four-backtick fence
-only in this spec — in the file, the outer fence is not there, and the inner
-fences are ordinary triple-backtick fences.
+repository; a fresh scaffold ships the same example — the decision file §3
+asked for "about fifteen lines" and this one is about thirty with its
+frontmatter and Sources, which is the smallest a complete scene gets. The
+template carries the four-backtick fence only in this spec — in the file,
+the outer fence is not there, and the inner fences are ordinary
+triple-backtick fences. And this file, its siblings, and their installed
+copies are agent-instruction files under this repository's `AGENTS.md`
+"Never do"; the human's answers to this spec's review brief are the explicit
+approval, as they were for the 2026-09-09 requirement-extraction plan, and
+the plan says so in its Global Constraints.
 
 ## 3. `skills/kisou/templates/docs/experience.md` — the hub skeleton, new
 
 Scaffold-only. Copied once by kisou's Step 3 (scaffold) item 3 to
-`{{docs}}/{{experience}}.md` with its `<...>` filled or left for the author;
-**not** in `doc-system-check.js`'s `targetSet`, so migrate never compares it
-and the pre-commit hook never reads it. Linted like the other doc-system
-templates.
+`{{docs}}/{{experience}}.md` — its `{{name}}` expanded as in step (a), its
+`<...>` filled from the inputs where they are known and left for the author
+otherwise, its `TEMPLATE FILL` block deleted as in step (d); **not** in
+`doc-system-check.js`'s `targetSet`, so migrate never compares it and the
+pre-commit hook never reads it. It sits under `skills/kisou/templates/docs/`,
+which this repository's markdownlint **does** lint (only
+`skills/kisou/templates/*.md` is ignored), and a bare `<actor>` is `MD033`
+inline HTML to markdownlint (measured by the spec review: seven errors on a
+first draft). So the template carries a `TEMPLATE FILL` block — which is what
+makes its `<...>` free text under decision `0590`'s rule, as for every
+layer-B file — and a `markdownlint-disable MD033` comment the author deletes
+with the fill; decision `19ea`'s "every template markdownlint-clean" holds.
 
 ```markdown
+<!-- TEMPLATE FILL: replace every <...> below with the project's own words;
+     delete this block and the markdownlint-disable line once no <...> remains. -->
+<!-- markdownlint-disable MD033 -->
 # Experience
 
 The goal layer of <project name>: who uses it, what they take for granted,
 and what the maintainer has ruled out. Scenes live in `{{experience}}/`; this
 file is hand-written and is the first thing to read.
+
+## Cast
+
+- **<actor>** — <who they are and how they meet the project, one line>
+
+## Drivers
+
+At most five at MUST level. Each generalizes the expectations it points at.
+
+- **<id>** MUST|MUST NOT|SHOULD|SHOULD NOT <the driver> ← exp-<id>, exp-<id>
+
+## Won't
+
+What has been ruled out for this project, so that nobody proposes it again.
+
+- **<id>** <the thing not to build, and in one clause why>
+```
+
+For dotskills, batch A writes `docs/experience.md` from the input's §1
+Cast (maintainer, agent, collaborator), its five Drivers (`b76a`, `bf60`,
+`c018`, `c233`, `c60e` with their `←` lists in `exp-` form), and its four
+Won't items (`cab7`, `d061`, `d1b9`, `d443`), the intro line rewritten for
+dotskills and both comment lines gone. Neither Drivers nor Won't items carry
+a trust tag — the hub is the human's own words by construction, and the
+type rules say so — so the `[stated]` the input wrote on the four Won't
+items is dropped.
 
 ## Cast
 
@@ -633,6 +692,12 @@ is empty" with "Before creating, run both checks above" and add: "A new id
 contains at least one of `a` to `f` — an all-digit `#1234` autolinks to a
 GitHub issue; re-roll otherwise. Existing all-digit ids stay."
 
+**Document management**, the first paragraph — "four **managed** … and two
+**flat**" stands and gains, after the table's addendum above, nothing more:
+the hub is the addendum's subject. The **`<id>`** bullet, last: add "An id
+any commit ever used is not drawn again — `git log --all --oneline -S'<id>' -- {{docs}}`
+prints nothing — because a frozen document may cite it."
+
 **Cross-references** — the example line becomes
 `exp-d4e5` · `design-f6a1` · `decision-a3f7` · `issue-b9c2`; add after it:
 "An `exp-` reference names a scene or an item in one — `exp-<id>` for
@@ -643,6 +708,11 @@ paragraph of the section: "A `req-<id>` reference in a document older than
 this layer names a `requirements/` file the project folded into
 `{{experience}}/`; the file and the fold are in history, and the reference
 is not rewritten in a frozen document."
+
+The paragraph "**The flat types are the exception.** `{{notes}}/` and
+`{{reports}}/` have no `<id>`, so they are cited by **path**" gains the hub:
+"— and so is the hub, `{{docs}}/{{experience}}.md`, a fixed name that never
+moves."
 
 **Session shoroku (excerpting)** — step 2: "Classify each fragment as
 exactly one of experience / design / decision / issue. The type files define
@@ -690,7 +760,10 @@ one line:
 
 and, after the block, one sentence: "`## Sources` is the one place a
 language other than the documents' appears; a reader takes the four sections
-above it and reads Sources only to verify where a line came from."
+above it and reads Sources only to verify where a line came from." The
+sentence before the block, "Use these sections; keep them short, or omit any
+for a trivial decision", gains "— Sources only when there are quotes to
+hold".
 
 **`templates/docs/issues/AGENTS.md`** — the second paragraph's "the need
 itself is a requirement fragment and the issue records only the gap — see
@@ -698,11 +771,15 @@ itself is a requirement fragment and the issue records only the gap — see
 filed alone loses the requirement." becomes "the want itself is an
 expectation and the issue records only the gap — see "experience vs issues"
 in `{{docs}}/{{experience}}/AGENTS.md`. An issue filed alone loses the
-expectation." Body gains, after its one paragraph: "The body opens with one
-line, `Source: <kind> <pointer>`, the first non-empty line after the
-frontmatter — `inbox <YYYY-MM-DD>-<slug>`, `shoroku <topic>[ S-<n>]`,
-`hotfix <commit subject>`, or `session <YYYY-MM-DD>`: a pointer to where the
-issue came from, never a class word." (Fixed input 22.)
+expectation." Body — its one sentence "Narrative starts directly after the
+frontmatter — no body `# heading` (avoids `MD025` against the frontmatter
+`title:`)." becomes "The body opens with the `Source:` line below, then the
+narrative; no body `# heading` (avoids `MD025` against the frontmatter
+`title:`)." and gains after it: "The `Source:` line is one line,
+`Source: <kind> <pointer>`, the first non-empty line after the frontmatter —
+`inbox <YYYY-MM-DD>-<slug>`, `shoroku <topic>[ S-<n>]`, `hotfix <commit subject>`,
+or `session <YYYY-MM-DD>`: a pointer to where the issue came from, never a
+class word." (Fixed input 22.)
 
 **`templates/CONTRIBUTING.md`** — the TEMPLATE FILL list's `{{requirements}}`
 becomes `{{experience}}`; the Project structure line becomes
@@ -736,9 +813,10 @@ check ignores it).
 - Step 2, the dir-names mapping list: `{{requirements}}` → `{{experience}}`.
 - Step 3 (scaffold) item 3 — create `{experience,design,decisions,notes,reports}/`;
   add: "Copy `templates/docs/experience.md` to the cased docs root as the
-  hub, filling its `<...>` from the inputs where they are known and leaving
-  the rest for the author; this file is written once and is not a
-  doc-system copy the instrument checks."
+  hub, expanding its `{{name}}` as in step (a), filling its `<...>` from the
+  inputs where they are known and leaving the rest for the author, and
+  deleting its `TEMPLATE FILL` block as in step (d); this file is written
+  once and is not a doc-system copy the instrument checks."
 - Step 3 (migrate), the doc-system classification — "(requirements / design /
   decisions / issues)" → "(experience / design / decisions / issues)". The
   `none` bullet — old "all seven targets are absent"; new "all five tallied
@@ -772,7 +850,14 @@ lists of the real-copy tests (`## experience vs issues` replaces
 re-inserted" test follows section 2's headings). One new test: a docs
 directory holding `requirements/AGENTS.md` and no `experience/AGENTS.md`
 produces the `create: experience/AGENTS.md` item and the note above; one
-holding both produces no note. `node --test skills/kisou/scripts/` passes.
+holding both produces no note. `node --test 'skills/kisou/scripts/*.test.js'`
+passes — the quoted glob, never the directory form, which fails on this host
+(issue-235b, measured again by the spec review: the directory form fails,
+the glob passes 57 of 57).
+
+The same batch A task that edits `SKILL.md` moves issue-3bbb and
+issue-a331 to `docs/issues/resolved/` with `git mv`, bumps their `updated:`,
+and names both paths of each move under `git commit --only` (issue-9350).
 
 **`skills/kisou/README.md`** — reviewed for drift after `SKILL.md` changes;
 its lines 9 and 42 name the doc-system without naming types, so the review
@@ -780,7 +865,11 @@ is expected to find one place at most.
 
 **`skills/shoroku/README.md`** — lines 9 to 10, "the four managed —
 **requirements**, **design**, **decisions** (ADRs), **issues**" →
-"**experience**, **design**, **decisions** (ADRs), **issues**".
+"**experience**, **design**, **decisions** (ADRs), **issues**"; and, since
+the file is open, its lines 3 to 5 "excerpts a working session, or
+accumulated memory" gain the third mode, "or named Markdown files" —
+issue-0d43's one-word fix, taken in passing (D-2 left it to the drift check;
+the review named the sentence, so the plan names the edit).
 
 ## 7. `skills/shoroku/SKILL.md`
 
@@ -835,10 +924,33 @@ Living documents, updated in batch C when the rest of `docs/` changes.
   `exp-` items batch C's pairing pass assigns.
 - `c1d2`: the Shape paragraph "four managed (`requirements` / `design` /
   `decisions` / `issues`)" → "(`experience` / `design` / `decisions` /
-  `issues`)"; add one sentence: "The hub `docs/experience.md` is
-  scaffolded once from `templates/docs/experience.md` and is not a copy the
-  instrument compares." The enforcement section's "fourteen guarded paths"
-  stands (seven templates, seven copies).
+  `issues`)"; its lines 14 to 18, which repeat issue-3bbb's "the
+  `docs/issues/{open,deferred,resolved}/` skeleton", are rewritten as the
+  Scope bullet is (section 6); its File output paths line
+  "`Documents/Requirements/AGENTS.md`" → "`Documents/Experience/AGENTS.md`";
+  add one sentence: "The hub `docs/experience.md` is scaffolded once from
+  `templates/docs/experience.md` and is not a copy the instrument compares."
+  The enforcement section's "fourteen guarded paths" stands (seven
+  templates, seven copies); its dated "7 files" measurement stands as dated.
+- `4807`: five `## ` headings end in `(req-04f5)` — Skill layout; The
+  shared checkout, and when a queued topic may commit; Plan conventions
+  under tanto; What a measurement can settle, and what it cannot; What
+  makes a convention bind. The parenthetical is dropped from each — the
+  section's first line carries `Serves exp-…` — and the heading text
+  changes; no live document keys on those headings (the one citation is in
+  a closed topic's `.tanto/tanto-sweep-2/` file). Its lines 1074 and 1167,
+  "the requirements and issues the spec produced" and "requirements, ADRs,
+  and issues", say "experience" instead.
+- `e3f4` line 74 to 77, the rejected translation rule — "the
+  original-plus-reference-translation shape belongs to `tanto`'s escalation
+  to the human, not here" — is half false after section 7 (recommend mode
+  now carries a reference translation for an `[inferred]` experience item);
+  rewrite it to say the translation rides in recommend mode for an ADR item
+  and an inferred experience item, and nowhere in session mode. The
+  `Related` glosses in `e3f4` ("`req-3c4d` — shoroku's scope and required
+  behavior") and `a5b6` ("`req-7a8b` — automated release purpose and
+  behavior") are rewritten with their ids: the gloss names the scene or the
+  hub the file map gives.
 
 Both files' `## Section`s get their `Serves exp-…` line from the pairing
 pass like every other design section.
@@ -849,8 +961,9 @@ The plan's ordering constraint, and the three dispatches.
 
 **Batch A** lands sections 2 to 7 — the hook-guarded set in one commit; the
 hub, the seven scenes, the kisou and shoroku `SKILL.md` edits, the READMEs,
-and the exit-criterion note (section 10) in one or more further commits.
-`docs/requirements/` is not touched: it is batch B's read-only source.
+the two issue moves of section 6, and the exit-criterion note (section 10)
+in one or more further commits. `docs/requirements/` is not touched: it is
+batch B's read-only source.
 
 **Batch B** is one task. Its Jisso — not Kanri — dispatches the shoroku
 skill's recommend mode on the `shoroku.recommend` kind —
@@ -859,13 +972,22 @@ skill's recommend mode on the `shoroku.recommend` kind —
 meaning in `SKILL.md` is "run the shoroku skill's recommend mode in a
 subagent on that model", and this is such a run — file mode over five files,
 the one classification pass of the plan with inference in it — so the kind
-is the semantic match and the family is deliberate (I-1). The dispatch
-carries:
+is the semantic match and the family is deliberate (I-1). **The dispatch's
+text is part of this design**: the plan carries it verbatim in the task,
+because three of its instructions are not in shoroku's `SKILL.md` and
+section 7 adds them nowhere else. It carries:
 
 - sources: the five files `docs/requirements/*.md` except `AGENTS.md`,
   whole;
 - baseline: the `docs/` tree as batch A left it — the hub, the seven
   scenes, `docs/experience/AGENTS.md`;
+- **the pointer**: the dispatch's pointer word for every source is the one
+  word `experience-layer`, so that every `###` item heading ends
+  `(experience-layer)` and the apply writes `Source: shoroku experience-layer`
+  — the one form `scripts/check_md_frontmatter.py`'s grammar accepts for a
+  topic with no `S-n` (measured by the spec review: a third word fails it).
+  The source file and its sentence are named in the item's body, never in
+  the heading;
 - the questions the recommendation answers, per source sentence: **drop**
   (a behavior sentence the code and its tests already express, grouped
   `Recommended reject` with the reason "implemented; carried by the code"
@@ -873,21 +995,33 @@ carries:
   **expectation** into an existing scene or a **new scene** (`Recommended
   adopt`, each with its trust tag, its strength, its Sources entry, and —
   for a new scene — `actors`, `tags`, and the Scene text), **issue** (a
-  need not met), **design line** or **decision candidate** (a design choice
+  want not met), **design line** or **decision candidate** (a design choice
   the sentence states); `[inferred]` and mechanism-laden items to `Unsure`
   as section 7 says;
-- the **pairing pass**: for each of the 53 design `## Section`s, the
-  `exp-<id>` it serves or "serves no expectation; internal shape", as one
-  `Recommended adopt` item per design file whose body lists the sections
-  and their targets;
-- the **file map** (Fixed input 18): five lines, `req-<id> → exp-<id>` or
-  `→ the hub`, one per requirement file, as one item;
-- **ids for new items and scenes assigned in the recommendation**, drawn
-  against the pool by the two checks of section 2's Identifiers and named
-  in each item so that the pairing pass can cite them;
+- **two item kinds the skill does not have**, which the dispatch defines
+  and the run writes as `Recommended adopt` items — the **pairing pass**:
+  for each of the 53 design `## Section`s, the `exp-<id>` it serves or
+  "serves no expectation; internal shape", as one item per design file
+  whose body quotes each section heading and gives its target, the
+  heading being the "source" the item quotes; and the **file map** (Fixed
+  input 18): five lines, `req-<id> → exp-<id>` or `→ the hub`, one per
+  requirement file, as one item quoting each file's `## Purpose`. Both are
+  derived from the baseline, not classified from a sentence, and the
+  dispatch says so; `docs/AGENTS.md`'s "the standing tree is not swept" is
+  the rule for an ordinary run, and this dispatch names the 53 sections as
+  its explicit scope — which is what issue-320e's "a backfill is its own
+  run" means;
+- **ids**: every new item and scene id is drawn in the recommendation, by
+  the three checks of section 2's Identifiers, and is **final** — the apply
+  writes the ids as they stand and re-runs the same checks before writing,
+  since the human's direction may have changed the set;
 - output `.tanto/experience-layer/migration-recommendation.md`; brief
   `.tanto/experience-layer/migration-brief.md` from the tanto skill's
-  `templates/shoroku-brief.md`, in the human's language (`ja`).
+  `templates/shoroku-brief.md`, in the human's language (`ja`), **with the
+  template's two path mentions rendered as this run's** —
+  `migration-brief.md` where the template says `t2-brief.md`, and
+  `migration-direction.md` where it says `t2-direction.md` — since the
+  template's prose states the close's names as fact.
 
 The task's report says the item counts by group and the scene count the
 recommendation would leave (the cap of Fixed input 3 is a judgment, so a
@@ -899,7 +1033,8 @@ question with the recommendation's and the brief's paths and the counts in
 its own window, and writes `.tanto/experience-layer/migration-direction.md`
 from the human's answer — by exception, in Kanri's window or through a
 live Hosa's `kessai answer:` relay. The plan's Global Constraints say that
-batch C is not spawned until that file exists.
+batch C is not spawned until that file exists. Kanri accepted this as
+written (I-1).
 
 **Batch C** is three or four tasks, in order:
 
@@ -908,17 +1043,25 @@ batch C is not spawned until that file exists.
    today) — with the recommendation, the direction, and the commit subject
    `docs: fold requirements into experience`. It writes the accepted scenes
    and expectations (into the seven scenes and any new ones), the issues
-   (each opening `Source: shoroku experience-layer`), the design lines, the
-   `Serves exp-…` lines of the pairing pass, and nothing the direction did
-   not accept; one commit.
+   (each opening `Source: shoroku experience-layer`, from the heading), the
+   design lines, the `Serves exp-…` lines of the pairing pass, and nothing
+   the direction did not accept; one commit.
 2. Remove `docs/requirements/` (`git rm -r`); rewrite every `req-<id>` in
    `docs/design/**`, `docs/issues/open/**`, `docs/issues/deferred/**`, and
-   `docs/notes/**` — design from the pairing pass's targets where a
-   `Serves req-…` line existed, issues and notes from the file map;
+   `docs/notes/**`: a `Serves req-…` line from the pairing pass's target; a
+   prose mention that names a bullet ("`req-04f5`'s checkpoint bullet") from
+   the recommendation's destination for that sentence; a prose mention that
+   names only the file — an issue's `Related:` line, a design `Related`
+   gloss — from the file map; the five `(req-04f5)` heading parentheticals
+   of design-4807 dropped (section 8). design-4807 holds 22 of the 29
+   design mentions and the task's Done-when names the count.
    `git mv` issue-320e and issue-c9df to `docs/issues/resolved/`, bumping
-   `updated:`; apply section 8 to the two design files; this repository's
-   `CONTRIBUTING.md` (section 5). Lint by path; one commit.
-3. Verify (section 12) and write the dogfood report (section 11).
+   `updated:` and naming both paths of each move under `git commit --only`
+   (issue-9350); apply section 8 to the three design files; this
+   repository's `CONTRIBUTING.md` and `README.md` line 54 (section 5, and
+   Answers to the spec inputs for the approval). Lint by file path; one
+   commit.
+3. Verify (Verification) and write the dogfood report (section 11).
 
 A `Recommended fix` item the recommendation may carry — a one-sentence
 repair in `skills/kisou/**` or `skills/shoroku/**` the run noticed — is
@@ -970,7 +1113,10 @@ C's last task, dated by the file name only. It records the migration:
   items the human's answer changed and how; the elapsed time between batch
   B's report and the direction file;
 - the `req-` count in living documents before (68) and after (0), and in
-  ADRs, unchanged (38);
+  ADRs, unchanged (38); the date of the migration commit, which is the date
+  `docs/AGENTS.md`'s legacy sentence leaves unstated;
+- the kisou test count before (57) and after the rename, so that the suite
+  is known not to have lost a case;
 - the first measurement of the secondary criterion for this topic — Sekkei's
   question count (3 plus 3 design sections), the brief's point count, the
   items the spec review sent back as design;
@@ -995,6 +1141,7 @@ It is not the exit criterion's baseline; section 10 says what is.
 | `docs/experience.md` | section 3, from the input §1 | A |
 | `docs/experience/<id>-<slug>.md` × 7 | the input §1 scenes, §11 corrections, §4 quotes | A |
 | `skills/kisou/SKILL.md`, `README.md` | section 6 | A |
+| `docs/issues/resolved/3bbb-…`, `a331-…` | moved, section 6 | A |
 | `skills/shoroku/SKILL.md`, `README.md` | section 7 | A |
 | `docs/notes/experience-layer-exit-criterion.md` | new, section 10 | A |
 | `.tanto/experience-layer/migration-recommendation.md`, `-brief.md` | the recommend dispatch's output (untracked) | B |
@@ -1003,13 +1150,15 @@ It is not the exit criterion's baseline; section 10 says what is.
 | `docs/requirements/` | removed | C |
 | `docs/design/**`, `docs/issues/open/**`, `docs/issues/deferred/**`, `docs/notes/**` | `req-` → `exp-` | C |
 | `docs/issues/resolved/320e-…`, `c9df-…` | moved | C |
-| `docs/design/e3f4-shoroku.md`, `c1d2-kisou.md` | section 8 | C |
-| `CONTRIBUTING.md` (this repository) | section 5 | C |
+| `docs/design/e3f4-shoroku.md`, `c1d2-kisou.md`, `4807-tanto.md`, `a5b6-automated-release.md` | section 8 | C |
+| `CONTRIBUTING.md`, `README.md` line 54 (this repository) | section 5; root Markdown, approved by the human (Answers to the spec inputs) | C |
 | `docs/reports/<date>-experience-layer-dogfood.md` | section 11 | C |
 
 Untouched: `scripts/check_md_frontmatter.py`, `.pre-commit-config.yaml`,
-`.markdownlint-cli2.yaml`, every file under `skills/tanto/`, every ADR
-body, every dated report, everything under `docs/superpowers/`.
+`.markdownlint-cli2.yaml` (section 3 keeps the hub template lint-clean
+without an ignore), every file under `skills/tanto/`, every ADR body, every
+dated report, `CHANGELOG.md` (its line 19 names the four old types in a
+dated entry, and stays), everything under `docs/superpowers/`.
 
 ## Old values this plan contradicts
 
@@ -1050,7 +1199,34 @@ sweep finds them; each is rewritten by the section named.
   section 8.
 - `docs/design/c1d2-kisou.md`: "four managed (`requirements` / `design` /
   `decisions` / `issues`)" — section 8.
-- Every `Serves req-<id>` line in `docs/design/**` — section 9, batch C.
+- Every `Serves req-<id>` line in `docs/design/**`, and the 25 prose
+  mentions and five headings — section 9, batch C.
+- `docs/design/c1d2-kisou.md`: lines 14 to 18 (issue-3bbb's skeleton
+  sentence), line 242 "`Documents/Requirements/AGENTS.md`" — section 8;
+  line 64's "7 files" is a dated measurement and stands.
+- `docs/design/4807-tanto.md`: the five `(req-04f5)` headings; lines 1074
+  and 1167 — section 8.
+- `docs/design/e3f4-shoroku.md`: lines 74 to 77, the rejected translation
+  rule; line 127's `Related` gloss; `docs/design/a5b6-automated-release.md`
+  line 50's gloss — section 8.
+- `docs/AGENTS.md` (and its template): "**The flat types are the exception.**
+  `notes/` and `reports/` have no `<id>`" — incomplete, not false; gains the
+  hub (section 4). Its first paragraph "four **managed** … and two **flat**"
+  is kept with the table's addendum.
+- `docs/issues/AGENTS.md` (and its template): "Narrative starts directly
+  after the frontmatter — no body `# heading`" — section 5.
+- `docs/decisions/AGENTS.md` (and its template): "or omit any for a trivial
+  decision" — section 5.
+- `skills/shoroku/README.md` lines 3 to 5, the two source modes — section 6.
+- `README.md` line 54 (this repository): "a project's living `docs/`
+  (requirements / design / decisions / issues)" — section 9, batch C task 2,
+  under the human's approval (Answers to the spec inputs).
+- Checked and standing: `skills/shoroku/SKILL.md`'s session-mode
+  `Source: session <YYYY-MM-DD>` sentence (batch B and C write through the
+  recommend/apply pointer, its second clause); kisou `SKILL.md`'s `full`
+  bullet and fingerprint line; `scripts/check_md_frontmatter.py`'s
+  docstring; `docs/decisions/AGENTS.md`'s "only mutable parts" sentence (a
+  redaction happens before an ADR is written).
 
 ## Requirements
 
@@ -1071,8 +1247,9 @@ the human's direction decides.
 2. From `req-3c4d` "The proposal names, per `design` entry, the requirement
    it serves": the want — the maintainer can ask "which want does this
    design protect" and get an answer without reconstructing it — is a new
-   `[stated]` expectation in Scene C (the agent proposes what was ruled
-   out), Source 「守ろうとしている要件はなんだろう？」 (issue-c9df, 2026-09-13).
+   `[stated]` expectation, proposed for Scene F (requirements turn into
+   behavior) or wherever the run places it, Source
+   「守ろうとしている要件はなんだろう？」 (issue-c9df, 2026-09-13).
    Its `[stated]` tag holds because that quote is in issue-c9df's body.
 3. From `req-1a2b` "Single source of truth — kisou owns the entire bundled
    template including the `docs/` doc-management system" and "Re-running
@@ -1095,7 +1272,10 @@ section available; none is written by this plan.
    and lint its sentences toward needs (issue-c9df's proposals alone); a
    `docs/intent/` of goals without scenes; scenes as situations (chosen).
    Consequences: the pairing rule rewritten a second time within a month;
-   `req-` in 23 ADRs left as history; the caps are wording. Sources: the
+   `req-` in 23 ADRs left as history; the caps are wording. Amends decision
+   `8b1f` as decision `47f2` did: `requirements` leaves the case-mapping
+   table and `experience` joins it, in the table's one authority and its two
+   copies (kisou `SKILL.md` Step 2 and the instrument's `TYPES`). Sources: the
    decision file's human's words on 「experience は僕が明文化したいことに近い」
    and 「requirement はシステムの振る舞いを示す言葉としても使われている」.
 2. **One id pool across `docs/`, resolution by prefix, and a letter in every
@@ -1145,43 +1325,67 @@ For Keikaku.
   spawned until `.tanto/experience-layer/migration-direction.md` exists;
   the batch B task's dispatch is named in full — the shoroku skill's
   recommend mode, `subagent_type: tanto-shoroku-recommend`, `model` from
-  `subagents.shoroku.recommend` — and batch C's apply dispatch likewise
-  (`tanto-shoroku-apply`, `subagents.shoroku.apply`), so that Kanri
-  dispatches nothing at that boundary but its own form check (I-1); nothing under
-  `skills/tanto/` is edited; no ADR body and no dated report is edited;
-  the input file `.tanto/kikaku/2026-09-15-shoroku-experience-input.md` is
-  read and never committed, copied, or deleted.
+  `subagents.shoroku.recommend` — with section 9's dispatch text quoted
+  verbatim in the task (the pointer word, the two derived item kinds, the
+  final ids, the brief's two path names), and batch C's apply dispatch
+  likewise (`tanto-shoroku-apply`, `subagents.shoroku.apply`), so that
+  Kanri dispatches nothing at that boundary but its own form check (I-1);
+  nothing under `skills/tanto/` is edited; no ADR body and no dated report
+  is edited; the input file
+  `.tanto/kikaku/2026-09-15-shoroku-experience-input.md` is read and never
+  committed, copied, or deleted; every `git mv` names both paths under
+  `git commit --only` (issue-9350); the test suite is run as
+  `node --test 'skills/kisou/scripts/*.test.js'` and never by directory
+  (issue-235b); `./scripts/lint.sh` takes file paths, never a directory
+  (issue-5050); the human's answers to this spec's review brief are the
+  approval under which the agent-instruction files `docs/**/AGENTS.md` are
+  rewritten, and the human's answer to Q4 (Answers to the spec inputs) the
+  approval for the root `README.md` and `CONTRIBUTING.md` lines.
 - **Batches**: A (sections 2 to 7, 10), B (section 9's one task), C
-  (section 9's tasks, sections 8, 11, 12). Three or four tasks per batch;
-  A may be two batches if its task count asks for it, the hook-guarded
-  commit first.
+  (section 9's tasks, sections 8, 11, and Verification). Three or four
+  tasks per batch; A may be two batches if its task count asks for it, the
+  hook-guarded commit first.
 - **The seven scenes' task** names the input's §1 scene by letter, its
-  expectation ids, the decision file §11's nine confirmations and the two
-  corrections (16c2's wording; 3b2d as worded), and §4's quotes by id; its
-  Done-when is the seven files present, each with the four headings in
-  order, every expectation line matching the form of section 2, every id in
-  `## Expectations` having a `## Sources` entry, and `docs/experience.md`'s
-  Drivers pointing at ids that exist.
-- **How a batch is verified**: section 12's commands, per batch.
+  expectation ids, the decision file §11's nine confirmations with the words
+  each Sources entry quotes (「あとは yes」 for seven; the corrections for
+  16c2 and 3b2d), and §4's quotes by id; its Done-when is the seven files
+  present, each with a file id drawn under section 2's Identifiers (a
+  letter in it; no `docs/<type>/**/<id>-*.md`, no `**<id>**` line, no
+  commit ever used it), the four headings in order, every expectation line
+  matching the form of section 2, every id in `## Expectations` having a
+  `## Sources` entry, and `docs/experience.md`'s Drivers pointing at ids
+  that exist.
+- **How a batch is verified**: Verification's commands, per batch.
 - **The dogfood report task** with section 11's list as its Done-when.
 
 ## Verification
 
-Per batch, by the implementer and by the boundary:
+Per batch, by the implementer and by the boundary. Every `lint.sh` call
+names files, never a directory (issue-5050).
 
 - `node skills/kisou/scripts/doc-system-check.js check --docs docs --case snake_case`
   exits 0 (A, C).
-- `node --test skills/kisou/scripts/` passes (A).
-- `./scripts/lint.sh <changed paths>` passes (every batch).
+- `node --test 'skills/kisou/scripts/*.test.js'` passes, 57 or more cases
+  (A).
+- `./scripts/lint.sh <changed file paths>` passes (every batch).
 - After A: `ls docs/experience/*.md | grep -v AGENTS | wc -l` is 7;
   `grep -c '^## ' docs/experience.md` is 3; the Drivers' `←` ids each
   resolve — `for id in $(grep -o 'exp-[0-9a-f]\{4\}' docs/experience.md | cut -d- -f2 | sort -u); do grep -rl "\*\*$id\*\*" docs/experience/ >/dev/null || echo "unresolved $id"; done`
-  prints nothing; `grep -c 'inferred' skills/shoroku/SKILL.md` is 2 (both in
-  the recommend-mode paragraph) and `grep -c 'Kano\|RFC 2119' skills/shoroku/SKILL.md`
-  is 0 (the rule stayed in the type file); `test ! -e skills/kisou/templates/docs/requirements/AGENTS.md`.
+  prints nothing; every scene's expectation ids have a Sources line —
+  `for f in docs/experience/[0-9a-f]*.md; do for id in $(sed -n '/^## Expectations/,/^## Open/p' "$f" | grep -o '\*\*[0-9a-f]\{4\}\*\*' | tr -d '*'); do grep -q "^- \[$id\]" "$f" || echo "$f $id"; done; done`
+  prints nothing; `grep -o 'inferred' skills/shoroku/SKILL.md | wc -l` is 2
+  (both in the recommend-mode paragraph) and
+  `grep -c 'Kano\|RFC 2119' skills/shoroku/SKILL.md` is 0 (the rule stayed
+  in the type file); `test ! -e skills/kisou/templates/docs/requirements/AGENTS.md`;
+  `ls docs/issues/resolved/3bbb-* docs/issues/resolved/a331-*` lists both;
+  `grep -c '<!--' skills/kisou/templates/docs/experience.md` is 2 and
+  `grep -c '<!--' docs/experience.md` is 0.
 - After B: both files exist; `grep -c '^## Recommended\|^## Unsure' .tanto/experience-layer/migration-recommendation.md`
-  is 4; every `###` heading's text appears once after `See:` in the brief
-  (Kanri's form check).
+  is 4; every `###` heading ends `(experience-layer)` —
+  `grep '^### ' .tanto/experience-layer/migration-recommendation.md | grep -vc '(experience-layer)$'`
+  is 0; every `###` heading's text appears once after `See:` in the brief
+  (Kanri's form check); `grep -c 't2-' .tanto/experience-layer/migration-brief.md`
+  is 0.
 - After C: `test ! -e docs/requirements`;
   `grep -rl 'req-[0-9a-f]\{4\}' docs/design docs/issues/open docs/issues/deferred docs/notes`
   prints nothing; `grep -rl 'req-[0-9a-f]\{4\}' docs/decisions | wc -l` is
@@ -1191,9 +1395,9 @@ Per batch, by the implementer and by the boundary:
   the pairing pass writes; the scene count
   `ls docs/experience/*.md | grep -v AGENTS | wc -l` is reported against
   the cap; `ls docs/issues/resolved/320e-* docs/issues/resolved/c9df-*`
-  lists both; in every scene, each `**<id>**` under `## Expectations` has a
-  `[<id>]` line under `## Sources` of the same file.
-
+  lists both; the After-A per-scene Sources loop prints nothing over the
+  scenes as they now stand; every issue written in C passes
+  `uv run --no-project --with pyyaml python scripts/check_md_frontmatter.py <paths>`.
 
 ## Out of scope
 
@@ -1217,9 +1421,9 @@ Per batch, by the implementer and by the boundary:
 ## Issues this design closes
 
 Each term grepped separately across `docs/issues/open/` on 2026-09-30:
-`requirement` (many, all in bodies naming `req-`), `req-<id>` (37 files,
+`requirement` (many, all in bodies naming `req-`), `req-<id>` (36 files,
 section 9's rewrite), `pairing` (320e, c9df, e916), `seven targets` (a331),
-`skeleton` (3bbb).
+`skeleton` (3bbb); the spec review then read the directory whole.
 
 - **issue-320e** — closed by batch C's pairing pass over the 53 sections;
   the wording point it raised is settled by section 5's scope sentence in
@@ -1233,12 +1437,25 @@ section 9's rewrite), `pairing` (320e, c9df, e916), `seven targets` (a331),
   `[stated]` source, and "which want does this protect" is answered by the
   `exp-<id>` a design section names — so the three-column form has nothing
   left to show. Moved to `resolved/` in batch C.
-- **issue-3bbb** — the Scope bullet, section 6. Resolved in batch A.
-- **issue-a331** — the `none` bullet, section 6. Resolved in batch A.
-- **issue-2c4d** — not closed and not worsened: section 7 adds one sentence
-  to `SKILL.md` and the rule to the type file, as that issue's premise
-  requires; the spec says so here so that the close's recommender does not
-  re-open it.
+- **issue-3bbb** — the Scope bullet, section 6, and design-c1d2's copy of
+  the sentence, section 8. Moved to `resolved/` in batch A.
+- **issue-a331** — the `none` bullet, section 6. Moved to `resolved/` in
+  batch A.
+- **issue-0d43** — the README's third source mode, section 6, in passing.
+  Moved to `resolved/` in batch A with the two above.
+- **issue-2c4d** — not closed and not worsened: section 7 adds two
+  sentences to `SKILL.md` and the rule to the type file, as that issue's
+  premise requires; the spec says so here so that the close's recommender
+  does not re-open it.
+- **issue-0ea9** (a recommendation's prose obligation has no line in the
+  direction file) — addressed for this run, not closed: section 9 makes the
+  pairing pass and the file map numbered items, so the direction answers
+  them by number.
+- **issue-235b**, **issue-ea3c**, **issue-5050**, **issue-9350** — not
+  closed; their rules are carried into the Global Constraints so that this
+  plan does not repeat them.
+- The three ADR-rules issues **a9c3**, **c477**, **d922** — see Answers to
+  the spec inputs, Q4.
 
 ## Answers to the spec inputs
 
@@ -1267,23 +1484,36 @@ section 5.
 
 ## Deferred items
 
-1. **The T1 Sources sentence** (the decision file §10): "`dialogue.md`,
+1. **The tanto riders from the decision file §10**: "`dialogue.md`,
    `spec-inputs.md`, and the Kikaku decision files the topic cites are the
    Sources for experience extraction; a quote that exists there makes an
-   expectation `[stated]` mechanically, anything else is `[inferred]`." A
-   rider for the orders line of the next tanto topic, attached by Kanri; it
-   touches tanto's role text and this plan edits none.
+   expectation `[stated]` mechanically, anything else is `[inferred]`" —
+   one sentence in the T1 prompt; and "the ADR `## Sources` section applies
+   to tanto's T0 and T2 apply as well". Riders for the orders line of the
+   next tanto topic, attached by Kanri; they touch tanto's text and this
+   plan edits none.
 2. **The T2 count** (§15 primary): the close's recommender, or Kanri, counts
    the `exp-` citations against the dialogue and writes the number into the
    dogfood report. Same rider. Until then the note of section 10 is run by
    hand.
-3. **The `[inferred]`-cap and vocabulary checks as lint**, in
+3. **Tanto text this plan leaves false**, for the same rider list:
+   `skills/tanto/roles/sekkei.md` line 92 gives the spec reviewer
+   "`docs/decisions/` and `docs/requirements/`" — after batch C the second
+   path does not exist and the sentence wants "the hub and the scenes";
+   `templates/batch-report.md` line 44 and `templates/kaiseki-report.md`
+   line 59 list `requirements` among the destination words; `templates/kanri.md`
+   line 53 and `templates/roster.md` line 116, "Destination, one of
+   requirements, design, …", likewise. Five sites, one word each.
+4. **The `[inferred]`-cap and vocabulary checks as lint**, in
    `check_md_frontmatter.py` or a kisou instrument — the tooling topic.
-4. **kisou migrate's type rename** — when a second kisou project needs it.
-5. **The design-side restructuring** — input question f2ed, undecided.
-6. **A scene for the `Source:` line's own want** — the human's reasons for
+5. **kisou migrate's type rename** — when a second kisou project needs it.
+6. **The design-side restructuring** — input question f2ed, undecided.
+7. **A scene for the `Source:` line's own want** — the human's reasons for
    provenance on issues are in `bug-report-hold`'s dialogue; the run may
    find them or a later shoroku may.
+8. **A `<direction path>` slot in tanto's `templates/shoroku-brief.md`**, if
+   the mid-plan recommend-check-apply cycle of section 9 recurs; today the
+   dispatch overrides the two names.
 
 ## Shoroku proposal from this spec work
 
