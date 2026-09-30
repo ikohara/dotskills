@@ -220,8 +220,7 @@ Measured 2026-09-30 on `main` at `0c492cb`, before any edit.
 - Design `## Section` count: `4807-tanto` 24, `dc5d-install-scripts` 9,
   `c1d2-kisou` 8, `e3f4-shoroku` 7, `a5b6-automated-release` 5 — 53
   sections for the issue-320e pass. Some already carry a `Serves req-…`
-  line (`c1d2` and `e3f4` each 3, `4807` several); the pass rewrites those
-  and adds the rest.
+  line already; the pass rewrites those and adds the rest.
 - The installed `docs/AGENTS.md` and five `docs/<type>/AGENTS.md` are
   byte-equal to their templates up to `{{name}}` expansion (`diff` after
   CRLF folding shows only `{{…}}` lines). The pre-commit hook
@@ -300,7 +299,7 @@ asked about last week. …
 
 ## Open questions
 
-- **2b72** Should the chat side write scene files directly? → decision-…
+- **2b72** Should the chat side write scene files directly, or always go through the handover?
 
 ## Sources
 
@@ -312,10 +311,10 @@ The ids above are the input's own; the plan writes the seven scenes with the
 input's ids, titles from its scene headings, `actors` and `tags` chosen by
 the implementer from the scene's text, and `created` = `updated` = the
 commit date. Scene A's `2b72` is the one open question the input carries;
-the decision file §12 resolved it (f33b), so batch A writes its line with
-`→` and the pointer `2026-09-15-experience-layer.md §12` in place of a
-`decision-<id>`, and the close's recommender may propose the ADR that gives
-it one.
+the decision file §12 resolved it (f33b), but no ADR records that yet, so
+batch A writes the line with no arrow, and the close's apply appends
+`→ decision-<id>` when it writes the ADR of The ADRs 7 — the rule of
+section 2's Expectations, applied for the first time.
 
 ## 2. `skills/kisou/templates/docs/experience/AGENTS.md` — the type rules, new
 
@@ -1122,6 +1121,13 @@ section available; none is written by this plan.
    human runs shoroku afterwards; the two-batch cycle (chosen).
    Consequences: a batch boundary that waits for a direction file, the
    first such in a tanto plan; the plan's Global Constraints name it.
+7. **The chat side emits a handover and never writes scene files; shoroku's
+   file mode ingests it** (the decision file §8; input questions f33b,
+   2b72). Options: the chat writes scenes directly into a fresh
+   repository; the chat emits scene-format drafts in a handover (chosen).
+   Consequences: id de-collision happens at ingestion; the two files given
+   to the chat must stand alone. Its apply appends `→ decision-<id>` to
+   Scene A's `2b72` line.
 
 ## What the plan must contain
 
@@ -1161,21 +1167,24 @@ Per batch, by the implementer and by the boundary:
 - After A: `ls docs/experience/*.md | grep -v AGENTS | wc -l` is 7;
   `grep -c '^## ' docs/experience.md` is 3; the Drivers' `←` ids each
   resolve — `for id in $(grep -o 'exp-[0-9a-f]\{4\}' docs/experience.md | cut -d- -f2 | sort -u); do grep -rl "\*\*$id\*\*" docs/experience/ >/dev/null || echo "unresolved $id"; done`
-  prints nothing; `grep -c 'inferred' skills/shoroku/SKILL.md` is 2 (the
-  Step 3 sentence and the `Unsure` sentence) and `grep -c 'Kano\|RFC 2119' skills/shoroku/SKILL.md`
+  prints nothing; `grep -c 'inferred' skills/shoroku/SKILL.md` is 2 (both in
+  the recommend-mode paragraph) and `grep -c 'Kano\|RFC 2119' skills/shoroku/SKILL.md`
   is 0 (the rule stayed in the type file); `test ! -e skills/kisou/templates/docs/requirements/AGENTS.md`.
 - After B: both files exist; `grep -c '^## Recommended\|^## Unsure' .tanto/experience-layer/migration-recommendation.md`
   is 4; every `###` heading's text appears once after `See:` in the brief
   (Kanri's form check).
-- After C: `test ! -e docs/requirements`; `grep -rl 'req-[0-9a-f]\{4\}' docs/design docs/issues/open docs/issues/deferred docs/notes`
+- After C: `test ! -e docs/requirements`;
+  `grep -rl 'req-[0-9a-f]\{4\}' docs/design docs/issues/open docs/issues/deferred docs/notes`
   prints nothing; `grep -rl 'req-[0-9a-f]\{4\}' docs/decisions | wc -l` is
-  still 23; every `## ` section of the five design files is followed,
-  within its body, by a `Serves ` line — `for f in docs/design/[0-9a-f]*.md; do node skills/tanto/scripts/passage-check.js sections --file "$f" ... ; done`
-  is not the instrument here; the boundary reads each file's `## ` count
-  and its `Serves ` count and expects them equal; the scene count is
-  reported against the cap; `ls docs/issues/resolved/320e-* docs/issues/resolved/c9df-*`
-  lists both; every scene's `**<id>**` under `## Expectations` has a
-  `[<id>]` under `## Sources` in the same file.
+  still 23; in each of the five design files the count of `^## ` lines
+  equals the count of `^Serves ` lines — every section's body opens with
+  `Serves exp-<id>.` or `Serves no expectation; internal shape.`, the form
+  the pairing pass writes; the scene count
+  `ls docs/experience/*.md | grep -v AGENTS | wc -l` is reported against
+  the cap; `ls docs/issues/resolved/320e-* docs/issues/resolved/c9df-*`
+  lists both; in every scene, each `**<id>**` under `## Expectations` has a
+  `[<id>]` line under `## Sources` of the same file.
+
 
 ## Out of scope
 
@@ -1271,8 +1280,3 @@ recommender's own inputs.
 5. Observation — a batch boundary that waits for a human's direction file
    (section 9) is new to tanto; if it recurs, `roles/kanri.md`'s boundary
    procedure could name it instead of the plan's Global Constraints.
-6. Defect noticed — `docs/issues/open/3bbb-…` and `a331-…` bodies could not
-   be read by a `sed` that strips two `---` blocks, because an issue body
-   under the `Source:` rule starts after one; a reader's habit from the
-   pre-`Source:` shape. Not a repository defect; recorded for the note on
-   reading issues, if one is ever written.
