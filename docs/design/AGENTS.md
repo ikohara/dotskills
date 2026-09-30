@@ -30,9 +30,11 @@ updated: 2026-05-27
 - Describe the operational truth: structure, components, data flow, and the
   reasoning for the current shape.
 - Link to a recorded choice with `decision-<id>` where relevant.
-- Name the requirement each `## Section` serves with `req-<id>`. A section
-  that serves none says so ("serves no requirement; internal shape"), so a
-  shoroku proposal can ask whether an unstated need stands behind it.
+- Name the expectation each `## Section` serves with `exp-<id>` — a scene or
+  an item in one. A section that serves none says so ("serves no
+  expectation; internal shape"), so a shoroku proposal can ask whether an
+  unstated want stands behind it. The pairing is checked on the entries a
+  proposal carries, never by a sweep of the standing tree.
 
 ## design vs decisions
 

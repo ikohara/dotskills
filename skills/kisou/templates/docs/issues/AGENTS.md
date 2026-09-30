@@ -4,10 +4,10 @@ An `issues` file records a known problem or deferred decision: something is
 wrong or missing, but is not being fixed right now. Status is encoded by
 **directory**, not a frontmatter field.
 
-When the missing thing is a need the user stated, the need itself is a
-requirement fragment and the issue records only the gap — see
-"requirements vs issues" in `{{docs}}/{{requirements}}/AGENTS.md`. An issue
-filed alone loses the requirement.
+When the missing thing is a need the user stated, the want itself is an
+expectation and the issue records only the gap — see "experience vs issues"
+in `{{docs}}/{{experience}}/AGENTS.md`. An issue filed alone loses the
+expectation.
 
 ## Lifecycle (by directory)
 
@@ -59,8 +59,14 @@ updated: 2026-05-27
 
 ## Body
 
-Narrative starts directly after the frontmatter — no body `# heading` (avoids
-`MD025` against the frontmatter `title:`).
+The body opens with the `Source:` line below, then the narrative; no body
+`# heading` (avoids `MD025` against the frontmatter `title:`).
+
+The `Source:` line is one line, `Source: <kind> <pointer>`, the first non-empty
+line after the frontmatter — `inbox <YYYY-MM-DD>-<slug>`,
+`shoroku <topic>[ S-<n>]`, `hotfix <commit subject>`, or
+`session <YYYY-MM-DD>`: a pointer to where the issue came from, never a class
+word.
 
 ## Issues are hints, not contracts
 

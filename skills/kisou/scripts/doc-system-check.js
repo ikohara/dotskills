@@ -19,7 +19,7 @@ const { parseArgs } = require("node:util");
 const USAGE =
   "Usage: doc-system-check.js <check|apply> --docs <dir> [--templates <dir>] [--case snake_case|PascalCase] [--items <n,...>]";
 
-const TYPES = ["requirements", "design", "decisions", "issues", "notes", "reports"];
+const TYPES = ["experience", "design", "decisions", "issues", "notes", "reports"];
 
 // `docs -> Documents`, `src -> Source`, every other name title-cased. The same
 // names SKILL.md Step 2 lists.
@@ -428,6 +428,23 @@ function collect({ templatesDir, docsDir, kase }) {
         });
       }
     }
+  }
+
+  // A docs root that still holds this type under its name before 2026-09 gets
+  // one note: renaming the directory is a hand migration, never an item.
+  const legacyName = expandName("requirements", kase);
+  let legacyOnly;
+  try {
+    legacyOnly =
+      existsExact(docsDir, `${legacyName}/AGENTS.md`) &&
+      !existsExact(docsDir, `${expandName("experience", kase)}/AGENTS.md`);
+  } catch (err) {
+    throw new ReadError(`cannot read ${posixPath(path.join(docsDir, legacyName))}: ${err.message}`);
+  }
+  if (legacyOnly) {
+    notes.push(
+      `note: ${reportPath(docsDir, legacyName)}/ — the name the experience type had before 2026-09; renaming it is a hand migration, not an item`,
+    );
   }
 
   return { items, notes };
