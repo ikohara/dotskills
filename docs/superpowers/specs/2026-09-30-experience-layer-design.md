@@ -852,9 +852,15 @@ hub, the seven scenes, the kisou and shoroku `SKILL.md` edits, the READMEs,
 and the exit-criterion note (section 10) in one or more further commits.
 `docs/requirements/` is not touched: it is batch B's read-only source.
 
-**Batch B** is one task. It dispatches the shoroku skill's recommend mode
-on the `shoroku.recommend` kind — `subagent_type: tanto-shoroku-recommend`,
-`model` from the merged `tanto.json` (`fable` today) — with:
+**Batch B** is one task. Its Jisso — not Kanri — dispatches the shoroku
+skill's recommend mode on the `shoroku.recommend` kind —
+`subagent_type: tanto-shoroku-recommend`, `model` from the merged
+`tanto.json`'s `subagents.shoroku.recommend` (`fable` today). That kind's
+meaning in `SKILL.md` is "run the shoroku skill's recommend mode in a
+subagent on that model", and this is such a run — file mode over five files,
+the one classification pass of the plan with inference in it — so the kind
+is the semantic match and the family is deliberate (I-1). The dispatch
+carries:
 
 - sources: the five files `docs/requirements/*.md` except `AGENTS.md`,
   whole;
@@ -1137,8 +1143,11 @@ For Keikaku.
   installed copies, `docs/experience/AGENTS.md`) lands in one commit;
   `docs/requirements/` is not edited before batch C; batch C is not
   spawned until `.tanto/experience-layer/migration-direction.md` exists;
-  every dispatch of the shoroku skill names its kind and model from
-  `tanto.json` (`shoroku.recommend`, `shoroku.apply`); nothing under
+  the batch B task's dispatch is named in full — the shoroku skill's
+  recommend mode, `subagent_type: tanto-shoroku-recommend`, `model` from
+  `subagents.shoroku.recommend` — and batch C's apply dispatch likewise
+  (`tanto-shoroku-apply`, `subagents.shoroku.apply`), so that Kanri
+  dispatches nothing at that boundary but its own form check (I-1); nothing under
   `skills/tanto/` is edited; no ADR body and no dated report is edited;
   the input file `.tanto/kikaku/2026-09-15-shoroku-experience-input.md` is
   read and never committed, copied, or deleted.
@@ -1233,8 +1242,28 @@ section 9's rewrite), `pairing` (320e, c9df, e916), `seven targets` (a331),
 
 ## Answers to the spec inputs
 
-No `spec-inputs.md` was written for this topic. The rider (Fixed input 22)
-came in the orders line and is answered by section 5.
+`.tanto/experience-layer/spec-inputs.md` holds one input.
+
+- **I-1** — Kanri's check of section 9's boundary-after-B paragraph:
+  accepted as written, touching the batch loop's Rule and lifecycle steps
+  for that one boundary and reusing the close's `attention` + one-question
+  mechanism, on the condition that the plan names who produces the
+  recommendation and the brief and, for a dispatch, its `model` and
+  `subagent_type`; Kanri advised `subagents.default` unless the plan argues
+  otherwise. Answer: section 9 names it — the batch B task's Jisso
+  dispatches the shoroku skill's recommend mode on `shoroku.recommend`,
+  `subagent_type: tanto-shoroku-recommend`, model
+  `subagents.shoroku.recommend` — and What the plan must contain makes it a
+  Global Constraint. The kind is not borrowed: its definition is "run the
+  skill's recommend mode in a subagent on that model", which is what batch B
+  does; a mid-plan run is a run. `default` (sonnet, medium) is rejected for
+  it: the 443 lines' classification with inference is the plan's one
+  judgment-heavy pass, and the family `tanto.json` reserves for that mode
+  is the one to pay for. Kanri's own act at the boundary is unchanged from
+  its acceptance.
+
+The rider (Fixed input 22) came in the orders line and is answered by
+section 5.
 
 ## Deferred items
 
