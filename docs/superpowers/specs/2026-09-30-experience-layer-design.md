@@ -644,31 +644,6 @@ a trust tag — the hub is the human's own words by construction, and the
 type rules say so — so the `[stated]` the input wrote on the four Won't
 items is dropped.
 
-## Cast
-
-- **<actor>** — <who they are and how they meet the project, one line>
-
-## Drivers
-
-At most five at MUST level. Each generalizes the expectations it points at.
-
-- **<id>** MUST|MUST NOT|SHOULD|SHOULD NOT <the driver> ← exp-<id>, exp-<id>
-
-## Won't
-
-What has been ruled out for this project, so that nobody proposes it again.
-
-- **<id>** <the thing not to build, and in one clause why>
-```
-
-For dotskills, batch A writes `docs/experience.md` from the input's §1
-Cast (maintainer, agent, collaborator), its five Drivers (`b76a`, `bf60`,
-`c018`, `c233`, `c60e` with their `←` lists in `exp-` form), and its four
-Won't items (`cab7`, `d061`, `d1b9`, `d443`), the intro line rewritten for
-dotskills. The Drivers carry no trust tag — they are the human's generalized
-items, confirmed at T0 — and the Won't items keep their `[stated]` tag as
-the input wrote them.
-
 ## 4. `skills/kisou/templates/docs/AGENTS.md` and its installed copy
 
 Edits by section. Old text is quoted where the change is a rewrite; where a
