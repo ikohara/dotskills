@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: session 2026-09-13
@@ -48,6 +48,6 @@ The tanto-cost implementation plan rewrites that file (its Sekkei is
 narrowed to the spec and the spec review), and its `roles/sekkei.md`
 passage is the natural carrier; otherwise the next plan to touch the file.
 
-Related: req-04f5 ("The human reviews through a brief of the judgment
-points" — the brief reads the review), design-4807, decision-5c8e (rule 11),
+Related: exp-27e8 (the human reviews through a brief of the judgment
+points — the brief reads the review), design-4807, decision-5c8e (rule 11),
 the tanto-cost design of 2026-09-12.

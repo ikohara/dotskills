@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku seat-lineage
@@ -42,4 +42,4 @@ the pros and cons above. Until then the presence gate and the deferral stay
 for Kanri, and issue-1a9a, issue-caba, and issue-8312 are fixed as the bugs
 they are.
 
-Related: req-04f5, design-4807, decision-eee2.
+Related: exp-06b2, design-4807, decision-eee2.

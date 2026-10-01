@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-24
+updated: 2026-10-01
 ---
 
 Source: shoroku tanto-sweep
@@ -34,7 +34,7 @@ the two becomes the rule, or whether both are needed together (a named base
 commit does not help a branch that mixes plan and non-plan commits **after**
 that point, which a path scope would still catch).
 
-Related: req-04f5, design-4807 (the boundary check), issue-7481 (the
+Related: exp-06b2, design-4807 (the boundary check), issue-7481 (the
 `passage-check.js` instrument `diff` is part of).
 
 The kisou-refresh plan (2026-09-11) answered the first way, and found the

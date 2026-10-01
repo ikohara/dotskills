@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku tanto-context-ceiling
@@ -28,4 +28,4 @@ from the fixture.
 
 Same shape as issue-5e63 for the other shipped script.
 
-Related: req-04f5, issue-5e63, issue-d92f.
+Related: exp-06b2, issue-5e63, issue-d92f.

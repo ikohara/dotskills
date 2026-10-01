@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku tanto-sweep
@@ -27,6 +27,6 @@ next extension of `passage-check.js` (or a plan-authoring rule) can decide
 whether a task's Verify grep is swept the same way an `O` needle is, or
 whether the discipline stays "reviewer catches it" as it did this time.
 
-Related: req-04f5, design-4807 (the instrument's checks), issue-10bc
+Related: exp-06b2, design-4807 (the instrument's checks), issue-10bc
 (resolved; the old-value sweep this gap sits beside), issue-7481 (the
 durable passage check), the tanto-sweep batch D report of 2026-09-10.

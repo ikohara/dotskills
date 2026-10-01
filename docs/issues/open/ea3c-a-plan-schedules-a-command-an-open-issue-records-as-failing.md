@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku tanto-workspace
@@ -48,5 +48,5 @@ so a grep hit is immediately actionable rather than a prompt to read the whole
 issue. issue-235b does this well; issue-f851 does not, and its scope was in
 fact wider than its own text claimed.
 
-Related: req-04f5, design-4807 (plan conventions under tanto), issue-235b,
+Related: exp-06b2, design-4807 (plan conventions under tanto), issue-235b,
 issue-f851, issue-7c28.

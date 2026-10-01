@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: session 2026-09-10
@@ -41,7 +41,7 @@ No fix is proposed here. What is recorded is that the class exists, that it
 cost that run one full review round, and that the instrument for it is the one
 already being built for plans.
 
-Related: req-04f5, design-4807 (the fix-wave pre-flight, and the passage
+Related: exp-06b2, design-4807 (the fix-wave pre-flight, and the passage
 conventions), issue-7481 (the durable passage check), the tanto-sweep plan
 review of 2026-09-10.
 

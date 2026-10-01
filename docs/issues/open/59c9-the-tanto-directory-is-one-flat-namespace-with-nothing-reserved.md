@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku tanto-workspace
@@ -32,5 +32,5 @@ The fix is small whenever someone wants it: a reserved-word list in the contract
 that Kanri's topic-opening step checks by name rather than by directory
 existence.
 
-Related: req-04f5, design-4807 (the roster and the conductor ledger),
+Related: exp-06b2, design-4807 (the roster and the conductor ledger),
 issue-f2c4.

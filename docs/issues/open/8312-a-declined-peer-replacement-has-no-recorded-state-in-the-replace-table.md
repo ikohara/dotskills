@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku tanto-context-ceiling
@@ -30,4 +30,4 @@ this plan. It is filed separately for that reason: it will be wanted when the
 Replace table is next opened, which is a different occasion from the handover
 text.
 
-Related: req-04f5, decision-eee2, decision-6dea, issue-1a9a, issue-a1a7.
+Related: exp-06b2, decision-eee2, decision-6dea, issue-1a9a, issue-a1a7.

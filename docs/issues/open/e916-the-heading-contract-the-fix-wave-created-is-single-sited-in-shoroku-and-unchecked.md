@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: session 2026-09-14
@@ -50,8 +50,8 @@ Related: issue-4d8a (nothing checks a role file's own cross-references —
 the same shape, here between two skills instead of within one file).
 
 **2026-09-16, the `tanto-sweep-2` run — the "Composes without modifying" claim
-had drifted from practice, and nothing re-checks it.** req-04f5's "Composes
-without modifying" bullet named `shoroku` among the skills this repository uses
+had drifted from practice, and nothing re-checks it.** The tanto requirement's "Composes
+without modifying" bullet (folded into exp-06b2) named `shoroku` among the skills this repository uses
 as-is, while `skills/shoroku/SKILL.md` had by then been edited for `tanto`'s
 sake **twice**. The requirement and the practice were out of step until that
 run's own T1 amended the bullet, so the bullet itself is now correct. What

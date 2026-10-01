@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku tanto-context-ceiling
@@ -26,4 +26,4 @@ the bullet sits inside a `P`-block passage, per the standing in-run rule that
 pinned text is not edited while its plan is open; the plan then closed without
 landing it, so it needs this carrier or it is lost.
 
-Related: req-04f5, decision-eee2, issue-7f2a (the same class of held fix).
+Related: exp-06b2, decision-eee2, issue-7f2a (the same class of held fix).

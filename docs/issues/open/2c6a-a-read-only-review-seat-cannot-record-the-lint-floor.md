@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku kisou-refresh
@@ -27,5 +27,5 @@ role text and the reviewer brief do not say so, so each reviewer rediscovers
 the constraint or picks one of the two instructions to break. The fix is one
 sentence in the reviewer brief naming the non-fixing form the seat is to use.
 
-Related: req-04f5, design-4807 (the review brief), issue-4eef (another
+Related: exp-06b2, design-4807 (the review brief), issue-4eef (another
 boundary-time measurement from the same run).

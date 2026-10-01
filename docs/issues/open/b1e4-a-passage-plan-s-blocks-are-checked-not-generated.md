@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku tanto-sweep
@@ -43,7 +43,7 @@ than a guess.
 
 Related: issue-7481 (the instrument), issue-f813 (each block once, cited by
 id), issue-88d3 (the count and anchor halves the instrument closes),
-design-4807 (the passage-plan conventions), req-04f5.
+design-4807 (the passage-plan conventions), exp-06b2.
 
 **2026-09-13 — a second instance, and it is a task's inputs rather than the
 plan's leads.** The plan reviewer of the tanto-cost run found it in

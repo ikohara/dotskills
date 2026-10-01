@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku kisou-refresh
@@ -29,5 +29,5 @@ user answers the prompts and the skill text is measured against what a user
 actually types. Today the first happens by default and silently; the second
 has no mechanism.
 
-Related: req-04f5, design-4807 (Jisso has no human access), the kisou refresh
+Related: exp-06b2, design-4807 (Jisso has no human access), the kisou refresh
 dogfood report at `docs/reports/2026-09-11-kisou-refresh-dogfood.md`.

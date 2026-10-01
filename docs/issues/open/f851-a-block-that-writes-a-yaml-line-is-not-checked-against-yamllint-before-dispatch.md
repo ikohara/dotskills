@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku kisou-refresh
@@ -59,7 +59,7 @@ configuration over the block's new text before dispatch — not the repository's
 default, since the ignore list is what decides whether markdownlint sees the
 file at all.
 
-Related: req-04f5, design-4807 (rule 11; `lint` and `replay`), the kisou
+Related: exp-06b2, design-4807 (rule 11; `lint` and `replay`), the kisou
 refresh dogfood report at `docs/reports/2026-09-11-kisou-refresh-dogfood.md`,
 `docs/notes/authoring-a-passage-plan.md` ("A block must survive its
 destination's linter"), issue-7c28, issue-ea3c.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-20
+updated: 2026-10-01
 ---
 
 Source: shoroku context-cost
@@ -30,7 +30,7 @@ the plan's Self-Review states the largest task's size so that the reader can
 judge it. What the count should be is unknown until a task fails or degrades
 for size; record the sizes in the dogfood reports until then.
 
-Related: req-04f5, issue-5830, design-4807 (the passage-plan conventions),
+Related: exp-06b2, issue-5830, design-4807 (the passage-plan conventions),
 superpowers writing-plans.
 
 The first numbers, from the context-cost run (2026-09-09), recorded here

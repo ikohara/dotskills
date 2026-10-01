@@ -49,7 +49,7 @@ Serves exp-06d2, exp-1fb1.
 
 ### Classification and the experience pairing
 
-Serves `req-3c4d`. Added 2026-09-09; the authority stays `docs/AGENTS.md`, and
+Added 2026-09-09; the authority stays `docs/AGENTS.md`, and
 the summary above is not restated there.
 
 Classification follows the **two splits the type files define** — "design vs

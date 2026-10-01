@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku tanto-sweep
@@ -47,7 +47,7 @@ once in the spec's Verification section and three times in the plan. The
 failure was then rediscovered at the batch boundary by the session running the
 check. See issue-ea3c for the general gap this is one of two instances of.
 
-Related: req-04f5, design-4807 (the test-suite command), the tanto-sweep
+Related: exp-06b2, design-4807 (the test-suite command), the tanto-sweep
 spec and plan of 2026-09-10, issue-ea3c.
 
 Confirmed twice more in the `tanto-sweep-2` run (2026-09-16), at the batch

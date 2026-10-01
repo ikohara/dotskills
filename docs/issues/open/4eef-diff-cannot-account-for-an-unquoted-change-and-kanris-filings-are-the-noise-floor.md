@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-20
+updated: 2026-10-01
 ---
 
 Source: shoroku kisou-refresh
@@ -39,7 +39,7 @@ files across is Kanri's own work. Three answers, any of which closes it: an
 `rewritten:` above), or `rewritten:` on each filed path, or a rule that Kanri
 files between plans rather than during one.
 
-Related: req-04f5, design-4807 (rule 11; the `created:` declaration), the
+Related: exp-06b2, design-4807 (rule 11; the `created:` declaration), the
 kisou refresh dogfood report at
 `docs/reports/2026-09-11-kisou-refresh-dogfood.md`.
 

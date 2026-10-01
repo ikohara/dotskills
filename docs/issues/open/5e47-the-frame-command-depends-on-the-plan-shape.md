@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku context-cost
@@ -33,4 +33,4 @@ or if writing-plans changes its step syntax; the remedy is either a second
 pattern in the command or a note in the plan's frame that names the shape it
 was written in.
 
-Related: req-04f5, issue-5830, design-4807.
+Related: exp-06b2, issue-5830, design-4807.
