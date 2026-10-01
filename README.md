@@ -51,7 +51,7 @@ or `.claude/skills/`.
 - **[wayaku](./skills/wayaku/)** (和訳) — on-demand Japanese translation of any
   file (prose or code comments).
 - **[shoroku](./skills/shoroku/)** (抄録) — excerpt session / memory / file into
-  a project's living `docs/` (requirements / design / decisions / issues),
+  a project's living `docs/` (experience / design / decisions / issues),
   governed by an agent-agnostic `AGENTS.md` document-management system.
 - **[kisou](./skills/kisou/)** (起草) — scaffold a project's standard structure
   (`README` / `CONTRIBUTING` / `CLAUDE` / `AGENTS` + the `docs/` system), or

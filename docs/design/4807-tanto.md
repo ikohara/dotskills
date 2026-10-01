@@ -57,7 +57,7 @@ can see is not the session id, so nothing a peer holds leads to the file.
 No threshold is chosen: the archive's rows are the dataset, and the number that
 would fire a handover or a replacement on cost is a later ADR's (issue-40ed).
 
-## Skill layout (req-04f5)
+## Skill layout
 
 Serves no expectation; internal shape.
 
@@ -797,7 +797,7 @@ five cases should not restore it there. The nearby disagreement between
 `templates/handover.md`'s Live peers placement and `roles/kanri.md`'s
 (issue-f5d8) is a separate matter and is not resolved by this.
 
-## The shared checkout, and when a queued topic may commit (req-04f5)
+## The shared checkout, and when a queued topic may commit
 
 Serves exp-38e5.
 
@@ -1143,7 +1143,7 @@ close** — decision-7e0d. The stage keeps the word `t2`. Every other moment of
 a run — a spec accepted, a plan landed, a session's exit, a batch boundary, a
 review, a Kaiseki report — produces proposal items and nothing else. T0 and T1 no
 longer exist: the input document's decided items become ADRs at the topic's own
-close, and the requirements and issues the spec produced land there too.
+close, and the experience and issues the spec produced land there too.
 
 **The four steps are Propose, Recommend, Check and Apply**, a seat's section is
 a "Shoroku proposal" and the ledger's and roster's two tables are "Shoroku
@@ -1236,7 +1236,7 @@ brief already makes. That split is now built: the recommendation is the apply's
 input and the check brief is the human's, written from the same judgment in the
 same run.
 
-**Cost accepted.** `docs/` reflects a topic's requirements, ADRs, and issues
+**Cost accepted.** `docs/` reflects a topic's experience, ADRs, and issues
 only at its close. A concurrent topic's Sekkei reads the spec on the branch, or
 the Kikaku decision file its orders line names, for what `docs/` does not yet
 hold.
@@ -1359,7 +1359,7 @@ design document is a description of what the files do; if no file does it,
 nothing does. The fix shipped as a passage in Sekkei's Step 2, where the
 obligation now lives.
 
-## Plan conventions under tanto (req-04f5)
+## Plan conventions under tanto
 
 Serves exp-26d5.
 
@@ -1937,7 +1937,7 @@ filed as issue-f2c4. And **whole-file blocks for a passage-shaped plan** were
 rejected because they would have meant transcribing a 580-line file to change
 seven places in it.
 
-## What a measurement can settle, and what it cannot (req-04f5)
+## What a measurement can settle, and what it cannot
 
 Serves exp-19c1.
 
@@ -1970,7 +1970,7 @@ of 2026-09-14 the human's answer to Q1 was a protocol none of the three options
 offered, and it became the design's center — so the options a dialogue puts are
 a prompt, not a menu.
 
-## What makes a convention bind (req-04f5)
+## What makes a convention bind
 
 Serves exp-173f.
 

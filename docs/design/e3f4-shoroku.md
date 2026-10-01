@@ -35,7 +35,7 @@ Serves exp-75bc.
 Serves exp-06d2, exp-1fb1.
 
 1. **Read** the source.
-2. **Classify** each fragment as one of `requirement` / `design` /
+2. **Classify** each fragment as one of `experience` / `design` /
    `decision` / `issue`; whole-file material (an investigation, a
    reference) goes to the flat `notes` / `reports`, per the per-type
    rules in `docs/<type>/AGENTS.md`.
@@ -47,40 +47,44 @@ Serves exp-06d2, exp-1fb1.
 5. **Report** files changed + commit hash. Empty / minimal source ⇒
    `nothing to shoroku`, write nothing — never invent content.
 
-### Classification and the requirement pairing
+### Classification and the experience pairing
 
 Serves `req-3c4d`. Added 2026-09-09; the authority stays `docs/AGENTS.md`, and
 the summary above is not restated there.
 
 Classification follows the **two splits the type files define** — "design vs
-decisions" in `docs/design/AGENTS.md` and "requirements vs issues" in
-`docs/requirements/AGENTS.md`. The second is the newer of the two: a need the
-user states that the system does not meet yet is **two** fragments, a
-requirement and an issue, not one issue. The proposal then carries the
-**requirement pairing** the Propose step defines — each `design/` entry names
-the `req-<id>` it serves or says it serves none, and the unpaired are flagged.
+decisions" in `docs/design/AGENTS.md` and "experience vs issues" in
+`docs/experience/AGENTS.md`. The second is the newer of the two: a want the
+user states that the system does not meet yet is **two** fragments, an
+expectation and an issue, not one issue. The proposal then carries the
+**experience pairing** the Propose step defines — each `design/` entry names
+the `exp-<id>` it serves or says it serves none, and the unpaired are flagged.
 
 Three properties of that rule matter to this skill's shape:
 
 - **It is scoped to the proposal's own entries, never the standing tree.** A
   whole-tree sweep would flag every section of every design entry and offer an
-  issue for every requirement bullet — the mirror image of the over-extraction
-  the granularity gate exists to prevent. A backfill is its own run
-  (issue-320e).
-- **The requirement-side flag is a question, not a verdict.** A requirement
-  bullet no design serves may be unmet — a gap, and then an issue — or met but
-  never described, and then a `design/` entry. Offering the issue outright
-  would make the rule itself a source of over-extraction; the proposal asks and
-  the user answers at `Direction?`.
+  issue for every expectation — the mirror image of the over-extraction the
+  granularity gate exists to prevent. A backfill is its own run (issue-320e).
+- **The experience-side flag is a question, not a verdict.** An expectation no
+  design serves may be unmet — a gap, and then an issue — or met but never
+  described, and then a `design/` entry. Offering the issue outright would make
+  the rule itself a source of over-extraction; the proposal asks and the user
+  answers at `Direction?`.
 - **It lives in the docs system, not in either skill.** The loss happens at
   classification, where shoroku stands, and kisou reads no `docs/` content at
-  all, so a kisou-side scan for unpaired bullets was rejected: the rule is
+  all, so a kisou-side scan for unpaired expectations was rejected: the rule is
   template text that every classifier runs, and kisou merely installs it.
 
+Experience is the one type shoroku may assemble: an `[inferred]` candidate is
+capped at SHOULD and goes to `Unsure` in recommend mode; the rule is in
+`docs/experience/AGENTS.md` and this skill's `SKILL.md` carries one sentence
+naming it.
+
 A translation rule for the `Direction?` proposal was considered and rejected:
-the proposal is already presented in the chat's language, so the original-plus-
-reference-translation shape belongs to `tanto`'s escalation to the human
-(`req-04f5`), not here.
+the proposal is already presented in the chat's language. The
+original-plus-reference-translation shape rides in recommend mode, for an ADR
+item and for an `[inferred]` experience item, and nowhere in session mode.
 
 Two seams between this skill's wording and the docs system's remain open, as
 `issue-2c4d` predicts for a bundle authored on one side and followed on the
@@ -138,5 +142,5 @@ Serves exp-81e0.
 
 Serves no expectation; internal shape.
 
-- `req-3c4d` — shoroku's scope and required behavior.
+- `exp-4b7f` — starting a project from a chat discussion, where shoroku's requirements folded.
 - `decision-9f4b` — kisou as sole installer (shoroku carries no bundle).

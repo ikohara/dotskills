@@ -15,18 +15,20 @@ detection / orchestration; the substance is in the bundle.
 
 The bundle produces (always, when scaffolding): `README.md`,
 `CONTRIBUTING.md`, `CLAUDE.md`, a slim top-level `AGENTS.md`, the
-`docs/` doc-management system (`docs/AGENTS.md` +
-`docs/<type>/AGENTS.md` + the `docs/issues/{open,deferred,resolved}/`
-skeleton), and `scripts/bootstrap.{bat,sh}`. Optional, on user request:
+`docs/` doc-management system (`docs/AGENTS.md`, the per-type
+`docs/<type>/AGENTS.md` under the cased type directories, and the
+hand-written hub `docs/experience.md`), and `scripts/bootstrap.{bat,sh}`.
+Optional, on user request:
 `setup.{bat,sh}`, `run.{bat,sh}`, and the other `scripts/*.{bat,sh}`.
 Never produces `src/` or `tests/` (neither content nor empty dirs);
 never runs `git init`; never auto-generates script content.
 
-The doc-system spans six types — four managed (`requirements` / `design` /
+The doc-system spans six types — four managed (`experience` / `design` /
 `decisions` / `issues`) plus two flat (`notes` / `reports`; decision `3544`).
 Both flat dirs are stamped on scaffold, and `{{notes}}` / `{{reports}}`
 participate in the `case` mapping (plain title-case, no abbreviation
-expansion).
+expansion). The hub `docs/experience.md` is scaffolded once from
+`templates/docs/experience.md` and is not a copy the instrument compares.
 
 The bundled top-level `AGENTS.md` tells agents to run `lint` *on the changed
 paths* before committing — this assumes the project's `lint` script accepts
@@ -247,7 +249,7 @@ Serves no expectation; internal shape.
 
 Destination directory names are **case-correct** per `case` (a
 PascalCase scaffold writes to `Documents/AGENTS.md`,
-`Documents/Requirements/AGENTS.md`, `Documents/Issues/{open,deferred,
+`Documents/Experience/AGENTS.md`, `Documents/Issues/{open,deferred,
 resolved}/`, etc.). The bundle inside this repo is authored in canonical
 (snake) form; case is applied at scaffold time.
 
@@ -255,7 +257,7 @@ resolved}/`, etc.). The bundle inside this repo is authored in canonical
 
 Serves no expectation; internal shape.
 
-- `req-1a2b` — kisou's scope and required behavior.
+- `exp-03ae` — returning to a project set up by an older kisou, where kisou's requirements folded.
 - `decision-9f4b` — kisou as sole installer (Option X rejected).
 - `decision-8b1f` — case mapping with abbreviation expansion.
 - `decision-2a5e` — bootstrap is mandatory.

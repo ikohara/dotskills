@@ -57,4 +57,4 @@ Serves no expectation; internal shape.
 
 Serves no expectation; internal shape.
 
-- `req-7a8b` — automated release purpose and behavior.
+- `exp-09c2` — a skill lives in other repositories, where automated release's requirements folded.

@@ -21,7 +21,7 @@ For variations, refer to the usage of the commands the script invokes.
 
 ## Project structure
 
-- [`docs/requirements/`](docs/requirements/) — what we're building
+- [`docs/experience.md`](docs/experience.md) — who uses this and what they expect; scenes in [`docs/experience/`](docs/experience/)
 - [`docs/design/`](docs/design/) — how the system is built
 - [`docs/decisions/`](docs/decisions/) — Architecture Decision Records
 - [`docs/issues/`](docs/issues/) — known issues and TODOs
@@ -32,7 +32,7 @@ For variations, refer to the usage of the commands the script invokes.
 
 ## References
 
-Project context documents under `docs/` — `requirements/`, `design/`,
+Project context documents under `docs/` — `experience/`, `design/`,
 `decisions/`, and `issues/` — are managed by AI agents: ask an agent to add
 or update entries.
 
@@ -40,7 +40,7 @@ Refer to them as `<type>-<id>` in commits, code comments, and prose:
 
 - `decision-a3f7`
 - `issue-b9c2`
-- `req-d4e5`
+- `exp-d4e5`
 - `design-f607`
 
 ## Code style
