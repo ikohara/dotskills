@@ -2,14 +2,14 @@
 id: "4b7f"
 title: starting a project from a chat discussion
 created: 2026-09-30
-updated: 2026-09-30
-actors: [maintainer, agent]
+updated: 2026-10-01
+actors: [user, agent]
 tags: [reasons-retention, handover, user-effort, provenance]
 ---
 
 ## Scene
 
-The maintainer thinks a new tool through with an AI in chat over an evening.
+The user thinks a new tool through with an AI in chat over an evening.
 By the end, all the reasons are in the chat: why now, what would annoy him,
 what he refuses to build. He asks for a handover file, drops it into a fresh
 repo uncommitted, runs the first documentation pass, deletes the file. Weeks
@@ -19,12 +19,12 @@ out twice — once into the handover, once into the docs.
 
 ## Expectations
 
-- **06d2** [stated] MUST NOT lose the maintainer's reasons between the chat
+- **06d2** [stated] MUST NOT lose the user's reasons between the chat
   and the repo.
-- **0cfa** [stated] SHOULD NOT require the maintainer to hand-write the
+- **0cfa** [stated] SHOULD NOT require the user to hand-write the
   reasons.
 - **16c2** [stated] SHOULD keep the handover flow — chat → file → new repo or directory, uncommitted; deletion optional — with only what the file carries changing.
-- **1fb1** [confirmed] MUST let the maintainer see his own words behind any
+- **1fb1** [confirmed] MUST let the user see his own words behind any
   claim the agent wrote on his behalf.
 
 ## Open questions

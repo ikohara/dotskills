@@ -1,12 +1,13 @@
 # Experience
 
 The goal layer of dotskills: who uses it, what they take for granted, and
-what the maintainer has ruled out. Scenes live in `experience/`; this file is
+what the user has ruled out. Scenes live in `experience/`; this file is
 hand-written and is the first thing to read.
 
 ## Cast
 
-- **maintainer** — the user. Solo developer of dotskills and of the projects that use kisou/shoroku. Works mostly with AI; returns to repos after weeks or months away.
+- **user** — the person using the skills in projects of his own. Solo developer of those projects; works mostly with AI; returns to repos after weeks or months away. The same person as the developer, in the project hat.
+- **developer** — the same person in the dotskills hat: ships the skills, and hears back from the repositories that use them.
 - **agent** — Claude Code: Fable orchestrating, Opus/Sonnet subagents. Reads and writes the docs; starts every session cold.
 - **collaborator** — a future human contributor who may not use AI at all.
 
@@ -14,7 +15,7 @@ hand-written and is the first thing to read.
 
 At most five at MUST level. Each generalizes the expectations it points at.
 
-- **b76a** MUST NOT lose the maintainer's reasons between conversation and repo ← exp-06d2, exp-1fb1
+- **b76a** MUST NOT lose the user's reasons between conversation and repo ← exp-06d2, exp-1fb1
 - **bf60** MUST NOT exclude non-AI human readers ← exp-37c2
 - **c018** SHOULD keep the always-read set small ← exp-48b2, exp-b6bf
 - **c233** SHOULD let the agent weigh stated concerns and propose alternatives ← exp-51d2, exp-58f1, exp-59eb

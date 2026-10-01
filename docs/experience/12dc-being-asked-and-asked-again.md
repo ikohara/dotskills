@@ -2,14 +2,14 @@
 id: "12dc"
 title: being asked, and asked again
 created: 2026-09-30
-updated: 2026-09-30
-actors: [maintainer, agent]
+updated: 2026-10-01
+actors: [user, agent]
 tags: [user-effort, interruption, capture]
 ---
 
 ## Scene
 
-The agent, being careful, asks the maintainer about the same preference it
+The agent, being careful, asks the user about the same preference it
 asked about last week. Or it asks five clarifying questions before a bug fix.
 He answers, because not answering is worse, but every question is a context
 switch out of whatever he was doing. He would rather the agent noticed what

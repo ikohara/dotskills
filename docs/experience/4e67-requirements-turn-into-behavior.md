@@ -2,14 +2,14 @@
 id: "4e67"
 title: '"requirements" turn into behavior'
 created: 2026-09-30
-updated: 2026-09-30
-actors: [maintainer, agent]
+updated: 2026-10-01
+actors: [user, agent]
 tags: [goal-layer, developer-experience, traceability]
 ---
 
 ## Scene
 
-Asked to write requirements, both the maintainer and the agent produce
+Asked to write requirements, both the user and the agent produce
 "the system shall …" sentences. Reasonable, precise, and useless for the
 question "what was this for?". The folder fills with behavior that the code
 and the tests already express, and the purpose is nowhere.

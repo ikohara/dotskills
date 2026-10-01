@@ -2,14 +2,14 @@
 id: "bcf4"
 title: two languages, one tree
 created: 2026-09-30
-updated: 2026-09-30
-actors: [maintainer, agent]
+updated: 2026-10-01
+actors: [user, agent]
 tags: [language, token-cost, provenance]
 ---
 
 ## Scene
 
-The maintainer thinks and talks in Japanese. The docs are in English. The
+The user thinks and talks in Japanese. The docs are in English. The
 agent reads both, but pays more for Japanese. He would rather not have
 Japanese in the tree at all — but he trusts his own words more than a
 translation of them.
