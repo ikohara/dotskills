@@ -14,8 +14,8 @@ interactive Claude Code sessions on the same repository, the same working tree,
 and the same branch. Kanri (管理) manages, Sekkei (設計) designs the spec,
 Keikaku (計画) writes the plan, Jisso (実装) implements, Kaiseki (解析) finds
 root causes, Kikaku (企画) is where the human thinks about what comes next, and
-Hosa (補佐) takes the small jobs. exp-06b2 states what the skill must do for its
-user; this entry states how it is built.
+Hosa (補佐) takes the small jobs. The experience scenes (chiefly exp-06b2) state
+what its user expects; this entry states how it is built.
 
 Five of the seven are lifecycle roles, created and deleted around a plan.
 **Kikaku and Hosa are seats outside the lifecycle**: the human opens each one
@@ -238,12 +238,12 @@ and Kanri is the only session that sends to Sekkei, Jisso or Kaiseki.
 batch prompt** — decision-76a6. The Jisso queue (below) puts N windows on the
 roster at the plan's landing, and a queued row is an address that exists and is
 deliberately never used: the window is sent nothing at all — there is no
-broadcast of any kind to send it — and
-it reads no plan and no spec while it waits. A broadcast to the run's windows
-therefore costs the waiting ones nothing, which is the minimum context a waiting seat
-holds (exp-06b2). The batch prompt is the whole start contract
-for a rotating Jisso, which is why it carries the setup a resume would
-otherwise supply, Kanri's own name and ref included.
+broadcast of any kind to send it — and it reads no plan and no spec while it
+waits. A broadcast to the run's windows therefore costs the waiting ones
+nothing, which is what lets a seat that waits hold the minimum context
+(exp-178d). The batch prompt is the whole start contract for a rotating Jisso,
+which is why it carries the setup a resume would otherwise supply, Kanri's own
+name and ref included.
 
 **Every tanto line carries a `no-role` second line** — decision-78e4. Because
 windows are reused rather than closed, a line can reach a window that has been
@@ -711,9 +711,9 @@ the answers as rulings, and marks the file `confirmed`, `corrected`, or
 handover file's `(unverified)` marking, and a standalone Kaiseki, which asks the
 human in its own window. What the harness summarizes is not the human's words;
 the human's words are in the dialogue file, the ledger, and the human's own
-window. The loop is a new interrupt class, outside exp-06b2's checkpoint list,
-and it was accepted because the alternative is acting on words the human did not
-say.
+window. The loop is a new interrupt class, outside the checkpoints exp-26d5
+lets the user know of, and it was accepted because the alternative is acting
+on words the human did not say.
 
 **A handover file's own summary of a referenced input is not a substitute for
 reading that input.** Measured on 2026-09-12: the successor Kanri answered a
@@ -765,8 +765,8 @@ running under the handover file's **In flight** section, so the successor knows
 those results are lost rather than pending.
 
 One case does not hold a handover: a boundary that a skill-editing plan has not
-yet named safe for a replacement. The handover proceeds when due — exp-06b2 and
-decision-de63 make it mandatory at a boundary — and the successor takes the
+yet named safe for a replacement. The handover proceeds when due —
+decision-de63 makes it mandatory at a boundary — and the successor takes the
 authority ruling from the handover file's "Rulings the next batch inherits"
 rather than from the tree.
 
@@ -1941,10 +1941,10 @@ seven places in it.
 
 Serves exp-19c1.
 
-exp-06b2 puts the spec dialogue's judgment with the human and the design with
-Sekkei, and a measurement is how Sekkei keeps a claim honest. The tanto-sweep
-dialogue of 2026-09-10 found the failure mode twice in one session, and both
-times the measurement itself was accurate.
+The spec dialogue's judgment is the human's and the design is Sekkei's, and a
+measurement is how Sekkei keeps a claim honest. The tanto-sweep dialogue of
+2026-09-10 found the failure mode twice in one session, and both times the
+measurement itself was accurate.
 
 - Sekkei set out to measure which Python interpreters the machine carried. The
   human stopped it — 「いや、既存のインタプリタを調べても仕方ない。uv を使えば、
@@ -1974,10 +1974,10 @@ a prompt, not a menu.
 
 Serves exp-173f.
 
-exp-173f asks that state live in files and that rulings be recorded rather than
-remembered, and this document is where the plan conventions accumulate. The
-tanto-sweep run measured what actually makes one of them hold, and the answer
-is not care.
+A run continues from what is on disk (exp-173f), rulings are recorded rather
+than remembered, and this document is where the plan conventions accumulate.
+The tanto-sweep run measured what actually makes one of them hold, and the
+answer is not care.
 
 In that run one Sekkei wrote three conventions and then broke all three, each
 inside the document that states it, twice quoting a rule in the same paragraph

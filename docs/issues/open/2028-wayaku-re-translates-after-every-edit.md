@@ -35,7 +35,7 @@ And one sentence in the overview: "on-demand" means the user asks each
 time; the mtime check exists so that a repeated request skips work, not so
 that the agent watches for changes.
 
-Optionally mirror the sentence in exp-bcf4 (where the wayaku requirement folded).
+No mirror is needed now: exp-2daa already holds the user's side.
 
 Measured 2026-09-07, in the Sekkei session of the kanri-lifecycle run: the
 skill's update mode (`和訳更新`) diffed the old and new source per section and

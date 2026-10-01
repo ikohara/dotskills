@@ -50,13 +50,15 @@ Related: issue-4d8a (nothing checks a role file's own cross-references —
 the same shape, here between two skills instead of within one file).
 
 **2026-09-16, the `tanto-sweep-2` run — the "Composes without modifying" claim
-had drifted from practice, and nothing re-checks it.** The tanto requirement's "Composes
-without modifying" bullet (folded into exp-06b2) named `shoroku` among the skills this repository uses
-as-is, while `skills/shoroku/SKILL.md` had by then been edited for `tanto`'s
-sake **twice**. The requirement and the practice were out of step until that
-run's own T1 amended the bullet, so the bullet itself is now correct. What
-remains is this issue's own subject one level up: the coupling described above
-is exactly the thing the bullet asserts does not exist, and no check compares
+had drifted from practice, and nothing re-checks it.** The tanto requirement's
+"Composes without modifying" bullet, dropped when the requirement folded
+(design-4807 `## Deviations from the composed skills` carries the substance),
+named `shoroku` among the skills this repository uses as-is, while
+`skills/shoroku/SKILL.md` had by then been edited for `tanto`'s sake
+**twice**. The requirement and the practice were out of step until that run's
+own T1 amended the bullet, so the bullet itself was then correct. What remains
+is this issue's own subject one level up: the coupling described above is
+exactly the thing the bullet asserted does not exist, and no check compares
 the claim against the tree. A run noticed it by reading; the next drift will
 need someone to read again.
 
