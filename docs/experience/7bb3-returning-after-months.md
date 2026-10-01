@@ -25,6 +25,7 @@ them.
 - **48b2** [stated] SHOULD keep what the agent reads on every task small.
 - **518b** [confirmed] SHOULD make it obvious when a structural description
   is stale relative to the code.
+- **37ce** [confirmed] SHOULD have the docs kept current as part of the work that changes them, so that what he learned in a session is there when he returns.
 
 ## Open questions
 
@@ -34,3 +35,4 @@ them.
 - [3b2d] inferred from 37c2 and 「UX だけじゃなく、DXも、だ」; the "one sitting" bound is Claude's; not stated directly. Confirmed 2026-09-15: 「いろいろ考えたけど「一回の着席で」に勝る表現を思いつかなかった。OK」
 - [48b2] 「日本語をAIに読ませるのがトークン消費の点で気にはなるけど、仕方ないか。許容。」 (chat, 2026-09-13 to 15)
 - [518b] inferred from the user's acceptance of a generated, commit-stamped map (「(AI) diff 提案→ (人間) 承認→ (AI) マージの手順と, OPTIONAL どっちがコスト安いかというと 後者？ 真なら後者で」); not stated directly. Confirmed 2026-09-15: 「あとは yes」
+- [37ce] inferred from the folded tanto requirement file 「not as an afterthought」 and 「nothing a session learned is lost with it」 (2026-09-20) and 518b, 06d2; not stated directly. Confirmed 2026-10-01: 「今のところ他に違和感なし」

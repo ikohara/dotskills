@@ -2,10 +2,12 @@
 id: "a5b6"
 title: automated release — release.ps1 flow
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-10-01
 ---
 
 ## Shape
+
+Serves exp-1d5d.
 
 A single PowerShell script at `scripts/release.ps1` that automates the
 mechanical steps of cutting a release. The human is responsible for
@@ -14,6 +16,8 @@ committing it; everything after that is automatic, with a confirmation
 prompt before remote action.
 
 ## Flow
+
+Serves exp-22fc.
 
 1. **Read version** — parse `CHANGELOG.md` for the first `## [X.Y.Z]`
    heading (skip `## [Unreleased]`). Extract `$version`. Error if no
@@ -30,6 +34,8 @@ prompt before remote action.
 
 ## Invariants
 
+Serves exp-259d, exp-22fc.
+
 - The script **reads** but never **writes** `CHANGELOG.md`. The user
   writes the entry; the script consumes it.
 - Errors are emitted before any state-changing step runs (read /
@@ -37,6 +43,8 @@ prompt before remote action.
 - Remote push is gated by an explicit user confirmation prompt.
 
 ## Location and tooling
+
+Serves no expectation; internal shape.
 
 - Path: `scripts/release.ps1` (alongside `bootstrap.bat` /
   `bootstrap.sh`).
@@ -46,5 +54,7 @@ prompt before remote action.
 - Tests: `scripts/release.Tests.ps1` (Pester).
 
 ## Related
+
+Serves no expectation; internal shape.
 
 - `req-7a8b` — automated release purpose and behavior.

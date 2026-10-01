@@ -2,10 +2,12 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-09-22
+updated: 2026-10-01
 ---
 
 ## Purpose and shape
+
+Serves exp-06b2.
 
 `tanto` (担当, "take charge of") runs implementation plans through up to seven
 interactive Claude Code sessions on the same repository, the same working tree,
@@ -56,6 +58,8 @@ No threshold is chosen: the archive's rows are the dataset, and the number that
 would fire a handover or a replacement on cost is a later ADR's (issue-40ed).
 
 ## Skill layout (req-04f5)
+
+Serves no expectation; internal shape.
 
 `SKILL.md` is the shared contract every role reads: invocation and role-word
 normalization, the model check, the handshake, the address rule, the roster, the
@@ -176,6 +180,8 @@ context under a new name and not a reuse at all.
 
 ## The start sequence
 
+Serves no expectation; internal shape.
+
 Two steps, in this order, before any role work:
 
 1. **Model check** against the expected-model config. On a mismatch the session
@@ -198,6 +204,8 @@ the launcher asks the spawner for it rather than running `claude --bg` itself
 `claude --bg` has no exception a reader has to remember.
 
 ## Addressing, and why by born name
+
+Serves exp-173f.
 
 The address of a session is the **bare name** its handshake carried. A name that
 matches exactly one live session delivers; when the send reports the name
@@ -267,6 +275,8 @@ on is written by the handshake for the peers and by Kanri itself for its own
 row, as the roster section above says.
 
 ## The expected-model config
+
+Serves exp-178d.
 
 Three maps, three mechanisms — the first two recorded in full as
 decision-9a3a, the third added by decision-eee2.
@@ -342,6 +352,8 @@ than the first, which is the direction a model-choice measurement should
 move in before it is trusted.
 
 ## The roster and the conductor ledger
+
+Serves exp-173f, exp-19c1.
 
 The roster is kept by Kanri at a fixed path, its own row first, one row per role
 with the eight fields the handshake carries. It is the **address book**: the
@@ -455,6 +467,8 @@ anyway. The move disappears, and the topic word names exactly one directory
 from the topic's opening to the plan's close.
 
 ## Kanri's loop, with its entry and its side channel
+
+Serves exp-26d5, exp-173f.
 
 The loop has three parts, and the first two are what a steady-state description
 of it leaves out.
@@ -638,6 +652,8 @@ reason that only applies while an implementer exists.
 
 ## Handover
 
+Serves exp-19c1, exp-173f.
+
 Kanri is resident, so its only exit is a handover — decision-de63. Four
 signals fire one, checked at every boundary: at loop step 6 while a plan is in
 flight, and between plans at the start of every turn. **The plan close** is the
@@ -783,6 +799,8 @@ five cases should not restore it there. The nearby disagreement between
 
 ## The shared checkout, and when a queued topic may commit (req-04f5)
 
+Serves exp-38e5.
+
 A second topic may open once every open topic has passed its spec stage, and
 its Sekkei and Keikaku write documents anywhere; what they cannot do is commit
 into the one checkout another topic's implementation holds. The release
@@ -800,6 +818,8 @@ topic directory and takes it to its final path when Kanri says the checkout is
 free.
 
 ## Bug intake
+
+Serves exp-1c02, exp-1c7a.
 
 The rule that nothing tracked names another repository (req-04f5) is not
 tidiness: it was measured. Before it, thirty tracked files and eight commit
@@ -867,6 +887,8 @@ literally. A ruling that expects to be read by a script later states the form
 it expects.
 
 ## Human access
+
+Serves exp-26d5.
 
 By default a role has no human access. A role addresses the human directly only
 for what needs the human's eyes or hands — a visual check, an OS dialog, a
@@ -946,6 +968,8 @@ unanswered question.
 
 ## The batch contracts
 
+Serves no expectation; internal shape.
+
 A **batch prompt** carries a guard line naming the workspace it belongs to, the
 previous batch's verdict, what changed since the last prompt, the setup needed
 on resume including Kanri's own name and ref, the rulings the next tasks inherit
@@ -973,6 +997,8 @@ against the whole branch instead of rippling a mid-batch patch into the
 measurements the later batches take (req-04f5).
 
 ## The Kaiseki branch and standalone mode
+
+Serves exp-178d.
 
 The branch runs **only when the cause of a failure is unknown**. A known cause
 with a decision to make is a Kanri ruling, not a Kaiseki case; that sentence is
@@ -1012,6 +1038,8 @@ report from the template and sends it to the address the human gives.
 
 ## The final batch
 
+Serves exp-37ce, exp-27e8.
+
 After the last implementation batch is accepted, **Kanri** dispatches the
 whole-branch review — not Jisso — so the executor never commissions its own
 final review. The reviewer gets a review package over the merge base and a
@@ -1048,7 +1076,9 @@ insufficient (req-04f5).
 
 ## What the executor's loop assumes
 
-Serves `req-04f5`. Three properties the SDD fix loop rests on, each measured in
+Serves exp-178d.
+
+Three properties the SDD fix loop rests on, each measured in
 the requirement-extraction run of 2026-09-09 rather than assumed.
 
 **An implementer can die mid-task, and the clean tree is the executor's to
@@ -1105,6 +1135,8 @@ the two review seats exactly as a subagent's diff would, which is what caught
 the gaps the executor's own first draft did not see.
 
 ## Shoroku staging, session exits, and the adoption rule
+
+Serves exp-37ce, exp-27e8.
 
 **The write-out into this document system happens once per topic, at its
 close** — decision-7e0d. The stage keeps the word `t2`. Every other moment of
@@ -1253,6 +1285,8 @@ with the whole of a gain that two produced.
 
 ## Deviations from the composed skills
 
+Serves no expectation; internal shape.
+
 `tanto` composes superpowers brainstorming, writing-plans, subagent-driven
 development, systematic debugging and requesting-code-review, the `kisou`
 document system, and `shoroku` **without editing any of them**. Every override
@@ -1290,6 +1324,8 @@ the line and every role reads the contract.
 
 ## Notation and the two design rules
 
+Serves exp-173f.
+
 `<plan-basename>` is the single notation for the plan's workspace directory;
 `<plan>` was retired from the skill's prose because it was never defined and
 read as a path to the plan file.
@@ -1324,6 +1360,8 @@ nothing does. The fix shipped as a passage in Sekkei's Step 2, where the
 obligation now lives.
 
 ## Plan conventions under tanto (req-04f5)
+
+Serves exp-26d5.
 
 A plan for this protocol carries, beyond the usual conventions, a Batches
 section of three or four tasks each with the stop conditions at every boundary,
@@ -1901,6 +1939,8 @@ seven places in it.
 
 ## What a measurement can settle, and what it cannot (req-04f5)
 
+Serves exp-19c1.
+
 req-04f5 puts the spec dialogue's judgment with the human and the design with
 Sekkei, and a measurement is how Sekkei keeps a claim honest. The tanto-sweep
 dialogue of 2026-09-10 found the failure mode twice in one session, and both
@@ -1931,6 +1971,8 @@ offered, and it became the design's center — so the options a dialogue puts ar
 a prompt, not a menu.
 
 ## What makes a convention bind (req-04f5)
+
+Serves exp-173f.
 
 req-04f5 asks that state live in files and that rulings be recorded rather than
 remembered, and this document is where the plan conventions accumulate. The
@@ -1980,6 +2022,8 @@ copy of the dry run or the review.
 
 ## The five triage outcomes, and why five
 
+Serves exp-1c7a.
+
 Four would be the obvious set — file it, send it away, fix it, or investigate.
 The fifth, the relay into a spec in progress, exists because a defect that
 arrives while a spec is being written has a cheaper home than an issue: the spec
@@ -1989,6 +2033,8 @@ which of the five happened without reading the ledger.
 
 ## Why the exit shoroku has no template of its own
 
+Serves no expectation; internal shape.
+
 The proposal and direction files are the close's own two files under different
 names, and the batch report already prescribes their shape. A tenth template
 would restate a skeleton that two role files and the ledger's stage values
@@ -1996,6 +2042,8 @@ already fix, and a skeleton nobody copies drifts from the procedure that does th
 work.
 
 ## Where the delivered skill differs from the design documents
+
+Serves exp-518b.
 
 Two design documents describe this skill, both kept with the project's
 superpowers working artifacts. Both are outside the six managed types and are

@@ -2,10 +2,12 @@
 id: "dc5d"
 title: install scripts — link-user (global) and copy-project (project-local)
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-10-01
 ---
 
 ## Shape
+
+Serves exp-2b4e.
 
 Two install entry points sit at the repo root, one per delivery mechanism:
 
@@ -27,6 +29,8 @@ update.
 
 ## Targets
 
+Serves exp-2b4e.
+
 Both scripts accept the same target alphabet, alphabetically ordered in
 `usage` and `resolve_dest`:
 
@@ -41,6 +45,8 @@ agents`); `copy-project` accepts one target per invocation so positional
 skill-name filtering stays unambiguous.
 
 ## CLI
+
+Serves no expectation; internal shape.
 
 ```text
 link-user.{bat,sh}   <target> [<target> ...]
@@ -60,6 +66,8 @@ copy-project.{bat,sh} [--force] <target> <project-path> [<skill> ...]
 
 ## Conflict handling
 
+Serves exp-0eda.
+
 For each skill, per invocation:
 
 | State                          | Without `--force` | With `--force`            |
@@ -73,6 +81,8 @@ skipped (junctions/symlinks are cheap to recreate manually; there is no
 intermediate state to preserve), so no `--force` is added.
 
 ## Output format
+
+Serves no expectation; internal shape.
 
 Both scripts emit a header and one line per skill, sharing the same prefix
 vocabulary:
@@ -88,6 +98,8 @@ When `./skills/` contains no entries: `[warn] No skills found in <root>/skills/`
 
 ## Exit codes
 
+Serves no expectation; internal shape.
+
 - `0` — every selected skill resulted in `[ok]` or `[skip]`.
 - `1` — any of: invalid arguments, unknown target, missing project path,
   unknown skill name, or one or more `[fail]` lines.
@@ -96,6 +108,8 @@ When `./skills/` contains no entries: `[warn] No skills found in <root>/skills/`
 the two scripts behave identically on failure.
 
 ## Validation order
+
+Serves no expectation; internal shape.
 
 1. No arguments → print usage, exit 1.
 2. Unknown flag (only `--force` is recognized by `copy-project`) → print
@@ -109,6 +123,8 @@ the two scripts behave identically on failure.
 
 ## Mechanics
 
+Serves no expectation; internal shape.
+
 - bash (`copy-project.sh`): `cp -R` for the copy; `rm -rf` first when
   `--force` and the destination exists.
 - cmd (`copy-project.bat`): `xcopy /E /I /Y /Q` for the copy; `rmdir /S /Q`
@@ -117,6 +133,8 @@ the two scripts behave identically on failure.
   caller's CWD, so they remain runnable from any directory.
 
 ## Related
+
+Serves no expectation; internal shape.
 
 - `README.md` — Install section documents both scripts side by side.
 - `AGENTS.md` (root) — "Always do" rule references `link-user.{bat,sh}` for

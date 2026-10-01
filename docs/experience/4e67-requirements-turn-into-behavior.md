@@ -27,6 +27,7 @@ and the tests already express, and the purpose is nowhere.
   docs out of this layer.
 - **a023** [stated] MAY keep traceability where it is cheap; it is not a
   goal in itself.
+- **26c5** [stated] SHOULD let the user ask which want a piece of design protects and get an answer, without reconstructing it himself.
 
 ## Open questions
 
@@ -38,3 +39,4 @@ and the tests already express, and the purpose is nowhere.
 - [948b] 「experience は僕が明文化したいことに近い。しかも、UX だけじゃなく、DXも、だ。それを明文化して、何がしたいかと言えば、それは最初から変わらず、AIの入力にして判断の支えにすること。」 (chat, 2026-09-13 to 15)
 - [99ac] 「動かしたい。そういうリファクタリング的な skill or 機能が欲しい」 (chat, 2026-09-13 to 15)
 - [a023] 「トレーサビリティはあった方がいいけど、なくてもいい。」 / 「Intentの明示や設計・実装とのトレースみたいなことが、大して役に立たないならこれ以上掘るのはやめようかと」 (chat, 2026-09-13 to 15)
+- [26c5] 「守ろうとしている要件はなんだろう？」 (issue-c9df, 2026-09-13)

@@ -2,10 +2,12 @@
 id: "e3f4"
 title: shoroku skill — excerpting modes, classification, partial-accept flow
 created: 2026-05-28
-updated: 2026-09-09
+updated: 2026-10-01
 ---
 
 ## Shape
+
+Serves no expectation; internal shape.
 
 A thin **behavioral** shell with no bundled assets (the doc-system
 lives with kisou — see decision `9f4b`). shoroku reads transient
@@ -14,6 +16,8 @@ in `docs/` as a single git commit per run. It never installs anything;
 in an unprepared repo it stops and points the user at `kisou`.
 
 ## Source modes
+
+Serves exp-75bc.
 
 - **session (default)** — the current conversation, plus any Markdown
   written or edited during the session, plus the existing `docs/` as
@@ -28,6 +32,8 @@ in an unprepared repo it stops and points the user at `kisou`.
 
 ## Workflow (shared across modes)
 
+Serves exp-06d2, exp-1fb1.
+
 1. **Read** the source.
 2. **Classify** each fragment as one of `requirement` / `design` /
    `decision` / `issue`; whole-file material (an investigation, a
@@ -39,7 +45,7 @@ in an unprepared repo it stops and points the user at `kisou`.
 4. **Apply** the accepted subset. Stage as **one** git commit naming
    the source's topic. No auto-push.
 5. **Report** files changed + commit hash. Empty / minimal source ⇒
-   "nothing to distill", write nothing — never invent content.
+   `nothing to shoroku`, write nothing — never invent content.
 
 ### Classification and the requirement pairing
 
@@ -100,11 +106,15 @@ record of what was approved and is deliberately not amended, so it still quotes
 
 ## Partial-accept parsing
 
+Serves exp-27e8.
+
 `OK` / `全部適用` accept all; `2 と 5 だけ` accept named items; `3 は
 やめて` reject named items; `5 の severity は high で` accept with an
 edit; `全部やめ` / `cancel` write nothing.
 
 ## Locate the rules
+
+Serves no expectation; internal shape.
 
 shoroku reads the **repo's committed `docs/AGENTS.md`** (and per-type
 `docs/<type>/AGENTS.md`) at run time and defers to them — the doc
@@ -113,6 +123,8 @@ absent the repo has not adopted the system; shoroku stops and suggests
 running `kisou` (docs-only migrate scope) to install them.
 
 ## Prohibited
+
+Serves exp-81e0.
 
 - Writing outside `docs/`.
 - Editing `AGENTS.md` / `CLAUDE.md` (kisou's job).
@@ -123,6 +135,8 @@ running `kisou` (docs-only migrate scope) to install them.
 - Auto-cleaning stale issue metadata or syncing with external trackers.
 
 ## Related
+
+Serves no expectation; internal shape.
 
 - `req-3c4d` — shoroku's scope and required behavior.
 - `decision-9f4b` — kisou as sole installer (shoroku carries no bundle).
