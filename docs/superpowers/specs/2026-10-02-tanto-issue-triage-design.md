@@ -530,7 +530,10 @@ of batch C** (rounds 4 to 6):
    Kanri runs at every wake-up.
 
 Batch C is spawned at B's boundary without waiting for the first sitting:
-its tasks read the liveness files, not the directions. **Batch D is not
+its tasks read the liveness files, not the directions. When a split round
+adds a recommend batch, that batch's boundary is a sitting too, its
+`attention` message naming the rounds that batch produced; "two sittings"
+is the unsplit case (the review brief's unsettled point, taken by default). **Batch D is not
 spawned until a direction file exists for every round file**, and Kanri's
 boundary-C turn says so in its own window when they do not yet. An answer
 for the first sitting that arrives after C's boundary is written all the
@@ -793,7 +796,10 @@ section available; none is written by this plan.
    task (rejected: the kind's name and its work diverge, and the opus cost
    per round is the same); SDD tasks on sonnet with the opus reviews the
    loop already carries, the brief read as a file (chosen; the departure
-   from §2 confirmed at Q-10). Reuses decision-bba6 and extends it: the brief is
+   from §2 confirmed at Q-10). It extends decision-bba6 and replaces no
+   part of it: bba6 decides the recommend → answer → apply cycle inside a
+   plan and says nothing of how the brief reaches the human (the review
+   brief's 2.5, taken by default). Reuses decision-bba6 and extends it: the brief is
    read in the editor and Kanri prints paths and counts. Sources: Q-2
    「よい」, Q-3 「推奨で」.
 3. **A gone string is a candidate; Landed needs the removing commit's
