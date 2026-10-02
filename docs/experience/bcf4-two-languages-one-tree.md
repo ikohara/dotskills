@@ -31,5 +31,5 @@ translation of them.
 - [ae58] 「許容。」 (chat, 2026-09-13 to 15, in reply to: Japanese allowed only in Source excerpts)
 - [b6bf] 「日本語をAIに読ませるのがトークン消費の点で気にはなるけど、仕方ないか。許容。」 (chat, 2026-09-13 to 15)
 - [2e98] inferred from the folded tanto requirement file 「the original is what is written, the translation is what the human reads it by」 (2026-09-20) and a545, ae58; not stated directly. Confirmed 2026-10-01: 「今のところ他に違和感なし」
-- [2daa] inferred from the folded wayaku requirement file 「spot, file-by-file Japanese translation of arbitrary files」 and 「the cache is excluded from the shared repo」 (Purpose, 2026-05-28) and a545, b6bf; not stated directly. Confirmed 2026-10-01: 「今のところ他に違和感なし」
 - [5d0c] inferred from the folded tanto requirement file 「The language the human has configured, for every repository or for one … is the language of every word a seat addresses to the human」 (2026-09-24) and 2e98; not stated directly
+- [2daa] inferred from the folded wayaku requirement file 「spot, file-by-file Japanese translation of arbitrary files」 and 「the cache is excluded from the shared repo」 (Purpose, 2026-05-28) and a545, b6bf; not stated directly. Confirmed 2026-10-01: 「今のところ他に違和感なし」
