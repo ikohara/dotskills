@@ -18,8 +18,8 @@
 
   | Kind | `subagent_type` | Model | Effort |
   | --- | --- | --- | --- |
-  | `task.implement` (fix rounds 1-3; **every round task of batches B, C and D**) | `tanto-task-implement` | sonnet | high |
-  | `task.escalate` (fix rounds 4-5, one tier above the implementer that got stuck) | `tanto-task-escalate` | opus | high |
+  | `task.implement` (SDD fix rounds 1-3 — not triage rounds; **every round task of batches B, C and D**) | `tanto-task-implement` | sonnet | high |
+  | `task.escalate` (SDD fix rounds 4-5, one tier above the implementer that got stuck) | `tanto-task-escalate` | opus | high |
   | `task.review-spec` | `tanto-task-review-spec` | opus | medium |
   | `task.review-quality` | `tanto-task-review-quality` | opus | medium |
   | `default` (an ad-hoc search outside the SDD loop) | `tanto-default` | sonnet | medium |
@@ -28,18 +28,18 @@
 - **Contract rule 11 does not bind this plan.** No task edits a file under `skills/`, so no role file is half-edited mid-run and a role may be started or replaced at any boundary. This is not a skill-editing plan.
 - **What is never edited.** Nothing under `skills/`, `.claude/`, or `docs/experience/` is edited — a repointed path link in a living document excepted, Task 14 and Task 15; no ADR body under `docs/decisions/` and no dated report under `docs/reports/` is edited (Task 17 writes one **new** report); no new frontmatter field, no `tags:` or `carrier:` key; no severity pass; no scene or hub edit; `tanto.json` at no layer; `docs/issues/resolved/` is not re-triaged and its 99 files are not read; nothing under `docs/superpowers/` except this plan's own file.
 - **The batch letters.** The spec's batches B and C each hold three rounds; with a round above fifty issues split in two by the instrument (spec section 1, Q-10) a half would hold five round files, which is over the three or four tasks a batch carries (Rule 7). So the recommend runs are three batches — **B** rounds 1 and 2, **C** rounds 3 and 4, **D** rounds 5 and 6, each cut at a whole round — and the spec's "batch D", the apply, is this plan's **batch E**. The spec's sentence that a split round "adds a recommend batch, that batch's boundary is a sitting too" is the rule this plan applies three times. Every sentence below that names a sitting means the boundary after B, after C, or after D; every sentence that names the apply means batch E.
-- **The round files.** A round's recommend task is written for one **round file** — `liveness-R<n>.md`, or `liveness-R<n>a.md` and `liveness-R<n>b.md` when the instrument split round `<n>` for holding more than fifty issues. The instrument's split rule fixes the list, and Task 3 writes it to `.tanto/tanto-issue-triage/round-files.txt`, one name part per line (`1a`, `1b`, `2a`, `2b`, `3`, `4a`, `4b`, `5`, `6a`, `6b`), and checks it against the ten this plan has tasks for. Only round 1 may differ: measured at drafting, a title-only count put round 1 at 50 issues (not above fifty, so no split) under the whole-word rule and the spec review measured 61, so **Task 5 (round 1b) is void when `round-files.txt` has no `1b`**: its implementer reports `void — round 1 not split`, writes nothing, and the batch holds three tasks. Any other list is a plan defect: Task 3's Jisso stops at the boundary and reports it under Deviations from the plan, and Kanri has this plan corrected before batch B is spawned.
+- **The round files.** A round's recommend task is written for one **round file** — `liveness-R<n>.md`, or `liveness-R<n>a.md` and `liveness-R<n>b.md` when the instrument split round `<n>` for holding more than fifty issues. The instrument's split rule fixes the list, and Task 3 writes it to `.tanto/tanto-issue-triage/round-files.txt`, one name part per line (`1a`, `1b`, `2a`, `2b`, `3`, `4a`, `4b`, `5`, `6a`, `6b`), and checks it against the ten this plan has tasks for. Only round 1 may differ: measured at drafting, a title-only count put round 1 at 50 issues (not above fifty, so no split) under the whole-word rule and the spec review measured 61, so **Task 5 (round 1b) is void when `round-files.txt` has no `1b`**: its implementer reports `void — round 1 not split`, writes nothing, and the batch holds three tasks. Any other list is a plan defect: Task 3's Jisso stops at the boundary and reports it under Deviations from the plan; Kanri rules on it at batch A's boundary, sends the plan back to Keikaku for correction (a resumed Keikaku seat, or a successor), and spawns batch B only after the corrected plan is committed. That ruling is not a sitting act.
 - **The sittings are decision-bba6's cycle, run once per recommend batch** (spec section 3; the Kikaku decision `.tanto/kikaku/2026-10-01-topics-after-experience-layer.md` section 2 puts the kessai cluster by cluster into this topic; decision-bba6's Consequences say a boundary that waits for a direction file is named by the plan's Global Constraints, and this is that naming). At the boundary after each of batches B, C and D, Kanri's acts are **three, plus one withheld**, and nothing else of Kanri's:
-  1. one `attention` request whose message is `kessai: tanto-issue-triage rounds <n>–<m> — claude attach <id>`, the spawner filling the id — `1–2` after B, `3–4` after C, `5–6` after D;
+  1. one `attention` request whose message is `kessai: tanto-issue-triage rounds <n>–<m> — claude attach <id>`, the spawner filling the id — `1–2` after B, `3–4` after C, `5–6` after D — and Kanri's first line to the human, after B, says there are three sittings and not two, since the spec and Q-3 spoke of two;
   2. one line per round **file** of that batch in its own window, in the human's language, read from the verdict's copy of the report's Questions for the human and never from a brief: `R<n>: <brief path> — landed <a>, merged <b>, assigned <c>, re-hung <d>, kept <e>; wants without a scene <w>`, then one closing line saying how to answer — per round, by exception, `OK` or the numbers that go the other way. It does not print a brief;
   3. one `triage-R<n>-direction.md` per round file, written the moment that round's answer is complete and not at the sitting's end, from the answer and nothing else: a two-line header, `Route: <where the answer came from>` and `Date: <YYYY-MM-DD>`, then either the one line `OK` or one line per item that goes the other way, `<n> — <destination word> [<target>] — <the human's words verbatim>`; a word Kanri cannot normalize to a destination is written verbatim with the destination `unclear`, and the apply leaves that item Kept and reports it; an item the human does not name goes as recommended and the direction does not repeat it;
   4. **withheld: batch E is not spawned until a direction file exists for every name in `round-files.txt`**, Kanri saying so in its own window at each boundary while they do not yet — a plain `ls` Kanri runs at every wake-up, the ledger's Progress line reading `batch E waits on triage directions — <k> of <N> exist` meanwhile. Batches C and D **are** spawned at the previous boundary without waiting: their tasks read the liveness files and never a direction.
 
-  The human answers by any of the close kessai's three routes: Kanri's window by `claude attach`; a Kikaku decision file whose third section names the round's recommendation and answers it (decision-9cc5); or a live Hosa, whose chore is the skill's existing line `kessai answer: tanto-issue-triage — <the human's words verbatim>`, the words naming the round (`R2a: OK`, `R3: 12 は Kept`) — no role file learns an `R<n>` form (I-1, amendment 2). A bare `OK` with no round answers **every round file of the open sitting**; an answer naming an item number and no round is not guessed: Kanri asks one line and writes nothing until it is answered. An answer to a sitting that arrives after a later boundary is written all the same, and each later `attention` request names only its own batch's rounds. **The form greps at these boundaries are `boundary.verify`'s, not an act of Kanri's** (I-1, amendment 1): each round task's Verify carries them, "How a batch is verified" runs them for every round file on disk, and the verdict's Failures section is where a bad brief shows; on a failure there Kanri sends that one round back as a rework whose task list is that round's one task (`B-rework-<n>`, `C-rework-<n>`, `D-rework-<n>`). Nothing else in the run waits on the human, and a Jisso never does.
-- **The batch report's Questions for the human is extended by one item kind** (spec section 2; Kanri's choice of the two forms the spec review offered): each round task's batch report carries, under Questions for the human, the line `R<n>: <brief path> — landed <a>, merged <b>, assigned <c>, re-hung <d>, kept <e>; wants without a scene <w>` — a status line for Kanri's window, **not a question** — because the boundary brief copies that section into the verdict and a line under For Kanri would not reach Kanri without a skill edit this topic does not make. A round task's Jisso writes no other kind of line there except the four SDD stop classes and a scope or spec change, which stay what `roles/jisso.md` says.
+  The human answers by any of the close kessai's three routes: Kanri's window by `claude attach`; a Kikaku decision file whose third section names the round's recommendation and answers it (decision-9cc5); or a live Hosa, whose chore is the skill's existing line `kessai answer: tanto-issue-triage — <the human's words verbatim>`, the words naming the round (`R2a: OK`, `R3: 12 は Kept`) — no role file learns an `R<n>` form (I-1, amendment 2). A bare `OK` with no round names a sitting only when exactly one is open, and then answers **every round file of that sitting**; when two or more sittings are open (a sitting left unanswered while a later boundary passed), and for an answer naming an item number and no round, nothing is guessed: Kanri asks one line and writes nothing until it is answered. An answer to a sitting that arrives after a later boundary is written all the same, and each later `attention` request names only its own batch's rounds. **The form greps at these boundaries are `boundary.verify`'s, not an act of Kanri's** (I-1, amendment 1): each round task's Verify carries them, "How a batch is verified" runs them for every round file on disk, and the verdict's Failures section is where a bad brief shows; on a failure there Kanri sends that one round back as a rework whose task list is that round's one task (`B-rework-<n>`, `C-rework-<n>`, `D-rework-<n>`). Nothing else in the run waits on the human, and a Jisso never does. Two further acts of Kanri's are **not** sitting acts: the ruling on a mis-split `round-files.txt` above, at batch A's boundary; and, at batch E's boundary, the relay to the human of a scope question that Task 14 or Task 15 reports about a root Markdown or agent-instruction file's inbound link (the approval is the human's, through Kanri).
+- **The batch report's Questions for the human is extended by one item kind** (spec section 2; Kanri's choice of the two forms the spec review offered, ruled at R-3 and in I-1's follow-up — this plan's Global Constraints, which the batch prompts quote, extend what `roles/jisso.md` lists for Questions for the human, and for this plan they bind): each round task's batch report carries, under Questions for the human, the line `R<n>: <brief path> — landed <a>, merged <b>, assigned <c>, re-hung <d>, kept <e>; wants without a scene <w>` — a status line for Kanri's window, **not a question** — because the boundary brief copies that section into the verdict and a line under For Kanri would not reach Kanri without a skill edit this topic does not make. A round task's Jisso writes no other kind of line there except the four SDD stop classes and a scope or spec change, which stay what `roles/jisso.md` says. Kanri prints the `R<n>:` line in its own window as sitting act 2 and forwards nothing of it to the human as a question.
 - **The round tasks read little and check cheaply.** Every `task.implement` of batches B, C and D reads only its own round file's `liveness-R<n>.md`, the `title:` of every issue in the round, and the body of an issue it needs — a Landed candidate's, a Merged pair's, a Re-hung candidate's — and the live file a gone string's subject points at when the subject does not say whether the gap closed; it reads no other round's file. The `task.review-spec` reviewer reads the recommendation, the round's liveness table, and the bodies of the Landed and Merged items only, and runs the `exp-` lookup for the Re-hung items; the `task.review-quality` reviewer runs the greps and reads no issue body (`exp-178d`). **A rework of a round is a rework of that one task.** The two output files and the liveness files are untracked: no round task commits, and `git status --porcelain` is empty at its end.
 - **The instrument reads `main`; the apply's `git mv` runs on the branch.** Task 3's run passes no `--ref` (the default is `main`; the branch has touched none of the trees the needles point into). The apply (batch E) edits the working tree on `tanto-issue-triage`.
-- **Line endings.** `git ls-files --eol` reads `i/lf w/crlf attr/text=auto` for every issue file: the index holds LF, the working tree CRLF under `core.autocrlf=true`. Every paragraph the apply appends uses the file's own working-tree ending — detect it from the file's bytes, never a bare `\n` into a CRLF file. The scripts are `*.js text eol=lf` by `.gitattributes`, so they are LF in both places. A task that creates a Markdown file and later checks its line endings (Task 17) writes the restore — `git checkout -- <path>` after the commit — into its own steps: a Markdown file written fresh lands `w/lf` on this host every time.
+- **Line endings.** `git ls-files --eol` reads `i/lf w/crlf attr/text=auto` for every issue file: the index holds LF, the working tree CRLF under `core.autocrlf=true`. Every paragraph the apply appends uses the file's own working-tree ending — detect it from the file's bytes, never a bare `\n` into a CRLF file. The scripts are `*.js text eol=lf` by `.gitattributes`, so they are LF in both places. A task that creates a Markdown file and later checks its line endings (Task 17) writes the restore — `touch <path>`, then `git checkout -- <path>`, after the commit (a plain `git checkout --` is a no-op on a file git sees unchanged; the `touch` makes it stat-dirty so git rewrites it in the working tree's ending, measured in a scratch repository) — into its own steps: a Markdown file written fresh lands `w/lf` on this host every time.
 - **Every commit names both sides of a rename.** An issue move is `git mv <old> <new>` with `updated:` bumped, then `git add -- <each new path>`, then `git commit --only -m "<subject>" -m "<trailer>" -- <each old path> <each new path> <each edited path>`; the old path is named, or the vacated path survives in `HEAD` (issue-9350, measured). `git add -A -- <paths>` is not used.
 - **The test command and its runtime.** The suite is `node --test 'scripts/*.test.js'` — the quoted glob, never the directory form and never the unquoted glob, which fails on this host (issue-235b). It needs Node 22 or later (`CONTRIBUTING.md`, Prerequisites); this host measured v24.16.0 at drafting. Every task that runs it prints `node --version` first, so a version claim is a run and not an assertion. `scripts/` holds no `*.test.js` before Task 1, so the glob matches nothing until then; "How a batch is verified" guards it.
 - **This plan carries no passage blocks.** Its tracked edits are four new scripts and test files, one sentence in a note, one new report, and bulk moves and appended lines whose text exists only at run time — nothing is quoted from a live file for an edit, so there is no `P`, `A`, `O`, or `W` block. Each task's own Verify stands in for `verify`, and the boundary's `diff` is filtered by path for `docs/issues/`, `scripts/issue-liveness*.js`, `scripts/issues-by-finder*.js`, `docs/reports/`, the note, and the repointed living documents, as `experience-layer`'s plan did for its run-time families. The old values the spec says it contradicts are none, so there is no `O` row.
@@ -81,7 +81,7 @@ Seventeen tasks in five batches, three or four tasks a batch (Rule 7). A role ma
 | Batch | Tasks | Delivers | Stop condition at this boundary |
 | --- | --- | --- | --- |
 | A | 1, 2, 3 | `scripts/issue-liveness.js` and its test file in two commits (the core, then the classification and outputs); the instrument's run — `liveness.json`, `liveness-R*.md`, `round-files.txt`, untracked — and a report carrying the `meta` counts, the round-files list, the agreement with the working note, and the `no commit found` count | Tasks 1-3 Verify clean; `node --test 'scripts/*.test.js'` passes on Node 22 or later; `round-files.txt` is the ten names or the nine without `1b`, else the Jisso stops and reports a plan defect; the six or more `liveness-R*.md` files are as many as the lines of `round-files.txt`; `liveness.json` holds one object per issue under `open/` and `deferred/` after its `meta`; `git status --porcelain` empty |
-| B | 4, 5, 6, 7 | Rounds 1a, 1b, 2a, 2b — a recommendation and a brief each, untracked (Task 5 void when round 1 is not split) | Tasks 4-7 Verify clean; the form greps of "How a batch is verified" pass for every round file written; no tracked file changed; the report's Questions for the human carries one `R<n>:` status line per round file written — **Kanri's sitting 1: the `attention` request, one line per round file, the direction files as the answers arrive; batch C is spawned without waiting** |
+| B | 4, 5, 6, 7 | Rounds 1a, 1b, 2a, 2b — a recommendation and a brief each, untracked (Task 5 void when round 1 is not split) | Tasks 4-7 Verify clean (a void Task 5's Verify is its `grep`); the form greps of "How a batch is verified" pass for every round file written; no tracked file changed; the report's Questions for the human carries one `R<n>:` status line per round file written — **Kanri's sitting 1: the `attention` request, one line per round file, the direction files as the answers arrive; batch C is spawned without waiting** |
 | C | 8, 9, 10 | Rounds 3, 4a, 4b, as batch B | As batch B for rounds 3, 4a, 4b — **sitting 2; batch D is spawned without waiting** |
 | D | 11, 12, 13 | Rounds 5, 6a, 6b, as batch B | As batch B for rounds 5, 6a, 6b — **sitting 3; Kanri withholds batch E until `round-files.txt`'s every name has its `triage-R<n>-direction.md`** |
 | E | 14, 15, 16, 17 | The apply of rounds 1-3 and of rounds 4-6 (one `docs(issues): triage round <n> — …` commit per round file, in order); `scripts/issues-by-finder.js` with its tests and the note's one sentence; the dogfood report | Tasks 14-17 Verify clean; every command under "How a batch is verified" at its stated value, including the per-commit path checks of the apply and the old-path grep over the living documents; the suite passes; `git status --porcelain` empty; the report present with every item of spec section 6 |
@@ -100,6 +100,7 @@ out=$(node "$TANTO/scripts/passage-check.js" diff --plan docs/superpowers/plans/
 allowed='^(unaccounted-added|unexplained-removed): docs/superpowers/'
 if git log main..HEAD --format=%h --grep='^docs(issues): triage round ' | grep -q .; then allowed="$allowed|^(unaccounted-added|unexplained-removed): docs/(issues|experience|design|notes)/"; allowed="$allowed|^(unaccounted-added|unexplained-removed): docs/experience\\.md — "; fi
 if ls docs/reports/*-tanto-issue-triage-dogfood.md >/dev/null 2>&1; then allowed="$allowed|^(unaccounted-added|unexplained-removed): docs/reports/"; fi
+if [ -e scripts/issues-by-finder.js ]; then allowed="$allowed|^(unaccounted-added|unexplained-removed): docs/notes/experience-layer-exit-criterion\\.md — "; fi
 bad=$(printf '%s\n' "$out" | grep -E '^(unaccounted-added|unexplained-removed): ' | grep -vE "$allowed" || true)
 [ -z "$bad" ] || { printf '%s\n' "$bad"; exit 1; }
 printf '%s\n' "$out" | tail -1
@@ -265,12 +266,12 @@ done
 echo 'no old path of a moved issue is named in a living document'
 ```
 
-Expected: `apply commits checked: K` with K the number of round files, and the last line.
+Expected: `apply commits checked: K`, K the number of round files that made a commit (a round file whose items were all Kept makes none, Task 14 Step 6), and the last line.
 
 7. The apply, the rest — directions, the issue frontmatter, the scripts' reach, the clean tree:
 
 ```bash
-git log main..HEAD --format=%h --grep='^docs(issues): triage round ' | grep -q . || { echo 'apply not landed — skipped'; exit 0; }
+git log main..HEAD --format=%h --grep='^docs(issues): triage round ' | grep -q . || [ -e scripts/issues-by-finder.js ] || { echo 'apply not landed — skipped'; exit 0; }
 d=.tanto/tanto-issue-triage
 for r in $(tr -d '\r' < "$d/round-files.txt"); do
   f=$d/triage-R$r-direction.md
@@ -281,7 +282,7 @@ echo 'a direction file exists for every round file'
 base=$(git merge-base main HEAD)
 issues=$(git diff --name-only --diff-filter=d "$base" -- docs/issues)
 [ -z "$issues" ] || printf '%s\n' "$issues" | xargs uv run --no-project --with pyyaml python scripts/check_md_frontmatter.py || exit 1
-left=$(git log main..HEAD --format=%h -- skills .claude; git log main..HEAD --format=%h --invert-grep --grep='^docs(issues): triage round ' -- docs/experience)
+left=$(git log main..HEAD --format=%h -- skills .claude; git log main..HEAD --format=%h --invert-grep --grep='^docs(issues): triage round ' --grep='^docs(issues): triage repoint ' -- docs/experience)
 [ -z "$left" ] || { printf 'commits that touch skills, .claude or docs/experience:\n%s\n' "$left"; exit 1; }
 s=$(git status --porcelain); [ -z "$s" ] || { printf '%s\n' "$s"; exit 1; }
 echo 'frontmatter clean, nothing under skills or .claude, tree clean'
@@ -300,7 +301,7 @@ s=$(grep -c 'The same count is one command, `node scripts/issues-by-finder.js --
 printf 'the note carries the sentence %s time(s)\n' "$s"; [ "$s" = 1 ] || exit 1
 ls docs/reports/*-tanto-issue-triage-dogfood.md >/dev/null 2>&1 || { echo 'the dogfood report is not written yet'; exit 0; }
 r=$(ls docs/reports/*-tanto-issue-triage-dogfood.md); head -1 "$r" | grep -q '^# ' || { echo 'the report opens with no # H1'; exit 1; }
-git ls-files --eol "$r"
+git ls-files --eol "$r" | grep -q 'w/crlf' || { git ls-files --eol "$r"; echo 'the report is not w/crlf'; exit 1; }
 ```
 
 Expected: `issues counted N, issue files N`, `the note carries the sentence 1 time(s)`, and — once Task 17 has run — the report's `git ls-files --eol` line. The count is the counter's last line `issues counted: <N>`, which Task 16 specifies; the sentence's backticked command is the reading Task 16 takes of the spec's two disagreeing placements and its unbackticked quote.
@@ -342,7 +343,7 @@ Expected: `issues counted N, issue files N`, `the note carries the sentence 1 ti
 - **The tree load.** `git ls-tree -r -z --name-only <ref>` lists the paths (never `git ls-files`, which unions the index with the tree). Load every listed path outside the four excluded trees `docs/issues/`, `docs/reports/`, `docs/superpowers/`, `.tanto/` whose extension is one of `.md .txt .js .cjs .mjs .ts .json .jsonc .yaml .yml .toml .sh .bat .ps1 .psd1 .psm1 .py .css .html .gitignore .gitattributes .editorconfig` or that has no extension (a dotfile such as `.gitignore` counts under either reading), each with `git show <ref>:<path>`, once. A listed path that fails to read is fatal (exit `1`), so that the loaded tree is exactly the ref's. Keep each file's text and its **normalized** copy: CRLF to LF; every Markdown link `[text](target)` reduced to its text; every backtick removed; every run of whitespace, line breaks included, to one space; trimmed. Keep its line count.
 - **The alive test for a quote.** A quote is normalized the same way; it is `alive` when the normalized needle is a substring of some loaded file's normalized copy, and `foundIn` is the first such path in `ls-tree` order; otherwise `gone`.
 - **The alive test for a path token.** Strip one trailing `/`. A tracked path `P` (any path `ls-tree` listed, the excluded trees included) resolves the token `T` when `P === T`, `P` ends with `/T`, `P` starts with `T/`, or `P` contains `/T/` — the last two are the directory forms — since most of the pile's tokens are skill-relative (`roles/kanri.md`, `templates/agent.md`, `SKILL.md`). The first resolving path in `ls-tree` order is `foundIn` and the token is `alive`; when it has a line hint whose `to` exceeds `lineCountOf(foundIn)`, the token is `partly`. No resolving path: `gone`.
-- **The trace of a gone quote.** Once per gone quote: `git log <ref> -n 1 --format=%s --name-only --pickaxe-regex -S<pattern> -- . ':(exclude)docs/issues' ':(exclude)docs/reports' ':(exclude)docs/superpowers' ':(exclude).tanto'`, run through `execFileSync` with an argument array (no shell), where `<pattern>` is the quote's whitespace-separated words, each escaped for a POSIX extended regex (`\ ^ $ . | ? * + ( ) [ ] { }`), joined by `\s+`, so that a quote that wraps in the source still matches. The first output line is the subject; the first non-empty line after it is the path. Empty output: `removedBy` is `null`, which every output renders as `no commit found`. If the `\s+` join cannot cross a line break on this host's git, the wrapped-quote test fails: stop and report it, do not substitute another trace.
+- **The trace of a gone quote.** Once per gone quote: `git log <ref> -n 1 --format=%s --name-only --pickaxe-regex -S<pattern> -- . ':(exclude)docs/issues' ':(exclude)docs/reports' ':(exclude)docs/superpowers' ':(exclude).tanto'`, run through `execFileSync` with an argument array (no shell), where `<pattern>` is the quote's whitespace-separated words, each escaped for a POSIX extended regex (`\ ^ $ . | ? * + ( ) [ ] { }`), joined by `\s+`, so that a quote that wraps in the source still matches. The first output line is the subject; the first non-empty line after it is the path. Empty output: `removedBy` is `null`, which every output renders as `no commit found`. If the `\s+` join does not cross a line break on this host's git (the plan review measured that it does on git 2.55 for Windows), the wrapped-quote test fails: use the POSIX class `[[:space:]]+` in its place — the same class — record the change in the batch report, and do not substitute any other trace.
 - **The trace of a gone path token.** Read the deletions once per run: `git log <ref> --diff-filter=D --name-only --format=%x00%s` (newest first), giving each deleted path with its deleting subject. A gone token's `removedBy` is the first deletion whose path resolves the token by the rule above, `{subject, path}`; none: `null`. The spec's formal form names `<ref>` and its "in practice" form `--all`; this plan reads `<ref>`, since a deletion only on another branch says nothing about `main`.
 - **No commit hash** is written anywhere: the subject is what every tracked line downstream carries.
 - **The verdict.** Over the issue's items: `none` when nothing was extracted; `alive` when every item is `alive`; `gone` when every item is `gone`; `partly` otherwise. `counts` is `{alive, gone, none}`: the items `alive`, the items `gone`, and the items neither — a path token in state `partly`. The spec writes `alive <a> / gone <g> / none <n>` without defining `none`; this is the plan's reading.
@@ -482,7 +483,7 @@ The cluster `name` is the second column's text exactly (`passage-check / plan in
 - **The inbound mentions.** For each issue, every living document whose text contains the issue's current repository-relative path (`docs/issues/open/<file>` or `docs/issues/deferred/<file>`) as a plain substring — a link or plain text alike. Living documents are the `*.md` files in the working tree under `docs/experience/`, `docs/design/`, `docs/notes/`, `docs/issues/open/`, `docs/issues/deferred/`, plus `docs/experience.md` and the `*.md` files at the repository root; the issue's own file is not its own inbound mention; `docs/reports/`, `docs/decisions/`, and `docs/issues/resolved/` are never read for this. Paths are written with forward slashes.
 - **The outputs**, under `--out`:
   - `liveness.json` — the array of Task 1 with element 0 `{"meta": {ref, date, total, verdicts, clusters, rounds, wallSeconds}}` (`clusters` keyed by cluster name in table order, `rounds` an array `[{part, count}]` in round order), then one object per issue with the keys in the spec's order: `id, dir, path, title, severity, created, source, sourceKind, citesExp, cluster, round, verdict, counts, items, neighbors, inbound`.
-  - `liveness-R<part>.md`, one per round file: line 1 `Liveness — round <part> — ref <ref>, <date> — alive <a>, gone <g>, partly <p>, none <n>` (the round's own counts), a blank line, then the table with the header `| id | dir | sev | verdict | a/g/n | cluster | title | gone items (needle → subject) | neighbors | inbound |`, the separator row, and one row per issue in table order: the bare id; `open` or `deferred`; the severity; the verdict; `<a>/<g>/<n>`; the cluster name; the title cut at 100 characters; each gone item as `<needle> → <subject>` (or `→ no commit found`), the needle with its whitespace collapsed, items joined by `<br>`; the neighbors as `<id> (<overlap>)` joined by `, `; the inbound paths joined by `, `. Every `|` inside a cell is written `\|`; an empty cell is written `—`.
+  - `liveness-R<part>.md`, one per round file: line 1 `Liveness — round <part> — ref <ref>, <date> — alive <a>, gone <g>, partly <p>, none <n>` (the round's own counts), a blank line, line 3 `Columns: a/g/n counts items alive, gone and partly (a path whose line hint is past the file's end); n is not the verdict none of line 1.`, a blank line, then the table with the header `| id | dir | sev | verdict | a/g/n | cluster | title | gone items (needle → subject) | neighbors | inbound |`, the separator row, and one row per issue in table order: the bare id; `open` or `deferred`; the severity; the verdict; `<a>/<g>/<n>`; the cluster name; the title cut at 100 characters; each gone item as `<needle> → <subject>` (or `→ no commit found`), the needle with its whitespace collapsed, items joined by `<br>`; the neighbors as `<id> (<overlap>)` joined by `, `; the inbound paths joined by `, `. Every `|` inside a cell is written `\|`; an empty cell is written `—`.
   - `stdout`: `verdicts: alive <a>, gone <g>, partly <p>, none <n>`, then `rounds: <part> <count>, …` in order, then `wall: <s> s`.
 
 - [ ] **Step 1: Write the failing tests**
@@ -495,7 +496,7 @@ Add to `scripts/issue-liveness.test.js` (keep Task 1's tests, updating only an a
 4. A neighbor pair: of three titles, the two that share two tokens of four or more characters name each other first, with `overlap` 2, and a shared token of three characters does not count.
 5. An inbound mention, link or plain: in the fixture repository, add `docs/notes/n.md` holding `[x](docs/issues/open/aaaa-alive.md)` and `docs/design/d.md` holding the plain path `docs/issues/open/aaaa-alive.md`, and `docs/reports/2026-01-02-r.md` holding the same path; `aaaa`'s `inbound` is exactly `["docs/design/d.md", "docs/notes/n.md"]` in any order — the report is not a living document.
 6. A `|` in a title is escaped: `renderTable` over a row titled ``"`a | b` breaks the table"`` writes `` `a \| b` breaks the table `` in the title cell, and every table line has the same count of unescaped `|` as the header.
-7. The table's row format: every row of a written `liveness-R<part>.md` matches `^\| [0-9a-f]{4} \| (open|deferred) \| `, `grep -cE '^\| [0-9a-f]{4} \|'` over the file equals the round file's `count` in `meta.rounds`, and line 1 opens `Liveness — round `.
+7. The table's row format: every row of a written `liveness-R<part>.md` matches `^\| [0-9a-f]{4} \| (open|deferred) \| `, `grep -cE '^\| [0-9a-f]{4} \|'` over the file equals the round file's `count` in `meta.rounds`, and line 1 opens `Liveness — round ` and line 3 opens `Columns: a/g/n`.
 8. The fixture run end to end: `liveness.json` element 0 has `meta.clusters` and `meta.rounds`, the sum of the `count`s in `meta.rounds` equals the row count, every row has `cluster`, `round`, `neighbors`, `inbound`, and `stdout` has the three lines in order.
 
 - [ ] **Step 2: Run the suite and see the new tests fail**
@@ -779,7 +780,7 @@ ls docs/experience/"$id"-*.md 2>/dev/null
 grep -n -F "**$id**" docs/experience/*.md docs/experience.md || echo "no **$id** line"
 ```
 
-Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0`.
+Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0` (and exits 1, as `grep -c` does on a count of zero: read the printed count, or add `|| true`).
 
 - [ ] **Step 3: Write `triage-R<P>-recommendation.md`**
 
@@ -905,7 +906,7 @@ Expected: `no tracked file changed`. No commit: both files are untracked under `
 
 ### Task 5: Round 1b — recommend and brief
 
-**Void unless round 1 was split.** Run `tr -d '\r' < .tanto/tanto-issue-triage/round-files.txt | grep -qx 1b` first. When it finds no `1b`, this task is **void**: write nothing, make no commit, and report `void — round 1 not split` under Deviations from the plan; the batch then holds three tasks. When it finds `1b`, run the rest of this task as written.
+**Void unless round 1 was split.** Run `tr -d '\r' < .tanto/tanto-issue-triage/round-files.txt | grep -qx 1b` first. When it finds no `1b`, this task is **void**: write nothing, make no commit, and report `void — round 1 not split` under Deviations from the plan; the batch then holds three tasks. For SDD, a void task gets its row in the progress ledger marked `void`, no implementer is dispatched for it and neither reviewer (`task.review-spec`, `task.review-quality`) is dispatched on it; its Verify is the `grep` above, which finds no `1b`, and that counts as "Verify clean" for the batch. When it finds `1b`, run the rest of this task as written.
 
 **Files:**
 
@@ -985,7 +986,7 @@ ls docs/experience/"$id"-*.md 2>/dev/null
 grep -n -F "**$id**" docs/experience/*.md docs/experience.md || echo "no **$id** line"
 ```
 
-Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0`.
+Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0` (and exits 1, as `grep -c` does on a count of zero: read the printed count, or add `|| true`).
 
 - [ ] **Step 3: Write `triage-R1b-recommendation.md`**
 
@@ -1184,7 +1185,7 @@ ls docs/experience/"$id"-*.md 2>/dev/null
 grep -n -F "**$id**" docs/experience/*.md docs/experience.md || echo "no **$id** line"
 ```
 
-Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0`.
+Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0` (and exits 1, as `grep -c` does on a count of zero: read the printed count, or add `|| true`).
 
 - [ ] **Step 3: Write `triage-R2a-recommendation.md`**
 
@@ -1383,7 +1384,7 @@ ls docs/experience/"$id"-*.md 2>/dev/null
 grep -n -F "**$id**" docs/experience/*.md docs/experience.md || echo "no **$id** line"
 ```
 
-Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0`.
+Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0` (and exits 1, as `grep -c` does on a count of zero: read the printed count, or add `|| true`).
 
 - [ ] **Step 3: Write `triage-R2b-recommendation.md`**
 
@@ -1582,7 +1583,7 @@ ls docs/experience/"$id"-*.md 2>/dev/null
 grep -n -F "**$id**" docs/experience/*.md docs/experience.md || echo "no **$id** line"
 ```
 
-Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0`.
+Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0` (and exits 1, as `grep -c` does on a count of zero: read the printed count, or add `|| true`).
 
 - [ ] **Step 3: Write `triage-R3-recommendation.md`**
 
@@ -1781,7 +1782,7 @@ ls docs/experience/"$id"-*.md 2>/dev/null
 grep -n -F "**$id**" docs/experience/*.md docs/experience.md || echo "no **$id** line"
 ```
 
-Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0`.
+Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0` (and exits 1, as `grep -c` does on a count of zero: read the printed count, or add `|| true`).
 
 - [ ] **Step 3: Write `triage-R4a-recommendation.md`**
 
@@ -1980,7 +1981,7 @@ ls docs/experience/"$id"-*.md 2>/dev/null
 grep -n -F "**$id**" docs/experience/*.md docs/experience.md || echo "no **$id** line"
 ```
 
-Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0`.
+Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0` (and exits 1, as `grep -c` does on a count of zero: read the printed count, or add `|| true`).
 
 - [ ] **Step 3: Write `triage-R4b-recommendation.md`**
 
@@ -2179,7 +2180,7 @@ ls docs/experience/"$id"-*.md 2>/dev/null
 grep -n -F "**$id**" docs/experience/*.md docs/experience.md || echo "no **$id** line"
 ```
 
-Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0`.
+Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0` (and exits 1, as `grep -c` does on a count of zero: read the printed count, or add `|| true`).
 
 - [ ] **Step 3: Write `triage-R5-recommendation.md`**
 
@@ -2378,7 +2379,7 @@ ls docs/experience/"$id"-*.md 2>/dev/null
 grep -n -F "**$id**" docs/experience/*.md docs/experience.md || echo "no **$id** line"
 ```
 
-Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0`.
+Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0` (and exits 1, as `grep -c` does on a count of zero: read the printed count, or add `|| true`).
 
 - [ ] **Step 3: Write `triage-R6a-recommendation.md`**
 
@@ -2577,7 +2578,7 @@ ls docs/experience/"$id"-*.md 2>/dev/null
 grep -n -F "**$id**" docs/experience/*.md docs/experience.md || echo "no **$id** line"
 ```
 
-Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0`.
+Expected: the scene file or the expectation line that states the want, or nothing — an `exp-` id that resolves to neither is not a Re-hung target. Then check the issue does not already cite it: `grep -c "exp-$id" <the issue file>` prints `0` (and exits 1, as `grep -c` does on a count of zero: read the printed count, or add `|| true`).
 
 - [ ] **Step 3: Write `triage-R6b-recommendation.md`**
 
@@ -2712,7 +2713,7 @@ Expected: `no tracked file changed`. No commit: both files are untracked under `
 
 This task carries spec section 4 whole for rounds 1 to 3. It runs on the branch `tanto-issue-triage`; the instrument read `main`. It never edits under `skills/`, `.claude/`, `docs/decisions/`, or `docs/reports/`, never touches a Kept issue beyond a repointed path link, and never reads a brief — the apply reads the recommendation and the direction only.
 
-**The effective destination**, per item of the round's recommendation: the direction's line for that item's number when there is one, the recommendation's `Destination:` otherwise. A direction of `OK` (in any letter case) changes nothing. Parse a direction item line `<n> — <destination word> [<target>] — <words>` so that a target holding ` — ` (a commit subject usually does) survives: `<n>` is the text before the first ` — `; the rest opens with the destination word, matched case-insensitively against `Landed`, `Merged`, `Assigned`, `Re-hung` (or `rehung`), `Kept`, `unclear`, anything else read as `unclear`; when the rest holds a `[`, the target is the text from that `[` to the first `]` that is followed by ` — ` or by the end of the line, and the words are what follows; with no `[`, the target is the rest of the line up to its next ` — `, with a leading `→` removed and trimmed, and the words what follows. The header is the lines before the first `OK` or item line, and begins `Route:` and `Date:`; an item line opens with digits and ` — `, a header line never does. **`unclear` is Kept.** The target must be valid for the destination, or the item is **left Kept and reported** (one line naming the number, the id, and why):
+**The effective destination**, per item of the round's recommendation: the direction's line for that item's number when there is one, the recommendation's `Destination:` otherwise. A direction of `OK` (in any letter case) changes nothing. Parse a direction item line `<n> — <destination word> [<target>] — <words>` so that a target holding ` — ` (a commit subject usually does) survives: `<n>` is the text before the first ` — `; the rest opens with the destination word, matched case-insensitively against `Landed`, `Merged`, `Assigned`, `Re-hung` (or `rehung`), `Kept`, `unclear`, anything else read as `unclear`; when the rest holds a `[`, the target is the text from that `[` to the first `]` that is followed by ` — ` or by the end of the line, and the words are what follows; with no `[`, the target is the rest of the line up to its next ` — `, with a leading `→` removed and trimmed, and the words what follows. The header is the lines before the first `OK` or item line, and begins `Route:` and `Date:`; an item line opens with digits and ` — `, a header line never does. The target never includes its brackets, and `Re-hung [exp-178d]`, `Re-hung → exp-178d` and `Re-hung exp-178d` give the same target, `exp-178d`. When a direction holds both an `OK` line and item lines, the item lines apply and every other item goes as recommended — the `OK` reads as "the rest are fine". **`unclear` is Kept.** The target must be valid for the destination, or the item is **left Kept and reported** (one line naming the number, the id, and why):
 
 - Landed — the subject: the direction's target, else the recommendation's `Target:` when the recommendation itself said Landed, else the one gone item of the item's liveness row that has a removing subject (a human's `12 は Landed` names no subject, and the row supplies it when it holds exactly one); a row with none or several is left Kept and reported;
 - Merged — `issue-<carrier id>`, the carrier an id present in `liveness.json`, not the issue itself, and not an issue whose own effective destination in this run is Merged (a chain inside the run is left Kept and reported);
@@ -2738,7 +2739,7 @@ A deferred issue keeps its directory unless it is Landed or Merged, which the ru
 
 **The helper.** Write `.tanto/tanto-issue-triage/apply-helper.js` (untracked, never committed; Node, no dependencies) with two modes, run per round file:
 
-- `node .tanto/tanto-issue-triage/apply-helper.js plan <part>` — reads the four inputs, computes every item's effective destination, and writes `apply-R<part>-list.tsv` (no header; one line per item in the recommendation's number order: `<n>`, `<id>`, the effective destination, the target, `recommendation` or `direction`, the current path, the path after the apply — tab-separated) and `apply-R<part>-touch.txt` (every existing file the apply will write: the moved issues' current paths, the Assigned, Re-hung and carrier issues, the inbound documents), and prints the counts per effective destination and every item left Kept with its reason. It changes no file outside `.tanto/`.
+- `node .tanto/tanto-issue-triage/apply-helper.js plan <part>` — reads the four inputs of its round file and, for the Merged rule's chain check, the `triage-R<part>-recommendation.md` and `triage-R<part>-direction.md` of **every** name in `round-files.txt` (all of them exist once batch E is spawned), computes every item's effective destination across all round files, and writes `apply-R<part>-list.tsv` (no header; one line per item in the recommendation's number order: `<n>`, `<id>`, the effective destination, the target, `recommendation` or `direction`, the current path, the path after the apply — tab-separated) and `apply-R<part>-touch.txt` (every existing file the apply will write: the moved issues' current paths, the Assigned, Re-hung and carrier issues, the inbound documents), and prints the counts per effective destination and every item left Kept with its reason. It changes no file outside `.tanto/`.
 - `node .tanto/tanto-issue-triage/apply-helper.js apply <part>` — performs the edits above (`git mv` through `execFileSync` with an argument array), then writes `apply-R<part>-old.txt` (the vacated paths), `apply-R<part>-new.txt` (their `resolved/` paths), `apply-R<part>-edited.txt` (every other path it wrote), each one path per line, and `apply-R<part>-subject.txt` holding the one line `docs(issues): triage round <part> — landed <a>, merged <b>, assigned <c>, re-hung <d>`, where `<b>` counts the issues merged away, not the carriers.
 
 Steps 2 to 8 run once per round file, in `round-files.txt` order; set `p` to the round file in each block. Finish one round file's commit before the next round file's Step 2.
@@ -3172,7 +3173,7 @@ Run the ten fences above and keep their output.
 
 - [ ] **Step 2: Write the report**
 
-Write `docs/reports/<YYYY-MM-DD>-tanto-issue-triage-dogfood.md` with the `# H1`, the scope paragraph, and one `##` section per item group (the instrument; the rounds and their destinations; Assigned and Merged; the wants no scene states; by finder; unprompted `exp-` ids; the working note and the traces; the human's changes and the sittings), each figure beside the command or file it came from.
+Write `docs/reports/<YYYY-MM-DD>-tanto-issue-triage-dogfood.md` with the `# H1`, the scope paragraph, and one `##` section per item group, with exactly these headings: `## The instrument`, `## Rounds and destinations`, `## Assigned and Merged`, `## Wants no scene states`, `## Issues by finder`, `## Unprompted exp- ids`, `## The working note and the traces`, `## The human's changes and the sittings`, each figure beside the command or file it came from.
 
 - [ ] **Step 3: Verify the report's form and lint it**
 
@@ -3183,11 +3184,11 @@ printf '%s\n' "$f"
 head -1 "$f" | grep -q '^# ' || { echo 'the first line is not the H1'; exit 1; }
 if head -1 "$f" | grep -q '^---'; then echo 'frontmatter is not allowed'; exit 1; fi
 if grep -qi 'investigation date' "$f"; then echo 'the date belongs only in the file name'; exit 1; fi
-n=$(grep -c '^## ' "$f" || true); printf 'sections: %s\n' "$n"; [ "$n" -ge 8 ] || exit 1
+for h in 'The instrument' 'Rounds and destinations' 'Assigned and Merged' 'Wants no scene states' 'Issues by finder' 'Unprompted exp- ids' 'The working note and the traces' "The human's changes and the sittings"; do c=$(grep -cxF -- "## $h" "$f" || true); printf '%s: %s\n' "$h" "$c"; [ "$c" = 1 ] || exit 1; done
 ./scripts/lint.sh "$f"
 ```
 
-Expected: the path, `sections: N` with N at least 8, and every hook passing.
+Expected: the path, each of the eight headings once, and every hook passing.
 
 - [ ] **Step 4: Commit by explicit path, then restore the line ending**
 
@@ -3199,7 +3200,7 @@ f=$(ls docs/reports/*-tanto-issue-triage-dogfood.md) || exit 1
 trailer='Co-Authored-By: Claude <noreply@anthropic.com>'
 git add -- "$f" || exit 1
 git commit --only -m "docs(reports): tanto-issue-triage dogfood" -m "$trailer" -- "$f" || exit 1
-git checkout -- "$f" || exit 1
+touch "$f"; git checkout -- "$f" || exit 1
 git ls-files --eol -- "$f"
 git ls-files --eol -- "$f" | grep -q 'w/crlf' || exit 1
 test -z "$(git status --porcelain)" || { git status --porcelain; exit 1; }
