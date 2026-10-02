@@ -21,6 +21,133 @@ const PATH_EXTENSIONS = [".md", ".js", ".json", ".sh", ".bat", ".ps1", ".py", ".
 const PATH_SKIP_PREFIXES = [".tanto/", ".superpowers/", "~", "$", "<"];
 const QUOTE_MIN = 30;
 const QUOTE_MAX = 140;
+const SPLIT_ABOVE = 50;
+const NEIGHBOR_COUNT = 3;
+const TOKEN_MIN = 4;
+const TITLE_CUT = 100;
+const LIVING_TREES = ["docs/experience", "docs/design", "docs/notes", "docs/issues/open", "docs/issues/deferred"];
+
+// The cluster table. A title's cluster is the first row, in `order`, that has
+// a term matching the title; a title no row matches is `other`. Matching looks
+// at the `title:` alone and is case-insensitive (see `termMatches`):
+//   - a term of five characters or fewer made only of letters and digits
+//     (plan, task, lint, fence, scene, kanri, jisso, hosa, sdd, i18n, cache,
+//     token, quota, shoki, kisou, ...) matches as a whole word, `\b` on both
+//     sides;
+//   - any longer term matches as a substring;
+//   - a term with `/`, `.`, or `-`, a term with a space or `=`, `R-n`, and
+//     `429` (digits only) match literally as substrings, by `includes` on the
+//     lowercased strings, never through a regex built from the term.
+// `round` is the review round (1 to 6) the cluster belongs to; a round of more
+// than fifty issues is split into `<n>a` and `<n>b` in table order.
+const CLUSTERS = [
+  {
+    order: 1,
+    name: "passage-check / plan instrument",
+    round: 1,
+    terms: ["passage-check", "passage", "replay", "needle", "fence", "O block", "dry run", "dryrun", "pickaxe", "lint"],
+  },
+  {
+    order: 2,
+    name: "kanri / ledger / handover / boundary",
+    round: 2,
+    terms: ["ledger", "handover", "boundary", "census", "ruling", "R-n", "events line", "successor", "kanri"],
+  },
+  {
+    order: 3,
+    name: "roster / handshake / address",
+    round: 2,
+    terms: ["roster", "handshake", "address", "no-role", "rename", "sessionId"],
+  },
+  {
+    order: 4,
+    name: "reading / ceiling / cost / ttl",
+    round: 3,
+    terms: [
+      "reading",
+      "ceiling",
+      "context=",
+      "cache",
+      "token",
+      "wake-up",
+      "compaction",
+      "quota",
+      "429",
+      "cost",
+      "ttl",
+      "share",
+    ],
+  },
+  {
+    order: 5,
+    name: "config / agents / effort / model",
+    round: 3,
+    terms: ["tanto.json", "config", "agent definition", "agents/", "effort", "model", "family"],
+  },
+  {
+    order: 6,
+    name: "keikaku / plan / coldread / batch shape",
+    round: 4,
+    terms: ["keikaku", "coldread", "cold read", "batch", "plan"],
+  },
+  {
+    order: 7,
+    name: "jisso / sdd / report",
+    round: 4,
+    terms: ["jisso", "sdd", "implementer", "batch report", "report", "task"],
+  },
+  { order: 8, name: "sekkei / spec / dialogue", round: 4, terms: ["sekkei", "spec", "dialogue"] },
+  { order: 9, name: "brief / review", round: 4, terms: ["brief", "review"] },
+  {
+    order: 10,
+    name: "shoroku / close / kessai / shoki",
+    round: 5,
+    terms: ["shoroku", "close", "kessai", "shoki", "shusei", "direction", "recommend", "proposal"],
+  },
+  {
+    order: 11,
+    name: "spawner / bg seats / resume",
+    round: 5,
+    terms: [
+      "spawner",
+      "spawn",
+      "bg seat",
+      "background",
+      "resume",
+      "launcher",
+      "seats.json",
+      "--bg",
+      "attach",
+      "terminal seat",
+      "tab seat",
+    ],
+  },
+  { order: 12, name: "hosa / kikaku / kaiseki", round: 5, terms: ["hosa", "kikaku", "kaiseki"] },
+  {
+    order: 13,
+    name: "kisou / docs system / templates",
+    round: 6,
+    terms: [
+      "kisou",
+      "doc-system",
+      "docs/",
+      "template",
+      "frontmatter",
+      "AGENTS.md",
+      "experience",
+      "scene",
+      "requirement",
+    ],
+  },
+  {
+    order: 14,
+    name: "wayaku / i18n / language",
+    round: 6,
+    terms: ["wayaku", "language", "japanese", "translation", "i18n"],
+  },
+  { order: 15, name: "tests / scripts", round: 6, terms: ["test", "script", "node", "pre-commit"] },
+  { order: 16, name: "other", round: 6, terms: [] },
+];
 
 // ---------------------------------------------------------------- git
 
@@ -349,6 +476,223 @@ function verdictOf(items) {
   return { verdict, counts };
 }
 
+// ---------------------------------------------------------------- the cluster
+
+// Does TERM match TITLE? See the comment above CLUSTERS for the rule.
+function termMatches(term, title) {
+  const lowTerm = term.toLowerCase();
+  const lowTitle = title.toLowerCase();
+  if (/^[a-z0-9]{1,5}$/.test(lowTerm) && !/^[0-9]+$/.test(lowTerm)) {
+    return new RegExp(`\\b${lowTerm}\\b`).test(lowTitle);
+  }
+  return lowTitle.includes(lowTerm);
+}
+
+function clusterRowOf(title) {
+  return (
+    CLUSTERS.find((cluster) => cluster.terms.some((term) => termMatches(term, title))) ?? CLUSTERS[CLUSTERS.length - 1]
+  );
+}
+
+function clusterOf(title) {
+  return clusterRowOf(title).name;
+}
+
+const byId = (a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+
+// Sets row.round to the round file's name part and returns the rows in table
+// order: cluster order, then id. A round of more than SPLIT_ABOVE rows splits
+// into its first ceil(n / 2) rows (`<n>a`) and the rest (`<n>b`).
+function assignRounds(rows) {
+  const clusterFor = (row) =>
+    CLUSTERS.find((c) => c.name === (row.cluster ?? clusterOf(row.title ?? ""))) ?? CLUSTERS[15];
+  const ordered = rows
+    .map((row) => ({ row, cluster: clusterFor(row) }))
+    .sort((a, b) => a.cluster.order - b.cluster.order || byId(a.row, b.row));
+  const roundSizes = new Map();
+  for (const { cluster } of ordered) {
+    roundSizes.set(cluster.round, (roundSizes.get(cluster.round) ?? 0) + 1);
+  }
+  const seen = new Map();
+  for (const { row, cluster } of ordered) {
+    const index = seen.get(cluster.round) ?? 0;
+    seen.set(cluster.round, index + 1);
+    const size = roundSizes.get(cluster.round);
+    row.round =
+      size > SPLIT_ABOVE ? `${cluster.round}${index < Math.ceil(size / 2) ? "a" : "b"}` : String(cluster.round);
+  }
+  return ordered.map(({ row }) => row);
+}
+
+// [{part, count}] for rows already in table order; an array, never an object
+// keyed by part (integer-like keys would enumerate before `1a`).
+function roundCounts(rows) {
+  const counts = [];
+  for (const row of rows) {
+    const last = counts[counts.length - 1];
+    if (last && last.part === row.round) {
+      last.count++;
+    } else {
+      counts.push({ part: row.round, count: 1 });
+    }
+  }
+  return counts;
+}
+
+// ---------------------------------------------------------------- neighbors and inbound
+
+function titleTokens(title) {
+  return new Set(
+    title
+      .toLowerCase()
+      .split(/\W+/)
+      .filter((token) => token.length >= TOKEN_MIN),
+  );
+}
+
+// For each issue, the NEIGHBOR_COUNT other issues with the largest title-token
+// overlap above zero, ties by id. A hint for the recommender, never a verdict.
+function neighborsOf(rows) {
+  const tokens = rows.map((row) => ({ id: row.id, set: titleTokens(row.title ?? "") }));
+  const map = new Map();
+  for (const self of tokens) {
+    const scored = [];
+    for (const other of tokens) {
+      if (other === self) {
+        continue;
+      }
+      let overlap = 0;
+      for (const token of self.set) {
+        if (other.set.has(token)) {
+          overlap++;
+        }
+      }
+      if (overlap > 0) {
+        scored.push({ id: other.id, overlap });
+      }
+    }
+    scored.sort((a, b) => b.overlap - a.overlap || byId(a, b));
+    map.set(self.id, scored.slice(0, NEIGHBOR_COUNT));
+  }
+  return map;
+}
+
+function markdownFilesUnder(root, rel, found) {
+  let entries;
+  try {
+    entries = fs.readdirSync(path.join(root, rel), { withFileTypes: true });
+  } catch (error) {
+    if (error.code === "ENOENT" || error.code === "ENOTDIR") {
+      return;
+    }
+    throw new Error(`cannot read ${rel}: ${error.code}`);
+  }
+  for (const entry of entries) {
+    const child = `${rel}/${entry.name}`;
+    if (entry.isDirectory()) {
+      markdownFilesUnder(root, child, found);
+    } else if (entry.isFile() && entry.name.endsWith(".md")) {
+      found.push(child);
+    }
+  }
+}
+
+// The living documents of the working tree, repository-relative with forward
+// slashes: *.md under the LIVING_TREES, docs/experience.md, and the *.md files
+// at the repository root. Reports, decisions, and resolved issues are not read.
+function livingDocuments(cwd) {
+  const found = [];
+  for (const tree of LIVING_TREES) {
+    markdownFilesUnder(cwd, tree, found);
+  }
+  if (fs.existsSync(path.join(cwd, "docs", "experience.md"))) {
+    found.push("docs/experience.md");
+  }
+  for (const entry of fs.readdirSync(cwd, { withFileTypes: true })) {
+    if (entry.isFile() && entry.name.endsWith(".md")) {
+      found.push(entry.name);
+    }
+  }
+  return [...new Set(found)].sort();
+}
+
+// For each issue, the living documents whose text contains the issue's
+// repository-relative path, a link or plain text alike; never the issue's own file.
+function inboundOf(rows, cwd) {
+  const documents = livingDocuments(cwd).map((doc) => ({
+    doc,
+    text: toLf(fs.readFileSync(path.join(cwd, doc), "utf8")),
+  }));
+  const map = new Map();
+  for (const row of rows) {
+    const own = row.path.replace(/\\/g, "/");
+    map.set(
+      row.id,
+      documents.filter(({ doc, text }) => doc !== own && text.includes(own)).map(({ doc }) => doc),
+    );
+  }
+  return map;
+}
+
+// ---------------------------------------------------------------- the tables
+
+// A markdown table cell: every `|` written `\|` (a backslash before it is
+// doubled so the escape holds) and line breaks made spaces.
+function escapeCell(text) {
+  return String(text)
+    .replace(/\s*\n\s*/g, " ")
+    .replace(/(\\*)\|/g, (_all, slashes) => `${slashes}${slashes}\\|`);
+}
+
+function cell(text) {
+  const escaped = escapeCell(text);
+  return escaped === "" ? "—" : escaped;
+}
+
+function goneCell(row) {
+  return row.items
+    .filter((item) => item.state === "gone")
+    .map((item) => {
+      const needle = item.text.replace(/\s+/g, " ").trim();
+      return `${needle} → ${item.removedBy ? item.removedBy.subject : "no commit found"}`;
+    })
+    .map((text) => escapeCell(text))
+    .join("<br>");
+}
+
+function renderTable(part, rows, meta) {
+  const tally = { alive: 0, gone: 0, partly: 0, none: 0 };
+  for (const row of rows) {
+    tally[row.verdict]++;
+  }
+  const header =
+    "| id | dir | sev | verdict | a/g/n | cluster | title | gone items (needle → subject) | neighbors | inbound |";
+  const lines = [
+    `Liveness — round ${part} — ref ${meta.ref}, ${meta.date} — alive ${tally.alive}, gone ${tally.gone}, partly ${tally.partly}, none ${tally.none}`,
+    "",
+    "Columns: a/g/n counts items alive, gone and partly (a path whose line hint is past the file's end); n is not the verdict none of line 1.",
+    "",
+    header,
+    `|${" --- |".repeat(10)}`,
+  ];
+  for (const row of rows) {
+    const cells = [
+      cell(row.id),
+      cell(row.dir),
+      cell(row.severity),
+      cell(row.verdict),
+      cell(`${row.counts.alive}/${row.counts.gone}/${row.counts.none}`),
+      cell(row.cluster),
+      cell([...row.title].slice(0, TITLE_CUT).join("")),
+      goneCell(row) || "—",
+      cell(row.neighbors.map((n) => `${n.id} (${n.overlap})`).join(", ")),
+      cell(row.inbound.join(", ")),
+    ];
+    lines.push(`| ${cells.join(" | ")} |`);
+  }
+  return `${lines.join("\n")}\n`;
+}
+
 // ---------------------------------------------------------------- the run
 
 function pathText(token, hint) {
@@ -414,19 +758,35 @@ function analyze({ ref, docs, cwd }) {
       source: issue.source,
       sourceKind: issue.sourceKind,
       citesExp: issue.citesExp,
+      cluster: clusterOf(issue.title),
+      round: "",
       verdict,
       counts,
       items,
+      neighbors: [],
+      inbound: [],
     };
   });
-  rows.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  const ordered = assignRounds(rows);
+  const neighbors = neighborsOf(ordered);
+  const inbound = inboundOf(ordered, cwd);
+  for (const row of ordered) {
+    row.neighbors = neighbors.get(row.id);
+    row.inbound = inbound.get(row.id);
+  }
 
   const verdicts = { alive: 0, gone: 0, partly: 0, none: 0 };
-  for (const row of rows) {
+  const clusters = Object.fromEntries(CLUSTERS.map((cluster) => [cluster.name, 0]));
+  for (const row of ordered) {
     verdicts[row.verdict]++;
+    clusters[row.cluster]++;
   }
+  const rounds = roundCounts(ordered);
   const wallSeconds = Number(((Date.now() - started) / 1000).toFixed(1));
-  return { rows, meta: { ref, date: localDate(new Date()), total: rows.length, verdicts, wallSeconds } };
+  return {
+    rows: ordered,
+    meta: { ref, date: localDate(new Date()), total: ordered.length, verdicts, clusters, rounds, wallSeconds },
+  };
 }
 
 function oneLine(message) {
@@ -444,8 +804,13 @@ function main(argv, io) {
     }
     const { rows, meta } = analyze({ ref: args.ref, docs: args.docs, cwd: io.cwd });
     fs.writeFileSync(path.join(outDir, "liveness.json"), `${JSON.stringify([{ meta }, ...rows], null, 2)}\n`);
+    for (const { part } of meta.rounds) {
+      const inRound = rows.filter((row) => row.round === part);
+      fs.writeFileSync(path.join(outDir, `liveness-R${part}.md`), renderTable(part, inRound, meta));
+    }
     const v = meta.verdicts;
     io.stdout.write(`verdicts: alive ${v.alive}, gone ${v.gone}, partly ${v.partly}, none ${v.none}\n`);
+    io.stdout.write(`rounds: ${meta.rounds.map((r) => `${r.part} ${r.count}`).join(", ")}\n`);
     io.stdout.write(`wall: ${meta.wallSeconds.toFixed(1)} s\n`);
     return 0;
   } catch (error) {
@@ -455,6 +820,7 @@ function main(argv, io) {
 }
 
 module.exports = {
+  CLUSTERS,
   parseArgs,
   normalize,
   parseIssue,
@@ -467,6 +833,14 @@ module.exports = {
   loadDeletions,
   tracePath,
   verdictOf,
+  termMatches,
+  clusterOf,
+  assignRounds,
+  roundCounts,
+  neighborsOf,
+  inboundOf,
+  escapeCell,
+  renderTable,
   analyze,
   main,
 };

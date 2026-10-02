@@ -6,7 +6,19 @@ const os = require("node:os");
 const path = require("node:path");
 const { execFileSync, spawnSync } = require("node:child_process");
 
-const { normalize, extractQuotes, extractPathTokens } = require("./issue-liveness.js");
+const {
+  CLUSTERS,
+  normalize,
+  extractQuotes,
+  extractPathTokens,
+  termMatches,
+  clusterOf,
+  assignRounds,
+  roundCounts,
+  neighborsOf,
+  escapeCell,
+  renderTable,
+} = require("./issue-liveness.js");
 
 const SCRIPT = path.join(__dirname, "issue-liveness.js");
 
@@ -83,6 +95,9 @@ before(() => {
   write("skills/demo/roles/kanri.md", "one\ntwo\nthree\n");
   write("scripts/old-tool.js", "module.exports = 1;\n");
   write("docs/reports/2026-01-01-r.md", `# Report\n\n${SENTENCE_C}\n`);
+  write("docs/reports/2026-01-02-r.md", "See docs/issues/open/aaaa-alive.md for the story.\n");
+  write("docs/notes/n.md", "A [link](docs/issues/open/aaaa-alive.md) to the issue.\n");
+  write("docs/design/d.md", "Plain text: docs/issues/open/aaaa-alive.md\n");
 
   const src = ["Source: inbox 2026-01-01", ""];
   write(
@@ -243,7 +258,7 @@ test("extraction units", () => {
 test("exit codes", () => {
   const ok = run(["--out", path.join(mkTmp("issue-liveness-out-"), "ok")], fixture);
   assert.equal(ok.status, 0, ok.stderr);
-  assert.match(ok.stdout, /^verdicts: alive 2, gone 2, partly 1, none 1\nwall: \d+\.\d s\n$/);
+  assert.match(ok.stdout, /^verdicts: alive 2, gone 2, partly 1, none 1\nrounds: 6 6\nwall: \d+\.\d s\n$/);
 
   const out = path.join(mkTmp("issue-liveness-out-"), "x");
   const cases = [
@@ -263,4 +278,187 @@ test("exit codes", () => {
   const result = run(["--out", out], notRepo);
   assert.equal(result.status, 1);
   assert.equal(result.stderr.split("\n").filter(Boolean).length, 1, result.stderr);
+});
+
+const clusterName = (order) => CLUSTERS.find((c) => c.order === order).name;
+
+test("the cluster is the first matching row of the table", () => {
+  assert.equal(CLUSTERS.length, 16);
+  assert.equal(CLUSTERS[15].name, "other");
+  assert.deepEqual(CLUSTERS[15].terms, []);
+  assert.equal(clusterOf("the plan header is unread"), "keikaku / plan / coldread / batch shape");
+  assert.equal(clusterOf("handovers lose the inbox"), "kanri / ledger / handover / boundary");
+  assert.equal(clusterOf("the ledger forgets the spec"), "kanri / ledger / handover / boundary");
+  assert.equal(clusterOf("the --bg flag fails"), "spawner / bg seats / resume");
+  assert.equal(clusterOf("nothing matches here at all"), "other");
+  assert.equal(clusterOf("THE LEDGER FORGETS"), "kanri / ledger / handover / boundary");
+});
+
+test("a short term matches a whole word only", () => {
+  assert.equal(clusterOf("a testament to nothing"), "other");
+  assert.equal(termMatches("test", "a testament"), false);
+  assert.equal(termMatches("test", "a test of it"), true);
+  assert.equal(termMatches("429", "error 429 returned"), true);
+  assert.equal(termMatches("429", "x14290"), true);
+  assert.equal(termMatches("agents/", "see agents/foo"), true);
+  assert.equal(termMatches("R-n", "the r-n ruling"), true);
+  assert.equal(termMatches("lint", "a linter"), false);
+});
+
+test("rounds map from clusters and a round above fifty splits in table order", () => {
+  const hex = (n) => n.toString(16).padStart(4, "0");
+  const synthetic = [];
+  for (let i = 0; i < 51; i++) {
+    synthetic.push({ id: hex(i), cluster: clusterName(1) });
+  }
+  for (let i = 0; i < 50; i++) {
+    synthetic.push({ id: hex(100 + i), cluster: clusterName(4) });
+  }
+  synthetic.push({ id: hex(300), cluster: clusterName(12) });
+  const ordered = assignRounds([...synthetic].reverse());
+  assert.equal(ordered.length, 102);
+  const part = (p) => ordered.filter((r) => r.round === p);
+  assert.equal(part("1a").length, 26);
+  assert.equal(part("1b").length, 25);
+  assert.equal(part("3").length, 50);
+  assert.equal(part("5").length, 1);
+  assert.equal(part("1a")[0].id, hex(0));
+  assert.equal(part("1a")[25].id, hex(25));
+  assert.equal(part("1b")[0].id, hex(26));
+  assert.deepEqual(
+    ordered.map((r) => r.id),
+    synthetic.map((r) => r.id).sort(),
+  );
+  const counts = roundCounts(ordered);
+  assert.ok(Array.isArray(counts));
+  assert.deepEqual(counts, [
+    { part: "1a", count: 26 },
+    { part: "1b", count: 25 },
+    { part: "3", count: 50 },
+    { part: "5", count: 1 },
+  ]);
+});
+
+test("neighbors share title tokens of four or more characters", () => {
+  const titles = [
+    { id: "1111", title: "Ledger rows drift apart" },
+    { id: "2222", title: "The ledger rows vanish" },
+    { id: "3333", title: "Cat and dog" },
+    { id: "4444", title: "The dog saw the cat" },
+  ];
+  const map = neighborsOf(titles);
+  assert.deepEqual(map.get("1111"), [{ id: "2222", overlap: 2 }]);
+  assert.deepEqual(map.get("2222"), [{ id: "1111", overlap: 2 }]);
+  assert.deepEqual(map.get("3333"), []);
+  assert.deepEqual(map.get("4444"), []);
+});
+
+test("neighbors keep the three largest overlaps, ties by id", () => {
+  const titles = [
+    { id: "0001", title: "alpha beta gamma delta" },
+    { id: "0002", title: "alpha beta gamma" },
+    { id: "0003", title: "alpha beta" },
+    { id: "0004", title: "beta alpha" },
+    { id: "0005", title: "alpha" },
+  ];
+  assert.deepEqual(neighborsOf(titles).get("0001"), [
+    { id: "0002", overlap: 3 },
+    { id: "0003", overlap: 2 },
+    { id: "0004", overlap: 2 },
+  ]);
+});
+
+test("inbound mentions come from living documents, link or plain", () => {
+  assert.deepEqual([...row("aaaa").inbound].sort(), ["docs/design/d.md", "docs/notes/n.md"]);
+  assert.deepEqual(row("bbbb").inbound, []);
+});
+
+test("a pipe in a title is escaped and the table keeps its column count", () => {
+  assert.equal(escapeCell("a | b"), "a \\| b");
+  const piped = {
+    id: "abcd",
+    dir: "open",
+    severity: "low",
+    verdict: "gone",
+    counts: { alive: 0, gone: 1, none: 0 },
+    cluster: "other",
+    title: "`a | b` breaks the table",
+    items: [{ kind: "quote", text: "x | y\n z", state: "gone", removedBy: { subject: "gone | there", path: "p" } }],
+    neighbors: [],
+    inbound: [],
+  };
+  const table = renderTable("6", [piped], { ref: "main", date: "2026-01-01" });
+  assert.ok(table.includes("`a \\| b` breaks the table"), table);
+  const unescaped = (line) => (line.match(/(?<!\\)\|/g) || []).length;
+  const lines = table.split("\n").filter((l) => l.startsWith("|"));
+  assert.equal(lines.length, 3);
+  for (const line of lines) {
+    assert.equal(unescaped(line), unescaped(lines[0]), line);
+  }
+  assert.ok(lines[2].includes("x \\| y z → gone \\| there"), lines[2]);
+});
+
+test("the round table has a header, counts, and one row per issue", () => {
+  const text = fs.readFileSync(path.join(outDir, "liveness-R6.md"), "utf8");
+  const lines = text.split("\n");
+  assert.ok(lines[0].startsWith("Liveness — round 6 — ref main, "), lines[0]);
+  assert.match(lines[0], / — alive 2, gone 2, partly 1, none 1$/);
+  assert.equal(lines[1], "");
+  assert.ok(lines[2].startsWith("Columns: a/g/n"), lines[2]);
+  assert.equal(lines[3], "");
+  assert.equal(
+    lines[4],
+    "| id | dir | sev | verdict | a/g/n | cluster | title | gone items (needle → subject) | neighbors | inbound |",
+  );
+  const tableRows = lines.filter((l) => /^\| [0-9a-f]{4} \|/.test(l));
+  assert.equal(tableRows.length, meta.rounds.find((r) => r.part === "6").count);
+  for (const line of tableRows) {
+    assert.match(line, /^\| [0-9a-f]{4} \| (open|deferred) \| /);
+  }
+  const aaaa = tableRows.find((l) => l.startsWith("| aaaa |"));
+  assert.ok(aaaa.includes("docs/design/d.md, docs/notes/n.md") || aaaa.includes("docs/notes/n.md, docs/design/d.md"));
+  const bbbb = tableRows.find((l) => l.startsWith("| bbbb |"));
+  assert.ok(bbbb.includes(" → remove the stale sentence"), bbbb);
+  assert.ok(bbbb.endsWith("| — | — |"), bbbb);
+});
+
+test("the fixture run carries clusters, rounds, and the per-issue fields", () => {
+  assert.ok(Array.isArray(meta.rounds));
+  assert.deepEqual(meta.rounds, [{ part: "6", count: 6 }]);
+  assert.equal(
+    meta.rounds.reduce((sum, r) => sum + r.count, 0),
+    rows.length,
+  );
+  assert.equal(Object.keys(meta.clusters).length, 16);
+  assert.equal(Object.keys(meta.clusters)[0], CLUSTERS[0].name);
+  assert.equal(meta.clusters.other, 6);
+  assert.deepEqual(Object.keys(meta), ["ref", "date", "total", "verdicts", "clusters", "rounds", "wallSeconds"]);
+  for (const r of rows) {
+    assert.equal(r.cluster, "other");
+    assert.equal(r.round, "6");
+    assert.ok(Array.isArray(r.neighbors));
+    assert.ok(Array.isArray(r.inbound));
+  }
+  assert.deepEqual(Object.keys(rows[0]), [
+    "id",
+    "dir",
+    "path",
+    "title",
+    "severity",
+    "created",
+    "source",
+    "sourceKind",
+    "citesExp",
+    "cluster",
+    "round",
+    "verdict",
+    "counts",
+    "items",
+    "neighbors",
+    "inbound",
+  ]);
+  const lines = run(["--out", path.join(mkTmp("issue-liveness-out-"), "e2e")], fixture).stdout.split("\n");
+  assert.match(lines[0], /^verdicts: /);
+  assert.equal(lines[1], "rounds: 6 6");
+  assert.match(lines[2], /^wall: /);
 });
