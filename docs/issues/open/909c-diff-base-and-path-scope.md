@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-sweep
@@ -231,3 +231,5 @@ against the live tree reproduced only the `spawn-request.md` result, and
 is the subagent's second run silently using the default base while printing
 the `--base 2d396cd` label; not reproduced, but real enough in the verdict to
 need a cause before such a block is trusted unread.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

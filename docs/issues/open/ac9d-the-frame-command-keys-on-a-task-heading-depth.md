@@ -64,3 +64,5 @@ the `awk`, make it the one frame instrument and drop the `awk` from the role
 text, so there is one pattern to keep correct instead of two.
 
 Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).
+
+Carries issue-5e47 (merged by tanto-issue-triage, 2026-10-03).
