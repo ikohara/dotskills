@@ -28,7 +28,7 @@ field explained beside it.
   "prompt": "/tanto jisso batch=.tanto/<topic>/batch-A-prompt.md",
   "worktree": "shoki-<topic>",
   "addDir": ["<repository root>"],
-  "sessionId": "<for stop, rm, resume, ack>",
+  "sessionId": "<for stop, rm, resume, ack, attention>",
   "message": "<for attention: one line, in the human's language>"
 }
 ```
@@ -74,7 +74,8 @@ field explained beside it.
   bg-seat-ergonomics plan's own measurement task could not check: a
   workspace-trust gate refused the spawn — a fresh clone's folder trust
   unset in `.claude.json` — before the resume step was reached.
-- `sessionId` — the seat's identity, for `stop`, `rm`, `resume`, and `ack`.
+- `sessionId` — the seat's identity, for `stop`, `rm`, `resume`, `ack`, and
+  `attention`, which fills a bare `<id>` in the message from it.
   Never a short id: the spawner maps one to the other from `seats.json`.
 - `message` — `attention`'s one line. A bare `<id>` in it is filled by the
   spawner from `seats.json`, so that Kanri, which holds its own `sessionId`

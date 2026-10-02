@@ -4,7 +4,7 @@
 # Experience
 
 The goal layer of <project name>: who uses it, what they take for granted,
-and what the maintainer has ruled out. Scenes live in `{{experience}}/`; this
+and what the user has ruled out. Scenes live in `{{experience}}/`; this
 file is hand-written and is the first thing to read.
 
 ## Cast

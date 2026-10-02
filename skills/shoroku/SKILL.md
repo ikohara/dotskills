@@ -6,7 +6,8 @@ description: Shoroku (抄録 — excerpt and record) the working session, accumu
 # shoroku
 
 抄録 — "excerpt and record." Pull the worth-keeping fragments out of transient
-context (the working **session**, or accumulated **memory**) and fold them into
+context (the working **session**, accumulated **memory**, or named Markdown
+**files**) and fold them into
 a project's living documents, keeping the document-management system that
 governs them tidy as you go.
 

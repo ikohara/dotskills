@@ -47,5 +47,6 @@ path.
 ## Relationship to shoroku
 
 `kisou` installs the document-management system; `shoroku` (抄録) fills it by
-excerpting sessions or memory. `kisou` is the sole installer of the structure;
+excerpting sessions, memory, or named Markdown files. `kisou` is the sole
+installer of the structure;
 `shoroku` defers to the committed `docs/AGENTS.md`.

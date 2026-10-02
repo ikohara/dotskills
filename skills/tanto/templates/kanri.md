@@ -54,7 +54,7 @@ rendered that batch's prompt file, because rendering is not sending; no
 ## Shoroku proposal items
 
 Columns: S-n, the row id; Source, the file the item lives in and its place there — a report and its item, a proposal and its number, the spec and a section heading — so that the close's recommender can follow it;
-Item, one line; Destination, one of requirements, design, decisions,
+Item, one line; Destination, one of experience, design, decisions,
 issues, notes, or reports; Adopted, one of `pending`, `yes`, and `no`;
 Written, `no` or the subject of the commit that wrote the row out. The
 placeholder row stays until the first item arrives.

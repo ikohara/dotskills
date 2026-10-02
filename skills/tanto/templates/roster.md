@@ -116,7 +116,7 @@ the rows into the new ledger's table; nothing is written out from this table
 itself, so every row here says `no` until it moves.
 
 Columns as the ledger's, with Source the file, report, or session that
-raised it; Destination one of requirements, design, decisions, issues, notes,
+raised it; Destination one of experience, design, decisions, issues, notes,
 or reports; Adopted one of `pending`, `yes`, and `no`; and Written `no` or
 the subject of the commit that wrote the row out. The placeholder row stays
 until the first item arrives.

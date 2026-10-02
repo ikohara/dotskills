@@ -30,7 +30,8 @@ they are.
 - **Produces:** `README.md`, `CONTRIBUTING.md`, `CLAUDE.md`, a slim top-level
   `AGENTS.md`, the `docs/` doc-management system (`docs/AGENTS.md`, the
   per-type `docs/<type>/AGENTS.md` under the cased type directories, and the
-  hand-written hub `docs/experience.md`), and — on request — empty script
+  hand-written hub `docs/experience.md`, cased like the rest), and — on
+  request — empty script
   files.
 - **Never produces:** `src/` or `tests/` (not even empty dirs). Never runs
   `git init`. Never auto-generates script content.
@@ -104,9 +105,12 @@ built-in `case`-aware mapping:
    directories, so a writer creates a status subdir on demand when the
    first issue lands there (those names stay lowercase). Copy
    `templates/docs/experience.md` to the cased docs root as the hub,
+   `{{docs}}/{{experience}}.md` (`Documents/Experience.md` under `PascalCase`),
    expanding its `{{name}}` as in step (a), filling its `<...>` from the
    inputs where they are known and leaving the rest for the author, and
-   deleting its `TEMPLATE FILL` block as in step (d); this file is written
+   deleting its `TEMPLATE FILL` block as in step (d) and telling the author
+   that the `markdownlint-disable MD033` line goes once no `<...>` remains;
+   this file is written
    once and is not a doc-system copy the instrument checks.
 4. Create the requested scripts as **empty files** (`.bat` + `.sh`).
 5. Present a numbered plan of files to create, end with `Direction?`, wait,
@@ -146,9 +150,9 @@ opposite case and mis-set `case`, which then cascades through every
   enumerating each artifact: `{docs,Documents}/AGENTS.md` and each
   `{docs,Documents}/<type>/AGENTS.md` (experience / design / decisions /
   issues).
-  - **none** (no doc-system artifacts) → all five tallied targets are absent,
-    and the two flat copies with them; each is one of the instrument's
-    `create` items. The class says what is absent and nothing more; it sets no
+  - **none** (no doc-system artifacts) → all five tallied targets are absent
+    (the two flat copies are tallied on their own and may be present); each
+    absent one is one of the instrument's `create` items. The class says what is absent and nothing more; it sets no
     scope.
   - **full** (root `AGENTS.md` + all four per-type files present) → the root
     and the four managed per-type files are present. What is absent —

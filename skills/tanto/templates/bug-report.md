@@ -28,7 +28,9 @@ where it was meant to go.>
 ## Symptom
 
 <What was expected, and what happened — restated against the skill's own
-text. Quote nothing from the reporter repository's plans, specs, ledgers, or
+text and, where a specific incident is cited, read from that incident's own
+transcript when one is on disk rather than from a ledger's summary of it.
+Quote nothing from the reporter repository's plans, specs, ledgers, or
 dialogues.>
 
 ## Reproduction

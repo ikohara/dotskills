@@ -127,8 +127,10 @@ string, which sets `model` and leaves `effort` to the layers below.
   check compare against it, read at the moment of each comparison — each
   file's presence as much as its content, since a personal or a project
   override can be created, edited, or deleted at any time, and "it existed
-  when I last checked" is never evidence that it exists now. Nothing switches
-  a session's model or its effort. Its eight keys are the seven roles and
+  when I last checked" is never evidence that it exists now. A value stated to
+  the human between comparisons — a recommendation, a seat's family — is read
+  the same way at that moment, never recalled. Nothing switches a session's
+  model or its effort. Its eight keys are the seven roles and
   `sessions.shoki`, the scribe the close spawns, which is a seat with a
   family and an effort and no role file; the launcher reads
   `sessions.kanri` from it through `reading.js`'s `loadSessions`, and Kanri
@@ -142,8 +144,9 @@ string, which sets `model` and leaves `effort` to the layers below.
   `shoroku.review`, and `default`.
 - A key inside `subagents` whose `<object>` is a **skill name** and whose
   `<act>` is one of that skill's modes means "run that mode of the skill in a
-  subagent on that model instead of inline". When the key is absent, the mode
-  runs inline on the session's model. `shoroku.recommend`, `shoroku.apply`,
+  subagent on that model instead of inline" — at every dispatch of that mode,
+  whichever stage runs it, not the close's alone. When the key is absent, the
+  mode runs inline on the session's model. `shoroku.recommend`, `shoroku.apply`,
   and `shoroku.review` are the three built-in skill-name keys, naming the
   `shoroku` skill's recommend and apply modes and the review shoki runs over
   its own diff before it reports; any other is a personal addition.

@@ -150,7 +150,10 @@ the plan, never copied: at `bg-seat-fixes` the spec's own "10 files" was a
 miscount of the list it itself gave, and the plan's fresh grep read 9. Name
 those sections exactly as they are named here, and the Self-Review with
 them: `frame --stage 1` finds them by their headings, and a plan's frame is
-what Kanri reads in place of the plan. End "How a batch is verified" with a
+what Kanri reads in place of the plan — so no task cites content under any
+other top-level heading (a `## Review Focus`, an intro under `## Tasks`): what
+a fifth heading holds is invisible to that reading, and belongs in Global
+Constraints. End "How a batch is verified" with a
 `##` heading of its own (`## Tasks`, say) before the first `### Task`: `frame`
 bounds a section at the next heading of equal or shallower depth, and a plan
 whose tasks nest directly under that section prints whole — 5,552 lines and

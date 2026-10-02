@@ -41,7 +41,7 @@ plan, the SDD ledger, or this report. Kanri records each as a `pending` row;
 the close's recommender quotes it from here. Nothing else is written at
 your exit.>
 
-- <requirements, design, decisions, issues, notes, or reports> — <one line on
+- <experience, design, decisions, issues, notes, or reports> — <one line on
   what is worth keeping and why>
 
 ## For Kanri

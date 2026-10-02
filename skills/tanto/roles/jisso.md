@@ -125,7 +125,9 @@ classes plus a scope or spec change. Kanri forwards exactly that set and
 nothing else, which is what makes the escalation rule mechanical.
 
 Everything else is a ruling — yours, recorded in the SDD ledger as that skill
-prescribes, or Kanri's, requested under "Rulings needed" in your report.
+prescribes, or Kanri's, requested under "Rulings needed" in your report. A
+ruling's reason names what was run or read, never what seems plausible: a
+reason that was only plausible is what an independent reviewer catches.
 
 ## The four implementer statuses
 
@@ -216,10 +218,22 @@ dispatch:
 
 The plan's "how a batch is verified" section names the commands; the
 implementer runs the task's checks and records their output before and after,
-which is the evidence SDD asks for. A **verification-only task** — one whose
+which is the evidence SDD asks for. A command the plan serializes — one real
+serve, one `mise exec` at a time — is never run by a dispatch while a
+background run of your own is still in flight: the collision hangs silently
+and reads as failures in files the batch never touched. A suite run you
+backgrounded past the harness's foreground timeout is checked by its own
+output file's growth after a bounded further wait, never by the harness's
+completion notice alone: nothing else in the run notices a hang. Say in every
+implementer's dispatch that a test process which stalls — no output growth,
+near-zero CPU — is killed and diagnosed, never waited on: a suite with no
+timeout of its own ends no other way. A **verification-only task** — one whose
 deliverable is the recorded output of checks and which creates no file —
 inverts the reviewer's standing instruction: tell the reviewer to re-run the
 checks rather than trust the report, because the output is the deliverable.
+A task whose deliverable is another agent's file, dispatched by you, has no
+implementer and no commit: run its steps yourself, record them in the task
+report, and give both reviewers that verification-only prompt with no diff.
 
 For a plan that carries passages, run
 `node "$TANTO/scripts/passage-check.js" diff --plan <path> --base <merge base>`
@@ -228,8 +242,11 @@ merge-base diff that the plan does not literally quote, and the removed lines
 that fall outside any fenced block; both sets must be empty, or accounted for
 in your report — the spec's and the plan's own added lines are always in the
 first set, since those documents create the passages rather than being
-governed by them, so classify the output by directory before reading its
-count. It exits `0` when they are, `1` when they are not, and `2`
+governed by them; so are a task's own measured report file, a source file's
+plan-documented plain-code-block exception, and the prose-specified test
+appends of every already-reviewed task, which accumulate behind each later
+batch — so classify the output by directory and by those classes before
+reading its count. It exits `0` when they are, `1` when they are not, and `2`
 when it could not run at all — a `2` is never a clean tree. Its first line
 names the paths the plan declared `created:`, which it exempted rather than
 checked; say in your report that they were. It needs only the plan and

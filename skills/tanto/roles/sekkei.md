@@ -80,9 +80,9 @@ the draft.
 
 ## Step 2 — spec review
 
-Before the spec commit and before the reviewer is dispatched, a passage in the
+After Step 1's commit and before the reviewer is dispatched, a passage in the
 spec that rewrites another role's procedure goes to that role's session for a
-check, when that session is live:
+check, when that session is live, and its answer lands as a further commit:
 send Kanri the passage and the question which of its obligations it touches;
 Kanri relays it and answers as an `I-n`. When the passage rewrites Kanri's own
 procedure there is no one to relay to: Kanri answers it itself, and the spec
@@ -91,7 +91,8 @@ records the answer under its answers to the spec inputs.
 Dispatch a reviewer on `spec.review` — read files; write exactly one file, the
 report named below — naming
 `subagent_type: tanto-spec-review` and its `model` together. Give it the spec,
-the repo's `docs/decisions/` and `docs/requirements/`, and — as a third input
+the repo's `docs/decisions/`, its hub `docs/experience.md` and
+`docs/experience/`, and — as a third input
 — the files the spec's per-file change list touches, with the question which
 sentences in them the design contradicts that the spec's Old values list does
 not name; ask it to check the spec against all three, and have it write its
