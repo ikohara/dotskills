@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-cost
@@ -69,3 +69,5 @@ uses and 124,096 tokens over the 2,347-line revised draft, against
 `tanto-sweep-2`'s 115,120 tokens and 262 s for its spec brief. A fable brief
 costs about half an opus review, and both scale with the document, not the
 topic.
+
+Serves exp-178d (tanto-issue-triage, 2026-10-03).

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-24
-updated: 2026-09-24
+updated: 2026-10-03
 ---
 
 Source: shoroku bg-seat-ergonomics S-33
@@ -42,3 +42,5 @@ The event's third part — the census keeping a dead seat alive when the
 listing keeps a stale, pid-less entry for it — landed in the
 bg-seat-ergonomics fix wave, and its residue in a fourth reader is
 issue-b7bf.
+
+Resolved by "docs: shoroku for bg-seat-fixes" — found by the tanto-issue-triage liveness check, 2026-10-03.
