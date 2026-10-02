@@ -14,8 +14,8 @@ governs them tidy as you go.
 `shoroku` is a **thin shell**. The document format and the standing rules live
 in the repo's `docs/AGENTS.md` (+ each `docs/<type>/AGENTS.md`), so any agent
 follows the same system with or without this skill. This skill adds the
-trigger, the shoroku workflow, and a memory source mode. **Do not restate
-the format rules here — defer to the `AGENTS.md`.**
+trigger, the shoroku workflow, and the memory and file source modes. **Do not
+restate the format rules here — defer to the `AGENTS.md`.**
 
 ## Step 1: Locate the rules
 
