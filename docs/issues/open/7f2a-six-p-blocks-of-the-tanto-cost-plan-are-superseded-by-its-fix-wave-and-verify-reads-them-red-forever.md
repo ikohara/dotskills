@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-14
@@ -91,3 +91,5 @@ recorded above. Two things this instance adds:
   when the checks stop being meaningful, and what a closing boundary should do
   with a red they cannot fix — is what a `superseded:` declaration, or an
   explicit "the plan's passages are frozen at close" statement, would supply.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

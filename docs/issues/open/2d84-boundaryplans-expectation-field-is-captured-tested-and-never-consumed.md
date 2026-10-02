@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-14
@@ -43,3 +43,5 @@ not urgent.
 
 Related: issue-c526 (a different consistency-note premise gap from the same
 review, unrelated in cause but similar in shape).
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

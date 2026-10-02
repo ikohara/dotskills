@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-24
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-14
@@ -172,3 +172,5 @@ mechanisms behind them** (shoroku bg-seat-ergonomics S-4, S-21).
   check author's side is missing. A pinned string that must stay on one line
   should say so, or the check should fold wraps as check 7 already does with
   `tr` for one of its checks.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

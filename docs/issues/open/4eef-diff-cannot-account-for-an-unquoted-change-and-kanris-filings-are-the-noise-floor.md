@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 Source: shoroku kisou-refresh
@@ -89,3 +89,5 @@ So the reporting, not only the rule, is what a reader has to work around:
 whoever next tunes `diff`'s output should make the accounted and the
 expected-removed sets visible, not only their totals. Alongside issue-f94f and
 issue-f1a4.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

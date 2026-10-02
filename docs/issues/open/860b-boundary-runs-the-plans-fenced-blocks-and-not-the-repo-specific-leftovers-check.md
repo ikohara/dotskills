@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-cost
@@ -26,3 +26,5 @@ that heading, so that the instrument runs it like any other. Whether the
 prose in loop step 2 should be narrowed to say exactly that, or the
 instrument should gain a place for repo-specific checks that no plan carries,
 is the open question.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

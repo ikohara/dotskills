@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-diet S-62
@@ -36,3 +36,5 @@ source of truth beside the events, which the liveness design did not give it.
 This is a plan- and spec-level gap, not an implementer deviation. Related:
 issue-894d (a `/clear` can reuse the same name and ref for a genuinely new
 session), the scenario this one lands inside.
+
+Serves exp-173f (tanto-issue-triage, 2026-10-03).
