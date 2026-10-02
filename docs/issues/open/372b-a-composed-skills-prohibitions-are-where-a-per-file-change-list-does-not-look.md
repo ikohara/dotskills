@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-02
 ---
 
 Source: shoroku tanto-cost
@@ -33,3 +33,11 @@ the recommender read more than one proposal did not re-read the recommender's
 own contract — the same failure as the first instance, with a per-file change
 list naming one sentence of a composed skill's section and the rest of that
 section going unread.
+
+**2026-09-30, a third measured instance** (shoroku experience-layer S-20, the
+`experience-layer` spec review's finding 3). The spec declared shoroku's apply
+mode "unchanged in text" and quoted one sentence of recommend mode, while the
+run it designs needs the pointer grammar, the item quoting rule, and the
+standing-tree sentence of the same section. The consistency note's check 3
+extension this issue proposes would have flagged the `Source:` grammar
+mechanically.

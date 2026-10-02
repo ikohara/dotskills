@@ -2,7 +2,7 @@
 id: "053f"
 title: the undecided gets decided
 created: 2026-09-30
-updated: 2026-10-01
+updated: 2026-10-02
 actors: [user, agent]
 tags: [provenance, trust, open-questions]
 ---
@@ -25,5 +25,5 @@ worse, when he reads a decision record attributing the choice to him.
 
 ## Sources
 
-- [81e0] inferred from the user's adoption of anti-confabulation rules for decisions in earlier sessions and from 78f6; not stated directly. Confirmed 2026-09-15: 「あとは yes」
-- [88a6] inferred from the user's adoption of anti-confabulation rules for decisions in earlier sessions and from 78f6; not stated directly. Confirmed 2026-09-15: 「あとは yes」
+- [81e0] inferred from the user's adoption of anti-confabulation rules for decisions in earlier sessions, not in this chat, and from 78f6; not stated directly. Confirmed 2026-09-15: 「あとは yes」
+- [88a6] inferred from the user's adoption of anti-confabulation rules for decisions in earlier sessions, not in this chat, and from 78f6; not stated directly. Confirmed 2026-09-15: 「あとは yes」

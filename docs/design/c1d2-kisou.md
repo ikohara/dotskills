@@ -2,7 +2,7 @@
 id: "c1d2"
 title: kisou skill — modes, template syntax, case mapping, migrate detection
 created: 2026-05-28
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 ## Shape
@@ -241,7 +241,10 @@ So a template-body edit fails its own commit unless the copies come level in
 the same commit, and an edit to the instrument re-runs the check on the tree
 it now reads. Measured 2026-09-11: on the level tree `check` exits 0 and the
 hook passes by id; before the dogfood's `apply`, the same command exited 1 on
-the two drifted copies.
+the two drifted copies. A consequence of the byte-equality: a hand migration
+that changes a template and its installed copies is one commit by
+construction, and a plan that split the templates from the copies would fail
+its first commit.
 
 ## File output paths
 

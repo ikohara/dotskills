@@ -2,7 +2,7 @@
 id: "12dc"
 title: being asked, and asked again
 created: 2026-09-30
-updated: 2026-10-01
+updated: 2026-10-02
 actors: [user, agent]
 tags: [user-effort, interruption, capture]
 ---
@@ -21,6 +21,7 @@ he said in passing, drew its own conclusions, and checked them with him once.
   agent already has, not through a separate interview step.
 - **78f6** [stated] SHOULD infer scenes from scattered remarks and confirm
   them, rather than only record what was said verbatim.
+- **e3c1** [confirmed] SHOULD NOT have to put every want into words himself: the agent draws them out of remarks made in passing and checks them with him before anything is recorded.
 - **802f** [confirmed] SHOULD NOT ask a question whose answer is already
   recorded.
 - **81aa** [confirmed] SHOULD NOT add a human gate to the flow just to
@@ -33,6 +34,7 @@ he said in passing, drew its own conclusions, and checked them with him once.
 
 - [75bc] 「可能なら、その明文化を独立したステップに置かず、Shoroku の中で会話の中からAIが抽出してくれるのが理想だ」 (chat, 2026-09-13 to 15)
 - [78f6] 「これだけだと、なかなか抽出されない気がするなあ。発言の中から(AI)推定→(AI->human)確認→(人間)承認みたいなフローは必要だと思う。」 (chat, 2026-09-13 to 15)
+- [e3c1] inferred from 78f6; not stated directly. Confirmed 2026-10-02: 「他の文言はいいと思う」
 - [802f] inferred from 75bc and 0cfa; not stated directly. Confirmed 2026-09-15: 「あとは yes」
 - [81aa] inferred from 75bc and 0cfa; not stated directly. Confirmed 2026-09-15: 「あとは yes」
 - [27e8] inferred from the folded tanto requirement file 「the human confirms what lands without having to read every item cold」 and 「only the points that need the human's judgment」 (2026-09-20) and 75bc; not stated directly. Confirmed 2026-10-01: 「今のところ他に違和感なし」

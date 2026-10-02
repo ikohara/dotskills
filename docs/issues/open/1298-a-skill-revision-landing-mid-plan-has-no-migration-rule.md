@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-10-02
 ---
 
 Source: inbox 2026-09-15-tanto-skill-revision-mid-plan-no-migration-rule
@@ -38,3 +38,16 @@ Why this is not covered by the rule-11 issues already filed: rule 11 is about
 *this* repository's own plans editing the skill its sessions run. A consuming
 repository resuming under a revision it did not make is the case none of
 issue-11db, issue-28f2 or rule 11 itself names.
+
+**2026-10-01, the same gap from the other direction: the branch behind, not
+the copy stale** (shoroku experience-layer S-75). The skill the sessions load
+is a symlink into the working tree, so a topic branch cut before a skill
+change runs the older contract. On 2026-10-01 a start line on
+`experience-layer` reported the personal file's `language` key as unknown,
+because `SKILL.md` and `reading.js` on that branch predate the commit that
+added the key on `main`; a Hosa whose context held the newer text read the
+same file as valid and asked whether it was a stale copy. The branch was
+behind, not the copy, and it resolved at the merge. The proposed line, for
+this issue's resolution: say in the skill's documentation that the contract
+a session reads is the checked-out branch's, which a long-lived topic branch
+can lag — or have the start line name the commit of `SKILL.md` it read.

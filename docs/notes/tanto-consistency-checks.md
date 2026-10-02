@@ -1459,3 +1459,50 @@ who trusts the pointer simply follows it to the wrong step, and nothing
 errors. It is also the cross-file shape of check 21 — a number is a named
 mechanism with two sites, and the site that moves is never the site that
 cites.
+
+## 27. Every anchor a plan or spec names, in both citation forms
+
+`roles/kanri.md`'s "When the plan lands" asks for one command that checks
+every anchor the plan names against the tree. A spec or plan cites a line in
+two forms, and a check that greps one form finds nothing in a document
+written in the other:
+
+```bash
+# path:line form
+grep -onE '[A-Za-z0-9_./-]+\.[a-z]+:[0-9]+(-[0-9]+)?' <spec> <plan>
+# prose form: "`README.md` line 54", "`<path>` lines 9-12"
+grep -onE '`[^`]+` lines? [0-9]+([-–][0-9]+)?' <spec> <plan>
+```
+
+Expected: a list to **read**. Open each cited path at the cited line and
+confirm the line still says what the citing sentence claims. An empty first
+list is not a pass until the second has been run too.
+
+The check exists because the `experience-layer` cold read (2026-09-30) ran a
+`path:line` grep only, while the plan and spec cited lines in prose form
+("`README.md` line 54"); the command checked nothing, and the omission was
+caught only because the cold-read subagent hand-checked about 45 citations
+anyway and said so.
+
+## 28. A plan-carried verbatim dispatch, compared from the transcript
+
+When a plan carries a dispatch's prompt verbatim in a fenced block, the
+dispatch that ran is checked by extracting the Agent call's `prompt` from the
+dispatching session's own transcript and comparing it with the plan's block:
+
+```bash
+node -e '
+const fs = require("fs");
+for (const line of fs.readFileSync(process.argv[1], "utf8").split("\n")) {
+  if (!line) continue;
+  const rec = JSON.parse(line);
+  for (const c of (rec.message && rec.message.content) || []) {
+    if (c.type === "tool_use" && c.name === "Agent") console.log(c.input.prompt);
+  }
+}' <transcript.jsonl> > dispatched.txt
+```
+
+Expected: the prompt of the dispatch in question is byte-identical to the
+plan's fenced block (compare with `diff` against the block saved to a file).
+Measured on `experience-layer` batch C (2026-10-01): 7657 characters,
+identical; the batch-D apply dispatch is checked the same way.

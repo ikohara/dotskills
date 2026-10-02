@@ -684,3 +684,121 @@ skill-editing plan whose correctness depends on every Jisso reading identical
 pre-batch-A text does not get that from an R-4-style fresh respawn.
 Cross-reference decision-b909 (the queue at the landing) and issue-28f2
 (whether a session adopts its own role-file text once it has landed).
+
+## experience-layer: costs by stage (2026-10-01)
+
+The `experience-layer` topic's measured costs, seat by seat, from its spec
+stage to its last batch. The figures are the harness's own `usage` lines and
+the seats' own readings; parallel reviewers overlap in time.
+
+### The spec stage
+
+The `spec.review` dispatch on fable/high took 21.5 minutes, 342k subagent
+tokens and 61 tool uses over a 1,278-line spec and 246 open issues read whole,
+and returned 22 findings, of which 7 Important and 3 SCOPE. The `brief.write`
+dispatch on sonnet took 147 s and 101k tokens, plus two resumes of 19 s and
+69 s. Sekkei put 4 questions and 3 design sections (7 turns) before the spec,
+and 1 review gate after — the secondary criterion's first data point for
+this topic.
+
+### The plan stage
+
+`plan.draft` on opus/high took about 53 minutes, 531k subagent tokens and 140
+tool uses for a 3,400-line plan (nine tasks, 133 blocks), and carried 1,270
+lines in one task. `plan.review` on fable/high took about 17 minutes, 309k
+tokens and 37 tool uses, and found 8 findings, none blocking. `brief.write`
+on sonnet took 82 seconds, 75k tokens and no resume. The drafter simulated
+its own passages against scratch copies before lint, which is why the review
+found no block that failed to apply.
+
+### Batch A's pre-flight and Task 1
+
+The scan of Tasks 2-9 on `tanto-default` (sonnet, medium) took about 645
+seconds, 27 tool uses and 222k subagent tokens, and found one real conflict
+(Task 6 Step 4's fix-commit path filter against the dispatch's own FIX
+paragraph) and five smaller doubts. The Task 1 implementer (sonnet) took
+about 160 seconds, 18 tool uses and 86k tokens for 35 passages, because the
+brief's P-blocks are machine-parseable; each opus reviewer took 90 to 100
+seconds and 73k to 82k tokens. The spec reviewer rebuilt every touched file
+from base by script — the review the passage format makes cheap and a
+hand-read diff of 725 added lines does not.
+
+### Batch B
+
+Task 2's implementer took 93 s, 16 tool uses and 65k subagent tokens; Task
+3's 78 s, 14 and 61k; Task 4's 179 s, 28 and 106k (nine tracked files and a
+checker). The three pairs of opus reviewers took 37 to 119 s and 57k to 99k
+tokens each. No review came back with a Critical, the five Important findings
+(two on Task 2, three on Task 4) were all plan-mandated and spec-verbatim, and
+no fix round ran — the boundary's cost was the reviews, not the fixes. The
+Jisso's own context passed the ceiling (251k against 215k) at the third task,
+mostly from the Task 4 review reports and the pasted dispatches.
+
+### Batch C
+
+The fable recommender over 101 items took 59 tool uses, 222,484 subagent
+tokens and about 17 minutes; the two opus reviewers 141,185 tokens in about
+4.5 minutes (spec) and 150,662 in about 6.5 minutes (quality). The Jisso's own
+context went from 105,229 at its first reading to 197,283 at its boundary,
+under the ceiling.
+
+### Batch D
+
+From the task notifications' `usage` lines (subagent tokens, tool uses, wall
+time): the apply on `shoroku.apply` (opus) 132,714 tokens, 39 tool uses,
+293 s; Task 6 spec review 104,392, 19, 301 s and quality review 112,092, 12,
+272 s; Task 7 implementer 65,285, 13, 96 s, spec review 72,692, 8, 50 s,
+quality review 79,038, 10, 106 s; Task 8 implementer 119,040, 25, 301 s, spec
+review 122,096, 16, 205 s, quality review 93,263, 14, 156 s, fix round
+138,554, 9, 129 s, re-review 58,667, 7, 71 s; Task 9 implementer 137,644, 42,
+405 s, spec review 99,355, 22, 261 s, quality review 71,198, 8, 125 s, fix
+round 149,610, 9, 78 s, re-review 58,871, 5, 57 s. Sixteen dispatches in all,
+about 1.61 million subagent tokens and about 48 minutes of subagent time; the
+fix rounds (two implementer resumes, two re-reviews) cost about 405,700 of
+those tokens.
+
+### The whole-branch review
+
+The review ran in one turn on fable, with 23 tool calls: it read every
+changed file outside `docs/issues/**` whole and the issues diff as its changed
+lines, and ran the replay, nine verifies, the kisou suite, the doc-system
+check, a 110-line consistency script over the scenes and design pairings, and
+the frontmatter check. The context-mode sandbox (`ctx_execute`) was denied
+access on this host, and the consistency script ran from a temp file through
+Bash instead.
+
+## experience-layer: a recorded check is the command as run (2026-10-01)
+
+In batch D a check script's exit status disagreed with the record:
+`direction-verbatim.js` exited 1 on two one-line scene paragraphs (no fold of
+the wraps) while the controller's record said it passed, and the spec
+reviewer, who re-ran the script as checked in, caught it. A recorded check is
+the command as run, not the comparison done by hand beside it.
+
+## experience-layer: the spec reviewer and the quality reviewer find different things in a sweep-and-edit task (2026-10-01)
+
+In a sweep-and-edit task the spec reviewer's reading (does the result follow
+the rule, do the figures recount) and the quality reviewer's reading (is the
+result true as written) find different things. In batch D, Task 6's spec
+review was compliant while its quality review found two untrue `Serves`
+lines; Task 8's spec review judged every destination compliant with the rule
+and called the rule's effect plan-mandated, while its quality review's four
+Important findings became the D-5 fix round; Task 9's spec review recounted
+every figure and found them right, while its quality review found a
+mislabeled limit and an ambiguous name (the D-7 round). Both fix rounds
+followed from findings of truth: the reviewer such a task needs is the one
+that opens the cited target and reads whether it says what the sentence
+claims.
+
+## experience-layer: the exit criterion's first count (2026-10-01)
+
+The first count of the primary criterion in
+`docs/notes/experience-layer-exit-criterion.md`, run by hand at the topic's
+close because the topic's dogfood report preceded it. The grep
+`grep -o 'exp-[0-9a-f]\{4\}'` over the spec, the plan and the two review
+briefs, minus the same grep over `dialogue.md`, `spec-inputs.md` and the
+Kikaku files the topic cites, gives 12 ids. Of them, `exp-d4e5` is
+`docs/AGENTS.md`'s illustrative id, and the other eleven (06d2, 0cfa, 1fb1,
+37c2, 48b2, 51d2, 58f1, 59eb, 75bc, 81aa, b6bf) are items of the 2026-09-15
+input, which lists them as bare `**<id>**` lines. So the count by the note's
+sense is **0** unprompted citations, and by the literal grep 11.

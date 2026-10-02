@@ -2,7 +2,7 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 ## Purpose and shape
@@ -1076,7 +1076,7 @@ insufficient (exp-06b2).
 
 ## What the executor's loop assumes
 
-Serves exp-178d.
+Serves exp-173f.
 
 Three properties the SDD fix loop rests on, each measured in
 the requirement-extraction run of 2026-09-09 rather than assumed.
@@ -1939,7 +1939,7 @@ seven places in it.
 
 ## What a measurement can settle, and what it cannot
 
-Serves exp-19c1.
+Serves no expectation; internal shape.
 
 The spec dialogue's judgment is the human's and the design is Sekkei's, and a
 measurement is how Sekkei keeps a claim honest. The tanto-sweep dialogue of

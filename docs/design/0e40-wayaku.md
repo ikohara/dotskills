@@ -2,7 +2,7 @@
 id: "0e40"
 title: wayaku — per-file Japanese translation into a per-clone cache
 created: 2026-10-01
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 ## Shape
@@ -15,8 +15,7 @@ cache rather than beside the source. The cached translation of
 mirrors the source's relative path, so a link to it in a report opens in the
 IDE with a click. The source file is never touched. The cache is excluded
 from the repository per clone, through `<root>/.git/info/exclude`, and not
-through the shared `.gitignore`; why is recorded as a decision at the
-experience-layer topic's close.
+through the shared `.gitignore`; why is decision-d4dc.
 
 ## Classification
 

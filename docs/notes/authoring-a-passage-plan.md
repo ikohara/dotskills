@@ -562,3 +562,53 @@ and a bold-lead grep (`grep -n '^\*\*The census\.\*\*'`) together find it.
 
 Measured on `bg-seat-fixes`: its spec review's F-13 was a site named by
 heading alone that sat under such a lead.
+
+## A path filter, not a quoted deletion, accounts for a templated rewrite
+
+When `passage-check diff` cannot account for a removed template and its
+`{{name}}`-expanded copies, filter those paths in the plan's "How a batch is
+verified" and let the instrument that guards them be the real check — do not
+quote the deleted text in "not an instruction" fences to satisfy `diff`.
+Quoted deletions are pure duplication inside the task, and they drift.
+
+Measured on `experience-layer` (2026-09-30): the drafter's first workaround
+quoted the deleted `requirements` template (64 lines) and the copies'
+expanded lines in two such fences inside Task 1 — 90 lines of duplication in
+the largest task. Two path filters replaced them, with phase A's
+`doc-system-check.js check` as the check on the copies, and Task 1 went from
+1272 to 1174 lines.
+
+## One Jisso carries one batch, so a task past a thousand lines is a batch alone
+
+A batch is what one Jisso carries, so a task that alone runs to over a
+thousand lines is a batch of its own, whatever letters the spec gave its
+batches. Say the mapping from the spec's letters to the plan's in the plan's
+Batches section, since every reader of both documents must carry it.
+
+Measured on `experience-layer` (2026-09-30): keeping the spec's batch letters
+would have given batch A four tasks with Task 1 alone at about 1170 lines, so
+batch A became Task 1 alone and the spec's B and C became the plan's C and D.
+The spec allowed the split ("A may be two batches").
+
+## A boundary `diff` fence ending in `tail -1` breaks under path-wide allowances
+
+A boundary `diff` fence that ends in `tail -1` and expects "`diff: clean` or
+the count line of the last output" cannot meet its `Expected:` once a later
+batch adds path-wide allowances: the last line of the output is then an
+allowed-family line. A plan that adds path-wide allowances rewrites that
+fence's expectation, or prints the count line by its own pattern.
+
+Measured on `experience-layer` (2026-10-01): from batch D's path-wide
+allowances on, the fence's last line was a removed line (D-8).
+
+## A tree-state check reads what the hub owns from the hub
+
+A plan's tree-state check reads the values the hub owns — the Cast, a
+scene's dates — from the hub, or says which values a later decision may move;
+it does not hard-code them. A decision during the topic can change them.
+
+Measured on `experience-layer` (2026-10-01): the plan's check hard-coded
+`cast = {"maintainer", "agent", "collaborator"}` and `created == updated`,
+and the human renamed the Cast during the topic. The run survived because the
+batch prompt carried a superseding line (R-10). Relevant to
+`passage-plan-generation`, which will generate such snippets.

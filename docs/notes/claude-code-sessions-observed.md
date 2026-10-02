@@ -564,3 +564,34 @@ sides.
 Measured by the `bg-seat-fixes` design: on this machine
 `$CLAUDE_CONFIG_DIR/projects` is a link to `~/.claude/projects`, so one set
 of transcripts is reachable under two config directories.
+
+## A `dead` row resumed six days later is the same session (2026-09-23)
+
+Observed by an `experience-layer` Kanri tenure. A Hosa handshake resumed a
+row the roster had marked `dead` since 2026-09-17, six days earlier, under a
+new name, rather than refusing it as stale. The "resumed session, not a
+second session" match — the `sessionId` against the Transcript column's
+basename — held across that gap, for a role other than Kanri or a tab seat:
+a positive data point, not a defect.
+
+## A session's effort reading drifted with no `/effort` in its turns (2026-09-30)
+
+Observed by the same `experience-layer` Kanri tenure. Its effort reading
+matched `sessions.kanri` (`high`) at every earlier check and read `medium` at
+the plan-landing check, with no `/effort` command visible in the session's
+own turns to explain it. Recorded, not acted on: an effort mismatch is the
+human's to change, and the roster records what runs. Worth a second look if
+the pattern recurs across tenures.
+
+## The auto-mode classifier refuses a bundled Bash call whole (2026-10-01)
+
+Observed by an `experience-layer` Kanri tenure at a handover. One Bash call
+that bundled three acts — the successor's roster rewrite, the deletion of the
+handover file, and a `stop` request for the predecessor session — was refused
+by the auto-mode classifier (reason `Interfere With Workloads`), and nothing
+in it ran, so the successor's own roster row stayed unwritten until the
+three acts were split and the stop request was left to the human. A `stop`
+request for a Jisso, sent alone later in the same tenure, ran without
+complaint. `roles/kanri.md`'s Handover case lists the three acts in one
+sentence; writing the predecessor's `stop` request in its own call, after the
+roster rewrite, keeps a refusal from costing the rewrite.

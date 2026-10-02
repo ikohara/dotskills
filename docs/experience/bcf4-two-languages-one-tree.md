@@ -16,7 +16,7 @@ translation of them.
 
 ## Expectations
 
-- **a545** [stated] SHOULD NOT keep parallel Japanese documents (`.ja.md`).
+- **a545** [stated] SHOULD NOT keep a second copy of a document in another language.
 - **ae58** [stated] MAY keep Japanese only as quoted evidence.
 - **b6bf** [stated] SHOULD minimize the tokens the agent spends on Japanese.
 - **2e98** [confirmed] SHOULD let him read a wording put to him for judgment in his own language, while what is written stays the original.

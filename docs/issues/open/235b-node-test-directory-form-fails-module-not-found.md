@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 Source: shoroku tanto-sweep
@@ -66,3 +66,9 @@ Verification text and the ledger template say to run — failed `MODULE_NOT_FOUN
 on this host, while the quoted-glob form
 (`node --test 'skills/tanto/scripts/*.test.js'`) ran clean, 103 of 103. Four
 runs now, the same two forms, the same result.
+
+**2026-09-30, a fifth dated occurrence, the first in a kisou plan's spec**
+(shoroku experience-layer S-12, the `experience-layer` spec review): `node
+--test skills/kisou/scripts/` failed on this host (Node v24.16.0, "test
+failed" at the directory) while `node --test 'skills/kisou/scripts/*.test.js'`
+passed 57 of 57. The kisou-refresh spec of 2026-09-11 had the glob form.
