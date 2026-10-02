@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-13
@@ -50,3 +50,5 @@ if a machine-checkable form is found later.
 Related: issue-7ba4, issue-c30e (the concrete instances), issue-a5e9 (the
 sibling gap for an enumeration a `P` block changes, from the same run's
 batch B).
+
+Resolved by "docs(tanto): Keikaku's reviewer seat, dialogue rule, fixed referent, and two drafting conventions" — found by the tanto-issue-triage liveness check, 2026-10-03.

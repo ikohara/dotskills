@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-workspace
@@ -66,3 +66,5 @@ If a later pass wants a clean `verify` as a standing invariant, the six blocks
 would have to be amended in the plan text to the ruled wording — plan-text
 housekeeping, not a code fix, and the opposite of what the deviation marker this
 issue proposes would cost.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

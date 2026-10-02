@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-13
@@ -47,3 +47,5 @@ a reason that has nothing to do with the file's content.
 
 Related: issue-d0c9 (the sibling gap — nothing re-verifies a created
 file's content either), issue-a7d2.
+
+Resolved by "docs(tanto): Keikaku's reviewer seat, dialogue rule, fixed referent, and two drafting conventions" — found by the tanto-issue-triage liveness check, 2026-10-03.

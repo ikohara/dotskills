@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-14
@@ -26,3 +26,5 @@ not an implementer deviation.
 
 Severity low-medium: documentation-clarity gaps in the same batch's landed
 text, not a runtime defect.
+
+Resolved by "docs(tanto): fix kanri handover-deferral prose gaps (issue-1a9a, issue-a1a7)" — found by the tanto-issue-triage liveness check, 2026-10-03.

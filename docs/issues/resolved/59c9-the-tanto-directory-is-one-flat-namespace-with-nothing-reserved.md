@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-workspace
@@ -34,3 +34,5 @@ existence.
 
 Related: exp-06b2, design-4807 (the roster and the conductor ledger),
 issue-f2c4.
+
+Resolved by "docs(tanto): one list of reserved names, and the intake's received: reply" — found by the tanto-issue-triage liveness check, 2026-10-03.
