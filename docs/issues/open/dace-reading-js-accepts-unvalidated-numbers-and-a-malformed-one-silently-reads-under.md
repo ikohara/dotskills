@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-context-ceiling
@@ -43,3 +43,5 @@ explicitly rather than pick one in passing; the answer also decides what the
 configuration are not the same condition.
 
 Related: exp-06b2, decision-eee2, decision-9a3a, issue-40ed.
+
+Serves exp-19c1 (tanto-issue-triage, 2026-10-03).

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-02
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 Source: shoroku experience-layer S-43
@@ -61,3 +61,5 @@ Related, not duplicates: issue-40ed, and the two reports the inbox copy
 names on the same formula (the final batch's own consumption, and a wake-up
 mid-decision). Issue-fb90's finding 5 — the baseline counts the first turn,
 not the forced cold read — belongs here too.
+
+Serves exp-19c1 (tanto-issue-triage, 2026-10-03).
