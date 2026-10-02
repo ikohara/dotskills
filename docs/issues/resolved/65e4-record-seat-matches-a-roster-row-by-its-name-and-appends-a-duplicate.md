@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-24
-updated: 2026-09-24
+updated: 2026-10-03
 ---
 
 Source: shoroku bg-seat-ergonomics S-30
@@ -51,3 +51,5 @@ by hand at a routine census pass, not at a boundary. The defect has now
 recurred across two topics (`bg-seat-ergonomics`, `bg-seat-fixes`) and
 several Kanri tenures within each: severity `medium`, and the fix scheduled
 rather than noted again.
+
+Merged into issue-dfb3 (tanto-issue-triage, 2026-10-03).

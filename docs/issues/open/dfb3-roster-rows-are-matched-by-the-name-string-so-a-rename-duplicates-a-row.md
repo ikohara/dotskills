@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-02
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 Source: shoroku experience-layer S-3
@@ -55,3 +55,5 @@ Proposed fix (the inbox copy's): match a roster row by `sessionId` — the
 Transcript column's basename, already computed by `sessionIdOf()` — in both
 `writeSeatRow` and `writeStatus`, as every other session-to-row match in the
 skill does.
+
+Carries issue-65e4 (merged by tanto-issue-triage, 2026-10-03).

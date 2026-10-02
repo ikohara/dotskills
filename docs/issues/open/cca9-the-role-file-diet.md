@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-context-ceiling
@@ -51,3 +51,5 @@ the time, overwhelmingly cosmetic and mostly inherited from the plan's own
 literal passage text. They are recorded by file and line as issue-2065, whose
 one action item is a prose-polish pass over `skills/tanto/` — the natural
 companion to this diet, and the list this diet consumes if it runs.
+
+Serves exp-178d (tanto-issue-triage, 2026-10-03).

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: inbox 2026-09-17-fukki-resume-should-ask-not-infer-continue
@@ -49,3 +49,5 @@ human (the ceiling figure, the handover's own Why and Next step, and the
 fact that no successor was ever created) and ask explicitly whether to
 continue in the resumed session or wait for a fresh one, before deleting
 the handover file or doing any further work.
+
+Serves exp-173f (tanto-issue-triage, 2026-10-03).
