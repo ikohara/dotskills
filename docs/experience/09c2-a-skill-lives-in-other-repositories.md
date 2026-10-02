@@ -1,0 +1,42 @@
+---
+id: "09c2"
+title: a skill lives in other repositories
+created: 2026-10-01
+updated: 2026-10-01
+actors: [developer, user, agent]
+tags: [distribution, release, feedback, privacy, user-effort]
+---
+
+## Scene
+
+The developer's skills live in repositories that are not this one — his own
+other projects today, someone else's some day. He wants a new version to be
+one step away for whoever installs it, through the install route they already
+use, and cutting that version to cost him only the words that say what
+changed. Using the skills over there, he notices a defect; he wants to leave
+one line and get back to what he was doing, and to find that line waiting
+when he next has the skill repository open — decided then, not on arrival,
+and never lost. And nothing about those repositories — their names, their
+documents, what he was doing in them — may show up in what this repository
+commits: some of them are not his to show, and what the skill needs to know
+is the symptom.
+
+## Expectations
+
+- **2b4e** [stated] SHOULD let whoever installs the skills get a new version in one step, through the install route they already use.
+- **1d5d** [confirmed] SHOULD leave him responsible only for the substantive part of a release, what the version says, and take the mechanical steps off his hands.
+- **22fc** [stated] MUST NOT let a release leave his machine, or be cut twice, without his saying so at that moment.
+- **259d** [confirmed] SHOULD NOT rewrite the words he wrote for a release.
+- **1c7a** [confirmed] SHOULD let a defect he notices while using a skill be dropped off in one line and decided later, at a checkpoint he checks anyway, never on the spot and never lost.
+- **1c02** [stated] MUST NOT let anything this repository commits say which other repositories he uses its skills in, or quote their documents.
+
+## Open questions
+
+## Sources
+
+- [2b4e] 「（（apmのような）skillをインストールするインフラに対応しているから）、skill のユーザが簡単に導入できる。skillの開発者も簡単にリリースできる」 (Kikaku, 2026-10-01)
+- [1d5d] inferred from the folded automated-release requirement file 「leave the human responsible only for the substantive part」 (Purpose, 2026-05-28) and 0cfa; not stated directly. Confirmed 2026-10-01: 「（（apmのような）skillをインストールするインフラに対応しているから）、skill のユーザが簡単に導入できる。skillの開発者も簡単にリリースできる」
+- [22fc] 「pushの判断は repo や user の都合で変わる。skill の都合で決まるものではない」 (Kikaku, 2026-10-01)
+- [259d] inferred from the folded automated-release requirement file 「The script reads but never writes CHANGELOG.md」 (2026-05-28) and 1fb1; not stated directly. Confirmed 2026-10-01: 「今のところ他に違和感なし」
+- [1c7a] inferred from the folded tanto requirement file 「No report is lost and none is decided on arrival」 (2026-09-20) and 81aa; not stated directly. Confirmed 2026-10-01: 「継続的な改善をしたいが、他repoの情報はその扱いに気をつける必要がある」
+- [1c02] 「他repoの情報は扱いに気をつける必要がある場合がある。「症状」がわかればいいのであって、具体的な情報は絶対に入れない」 (Kikaku, 2026-10-01)

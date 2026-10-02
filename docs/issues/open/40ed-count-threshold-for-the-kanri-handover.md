@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-07
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: inbox 2026-09-07-session-length-signal
@@ -81,7 +81,7 @@ sessions are compared with each other.
 
 The handover half of this issue closed on 2026-09-10 without a number: the
 human set the rule that Kanri hands over at every plan close, without a
-threshold and without asking (req-04f5's residency bullet, reworded that day),
+threshold and without asking (the tanto requirement's residency bullet, reworded that day, now folded into exp-06b2),
 because the close is the cheapest moment to reset a resident session's
 context and the question had been answered "yes" at every close so far. What
 stays open here is the **replacement** half — the reading at which a peer's

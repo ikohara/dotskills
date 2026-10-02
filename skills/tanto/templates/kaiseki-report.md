@@ -59,5 +59,5 @@ Kanri reads a `no` as "not this task" and nothing wider.>
 
 ## Shoroku proposal
 
-- <requirements, design, decisions, issues, notes, or reports> — <one line on
+- <experience, design, decisions, issues, notes, or reports> — <one line on
   what is worth keeping and why>

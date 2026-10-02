@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku tanto-context-ceiling
@@ -26,4 +26,4 @@ admits `unavailable` beside the `context=<n> <under|over>` form. Same shape as
 issue-f5d8 and issue-4d8a: a template and a role file stating the same slot
 differently, with nothing that checks the pair.
 
-Related: req-04f5, decision-eee2, issue-f5d8, issue-4d8a.
+Related: exp-06b2, decision-eee2, issue-f5d8, issue-4d8a.

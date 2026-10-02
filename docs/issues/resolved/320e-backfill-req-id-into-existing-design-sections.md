@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku requirement-extraction

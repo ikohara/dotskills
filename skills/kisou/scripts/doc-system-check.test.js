@@ -22,7 +22,7 @@ const {
 
 const SCRIPT = path.join(__dirname, "doc-system-check.js");
 const TEMPLATES = path.join(__dirname, "..", "templates", "docs");
-const TYPES = ["requirements", "design", "decisions", "issues", "notes", "reports"];
+const TYPES = ["experience", "design", "decisions", "issues", "notes", "reports"];
 
 // Every temporary directory `tmp()` creates, so this file's own fixtures
 // leave nothing behind under the OS temp dir.
@@ -128,10 +128,10 @@ test("normalize strips a BOM, folds CRLF, and collapses trailing newlines", () =
 
 test("expandName follows the case-aware mapping", () => {
   assert.strictEqual(expandName("docs", "snake_case"), "docs");
-  assert.strictEqual(expandName("requirements", "snake_case"), "requirements");
+  assert.strictEqual(expandName("experience", "snake_case"), "experience");
   assert.strictEqual(expandName("docs", "PascalCase"), "Documents");
   assert.strictEqual(expandName("src", "PascalCase"), "Source");
-  assert.strictEqual(expandName("requirements", "PascalCase"), "Requirements");
+  assert.strictEqual(expandName("experience", "PascalCase"), "Experience");
   assert.strictEqual(expandName("reports", "PascalCase"), "Reports");
 });
 
@@ -145,7 +145,7 @@ test("the target set is seven entries in the report's order", () => {
     snake.map((t) => t.target),
     [
       "AGENTS.md",
-      "requirements/AGENTS.md",
+      "experience/AGENTS.md",
       "design/AGENTS.md",
       "decisions/AGENTS.md",
       "issues/AGENTS.md",
@@ -157,7 +157,7 @@ test("the target set is seven entries in the report's order", () => {
     snake.map((t) => t.template),
     [
       "AGENTS.md",
-      "requirements/AGENTS.md",
+      "experience/AGENTS.md",
       "design/AGENTS.md",
       "decisions/AGENTS.md",
       "issues/AGENTS.md",
@@ -169,7 +169,7 @@ test("the target set is seven entries in the report's order", () => {
     targetSet("PascalCase").map((t) => t.target),
     [
       "AGENTS.md",
-      "Requirements/AGENTS.md",
+      "Experience/AGENTS.md",
       "Design/AGENTS.md",
       "Decisions/AGENTS.md",
       "Issues/AGENTS.md",
@@ -198,7 +198,7 @@ test("the expanded PascalCase bundle is level, with the case derived", () => {
 });
 
 test("compareSections finds nothing between a template and its own copy", () => {
-  const source = read(path.join(TEMPLATES, "requirements", "AGENTS.md"));
+  const source = read(path.join(TEMPLATES, "experience", "AGENTS.md"));
   const expanded = expandTemplate(source, "snake_case");
   const compared = compareSections(splitSections(expanded).sections, splitSections(expanded).sections);
   assert.deepStrictEqual(compared, { missing: [], diverged: [], authorAdded: [] });
@@ -208,15 +208,41 @@ test("compareSections finds nothing between a template and its own copy", () => 
 
 test("a type copy with a foreign H1 is a note, not an item", () => {
   const { templates, docs } = fakeInstall();
-  write(path.join(docs, "requirements", "AGENTS.md"), "# Requirements\n\nOurs.\n");
+  write(path.join(docs, "experience", "AGENTS.md"), "# Experience\n\nOurs.\n");
   const result = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
   assert.strictEqual(result.code, 0);
   assert.ok(
     result.out.includes(
-      `note: ${posix(docs)}/requirements/AGENTS.md — not kisou-managed: first heading is "# Requirements", expected "# requirements/ — AGENTS"`,
+      `note: ${posix(docs)}/experience/AGENTS.md — not kisou-managed: first heading is "# Experience", expected "# experience/ — AGENTS"`,
     ),
   );
   assert.match(result.out, /^0 items, 1 note$/m);
+});
+
+// --- the type's name before 2026-09: one note, never an item ---------------
+
+test("a docs root holding requirements/ and no experience/ gets the create item and one note", () => {
+  const { templates, docs } = fakeInstall();
+  const legacy = path.join(docs, "requirements");
+  fs.renameSync(path.join(docs, "experience"), legacy);
+  const result = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(result.code, 1);
+  assert.match(result.out, /^1\. create: .*experience\/AGENTS\.md$/m);
+  assert.ok(
+    result.out.includes(
+      `note: ${posix(legacy)}/ — the name the experience type had before 2026-09; renaming it is a hand migration, not an item`,
+    ),
+  );
+  assert.match(result.out, /^1 item, 1 note$/m);
+});
+
+test("a docs root holding both requirements/ and experience/ gets no note", () => {
+  const { templates, docs } = fakeInstall();
+  const legacy = path.join(docs, "requirements");
+  write(path.join(legacy, "AGENTS.md"), "Old.\n");
+  const result = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
+  assert.strictEqual(result.code, 0);
+  assert.strictEqual(result.out, "0 items, 0 notes\n");
 });
 
 test("a root with the right H1 but no document-management heading is a note", () => {
@@ -233,11 +259,11 @@ test("a root with the right H1 but no document-management heading is a note", ()
 });
 
 test("classify reports what it found and what it expected", () => {
-  const template = "# requirements/ — AGENTS\n\nIntro.\n";
+  const template = "# experience/ — AGENTS\n\nIntro.\n";
   assert.deepStrictEqual(classify(template, template, false), {
     managed: true,
-    found: "# requirements/ — AGENTS",
-    expected: "# requirements/ — AGENTS",
+    found: "# experience/ — AGENTS",
+    expected: "# experience/ — AGENTS",
     missingDocManagement: false,
   });
   const foreign = classify("Prose first.\n\n# Something\n", template, false);
@@ -489,13 +515,13 @@ test("extra trailing newlines are not a divergence", () => {
 
 test("an added section lands after the nearest preceding section present", () => {
   const { templates, docs } = fakeInstall();
-  const target = path.join(docs, "requirements", "AGENTS.md");
+  const target = path.join(docs, "experience", "AGENTS.md");
   write(target, read(target).replace("## Body\n\nBody body.\n\n", ""));
   const applied = run(["apply", "--items", "1", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
   assert.strictEqual(applied.code, 0);
   assert.deepStrictEqual(
     splitSections(read(target)).sections.map((s) => s.heading),
-    ["# requirements/ — AGENTS", "## File", "## Body", "## Growth"],
+    ["# experience/ — AGENTS", "## File", "## Body", "## Growth"],
   );
   const after = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
   assert.strictEqual(after.code, 0);
@@ -503,7 +529,7 @@ test("an added section lands after the nearest preceding section present", () =>
 
 test("applying only the later of two adds anchors it to what is present", () => {
   const { templates, docs } = fakeInstall();
-  const target = path.join(docs, "requirements", "AGENTS.md");
+  const target = path.join(docs, "experience", "AGENTS.md");
   write(target, read(target).replace("## Body\n\nBody body.\n\n", "").replace("## Growth\n\nGrowth body.\n", ""));
   const listed = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
   assert.match(listed.out, /^2 items, 0 notes$/m);
@@ -511,19 +537,19 @@ test("applying only the later of two adds anchors it to what is present", () => 
   assert.strictEqual(applied.code, 0);
   assert.deepStrictEqual(
     splitSections(read(target)).sections.map((s) => s.heading),
-    ["# requirements/ — AGENTS", "## File", "## Growth"],
+    ["# experience/ — AGENTS", "## File", "## Growth"],
   );
 });
 
 test("applying both adds in one run lands them in template order", () => {
   const { templates, docs } = fakeInstall();
-  const target = path.join(docs, "requirements", "AGENTS.md");
+  const target = path.join(docs, "experience", "AGENTS.md");
   write(target, read(target).replace("## Body\n\nBody body.\n\n", "").replace("## Growth\n\nGrowth body.\n", ""));
   const applied = run(["apply", "--items", "1,2", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
   assert.strictEqual(applied.code, 0);
   assert.deepStrictEqual(
     splitSections(read(target)).sections.map((s) => s.heading),
-    ["# requirements/ — AGENTS", "## File", "## Body", "## Growth"],
+    ["# experience/ — AGENTS", "## File", "## Body", "## Growth"],
   );
   const after = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
   assert.strictEqual(after.code, 0);
@@ -664,13 +690,13 @@ test("apply with a number past the list is exit 2 and writes nothing", () => {
 
 test("apply cannot reach a note, which has no number", () => {
   const { templates, docs } = fakeInstall();
-  const target = path.join(docs, "requirements", "AGENTS.md");
-  write(target, "# Requirements\n\nOurs.\n");
+  const target = path.join(docs, "experience", "AGENTS.md");
+  write(target, "# Experience\n\nOurs.\n");
   const listed = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
   assert.match(listed.out, /^0 items, 1 note$/m);
   const applied = run(["apply", "--items", "1", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
   assert.strictEqual(applied.code, 2);
-  assert.strictEqual(read(path.join(docs, "requirements", "AGENTS.md")), "# Requirements\n\nOurs.\n");
+  assert.strictEqual(read(target), "# Experience\n\nOurs.\n");
 });
 
 test("a template with a repeated heading is exit 2", () => {
@@ -709,27 +735,42 @@ test("an unknown subcommand and an unknown option are exit 2", () => {
 });
 
 // --- test case 5, on the real bundle ---------------------------------------
-// The spec writes case 5 against the shipped `requirements` template, and task
+// The spec wrote case 5 against the shipped `requirements` template (now `experience`), and task
 // 9 quotes it as the evidence that closes issue-f623. The miniature-bundle
 // cases above cover the same three insertion positions; this one makes the
 // evidence a real template rather than a fixture the suite invented.
 
-test("a section deleted from the real requirements copy is re-inserted in place", () => {
+test("a section deleted from the real experience copy is re-inserted in place", () => {
   const docs = path.join(tmp(), "docs");
   expandBundle(docs, "snake_case");
-  const target = path.join(docs, "requirements", "AGENTS.md");
+  const target = path.join(docs, "experience", "AGENTS.md");
   const text = read(target);
-  const start = text.indexOf("## requirements vs issues");
-  const end = text.indexOf("## Growth", start);
+  const start = text.indexOf("## experience vs issues");
+  const end = text.indexOf("## Reading path", start);
   assert.ok(start > 0 && end > start);
   write(target, text.slice(0, start) + text.slice(end));
   const before = run(["check", "--docs", docs, "--case", "snake_case"]);
   assert.strictEqual(before.code, 1);
-  assert.match(before.out, /^1\. add: .*requirements\/AGENTS\.md — ## requirements vs issues$/m);
+  assert.match(before.out, /^1\. add: .*experience\/AGENTS\.md — ## experience vs issues$/m);
   assert.strictEqual(run(["apply", "--items", "1", "--docs", docs, "--case", "snake_case"]).code, 0);
   assert.deepStrictEqual(
     splitSections(read(target)).sections.map((s) => s.heading),
-    ["# requirements/ — AGENTS", "## File", "## Frontmatter", "## Body", "## requirements vs issues", "## Growth"],
+    [
+      "# experience/ — AGENTS",
+      "## File",
+      "## Frontmatter",
+      "## Body",
+      "## Expectations",
+      "## Sources",
+      "## The hub",
+      "## Identifiers",
+      "## What is an experience fragment",
+      "## experience vs issues",
+      "## Reading path",
+      "## Situations",
+      "## Worked example",
+      "## Lifecycle",
+    ],
   );
   const after = run(["check", "--docs", docs, "--case", "snake_case"]);
   assert.strictEqual(after.code, 0);
@@ -807,12 +848,12 @@ test("a mid-run apply failure prints what was already written, and names the van
 
 test("a trailing space on the H1 yields a note whose two quoted texts differ visibly", () => {
   const { templates, docs } = fakeInstall();
-  write(path.join(docs, "requirements", "AGENTS.md"), "# requirements/ — AGENTS \n\nOurs.\n");
+  write(path.join(docs, "experience", "AGENTS.md"), "# experience/ — AGENTS \n\nOurs.\n");
   const result = run(["check", "--templates", templates, "--docs", docs, "--case", "snake_case"]);
   assert.strictEqual(result.code, 0);
   assert.ok(
     result.out.includes(
-      `note: ${posix(docs)}/requirements/AGENTS.md — not kisou-managed: first heading is "# requirements/ — AGENTS ", expected "# requirements/ — AGENTS"`,
+      `note: ${posix(docs)}/experience/AGENTS.md — not kisou-managed: first heading is "# experience/ — AGENTS ", expected "# experience/ — AGENTS"`,
     ),
   );
 });

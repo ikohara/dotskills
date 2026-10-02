@@ -1,20 +1,21 @@
 ---
 name: shoroku
-description: Shoroku (抄録 — excerpt and record) the working session, accumulated memory, or named Markdown files into a project's docs (requirements / design / decisions / issues / notes / reports) under `docs/`, following the in-repo AGENTS.md document-management system. Triggers on `抄録して`, `shorokuして`, `セッション抄録`; memory mode on `memory から抄録`, `shoroku from memory`; file mode on `<path> を抄録`, `shoroku from <path>`.
+description: Shoroku (抄録 — excerpt and record) the working session, accumulated memory, or named Markdown files into a project's docs (experience / design / decisions / issues / notes / reports) under `docs/`, following the in-repo AGENTS.md document-management system. Triggers on `抄録して`, `shorokuして`, `セッション抄録`; memory mode on `memory から抄録`, `shoroku from memory`; file mode on `<path> を抄録`, `shoroku from <path>`.
 ---
 
 # shoroku
 
 抄録 — "excerpt and record." Pull the worth-keeping fragments out of transient
-context (the working **session**, or accumulated **memory**) and fold them into
+context (the working **session**, accumulated **memory**, or named Markdown
+**files**) and fold them into
 a project's living documents, keeping the document-management system that
 governs them tidy as you go.
 
 `shoroku` is a **thin shell**. The document format and the standing rules live
 in the repo's `docs/AGENTS.md` (+ each `docs/<type>/AGENTS.md`), so any agent
 follows the same system with or without this skill. This skill adds the
-trigger, the shoroku workflow, and a memory source mode. **Do not restate
-the format rules here — defer to the `AGENTS.md`.**
+trigger, the shoroku workflow, and the memory and file source modes. **Do not
+restate the format rules here — defer to the `AGENTS.md`.**
 
 ## Step 1: Locate the rules
 
@@ -46,15 +47,18 @@ shorthand — substitute whichever names the project uses.
 
 Run the shoroku workflow defined in the repo's `docs/AGENTS.md`: read source →
 classify each candidate into the six types — fragments into the four managed
-(requirement / design / decision / issue), whole files into the two flat
+(experience / design / decision / issue), whole files into the two flat
 (notes / reports) — per `docs/AGENTS.md` → emit
 a single numbered proposal grouped by destination file, ending with
 `Direction?` → wait → apply the accepted subset per the per-type `AGENTS.md` →
 **one** git commit (no auto-push) → report files changed + commit hash.
 
 Classification follows the two splits the type files define — design vs
-decisions, requirements vs issues — and the proposal carries the requirement
+decisions, experience vs issues — and the proposal carries the experience
 pairing `docs/AGENTS.md`'s Propose step defines; neither is restated here.
+Experience is the one type whose candidate may be assembled from scattered
+remarks, tagged and capped as `docs/experience/AGENTS.md` says; the other
+three are stated only.
 
 An issue written in session, memory, or file mode opens its body with one
 line, `Source: session <YYYY-MM-DD>`, the day of the run — the first
@@ -114,7 +118,11 @@ carrying `File: <path>`, the text as it reads in an `Old:` fence, the text
 as it should read in a `New:` fence, and the one-line reason — an item the
 apply can act on without judgment; a fix the caller's dispatch does not
 allow — a file outside the paths it names — is grouped `Recommended reject`
-with the correction in the reason. A line in a source proposal that
+with the correction in the reason. An experience item that is `[inferred]`,
+or whose wording names a path, a command, a config key, a file format, a role
+count, or a tool, is grouped `Unsure` with the reason named, so that the human
+sees the inference or the mechanism before it is written. A line in a source
+proposal that
 only names an `S-n` (or similarly-formed) row is a pointer, not an item to
 quote itself: follow the pointer to its own named source and quote from
 there, never the pointer line itself. Put each item under its own `###`
@@ -131,9 +139,11 @@ number in the order the items are written — so that a reader can point at
 an item by its heading and the human's answer names the item by the number
 the recommendation gave it, and each
 carrying its destination, a
-one-line reason, the `req-<id>` pairing for a `design` entry, and — for a
-requirement or ADR item — the original wording followed by a reference
-translation in the chat's language. Do not wait for `Direction?`, and write
+one-line reason, the `exp-<id>` pairing for a `design` entry, and — for an
+ADR item, and for an `[inferred]` experience item — the original wording
+followed by a reference translation in the chat's language; a `[stated]`
+experience item carries its quote in Sources and needs none. Do not wait for
+`Direction?`, and write
 nothing under `docs/`.
 
 <!-- markdownlint-disable MD038 -->

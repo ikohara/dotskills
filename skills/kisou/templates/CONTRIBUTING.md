@@ -3,7 +3,7 @@ TEMPLATE FILL (delete this block after filling):
 - Replace <...> with content.
 - `{{name}}` placeholders below — scripts (`{{bootstrap}}`, `{{build}}`,
   `{{test}}`, `{{lint}}`, `{{tidy}}`) and dirs (`{{docs}}`, `{{src}}`, `{{tests}}`,
-  `{{scripts}}`, `{{requirements}}`, `{{design}}`, `{{decisions}}`,
+  `{{scripts}}`, `{{experience}}`, `{{design}}`, `{{decisions}}`,
   `{{issues}}`, `{{notes}}`, `{{reports}}`) — are expanded by kisou per the
   chosen case convention (snake_case as written; PascalCase title-cased, with
   abbreviations expanded: docs -> Documents, src -> Source).
@@ -56,7 +56,7 @@ For variations, refer to the usage of the commands the script invokes.
 
 ## Project structure
 
-- [`{{docs}}/{{requirements}}/`]({{docs}}/{{requirements}}/) — what we're building
+- [`{{docs}}/{{experience}}.md`]({{docs}}/{{experience}}.md) — who uses this and what they expect; scenes in [`{{docs}}/{{experience}}/`]({{docs}}/{{experience}}/)
 - [`{{docs}}/{{design}}/`]({{docs}}/{{design}}/) — how the system is built
 - [`{{docs}}/{{decisions}}/`]({{docs}}/{{decisions}}/) — Architecture Decision Records
 - [`{{docs}}/{{issues}}/`]({{docs}}/{{issues}}/) — known issues and TODOs
@@ -68,7 +68,7 @@ For variations, refer to the usage of the commands the script invokes.
 
 ## References
 
-Project context documents under `{{docs}}/` — `{{requirements}}/`,
+Project context documents under `{{docs}}/` — `{{experience}}/`,
 `{{design}}/`, `{{decisions}}/`, and `{{issues}}/` — are managed by AI agents:
 ask an agent to add or update entries.
 
@@ -76,7 +76,7 @@ Refer to them as `<type>-<id>` in commits, code comments, and prose:
 
 - `decision-a3f7`
 - `issue-b9c2`
-- `req-d4e5`
+- `exp-d4e5`
 - `design-f6g7`
 
 ## Development workflow

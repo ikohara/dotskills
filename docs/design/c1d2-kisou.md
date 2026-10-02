@@ -2,10 +2,12 @@
 id: "c1d2"
 title: kisou skill — modes, template syntax, case mapping, migrate detection
 created: 2026-05-28
-updated: 2026-09-11
+updated: 2026-10-01
 ---
 
 ## Shape
+
+Serves exp-2c03.
 
 A **thin shell over a bundled project template** at
 `skills/kisou/templates/`. The skill itself is mostly trigger / mode
@@ -13,18 +15,20 @@ detection / orchestration; the substance is in the bundle.
 
 The bundle produces (always, when scaffolding): `README.md`,
 `CONTRIBUTING.md`, `CLAUDE.md`, a slim top-level `AGENTS.md`, the
-`docs/` doc-management system (`docs/AGENTS.md` +
-`docs/<type>/AGENTS.md` + the `docs/issues/{open,deferred,resolved}/`
-skeleton), and `scripts/bootstrap.{bat,sh}`. Optional, on user request:
+`docs/` doc-management system (`docs/AGENTS.md`, the per-type
+`docs/<type>/AGENTS.md` under the cased type directories, and the
+hand-written hub `docs/experience.md`), and `scripts/bootstrap.{bat,sh}`.
+Optional, on user request:
 `setup.{bat,sh}`, `run.{bat,sh}`, and the other `scripts/*.{bat,sh}`.
 Never produces `src/` or `tests/` (neither content nor empty dirs);
 never runs `git init`; never auto-generates script content.
 
-The doc-system spans six types — four managed (`requirements` / `design` /
+The doc-system spans six types — four managed (`experience` / `design` /
 `decisions` / `issues`) plus two flat (`notes` / `reports`; decision `3544`).
 Both flat dirs are stamped on scaffold, and `{{notes}}` / `{{reports}}`
 participate in the `case` mapping (plain title-case, no abbreviation
-expansion).
+expansion). The hub `docs/experience.md` is scaffolded once from
+`templates/docs/experience.md` and is not a copy the instrument compares.
 
 The bundled top-level `AGENTS.md` tells agents to run `lint` *on the changed
 paths* before committing — this assumes the project's `lint` script accepts
@@ -76,6 +80,8 @@ How the bundle's own Markdown is verified, and by whom:
 
 ## Template syntax (three categories, processed in order)
 
+Serves no expectation; internal shape.
+
 1. **Substitution.** `<...>` = free-text user fill. `{{name}}` = project
    entity name (script or dir), expanded by kisou per a built-in
    `case`-aware mapping (see decision `8b1f`).
@@ -96,6 +102,8 @@ Then **all TEMPLATE FILL blocks are deleted** before writing.
 
 ## Inputs (gathered up front; auto-detected in migrate)
 
+Serves exp-802f.
+
 - `os` — `windows` / `unix` (asked, multi-select).
 - `os.mode` — `both` / `single` (derived from `os`).
 - `scripts` — `setup` / `run` / `build` / `test` / `lint` / `tidy`
@@ -107,6 +115,8 @@ Then **all TEMPLATE FILL blocks are deleted** before writing.
   `{{name}}` expansion via the mapping in decision `8b1f`).
 
 ## Modes
+
+Serves exp-0eda, exp-0fa4.
 
 - **scaffold** — empty target. Gather all inputs in Step 2, write
   the structure (placeholders resolved → OPTIONAL pruned → TEMPLATE
@@ -161,8 +171,7 @@ added (decision-89da).
 
 ## Refresh (measured 2026-09-09)
 
-Serves `req-1a2b` — re-running migrate refreshes a kisou-managed file toward
-the current template.
+Serves exp-0ed2.
 
 The refresh path had never been exercised until the requirement-extraction plan
 ran it on this repository's own four installed `docs/**/AGENTS.md` copies, in
@@ -211,8 +220,7 @@ requirements template and the miniature fixtures; the dogfood produced no
 
 ## How this repository enforces the invariant
 
-Serves `req-1a2b` — the installed copies stay level with the templates they
-came from.
+Serves exp-0ed2.
 
 The invariant the instrument checks — each installed `docs/**/AGENTS.md`
 byte-equal to its expanded template, up to the four exemptions — is enforced
@@ -237,15 +245,19 @@ the two drifted copies.
 
 ## File output paths
 
+Serves no expectation; internal shape.
+
 Destination directory names are **case-correct** per `case` (a
 PascalCase scaffold writes to `Documents/AGENTS.md`,
-`Documents/Requirements/AGENTS.md`, `Documents/Issues/{open,deferred,
+`Documents/Experience/AGENTS.md`, `Documents/Issues/{open,deferred,
 resolved}/`, etc.). The bundle inside this repo is authored in canonical
 (snake) form; case is applied at scaffold time.
 
 ## Related
 
-- `req-1a2b` — kisou's scope and required behavior.
+Serves no expectation; internal shape.
+
+- `exp-03ae` — returning to a project set up by an older kisou, where kisou's requirements folded.
 - `decision-9f4b` — kisou as sole installer (Option X rejected).
 - `decision-8b1f` — case mapping with abbreviation expansion.
 - `decision-2a5e` — bootstrap is mandatory.

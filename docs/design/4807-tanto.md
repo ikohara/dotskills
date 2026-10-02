@@ -2,18 +2,20 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-09-22
+updated: 2026-10-01
 ---
 
 ## Purpose and shape
+
+Serves exp-06b2.
 
 `tanto` (担当, "take charge of") runs implementation plans through up to seven
 interactive Claude Code sessions on the same repository, the same working tree,
 and the same branch. Kanri (管理) manages, Sekkei (設計) designs the spec,
 Keikaku (計画) writes the plan, Jisso (実装) implements, Kaiseki (解析) finds
 root causes, Kikaku (企画) is where the human thinks about what comes next, and
-Hosa (補佐) takes the small jobs. req-04f5 states what the skill must do for its
-user; this entry states how it is built.
+Hosa (補佐) takes the small jobs. The experience scenes (chiefly exp-06b2) state
+what its user expects; this entry states how it is built.
 
 Five of the seven are lifecycle roles, created and deleted around a plan.
 **Kikaku and Hosa are seats outside the lifecycle**: the human opens each one
@@ -55,7 +57,9 @@ can see is not the session id, so nothing a peer holds leads to the file.
 No threshold is chosen: the archive's rows are the dataset, and the number that
 would fire a handover or a replacement on cost is a later ADR's (issue-40ed).
 
-## Skill layout (req-04f5)
+## Skill layout
+
+Serves no expectation; internal shape.
 
 `SKILL.md` is the shared contract every role reads: invocation and role-word
 normalization, the model check, the handshake, the address rule, the roster, the
@@ -129,7 +133,7 @@ Constraints, Kanri's orders line, and the batch prompts, not the role text on
 disk; Kanri records that as a ruling when the plan lands. The rule speaks of
 this repository's own sessions, and there is a second class of reader it does
 not name: **another repository's sender reads the linked tree mid-plan too**
-(req-04f5). A reporter that resolves the intake's address out of this
+(exp-06b2). A reporter that resolves the intake's address out of this
 repository's `.tanto/roster.md`, or that reads the report template to write
 from it, is reading files a plan may be halfway through rewriting, and it is
 bound by no orders line. The route survives it because both artifacts are
@@ -176,6 +180,8 @@ context under a new name and not a reuse at all.
 
 ## The start sequence
 
+Serves no expectation; internal shape.
+
 Two steps, in this order, before any role work:
 
 1. **Model check** against the expected-model config. On a mismatch the session
@@ -198,6 +204,8 @@ the launcher asks the spawner for it rather than running `claude --bg` itself
 `claude --bg` has no exception a reader has to remember.
 
 ## Addressing, and why by born name
+
+Serves exp-173f.
 
 The address of a session is the **bare name** its handshake carried. A name that
 matches exactly one live session delivers; when the send reports the name
@@ -230,12 +238,12 @@ and Kanri is the only session that sends to Sekkei, Jisso or Kaiseki.
 batch prompt** — decision-76a6. The Jisso queue (below) puts N windows on the
 roster at the plan's landing, and a queued row is an address that exists and is
 deliberately never used: the window is sent nothing at all — there is no
-broadcast of any kind to send it — and
-it reads no plan and no spec while it waits. A broadcast to the run's windows
-therefore costs the waiting ones nothing, which is req-04f5's "a seat that
-waits holds the minimum context". The batch prompt is the whole start contract
-for a rotating Jisso, which is why it carries the setup a resume would
-otherwise supply, Kanri's own name and ref included.
+broadcast of any kind to send it — and it reads no plan and no spec while it
+waits. A broadcast to the run's windows therefore costs the waiting ones
+nothing, which is what lets a seat that waits hold the minimum context
+(exp-178d). The batch prompt is the whole start contract for a rotating Jisso,
+which is why it carries the setup a resume would otherwise supply, Kanri's own
+name and ref included.
 
 **Every tanto line carries a `no-role` second line** — decision-78e4. Because
 windows are reused rather than closed, a line can reach a window that has been
@@ -267,6 +275,8 @@ on is written by the handshake for the peers and by Kanri itself for its own
 row, as the roster section above says.
 
 ## The expected-model config
+
+Serves exp-178d.
 
 Three maps, three mechanisms — the first two recorded in full as
 decision-9a3a, the third added by decision-eee2.
@@ -312,7 +322,7 @@ See `docs/reports/2026-09-14-tanto-cost-dogfood.md`, section 8.
 **The effort check's `warns only` is what makes a reused window safe.**
 Measured 2026-09-16 and recorded in `docs/notes/claude-code-sessions-observed.md`:
 a `/clear` **keeps the model and resets the effort**. Under window reuse
-(req-04f5) a seat therefore starts its next role on the right family and at
+(exp-06b2) a seat therefore starts its next role on the right family and at
 whatever effort the window fell back to, so a check that switched or stopped on
 an effort mismatch would stop a correctly-reused window at every role change.
 decision-08bc's warn-only rule, chosen for the model check, is what carries the
@@ -342,6 +352,8 @@ than the first, which is the direction a model-choice measurement should
 move in before it is trusted.
 
 ## The roster and the conductor ledger
+
+Serves exp-173f, exp-19c1.
 
 The roster is kept by Kanri at a fixed path, its own row first, one row per role
 with the eight fields the handshake carries. It is the **address book**: the
@@ -456,6 +468,8 @@ from the topic's opening to the plan's close.
 
 ## Kanri's loop, with its entry and its side channel
 
+Serves exp-26d5, exp-173f.
+
 The loop has three parts, and the first two are what a steady-state description
 of it leaves out.
 
@@ -468,7 +482,7 @@ continuing, a second Kanri that must stop and ask, or a recovery whose sessions
 are gone.
 
 The recovery's floor is one `/tanto resume` per window, typed by the human
-(req-04f5, a resumed session rejoins as easily as possible). A cheaper-looking
+(exp-173f, a resumed session rejoins as easily as possible). A cheaper-looking
 path was put and rejected in the context-cost dialogue of 2026-09-09: Kanri
 probing every session the listing shows and the roster does not know with a
 one-line "handshake if you are a tanto role", so that resumed peers answer on
@@ -486,7 +500,7 @@ than asking for it. A Kanri with nothing said yet waits for the human to say
 what the next work is; it does not ask for a word. The human may override the
 slug until the orders line has gone to Sekkei, after which it is fixed, because
 Sekkei's file names carry it. Nothing about the word needs the human's judgment
-beyond its being short and unique, and under req-04f5 the human is interrupted
+beyond its being short and unique, and under exp-06b2 the human is interrupted
 only at defined checkpoints.
 
 The word reaches five places, which is why it is fixed at the orders line: the
@@ -507,7 +521,7 @@ send it.
 N = batches + 1 windows, and the rotation is fixed: one fresh Jisso per batch,
 in queue order, with the spare seat standing in for a Jisso lost mid-batch.
 That is what removes the replacement decision from every boundary and puts the
-whole ask in front of the human while they are present (req-04f5). The queued
+whole ask in front of the human while they are present (exp-06b2). The queued
 windows cost nothing while they wait, under the addressing rule above; what
 the editor pays for N idle windows is unmeasured and is issue-6c44. One case
 takes the full N and cannot be topped up: a plan that edits this skill and
@@ -638,6 +652,8 @@ reason that only applies while an implementer exists.
 
 ## Handover
 
+Serves exp-19c1, exp-173f.
+
 Kanri is resident, so its only exit is a handover — decision-de63. Four
 signals fire one, checked at every boundary: at loop step 6 while a plan is in
 flight, and between plans at the start of every turn. **The plan close** is the
@@ -647,7 +663,7 @@ runs without a threshold
 and without asking, because the close is the moment with nothing in flight and
 the record complete, and a resident session's per-turn cost is its age, so the
 reset is a planned step rather than a question put to the human once a plan
-(req-04f5). **The human's word**, which always overrides, at any boundary. And
+(exp-06b2). **The human's word**, which always overrides, at any boundary. And
 a **compaction noticed**, which is the one signal a session can see about
 itself and is the mid-plan case — a human who says "continue" at a plan close
 declines that close's handover the way this section already describes, which a
@@ -695,9 +711,9 @@ the answers as rulings, and marks the file `confirmed`, `corrected`, or
 handover file's `(unverified)` marking, and a standalone Kaiseki, which asks the
 human in its own window. What the harness summarizes is not the human's words;
 the human's words are in the dialogue file, the ledger, and the human's own
-window. The loop is a new interrupt class, outside req-04f5's checkpoint list,
-and it was accepted because the alternative is acting on words the human did not
-say.
+window. The loop is a new interrupt class, outside the checkpoints exp-26d5
+lets the user know of, and it was accepted because the alternative is acting
+on words the human did not say.
 
 **A handover file's own summary of a referenced input is not a substitute for
 reading that input.** Measured on 2026-09-12: the successor Kanri answered a
@@ -749,8 +765,8 @@ running under the handover file's **In flight** section, so the successor knows
 those results are lost rather than pending.
 
 One case does not hold a handover: a boundary that a skill-editing plan has not
-yet named safe for a replacement. The handover proceeds when due — req-04f5 and
-decision-de63 make it mandatory at a boundary — and the successor takes the
+yet named safe for a replacement. The handover proceeds when due —
+decision-de63 makes it mandatory at a boundary — and the successor takes the
 authority ruling from the handover file's "Rulings the next batch inherits"
 rather than from the tree.
 
@@ -781,7 +797,9 @@ five cases should not restore it there. The nearby disagreement between
 `templates/handover.md`'s Live peers placement and `roles/kanri.md`'s
 (issue-f5d8) is a separate matter and is not resolved by this.
 
-## The shared checkout, and when a queued topic may commit (req-04f5)
+## The shared checkout, and when a queued topic may commit
+
+Serves exp-38e5.
 
 A second topic may open once every open topic has passed its spec stage, and
 its Sekkei and Keikaku write documents anywhere; what they cannot do is commit
@@ -801,7 +819,9 @@ free.
 
 ## Bug intake
 
-The rule that nothing tracked names another repository (req-04f5) is not
+Serves exp-1c02, exp-1c7a.
+
+The rule that nothing tracked names another repository (exp-1c02) is not
 tidiness: it was measured. Before it, thirty tracked files and eight commit
 subjects carried a sibling repository's name or the user's home path, traced to
 the report template's own fields and to one sentence of the hotfix lane. The
@@ -812,7 +832,7 @@ later writer's compliance.
 The intake is the cheapest seat that is live, and the reason is that **an
 intake's cost is the receiving session's context re-read, not the act** — the
 act is one line and reads nothing of the report, so what a report costs is
-whatever the woken session has to re-read to answer it (req-04f5). That is why
+whatever the woken session has to re-read to answer it (exp-06b2). That is why
 the intake moves to the seat with the smallest context rather than to the seat
 with the least to do.
 
@@ -858,7 +878,7 @@ book beside the roster and a second staleness rule, and it remains the live
 option if the human's remaining step is ever worth removing too.
 
 **An interim ruling over this route fixes a line's form, not only its outcome
-word** (req-04f5). The 2026-09-15 interim protocol named the outcomes and left
+word** (exp-06b2). The 2026-09-15 interim protocol named the outcomes and left
 the reply's shape open, and the inbox's Reference lines came back in at least
 four shapes — `issue-<id>`, a `docs/issues/open/<id>-…` path, a bare id, and
 prose — so the retrofit that read them could only look for the `issue-<id>`
@@ -867,6 +887,8 @@ literally. A ruling that expects to be read by a script later states the form
 it expects.
 
 ## Human access
+
+Serves exp-26d5.
 
 By default a role has no human access. A role addresses the human directly only
 for what needs the human's eyes or hands — a visual check, an OS dialog, a
@@ -946,6 +968,8 @@ unanswered question.
 
 ## The batch contracts
 
+Serves no expectation; internal shape.
+
 A **batch prompt** carries a guard line naming the workspace it belongs to, the
 previous batch's verdict, what changed since the last prompt, the setup needed
 on resume including Kanri's own name and ref, the rulings the next tasks inherit
@@ -970,9 +994,11 @@ assertions rather than to runtime behavior; a finding in production code that
 carries an architectural trade-off — an event-loop serialization assumption,
 an error-handling contract — is parked for the fix wave, which judges it once
 against the whole branch instead of rippling a mid-batch patch into the
-measurements the later batches take (req-04f5).
+measurements the later batches take (exp-06b2).
 
 ## The Kaiseki branch and standalone mode
+
+Serves exp-178d.
 
 The branch runs **only when the cause of a failure is unknown**. A known cause
 with a decision to make is a Kanri ruling, not a Kaiseki case; that sentence is
@@ -1012,6 +1038,8 @@ report from the template and sends it to the address the human gives.
 
 ## The final batch
 
+Serves exp-37ce, exp-27e8.
+
 After the last implementation batch is accepted, **Kanri** dispatches the
 whole-branch review — not Jisso — so the executor never commissions its own
 final review. The reviewer gets a review package over the merge base and a
@@ -1044,11 +1072,13 @@ whole-branch review's plain re-read of the cited paragraph — no script, no
 re-derivation. Independent re-derivation compounds an error rather than
 correcting it, which is the failure mode a final reading seat is positioned
 against, and the reason per-task and per-batch review alone was judged
-insufficient (req-04f5).
+insufficient (exp-06b2).
 
 ## What the executor's loop assumes
 
-Serves `req-04f5`. Three properties the SDD fix loop rests on, each measured in
+Serves exp-178d.
+
+Three properties the SDD fix loop rests on, each measured in
 the requirement-extraction run of 2026-09-09 rather than assumed.
 
 **An implementer can die mid-task, and the clean tree is the executor's to
@@ -1106,12 +1136,14 @@ the gaps the executor's own first draft did not see.
 
 ## Shoroku staging, session exits, and the adoption rule
 
+Serves exp-37ce, exp-27e8.
+
 **The write-out into this document system happens once per topic, at its
 close** — decision-7e0d. The stage keeps the word `t2`. Every other moment of
 a run — a spec accepted, a plan landed, a session's exit, a batch boundary, a
 review, a Kaiseki report — produces proposal items and nothing else. T0 and T1 no
 longer exist: the input document's decided items become ADRs at the topic's own
-close, and the requirements and issues the spec produced land there too.
+close, and the experience and issues the spec produced land there too.
 
 **The four steps are Propose, Recommend, Check and Apply**, a seat's section is
 a "Shoroku proposal" and the ledger's and roster's two tables are "Shoroku
@@ -1204,7 +1236,7 @@ brief already makes. That split is now built: the recommendation is the apply's
 input and the check brief is the human's, written from the same judgment in the
 same run.
 
-**Cost accepted.** `docs/` reflects a topic's requirements, ADRs, and issues
+**Cost accepted.** `docs/` reflects a topic's experience, ADRs, and issues
 only at its close. A concurrent topic's Sekkei reads the spec on the branch, or
 the Kikaku decision file its orders line names, for what `docs/` does not yet
 hold.
@@ -1253,6 +1285,8 @@ with the whole of a gain that two produced.
 
 ## Deviations from the composed skills
 
+Serves no expectation; internal shape.
+
 `tanto` composes superpowers brainstorming, writing-plans, subagent-driven
 development, systematic debugging and requesting-code-review, the `kisou`
 document system, and `shoroku` **without editing any of them**. Every override
@@ -1290,6 +1324,8 @@ the line and every role reads the contract.
 
 ## Notation and the two design rules
 
+Serves exp-173f.
+
 `<plan-basename>` is the single notation for the plan's workspace directory;
 `<plan>` was retired from the skill's prose because it was never defined and
 read as a path to the plan file.
@@ -1323,7 +1359,9 @@ design document is a description of what the files do; if no file does it,
 nothing does. The fix shipped as a passage in Sekkei's Step 2, where the
 obligation now lives.
 
-## Plan conventions under tanto (req-04f5)
+## Plan conventions under tanto
+
+Serves exp-26d5.
 
 A plan for this protocol carries, beyond the usual conventions, a Batches
 section of three or four tasks each with the stop conditions at every boundary,
@@ -1899,12 +1937,14 @@ filed as issue-f2c4. And **whole-file blocks for a passage-shaped plan** were
 rejected because they would have meant transcribing a 580-line file to change
 seven places in it.
 
-## What a measurement can settle, and what it cannot (req-04f5)
+## What a measurement can settle, and what it cannot
 
-req-04f5 puts the spec dialogue's judgment with the human and the design with
-Sekkei, and a measurement is how Sekkei keeps a claim honest. The tanto-sweep
-dialogue of 2026-09-10 found the failure mode twice in one session, and both
-times the measurement itself was accurate.
+Serves exp-19c1.
+
+The spec dialogue's judgment is the human's and the design is Sekkei's, and a
+measurement is how Sekkei keeps a claim honest. The tanto-sweep dialogue of
+2026-09-10 found the failure mode twice in one session, and both times the
+measurement itself was accurate.
 
 - Sekkei set out to measure which Python interpreters the machine carried. The
   human stopped it — 「いや、既存のインタプリタを調べても仕方ない。uv を使えば、
@@ -1930,12 +1970,14 @@ of 2026-09-14 the human's answer to Q1 was a protocol none of the three options
 offered, and it became the design's center — so the options a dialogue puts are
 a prompt, not a menu.
 
-## What makes a convention bind (req-04f5)
+## What makes a convention bind
 
-req-04f5 asks that state live in files and that rulings be recorded rather than
-remembered, and this document is where the plan conventions accumulate. The
-tanto-sweep run measured what actually makes one of them hold, and the answer
-is not care.
+Serves exp-173f.
+
+A run continues from what is on disk (exp-173f), rulings are recorded rather
+than remembered, and this document is where the plan conventions accumulate.
+The tanto-sweep run measured what actually makes one of them hold, and the
+answer is not care.
 
 In that run one Sekkei wrote three conventions and then broke all three, each
 inside the document that states it, twice quoting a rule in the same paragraph
@@ -1980,6 +2022,8 @@ copy of the dry run or the review.
 
 ## The five triage outcomes, and why five
 
+Serves exp-1c7a.
+
 Four would be the obvious set — file it, send it away, fix it, or investigate.
 The fifth, the relay into a spec in progress, exists because a defect that
 arrives while a spec is being written has a cheaper home than an issue: the spec
@@ -1989,6 +2033,8 @@ which of the five happened without reading the ledger.
 
 ## Why the exit shoroku has no template of its own
 
+Serves no expectation; internal shape.
+
 The proposal and direction files are the close's own two files under different
 names, and the batch report already prescribes their shape. A tenth template
 would restate a skeleton that two role files and the ledger's stage values
@@ -1996,6 +2042,8 @@ already fix, and a skeleton nobody copies drifts from the procedure that does th
 work.
 
 ## Where the delivered skill differs from the design documents
+
+Serves exp-518b.
 
 Two design documents describe this skill, both kept with the project's
 superpowers working artifacts. Both are outside the six managed types and are

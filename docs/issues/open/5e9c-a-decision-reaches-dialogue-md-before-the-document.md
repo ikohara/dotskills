@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: session 2026-09-10
@@ -58,6 +58,6 @@ added after the gate is a scope change the human would have to rule on, with
 the hotfix lane closed on a file the plan lists. The next tanto plan, or a
 between-plans hotfix on `main`, lands it.
 
-Related: req-04f5 (the human's own words are kept as a record), design-4807
+Related: exp-1fb1 (the human's own words are kept as a record), design-4807
 (the Sekkei conventions, and the ranking of what makes a rule bind), the
 tanto-sweep dialogue's `D-12` and `D-13`.

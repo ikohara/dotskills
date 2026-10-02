@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: inbox 2026-09-15-passage-check-verify-tolerates-reformatting
@@ -44,4 +44,4 @@ Global Constraints' warning to what actually breaks `verify` rather than
 implying every reformat is at risk; if it does not reproduce, no code or
 prose changes are needed. Either way this issue is where the finding lands.
 
-Related: design-4807 (`passage-check.js`'s own design), req-04f5.
+Related: design-4807 (`passage-check.js`'s own design), exp-06b2.

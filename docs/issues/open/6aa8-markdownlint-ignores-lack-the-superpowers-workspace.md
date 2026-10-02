@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: session 2026-09-09
@@ -34,7 +34,7 @@ repository's `.markdownlint-cli2.yaml` is a copy of dotrepo's base scaffold,
 so the line belongs in dotrepo's template and flows in by refresh; a hand
 edit here would be overwritten. Linter configuration is also on the
 repository's never-edit-without-approval list, which is why this is an issue
-and not a commit. Related: req-04f5 (tanto's workspace), the kisou / dotrepo
+and not a commit. Related: exp-06b2 (tanto's workspace), the kisou / dotrepo
 boundary.
 
 Since 2026-09-11 the ignore list quoted above is three entries, not two —

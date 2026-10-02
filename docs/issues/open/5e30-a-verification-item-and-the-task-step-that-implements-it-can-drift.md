@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku tanto-workspace
@@ -35,5 +35,5 @@ reviewer check the two against each other in one look. This is the same argument
 `docs/notes/tanto-consistency-checks.md` section 13 makes for scheduling a
 note's checks by extracting the note's own fenced block rather than copying it.
 
-Related: req-04f5, design-4807 (plan conventions under tanto), issue-235b,
+Related: exp-06b2, design-4807 (plan conventions under tanto), issue-235b,
 `docs/notes/tanto-consistency-checks.md` section 13.

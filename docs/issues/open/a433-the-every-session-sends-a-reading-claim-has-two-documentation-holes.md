@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku tanto-context-ceiling
@@ -34,4 +34,4 @@ Both are unfixed text defects in shipped documentation, with the replacement
 for the first already established. They are filed together because a reader
 fixing either one wants to see the other.
 
-Related: req-04f5, design-4807, issue-40ed (the reading's own figures).
+Related: exp-06b2, design-4807, issue-40ed (the reading's own figures).

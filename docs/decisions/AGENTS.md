@@ -3,8 +3,12 @@
 A `decisions` file is an **Architecture Decision Record (ADR)**: a point-in-time
 record of a significant choice — its context, the options considered, the
 decision, and the consequences accepted. ADRs are **append-only and immutable**
-once accepted; you never rewrite the body. To reverse a decision, write a new
-ADR that supersedes the old one.
+once accepted; you never rewrite the body. One exception: an ADR accepted on a
+branch that has not reached the default branch may be corrected in place until
+that branch is merged, the correction dated in its own text — an unmerged ADR
+has no reader outside the run that wrote it; once merged, the only moves are
+amend and supersede below. To reverse a decision, write a new ADR that
+supersedes the old one.
 
 Because the body is immutable, reference managed entries by `<type>-<id>` only
 — never a path link, which rots when its target's status moves. The flat
@@ -13,7 +17,9 @@ a file is renamed, the renamer's mechanical link repair is allowed even in an
 ADR body. Documents outside the six types — a tool's own `docs/`
 subdirectory such as `docs/superpowers/specs/` — have neither an `<id>` nor
 a renamer who owns inbound links: name them (title and date), never path-link
-them (see Cross-references in `docs/AGENTS.md`).
+them (see Cross-references in `docs/AGENTS.md`). A plain path named in an
+accepted body is read as of the ADR's date and is never repaired; what the tree
+looks like now is `design/`'s to say.
 
 ## When to write an ADR
 
@@ -64,14 +70,20 @@ updated: 2026-05-27        # changes only on a status flip or a link change
 ## Body (MADR-lite)
 
 Narrative starts directly after the frontmatter. Use these sections; keep them
-short, or omit any for a trivial decision:
+short, or omit any for a trivial decision — Sources only when there are quotes
+to hold:
 
 ```text
 ## Context       — what forced a decision
 ## Options       — the alternatives considered
 ## Decision      — the choice
 ## Consequences  — what we accept; trade-offs; follow-ups
+## Sources       — optional; verbatim quotes keyed by the item ids they back, in the language they were said in
 ```
+
+`## Sources` is the one place a language other than the documents' appears; a
+reader takes the four sections above it and reads Sources only to verify where
+a line came from.
 
 ## Superseding (the only edit to an accepted ADR)
 

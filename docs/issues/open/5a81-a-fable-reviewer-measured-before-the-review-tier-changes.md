@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-19
+updated: 2026-10-01
 ---
 
 Source: shoroku review-brief
@@ -39,6 +39,6 @@ inputs; the plan brief about 6 minutes and 110k tokens for a 3087-line plan
 plus the spec (the review-brief ledger's Measurements, 2026-09-08 and
 2026-09-09).
 
-Related: decision-9a3a, decision-08bc, req-04f5 (model discipline), and the
+Related: decision-9a3a, decision-08bc, exp-06b2 (model discipline), and the
 review-brief design of 2026-09-08 (Fixed inputs, "The models stay as they
 are").

@@ -2,10 +2,12 @@
 id: "e3f4"
 title: shoroku skill — excerpting modes, classification, partial-accept flow
 created: 2026-05-28
-updated: 2026-09-09
+updated: 2026-10-01
 ---
 
 ## Shape
+
+Serves no expectation; internal shape.
 
 A thin **behavioral** shell with no bundled assets (the doc-system
 lives with kisou — see decision `9f4b`). shoroku reads transient
@@ -14,6 +16,8 @@ in `docs/` as a single git commit per run. It never installs anything;
 in an unprepared repo it stops and points the user at `kisou`.
 
 ## Source modes
+
+Serves exp-75bc.
 
 - **session (default)** — the current conversation, plus any Markdown
   written or edited during the session, plus the existing `docs/` as
@@ -28,8 +32,10 @@ in an unprepared repo it stops and points the user at `kisou`.
 
 ## Workflow (shared across modes)
 
+Serves exp-06d2, exp-1fb1.
+
 1. **Read** the source.
-2. **Classify** each fragment as one of `requirement` / `design` /
+2. **Classify** each fragment as one of `experience` / `design` /
    `decision` / `issue`; whole-file material (an investigation, a
    reference) goes to the flat `notes` / `reports`, per the per-type
    rules in `docs/<type>/AGENTS.md`.
@@ -39,42 +45,46 @@ in an unprepared repo it stops and points the user at `kisou`.
 4. **Apply** the accepted subset. Stage as **one** git commit naming
    the source's topic. No auto-push.
 5. **Report** files changed + commit hash. Empty / minimal source ⇒
-   "nothing to distill", write nothing — never invent content.
+   `nothing to shoroku`, write nothing — never invent content.
 
-### Classification and the requirement pairing
+### Classification and the experience pairing
 
-Serves `req-3c4d`. Added 2026-09-09; the authority stays `docs/AGENTS.md`, and
+Added 2026-09-09; the authority stays `docs/AGENTS.md`, and
 the summary above is not restated there.
 
 Classification follows the **two splits the type files define** — "design vs
-decisions" in `docs/design/AGENTS.md` and "requirements vs issues" in
-`docs/requirements/AGENTS.md`. The second is the newer of the two: a need the
-user states that the system does not meet yet is **two** fragments, a
-requirement and an issue, not one issue. The proposal then carries the
-**requirement pairing** the Propose step defines — each `design/` entry names
-the `req-<id>` it serves or says it serves none, and the unpaired are flagged.
+decisions" in `docs/design/AGENTS.md` and "experience vs issues" in
+`docs/experience/AGENTS.md`. The second is the newer of the two: a want the
+user states that the system does not meet yet is **two** fragments, an
+expectation and an issue, not one issue. The proposal then carries the
+**experience pairing** the Propose step defines — each `design/` entry names
+the `exp-<id>` it serves or says it serves none, and the unpaired are flagged.
 
 Three properties of that rule matter to this skill's shape:
 
 - **It is scoped to the proposal's own entries, never the standing tree.** A
   whole-tree sweep would flag every section of every design entry and offer an
-  issue for every requirement bullet — the mirror image of the over-extraction
-  the granularity gate exists to prevent. A backfill is its own run
-  (issue-320e).
-- **The requirement-side flag is a question, not a verdict.** A requirement
-  bullet no design serves may be unmet — a gap, and then an issue — or met but
-  never described, and then a `design/` entry. Offering the issue outright
-  would make the rule itself a source of over-extraction; the proposal asks and
-  the user answers at `Direction?`.
+  issue for every expectation — the mirror image of the over-extraction the
+  granularity gate exists to prevent. A backfill is its own run (issue-320e).
+- **The experience-side flag is a question, not a verdict.** An expectation no
+  design serves may be unmet — a gap, and then an issue — or met but never
+  described, and then a `design/` entry. Offering the issue outright would make
+  the rule itself a source of over-extraction; the proposal asks and the user
+  answers at `Direction?`.
 - **It lives in the docs system, not in either skill.** The loss happens at
   classification, where shoroku stands, and kisou reads no `docs/` content at
-  all, so a kisou-side scan for unpaired bullets was rejected: the rule is
+  all, so a kisou-side scan for unpaired expectations was rejected: the rule is
   template text that every classifier runs, and kisou merely installs it.
 
+Experience is the one type shoroku may assemble: an `[inferred]` candidate is
+capped at SHOULD and goes to `Unsure` in recommend mode; the rule is in
+`docs/experience/AGENTS.md` and this skill's `SKILL.md` carries one sentence
+naming it.
+
 A translation rule for the `Direction?` proposal was considered and rejected:
-the proposal is already presented in the chat's language, so the original-plus-
-reference-translation shape belongs to `tanto`'s escalation to the human
-(`req-04f5`), not here.
+the proposal is already presented in the chat's language. The
+original-plus-reference-translation shape rides in recommend mode, for an ADR
+item and for an `[inferred]` experience item, and nowhere in session mode.
 
 Two seams between this skill's wording and the docs system's remain open, as
 `issue-2c4d` predicts for a bundle authored on one side and followed on the
@@ -100,11 +110,15 @@ record of what was approved and is deliberately not amended, so it still quotes
 
 ## Partial-accept parsing
 
+Serves exp-27e8.
+
 `OK` / `全部適用` accept all; `2 と 5 だけ` accept named items; `3 は
 やめて` reject named items; `5 の severity は high で` accept with an
 edit; `全部やめ` / `cancel` write nothing.
 
 ## Locate the rules
+
+Serves no expectation; internal shape.
 
 shoroku reads the **repo's committed `docs/AGENTS.md`** (and per-type
 `docs/<type>/AGENTS.md`) at run time and defers to them — the doc
@@ -113,6 +127,8 @@ absent the repo has not adopted the system; shoroku stops and suggests
 running `kisou` (docs-only migrate scope) to install them.
 
 ## Prohibited
+
+Serves exp-81e0.
 
 - Writing outside `docs/`.
 - Editing `AGENTS.md` / `CLAUDE.md` (kisou's job).
@@ -124,5 +140,7 @@ running `kisou` (docs-only migrate scope) to install them.
 
 ## Related
 
-- `req-3c4d` — shoroku's scope and required behavior.
+Serves no expectation; internal shape.
+
+- `exp-4b7f` — starting a project from a chat discussion, where shoroku's requirements folded.
 - `decision-9f4b` — kisou as sole installer (shoroku carries no bundle).

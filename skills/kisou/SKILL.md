@@ -28,9 +28,11 @@ they are.
 ## Scope
 
 - **Produces:** `README.md`, `CONTRIBUTING.md`, `CLAUDE.md`, a slim top-level
-  `AGENTS.md`, the `docs/` doc-management system (`docs/AGENTS.md` +
-  `docs/<type>/AGENTS.md` + the `docs/issues/{open,deferred,resolved}/`
-  skeleton), and — on request — empty script files.
+  `AGENTS.md`, the `docs/` doc-management system (`docs/AGENTS.md`, the
+  per-type `docs/<type>/AGENTS.md` under the cased type directories, and the
+  hand-written hub `docs/experience.md`, cased like the rest), and — on
+  request — empty script
+  files.
 - **Never produces:** `src/` or `tests/` (not even empty dirs). Never runs
   `git init`. Never auto-generates script content.
 
@@ -68,7 +70,7 @@ built-in `case`-aware mapping:
 - **Script names:** `{{setup}}`, `{{run}}`, `{{bootstrap}}`, `{{build}}`,
   `{{test}}`, `{{lint}}`, `{{tidy}}` — just title-cased for `PascalCase`.
 - **Dir names:** `{{docs}}`, `{{src}}`, `{{tests}}`, `{{scripts}}`,
-  `{{requirements}}`, `{{design}}`, `{{decisions}}`, `{{issues}}`, `{{notes}}`,
+  `{{experience}}`, `{{design}}`, `{{decisions}}`, `{{issues}}`, `{{notes}}`,
   `{{reports}}` — abbreviations expand for `PascalCase` (`docs → Documents`,
   `src → Source`); the rest just title-case.
 - **Issue status dirs** (`open` / `deferred` / `resolved`) are NOT cased
@@ -94,14 +96,22 @@ built-in `case`-aware mapping:
    `<!-- TEMPLATE FILL ... -->` block**.
 3. Write the doc-system using **case-correct directory names**: under the
    cased docs root (`docs/` or `Documents/`), create
-   `{requirements,design,decisions,notes,reports}/` (each title-cased for
+   `{experience,design,decisions,notes,reports}/` (each title-cased for
    `PascalCase`) and the `issues/` parent (cased). Copy the bundled
    `templates/docs/AGENTS.md` and `templates/docs/<type>/AGENTS.md` to the
    cased destinations, expanding any `{{name}}` placeholders inside them as
    in step **(a)**. Do **not** create the `open`/`deferred`/`resolved`
    status subdirs and do **not** add `.gitkeep`: git does not track empty
    directories, so a writer creates a status subdir on demand when the
-   first issue lands there (those names stay lowercase).
+   first issue lands there (those names stay lowercase). Copy
+   `templates/docs/experience.md` to the cased docs root as the hub,
+   `{{docs}}/{{experience}}.md` (`Documents/Experience.md` under `PascalCase`),
+   expanding its `{{name}}` as in step (a), filling its `<...>` from the
+   inputs where they are known and leaving the rest for the author, and
+   deleting its `TEMPLATE FILL` block as in step (d) and telling the author
+   that the `markdownlint-disable MD033` line goes once no `<...>` remains;
+   this file is written
+   once and is not a doc-system copy the instrument checks.
 4. Create the requested scripts as **empty files** (`.bat` + `.sh`).
 5. Present a numbered plan of files to create, end with `Direction?`, wait,
    apply the accepted subset, make **one** git commit, report files changed +
@@ -138,11 +148,12 @@ opposite case and mis-set `case`, which then cascades through every
   `os.mode` from the union.
 - **Existing doc-system** → classify as `none` / `partial` / `full` by
   enumerating each artifact: `{docs,Documents}/AGENTS.md` and each
-  `{docs,Documents}/<type>/AGENTS.md` (requirements / design / decisions /
+  `{docs,Documents}/<type>/AGENTS.md` (experience / design / decisions /
   issues).
-  - **none** (no doc-system artifacts) → all seven targets are absent; each is
-    one of the instrument's `create` items. The class says what is absent and
-    nothing more; it sets no scope.
+  - **none** (no doc-system artifacts) → all five tallied targets are absent
+    (the two flat copies are tallied on their own and may be present); each
+    absent one is one of the instrument's `create` items. The class says what is absent and nothing more; it sets no
+    scope.
   - **full** (root `AGENTS.md` + all four per-type files present) → the root
     and the four managed per-type files are present. What is absent —
     `notes/` and `reports/` included, since they sit outside this tally — and
@@ -156,7 +167,10 @@ opposite case and mis-set `case`, which then cascades through every
     non-standard subdirectory under `{docs,Documents}/` (e.g. `superpowers/`, a
     non-standard issue-status dir) as **kept by default**, and note it is
     **exempt from the `<id>-<slug>` naming rules** — its own tool's convention
-    wins. The `open`/`deferred`/`resolved` status subdirs are created on demand
+    wins. A `requirements/` directory is one such — the name this type had
+    before `experience/`; the instrument says so in a note, and the rename is
+    a hand migration this skill does not perform. The
+    `open`/`deferred`/`resolved` status subdirs are created on demand
     and are not part of the present/missing tally.
   - **`notes/` and `reports/`** are standard flat types but sit **outside** the
     none/partial/full tally (which covers the root `AGENTS.md` + the four

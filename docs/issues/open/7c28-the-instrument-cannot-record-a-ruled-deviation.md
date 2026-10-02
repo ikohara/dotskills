@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-22
+updated: 2026-10-01
 ---
 
 Source: shoroku tanto-workspace
@@ -48,7 +48,7 @@ Until then the workaround is what that run did: name the ruled deviations in
 every boundary report, and say explicitly that any finding beyond that set is
 new.
 
-Related: req-04f5, design-4807, issue-4eef, issue-d0f4, issue-f851,
+Related: exp-06b2, design-4807, issue-4eef, issue-d0f4, issue-f851,
 `docs/notes/tanto-consistency-checks.md` section 12.
 
 **2026-09-22, `tanto-bg-seats` — six blocks whose `verify` now exits 1

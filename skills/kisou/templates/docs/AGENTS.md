@@ -11,13 +11,18 @@ Project state lives in six types, one file per entry — four **managed**
 slug or date is the identity):
 
 ```text
-{{docs}}/{{requirements}}/<id>-<slug>.md    — what the project must do for users, and why
+{{docs}}/{{experience}}.md                  — the hub: who is in the scenes, what drives the project, what it won't do (hand-written; no id)
+{{docs}}/{{experience}}/<id>-<slug>.md      — scenes: who is in what situation, what they expect, and their own words
 {{docs}}/{{design}}/<id>-<slug>.md          — how it is built now, and why this shape
 {{docs}}/{{decisions}}/<id>-<slug>.md       — ADRs: why a choice was made (immutable record)
 {{docs}}/{{issues}}/<status>/<id>-<slug>.md — known problems / deferred decisions
 {{docs}}/{{notes}}/<slug>.<ext>             — maintained single-concern references (living)
 {{docs}}/{{reports}}/<YYYY-MM-DD>-<slug>.md — dated, frozen investigations
 ```
+
+The hub is one fixed file beside `{{experience}}/`, hand-written, with no id
+and no frontmatter requirement; `{{docs}}/{{experience}}/AGENTS.md` says what
+it holds.
 
 Per-type rules (frontmatter, body, lifecycle) live in each
 `{{docs}}/<type>/AGENTS.md`. Read the one for the type you are touching.
@@ -35,10 +40,19 @@ For the four type directories only:
 
 - **No index files.** A directory listing plus each file's frontmatter
   `title:` is the index.
-- **`<id>`** — the first 4 hex chars of a fresh UUID, lowercase. Unique within
-  its type (the type prefix disambiguates across types). Emit `id:` as a quoted
-  string (a 4-hex id may be all digits and would otherwise parse as an int).
-  Before creating, check `{{docs}}/<type>/**/<id>-*.md` is empty.
+- **`<id>`** — the first 4 hex chars of a fresh UUID, lowercase.
+  **Unique across `{{docs}}/`**, documents and items alike
+  (`{{docs}}/{{experience}}/AGENTS.md` names the item ids): a new id is one no
+  file `{{docs}}/<type>/**/<id>-*.md` carries and no `**<id>**` line under
+  `{{docs}}/{{experience}}/` or in the hub carries. References still carry the
+  type prefix, so an older project with a cross-type collision resolves as
+  before. Emit `id:` as a quoted string (a 4-hex id may be all digits and
+  would otherwise parse as an int). Before creating, run both checks above. A
+  new id contains at least one of `a` to `f` — an all-digit `#1234` autolinks
+  to a GitHub issue; re-roll otherwise. Existing all-digit ids stay. An id any
+  commit ever used is not drawn again —
+  `git log --all --oneline -S'<id>' -- {{docs}}` prints nothing — because a
+  frozen document may cite it.
 - **`<slug>`** — English, kebab-case, derived from the title.
 
 Generate an `<id>`:
@@ -57,7 +71,10 @@ uuidgen | tr -d '-' | cut -c1-4 | tr 'A-Z' 'a-z'
 
 Refer to an entry as `<type>-<id>` in prose, commits, and code comments:
 
-- `req-d4e5` · `design-f6a1` · `decision-a3f7` · `issue-b9c2`
+- `exp-d4e5` · `design-f6a1` · `decision-a3f7` · `issue-b9c2`
+
+An `exp-` reference names a scene or an item in one — `exp-<id>` for either —
+and is resolved by lookup, a file first and a `**<id>**` line second.
 
 The `<type>-<id>` reference is the **durable** pointer: it survives slug renames
 and — for issues — status moves. A Markdown link to the file is an **optional
@@ -71,12 +88,14 @@ target's path changes.
   point-in-time record a project keeps (reports, dated plans) — are not edited
   after they are written, so a path link in them can never be repaired and rots
   permanently once the target moves.
-- **From a living document** (`{{requirements}}/`, `{{design}}/`, an open issue)
+- **From a living document** (`{{experience}}/`, `{{design}}/`, an open issue)
   a path link is allowed, but whoever moves the target owns updating the inbound
   links — see `{{docs}}/{{issues}}/AGENTS.md` for the issue-status case.
 
 **The flat types are the exception.** `{{notes}}/` and `{{reports}}/` have no
-`<id>`, so they are cited by **path** from any document, frozen ones included.
+`<id>`, so they are cited by **path** from any document, frozen ones included
+— and so is the hub, `{{docs}}/{{experience}}.md`, a fixed name that never
+moves.
 They have no status directories — a flat path changes only on a deliberate
 rename — and whoever renames a note or report owns updating its inbound links
 repo-wide. That mechanical link repair is allowed even in a frozen document's
@@ -92,27 +111,35 @@ as a `{{reports}}/` entry and cite that path instead.
 Structured (frontmatter) links are limited to ADR `supersedes` /
 `superseded_by` / `amends` / `amended_by` and issue `depends_on` / `blocks`.
 
+A `req-<id>` reference in a document older than this layer names a
+`requirements/` file the project folded into `{{experience}}/`; the file and
+the fold are in history, and the reference is not rewritten in a frozen
+document.
+
 ## Session shoroku (excerpting)
 
 At the user's request, fold the working session into these docs. Any agent can
 run this; it needs no skill.
 
 1. **Read** the session: the conversation, plus any Markdown written or edited
-   during it, plus the existing `{{docs}}/` as baseline.
-2. **Classify** each fragment as exactly one of requirement / design /
+   during it, plus the existing `{{docs}}/` as baseline. Do not read a scene's
+   or an ADR's `## Sources` unless verifying where a line came from.
+2. **Classify** each fragment as exactly one of experience / design /
    decision / issue. The type files define the two splits that are easy to
    get wrong: "design vs decisions" in `{{docs}}/{{design}}/AGENTS.md`, and
-   "requirements vs issues" in `{{docs}}/{{requirements}}/AGENTS.md` — a need
-   the user states that the system does not meet yet is **two** fragments, a
-   requirement and an issue, not one issue.
+   "experience vs issues" in `{{docs}}/{{experience}}/AGENTS.md` — a want the
+   user states that the system does not meet yet is **two** fragments, an
+   expectation and an issue, not one issue. Experience is the one type whose
+   fragment may be assembled from scattered remarks; that file says how it is
+   tagged and capped.
 3. **Propose** a single numbered list, grouped by destination file, of only the
    entries that would change project state. Each `{{design}}/` entry in the
-   list names the `req-<id>` it serves, or says it serves none. Of the entries
-   in the list, flag the unpaired: a design section that serves no requirement
-   (ask whether an unstated need stands behind it), and a requirement bullet
-   no design serves (ask whether the need is unmet — an issue — or met but not
-   described — a `{{design}}/` entry). The standing tree is not swept; a
-   backfill is its own run. End with `Direction?` and wait.
+   list names the `exp-<id>` — a scene or an item — it serves, or says it
+   serves none. Of the entries in the list, flag the unpaired: a design section
+   that serves no expectation (ask whether an unstated want stands behind it),
+   and an expectation no design serves (ask whether the want is unmet — an
+   issue — or met but not described — a `{{design}}/` entry). The standing tree
+   is not swept; a backfill is its own run. End with `Direction?` and wait.
 4. **Apply** the accepted subset, following the per-type `AGENTS.md`. Stage and
    commit as **one** git commit naming the session's topic. No auto-push.
 5. **Report** the files changed and the commit hash. If nothing substantive,
