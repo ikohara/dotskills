@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-15
@@ -38,3 +38,5 @@ issue-13a1 describes, since that topic's own T0 read finds the step in the
 decision's numbered list.
 
 A system gap, not a user-stated need, so no paired requirement.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

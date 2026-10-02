@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-14
@@ -35,3 +35,5 @@ passage under task 21 has already landed.
 
 Related: issue-91f6, issue-4d8a (the same run's other instrument-premise
 gaps).
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

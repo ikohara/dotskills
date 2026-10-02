@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-project-config
@@ -33,3 +33,5 @@ Two named fixes, either sufficient:
 Related: issue-f3e2 (check 16 is circular) and issue-c526 (check 3 asserts a
 pattern the design does not use) — the same class, both filed against this
 note; issue-9d84 (the note's hand-maintained expected values go stale).
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).
