@@ -19,7 +19,7 @@ set-minus the same grep over the dialogue and the inputs, the subtraction
 comparing ids with or without the `exp-` prefix. Until a tanto topic gives
 that count to the close's recommender or to Kanri, it is run by hand at the
 close and written into the topic's dogfood report, or, when the report
-precedes the close, into `docs/notes/tanto-measured-data-points.md`. **Zero
+precedes the close, into `docs/notes/tanto-measured-data-points.md`. The same count is one command, `node scripts/issues-by-finder.js --exp <topic>`, whose by-finder table is taken at the same moment and written beside it. **Zero
 across three consecutive topics is the fold-back signal** — the number is the
 developer's, set on 2026-09-30: fold the hub's Cast, Drivers, and Won't into
 `AGENTS.md` and drop the scenes.
