@@ -56,11 +56,8 @@ and the line — or says that none does.
    affordable to leave running: judgment bought where it is needed".
 2. **The five destinations, one per issue, each with a one-line reason**
    (the decision file §2 "Five destinations"): Landed, Merged, Assigned,
-   Re-hung on a scene, Kept. Serves `exp-51d2` "SHOULD let the agent refer
-   back to what the user already wanted and decided, so it does not
-   re-propose it" — a settled list is what the next Sekkei refers back to —
-   and `exp-37ce` "SHOULD have the docs kept current as part of the work
-   that changes them".
+   Re-hung on a scene, Kept. Serves none directly: a settled list is what the
+   next Sekkei opens on, and the reason is the decision file's own.
 3. **What is not in scope** (the decision file §2 "Not in scope", §6; Q-4):
    editing a skill's prose to resolve an issue; a new frontmatter field; a
    scene or hub edit; any edit under `skills/`; `tanto.json`; a severity
@@ -69,14 +66,28 @@ and the line — or says that none does.
    `task.implement` and checked by the two SDD reviewers on opus; the
    human's answers arrive between batches as direction files Kanri writes;
    Kanri prints paths and counts, never a brief verbatim** (Q-2, shape (a);
-   decision-bba6's cycle reused as that ADR's Consequences foresaw). Serves
-   `exp-178d` (above), `exp-26d5` "SHOULD interrupt the user only at
-   checkpoints he knows of … in a form he can act on as it is", and
-   `exp-19c1` "SHOULD NOT let any session grow past a bound he knows in
-   advance" — the brief read in a file costs Kanri nothing.
+   decision-bba6's cycle reused as that ADR's Consequences foresaw). **This
+   departs from the decision file §2 "The shape"**, which named
+   `task.review-quality` or a project-overridden `shoroku.recommend` — opus
+   either way — as the grouping seat: the judgment seat here is sonnet, and
+   the opus eyes are the two reviews the SDD loop already carries. Q-2
+   settled it, Q-10 confirmed it as a departure, and ADR candidate 2 lists
+   the two named seats among the rejected options. Serves `exp-178d`
+   (above), `exp-26d5` "SHOULD interrupt the user only at checkpoints he
+   knows of … in a form he can act on as it is", `exp-19c1` "SHOULD NOT let
+   any session grow past a bound he knows in advance" — the brief read in a
+   file costs Kanri nothing — `exp-2e98` "SHOULD let him read a wording put
+   to him for judgment in his own language, while what is written stays the
+   original" (the brief in the human's language, English form markers),
+   `exp-3a9e` "SHOULD tell the user when the run is waiting on him" (the
+   `attention` request), and `exp-173f` "SHOULD let the run continue from
+   what is on disk" (the direction file).
 5. **Six rounds by merged keyword cluster, three per batch, two sittings,
-   one apply after both** (Q-3). Serves `exp-bb08` "SHOULD let him choose
-   how much of a run moves at once" and `exp-27e8`.
+   one apply after both** (Q-3), **a round above fifty issues split in two
+   by the instrument** (Q-10, the review's F-9 and F-10), so that a sitting
+   may hold four briefs and the plan's batch count follows the file count.
+   Serves `exp-bb08` "SHOULD let him choose how much of a run moves at
+   once" and `exp-27e8`.
 6. **Both scripts live under the repository's `scripts/`, run by hand at a
    close as the criterion note has the `exp-` count run today; nothing
    under `skills/` changes, so this is not a skill-editing plan** (Q-4; the
@@ -86,9 +97,11 @@ and the line — or says that none does.
 7. **A `gone` string is a candidate, never the verdict**: Landed only when
    the recommender reads the removing commit's subject against the issue's
    gap and finds the gap closed (Q-5; the working note's caveat "gone is
-   not resolved"). Serves `exp-3b2d` "SHOULD let the user re-orient in one
-   sitting" by its negative — a wrong move into `resolved/`, the directory
-   excluded from reading, is the one error nobody re-finds.
+   not resolved"). Serves `exp-518b` "SHOULD make it obvious when a
+   structural description is stale relative to the code" — the instrument
+   is that line's own tool — and, by its negative, `exp-3b2d` "SHOULD let
+   the user re-orient in one sitting": a wrong move into `resolved/`, the
+   directory excluded from reading, is the one error nobody re-finds.
 8. **The counter is "issues filed per topic, by finder", from each issue's
    `Source:` line and the named ledger's `S-n` row, one script, run at the
    close beside the `exp-` count and written where that count goes** (the
@@ -145,11 +158,27 @@ and the report carry.
   Global Constraints and its Batches table). The direction file's shape —
   a header naming the answer's route, then the items by the
   recommendation's numbers — is what section 3 reuses.
-- **The resolved precedent**: 61 of the 99 files under `resolved/` carry a
-  body paragraph opening `Resolved by …`, placed as the last paragraph
-  before any trailing note; ten read `Resolved by the bg-seat-ergonomics
+- **The resolved precedent**: 43 of the 99 files under `resolved/` carry a
+  body paragraph opening `Resolved by …` (the review's recount; the
+  dialogue's first figure of 61 counted looser forms), placed as the last
+  paragraph before any trailing note; ten read `Resolved by the bg-seat-ergonomics
   design`, the rest name a plan's task. Section 4's Landed line follows
   that placement and names the removing commit's subject instead.
+- **The decision file §0's check**: whether the recommender's bar "reads as
+  that file wrote it" was for this Sekkei to check in `roles/kanri.md`'s
+  close dispatch and in the shoroku skill's recommend mode. Both carry the
+  sentence — `roles/kanri.md` Shoroku step 2 ("an item is recommended as an
+  `issue` only when it is medium severity or above, needs a decision, or
+  records a measured defect") and `skills/shoroku/SKILL.md`'s recommend
+  mode, one hit each — and nothing is asked of the skill here.
+- **The tree listing**: `git ls-files --with-tree=main` unions the index with
+  the tree (685 paths on this branch against `git ls-tree -r main`'s 684),
+  so the branch's own new files would be listed and fail to read at `main`;
+  section 1 lists with `git ls-tree`. And of the pile's backticked path
+  tokens, 314 are rooted (`skills/…`, `docs/…`, `scripts/…`) and 397, in
+  141 files, are skill-relative — `roles/kanri.md`, `templates/agent.md`,
+  `SKILL.md` — so a path check must resolve a token as a suffix of a tracked
+  path (the review's F-1 and F-2).
 - **`git commit --only` and a rename**: issue-9350 measured that a `git mv`
   committed with `--only` must name the old path as well as the new one,
   or the vacated path survives in `HEAD`. Section 4's commit recipe names
@@ -186,21 +215,33 @@ frontmatter), after normalizing CRLF to LF:
   its kind, the directory (`open` or `deferred`), and whether the body
   cites an `exp-` id.
 
-**The tree is loaded once.** `git ls-files -z --with-tree=<ref>` lists the
-paths; every path outside the four excluded trees — `docs/issues/`,
-`docs/reports/`, `docs/superpowers/`, and `.tanto/` — whose extension is
-text is read with `git show <ref>:<path>` and kept in memory as its bytes
-and as a **normalized** copy: CRLF to LF, every run of whitespace including
-line breaks to one space. The exclusions are the self-citing and the
+**The tree is loaded once.** `git ls-tree -r -z --name-only <ref>` lists
+the tree's paths and nothing of the index; every path outside the four
+excluded trees — `docs/issues/`, `docs/reports/`, `docs/superpowers/`, and
+`.tanto/` — whose extension is one of `.md .txt .js .cjs .mjs .ts .json
+.jsonc .yaml .yml .toml .sh .bat .ps1 .psd1 .psm1 .py .css .html .gitignore
+.gitattributes .editorconfig` or that has no extension is read with
+`git show <ref>:<path>` — a listed path that fails to read is a fatal error,
+so that the loaded tree is exactly the ref's — and kept in memory as its
+bytes and as a **normalized** copy: CRLF to LF, every run of whitespace
+including line breaks to one space, every backtick removed, and every
+Markdown link `[text](target)` reduced to its text. A quoted needle is
+normalized the same way before the substring test, so that a quote of a
+sentence carrying inline code or a link still matches. The exclusions are the self-citing and the
 frozen: an issue quotes its own needle, a report or a plan quotes the old
 text as old text, and a match there says nothing about the live tree.
 
 **A quoted string is alive** when its normalized form is a substring of
 any file's normalized copy; the row records the first path that holds it.
-A **path token is alive** when the path exists at `<ref>`, and its line
-hint, when it has one, is within the file's line count; a path that exists
-with a line hint past the end is `partly` for that token. A string or path
-found nowhere is **gone**.
+A **path token is alive** when some tracked path at `<ref>` equals it or
+ends with `/` followed by it — a token naming a directory is alive when any
+tracked path has it as a prefix — since 397 of the pile's tokens are
+skill-relative (`roles/kanri.md`, `templates/agent.md`, `SKILL.md`) and
+only 314 are rooted (Measured); the row records the resolved path, and a
+token that resolves to several paths records the first and is alive. Its
+line hint, when it has one, must be within the resolved file's line count;
+a path that resolves with a line hint past the end is `partly` for that
+token. A string or path found nowhere is **gone**.
 
 **A gone string is traced.** For each gone quoted string the script runs,
 once,
@@ -208,9 +249,11 @@ once,
 where `<pattern>` is the string's words, each regex-escaped, joined by
 `\s+`, so that a quote that wraps in the source still matches the pickaxe.
 The subject and the first path the output names are the row's evidence;
-an empty result records `no commit found`. A gone path token is traced the
-same way with `git log <ref> -n 1 --format=%s --diff-filter=D -- <path>`,
-the deleting commit's subject. The commit hash is never written: the
+an empty result records `no commit found`. A gone path token is traced
+only when no tracked path resolves it, with
+`git log <ref> -n 1 --format=%s --diff-filter=D -- <the token, and every path ending in it that ever existed>`
+— in practice `git log --all --diff-filter=D --name-only` filtered by the
+suffix — the deleting commit's subject, or `no commit found`. The commit hash is never written: the
 outputs are untracked, but the subject is what every tracked line downstream
 carries, and a hash is what the human's rebases make stale.
 
@@ -222,15 +265,24 @@ subject.
 
 **The cluster** is assigned by the title alone, first match wins, by the
 ordered list below; it is the working note's sixteen names with the rule
-written out, and the spec is the authority where the two differ. **The
-round** is the Q-3 merge of the clusters.
+written out, and the spec is the authority where the two differ. A term of
+five letters or fewer — `plan`, `task`, `lint`, `test`, `cost`, `ttl`,
+`spec`, `share`, `close`, `model`, `node`, `brief`, `batch`, `spawn` —
+matches as a whole word (`\b` on both sides); a longer term matches as a
+substring; every match is case-insensitive. Within a row the broad terms
+come last so that the specific ones decide first, and the review's F-10
+measured the substring rule's drift against the note at 75 of 240 placed
+issues, which Task 2's report measures again under this rule. **The round**
+is the Q-3 merge of the clusters, and **a round above fifty issues is split
+by the instrument** into `<n>a` and `<n>b` in table order, each its own
+file, task, and brief (Q-10).
 
 | Order | Cluster | Title matches (case-insensitive) | Round |
 | --- | --- | --- | --- |
-| 1 | passage-check / plan instrument | `passage-check`, `passage`, `replay`, `lint`, `anchor`, `needle`, `fence`, `O block`, `dry run`, `dryrun`, `verify` | R1 |
-| 2 | kanri / ledger / handover / boundary | `kanri`, `ledger`, `handover`, `boundary`, `census`, `ruling`, `R-n`, `events line`, `successor` | R2 |
+| 1 | passage-check / plan instrument | `passage-check`, `passage`, `replay`, `needle`, `fence`, `O block`, `dry run`, `dryrun`, `pickaxe`, `lint` | R1 |
+| 2 | kanri / ledger / handover / boundary | `ledger`, `handover`, `boundary`, `census`, `ruling`, `R-n`, `events line`, `successor`, `kanri` | R2 |
 | 3 | roster / handshake / address | `roster`, `handshake`, `address`, `no-role`, `rename`, `sessionId` | R2 |
-| 4 | reading / ceiling / cost / ttl | `reading`, `ceiling`, `context=`, `cost`, `ttl`, `cache`, `token`, `share`, `wake-up`, `compaction`, `quota`, `429` | R3 |
+| 4 | reading / ceiling / cost / ttl | `reading`, `ceiling`, `context=`, `cache`, `token`, `wake-up`, `compaction`, `quota`, `429`, `cost`, `ttl`, `share` | R3 |
 | 5 | config / agents / effort / model | `tanto.json`, `config`, `agent definition`, `agents/`, `effort`, `model`, `family` | R3 |
 | 6 | keikaku / plan / coldread / batch shape | `keikaku`, `coldread`, `cold read`, `batch`, `plan` | R4 |
 | 7 | jisso / sdd / report | `jisso`, `sdd`, `implementer`, `batch report`, `report`, `task` | R4 |
@@ -244,10 +296,13 @@ round** is the Q-3 merge of the clusters.
 | 15 | tests / scripts | `test`, `script`, `node`, `pre-commit` | R6 |
 | 16 | other | everything else | R6 |
 
-A title is matched as a whole string; a term is matched as a substring,
-case-insensitively, with `R-n` and `429` and `--bg` matched literally. The
-list is a constant at the top of the script, so that a reader of the table
-and a reader of the script see the same rule.
+A term of five letters or fewer matches as a whole word, a longer one as a
+substring, all case-insensitively, with `R-n`, `429`, `--bg`, `context=`,
+and `O block` matched literally (the rule above the table). The list is a
+constant at the top of the script, so that a reader of the table and a
+reader of the script see the same rule, and Task 2's report prints the
+agreement with the working note's placements — the count of the 240
+note-placed issues that land in the note's own cluster.
 
 **Two more columns**, cheap and advisory:
 
@@ -258,9 +313,11 @@ and a reader of the script see the same rule.
   verdict;
 - **inbound**: every living document — a file under `docs/experience/`,
   `docs/design/`, `docs/notes/`, an open or deferred issue, the hub, the
-  root Markdown files — that carries a Markdown path link to this issue's
-  current path, by `grep -F` of the path; what the apply must repoint when
-  the issue moves.
+  root Markdown files — that mentions this issue's current path at all,
+  link or plain text, by `grep -F` of the path (the tree holds zero
+  Markdown links to `open/` or `deferred/` paths today and eight plain
+  mentions, Measured by the review); what the apply must repoint when the
+  issue moves.
 
 **Outputs**, all under `--out`:
 
@@ -272,11 +329,14 @@ and a reader of the script see the same rule.
   run's date, the counts per verdict, per cluster, and per round, and the
   run's wall time;
 - `liveness-R1.md` to `liveness-R6.md` — one Markdown table per round,
-  columns `id | dir | sev | verdict | a/g/n | cluster | title | gone items
-  (needle → subject) | neighbors | inbound`, the title cut at 100
-  characters, each gone item on its own line inside the cell separated by
-  `<br>`; a header line naming the ref, the date, and the round's counts
-  per verdict. This is the file a round's recommender reads;
+  or `liveness-R<n>a.md` and `liveness-R<n>b.md` for a round above fifty
+  issues, split in table order — columns `id | dir | sev | verdict | a/g/n |
+  cluster | title | gone items (needle → subject) | neighbors | inbound`,
+  the title cut at 100 characters, every `|` in a cell escaped as `\|`
+  (title `4914` carries one), each gone item on its own line inside the
+  cell separated by `<br>`; a header line naming the ref, the date, and
+  the round's counts per verdict. This is the file a round's recommender
+  reads;
 - a summary on `stdout`: the counts per verdict, per round, and the wall
   time.
 
@@ -290,14 +350,18 @@ subject on the gone string and the deleting subject on the gone path; that
 a quote wrapped across a line in the source is found alive; that a needle
 present only under `docs/issues/` or `docs/reports/` reads gone; the
 cluster of four titles against the table, one per branch of the first-match
-rule including `other`; the round map; a neighbor pair; an inbound link
-found and a non-link mention not counted; CRLF input handled; exit codes.
+rule including `other`, and one short term that must not match inside a
+longer word; the round map and the split of a round above fifty; a
+skill-relative path token resolved alive by suffix; a neighbor pair; an
+inbound mention found, link or plain; a `|` in a title escaped in the
+table; CRLF input handled; exit codes.
 The fixture's git identity is set in the test, as the tanto suite does.
 
 ## 2. The recommend rounds — one task per round
 
-Six tasks, three in batch B (R1 to R3) and three in batch C (R4 to R6).
-Each is an ordinary SDD task: the `task.implement` implementer writes two
+One task per round file — six when no round is split, one more for each
+round the instrument split in two — three or four to a batch, batch B
+taking the first half and batch C the second. Each is an ordinary SDD task: the `task.implement` implementer writes two
 files, the `task.review-spec` reviewer checks them against the rules below,
 the `task.review-quality` reviewer checks their form. No subagent of a
 higher family is dispatched for them, and no Jisso dispatches a recommender
@@ -317,9 +381,10 @@ closed. It reads no other round's files.
   `## Merged`, `## Assigned`, `## Re-hung`, `## Kept` — and a sixth,
   `## Wants no scene states`, last;
 - under the five, one `###` heading per issue of the round,
-  `### <n> — <title> (issue-<id>)`, `<n>` one running number across the
-  round in the order the liveness table lists the issues, never restarted
-  per section; under it four lines — `Destination:` the section's word;
+  `### <n> — <title> (issue-<id>)` — the full `title:`, not the table's
+  100-character cut, with any `|` left as it is — `<n>` one running number
+  across the round in the order the liveness table lists the issues, never
+  restarted per section; under it four lines — `Destination:` the section's word;
   `Target:` the removing commit's subject for Landed, `issue-<carrier id>`
   for Merged, one of the three carriers for Assigned, `exp-<id>` for
   Re-hung, `—` for Kept; `Reason:` one sentence; `Evidence:` the liveness
@@ -354,7 +419,12 @@ replaced by the five destinations:
   Wants no scene states ends its reason with ` — want unstated`.
 
 **The rules the spec reviewer checks**, each against the two files and the
-liveness row:
+liveness row. The reviewer reads the recommendation, the round's liveness
+table, and the bodies of the Landed and Merged items only — never every
+body of the round — and runs the `exp-` lookup for the Re-hung items; the
+quality reviewer runs the greps below and reads no issue body. The two
+reviews are bounded so that a round costs one sonnet read of its bodies
+and not three (`exp-178d`).
 
 - **Landed** only when the liveness row holds at least one gone item with
   a removing subject, and the subject — or the live file the implementer
@@ -396,7 +466,15 @@ destination heading opens with `<n>. [` and one of the five tag words.
 The task's own `Verify` carries those greps, and the batch report's
 **Questions for the human** section lists, per round, the brief's path and
 the counts per destination with the Wants-no-scene-states count — the one
-thing the human reads at the boundary (section 3).
+thing the human reads at the boundary (section 3). That section is
+restricted by `roles/jisso.md` and `templates/batch-report.md` to the four
+SDD stop classes and a scope or spec change; **this plan's Global
+Constraints extend it by one item kind** — a round's brief path and counts,
+a status line for Kanri's window and not a question — which is Kanri's own
+choice between the two forms the review offered (I-1's follow-up), because
+the boundary brief copies that section into the verdict file and a line
+under For Kanri would not reach Kanri without a skill edit this topic does
+not make.
 
 ## 3. The two sittings — the boundary that waits
 
@@ -407,43 +485,61 @@ Consequences say a plan does.
 **At the boundary of batch B** (rounds 1 to 3) and again **at the boundary
 of batch C** (rounds 4 to 6):
 
-1. The `boundary.verify` subagent verifies the batch as any batch; the
-   three recommendation and brief pairs are untracked, so the tree is
-   clean, and the report's Questions for the human carries the three paths
-   and their counts.
-2. Kanri checks each brief's form by the greps of section 2 — the six
-   headings, every recommendation `###` once after `See: ` — and, on a
-   failure, sends the batch back for rework of that one round as any
-   rework; it reads no recommendation's prose.
+1. The `boundary.verify` subagent verifies the batch as any batch: the
+   recommendation and brief pairs are untracked, so the tree is clean; the
+   six form greps per round are the boundary's — each round task's
+   `Verify` carries them, the report's Verify in the tree lists them, and
+   the verdict file's Failures section is where a bad brief shows — and the
+   report's Questions for the human carries the paths and their counts,
+   which the brief copies into the verdict (I-1, amendment 1).
+2. Kanri reads the verdict, not a brief: on a form failure there it sends
+   that one round back for rework as any rework (a `B-rework-<n>` or
+   `C-rework-<n>` key whose tasks are that round's one task). Kanri runs no
+   grep of its own at this boundary.
 3. Kanri writes one `attention` request whose message is
-   `kessai: tanto-issue-triage rounds <n>–<m> — claude attach <id>`, and
-   prints in its own window, in the human's language, one line per round:
+   `kessai: tanto-issue-triage rounds 1–3 — claude attach <id>` after B and
+   `rounds 4–6 — claude attach <id>` after C, the spawner filling the id,
+   and prints in its own window, in the human's language, one line per
+   round from the verdict's copy of the report's counts:
    `R<n>: <brief path> — landed <a>, merged <b>, assigned <c>, re-hung <d>, kept <e>; wants without a scene <w>`
    and one closing line saying how to answer — per round, by exception,
    `OK` or the numbers that go the other way. It does not print a brief.
 4. The human opens the brief files and answers per round, in any of the
    close kessai's three routes: Kanri's window by `claude attach`; a Kikaku
    decision file whose third section names the round's recommendation and
-   answers it (decision-9cc5); or a live Hosa, whose chore is the one line
-   `kessai answer: tanto-issue-triage R<n> — <the human's words verbatim>`.
+   answers it (decision-9cc5); or a live Hosa, whose chore is the skill's
+   existing line `kessai answer: tanto-issue-triage — <the human's words
+   verbatim>`, the words naming the round (`R2: OK`, `R3: 12 は Kept`) —
+   no role file learns an `R<n>` form (I-1, amendment 2). A bare `OK` with
+   no round answers every round of the open sitting; an answer naming an
+   item number and no round is not guessed — Kanri asks one line and writes
+   nothing until it is answered.
 5. Kanri writes `.tanto/tanto-issue-triage/triage-R<n>-direction.md` per
-   round, from the answer and nothing else: a header naming the route and
-   the date; then either the one line `OK` or one line per item that goes
-   the other way, `<n> — <destination word> [<target>] — <the human's words
-   verbatim>`, the destination word one of the five and the target as the
-   brief's How to answer asks for it. A word Kanri cannot normalize to a
-   destination is written verbatim with the destination `unclear`; the
-   apply leaves such an item Kept and reports it. An item the human does
-   not name goes as recommended, and the direction does not repeat it.
+   round, the moment that round's answer is complete and not at the
+   sitting's end, from the answer and nothing else: a header naming the
+   route and the date; then either the one line `OK` or one line per item
+   that goes the other way, `<n> — <destination word> [<target>] — <the
+   human's words verbatim>`, the destination word one of the five and the
+   target as the brief's How to answer asks for it. A word Kanri cannot
+   normalize to a destination is written verbatim with the destination
+   `unclear`; the apply leaves such an item Kept and reports it. An item
+   the human does not name goes as recommended, and the direction does not
+   repeat it. While batch D waits, the ledger's Progress line reads
+   `batch D waits on triage directions — <k> of 6 exist` — of the round
+   files' count when a round was split — and "all exist" is a plain `ls`
+   Kanri runs at every wake-up.
 
 Batch C is spawned at B's boundary without waiting for the first sitting:
 its tasks read the liveness files, not the directions. **Batch D is not
-spawned until all six direction files exist**, and Kanri's boundary-C turn
-says so in its own window when they do not yet. Nothing else in the run
+spawned until a direction file exists for every round file**, and Kanri's
+boundary-C turn says so in its own window when they do not yet. An answer
+for the first sitting that arrives after C's boundary is written all the
+same; the second `attention` request names only rounds 4–6. Nothing else in the run
 waits on the human, and a Jisso never does.
 
-Kanri's own cost at each sitting is the greps, the one request, and the
-direction files — the measurement S-11 of the ledger (one verbatim kessai
+Kanri's own acts at each sitting are the one request, the per-round line,
+the direction files, and withholding batch D (I-1); its cost is those
+lines — the measurement S-11 of the ledger (one verbatim kessai
 read costing about a batch) is the reason the brief is a file here.
 
 ## 4. The apply — batch D
@@ -462,7 +558,7 @@ one and the recommendation's otherwise; `unclear` is Kept.
   the carrier's `updated:` set and its last paragraph
   `Carries issue-<id>[, issue-<id>…] (merged by tanto-issue-triage, <YYYY-MM-DD>).`
   — one such line per carrier, listing every issue merged into it across
-  all six rounds, which is why the two apply tasks run in order and the
+  every round, which is why the two apply tasks run in order and the
   second appends to a line the first wrote when the carrier recurs. A
   carrier that its own round moved to `resolved/` is still the carrier:
   the pointer is the id, which the directory does not change.
@@ -488,13 +584,15 @@ both sides of every rename (issue-9350):
 `./scripts/lint.sh` runs on the changed paths by name before each commit;
 the frontmatter hook checks every moved file.
 
-**Verification**, per task and at the boundary: for each round, the count
-of files under `resolved/` whose last paragraph names `tanto-issue-triage`
-and the round's date equals landed + merged-away; `git grep -F` of each
-moved issue's old path over the living documents prints nothing;
-`git status --porcelain` is empty after the commits; `git show --stat
-HEAD~<k>..HEAD` lists no path outside `docs/issues/`, `docs/experience/`,
-`docs/design/`, `docs/notes/`, the hub, and the root Markdown files.
+**Verification**, per task and at the boundary: for each round's commit,
+`git diff-tree -r --name-status <commit>` shows exactly landed + merged-away
+renames into `resolved/` (`R` lines) and no path outside `docs/issues/`,
+`docs/experience/`, `docs/design/`, `docs/notes/`, the hub, and the root
+Markdown files — the count and the path check are per apply commit, since
+Tasks 11 and 12 commit scripts, the note, and the report at the same
+boundary and every round lands on one day; `git grep -F` of each moved
+issue's old path over the living documents prints nothing;
+`git status --porcelain` is empty after the commits.
 
 ## 5. The counter — `scripts/issues-by-finder.js`
 
@@ -515,46 +613,74 @@ directories, read the `Source:` line:
 - `session <date>` → finder `session`;
 - `hotfix <subject>` → finder `hotfix`;
 - `shoroku <topic>` with no `S-<n>` → finder `shoroku (unnumbered)`;
-- `shoroku <topic> S-<n>` → open `.tanto/<topic>/kanri.md`, find the row
-  `| S-<n> |` of its Shoroku proposal items table, and read its Source
-  cell; when the cell opens `carried from <other topic> S-<m>` or
-  `carried from roster-S-<m>`, follow it once to the named ledger or to the
-  text after the colon, which names the original file; then map the file
-  named to a finder by the first pattern that matches, in this order:
-  `batch-*-report.md` or `shoroku-proposal-jisso-` → `jisso`;
-  `spec-review.md` → `spec reviewer`; `plan-review`, `coldread.md`,
-  `plan-dryrun` → `plan reviewer`; `shoroku-proposal-sekkei-`, `the spec`,
+- no `Source:` line at all — 71 of the 99 resolved issues, filed before
+  decision-4d80 bound the hook to `open/` and `deferred/` — → finder
+  `no source`;
+- `shoroku <topic> S-<n>` → open `.tanto/<topic>/kanri.md` and find the
+  row whose first cell is `S-<n>` anywhere in the file — eight of the
+  fourteen ledgers head that table `## Shoroku candidates` with a
+  `Candidate` column and the newer ones `## Shoroku proposal items`, so the
+  heading is never the locator — and read its Source cell; when the cell
+  opens `carried from <other topic> S-<m>` or `carried from roster-S-<m>`,
+  follow it once to the named ledger or to the text after the colon, which
+  names the original file; then map the cell to a finder by the first
+  pattern that matches, in this order:
+  `batch-shusei`, `shoki` → `close`;
+  `batch-*-report.md`, `shoroku-proposal-jisso-`, `shoroku-proposal.md` →
+  `jisso`; `batch-*-verdict.md` → `boundary`; `branch-review` →
+  `branch reviewer`; `spec-review.md` → `spec reviewer`; `plan-review`,
+  `coldread.md`, `plan-dryrun` → `plan reviewer`;
+  `shoroku-proposal-sekkei-`, `exit-sekkei-proposal`, `the spec`, `spec §`,
   a `docs/superpowers/specs/` path, `spec-draft` → `sekkei`;
-  `shoroku-proposal-keikaku-` → `keikaku`; `shoroku-proposal-kanri-`,
-  `exit-kanri-`, `Kanri's own`, `kanri-handover` → `kanri`;
-  `kaiseki-` → `kaiseki`; `.tanto/kikaku/` or `Kikaku decision` →
-  `kikaku`; `batch-shusei`, `shoki` → `close`; `inbox` → `inbox`;
-  anything else → `unmapped (<the cell's first 40 characters>)`; a ledger
-  or a row not found → `unresolved`.
+  `shoroku-proposal-keikaku-`, `exit-keikaku-proposal` → `keikaku`;
+  `shoroku-proposal-kanri-`, `exit-kanri-`, `Kanri's own`,
+  `kanri-handover` → `kanri`; `kaiseki-` → `kaiseki`; `.tanto/kikaku/`
+  or `Kikaku decision` → `kikaku`; `inbox` → `inbox`; `human word` →
+  `human`; anything else → `unmapped (<the cell's first 40 characters>)`
+  — the review measured 136 of 458 rows unmapped under the first draft of
+  this list, among them bare destination words in `bg-seat-ergonomics`'s
+  S-34 to S-37 (column drift in that ledger), which stay `unmapped`; a
+  topic with no `.tanto/<topic>/kanri.md`, or a row id past the table's
+  end → `unresolved`.
 
 The output is one table per topic — rows the finders, one column the
 count, sorted by count — and a totals table of topic × finder, plus the
 `Source:` kinds' totals; the topic of a `session` or `inbox` issue is
-`—`. The script reads `.tanto/` and the ledgers it finds there; a ledger
-that moved to `roster-archive.md` is not reconstructed, and the row reads
-`unresolved` (the archive carries no Source cells; ledger S-3 of this topic
-records the same limit for `--share`).
+`—`. The script reads `.tanto/` and the ledgers it finds there; the
+`unresolved` cases are a topic whose directory is gone (`kisou-refresh`,
+`tanto-sweep`, `tanto`, `review-brief`, `requirement-extraction`,
+`context-cost`, `boundary-rules` — 25 issues today, all unnumbered, so they
+fall to `shoroku (unnumbered)` first) and a row id past a table's end.
+**Coverage** is stated with the tables: of 336 issues on 2026-10-02, 84
+carry a `Source:` with an `S-n` and so reach a finder through a ledger row,
+106 of the 190 shoroku-sourced carry none, 102 are `session`, 44 `inbox`,
+so the by-finder table attributes about a quarter of the pile, the topics
+from `shoroku-at-close` onward, and the yield file's question — did moving
+Sekkei to fable change what is filed — is readable only from that point;
+the script prints the attributable share beside the tables, and the report
+carries it (Q-10, F-13).
 
-**The `exp-` count.** `--exp <topic>` collects every `exp-<id>` reference
-and every bare four-hex item id from the documents — by default the topic's spec and
-plan under `docs/superpowers/`, `.tanto/<topic>/review-brief-spec.md` and
-`review-brief-plan.md`, and the `--adr` paths given — set-minus the same
-collection over the inputs — by default `.tanto/<topic>/dialogue.md`,
-`spec-inputs.md`, and every `.tanto/kikaku/*.md` path the spec names —
-comparing ids with or without the prefix, as the note says, and prints
-the unprompted ids and their count, and the two lists it subtracted. The
+**The `exp-` count.** `--exp <topic>` collects the `exp-<id>` references —
+prefixed only, exactly the note's `grep -o 'exp-[0-9a-f]\{4\}'` — from the
+documents — by default the topic's spec and plan under `docs/superpowers/`,
+`.tanto/<topic>/review-brief-spec.md` and `review-brief-plan.md`, and the
+`--adr` paths given — and set-minus the ids found over the inputs — by
+default `.tanto/<topic>/dialogue.md`, `spec-inputs.md`, and every
+`.tanto/kikaku/*.md` path the spec names — where the inputs side collects
+both prefixed references and bare four-hex ids, since a human writes
+`27e8` without the prefix; the comparison is by bare id. The documents side
+never collects bare ids, which would sweep issue and decision ids into the
+primary criterion (the review's F-5). It prints the unprompted ids and
+their count, and the two lists it subtracted. The
 note's hand recipe stays valid; this is the same count run by one command.
 
 **Tests**: fixture issue files and a fixture ledger under a temporary
 directory covering each `Source:` form, a `carried from` hop, every
-finder pattern once, `unmapped` and `unresolved`; and for `--exp` a
-fixture spec, plan, dialogue, and Kikaku file whose subtraction yields a
-known set with one prefixed and one bare id.
+finder pattern once including both table headings, `no source`,
+`unmapped` and `unresolved`; and for `--exp` a fixture spec, plan,
+dialogue, and Kikaku file whose subtraction yields a known set, with a bare
+id in the dialogue cancelling a prefixed one in the spec and a bare issue
+id in the spec not counted.
 
 ## 6. The note's sentence and the dogfood report
 
@@ -569,13 +695,15 @@ close as the note already says.
 day batch D writes it, frozen, no frontmatter, `# H1` and a scope
 paragraph (the reports type rules): the instrument's `meta` figures — the
 pile's size, the verdict counts, the per-round counts, the wall time; a
-table round × destination from the six directions as applied; the Assigned
+table round × destination from the directions as applied; the Assigned
 counts per carrier topic; the Merged carriers and what each carries; the
 full list of Wants no scene states, by issue id and clause, for a later
 run to write into scenes at the human's word; the by-finder tables as of
-that day; the `--exp tanto-issue-triage` output over the spec, the plan,
-and the two review briefs, ADRs excluded since none exists before the
-close; the number of items the human changed from the recommendation per
+that day, with the attributable share beside them; the
+`--exp tanto-issue-triage` output over the spec, the plan, and the two
+review briefs, ADRs excluded since none exists before the close; the
+instrument's agreement with the working note's placements and the count of
+`no commit found` rows; the number of items the human changed from the recommendation per
 round; and how long each sitting waited, read from the direction headers
 against the boundary times in the ledger. It is where the decision file §6
 says the 09c2 ordering question "returns at the triage's close with
@@ -606,7 +734,10 @@ is run by hand at the close" stays true — the count is still by hand, now
 one command — and section 6 appends to it rather than rewriting it. The
 working note's clusters and its probe are superseded by the instrument's
 outputs, and the note says so of itself ("The topic's own instrument
-replaces both"); it is an untracked Kikaku file and is not edited.
+replaces both"); it is an untracked Kikaku file and is not edited. The
+issues type rules' "Do not … auto-move resolved issues. Leave them for
+human / agent judgment" is not contradicted either: a bulk `git mv` from a
+direction file the human answered is a judged move, not an automatic one.
 
 ## Requirements
 
@@ -651,10 +782,18 @@ section available; none is written by this plan.
    not a recommender dispatch and not a kessai in Kanri's window.**
    Options: Kanri runs the close's shape between batches with the brief
    verbatim (rejected: S-11's cost per sitting on a sonnet Kanri, and a plan
-   instructing Kanri); a Jisso-dispatched opus recommender on a borrowed
-   kind (rejected: the kind's name and its work diverge, and a Jisso
-   dispatching outside the task loop is new); SDD tasks with the brief read
-   as a file (chosen). Reuses decision-bba6 and extends it: the brief is
+   instructing Kanri); the decision file §2's own two seats — a
+   `task.review-quality` dispatch, or a project-overridden
+   `shoroku.recommend`, opus either way, as the round's judgment
+   (rejected: an opus first pass still needs a review, so the round would
+   buy opus twice, and the shoroku skill's recommend mode is shaped for
+   proposals into `docs/`, not for five triage destinations); a
+   Jisso-dispatched opus recommender on a borrowed kind, as
+   `experience-layer`'s batch C Jisso dispatched the recommender inside its
+   task (rejected: the kind's name and its work diverge, and the opus cost
+   per round is the same); SDD tasks on sonnet with the opus reviews the
+   loop already carries, the brief read as a file (chosen; the departure
+   from §2 confirmed at Q-10). Reuses decision-bba6 and extends it: the brief is
    read in the editor and Kanri prints paths and counts. Sources: Q-2
    「よい」, Q-3 「推奨で」.
 3. **A gone string is a candidate; Landed needs the removing commit's
@@ -681,33 +820,41 @@ For Keikaku.
   six files `.tanto/tanto-issue-triage/triage-R1-direction.md` to
   `triage-R6-direction.md` exist**, and batch C is spawned without waiting;
   the boundary after B and the boundary after C are the sittings of
-  section 3, with Kanri's four acts named — the form greps, the one
-  `attention` request, the per-round line in its window, the direction
-  files — and nothing else of Kanri's; every `task.implement` of batch B
-  and C reads only its round's liveness file and the issue bodies it
-  needs; a rework of a round is a rework of that one task; every commit
+  section 3, with Kanri's acts named — the one `attention` request, the
+  per-round line in its window, the direction files, and withholding batch
+  D — and nothing else of Kanri's, the form greps being the boundary's
+  (I-1); the batch report's Questions for the human is extended by one item
+  kind, a round's brief path and counts, a status line and not a question
+  (section 2); every `task.implement` of batch B and C reads only its round's
+  liveness file and the issue bodies it needs, and the two reviews are
+  bounded as section 2 says; a rework of a round is a rework of that one
+  task; every commit
   names both sides of a rename; every appended paragraph uses the file's
   working-tree line ending; the instrument's run reads `main` and the
   apply's `git mv` runs on the branch.
 - **Four batches**: A — Task 1 the instrument with its tests (TDD as SDD
   runs it), Task 2 the run (`--out .tanto/tanto-issue-triage`), whose
   deliverable is the seven untracked files and a report carrying the
-  `meta` counts; B — Tasks 3 to 5, rounds 1 to 3; C — Tasks 6 to 8, rounds
-  4 to 6; D — Task 9 the apply of rounds 1 to 3, Task 10 the apply of
-  rounds 4 to 6, Task 11 the counter with its tests and the note's
-  sentence, Task 12 the dogfood report. Three or four tasks a batch (rule
-  7).
+  `meta` counts and the round files' count; B — one task per round file of
+  the first half; C — one per round file of the second half, Keikaku
+  planning both from the files Task 2 produced, three or four tasks a
+  batch, a further batch when a split round pushes a half past four; D —
+  the apply of the first half, the apply of the second half, the counter
+  with its tests and the note's sentence, the dogfood report. Rule 7's
+  three or four tasks a batch yields to the boundary where it must: batch A
+  is two tasks, as `experience-layer`'s one-task batch C was.
 - **Each round task's text** carries section 2 whole: the two files' paths
   and forms, the five rules, the greps of its Verify, and the report line
-  for Questions for the human. The six tasks differ only in their round.
+  for Questions for the human. The round tasks differ only in their round
+  file.
 - **Each apply task's text** carries section 4 whole, with the commit
-  recipe and the round-ordered loop; Task 10 says it appends to a carrier
-  line Task 9 may have written.
+  recipe and the round-ordered loop; the second apply task says it appends
+  to a carrier line the first may have written.
 - **How a batch is verified**: the suite `node --test scripts/*.test.js`
   at every boundary from A; `./scripts/lint.sh` on the changed paths by
   name; at B and C `git status --porcelain` empty and the six form greps
-  per round; at D the counts of section 4 and the report present with
-  section 6's list.
+  per round, run by the boundary; at D the per-commit counts of section 4
+  and the report present with section 6's list.
 - **The passage check**: this plan carries no passage blocks — its tracked
   edits are two new scripts with tests, one sentence in a note, a new
   report, and bulk moves whose text exists only at run time — so the plan
@@ -722,7 +869,8 @@ Per batch, by the implementer and by the boundary. Every `lint.sh` call
 names files, never a directory.
 
 - `node --test scripts/issue-liveness.test.js` passes (A and after).
-- After A: `ls .tanto/tanto-issue-triage/liveness-R*.md | wc -l` is 6;
+- After A: `ls .tanto/tanto-issue-triage/liveness-R*.md | wc -l` is 6 plus
+  the number of rounds split;
   `node -e 'const j=require("./.tanto/tanto-issue-triage/liveness.json");console.log(j.length-1)'`
   equals `ls docs/issues/open docs/issues/deferred | grep -c '\.md$'`; the
   `meta` verdict counts sum to the same number; `git status --porcelain`
@@ -732,10 +880,11 @@ names files, never a directory.
   `grep -c '^### ' triage-R<n>-recommendation.md` equals the round's row
   count in `liveness-R<n>.md`; for every `###` heading, `grep -cF "See: <text>" triage-R<n>-brief.md`
   is 1; `git status --porcelain` is empty.
-- Before D: the six direction files exist and each opens with the header
-  and either `OK` or lines in section 3's form.
-- After D: for each round the moved-file count equals the direction's
-  landed + merged-away; `git grep -F -- '<old path>'` over
+- Before D: a direction file exists for every round file and each opens
+  with the header and either `OK` or lines in section 3's form.
+- After D: for each round's commit, `git diff-tree -r --name-status
+  <commit>` shows landed + merged-away `R` lines into `resolved/` and no
+  other path outside the living documents; `git grep -F -- '<old path>'` over
   `docs/experience docs/design docs/notes docs/issues/open docs/issues/deferred docs/experience.md README.md CONTRIBUTING.md AGENTS.md`
   prints nothing for every moved issue; `node --test scripts/*.test.js`
   passes; `node scripts/issues-by-finder.js` prints a totals table whose
@@ -782,8 +931,27 @@ destination's cousin on the close side and is not touched.
 
 ## Answers to the spec inputs
 
-There is no `.tanto/tanto-issue-triage/spec-inputs.md`; Kanri's orders
-line said `no I-n`.
+`.tanto/tanto-issue-triage/spec-inputs.md` holds one input, written after
+the spec's first commit.
+
+- **I-1** — Kanri's answer on section 3 and the plan's first bullet, asked
+  as Step 2's Kanri's-own-procedure case: accepted with two amendments and
+  three clarifications, all applied. Amendment 1: the form greps are
+  `boundary.verify`'s, not a Kanri act — Kanri's named acts are the
+  `attention` request, the per-round line, the direction files, and
+  withholding batch D (section 3 steps 1 and 2; What the plan must contain).
+  Amendment 2: the Hosa relay keeps the skill's `kessai answer: <topic> —
+  <words>` line with the round inside the words, since this topic edits
+  nothing under `skills/` (section 3 step 4). Clarifications: a bare `OK`
+  answers every round of the open sitting and an item number without a
+  round is asked back; a round's direction file is written the moment its
+  answer is complete, with the Progress line `batch D waits on triage
+  directions — <k> of 6 exist`; the `attention` message names rounds 1–3
+  after B and 4–6 after C, and a first-sitting answer arriving after C's
+  boundary is written all the same (section 3 steps 3 to 5). Kanri's
+  follow-up by message chose, for the review's F-6, the form in which this
+  plan's Global Constraints extend the report's Questions for the human by
+  one item kind (section 2).
 
 ## Deferred items
 
@@ -804,10 +972,10 @@ line said `no I-n`.
    says gone, and the recommender treats it as Kept with the fact noted.
    Whether a fuzzier trace is worth building is read from the report's
    count of such rows.
-6. **The archive's missing Source cells**: the by-finder count reads
-   `unresolved` for a topic whose ledger rows moved to
-   `roster-archive.md`; ledger S-3 already asks for a Transcript column
-   there, and a Source column is the same ask.
+6. **The ledgerless topics**: the by-finder count reads `unresolved` for
+   a topic whose `.tanto/<topic>/` directory is gone (seven topics, 25
+   issues today, all unnumbered); the lineage of those rows is in the
+   roster archive's Events lines and is not reconstructed by this topic.
 7. **A Merged carrier chain** across topics — an issue merged into a
    carrier that a later triage merges again — is left to that later run;
    the pointer is the id and resolves either way.
@@ -852,3 +1020,12 @@ recommender's own inputs.
    the opening restatement (Q-1) had covered the mechanism and the behavior
    and not the why. A Sekkei's opening on a Kikaku input could carry the
    decision's own reason in two sentences beside the mechanism.
+10. Observation about the process — the spec review was dispatched after
+    I-1 had arrived and before it was applied, so the reviewer read a
+    document two amendments behind the ledger and spent one finding (F-7)
+    saying so; a Sekkei that receives an `I-n` before the review dispatch
+    should apply it first.
+11. Fact measured by the review and ruled into section 1 — the substring
+    cluster rule moved 75 of 240 note-placed issues; the whole-word rule for
+    short terms is the fix, and Task 2 reports the agreement so the next
+    triage can tune the list from a number.
