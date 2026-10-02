@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-22
-updated: 2026-09-22
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-bg-seats S-22
@@ -34,3 +34,5 @@ throwaway wrapper script, rather than finding it in the instrument.
 
 Related: issue-7fa4 (the notice half: nothing in the run sees a hung foreground
 tool call), issue-2d69 (the skip declaration that let the fence run at all).
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

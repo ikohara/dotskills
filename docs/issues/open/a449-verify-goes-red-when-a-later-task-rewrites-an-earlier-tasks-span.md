@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-20
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-project-config
@@ -48,3 +48,5 @@ Two options for a future plan of this shape, neither chosen here: have
 `verify` scope its match to exclude the sub-spans a later task's own passages
 touch, or have task-16-style sweeps expect this and drop the
 "clean for all" claim in favor of naming the known-superseded pairs.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

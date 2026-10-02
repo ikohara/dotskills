@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-24
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-13
@@ -75,3 +75,5 @@ catches** (inbox bug-report-plan-drafting-passage-check-guidance, its items
   documented deviation be reported and ruled at the boundary; an `O`
   eye-check has no equivalent, so a better-informed choice made mid-execution
   reads as a silent contradiction. Related to issue-d0f4's survivor form.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

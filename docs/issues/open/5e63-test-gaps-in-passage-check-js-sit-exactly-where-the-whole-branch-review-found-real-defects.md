@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-14
@@ -51,3 +51,5 @@ third of the three are also where real, shipped documentation went wrong.
 Related: the whole-branch review's Critical and Important findings (fixed
 in the fix wave), issue-2d84 (the dead `expectation` field these tests
 would pin).
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

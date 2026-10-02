@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-12
@@ -53,3 +53,5 @@ prescribe; this is the same rule reaching one case short again.
 
 Related: issue-2f17 (the `subagents` keys), and the `replay-skip:` mechanism
 itself, which stays useful for the commands only a repository can run.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

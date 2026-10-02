@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto
@@ -46,3 +46,5 @@ so it rides with a rule-11 plan or a Kanri hotfix, not with a kisou plan.
 Related: issue-7481 (the instrument), issue-7c11 (the lead grammar's
 backtick limit, found at the same plan stage), issue-909c (the base
 expression this fence shape was written for).
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

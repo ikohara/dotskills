@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-20
+updated: 2026-10-03
 ---
 
 Source: inbox 2026-09-18-verify-silently-no-ops-for-w-only-tasks
@@ -44,3 +44,5 @@ against the brief, not by `verify` itself.
 `verify --task <N>` could check every `W` block's file against its quoted
 bytes exactly, the same pass it already makes for `P`/`A`, instead of
 filtering `W` out before the check runs.
+
+Merged into issue-58fe (tanto-issue-triage, 2026-10-03).

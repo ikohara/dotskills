@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-02
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 Source: shoroku experience-layer S-34
@@ -35,3 +35,5 @@ every passage plan with a boundary `diff` or `lint` fence shows two
 command names `git`, or the rule lets the comment on.
 
 Issue-14a4 is a third false line of `replay`'s, on anchors.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

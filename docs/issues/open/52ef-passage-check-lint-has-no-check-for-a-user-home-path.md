@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-10-03
 ---
 
 Source: shoroku bug-report-hold S-38
@@ -30,3 +30,5 @@ catches it at the source, before it reaches a reviewer or a human.
 issue-229c is the repository-wide half — the same pattern as a generic
 pre-commit check over every tracked file. Either one alone would have caught
 this instance; they cover different populations.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

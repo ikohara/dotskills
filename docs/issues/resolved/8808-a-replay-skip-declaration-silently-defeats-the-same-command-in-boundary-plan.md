@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-24
-updated: 2026-09-24
+updated: 2026-10-03
 ---
 
 Source: shoroku bg-seat-ergonomics S-25
@@ -31,3 +31,5 @@ Two shapes for the fix, which need a choice: a scope word on the declaration
 instrument's own output when a boundary skips a command. Related:
 issue-1d95 (the declaration's grain is the fence, not the line) and
 issue-2d69 (a declaration names a pattern, not its subject).
+
+Merged into issue-2d69 (tanto-issue-triage, 2026-10-03).

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-20
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-13
@@ -70,3 +70,5 @@ itself, removes the transcription entirely and makes the sweep a fenced block
 `boundary` can run. The whole-branch review's own Recommendation 2 — fold the
 residual-needle sweep into `replay` — is the same proposal from the other
 direction.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: inbox 2026-09-11-passage-check-lead-grammar
@@ -49,3 +49,5 @@ grammar then says what a needle with a backtick looks like.
 This edits the tanto skill's own instrument, so it belongs to a plan that
 runs under contract rule 11 — the Keikaku split (issue-3c7a) or the small
 tanto items after it.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

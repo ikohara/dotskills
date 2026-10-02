@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-13
@@ -57,3 +57,5 @@ this issue's own fix should reproduce from the other side. Two things the
 workaround does not buy: a plan author must know the rule (nothing reports an
 indented fence, in `lint` or anywhere else), and every plan already committed
 in `docs/superpowers/plans/` still carries its checks in a list.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

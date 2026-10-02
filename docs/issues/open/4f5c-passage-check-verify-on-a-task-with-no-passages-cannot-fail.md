@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: shoroku kisou-refresh
@@ -36,3 +36,5 @@ What is missing is one of two things, and either would do:
   is never `verify`, so the shape is ruled out where plans are written.
 
 Belongs to a plan editing `skills/tanto/` under contract rule 11.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

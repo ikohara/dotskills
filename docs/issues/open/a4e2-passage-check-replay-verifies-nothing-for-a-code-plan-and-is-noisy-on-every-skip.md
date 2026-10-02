@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-24
+updated: 2026-10-03
 ---
 
 Source: inbox 2026-09-14-replay-vacuous-for-code-plans
@@ -81,3 +81,5 @@ pass is easy to misread as "the tool produced no output". One summary line,
 `replay: N passages, M anchors clean`, would make a clean run legible to a
 reader who did not write the tool — the same headline the paragraph above
 asks for, from the passing side.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 Source: inbox 2026-09-15-passage-check-verify-tolerates-reformatting
@@ -45,3 +45,5 @@ implying every reformat is at risk; if it does not reproduce, no code or
 prose changes are needed. Either way this issue is where the finding lands.
 
 Related: design-4807 (`passage-check.js`'s own design), exp-06b2.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

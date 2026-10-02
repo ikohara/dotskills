@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-22
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-13
@@ -80,3 +80,7 @@ minutes (issue-126e). A `passage-check.js lint` check — does each declared
 `replay-skip:` pattern occur as a literal substring in at least one fence the
 plan actually contains? — would have caught this on the first `lint` run instead
 of the first `replay`.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).
+
+Carries issue-8808 (merged by tanto-issue-triage, 2026-10-03).

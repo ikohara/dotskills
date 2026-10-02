@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-14
@@ -34,3 +34,5 @@ Neither is urgent enough for the whole-branch review's one fix wave — both
 are small robustness/documentation gaps in genuinely new code (batch A's
 `sections` and `frame` subcommands), not active defects shipping wrong
 information the way the fix wave's six items were.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

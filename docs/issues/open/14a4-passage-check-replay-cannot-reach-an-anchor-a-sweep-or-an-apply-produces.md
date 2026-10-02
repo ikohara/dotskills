@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-02
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 Source: shoroku experience-layer S-82
@@ -22,3 +22,5 @@ takes it for a defect. A per-anchor `replay-skip:` marker, or scoping
 anchors to passage-produced files, would let `replay` exit 0 on such a plan.
 Carrier topic: `passage-check-hardening`. Distinct from issue-f11c, which is
 about phase-conditional fences, not anchors.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

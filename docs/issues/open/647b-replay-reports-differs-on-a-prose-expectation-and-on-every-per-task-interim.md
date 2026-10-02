@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-24
+updated: 2026-10-03
 ---
 
 Source: shoroku shoroku-at-close
@@ -109,3 +109,5 @@ convention for workspace-bound checks, or the replay running a task's checks
 before applying that task's passages — the second being this issue's own
 per-task-interim remedy — would remove all five. issue-483c holds the
 `$TANTO` resolution half.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

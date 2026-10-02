@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-02
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 Source: shoroku experience-layer S-35
@@ -47,3 +47,5 @@ but non-numeric `--task` is named (`invalid --task '<value>'`).
 `node scripts/passage-check.js verify --plan <any plan path>` prints only the
 usage line and exits 2. Proposed: a `--plan` present with `--task` absent
 prints `verify needs --task` before the usage.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

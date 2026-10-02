@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-13
@@ -106,3 +106,5 @@ copy and continue — the anchor's own command is self-contained.
 
 `passage-check.js`'s `diff` command shares the same root cause from the other
 side; that half is issue-4eef.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

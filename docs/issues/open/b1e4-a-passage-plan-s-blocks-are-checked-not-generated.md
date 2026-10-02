@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-sweep
@@ -59,3 +59,5 @@ already carries**, where the input is unambiguous and the generator is one
 line. The general rule the reviewer proposes for the conventions file — a
 task extracts its inputs from the plan rather than re-entering them — is the
 cheap half of the generation question, and does not wait on a block generator.
+
+Assigned to passage-plan-generation (tanto-issue-triage, 2026-10-03).

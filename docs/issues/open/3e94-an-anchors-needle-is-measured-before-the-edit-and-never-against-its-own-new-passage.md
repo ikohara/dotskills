@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-13
@@ -47,3 +47,5 @@ belongs in Step 3.
 
 Related: issue-c841 and issue-38f5 (defects in the same instrument found by
 the same run), issue-d0f4 (an `O` needle whose disposition is not zero).
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

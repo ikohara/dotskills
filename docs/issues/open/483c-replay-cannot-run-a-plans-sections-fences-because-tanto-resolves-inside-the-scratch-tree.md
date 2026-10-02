@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-sweep-2
@@ -60,3 +60,5 @@ a `replay-skip` marker on those two fences in the plan — the instrument alread
 honors one for `boundary` — would make the exclusion mechanical instead of a
 per-dispatch sentence. `shoroku-at-close`'s Batch E report names the same marker
 independently, as its second candidate.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

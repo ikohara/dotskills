@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-13
@@ -45,3 +45,5 @@ convention does not repeat the gap.
 
 Related: issue-860b (what `boundary` runs and cannot reach), issue-c841 and
 its siblings (the instrument's other coverage gaps found by this same run).
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

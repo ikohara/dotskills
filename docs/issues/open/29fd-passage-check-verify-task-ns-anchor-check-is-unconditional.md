@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-24
-updated: 2026-09-24
+updated: 2026-10-03
 ---
 
 Source: shoroku bg-seat-fixes S-18
@@ -39,3 +39,5 @@ Related: issue-3e94 (an anchor's needle is measured before the edit and
 never against its own new passage) and issue-a449 (`verify` goes red when a
 later task rewrites an earlier task's span), the anchor's other two timing
 defects.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

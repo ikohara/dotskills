@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-24
+updated: 2026-10-03
 ---
 
 Source: inbox 2026-09-14-passage-check-created-line-lint-gap
@@ -49,3 +49,7 @@ created: 2026-09-23" — the frontmatter line of the issue file the block
 writes, read as a created-path exemption. Harmless there, but any frontmatter
 `created:` inside a `W` block leaks into the exemption list, and a path
 spelled like a date would be silently exempt.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).
+
+Carries issue-91d5 (merged by tanto-issue-triage, 2026-10-03).

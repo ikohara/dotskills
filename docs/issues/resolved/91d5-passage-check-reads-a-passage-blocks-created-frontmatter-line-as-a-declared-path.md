@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-02
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 Source: shoroku experience-layer S-46
@@ -21,3 +21,5 @@ no file is named `2026-05-27`; but the count and the list on that first line
 can no longer be trusted as the plan's own declaration, and a real path that
 matched a frontmatter value would be exempted silently. Carrier topic:
 `passage-check-hardening`.
+
+Merged into issue-c391 (tanto-issue-triage, 2026-10-03).

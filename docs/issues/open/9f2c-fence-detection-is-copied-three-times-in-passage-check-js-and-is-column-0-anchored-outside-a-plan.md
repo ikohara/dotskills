@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-13
@@ -48,3 +48,5 @@ verification section is (mostly; see issue-c841 for that side too).
 
 Related: issue-c841 (`extractCommandFences`'s own column-0 limit), issue-860b
 (what `boundary` runs).
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-sweep-2
@@ -33,3 +33,5 @@ the `File structure` fence's `created:` paths and asserts the plan's prose
 does not contradict them.
 
 Related: issue-c391, issue-d0c9.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).
