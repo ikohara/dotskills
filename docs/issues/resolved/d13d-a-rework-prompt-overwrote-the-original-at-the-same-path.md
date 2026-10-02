@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-24
-updated: 2026-09-24
+updated: 2026-10-03
 ---
 
 Source: shoroku bg-seat-ergonomics S-39
@@ -34,3 +34,5 @@ path, before anything is judged a duplicate.
 
 The run's second render-then-send defect, a prompt shipped with its slots
 unfilled, is issue-8f5a.
+
+Resolved by "docs: Jisso reads every batch: file from disk and bounds a dispatch that hands back nothing" — found by the tanto-issue-triage liveness check, 2026-10-03.

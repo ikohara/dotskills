@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-13
@@ -51,3 +51,5 @@ passage is the natural carrier; otherwise the next plan to touch the file.
 Related: exp-27e8 (the human reviews through a brief of the judgment
 points — the brief reads the review), design-4807, decision-5c8e (rule 11),
 the tanto-cost design of 2026-09-12.
+
+Resolved by "docs(tanto): Sekkei's review gates, the dialogue rule, and the fixed referent" — found by the tanto-issue-triage liveness check, 2026-10-03.
