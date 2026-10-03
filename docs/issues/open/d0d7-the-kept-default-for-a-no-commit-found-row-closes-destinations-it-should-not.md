@@ -38,6 +38,5 @@ rule, and nothing says which destinations it closes.
   default the human overrides in bulk is the wrong default.
 
 Decision needed before the next triage: the round template and the spec say
-which destinations the sentence closes — most likely Landed only, the case
-decision-f706's honesty concern is about. Beside issue-8aa6 (hand-Landed
+which destinations the sentence closes. Beside issue-8aa6 (hand-Landed
 rows) and issue-d0a3 (whether a fuzzier trace is worth building).

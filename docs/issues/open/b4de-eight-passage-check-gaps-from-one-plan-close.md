@@ -13,8 +13,8 @@ updated: 2026-10-03
 Source: inbox 2026-10-02-passage-check-instrument-gaps-from-a-plan-close
 
 Eight gaps in `scripts/passage-check.js` and the role text that describes
-it. Four extend open issues with new measurements (items 2, 3, 6, 7, 8 name
-theirs); the rest are new. All are code or role-text changes for the
+it. Five extend open issues with new measurements (items 2, 3, 6, 7, 8 name
+theirs); items 1, 4 and 5 are new. All are code or role-text changes for the
 carrier topic `passage-check-hardening`. Severity medium overall: item 6
 stood out, because the tool gap hid a deviation behind a "will be flagged"
 assumption; item 2 cost the most repeated hand work.

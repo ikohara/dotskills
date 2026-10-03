@@ -58,7 +58,7 @@ every inline form the tool offers:
   this host.
 - **A path literal becomes a NUL.** A roster row built by a heredoc or
   `node -e` script carrying `"C:\\Users\\0000123456\\…"` (a user name that
-  starts with digits) reached the file as `C:Users`, a NUL byte, and
+  starts with digits, replaced here by `0000123456`) reached the file as `C:Users`, a NUL byte, and
   `0123456develdotskills`: Node read `\U` as `U`
   and `\0000` as an octal escape. The first symptom was not the wrong cell
   but `grep` reporting `Binary file … matches` and printing nothing — the

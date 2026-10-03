@@ -42,7 +42,7 @@ seat lost across a restart, and a line sent to it went unread), and item 3
    Windows path.** Three roster rows were damaged in one plan. A path
    through a Bash tool call loses its backslashes even from a quoted heredoc
    or a doubled `\\` in single quotes; `"\0000123456"` (a user name that
-   starts with digits) in JavaScript source is an octal escape, so the row
+   starts with digits, replaced here and below by `0000123456`) in JavaScript source is an octal escape, so the row
    got a NUL byte plus `0123456`, and `grep`
    then called the roster binary. `grep -n -i 'backslash' roles/ SKILL.md
    templates/` finds nothing. Observed: `node -e

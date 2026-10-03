@@ -607,7 +607,7 @@ mid-review. Three facts at once:
   handshake was a no-op for the roster, and its only effect was the seat's own
   closing-line name.
 - The config directory changed across the same resume, from `~/.claude` to
-  `.claude-priv`, with both paths resolving to one transcript file.
+  a second config directory, with both paths resolving to one transcript file.
 - The seat's effort read `high` after the resume where it had read `xhigh`
   before — a further data point for issue-42fc.
 
@@ -620,9 +620,9 @@ rests on is `record --peer-reading`'s grammar for the line, not `SendMessage`.
 
 ## `$CLAUDE_JOB_DIR` and the Write tool's jobs path diverge after a config-directory move (2026-10-02)
 
-After the config directory changed from `.claude` to `.claude-priv` in a
-resumed Kanri session, `$CLAUDE_JOB_DIR` read by Bash named the
-`.claude-priv` jobs directory, while the Write tool put a file under the
+After the config directory changed from `.claude` to a second config directory in
+a resumed Kanri session, `$CLAUDE_JOB_DIR` read by Bash named the new
+directory's jobs directory, while the Write tool put a file under the
 `.claude` jobs directory by the path the system prompt printed. A script
 written with Write was then not found through the shell's `$CLAUDE_JOB_DIR`.
 Neighbor of the `$CLAUDE_CONFIG_DIR/projects` entry above.
