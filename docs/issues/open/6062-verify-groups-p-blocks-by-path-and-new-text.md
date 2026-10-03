@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-10-03
 ---
 
 Source: shoroku bug-report-hold S-61
@@ -30,3 +30,5 @@ rewriting an earlier span.
 Two fixes, either sufficient: associate several `P` blocks that share one new
 text with their own expected counts, or document an escape hatch for this exact
 shape so the ruling does not have to be reconstructed each time.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

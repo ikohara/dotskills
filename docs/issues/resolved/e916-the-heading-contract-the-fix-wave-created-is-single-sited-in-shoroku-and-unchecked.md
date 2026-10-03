@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-14
@@ -71,3 +71,5 @@ wave's dispatched edit sets, not because it was judged correct. A one-phrase
 follow-up, and a concrete instance of the coverage gap this issue names: the
 contract is stated in one place and restated informally in others, with
 nothing that finds the restatements.
+
+Resolved by "docs(tanto): checks 18 and 19, and the two READMEs' drift review" — found by the tanto-issue-triage liveness check, 2026-10-03.

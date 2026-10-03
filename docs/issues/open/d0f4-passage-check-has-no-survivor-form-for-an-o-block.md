@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-workspace
@@ -44,3 +44,5 @@ Related: issue-58fe (a `W` block verified by nothing), issue-4f5c (`verify`
 on a task with no passages), issue-2f17 (`replay`'s skip keys), the
 tanto-workspace plan of 2026-09-12 (Global Constraints, "The `O` needles this
 plan carries, and the seven it does not").
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

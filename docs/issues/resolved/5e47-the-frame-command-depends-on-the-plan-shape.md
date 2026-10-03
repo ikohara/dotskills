@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 Source: shoroku context-cost
@@ -34,3 +34,5 @@ pattern in the command or a note in the plan's frame that names the shape it
 was written in.
 
 Related: exp-06b2, issue-5830, design-4807.
+
+Merged into issue-ac9d (tanto-issue-triage, 2026-10-03).

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-02
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 Source: shoroku experience-layer S-96
@@ -20,3 +20,5 @@ is in flight, not during the close. On 2026-10-01 Kanri advised waiting for
 the human answered that pipelined running is then impossible and asked for
 this issue. No open issue names the close as the serialization point
 (issue-2065 is a prose pass).
+
+Serves exp-bb08 (tanto-issue-triage, 2026-10-03).

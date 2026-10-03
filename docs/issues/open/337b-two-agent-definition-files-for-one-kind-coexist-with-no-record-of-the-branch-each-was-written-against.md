@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-17
@@ -46,3 +46,5 @@ files per the human's own instruction not to fold. Also adjacent, and also
 distinct: issue-cae3 (definitions are user-scope, so a kind's effort cannot
 differ by repository), issue-91fa (the harness's mid-session agent-type cache
 refresh), and issue-264d (the kind-names namespace reserves nothing).
+
+Assigned to 09c2-upgrade (tanto-issue-triage, 2026-10-03).

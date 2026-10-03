@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-13
@@ -63,3 +63,5 @@ begin at `lint`, which costs the opening bracket and works. The general shape
 is worth keeping beside the fix: the needles most likely to start with `<` are
 exactly the ones taken from a usage line, a template placeholder row or a
 `<path>` form — the machine-readable text a plan most often contradicts.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

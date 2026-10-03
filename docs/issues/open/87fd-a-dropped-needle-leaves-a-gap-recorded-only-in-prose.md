@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-13
@@ -35,3 +35,5 @@ count is the only live signal for issue-38f5, where a silently dropped needle
 shows up as nothing but a count mismatch.
 
 Related: issue-38f5, issue-d0f4, issue-4d53.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

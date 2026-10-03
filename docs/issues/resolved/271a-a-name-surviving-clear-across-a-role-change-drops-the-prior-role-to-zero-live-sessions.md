@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-24
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-17
@@ -52,3 +52,5 @@ authoritative, but the Resuming section covers a name or ref changing for the
 for a *different* role is not evidence of role continuity. The report's
 proposed line: name-and-ref reuse is not evidence of role continuity; only
 the transcript path is — under decision-cdc4, the `sessionId`.
+
+Resolved by "docs: Kanri keys every match on the sessionId and runs boundary.js census" — found by the tanto-issue-triage liveness check, 2026-10-03.

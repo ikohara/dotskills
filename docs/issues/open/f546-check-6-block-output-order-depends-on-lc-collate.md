@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: shoroku review-brief
@@ -43,3 +43,5 @@ Expected text already reads.
 Related: `docs/notes/tanto-consistency-checks.md` (check 6), design-4807 (plan
 conventions — a check two files must agree on is one block cited, not two
 copies).
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

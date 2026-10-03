@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-project-config
@@ -36,3 +36,5 @@ and editing a check that a landed passage pins needs its own verification.
 Related: issue-9d84 (the note's hand-maintained expected values go stale),
 issue-f3e2 (check 16 is circular), issue-c526 (check 3 asserts a citation
 pattern the design does not use) — the same class, all filed against this note.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

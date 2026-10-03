@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-20
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-15
@@ -57,3 +57,5 @@ that stops at a batch cut and runs that row's own stop condition against the
 replayed tree. The Batches table is the one place a plan asserts intermediate
 counts, and nothing reads it. The same `--through-batch` / `--through-task`
 shape is what issue-647b needs for an `after:` value, so one mode serves both.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

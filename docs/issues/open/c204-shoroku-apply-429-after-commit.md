@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-20
+updated: 2026-10-03
 ---
 
 Source: inbox 2026-09-17-shoroku-apply-429-after-commit
@@ -90,3 +90,5 @@ marker file, then proceeding, and committing only once all documents are
 written. That is the same instrument the fix above wants and it answers both
 halves: a checkpoint trail tells a dispatcher exactly how far the run got,
 whichever side of the commit the cutoff fell on.
+
+Serves exp-1b75 (tanto-issue-triage, 2026-10-03).

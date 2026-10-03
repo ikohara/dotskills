@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: shoroku shoroku-at-close
@@ -35,3 +35,5 @@ No open issue names a spec-side pre-flight today; `passage-check.js` checks a
 plan's passages, after the spec is already written.
 
 A tooling gap, not a user-stated need, so no paired requirement.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

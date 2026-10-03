@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-02
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 Source: inbox 2026-09-25-kanri-asks-before-a-routine-requests-table-spawn
@@ -41,3 +41,5 @@ had just been accepted. A hold Kanri wrote against its own future self is a
 note whose stated condition is the trigger, not a standing decision. It
 states a rule about Kanri's own earlier rulings, a decision for the
 lifecycle tables.
+
+Serves exp-26d5 (tanto-issue-triage, 2026-10-03).

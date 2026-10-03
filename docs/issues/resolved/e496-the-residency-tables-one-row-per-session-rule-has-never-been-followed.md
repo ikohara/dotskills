@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-15
@@ -55,3 +55,5 @@ unrecorded again, two topics later.
 
 Added fix candidate: whatever wrote R-46's fix, re-verify it actually reaches a
 Keikaku's own boundary-report path, not only Jisso's and Sekkei's.
+
+Resolved by "tanto: boundary.js — the boundary reads and records through one instrument" — found by the tanto-issue-triage liveness check, 2026-10-03.

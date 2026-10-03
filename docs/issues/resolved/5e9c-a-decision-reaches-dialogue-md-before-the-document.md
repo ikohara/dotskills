@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-10
@@ -61,3 +61,5 @@ between-plans hotfix on `main`, lands it.
 Related: exp-1fb1 (the human's own words are kept as a record), design-4807
 (the Sekkei conventions, and the ranking of what makes a rule bind), the
 tanto-sweep dialogue's `D-12` and `D-13`.
+
+Resolved by "docs(tanto): Sekkei's review gates, the dialogue rule, and the fixed referent" — found by the tanto-issue-triage liveness check, 2026-10-03.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-02
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 Source: shoroku experience-layer S-62
@@ -19,3 +19,5 @@ trigger keys on the reading, not on the size of the next act, so the
 handover Kanri ran before the kessai was a judgment outside the written
 rule. The rule change to decide, for `roles/kanri.md`'s Handover section: a
 pending kessai larger than the headroom counts as signal 4.
+
+Serves exp-19c1 (tanto-issue-triage, 2026-10-03).

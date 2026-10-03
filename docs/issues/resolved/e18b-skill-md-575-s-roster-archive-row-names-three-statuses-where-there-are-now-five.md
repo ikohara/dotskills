@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-13
@@ -40,3 +40,5 @@ the next plan that touches `SKILL.md`.
 
 Related: issue-a5e9 (the general shape — an unquoted enumeration site goes
 stale when a `P` block changes the enumeration elsewhere in the same file).
+
+Resolved by "docs(tanto): re-synchronize six enumerations and copied strings" — found by the tanto-issue-triage liveness check, 2026-10-03.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-20
+updated: 2026-10-03
 ---
 
 Source: inbox 2026-09-17-passage-check-diff-enobufs-on-large-branch
@@ -29,3 +29,5 @@ exists for the `git` calls the script shells out to.
 Reported by Hosa `kuchidome-6b [d17de0]` from `C:\Users\0000105523\devel\kuchidome`,
 2026-09-15 (delayed in transit — original addressee no longer live; relayed
 by this repository's own Kanri 2026-09-17).
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

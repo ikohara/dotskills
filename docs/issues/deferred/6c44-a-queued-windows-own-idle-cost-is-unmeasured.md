@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: shoroku seat-lineage
@@ -27,3 +27,5 @@ issue-d3f1 carries the seat and stage cost measurements the run already takes;
 this gap is outside that instrument, since a queued session takes no reading.
 
 A measurement gap, not a user-stated need, so no paired requirement.
+
+Serves exp-178d (tanto-issue-triage, 2026-10-03).

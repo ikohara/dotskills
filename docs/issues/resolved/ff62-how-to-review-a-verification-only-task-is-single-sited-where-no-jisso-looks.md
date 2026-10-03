@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-project-config
@@ -57,3 +57,5 @@ independently re-derived the ledger figures and the `tanto.json` and spec
 sources rather than trusting the implementer's transcription, and that is
 specifically what surfaced both findings. It is the example to cite when the
 guidance moves into `roles/jisso.md`.
+
+Resolved by "fix(tanto): the whole-branch review's fix wave" — found by the tanto-issue-triage liveness check, 2026-10-03.

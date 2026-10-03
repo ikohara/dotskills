@@ -140,7 +140,7 @@ reason to ask for either, and each omission cost one resume round at
   catches);
 - a **line-ending** rule for the tasks: a task that creates a Markdown file
   and later checks its line endings writes the restore —
-  `git checkout -- <path>` after the commit, or the repository's equivalent —
+  `rm <path> && git checkout -- <path>` after the commit, or the repository's equivalent —
   into the task's own steps, not only into the stop condition, because a
   created file lands `w/lf` on this host every time (measured five of five in
   the tanto-cost run).

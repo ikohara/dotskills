@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: inbox 2026-09-17-outgoing-bug-report-retention-undefined-2
@@ -39,3 +39,5 @@ Second data point, from a re-send of the same report two Kanri tenures later
 (2026-09-17): the file count grew from 32 to 44, including the report of this
 very defect, which itself sat unsent from its own draft until this later
 send — the retention gap applies to a report about itself.
+
+Resolved by "docs(tanto): the contract's close names four groups, two commits, and the sent copy" — found by the tanto-issue-triage liveness check, 2026-10-03.

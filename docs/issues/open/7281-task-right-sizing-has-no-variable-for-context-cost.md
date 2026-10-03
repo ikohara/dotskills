@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 Source: shoroku context-cost
@@ -117,3 +117,5 @@ Self-Review) is line-count-based throughout and did not flag this batch at all,
 because a 234-file retrofit is short to *state* and expensive to *run*. A
 file-count or file-read term, beside the line count and the uncertainty
 hypothesis above, is what the next design weighing task size should carry.
+
+Serves exp-19c1 (tanto-issue-triage, 2026-10-03).

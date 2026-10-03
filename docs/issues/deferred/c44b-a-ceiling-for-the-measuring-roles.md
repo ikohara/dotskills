@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-context-ceiling
@@ -25,3 +25,5 @@ the same data.
 
 Deferred, not open: nothing can be decided until the Context column has a few
 runs in it.
+
+Serves exp-19c1 (tanto-issue-triage, 2026-10-03).

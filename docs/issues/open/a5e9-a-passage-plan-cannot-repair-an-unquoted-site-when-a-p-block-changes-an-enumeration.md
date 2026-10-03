@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-13
@@ -42,3 +42,5 @@ is out of the tanto-cost plan's own scope, which the spec keeps away from
 Related: issue-e18b (the concrete instance this run's batch B hit),
 issue-10bc (a plan's own sweep for old values it changes — the same shape
 one level up, at plan-authoring time rather than at lint time).
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

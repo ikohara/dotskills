@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-13
@@ -46,3 +46,5 @@ Related: issue-a7d2 (the sibling gap on the `replay`/anchor side of a
 `created:` path), issue-5cf3 (the mechanical reconstruction method this
 run used by hand for passage tasks — the same principle, applied here to
 whole-file creation).
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-20
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 Source: inbox 2026-09-15-tanto-skill-revision-mid-plan-no-migration-rule
@@ -51,3 +51,5 @@ behind, not the copy, and it resolved at the merge. The proposed line, for
 this issue's resolution: say in the skill's documentation that the contract
 a session reads is the checked-out branch's, which a long-lived topic branch
 can lag — or have the start line name the commit of `SKILL.md` it read.
+
+Assigned to 09c2-upgrade (tanto-issue-triage, 2026-10-03).

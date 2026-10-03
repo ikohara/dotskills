@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-14
@@ -34,3 +34,5 @@ the heading. That would have caught both without a second dispatch.
 Distinct from the adjacent open issues — issue-f208 (a check must exit
 non-zero), issue-91f6 (a stale pinned verify fence), issue-1d95
 (`replay-skip` is per-fence): none of them says the *count* is the signal.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

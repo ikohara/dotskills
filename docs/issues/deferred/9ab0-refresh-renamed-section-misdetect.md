@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-06-17
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-06-17
@@ -56,3 +56,5 @@ false-add proves common in practice.
 over all seven doc-system `AGENTS.md`) proposed only diverged fixed-text
 replacements. No missing-heading or duplicate-section proposal appeared, so the
 deferral stands unchanged.
+
+Serves exp-0fa4 (tanto-issue-triage, 2026-10-03).

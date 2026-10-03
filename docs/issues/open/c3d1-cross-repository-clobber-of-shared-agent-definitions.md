@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-17
@@ -66,3 +66,5 @@ Hosa's chore commits, on the first day the removal of `tanto-shoroku.md` was
 live. That Kanri went on dispatching the correctly split
 `tanto-shoroku-recommend` and `tanto-shoroku-apply` kinds regardless and nothing
 was lost, but the reappearance is this issue's clobber pattern exactly.
+
+Assigned to 09c2-upgrade (tanto-issue-triage, 2026-10-03).

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-09-20
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-12
@@ -62,3 +62,7 @@ the markup in the plan template and have `plan.review` check it. A third
 possibility this instance raises: if `passage-check.js frame` already replaces
 the `awk`, make it the one frame instrument and drop the `awk` from the role
 text, so there is one pattern to keep correct instead of two.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).
+
+Carries issue-5e47 (merged by tanto-issue-triage, 2026-10-03).

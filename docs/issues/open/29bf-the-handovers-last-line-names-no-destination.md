@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-22
-updated: 2026-09-22
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-bg-seats S-65
@@ -30,3 +30,5 @@ successor check rather than being written as a fix.
 Related: decision-345b (the handover fires on its signal and the successor is
 spawned), decision-1c07 (the spawner is the notifier), issue-7202 (the
 launcher-side successor check's own deferred residues).
+
+Serves exp-1b75 (tanto-issue-triage, 2026-10-03).

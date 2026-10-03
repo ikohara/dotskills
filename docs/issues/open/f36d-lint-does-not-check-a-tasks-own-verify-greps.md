@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-sweep
@@ -30,3 +30,5 @@ whether the discipline stays "reviewer catches it" as it did this time.
 Related: exp-06b2, design-4807 (the instrument's checks), issue-10bc
 (resolved; the old-value sweep this gap sits beside), issue-7481 (the
 durable passage check), the tanto-sweep batch D report of 2026-09-10.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

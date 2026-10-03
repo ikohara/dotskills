@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-14
@@ -41,3 +41,5 @@ other, rather than one count compared against a copy of itself.
 
 Related: R-30, issue-c526, issue-9d84 (the same run's other consistency-note
 premise gaps).
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

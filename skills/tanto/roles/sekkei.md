@@ -101,7 +101,7 @@ report to
 end. When a batch of another topic is in flight, tell it — as the orders line
 tells you — that the in-flight plan's paths are out of scope. Rule on every
 finding yourself. Scope findings go to the human, each with its recommended
-action stated in words — never as a pointer to a neighbouring sentence;
+action stated in words — never as a pointer to a neighboring sentence;
 everything else is yours.
 Then send Kanri one line with the report path: Kanri records its Shoroku
 proposal's items as `pending` rows.
@@ -130,7 +130,7 @@ stands, with one line to the human saying what is wrong with it. You never
 edit the brief: a subagent shares none of your context, and that is the whole
 of its value here.
 
-Write the ledger event `review-ready: <document path>; brief: <brief path>`
+Apply any `I-n` that has reached you before this step; a reviewer reading a document behind the ledger spends a finding saying so. Write the ledger event `review-ready: <document path>; brief: <brief path>`
 yourself, through
 `node "$TANTO/scripts/boundary.js" record --ledger <path> --event "<line>"`,
 the ledger being the one your orders line's `ledger=` names, else your own

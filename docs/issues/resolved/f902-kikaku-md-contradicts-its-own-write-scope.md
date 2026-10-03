@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: session 2026-09-13
@@ -40,3 +40,5 @@ prose if not in behavior.
 Related: issue-c30e (a different kind of gap in the same batch's new role
 files — a promised grant that is never stated), issue-4d8a (nothing checks
 a role file's own internal claims against itself).
+
+Resolved by "docs(tanto): Kikaku's scope and model rule, and what a shoroku baseline is" — found by the tanto-issue-triage liveness check, 2026-10-03.

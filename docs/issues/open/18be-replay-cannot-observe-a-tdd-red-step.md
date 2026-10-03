@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-project-config
@@ -34,3 +34,5 @@ every skip), issue-ebd9 (which fences `replay` auto-skips), issue-1d95
 (`replay-skip:` is per fence, not per line, which constrains the first
 candidate fix) — none of the three covers the apply-order-versus-red-step
 problem.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

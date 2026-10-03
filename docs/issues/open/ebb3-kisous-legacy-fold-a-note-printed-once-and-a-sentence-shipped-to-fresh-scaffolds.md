@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-02
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 Source: shoroku experience-layer S-86
@@ -34,3 +34,5 @@ the two change together.
 
 **Migrate's type rename deferred** (S-29, the spec's Deferred item 5): kisou
 migrate learns the rename when a second kisou project needs it.
+
+Serves exp-0ed2 (tanto-issue-triage, 2026-10-03).

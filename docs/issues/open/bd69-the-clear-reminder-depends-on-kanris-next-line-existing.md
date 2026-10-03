@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-13
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-cost
@@ -24,3 +24,5 @@ A reminder line sent on its own was considered and rejected — it is a wake-up
 that costs more than the miss it prevents. The mitigation in the design is
 the `idle since <HH:MM>` value Kanri writes in the roster row, so that the
 reminder is not forgotten across a wake-up even when it is late.
+
+Serves exp-178d (tanto-issue-triage, 2026-10-03).

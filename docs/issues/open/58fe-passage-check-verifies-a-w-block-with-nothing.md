@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-11
-updated: 2026-09-19
+updated: 2026-10-03
 ---
 
 Source: inbox 2026-09-11-passage-check-w-blocks
@@ -81,3 +81,7 @@ repository's own run; no new fix proposed beyond the two already on file.
 Reported by Hosa `kuchidome-6b [d17de0]` from `C:\Users\0000105523\devel\kuchidome`,
 2026-09-15 (delayed in transit — original addressee no longer live; relayed
 by this repository's own Kanri 2026-09-17).
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).
+
+Carries issue-b7e4 (merged by tanto-issue-triage, 2026-10-03).

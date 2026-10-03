@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 Source: shoroku tanto-sweep
@@ -35,3 +35,5 @@ line may sit inside a multi-line fence.
 
 Related: exp-06b2, design-4807 (`replay`'s command classification), the
 tanto-sweep batch A report of 2026-09-10.
+
+Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).

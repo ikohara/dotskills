@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-24
-updated: 2026-09-24
+updated: 2026-10-03
 ---
 
 Source: shoroku bg-seat-fixes S-25
@@ -64,3 +64,5 @@ performs the write, and whether the watched directory sees the write or
 only the rename — so this is a data point for a tenure that meets the same
 block, not the isolated trigger. The same write shape fixes the spawner's
 parse race (`templates/spawn-request.md`, corrected at the same close).
+
+Serves exp-26d5 (tanto-issue-triage, 2026-10-03).
