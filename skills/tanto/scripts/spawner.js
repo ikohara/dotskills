@@ -21,8 +21,8 @@ const TRANSCRIPT_POLL_TRIES = 20;
 // (spec 3.1): twice the longest healthy start the probes saw, eight passes.
 const FIRST_TURN_WAIT_MS = 120000;
 // A heartbeat older than this is not this spawner's, or is one that stopped
-// working (spec 4.1): the longest silence between two beats is one `claude`
-// call and one sleep, under two seconds.
+// working (spec 4.1): the longest silence between two beats is one census
+// interval plus one census pass.
 const HEARTBEAT_STALE_MS = 60000;
 
 // The ops, in the order `templates/spawn-request.md` documents them.

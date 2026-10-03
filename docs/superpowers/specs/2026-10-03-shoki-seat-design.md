@@ -343,7 +343,7 @@ that beats and then sleeps. Without the last, a spawn whose seat never
 appears blocks about 55 to 60 s — thirty listings at 390 to 470 ms each
 plus thirty one-second sleeps (M-6), the transcript poll, the pre-spawn
 listing, and the `--bg` call — against the budget below. With it, the
-longest silence is one `claude` call plus one sleep, under two seconds, so
+longest silence is one census interval plus one census pass, so
 a beat older than `HEARTBEAT_STALE_MS` (60000) means the process behind
 `pid` is not this spawner, or is a spawner that has stopped working.
 
