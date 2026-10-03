@@ -1441,8 +1441,8 @@ subject, Date. An issue the human orders filed in the lane opens with
 
 **Where the commit lands.** Before committing, compare the branch the tree
 is on with where the commit is meant to land — the plan branch between
-batches, `main` between plans. When the checkout has moved to a branch a
-concurrent topic that you cut at its opening, a between-plans commit
+batches, `main` between plans. When the checkout has moved to a branch you cut for a
+concurrent topic at its opening, a between-plans commit
 would land there; ask the human, as a numbered question, before it does
 (issue-c3a9). Nothing here is pushed. A hotfix on a plan branch is named in
 your merge question.

@@ -88,6 +88,10 @@ Kanri relays it and answers as an `I-n`. When the passage rewrites Kanri's own
 procedure there is no one to relay to: Kanri answers it itself, and the spec
 records the answer under its answers to the spec inputs.
 
+Before dispatching the reviewer, answer in the spec every `I-n` that has
+reached you; a reviewer reading a document behind the ledger spends a
+finding saying so.
+
 Dispatch a reviewer on `spec.review` — read files; write exactly one file, the
 report named below — naming
 `subagent_type: tanto-spec-review` and its `model` together. Give it the spec,
@@ -130,7 +134,7 @@ stands, with one line to the human saying what is wrong with it. You never
 edit the brief: a subagent shares none of your context, and that is the whole
 of its value here.
 
-Apply any `I-n` that has reached you before this step; a reviewer reading a document behind the ledger spends a finding saying so. Write the ledger event `review-ready: <document path>; brief: <brief path>`
+Write the ledger event `review-ready: <document path>; brief: <brief path>`
 yourself, through
 `node "$TANTO/scripts/boundary.js" record --ledger <path> --event "<line>"`,
 the ledger being the one your orders line's `ledger=` names, else your own
