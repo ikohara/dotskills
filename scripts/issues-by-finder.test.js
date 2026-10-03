@@ -327,6 +327,7 @@ test("the exit codes: 0 on a completed run, 1 with one stderr line on a usage er
     ["--bogus"],
     ["--tanto", path.join(root, "no-such-tanto")],
     ["--exp", "t", "--docs", path.join(root, "no-such.md")],
+    ["--json", path.join(root, "no-such-json-dir", "out.json")],
   ];
   for (const args of cases) {
     const result = run(args, root);
@@ -334,6 +335,11 @@ test("the exit codes: 0 on a completed run, 1 with one stderr line on a usage er
     assert.equal(result.stdout, "", args.join(" "));
     assert.equal(result.stderr.trimEnd().split("\n").length, 1, args.join(" "));
   }
+  assert.equal(
+    fs.existsSync(path.join(root, "no-such-json-dir")),
+    false,
+    "--json into a missing directory writes nothing",
+  );
 });
 
 test("main writes through the io it is given and returns the exit code", () => {

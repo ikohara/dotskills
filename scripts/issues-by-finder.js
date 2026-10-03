@@ -548,6 +548,9 @@ function main(argv, io) {
     if (opts.tanto !== undefined) {
       mustExist(cwd, [opts.tanto], "--tanto path");
     }
+    if (opts.json !== undefined) {
+      mustExist(cwd, [path.dirname(opts.json)], "--json directory");
+    }
     const tanto = path.resolve(cwd, opts.tanto || ".tanto");
     const statuses = opts.status
       ? opts.status
