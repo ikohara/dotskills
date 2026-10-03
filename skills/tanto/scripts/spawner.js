@@ -431,7 +431,7 @@ function idleLine(text) {
  */
 function removeUndelivered(root, seat, line) {
   seat.undelivered = line;
-  const got = runClaude(["rm", seat.id || seat.sessionId]);
+  const got = runWithEitherId("rm", seat, seat.sessionId);
   if (got.code !== 0 && !alreadyExited(got)) {
     appendLog(root, `spawn: ${seat.sessionId} rm failed — ${failureText(got)}`);
     return { error: `prompt not delivered: ${line}; claude rm: ${failureText(got)}` };

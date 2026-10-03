@@ -538,13 +538,27 @@ test("a spawn whose --bg line carries the idle note is an error, and its seat is
     calls(ws)
       .filter((argv) => argv[0] === "rm")
       .map((argv) => argv[1]),
-    ["bg01"],
+    ["sess-new"],
   );
   assert.equal(seats(ws)[0].status, "removed");
   assert.match(seats(ws)[0].undelivered, /\(idle — send a prompt to start\)$/);
   const log = fs.readFileSync(path.join(ws.root, ".tanto", "spawner", "log"), "utf8");
   assert.match(log, /spawn: sess-new removed — prompt not delivered/);
   assert.doesNotMatch(log, /guard stopped/);
+});
+
+test("an undelivered seat is removed by the short id when the build takes only that one", () => {
+  const ws = workspace();
+  setState(ws, { next: { idleNote: true }, idForm: "short" });
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.deepEqual(
+    calls(ws)
+      .filter((argv) => argv[0] === "rm")
+      .map((argv) => argv[1]),
+    ["sess-new", "bg01"],
+  );
+  assert.equal(seats(ws)[0].status, "removed");
 });
 
 test("stop and rm on a session the CLI has already dropped succeed, with a note (spec 5.1)", () => {
