@@ -2,7 +2,9 @@
 
 This report records the first run of the issue-triage topic on its own project: the liveness instrument's read of the 308-issue pile, the nine recommendation rounds, the three sittings in which the human answered them, and the apply that moved the issue files. It gives the measurements that run produced, each read from a command or a file named beside it, and it judges nothing. It is also where the Kikaku decision on the order of the next topics (`.tanto/kikaku/2026-10-01-topics-after-experience-layer.md`, section 6, "Rejected") says the question of the 09c2 side third ahead of the passage-plan generator "returns at the triage's close with numbers": the Assigned counts per carrier topic under "Assigned and Merged" are those numbers.
 
-The commands were run from the repository root on the tree as the apply and the two scripts left it (the nine `docs(issues): triage round ...` commits and the issues-by-finder commits are in). The files under `.tanto/` and `.superpowers/` are local to the run and are not tracked: `liveness.json`, `instrument-figures.txt`, `round-files.txt`, the nine `triage-R<part>-recommendation.md` and `triage-R<part>-direction.md`, the nine `apply-R<part>-list.tsv`, the conductor ledger `.tanto/tanto-issue-triage/kanri.md`, the `batch-*-verdict.md` files, and the three Kikaku decision files `.tanto/kikaku/2026-10-03-triage-sitting-1.md`, `-2.md` and `-3.md`. A figure that came out other than the plan expected is stated as it came out.
+The commands were run from the repository root on the tree as the apply and the two scripts left it (the nine `docs(issues): triage round ...` commits, the `feat(scripts): issues-by-finder` commit and the `docs(notes)` commit that names the count's command are in). The files under `.tanto/` and `.superpowers/` are local to the run and are not tracked: `liveness.json`, `instrument-figures.txt`, `round-files.txt`, the nine `triage-R<part>-recommendation.md` and `triage-R<part>-direction.md`, the nine `apply-R<part>-list.tsv`, the conductor ledger `.tanto/tanto-issue-triage/kanri.md`, the controller's notes `.superpowers/sdd/2026-10-02-tanto-issue-triage/batch-E-notes.md`, the `batch-*-verdict.md` files, and the three Kikaku decision files `.tanto/kikaku/2026-10-03-triage-sitting-1.md`, `-2.md` and `-3.md`. A figure that came out other than the plan expected is stated as it came out.
+
+Words this report uses as the run used them. The **instrument** is `scripts/issue-liveness.js`: it reads each issue's quoted strings and backticked paths against `main` and gives the issue a verdict (alive, gone, partly, none). A **round file** is one of the nine liveness tables (`liveness-R<part>.md`, parts 1, 2a, 2b, 3, 4a, 4b, 5, 6a, 6b); the **recommendation** for a round gives every issue a **destination**: **Landed** (closed on `main` by a named commit; the file moves to `resolved/`), **Merged** (folded into a **carrier** issue, which stays where it is and gains a `Carries` line), **Assigned** (handed to a later topic by a line appended to the issue), **Re-hung** (tied to an experience-layer scene expectation, `exp-<id>`, by a `Serves` line), or **Kept** (untouched). A **sitting** is the human's reading of a batch's recommendations; the answer, given through a Kikaku decision file, is written as the round's **direction file**, which lists only the items changed from the recommendation. **Kessai** is the request for that answer. `R-n` names a ruling and `S-n` a shoroku proposal row in the conductor ledger `.tanto/tanto-issue-triage/kanri.md`; a **boundary** is the check that closes a batch, recorded in its **verdict file**. **Wants no scene states** lists wants an issue states that no scene line yet states.
 
 ## The instrument
 
@@ -159,7 +161,7 @@ docs(issues): triage round 2a — landed 0, merged 0, assigned 7, re-hung 4
 docs(issues): triage round 1 — landed 0, merged 3, assigned 40, re-hung 0
 ```
 
-The cross-check agrees on every cell. For each of the nine rounds the four counts in the subject (landed, merged, assigned, re-hung) equal the table's four columns, and the Kept column is the list's remainder: each row's six cells sum to the round's count in `liveness.json`'s `rounds` array (50, 40, 39, 28, 32, 32, 25, 31, 31). The total row (Landed 15, Merged 5, Assigned 60, Re-hung 19, Kept 209) is the column sums, and each row matches the independent per-round count written in the batch E notes before the apply ran. The subjects carry no Kept count, so the Kept column rests on the lists alone. No difference was found.
+The cross-check agrees on every cell. For each of the nine rounds the four counts in the subject (landed, merged, assigned, re-hung) equal the table's four columns, and the Kept column is the list's remainder: each row's six cells sum to the round's count in `liveness.json`'s `rounds` array (50, 40, 39, 28, 32, 32, 25, 31, 31). The total row (Landed 15, Merged 5, Assigned 60, Re-hung 19, Kept 209) is the column sums, and each row matches the independent per-round count the controller wrote in `.superpowers/sdd/2026-10-02-tanto-issue-triage/batch-E-notes.md` before the apply ran (landed 15, merged 5, assigned 60, re-hung 19, kept 209). The subjects carry no Kept count, so the Kept column rests on the lists alone. No difference was found.
 
 ## Assigned and Merged
 
@@ -243,7 +245,14 @@ R6b: - issue-7fa4 — a seat whose turn stopped advancing is surfaced to the use
 
 By the nearest scene each bullet names: `exp-06b2` 18, `exp-12dc` 7, `exp-09c2` 3, `exp-7bb3` 2, `exp-bcf4` 2, `exp-053f` 1, `none` 2 (35 in all).
 
-**Effective destinations.** Joined to the lists, all 35 bullets' issues are Kept: 35 of 35, none Landed, Merged, Assigned or Re-hung. The join (a script run from a scratch file, reading column 3 of the issue's own round list) found every bullet's id in its own round's list and no non-Kept destination, so no bullet carries a destination note. The 35 bullets are for a later run to write into scenes at the human's word; nothing here writes them.
+**Effective destinations.** Joined to the lists, all 35 bullets' issues are Kept: 35 of 35, none Landed, Merged, Assigned or Re-hung. The join below, reading column 3 of each bullet's own round list, printed `35 Kept` and nothing else, so no bullet carries a destination note.
+
+```bash
+d=.tanto/tanto-issue-triage
+for p in $(tr -d '\r' < "$d/round-files.txt"); do awk '{sub(/\r$/, "")} /^## / {s = $0; next} s == "## Wants no scene states" && /^- issue-/ {print substr($2, 7, 4)}' "$d/triage-R$p-recommendation.md" | while read -r id; do awk -F'\t' -v id="$id" '$2 == id {print $3}' "$d/apply-R$p-list.tsv"; done; done | sort | uniq -c
+```
+
+The 35 bullets are for a later run to write into scenes at the human's word; nothing here writes them.
 
 ## Issues by finder
 
@@ -463,9 +472,9 @@ issues counted: 407
 
 Four facts to read the output by, each measured and none a judgment:
 
-- **The attributable share is 84 of 407.** The text prints it as 20.6%. A JSON form of the same share would carry the fraction 0.2063… (84 divided by 407 is 0.20638…), not the rounded percentage. The output holds 21 `## By finder` sections: the 20 named topics and the dash topic (`—`, the issues that carry no topic), which is last. Only the 20 named topics reach a finder; the dash topic's 217 issues are session, inbox and no-source issues and are counted by their source kind.
-- **Duplicate ledger ids.** `.tanto/bg-seat-ergonomics/kanri.md` holds duplicate ids S-28, S-29, S-30, S-34, S-35 and S-36, each with a different Source cell on its second row. The counter takes the first row for an id, so an issue that cites one of those six ids may be attributed to the first row's finder, not the one the issue meant. The size of that effect on the table above was not measured.
-- **Truncated `unmapped` labels.** The two `unmapped (...)` labels under `bug-report-hold` are cut by the counter at a fixed width (`unmapped (spec`2026-09-19-bug-report-hold-design.)` and `unmapped (`shoroku-at-close`'s own R-19 (this topi)`); they are printed as the counter printed them.
+- **The attributable share is 84 of 407.** The text prints it as 20.6%. A JSON form of the same share would carry the fraction 0.2063… (84 divided by 407 is 0.20638…), not the rounded percentage. The output holds 21 `## By finder` sections (`node scripts/issues-by-finder.js | grep -c '^## By finder — '` prints 21): the 20 named topics and the dash topic (`—`, the issues that carry no topic), which is last. Only the 20 named topics reach a finder; the dash topic's 217 issues are session, inbox and no-source issues and are counted by their source kind.
+- **Duplicate ledger ids.** `.tanto/bg-seat-ergonomics/kanri.md` holds duplicate ids S-28, S-29, S-30, S-34, S-35 and S-36 (`grep -oE '^\| S-[0-9]+ \|' .tanto/bg-seat-ergonomics/kanri.md | sort | uniq -d` prints exactly those six), each with a different Source cell on its second row. The counter takes the first row for an id, so an issue that cites one of those six ids may be attributed to the first row's finder, not the one the issue meant. The size of that effect on the table above was not measured.
+- **Truncated `unmapped` labels.** The two `unmapped (...)` labels under `bug-report-hold` are cut by the counter at a fixed width (``unmapped (spec `2026-09-19-bug-report-hold-design.)`` and ``unmapped (`shoroku-at-close`'s own R-19 (this topi)``); they are printed as the counter printed them.
 - **This topic has no section.** `tanto-issue-triage` does not appear among the topics of the output.
 
 ## Unprompted exp- ids
@@ -491,16 +500,20 @@ unprompted: 14
 **The count is 14, and what it measures.** The unprompted ids are the documents' `exp-<id>` references that the inputs do not hold. Three limits of the recipe, applied faithfully as the note gives it, change what 14 means:
 
 - **Four of the 14 are not references.** `aaaa`, `bbbb`, `cccc` and `eeee` are the illustrative ids in the spec's and the plan's own test-fixture prose, so they are in the documents' side without being a reference to a scene. Without them the count is 10.
-- **The inputs side counts any bare four-hex word.** The `inputs ids` line is long (280) because it holds every four-character hex-looking word in the input files, among them the year `2026`. That makes the inputs side wider than the issue-id and expectation-id references it is meant to hold. The effect runs one way: a document id whose four characters also appear as a bare word in some input file is taken as prompted, so the 14 can undercount the unprompted references and cannot overcount them. The line shows three of the 17 documents' ids (`06b2`, `09c2`, `27e8`) on the inputs side, which is the 17 less 14. The report does not say how many of those three are real prompts.
+- **The inputs side counts any bare four-hex word.** The `inputs ids` line is long (280) because it holds every four-character hex-looking word in the input files, among them the year `2026`. That makes the inputs side wider than the issue-id and expectation-id references it is meant to hold. The effect runs one way: a document id whose four characters also appear as a bare word in some input file is taken as prompted, so on this side the 14 can only undercount the unprompted references. The four fixture ids of the first bullet are the opposite error, on the documents side; the two do not cancel, and 10 — the count with the fixtures removed — is still a floor. The line shows three of the 17 documents' ids (`06b2`, `09c2`, `27e8`) on the inputs side, which is the 17 less 14. The report does not say how many of those three are real prompts.
 - **Nothing was skipped.** The `skipped` line reads `(none)`: every named file was read.
 
 ## The working note and the traces
 
 Source: the last three lines of `instrument-figures.txt` (printed in full under "The instrument"). The working note is `.tanto/kikaku/2026-10-01-issue-clusters.md`.
 
-- **Agreement with the working note's placements.** The note placed 259 issues. 240 of them were still in the pile on the instrument's date, and that is the denominator. The instrument placed 162 of the 240 in the same cluster as the note did: 162 of 240, 67.5% (the percentage is this report's arithmetic from the two printed figures; the instrument prints the counts only). The 19 note-placed issues no longer in the pile are the difference between 259 and 240.
+- **Agreement with the working note's placements.** The note holds 259 placed lines (the figures file's unit). 240 of them name an issue still in the pile on the instrument's date, and that is the denominator. The instrument placed 162 of the 240 in the same cluster as the note did: 162 of 240, 67.5% (the percentage is this report's arithmetic from the two printed figures; the instrument prints the counts only). The 19 placed lines whose issue is no longer in the pile are the difference between 259 and 240.
 - **The probe.** The probe's 52 listed ids: 48 were still in the pile, and 45 of those 48 read gone or partly.
 - **The `no commit found` rows.** The figures file prints `no commit found: 307 gone items in 156 issues`. The unit is a gone item (a quoted passage or a path in an issue's text that no longer reads in the tree), not an issue: 307 gone items for which no removing commit was found, spread over 156 issues. As a cross-check, a recount over `liveness.json` of the items whose `state` is `gone` found 327 gone items in all, 307 with no `removedBy` in 156 issues and 20 with one in 15 issues; the 307 and the 156 agree with the figures file. The 18 issues with a `gone` verdict (see "The instrument") are a different unit from either: an issue's verdict, not an item's state.
+
+  ```bash
+  node -e 'const r=require("./.tanto/tanto-issue-triage/liveness.json").slice(1);let g=0,n=0,w=0;const ni=new Set(),wi=new Set();for(const x of r)for(const i of x.items)if(i.state==="gone"){g++;if(i.removedBy){w++;wi.add(x.id)}else{n++;ni.add(x.id)}}console.log(`gone items ${g}; no removedBy ${n} in ${ni.size} issues; with removedBy ${w} in ${wi.size} issues`)'
+  ```
 
 ## The human's changes and the sittings
 
@@ -528,6 +541,22 @@ for p in $(tr -d '\r' < "$d/round-files.txt"); do n=$(grep -cE "^R$p: [0-9]+ は
 
 The plan's form `^[0-9]+ —` matched 0 lines in every file (R1 to R6b, all nine), run as the plan wrote it. The 44 equals the ledger's own record of the human's answer (R-14: "44 overrides", per round 20, 4, 1, 2, 1, 3, 3, 3, 7). It also equals the number of rows whose column 5 reads `direction` in the nine lists (read with `cut -f3,5` over the lists): 32 Assigned, 11 Landed and 1 Merged. The other 264 rows are the recommendation's own (209 Kept, 28 Assigned, 19 Re-hung, 4 Merged, 4 Landed). The 11 Landed rows carry the `subject:` line the human named, per the ledger's R-14.
 
+```bash
+d=.tanto/tanto-issue-triage
+for p in $(tr -d '\r' < "$d/round-files.txt"); do cut -f3,5 "$d/apply-R$p-list.tsv"; done | sort | uniq -c
+```
+
+```text
+     32 Assigned direction
+     28 Assigned recommendation
+    209 Kept recommendation
+     11 Landed direction
+      4 Landed recommendation
+      1 Merged direction
+      4 Merged recommendation
+     19 Re-hung recommendation
+```
+
 ### How long each sitting waited
 
 Source: the first four lines of each direction file (its `Route:` and `Date:` lines), the ledger `.tanto/tanto-issue-triage/kanri.md` (the Batches rows and the Session events lines), and the modification times of the `batch-*-verdict.md`, the three decision files and the direction files.
@@ -537,11 +566,14 @@ d=.tanto/tanto-issue-triage
 for p in $(tr -d '\r' < "$d/round-files.txt"); do printf '== R%s\n' "$p"; sed -n '1,4p' "$d/triage-R$p-direction.md"; done
 grep -n -E '^\| [A-Z]' "$d/kanri.md" | head -20
 ls -l --time-style=+%F_%T "$d"/batch-*-verdict.md
+ls -l --time-style=+%F_%T .tanto/kikaku/2026-10-03-triage-sitting-*.md "$d"/triage-R*-direction.md "$d/batch-E-prompt.md"
+grep -n -E '^- 2026-' "$d/kanri.md"
+sed -n '/^## Progress/,/^## Plan/p' "$d/kanri.md"
 ```
 
-**What the direction headers carry.** Each of the nine files opens with a `Route:` line and a `Date:` line and nothing more: the date is `2026-10-03` in all nine, and no file carries a time. The route is the Kikaku decision file of the file's sitting (`.tanto/kikaku/2026-10-03-triage-sitting-1.md` for R1, R2a, R2b; `-2.md` for R3, R4a, R4b; `-3.md` for R5, R6a, R6b), each noted as "decision-9cc5's route". The sitting grouping is therefore three, as the files group the rounds; the spec called for two sittings, after batch B and after batch C.
+**What the direction headers carry.** Each of the nine files opens with a `Route:` line and a `Date:` line and nothing more: the date is `2026-10-03` in all nine, and no file carries a time. The route is the Kikaku decision file of the file's sitting (`.tanto/kikaku/2026-10-03-triage-sitting-1.md` for R1, R2a, R2b; `-2.md` for R3, R4a, R4b; `-3.md` for R5, R6a, R6b), each noted as "decision-9cc5's route". The sitting grouping is therefore three, as the files group the rounds; the spec called for two sittings, after batch B and after batch C; the plan's Deviations item 1 ("three recommend sittings, not two") added sitting 3 after batch D once the instrument split three rounds in two, and its Batches table row D names it.
 
-**What the ledger carries.** The Batches rows (A, B, C, B-rework-1, B-rework-2, D, E) carry a state, the prompt and report paths and a verdict, and no date or time. The ledger's R-n rulings carry a date at most (R-4 and R-7 name 2026-10-02, R-14 names 2026-10-03) and no time. The only times in the ledger are the Session events lines: topic opened 2026-10-02 12:55; spec review-ready 2026-10-02 16:51; plan review-ready 2026-10-02 19:42; batch A dispatched 2026-10-02 20:30; a handover accepted 2026-10-03 08:08. No line carries the time a batch boundary was accepted or the time the human's kessai was asked, so the ledger gives no boundary time for any sitting.
+**What the ledger carries.** The Batches rows (A, B, C, B-rework-1, B-rework-2, D, E) carry a state, the prompt and report paths and a verdict, and no date or time. The ledger's R-n rulings carry a date at most (R-1 and R-3 name 2026-10-01; R-2, R-4, R-7, R-8 and R-10 name 2026-10-02; R-14 names 2026-10-03; the other seven name no date) and no time. The only times in the ledger are the Session events lines: topic opened 2026-10-02 12:55; spec review-ready 2026-10-02 16:51; plan review-ready 2026-10-02 19:42; three review-seat dispatches tagged batch A — spec.review, plan.review, plan.coldread — 2026-10-02 20:30, none of them batch A's own dispatch; a handover accepted 2026-10-03 08:08. The Progress section is one line with no time, and the Measurements table's When column holds dates only. No line carries the time a batch boundary was accepted or the time the human's kessai was asked, so the ledger gives no boundary time for any sitting.
 
 **What the files' modification times carry.** The verdict files, which stand for the boundary that closed each batch:
 
@@ -564,4 +596,4 @@ ls -l --time-style=+%F_%T "$d"/batch-*-verdict.md
 | 2 (R3, R4a, R4b) | `batch-C-verdict.md` (2026-10-02 22:55:58) | 2026-10-03 08:03:45 | 2026-10-03 08:05:31 | 9 h 08 min | 9 h 10 min |
 | 3 (R5, R6a, R6b) | `batch-D-verdict.md` (2026-10-03 00:27:00) | 2026-10-03 08:03:46 | 2026-10-03 08:05:31 | 7 h 37 min | 7 h 39 min |
 
-**The precision these figures have.** The direction headers carry a day and no time, and the ledger carries no boundary time, so the ledger and the headers give each sitting's wait to the day only, and on that reading all three waited from the night of 2026-10-02 into the morning of 2026-10-03. The hours in the table come from the files' last-write times alone, so they are approximate in two ways. First, a verdict file's last-write time is when the verdict was written, not when Kanri accepted it or asked the human to answer; the ledger holds no such time, so the wait the human experienced starts at some unrecorded point after it, and the figures are upper bounds on that. Second, a last-write time can be later than the first write; a file edited afterward reads late. The three sittings were answered together, in one consultation that wrote the three decision files within ten seconds of one another, so the three waits differ only because the three boundaries came at different hours of the night: the table measures how long each boundary's verdict sat before the one answer, not three separate sittings. The nine direction files carry one modification time (08:05:31), so they were written, or last written, together, about two minutes after the decision files; the spec's wording is that each is written "the moment that round's answer is complete". The handover line at 08:08 on 2026-10-03 and the batch E prompt's own modification time (08:08:37) both come after the direction files.
+**The precision these figures have.** The direction headers carry a day and no time, and the ledger carries no boundary time, so the ledger and the headers give each sitting's wait to the day only, and on that reading all three waited from the night of 2026-10-02 into the morning of 2026-10-03. The hours in the table come from the files' last-write times alone, so they are approximate in two ways. First, a verdict file's last-write time is when the verdict was written, not when Kanri accepted it or asked the human to answer; the ledger holds no such time, so the wait the human experienced starts at some unrecorded point after it, and the figures are upper bounds on that only if no verdict file was written again after its boundary — the second caveat cuts the other way. Second, a last-write time can be later than the first write; a file edited afterward reads late. The three sittings were answered together, in one consultation that wrote the three decision files within ten seconds of one another, so the three waits differ only because the three boundaries came at different hours of the night: the table measures how long each boundary's verdict sat before the one answer, not three separately timed answers. The nine direction files carry one modification time (08:05:31), so they were written, or last written, together, about two minutes after the decision files; the spec's wording is that each is written "the moment that round's answer is complete". The handover line at 08:08 on 2026-10-03 and the batch E prompt's own modification time (08:08:37) both come after the direction files.
