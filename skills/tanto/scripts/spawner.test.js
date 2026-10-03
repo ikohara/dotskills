@@ -126,6 +126,9 @@ if (argv.includes("--bg")) {
   // id, which is what the spawner's fallback parse of this line is for.
   const printed = session.id;
   if (next.noListedId) delete session.id;
+  // next.foreign: a session another repository started in the same seconds,
+  // listed ahead of this one (spec 2.3).
+  if (next.foreign) state.sessions.push(next.foreign);
   state.sessions.push(session);
   save();
   // next.idleNote: the note the CLI prints for a session started with no
@@ -819,14 +822,68 @@ test("the guard compares the paths with the separators unified and, on Windows, 
   assert.equal(seats(ws)[0].status, "stopped");
 });
 
-test("the guard leaves a seat whose request named a worktree alone", () => {
+test("the guard leaves alone a seat running in the worktree Kanri cut for it", () => {
   const ws = workspace();
-  setState(ws, { next: { cwd: path.join(ws.root, ".claude", "worktrees", "shoki-t") } });
+  const worktree = path.join(ws.root, ".claude", "worktrees", "shoki-t");
+  fs.mkdirSync(worktree, { recursive: true });
+  setState(ws, { next: { cwd: worktree } });
   request(ws, { ...SPAWN, role: "shoki", worktree: "shoki-t", addDir: [ws.root] });
   run(ws, ["run", "--root", ws.root, "--once"]);
   run(ws, ["run", "--root", ws.root, "--once"]);
   assert.equal(seats(ws)[0].status, "running");
   assert.equal(calls(ws).filter((argv) => argv[0] === "stop").length, 0);
+});
+
+test("a worktree request runs claude --bg in the directory Kanri cut, with no -w (spec 2.2)", () => {
+  const ws = workspace();
+  const worktree = path.join(ws.root, ".claude", "worktrees", "shoki-t");
+  fs.mkdirSync(worktree, { recursive: true });
+  setState(ws, { next: { cwd: worktree } });
+  const { id } = request(ws, { ...SPAWN, role: "shoki", worktree: "shoki-t", addDir: [ws.root] });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(result(ws, id).error, undefined);
+  const spawned = calls(ws).find((argv) => argv.includes("--bg"));
+  assert.equal(spawned.includes("-w"), false);
+  const state = JSON.parse(fs.readFileSync(ws.state, "utf8"));
+  assert.equal(fs.realpathSync(state.cwdSeen), fs.realpathSync(worktree));
+  assert.equal(seats(ws)[0].cwd, worktree);
+  assert.equal(seats(ws)[0].status, "running");
+});
+
+test("a worktree request whose directory is not there is an error, and claude --bg never runs (spec 2.2)", () => {
+  const ws = workspace();
+  const { id } = request(ws, { ...SPAWN, role: "shoki", worktree: "shoki-t", addDir: [ws.root] });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.match(result(ws, id).error, /^worktree .*shoki-t is not a directory$/);
+  assert.equal(calls(ws).filter((argv) => argv.includes("--bg")).length, 0);
+  assert.equal(seats(ws).length, 0);
+});
+
+test("a spawn adopts the new session under the root, never one another repository started meanwhile (spec 2.3)", () => {
+  const ws = workspace();
+  const worktree = path.join(ws.root, ".claude", "worktrees", "shoki-t");
+  fs.mkdirSync(worktree, { recursive: true });
+  const foreign = {
+    sessionId: "sess-foreign",
+    name: "elsewhere",
+    cwd: path.dirname(ws.root),
+    kind: "background",
+    state: "running",
+    id: "bg99",
+    pid: 999,
+  };
+  setState(ws, { next: { sessionId: "sess-shoki", cwd: worktree, foreign } });
+  const { id } = request(ws, { ...SPAWN, role: "shoki", worktree: "shoki-t", addDir: [ws.root] });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(result(ws, id).sessionId, "sess-shoki");
+  assert.deepEqual(
+    seats(ws).map((s) => s.sessionId),
+    ["sess-shoki"],
+  );
+  assert.equal(
+    calls(ws).some((argv) => argv[0] === "agents" && argv.includes("--cwd")),
+    false,
+  );
 });
 
 test("the census revives a gone seat the listing holds again, and never a stopped one", () => {

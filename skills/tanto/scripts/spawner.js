@@ -131,19 +131,30 @@ function claudeCommand(args) {
   return { file: process.env.TANTO_CLAUDE || "claude", args };
 }
 
-function runClaude(args) {
+/**
+ * Run the CLI. `cwd` is the child's working directory — a worktree seat's
+ * spawn alone passes one (spec 2.2); every other call inherits the root,
+ * which `cmdRun` made this process's own.
+ */
+function runClaude(args, cwd) {
   const command = claudeCommand(args);
   const result = spawnSync(command.file, command.args, {
     encoding: "utf8",
     windowsHide: true,
+    ...(cwd ? { cwd } : {}),
   });
   const err = result.stderr || (result.error ? String(result.error.message) : "");
   return { code: result.status === null ? 1 : result.status, out: result.stdout || "", err };
 }
 
-/** `claude agents --json --cwd <root>`, parsed. Never throws. */
+/**
+ * `claude agents --json`, parsed, keeping the entries whose listed `cwd` is
+ * the root or under it (`underRoot`, spec 2.3). No `--cwd`: the CLI's
+ * filter is measured for the root alone, and a seat whose cwd is a worktree
+ * under the root may be keyed elsewhere. Never throws.
+ */
 function listAgents(root) {
-  const got = runClaude(["agents", "--json", "--cwd", root]);
+  const got = runClaude(["agents", "--json"]);
   if (got.code !== 0) {
     return { sessions: [], error: got.err.trim() || `claude agents exited ${got.code}` };
   }
@@ -153,8 +164,8 @@ function listAgents(root) {
   } catch {
     return { sessions: [], error: "claude agents --json did not print JSON" };
   }
-  if (Array.isArray(parsed)) return { sessions: parsed };
-  return { sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [] };
+  const all = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.sessions) ? parsed.sessions : [];
+  return { sessions: all.filter((s) => underRoot(root, s?.cwd)) };
 }
 
 function configDir() {
@@ -294,6 +305,18 @@ function comparablePath(p) {
   return process.platform === "win32" ? unified.toLowerCase() : unified;
 }
 
+/**
+ * Whether a listed cwd is the root or a path under it: `boundary.js
+ * census`'s key, and every reader of the listing here (spec 2.3), so a
+ * session another repository starts in the same seconds is never adopted.
+ */
+function underRoot(root, cwd) {
+  if (!cwd) return false;
+  const base = comparablePath(root);
+  const here = comparablePath(cwd);
+  return here === base || here.startsWith(`${base}/`);
+}
+
 /** Whether a listed cwd lies under `<root>/.claude/worktrees/` (issue-aa37, spec 1.4). */
 function underAdHocWorktree(root, cwd) {
   if (!cwd) return false;
@@ -404,6 +427,14 @@ function findResumed(root, sessionId) {
 }
 
 function opSpawn(root, request, seats) {
+  // A worktree seat runs with the directory Kanri cut as its cwd (spec 2.2),
+  // never with `-w`: an ordinary session, so the harness's worktree isolation
+  // does not apply to it. A directory that is not there is an error before
+  // `claude --bg` runs.
+  const cwd = request.worktree ? path.join(root, ".claude", "worktrees", request.worktree) : null;
+  if (cwd && !fs.statSync(cwd, { throwIfNoEntry: false })?.isDirectory()) {
+    return { error: `worktree ${cwd} is not a directory` };
+  }
   // A transient failure here must not be swallowed into an empty `before`
   // set: `findNew` below would then adopt the first already-running session
   // it sees as the new seat (Important 9, branch-review.md).
@@ -411,7 +442,7 @@ function opSpawn(root, request, seats) {
   if (listing.error) return { error: `claude agents: ${listing.error}` };
   const before = new Set(listing.sessions.map((s) => s.sessionId));
   const name = seatName(root, request, seats);
-  const got = runClaude(spawnArgs(request, name));
+  const got = runClaude(spawnArgs(request, name), cwd);
   if (got.code !== 0) return { error: `claude --bg exited ${got.code}: ${got.err.trim()}` };
   // The idle note on a spawn is a prompt that never reached the seat (spec
   // 1.2). On a resume it is the CLI's normal line, and the resume op does not
@@ -422,7 +453,7 @@ function opSpawn(root, request, seats) {
   if (!session) {
     return {
       error:
-        "claude --bg exited 0 but `claude agents --json --cwd <root>` listed no new session within 30 s — " +
+        "claude --bg exited 0 but `claude agents --json` listed no new session under the root within its poll — " +
         "it may have started under another cwd",
     };
   }

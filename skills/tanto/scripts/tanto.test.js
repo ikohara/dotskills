@@ -44,6 +44,12 @@ after(() => {
 
 let counter = 0;
 
+// A listing fixture's cwd: the workspace root, which no fixture can name
+// before `workspace` makes it, so `ROOT` stands for it there. The real
+// listing carries a cwd on every entry, and every reader keeps only the
+// entries at or under the root (spec 2.3).
+const ROOT = Symbol("the workspace root");
+
 function workspace(sessions = []) {
   counter += 1;
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), `tanto-launch-${counter}-`)));
@@ -51,7 +57,8 @@ function workspace(sessions = []) {
   const fake = path.join(root, "fake-claude.js");
   fs.writeFileSync(fake, FAKE);
   const state = path.join(root, "fake-state.json");
-  fs.writeFileSync(state, JSON.stringify({ root, sessions, next: {} }));
+  const listed = sessions.map((s) => (s.cwd === ROOT ? { ...s, cwd: root } : s));
+  fs.writeFileSync(state, JSON.stringify({ root, sessions: listed, next: {} }));
   const ws = { root, fake, state, log: path.join(root, "fake-log.txt") };
   workspaces.push(ws);
   return ws;
@@ -142,7 +149,7 @@ function writeTrust(ws, accepted) {
 const LIVE_KANRI = {
   sessionId: "sess-live",
   name: "seat-live [ffffff]",
-  cwd: null,
+  cwd: ROOT,
   kind: "background",
   state: "running",
   id: "bg07",
@@ -194,7 +201,7 @@ test("a live background Kanri is attached to, not spawned again", () => {
     {
       sessionId: "sess-live",
       name: "seat-live [ffffff]",
-      cwd: null,
+      cwd: ROOT,
       kind: "background",
       state: "running",
       id: "bg07",
@@ -209,7 +216,7 @@ test("a live background Kanri is attached to, not spawned again", () => {
 
 test("an interactive first row is reported and not attached to", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: ROOT, kind: "interactive", id: "tab1", pid: 1111 },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   const got = launch(ws, [ws.root, "--timeout", "20000"]);
@@ -219,7 +226,7 @@ test("an interactive first row is reported and not attached to", () => {
 
 test("a handover file asks for a Kanri whatever the roster says", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: ROOT, kind: "interactive", id: "tab1", pid: 1111 },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   fs.writeFileSync(path.join(ws.root, ".tanto", "kanri-handover.md"), "# tanto Kanri handover\n");
@@ -237,11 +244,11 @@ test("a handover file with a successor already in seats.json is attached to, not
   // (Important 1) refuses to attach to a seats.json row the CLI does not
   // list.
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: ROOT, kind: "interactive", id: "tab1", pid: 1111 },
     {
       sessionId: "sess-new-kanri",
       name: "seat-new [aaaaaa]",
-      cwd: null,
+      cwd: ROOT,
       kind: "background",
       state: "running",
       id: "bg09",
@@ -269,7 +276,7 @@ test("a handover file with only the outgoing Kanri in seats.json still spawns a 
   // OUTGOING Kanri's own row here — the only kanri row that exists — and
   // wrongly suppressed the spawn request that creates the real successor.
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: ROOT, kind: "interactive", id: "tab1", pid: 1111 },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   const handoverFile = path.join(ws.root, ".tanto", "kanri-handover.md");
@@ -288,11 +295,11 @@ test("a handover file with only the outgoing Kanri in seats.json still spawns a 
 
 test("a handover file with both the outgoing Kanri and a live successor attaches to the successor (C-2b)", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: ROOT, kind: "interactive", id: "tab1", pid: 1111 },
     {
       sessionId: "sess-successor",
       name: "seat-new [aaaaaa]",
-      cwd: null,
+      cwd: ROOT,
       kind: "background",
       state: "running",
       id: "bg09",
@@ -342,7 +349,7 @@ test("a running seat the listing lost is resumed, and fukki is printed", () => {
     {
       sessionId: "sess-live",
       name: "seat-live [ffffff]",
-      cwd: null,
+      cwd: ROOT,
       kind: "background",
       state: "running",
       id: "bg07",
@@ -368,7 +375,7 @@ test("a rebooted Kanri the listing lost is resumed, never spawned again", () => 
     {
       sessionId: "sess-live",
       name: "seat-live [ffffff]",
-      cwd: null,
+      cwd: ROOT,
       kind: "background",
       state: "running",
       id: "bg07",
@@ -401,7 +408,7 @@ test("a Kanri seat with no roster row is resumed once, never spawned or double-r
     {
       sessionId: "sess-crashed",
       name: "seat-crashed [cccccc]",
-      cwd: null,
+      cwd: ROOT,
       kind: "background",
       state: "running",
       id: "bg05",
@@ -436,7 +443,7 @@ test("down --seats reports a failed stop and exits 1 (Important 6)", () => {
     {
       sessionId: "sess-live",
       name: "seat-live [ffffff]",
-      cwd: null,
+      cwd: ROOT,
       kind: "background",
       state: "running",
       id: "bg07",
@@ -465,7 +472,7 @@ test("down --seats keeps a following root from being consumed as its value (Mino
     {
       sessionId: "sess-live",
       name: "seat-live [ffffff]",
-      cwd: null,
+      cwd: ROOT,
       kind: "background",
       state: "running",
       id: "bg07",
@@ -497,7 +504,7 @@ test("down --seats keeps a following root from being consumed as its value (Mino
 
 test("an interactive first row with a resumed peer prints no attach or fukki line (Minor 10)", () => {
   const ws = workspace([
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "interactive", id: "tab1", pid: 1111 },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: ROOT, kind: "interactive", id: "tab1", pid: 1111 },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   writeSeats(ws, [
@@ -515,7 +522,7 @@ test("down --seats retires the run, and the next tanto spawns a fresh Kanri", ()
     {
       sessionId: "sess-live",
       name: "seat-live [ffffff]",
-      cwd: null,
+      cwd: ROOT,
       kind: "background",
       state: "running",
       id: "bg07",
@@ -542,7 +549,7 @@ test("a stopped seat is not resumed", () => {
     {
       sessionId: "sess-live",
       name: "seat-live [ffffff]",
-      cwd: null,
+      cwd: ROOT,
       kind: "background",
       state: "running",
       id: "bg07",
@@ -562,7 +569,7 @@ test("down stops the spawner and removes its pidfile", () => {
     {
       sessionId: "sess-live",
       name: "seat-live [ffffff]",
-      cwd: null,
+      cwd: ROOT,
       kind: "background",
       state: "running",
       id: "bg07",
@@ -583,7 +590,7 @@ test("down --seats writes a stop request for every running seat", () => {
     {
       sessionId: "sess-live",
       name: "seat-live [ffffff]",
-      cwd: null,
+      cwd: ROOT,
       kind: "background",
       state: "running",
       id: "bg07",
@@ -651,7 +658,7 @@ test("a pid-less listing entry is not read as a live seat, and gets a resume req
   const ws = workspace([
     // The measured real shape (R-11, S-54): a sessionId with no pid and no
     // status, for a process that already exited hours earlier.
-    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: null, kind: "background", state: "blocked" },
+    { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: ROOT, kind: "background", state: "blocked" },
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   writeSeats(ws, [
