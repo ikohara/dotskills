@@ -1102,7 +1102,7 @@ test("a seat the listing drops with no transcript goes gone with the mark; one w
   const seat = seats(ws)[0];
   assert.equal(seat.status, "gone");
   assert.match(seat.noFirstTurn, /\d/);
-  assert.deepEqual(notices(ws), [`no first turn: jisso t ${seat.name} — claude attach bg01`]);
+  assert.deepEqual(notices(ws), [`no first turn: jisso t ${seat.name}`]);
   assert.match(spawnerLog(ws), /census: sess-new gone — no first turn/);
 
   const second = workspace();

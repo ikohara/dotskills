@@ -731,13 +731,15 @@ function lookForTranscript(root, seat) {
 /**
  * A seat that has run no first turn (spec 3.1): marked once, with one toast
  * and one log line, and never stopped — the one cause the design knows is
- * closed at the spawn, and what reaches here is for the human to look at. A
- * seat with no `startedAtMs`, one from before this rule, is never judged.
+ * closed at the spawn, and what reaches here is for the human to look at. The
+ * attach hint rides only on a seat the listing still holds (a gone seat has no
+ * pid to attach to). A seat with no `startedAtMs`, one from before this rule,
+ * is never judged.
  */
-function noFirstTurn(root, seat, line) {
+function noFirstTurn(root, seat, line, listed = false) {
   if (seat.noFirstTurn || typeof seat.startedAtMs !== "number") return false;
   seat.noFirstTurn = stamp();
-  const where = seat.id ? ` — claude attach ${seat.id}` : "";
+  const where = listed && seat.id ? ` — claude attach ${seat.id}` : "";
   raiseNotice(`no first turn: ${seat.role} ${seat.topic} ${seat.name}${where}`);
   appendLog(root, line);
   return true;
@@ -775,7 +777,7 @@ function censusSeat(root, seat, session) {
   }
   if (lookForTranscript(root, seat)) return;
   if (nowMs() - seat.startedAtMs >= FIRST_TURN_WAIT_MS) {
-    noFirstTurn(root, seat, `census: ${seat.sessionId} no first turn after 2m`);
+    noFirstTurn(root, seat, `census: ${seat.sessionId} no first turn after 2m`, true);
   }
 }
 
