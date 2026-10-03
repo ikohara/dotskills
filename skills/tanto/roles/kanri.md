@@ -1235,15 +1235,29 @@ override the answer gave. An empty `fix` group merges on the answer
 directly.
 
 **The merge is where shoki is spawned, never before it.** In the same act
-as the merge, whichever form it took, write
-`.tanto/<topic>/shoki-brief.md` from `templates/shoki-brief.md` and its
-`spawn` request — `role: shoki`, `worktree: shoki-<topic>`,
-`addDir: [<root>]`, `sessions.shoki`'s family and effort, mode `auto`, the
-prompt the one line `brief: <that path>`. Whatever HEAD the CLI cuts that
-worktree from, shoki's own `git rebase main` is what lands the product's
-fixes before the records rather than after them. Started in the same
-act as shusei's own request it would race that batch, put the records on
-`main` first, and leave a rebase you never re-run.
+as the merge, whichever form it took, cut shoki's worktree from `main`'s
+tip, from the shared checkout whatever branch it is on:
+
+```console
+git worktree add <root>/.claude/worktrees/shoki-<topic> -b worktree-shoki-<topic> main
+```
+
+`git worktree add -b` refuses an existing branch and a non-empty existing
+directory, which a close that crashed before its landing leaves behind, so
+first remove a worktree or a branch of that name when one exists, as the
+landing below removes them (`git worktree remove --force --force`,
+`git branch -D`); when that removal fails, hold the merge act and tell the
+human in one line. Then write `.tanto/<topic>/shoki-brief.md` from
+`templates/shoki-brief.md` and its `spawn` request — `role: shoki`,
+`worktree: shoki-<topic>`, `addDir: [<root>]`, `sessions.shoki`'s family and
+effort, mode `auto`, the prompt the one line `brief: <that path>`. The
+spawner runs the seat with that directory as its cwd, never with `-w`, so
+the seat is not worktree-isolated and its writes into the main checkout go
+through. The worktree is cut from `main`'s tip, which already carries the
+product's fixes, so shoki's own `git rebase main` is a no-op unless `main`
+moved while it wrote — and it stays in the brief, because `main` may have.
+Started in the same act as shusei's own request it would race that batch,
+put the records on `main` first, and leave a rebase you never re-run.
 
 **The checkout is free the moment that merge lands, and two acts follow at
 once.** Cut the next topic's branch if it is not cut yet — `git checkout -b
@@ -1265,10 +1279,10 @@ swept inbox copy's Triage filled), fast-forward `main` onto it by the form
 own reading — `node "$TANTO/scripts/reading.js" <its transcript>`, written
 into its roster row — and only after it write the `rm` request: a
 transcript is not promised to survive `claude rm`, and taking the reading
-first costs nothing where it does survive. Then remove the worktree
-`claude rm` leaves locked — `git worktree remove --force --force
+first costs nothing where it does survive. Then remove the worktree you
+cut, which `claude rm` leaves — `git worktree remove --force --force
 <root>/.claude/worktrees/shoki-<topic>` — and delete the branch
-`worktree-shoki-<topic>` that `claude rm` keeps, move shoki's result file to
+`worktree-shoki-<topic>` you cut, move shoki's result file to
 `.tanto/<topic>/spawner-results/`, mark the `S-n` rows written, and write
 the Events line. A landing check that fails is a follow-up `docs:` commit
 through the hotfix lane, never a re-run of shoki. A `shoroku blocked:` line
@@ -1615,6 +1629,21 @@ What it prints decides:
   listed name and the `[ref]` one `ListAgents` call prints, and write
   `resumed: <old name> → <new name>`; for a terminal seat, clear the
   spawner's `renamed` mark with an `ack` request.
+- **Listed**, carrying `— blocked` — append `(blocked since <HH:MM>)`, this
+  census's time, to the row's `live` cell unless it carries one, and remove
+  it at a later census whose Listed line for that seat does not carry
+  `— blocked`. The suffix records the last census that saw the seat
+  blocked, not its state now: you run the census at the moments above, so
+  the cell can lag the seat by a batch, where `idle since` is written on the
+  seat's own report and does not. It names no cause — a permission prompt,
+  a usage-limit pause, and a seat idling on a kessai all read `blocked` —
+  and every reader tests the cell's first word.
+- **Listed** or **Not listed**, carrying `— no first turn since <stamp>` —
+  the spawner found no transcript for that seat two minutes after its spawn,
+  or saw it gone with none. Write one `attention` request whose message is
+  `no first turn: <role> <topic> — claude attach <id>`, once per seat, since
+  you see no toast and the human may have missed the spawner's; the seat is
+  not stopped.
 - **Not held** — nothing to the human. A session becomes the run's through
   a handshake or a result file, never by being listed.
 - **No session id** — nothing.
@@ -1650,7 +1679,7 @@ The requests you write, and the asks you make. **Requests:**
 | every later batch, and the fix wave | one `spawn` per batch, at its boundary | `/tanto jisso batch=<path>` |
 | the spec review is accepted | one `spawn` for Keikaku | `/tanto keikaku topic=<topic> spec=<path> plan=<path> ledger=<path>` — `ledger=` only when another topic's batch is in flight, naming that ledger |
 | the kessai is answered | one `spawn` for the shusei batch, when the direction accepted a `fix` group | `/tanto jisso batch=<path>` |
-| the merge lands | one `spawn` for shoki, in the same act as the merge and never before it | `brief: <path>` |
+| the merge lands | one `spawn` for shoki, after `git worktree add` cuts its worktree, in the same act as the merge and never before it | `brief: <path>` |
 | a handover is due | one `spawn` for your successor | `/tanto kanri` |
 | a seat retires, or the run goes down | one `stop` per seat | — |
 | the human asks in your window for a live terminal seat to be held for a while — a priority call, not a lifecycle signal | one `stop` for that seat, its row `stopped` with an Events line quoting the human's word, its conversation kept and no shoroku proposal asked, since nothing of the seat's is lost; when the human says so, one `resume` on the same `sessionId`, the resumed seat sent the Resuming line for its role, its row `live` again | — |
