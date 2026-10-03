@@ -50,6 +50,9 @@
   section in `.tanto/shoki-seat/dialogue.md` (D-3 to D-7, "OK" and "よい"),
   and it covers exactly this plan's passages — no task extends an edit
   beyond its own blocks on the strength of it.
+- AGENTS.md asks for a review of a skill's sibling `README.md` after
+  `SKILL.md` is edited; in this plan that review is Task 9's blocks and
+  nothing more, so no task but Task 9 touches `skills/tanto/README.md`.
 - Every commit lands on the branch `shoki-seat`. The merge into `main` is
   the human's, taken at the close; no task merges, rebases, or switches
   the branch.
@@ -114,7 +117,11 @@ each a Kanri ruling `R-n`.
   (`taskkill /PID <n>`, or `kill <n>`) — and, because a `tanto` run any
   time after Task 4 landed starts a second spawner beside the old one, ending
   every other `node` process whose command line holds `spawner.js` and `run`
-  (`tasklist /FI "IMAGENAME eq node.exe" /V`, or `pgrep -f spawner.js`),
+  (on Windows, in PowerShell 7: `Get-CimInstance Win32_Process -Filter
+  "Name='node.exe'" | Where-Object CommandLine -like '*spawner.js*' |
+  Select-Object ProcessId,CommandLine`, then `taskkill /PID <n>` for each —
+  `tasklist /V` shows a window title, not a command line, and `wmic` is
+  absent from current Windows 11; elsewhere `pgrep -f spawner.js`),
   which is also why `tanto down` may then print `spawner stopped` and no PID;
   then `tanto`. Kanri says in its line that the human runs no `tanto` before
   those acts, and the human tells Kanri if one was run. The seats keep
