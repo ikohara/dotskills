@@ -728,6 +728,21 @@ function sessionIdOf(transcript) {
     .replace(/\.jsonl$/, "");
 }
 
+/**
+ * The `noFirstTurn` marks of `<root>/.tanto/spawner/seats.json`, by
+ * `sessionId` (spec 3.3): empty when the file is absent or does not parse,
+ * so the census prints as it did before.
+ */
+function firstTurnMarks(root) {
+  try {
+    const doc = JSON.parse(fs.readFileSync(path.join(root, ".tanto", "spawner", "seats.json"), "utf8"));
+    const seats = Array.isArray(doc?.seats) ? doc.seats : [];
+    return new Map(seats.filter((s) => s?.sessionId && s.noFirstTurn).map((s) => [s.sessionId, s.noFirstTurn]));
+  } catch {
+    return new Map();
+  }
+}
+
 /** The four headings `census` prints, in order. */
 const CENSUS_HEADINGS = ["Listed", "Not listed", "No session id", "Not held"];
 
@@ -774,6 +789,10 @@ function cmdCensus(argv) {
   // 3.1): its row prints under Not listed with the signal named, by its
   // sessionId alone, since the row is already this repository's.
   const stale = new Set(all.filter((s) => s?.sessionId && !s.pid).map((s) => s.sessionId));
+  // The spawner's mark on a seat with no first turn, on the seat's Listed or
+  // Not listed line, so that Kanri, who sees no toast, reads it (spec 3.3).
+  const marks = firstTurnMarks(root);
+  const firstTurn = (sessionId) => (marks.has(sessionId) ? ` — no first turn since ${marks.get(sessionId)}` : "");
 
   const out = { Listed: [], "Not listed": [], "No session id": [], "Not held": [] };
   const held = new Set();
@@ -796,12 +815,16 @@ function cmdCensus(argv) {
     const session = listed.get(sessionId);
     if (!session) {
       const note = stale.has(sessionId) ? " — listed without a pid (a stale entry)" : "";
-      out["Not listed"].push(`${role} ${topic} ${name} — ${sessionId}${note}`);
+      out["Not listed"].push(`${role} ${topic} ${name} — ${sessionId}${note}${firstTurn(sessionId)}`);
       continue;
     }
     const bare = name.replace(/\s*\[[^\]]*\]$/, "");
     const renamed = session.name && session.name !== bare ? " — renamed" : "";
-    out.Listed.push(`${role} ${topic} ${name} — ${sessionId} — listed as ${session.name} (${session.kind})${renamed}`);
+    // The listing's `state`, for the roster's `live (blocked since <HH:MM>)`
+    // (spec 5.2): the census names no cause, since the listing gives none.
+    const blocked = session.state === "blocked" ? " — blocked" : "";
+    const listedAs = `listed as ${session.name} (${session.kind})`;
+    out.Listed.push(`${role} ${topic} ${name} — ${sessionId} — ${listedAs}${renamed}${blocked}${firstTurn(sessionId)}`);
   }
   for (const [sessionId, session] of listed) {
     if (held.has(sessionId)) continue;

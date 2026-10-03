@@ -1061,3 +1061,40 @@ test("census places a session whose cwd spells the root's drive letter in the ot
   assert.strictEqual(result.code, 0, result.err);
   assert.ok(result.out.includes("kanri — kanri-a [aaaaaa] — sess-kanri — listed as kanri-a (interactive)"), result.out);
 });
+
+test("census reads seats.json beside the roster: a blocked seat's line and a marked seat's line carry their suffixes (spec 3.3)", () => {
+  const f = censusFixture(
+    [
+      KANRI_ROW,
+      sessionRow("jisso", "t", "jisso-h", "live", "/home/u/.claude/projects/p/sess-jisso.jsonl"),
+      sessionRow("shoki", "t", "shoki-i", "live", "/home/u/.claude/projects/p/sess-shoki.jsonl"),
+    ],
+    (root) => [
+      { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, pid: 1111, state: "blocked" },
+      { sessionId: "sess-jisso", name: "jisso-h", kind: "background", cwd: root, pid: 1112, state: "blocked" },
+    ],
+  );
+  fs.mkdirSync(path.join(f.root, ".tanto", "spawner"), { recursive: true });
+  const seats = [
+    { sessionId: "sess-jisso", status: "blocked", noFirstTurn: "2026-10-03 10:02" },
+    { sessionId: "sess-shoki", status: "gone", noFirstTurn: "2026-10-03 10:05" },
+  ];
+  fs.writeFileSync(path.join(f.root, ".tanto", "spawner", "seats.json"), JSON.stringify({ seats }));
+  const result = census(f, "");
+  assert.strictEqual(result.code, 0, result.err);
+  assert.ok(
+    result.out.includes(
+      [
+        "\n## Listed\n",
+        "kanri — kanri-a [aaaaaa] — sess-kanri — listed as kanri-a (background) — blocked",
+        "jisso t jisso-h — sess-jisso — listed as jisso-h (background) — blocked — no first turn since 2026-10-03 10:02",
+        "",
+      ].join("\n"),
+    ),
+    result.out,
+  );
+  assert.ok(
+    result.out.includes("\n## Not listed\n\nshoki t shoki-i — sess-shoki — no first turn since 2026-10-03 10:05\n"),
+    result.out,
+  );
+});
