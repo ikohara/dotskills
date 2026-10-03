@@ -110,6 +110,19 @@ CLI 2.1.288:
   `state: blocked`; no entry has `cwd: null`. `claude rm --help` reads
   "Unlike `stop`, works on already-exited sessions". Probe 1's prompt-less
   session was listed with no `pid` (the decision's section 1).
+- **M-7** (the human's probe 4, 2026-10-03, after the review) — a worktree
+  cut by hand (`git worktree add .claude/worktrees/probe-rm -b
+  worktree-probe-rm main`), `claude --bg` run with it as cwd and the prompt
+  before `--add-dir`: `backgrounded · 633c934c · probe-rm`, no idle note;
+  `claude agents` run **from the worktree cwd with no argument listed
+  nothing** (its default filter is the cwd, and the session is not keyed
+  under it — M-1's other half); `claude rm 633c934c` printed
+  `removed 633c934c` and **left the worktree and its branch**:
+  `git worktree list` still showed `.claude/worktrees/probe-rm`
+  `[worktree-probe-rm]`; `git worktree remove --force --force` then
+  returned silently with no `Permission denied`, and `git branch -D`
+  deleted the branch. A `probe-g` directory from an earlier probe remained
+  on disk after its worktree had been pruned.
 
 ## 1. The command line, and a prompt that was not delivered
 
@@ -215,23 +228,23 @@ failed to list. One `claude agents` call per pass, as today.
 
 ### 2.4 The landing
 
-Unchanged in its steps, with one tolerance: `claude rm` deletes the
-session; whether it also removes a worktree it did not cut — one that is
-merely the session's cwd — is unmeasured, so Kanri's removal step reads
-"remove the worktree when `git worktree list` still shows it", and the
-fifth landing measurement (Verification) records which. The `rm` result's
-`worktree` field is what `claude rm` printed after `Removed worktree`, and
-absent when it printed none — the fallback to the request's own `worktree`
-name goes, since a name is not a removal. Kanri's
+Unchanged in its steps: `claude rm` deletes the session and leaves a
+worktree it did not cut — one that is merely the session's cwd — with its
+branch (M-7), so Kanri's
 `git worktree remove --force --force <root>/.claude/worktrees/shoki-<topic>`
-and `git branch -D worktree-shoki-<topic>` stand, the branch now Kanri's
-own from its cut. On a881: the `Permission denied` it measured is a
-Windows file lock — a process whose cwd is the directory, most likely the
-shoki process itself — not git's worktree lock, which `--force --force`
-already overrides; under this design as under the last the shoki process
-has that cwd, and `claude rm` ending it before the removal is what would
-release the lock. Whether it does is a measurement of this plan's own
-landing, not a promise of this design.
+and `git branch -D worktree-shoki-<topic>` stand as written, the branch now
+Kanri's own from its cut. The `rm` result's `worktree` field is what
+`claude rm` printed after `Removed worktree`, and absent when it printed
+none — which for shoki is always — so the fallback to the request's own
+`worktree` name goes, since a name is not a removal. On a881: the
+`Permission denied` it measured is a Windows file lock — a process whose
+cwd is the directory, most likely the shoki process itself — not git's
+worktree lock, which `--force --force` already overrides; under this
+design as under the last the shoki process has that cwd, and `claude rm`
+ending it before the removal is what releases the lock. M-7's removal
+after `rm` went through silently, one data point for it; whether the
+landing's does is the fourth measurement of Verification, not a promise of
+this design.
 
 ### 2.5 Tests
 
@@ -486,8 +499,8 @@ Every site by file and heading; the plan writes the passages.
   becomes the worktree being cut from `main`'s tip, the rebase kept for
   what `main` gains meanwhile, with 2.1's removal of a stale worktree or
   branch of the same name before the cut; "remove the worktree `claude rm`
-  leaves locked" becomes "remove the worktree you cut, when
-  `git worktree list` still shows it" (2.4), and "delete the branch
+  leaves locked" becomes "remove the worktree you cut, which `claude rm`
+  leaves" (2.4), and "delete the branch
   `worktree-shoki-<topic>` that `claude rm` keeps" becomes "delete the
   branch `worktree-shoki-<topic>` you cut"; "Create", the merge row: "one
   `spawn` for shoki, in the same act as the merge and never before it"
@@ -688,12 +701,9 @@ Written by the close's apply under `docs/decisions/`.
   whether its transcript appeared under `<repo slug>--claude-worktrees-shoki-shoki-seat`;
   whether its Triage fills and `shoroku-review.md` write were unrefused —
   the landing check "every swept inbox copy's Triage filled" passing is the
-  evidence; whether `git worktree remove --force --force` returned
-  without `Permission denied` (a881); and whether `git worktree list`
-  still showed the worktree after the `rm` result — that is, whether
-  `claude rm` removes a worktree it did not cut (2.4). The restart's
-  heartbeat check is a sixth, implicit: the spawn request was written only
-  after it held.
+  evidence; and whether `git worktree remove --force --force` returned
+  without `Permission denied` (a881). The restart's heartbeat check is a
+  fifth, implicit: the spawn request was written only after it held.
 
 ## Out of scope
 
@@ -783,3 +793,12 @@ the dialogue, which the close's recommender reads for itself.
 5. Measured (M-4): `seats.json`'s `startedAt` is a minute-precision string,
    so any rule that measures a seat's age needs the epoch value beside it —
    section 3.2's `startedAtMs`. Destination: notes.
+6. Measured (M-7): `claude rm` on a session whose cwd is a worktree the
+   CLI did not cut removes the session and leaves the worktree and its
+   branch; and `claude agents` with no argument, run from that worktree,
+   lists nothing — the listing's default filter keys a session on something
+   other than its process cwd. Destination: notes.
+7. Observation: a pruned worktree's directory stayed on disk (`probe-g`,
+   M-7) with no process in it hours later — a881's shape without a shoki,
+   which weakens "the shoki process holds the lock" as the whole account
+   and leaves the mechanism open. Destination: issues (a881's own text).
