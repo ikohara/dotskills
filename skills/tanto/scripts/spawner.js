@@ -734,10 +734,11 @@ function lookForTranscript(root, seat) {
  * closed at the spawn, and what reaches here is for the human to look at. The
  * attach hint rides only on a seat the listing still holds (a gone seat has no
  * pid to attach to). A seat with no `startedAtMs`, one from before this rule,
- * is never judged.
+ * is never judged. A seat whose prompt was not delivered (spec 1.2) is never
+ * marked: its cause is already in its result.
  */
 function noFirstTurn(root, seat, line, listed = false) {
-  if (seat.noFirstTurn || typeof seat.startedAtMs !== "number") return false;
+  if (seat.noFirstTurn || seat.undelivered || typeof seat.startedAtMs !== "number") return false;
   seat.noFirstTurn = stamp();
   const where = listed && seat.id ? ` — claude attach ${seat.id}` : "";
   raiseNotice(`no first turn: ${seat.role} ${seat.topic} ${seat.name}${where}`);

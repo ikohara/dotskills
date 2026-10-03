@@ -576,6 +576,17 @@ test("a failed spawn or resume with nothing on stderr reports the line it printe
   assert.equal(result(second, resume.id).error, "claude --resume: refused: no such session");
 });
 
+test("an undelivered seat whose rm failed is not marked as having run no first turn", () => {
+  const ws = workspace();
+  setState(ws, { next: { idleNote: true }, fail: { rm: "boom" } });
+  const { id } = request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.match(result(ws, id).error, /claude rm: boom$/);
+  run(ws, ["run", "--root", ws.root, "--once"], LATE);
+  assert.equal(seats(ws)[0].noFirstTurn, undefined);
+  assert.deepEqual(notices(ws), []);
+});
+
 test("stop and rm on a session the CLI has already dropped succeed, with a note (spec 5.1)", () => {
   const ws = workspace();
   request(ws, SPAWN);
