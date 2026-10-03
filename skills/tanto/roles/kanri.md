@@ -1633,8 +1633,8 @@ What it prints decides:
   census's time, to the row's `live` cell only where the cell carries no
   suffix — a cell already carrying `(blocked since …)` or `(idle since <HH:MM>)`
   keeps it, since a `live` cell carries one suffix (`SKILL.md`) and the idle
-  one is written on the seat's own report, the more specific fact — and remove
-  it at a later census whose Listed line for that seat does not carry
+  one is written on the seat's own report, the more specific fact — and remove `(blocked since …)`
+  at a later census whose Listed line for that seat does not carry
   `— blocked`. The suffix records the last census that saw the seat
   blocked, not its state now: you run the census at the moments above, so
   the cell can lag the seat by a batch, where `idle since` is written on the
@@ -1644,9 +1644,9 @@ What it prints decides:
 - **Listed** or **Not listed**, carrying `— no first turn since <stamp>` —
   the spawner found no transcript for that seat two minutes after its spawn,
   or saw it gone with none. Write one `attention` request whose message is
-  `no first turn: <role> <topic>`, with `— claude attach <id>` after it for
+  `no first turn: <role> <topic>`, with a space and `— claude attach <id>` after it for
   a **Listed** seat only: a Not listed seat is marked `dead` by the bullet
-  above and resumed, so there is nothing to attach. Once per seat, since you
+  above, with no transcript to resume it from, so there is nothing to attach. Once per seat, since you
   see no toast and the human may have missed the spawner's: the record is
   the roster Events line `no first turn: <name>` you write with the request,
   and a later census that prints the suffix for a seat that line names writes
