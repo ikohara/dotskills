@@ -847,7 +847,7 @@ say it in Kanri's window. **The intake is the target repository's `live`
 Hosa, else its Kanri**: the sender reads `<workspace>/.tanto/roster.md`,
 takes the bare `<name>` before the bracket of the `Name [ref]` column of the
 row whose Role is `hosa` and whose Status begins with `live` — Kanri appends
-the suffix `(idle since <HH:MM>)` to that cell while a Hosa idles — or, when there is
+one of the two suffixes the Status column names to that cell, `(idle since <HH:MM>)` while a Hosa idles — or, when there is
 none, of the first data row, the human supplying the workspace's path where the sender
 does not know it; checks that name against `ListAgents`; and asks the human
 for the address when the roster is absent — a workspace not yet migrated, or
