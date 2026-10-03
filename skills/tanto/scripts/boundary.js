@@ -558,7 +558,10 @@ function writeSeatRow(doc, file, written) {
     seat.mode || "auto",
     seat.startedAt || "—",
     "live",
-    seat.transcript || "unavailable",
+    // The path; a seat whose transcript is not on disk yet carries the bare
+    // `<sessionId>.jsonl`, which the census matches by `sessionId`, and
+    // `unavailable` stands only where the result held neither.
+    seat.transcript || (seat.sessionId ? `${seat.sessionId}.jsonl` : "unavailable"),
   ];
   const line = row(columns);
   let at = -1;

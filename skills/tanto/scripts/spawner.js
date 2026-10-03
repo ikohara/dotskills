@@ -243,7 +243,7 @@ function findTranscript(sessionId) {
  * some time after `claude agents --json` first lists the session, so one
  * look at the first sighting can miss it and freeze a `null` into the
  * result -- which `boundary.js record --seat` would then write into the
- * roster as `unavailable`, and `reading.js --share` would skip at the
+ * roster as `<sessionId>.jsonl`, and `reading.js --share` would skip at the
  * close. Ten seconds of looking costs nothing and narrows that window; the
  * census looks again at every pass while the seat has none (spec 3.1).
  */
