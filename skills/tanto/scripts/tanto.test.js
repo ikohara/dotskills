@@ -10,7 +10,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { spawnSync } = require("node:child_process");
+const { spawn, spawnSync } = require("node:child_process");
 
 const LAUNCHER = path.join(__dirname, "tanto.js");
 // The fake is spawner.test.js's, read out of its source rather than copied,
@@ -707,4 +707,98 @@ test("no trust hint when .claude.json records the trust, is missing, or does not
   fs.writeFileSync(file, "{ not json");
   assert.equal(launch(ws, [ws.root, "--timeout", "20000"]).out.includes(TRUST), false);
   assert.equal(fs.readFileSync(file, "utf8"), "{ not json");
+});
+
+/**
+ * A live process that is no spawner, recorded in the workspace's `pid` file
+ * (spec 4.3). A sleeping child the test ends itself stands for the PID a
+ * crashed spawner left behind: a launcher that signalled it would end this
+ * child, never the test's own process.
+ */
+function strangerPid(ws, heartbeat) {
+  const child = spawn(process.execPath, ["-e", "setTimeout(() => {}, 120000)"], {
+    stdio: "ignore",
+    windowsHide: true,
+  });
+  const dir = path.join(ws.root, ".tanto", "spawner");
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, "pid"), `${child.pid}\n`);
+  if (heartbeat !== undefined) fs.writeFileSync(path.join(dir, "heartbeat"), `${heartbeat}\n`);
+  return child;
+}
+
+function alive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+test("a live pid with no heartbeat is not trusted: tanto starts a spawner and logs the stale pid (spec 4.2)", () => {
+  const ws = workspace();
+  const child = strangerPid(ws);
+  try {
+    const got = launch(ws, [ws.root, "--timeout", "20000"]);
+    assert.equal(got.code, 0, got.err);
+    assert.match(got.out, /claude attach bg01/);
+    const dir = path.join(ws.root, ".tanto", "spawner");
+    assert.ok(fs.readFileSync(path.join(dir, "log"), "utf8").includes(`stale spawner pid ${child.pid} ignored`));
+    assert.notEqual(Number(fs.readFileSync(path.join(dir, "pid"), "utf8").trim()), child.pid);
+    assert.equal(alive(child.pid), true);
+  } finally {
+    child.kill();
+  }
+});
+
+test("a live pid with a heartbeat of now is a running spawner: tanto starts none (spec 4.2)", () => {
+  const ws = workspace();
+  const child = strangerPid(ws, Date.now());
+  const dir = path.join(ws.root, ".tanto", "spawner");
+  try {
+    // No spawner answers the Kanri request, so the launcher waits out its
+    // timeout; what matters is that it started nothing.
+    launch(ws, [ws.root, "--timeout", "1000"]);
+    assert.equal(Number(fs.readFileSync(path.join(dir, "pid"), "utf8").trim()), child.pid);
+    assert.equal(fs.existsSync(path.join(dir, "log")), false);
+  } finally {
+    child.kill();
+    fs.rmSync(path.join(dir, "pid"), { force: true });
+    fs.rmSync(path.join(dir, "heartbeat"), { force: true });
+  }
+});
+
+test("down with a stale heartbeat removes pid and heartbeat and signals nothing (spec 4.2)", () => {
+  const ws = workspace();
+  const child = strangerPid(ws, Date.now() - 120000);
+  const dir = path.join(ws.root, ".tanto", "spawner");
+  try {
+    const got = launch(ws, ["down", ws.root]);
+    assert.equal(got.code, 0, got.err);
+    assert.equal(got.out.trim(), "no spawner running");
+    assert.equal(fs.existsSync(path.join(dir, "pid")), false);
+    assert.equal(fs.existsSync(path.join(dir, "heartbeat")), false);
+    assert.equal(alive(child.pid), true);
+  } finally {
+    child.kill();
+  }
+});
+
+test("down with a live pid and no heartbeat file names the pid to end by hand and signals nothing (D-6)", () => {
+  const ws = workspace();
+  const child = strangerPid(ws);
+  const dir = path.join(ws.root, ".tanto", "spawner");
+  try {
+    const got = launch(ws, ["down", ws.root]);
+    assert.equal(got.code, 0, got.err);
+    assert.equal(
+      got.out.trim(),
+      `spawner pid ${child.pid} has no heartbeat — a spawner from before the heartbeat, or a reused pid; end it by hand if it is the spawner: taskkill /PID ${child.pid} (kill ${child.pid})`,
+    );
+    assert.equal(fs.existsSync(path.join(dir, "pid")), false);
+    assert.equal(alive(child.pid), true);
+  } finally {
+    child.kill();
+  }
 });
