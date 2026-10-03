@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-18
-updated: 2026-09-22
+updated: 2026-10-03
 ---
 
 Source: shoroku seat-lineage
@@ -314,5 +314,37 @@ belongs.
   it is used. Task 27 corrected every site that later *uses* the retired term
   "background seat", but not the one sentence that defines its replacement — so
   a README-only reader now meets "terminal seat" before it is ever defined.
+
+**2026-10-03, `tanto-issue-triage` — the `experience-layer` shusei batch's
+eight deferred minors** (tanto-issue-triage S-16, S-21). The accepted `fix`
+texts of that close's items 14, 25, 57, 64, 84 and 86 left wording defects
+the batch's report deferred; none breaks a sentence, and a ruling of that
+close sent them to the next topic's ledger. Line numbers are as of that
+report.
+
+- `skills/kisou/SKILL.md:154` (item 57) — says the flat copies "are tallied
+  on their own" while :159 and :175-176 say "sit outside this tally": the
+  same verb names two counts.
+- Reflow only — `skills/kisou/SKILL.md:155` runs about 125 columns and
+  :61-62 wraps raggedly; `skills/kisou/README.md:41-43` wraps raggedly;
+  `skills/tanto/templates/shoroku-brief.md:4` is 82 columns.
+- `skills/tanto/roles/jisso.md` (item 84) — the passage-check sentence is
+  stretched: "It exits `0` when they are" now has "those classes" as its
+  nearest plural antecedent, and two "so" stack.
+- `skills/tanto/roles/jisso.md` (item 64) — "dispatched by you" attaches to
+  either the task or the agent.
+- `skills/tanto/roles/jisso.md` (item 86) — the serialized-command and hang
+  rules share a paragraph with the verification-only rule that follows; a
+  paragraph break would separate the topics.
+- `skills/tanto/roles/sekkei.md` (item 25) — "After Step 1's commit" and
+  "its answer lands as a further commit" do not cover Step 1's draft branch,
+  and the colon now follows the commit clause.
+- `skills/tanto/roles/sekkei.md` (item 14) — the input list has four
+  entries, but "as a third input" and "against all three" are unchanged.
+- `skills/tanto/templates/spawn-request.md` (item 6) — "from it" is a weak
+  reference; the spawner fills the `<id>` from `seats.json`.
+
+The report's 26th site, `skills/shoroku/SKILL.md:17`, is already corrected
+on `main` and is not carried.
 
 A prose-quality backlog, not a user-stated need, so no paired requirement.

@@ -2,7 +2,7 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 ## Purpose and shape
@@ -328,12 +328,23 @@ an effort mismatch would stop a correctly-reused window at every role change.
 decision-08bc's warn-only rule, chosen for the model check, is what carries the
 effort half safely.
 
-The skill ships built-in defaults, one value per fixed key, derived from the
-family ladder. A personal file overlays them key by key, so a partial file is
+The skill ships built-in defaults, one value per fixed key, derived as the
+next paragraph says. A personal file overlays them key by key, so a partial file is
 complete and an absent file is the all-defaults case. Each role says once, at
 start, which file it read and which keys came from the defaults. It then checks
 that the escalation kind sits above the implementer kind on the ladder, because
 the fix loop's late rounds are an escalation only if it does.
+
+**The shipped values follow decision-03f9's split, with Sekkei the `max`
+exception** (decision-3c47). The one-shots — `plan.review`, `plan.coldread`,
+`branch.review`, `spec.review`, `shoroku.recommend` — buy the top family; the
+resident seats run on the cheaper families. `sessions.sekkei` ships as `opus`
+at `max`, `subagents.spec.review` as `fable` at `high`, and
+`subagents.brief.write` as `sonnet` at `high`. Kikaku and Kaiseki are the two
+resident seats left on the top family (`fable` at `xhigh`), named as
+exceptions; whether Kaiseki should follow Sekkei is open (issue-54e5). The
+ladder `fable > opus > sonnet > haiku` still orders the families for the
+escalate-above-implement check.
 
 How the personal file reaches the user's config directory is deliberately out of
 scope: the skill only reads it. That is why the config-deployment item carries

@@ -147,6 +147,14 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   line wrap collapsing a literal count, and an intentional retirement from an
   earlier task. That is the worked example the next task of this shape points
   at.
+- **A count threshold names its tie side and its authoritative measurement.**
+  The `tanto-issue-triage` spec fixed a split rule at "above fifty issues"
+  and measured its round sizes (61, 76, 33, 58, 26, 54) under a matching rule
+  the instrument did not yet exist to confirm; a title-only count under the
+  rule as written gave 50, 79, 28, 64, 25, 62, with round 1 exactly on the
+  threshold. A threshold that fixes a plan's task list states which side a
+  tie falls on and which measurement decides; that plan carried a
+  conditional task for the borderline round instead.
 
 ## Expectations
 
@@ -444,6 +452,32 @@ branch-cut time catches the rest. The hazard is the table's own tone — a
 confident four-row list reads as more complete than it is, and a re-author
 who trusts it stops early.
 
+## Three checks for a rebase batch
+
+Measured on `experience-layer`'s rebase batch (2026-10-01):
+
+- **Compare a correction's Reason with `main`, not its Old text.** A
+  "`main` already carries the fix" judgment on a text-correction item has to
+  hold the item's Reason against `main`'s sentence. The first pass dropped two
+  shusei items because `main` had renamed the same words (`t2-` to
+  `shoroku-`), but the defect — a template stating file names a dispatch
+  overrides — survived the rename; only the spec review caught it, because
+  its brief named the rule. A rebase brief carrying correction items can ask
+  the implementer to quote each item's Reason beside `main`'s text.
+- **Diff the per-file delta before and after.** A cheap independent invariant:
+  compare the branch's own +/- delta per file before the rebase
+  (`base..old tip`) and after it (`main..new tip`). There, 91 of 98 files had
+  the same delta, and the seven that differed were exactly the conflicted and
+  carried files, each explained by `main`'s own edit — a per-file view that
+  `git range-diff`'s `!` rows do not give. The check is a script of about 40
+  lines, worth keeping as a `passage-check.js` subcommand.
+- **Give carried hunks their own commit.** A conflict resolved inside a
+  replayed commit can add content under the original commit's subject: two new
+  expectations landed in the replayed commit whose subject names the removal
+  and the repointing, and the history says nothing of them — only that batch's
+  reports do. When the carried hunks are more than a repoint, consider a
+  commit of their own, which the rebase brief's count rule then allows for.
+
 ## A whole-file block is run before the plan is committed
 
 Assemble the content of a plan's `W` blocks and run it — as the real files,
@@ -612,3 +646,95 @@ Measured on `experience-layer` (2026-10-01): the plan's check hard-coded
 and the human renamed the Cast during the topic. The run survived because the
 batch prompt carried a superseding line (R-10). Relevant to
 `passage-plan-generation`, which will generate such snippets.
+
+## A line-scoped grep over prose that wraps reads 0 where the recipe predicts 1
+
+A sanity grep over rendered prose has to allow for a line wrap. A close's
+shusei-batch prompt predicted that a `grep -F` for the shared tail of an
+item's Old and New text would match once; the New text's own prescribed line
+break split that tail across two lines, so the line-scoped grep read 0 every
+time. A check of prose that may wrap is multi-line-aware (a substring count
+over the file with newlines folded), or says that the tail may not survive on
+one line. Measured at `tanto-bg-seats`'s close (2026-10-01).
+
+## Repeated tasks are one template assembled by script, and a pattern edit over the copies asserts its count
+
+`tanto-issue-triage`'s ten round tasks are one text with a name part
+substituted. Having the drafter write one template and assembling the rest
+by script kept them byte-identical (the reviewer confirmed it by diff) and
+cost one drafter pass instead of ten. Two special cases — a conditional task
+and a task that reads its part from a file — could not be generated and were
+written by hand. One over-broad `printf` substitution put a replaced text into
+the generated copies, which had to be reverted in nine tasks; a grep caught
+it, not a check. A pattern edit across generated copies runs per task with a
+count assertion.
+
+## A spec's commands are run once before the plan inherits them
+
+The `tanto-issue-triage` plan had to correct or choose between four places in
+its spec: the commit recipe `git commit --only -- <paths> -m …` (the message
+after `--` is read as a pathspec), `git diff-tree` without `-M` (no `R`
+lines), an allowed-path set naming the root Markdown files against
+`AGENTS.md`'s "Never do", and a note sentence placed both "at the end" of a
+paragraph and after a sentence that is not its end. The plan's Self-Review
+absorbed all four; a Sekkei check that runs the spec's own commands once
+against a scratch repository would have found the first two before the plan
+stage.
+
+## A form slot that may hold a dash is a slot no grep can check
+
+`tanto-issue-triage`'s brief fixed the Kept line as `<n>. [kept] — — <title>`
+(target `—`, then the separator). No grep checked it: the plan's awk accepted
+`[kept] — <title>` as well, and one round's implementer wrote that for 29
+lines, caught only by the quality reviewer's own script. A form whose slot may
+hold a dash needs a check written for that slot, or a word in the slot that
+is not a dash.
+
+## A brief reason is one short sentence; the evidence goes in the report
+
+A brief reason built from a recommendation's Reason by "carry every clause"
+runs to 300-600 characters when the Reason carries its evidence: 30 of 31
+lines were over about 220 characters in one `tanto-issue-triage` round, and
+the next round's implementer, told so from the start, still wrote eight over
+300. The form wants one short sentence for the decision, with the evidence in
+the report's judgment list.
+
+## Two reviewers of one task get their own scratch prefix
+
+Two reviews of one task given one scratch directory overwrite each other's
+files. A file-name prefix per reviewer (`spec-`, `qual-`) avoids it.
+
+## A form a human produces and a script consumes is pinned in one place, and the consumer stops on a line it cannot read
+
+On `tanto-issue-triage` the plan's Global Constraints fixed a direction item
+line as `<n> — <destination word> [<target>] — <the human's words verbatim>`,
+while the nine direction files Kanri wrote read
+`R<part>: <n> は <Word> → <target>` plus an indented `subject:` line. Three consumers — the apply task's
+parse, a boundary block's regex and the last task's grep — read the plan's
+form. Written to the plan's text, the apply would have dropped all 44 answers
+without an error, because an unreadable line was not a stop. Pin such a form
+in one place with the producer and every consumer pointed at it, and make a
+consumer stop on a line it cannot read (the helper now does).
+
+## A measurement report glosses its ledger labels and puts the command beside every figure
+
+`tanto-issue-triage`'s dogfood report, a frozen report of recorded output,
+drew two substantive findings from its quality review: terms of art and
+ledger labels (`R-n`, `S-n`, kessai, round file, carrier) cited without a
+gloss, and figures with no command beside them. The brief's list of fences
+asked for neither. The branch review then re-derived every figure
+independently and found all of them right; the report's defects were prose
+about the ledger and presentation. A brief for a measurement-type deliverable
+asks for a gloss of every label and for each figure's command in a fence — a
+rule that would have removed most of that branch's fix-wave items.
+
+## A reviewer prompt names the exact verify command and its expected totals
+
+A reviewer prompt that does not name the verify command invites a false
+alarm. On `tanto-issue-triage`'s fix wave the quality reviewer read the
+implementer's "32 pass" against its own one-file run ("13 tests, 13 passing")
+and flagged the figure as suspect; the figure was right (19 + 13, two files),
+as the spec review's run of the two-file command showed. The task-reviewer
+template's "Do not re-run the suite" line leaves a reviewer to run whatever it
+likes; a dispatch that names the exact command and its expected totals
+removes the mismatch before it is raised.

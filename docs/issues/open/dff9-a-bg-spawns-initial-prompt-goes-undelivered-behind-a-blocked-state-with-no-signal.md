@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-02
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 Source: shoroku experience-layer S-1
@@ -69,3 +69,25 @@ that a worktree cwd changes the slug, so a Kanri searching under the main
 repository's slug — the natural guess, since every other seat used it —
 finds nothing, and may take a working shoki for dead or a stuck one for not
 yet started.
+
+**2026-10-03, `tanto-issue-triage` — two more occurrences.**
+
+- **`bg-seat-fixes`'s close** (tanto-issue-triage S-9). The same day as
+  `shoki-bg-seat-ergonomics`, a second, independent freshly spawned shoki
+  sat `blocked` with zero transcript records for about 30 minutes; its
+  `brief:` prompt, given as `claude --bg`'s initial-prompt argument, never
+  reached it as a first turn. It was unblocked only once the human pasted
+  `brief: <path>` into the attached window a second time. Two of two shoki
+  spawns that day needed the same manual rescue, which raises whether
+  `claude --bg`'s initial-prompt delivery to a fresh session is unreliable
+  in this environment or CLI build.
+- **The fourth occurrence** (tanto-issue-triage S-32). A shoki spawn sat
+  `blocked` with no transcript again, and the human's kick worked again.
+  Two sentences follow from it. The kick that works is
+  `brief: <absolute path>` pasted into the attached window: for a worktree
+  seat, the spawn request's relative path resolves against a cwd the seat
+  no longer has, so `roles/kanri.md`, which has no kick text today, would
+  give the absolute form. And issue-fd4b's wording ("stuck on a startup
+  dialog") is a hypothesis the observation does not support — Kanri's own
+  first reading of this occurrence, a trust or startup dialog, was wrong;
+  the observation, as above, is that the prompt is never read.

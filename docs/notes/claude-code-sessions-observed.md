@@ -595,3 +595,41 @@ request for a Jisso, sent alone later in the same tenure, ran without
 complaint. `roles/kanri.md`'s Handover case lists the three acts in one
 sentence; writing the predecessor's `stop` request in its own call, after the
 roster rewrite, keeps a refusal from costing the rewrite.
+
+## An editor resume renames a tab seat and can move its config directory; the census sees it before fukki does (2026-10-02)
+
+Observed on the `tanto-issue-triage` Sekkei, a tab seat the editor resumed
+mid-review. Three facts at once:
+
+- The seat was renamed under the same sessionId (`dotskills-67 [260c71]`
+  became `dotskills-ae [bc50e1]`), and Kanri's census had already rewritten
+  the roster row before the seat's own `/tanto fukki` handshake arrived; the
+  handshake was a no-op for the roster, and its only effect was the seat's own
+  closing-line name.
+- The config directory changed across the same resume, from `~/.claude` to
+  `.claude-priv`, with both paths resolving to one transcript file.
+- The seat's effort read `high` after the resume where it had read `xhigh`
+  before — a further data point for issue-42fc.
+
+## `SendMessage` delivers to a multi-word bare name (2026-10-02)
+
+A `SendMessage` whose `to` was a roster name containing spaces
+(`kanri initialization setup`) delivered on the bare name. The harness's
+addressing is not what fails for such a seat: the parse failure issue-7bd1
+rests on is `record --peer-reading`'s grammar for the line, not `SendMessage`.
+
+## `$CLAUDE_JOB_DIR` and the Write tool's jobs path diverge after a config-directory move (2026-10-02)
+
+After the config directory changed from `.claude` to `.claude-priv` in a
+resumed Kanri session, `$CLAUDE_JOB_DIR` read by Bash named the
+`.claude-priv` jobs directory, while the Write tool put a file under the
+`.claude` jobs directory by the path the system prompt printed. A script
+written with Write was then not found through the shell's `$CLAUDE_JOB_DIR`.
+Neighbor of the `$CLAUDE_CONFIG_DIR/projects` entry above.
+
+## `SendMessage` to a finished subagent resumes it; an address is read from `ListAgents`, never tested by a send (2026-10-02)
+
+A message to a finished subagent resumes it, whatever the message says:
+`SendMessage` returned `Resuming agent …`. Checking an address by sending
+`test` cost a wake-up and a restated report (26 seconds, two tool calls). The
+address of a live agent is read from `ListAgents`, never tested by a send.

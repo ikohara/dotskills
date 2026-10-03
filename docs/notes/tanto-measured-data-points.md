@@ -802,3 +802,200 @@ Kikaku files the topic cites, gives 12 ids. Of them, `exp-d4e5` is
 37c2, 48b2, 51d2, 58f1, 59eb, 75bc, 81aa, b6bf) are items of the 2026-09-15
 input, which lists them as bare `**<id>**` lines. So the count by the note's
 sense is **0** unprompted citations, and by the literal grep 11.
+
+## The share-of-usage target met its first two data points: 92% and 87% (2026-09-20, 2026-10-02)
+
+`SKILL.md` names a target of 30% or less of a topic's usage spent at context
+over 150000; no completed topic had a figure until these two.
+
+- `tanto-diet`, measured at its close: `reading.js --share` over 10 of the
+  topic's transcripts (Sekkei, Keikaku, the six Jissos, the closing Kanri's
+  tenure and its predecessor's) returned **92%** of usage at context over
+  150000 (490,943,351 of 531,253,697 tokens). Not exhaustive: the opening
+  tenure and any between it and the predecessor could not be reached without
+  an archive lookup, so the true figure is likely similar or higher.
+- `experience-layer`, measured at its close: **87%** over 15 transcripts (the
+  ledger's Measurements row).
+
+Both are about three times the target. One resident Kanri tenure that ran
+five boundaries under a deferred handover is a visible contributor, but a
+share this high says the growth is broad across roles, not one seat's. These
+are the figures behind issue-40ed and decision-b6cb's cost question.
+
+## What a Kanri tenure's turns cost on tanto-issue-triage (2026-10-02, 2026-10-03)
+
+Seven context readings from four Kanri tenures of `tanto-issue-triage`, each
+the difference across one act:
+
+| Act | Context | Cost |
+| --- | --- | --- |
+| A kessai that read a 42 KB brief whole and printed it verbatim, as the contract requires | 184,625 → 279,268 (ceiling 215,167) | about 94,000, one and a half times `ceiling.kanri.per_batch` |
+| A plan landing: the stage 1 frame (43 KB) printed whole, plus spec sections 2-4 and the plan's Global Constraints | 139,355 → 280,567 (ceiling 218,526), about ten turns, no batch | about 141,000 |
+| A successor's cold start: `roles/kanri.md` (1,757 lines, two reads past the Read tool's page) plus `SKILL.md` (about 28,000) read whole | 157,495 at start; another tenure 143,472 | — |
+| Batch boundary A (rulings and a prompt write included), then B | 157,495 → 211,707 → 232,592 (ceiling 88,383 + 2 × 65,000 = 218,383) | 54,212, then 20,885 |
+| Two rework boundaries | 183,482 → 210,998 → 246,849 | 27,515, then 35,851 |
+| Three Kikaku decision files read and checked by script | 209,162 → 234,360 | about 20,000 whole; 12,000 by their "What Kanri should do with it" sections |
+
+Three readings they support:
+
+- A handover start at 143k to 157k leaves about one boundary under the
+  derived ceiling, not two: the second boundary crossed it in both tenures
+  that started there. The ceiling is derived from the first turn's context,
+  so the derivation holds only if the start is lean (issue-db0c). The role
+  file's size, the largest single read of a start, is issue-cca9 and
+  issue-fb90's finding 4; the handover's "read by sections" instruction has
+  no heading list to select from.
+- The stage 1 frame and a verbatim brief each cost a batch's worth; the frame
+  is better read by sections, or only written to a file for the cold-read
+  subagent.
+- A Kikaku decision file's action section is the part Kanri reads; the
+  discussion above it is Kikaku's record and costs the same context again.
+
+## The tanto suite takes about six minutes on this host, and a quiet stretch is not a stall (2026-10-01)
+
+`skills/tanto/scripts/spawner.test.js` alone takes about 301 seconds on this
+host (37 tests, all pass), and the whole tanto suite about six minutes. A
+280-second limit kills the file and reads as "179 tests, 178 pass, 1 fail"
+with no output of its own — it looks like a hang. A full run of
+`node --test skills/tanto/scripts/*.test.js` also goes quiet for about 70
+seconds while the spawner tests cycle child processes, then finishes (192
+pass, 0 fail at the time). A dispatch that runs the suite needs a limit above
+600 seconds, and judges a stall by output growth and CPU, not elapsed time —
+the rule `roles/jisso.md` states. Beside issue-46d3.
+
+## An opening restatement that carries the mechanism and not the reason gets asked for the reason (2026-10-02)
+
+At `tanto-issue-triage`'s spec stage, the human asked after sections 1 and 2
+for the topic's background, purpose and approach to be restated (Q-7): the
+Sekkei's opening restatement (Q-1) of the Kikaku input had covered the
+mechanism and the behavior, not the why. A Sekkei's opening on a Kikaku input
+can carry the decision's own reason in two sentences beside the mechanism.
+
+## tanto-issue-triage: costs by stage (2026-10-02, 2026-10-03)
+
+Figures from the task notifications' usage lines (subagent tokens, wall time)
+and the seats' own readings.
+
+### The plan stage
+
+`plan.draft` (opus) took 252,072 tokens and 20 minutes for a 947-line plan
+skeleton and a 198-line round template; `plan.review` (fable) 222,831 tokens
+and 16 minutes; `brief.write` (sonnet) 82,883 tokens and 73 seconds.
+Keikaku's own context stood at 392,749 at its first line to Kanri, after five
+wake-ups and no compaction. The finished plan is 3,229 lines, because ten
+round tasks are carried whole, as the spec asks.
+
+### A round task
+
+Round 1 (50 rows): sonnet implementer 172,960 tokens and 432 s. Round 2a (40
+rows): 150,113 tokens and 384 s, then 159,184 and 60 s on a resumed fix round
+(that figure may count the re-read context). Round 2b (39 rows): 188,753 and
+595 s. Rounds 3, 4a and 4b: 146k, 177k and 206k tokens (383, 559 and 736 s;
+25, 44 and 54 tool calls). In rounds 1 to 2b each opus review or re-review
+took 69,843 to 106,627 tokens and 84 to 156 s, the two reviews of a task
+running in parallel, so a round without a fix round cost about 350,000
+subagent tokens and 10 to 13 minutes of wall time. In rounds 3 to 4b the
+review pairs took 109k + 83k, 118k + 88k and 127k + 95k, so a round of about
+30 rows cost 340k to 430k tokens before any fix. A one-finding
+fix round by resume took 36 to 56 s and added 4k to 8k to the implementer's
+count; its scoped re-review 57k to 74k.
+
+### The apply batch
+
+Four implementer dispatches, eight reviews, no fix round: the implementers
+used 119,793, 80,185, 115,358 and 139,169 tokens in 387, 190, 346 and 404 s;
+the eight reviews 82,000 to 111,000 each, about 745,000 together — about 1.2
+million subagent tokens in all. The Jisso's own context grew from 107k to
+355k.
+
+### A task review's floor
+
+The fixed cost of a task review is about 50k subagent tokens whatever the
+diff. Two reviews of a nine-line diff in a 2,992-byte review package took
+52,426 and 52,947 tokens (35 and 46 s, six tool calls each); two reviews of a
+54-line diff in a 30,716-byte package took 76,418 and 69,807 (62 and 73 s,
+eight tool calls each). A fix wave of two tasks costs four reviews, about
+250k tokens, most of it fixed context and not diff.
+
+### A fix wave on the Jisso's own context
+
+`reading.js --role jisso` printed `context=109455` (83 records, 2 wake-ups)
+after the contract, the role file and the config reads, and `context=208844`
+(373 records, 11 wake-ups) at the report: two tasks with six dispatches (two
+implementers, four reviews) and their hand-backs added 99,389 tokens, about
+16,600 per dispatch, against a ceiling of 88,194 + 2 × 65,000 = 218,194. The
+batch ended 9,350 under the line with no rework round — about half of one
+dispatch's margin, so one rework round would likely have crossed it. The
+ceiling's per-batch figure (65,000) is about two-thirds of this batch's
+measured consumption; a plan with a two-task fix wave can weigh that before
+it sets `ceiling.jisso` (beside issue-6620 and issue-d3bc).
+
+## What the triage's reviews caught, and what only a reading of Rulings needed caught (2026-10-02)
+
+Three observations from `tanto-issue-triage`'s round tasks:
+
+- In round 2a the implementers reached a wrong "already closed on `main`"
+  reason and a Kept for a want a scene line states; the spec reviewer found
+  both by reading the live file and the scene lines. Carrying those two
+  lessons into the next round's dispatch (check the want against the scene
+  lines; check the live file before writing a Reason) gave a round with no
+  Important finding at first review.
+- The spec reviewer corrected the controller's own ruling premise (the spec
+  does have a Kept sentence, in its Deferred item 5) — caught only because
+  the ruling was put to the reviewer as a reading to judge, not a finding to
+  skip.
+- When an implementer read a recommend task's rule against its plain text,
+  both opus reviewers still passed a divergent reading (the rule later
+  overruled as R-7; see issue-d0d7). A brief's form greps cannot see a wrong
+  default; only the Kanri's read of the report's Rulings needed can.
+
+The habit they argue for: put a ruling to the reviewer as a reading to judge.
+
+## A rule over a table is a check to run: four controller-side scripts on tanto-issue-triage (2026-10-02, 2026-10-03)
+
+Four times a short script checked what the reviews could not:
+
+- A ruling keyed on a column of the liveness table (every gone item reads
+  `no commit found`) was computable: a script listed the covered rows exactly
+  (22, 17 and 16 in three rounds) and showed one Merged row and one Kept
+  Reason that the ruling's premise said did not exist.
+- On a Kikaku decision whose overrides are item numbers, a script matched
+  every `R<n>: <item> は <destination>` line to the recommendation heading of
+  that number and compared issue ids (44 of 44 matched), and looked up every
+  Landed subject in `git log main --format=%s` (11 of 11).
+- Before the apply, a recount of the nine round files by the real answer form
+  found a form mismatch before any dispatch and gave the implementers and both
+  reviewers per-round figures to agree with (landed 15, merged 5, assigned 60,
+  re-hung 19, kept 209); three of the four reviews used it as a cross-check.
+- After the apply, a 90-line Node script re-derived every issue's effective
+  destination from the nine recommendation and nine direction files and
+  compared it with the nine commits' renames, appended lines, `updated:`
+  fields and subject counts: 0 discrepancies over 308 items, in under five
+  seconds. The eight per-task reviews had done the same by hand.
+
+An apply task over answers by exception can carry such a recount in its
+dispatch, and its Verify or closing boundary the end-to-end one. The
+"checkable claim" rule applied; beside check 10 of
+`docs/notes/tanto-consistency-checks.md`.
+
+## A rework by resuming the implementer costs about a third of a first pass (2026-10-02)
+
+Resuming a finished implementer with `SendMessage` (context intact) for a
+rework took about two minutes: 135 s and 121 s for two tasks (192,226 and
+178,596 tokens as the notifications count them, which may include the re-read
+context), and 125 s and 209,452 tokens for a two-edit rework of round 2b,
+against 6 to 10 minutes for a fresh dispatch. Each opus review of a rework
+took 67,134 to 101,802 tokens and 61 to 110 s. A narrow rework costs about a
+third of a first pass and turns around in one boundary, so a ruling that
+finds a premise wrong is cheaper to rework than to carry as a named
+exception; R-9 of that run chose the rework for that reason.
+
+## Diagnosed findings made a seventeen-item fix wave one dispatch each (2026-10-03)
+
+`tanto-issue-triage`'s whole-branch review gave every finding as a line, a
+"Reads" text and a "Should read" text. The fix wave that followed was cheap:
+seventeen edits took one implementer dispatch (about 170 s, 23 tool calls)
+and the script fix one more (about 88 s, 14 tool calls), with no fix round in
+either, and the reviews found only Minors. Whether
+`templates/branch-review.md` adopts the diagnosed-findings form is a later
+choice this informs.
