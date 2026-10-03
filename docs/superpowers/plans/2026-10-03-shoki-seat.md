@@ -331,7 +331,7 @@ git rev-parse --show-toplevel >/dev/null || exit 1
 scope=skills/tanto/scripts
 if ! git diff --quiet "$(git merge-base main HEAD)" -- skills/tanto/README.md; then scope=skills/tanto; fi
 echo "sweep over $scope"
-stale="$(git grep -n -E -e '(^|[^A-Za-z0-9-])-w([^A-Za-z0-9-]|$)' -e "CLI's own" -e '--cwd' -- "$scope" | grep -v -E '(No|no|never|Never)[^.]*(-w|--cwd)|includes\("(-w|--cwd)"\)|rather than pass `--cwd`')"
+stale="$(git grep -n -E -e '(^|[^A-Za-z0-9-])-w([^A-Za-z0-9-]|$)' -e "CLI's own" -e '--cwd' -- "$scope" | grep -v -E '\b(No|no|never|Never)\b[^.]*(-w|--cwd)|includes\("(-w|--cwd)"\)|rather than pass `--cwd`')"
 if [ -n "$stale" ]; then
   printf '%s\n' "$stale"
   exit 1
