@@ -561,6 +561,21 @@ test("an undelivered seat is removed by the short id when the build takes only t
   assert.equal(seats(ws)[0].status, "removed");
 });
 
+test("a failed spawn or resume with nothing on stderr reports the line it printed on stdout (spec 5.1)", () => {
+  const ws = workspace();
+  setState(ws, { failOut: { "--bg": "refused: the classifier said no" } });
+  const spawn = request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(result(ws, spawn.id).error, "claude --bg exited 1: refused: the classifier said no");
+  const second = workspace();
+  request(second, SPAWN);
+  run(second, ["run", "--root", second.root, "--once"]);
+  setState(second, { failOut: { "--resume": "refused: no such session" } });
+  const resume = request(second, { op: "resume", sessionId: "sess-new" });
+  run(second, ["run", "--root", second.root, "--once"]);
+  assert.equal(result(second, resume.id).error, "claude --resume: refused: no such session");
+});
+
 test("stop and rm on a session the CLI has already dropped succeed, with a note (spec 5.1)", () => {
   const ws = workspace();
   request(ws, SPAWN);

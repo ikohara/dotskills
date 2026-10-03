@@ -488,7 +488,7 @@ function opSpawn(root, request, seats) {
   const before = new Set(listing.sessions.map((s) => s.sessionId));
   const name = seatName(root, request, seats);
   const got = runClaude(spawnArgs(request, name), cwd);
-  if (got.code !== 0) return { error: `claude --bg exited ${got.code}: ${got.err.trim()}` };
+  if (got.code !== 0) return { error: `claude --bg exited ${got.code}: ${failureText(got)}` };
   // The idle note on a spawn is a prompt that never reached the seat (spec
   // 1.2). On a resume it is the CLI's normal line, and the resume op does not
   // read it.
@@ -608,7 +608,7 @@ function handleRequest(root, request, seats) {
     // No flag: the CLI brings back the options the spawn passed and names
     // them on stderr, which a result does not carry, so the log keeps it.
     const got = runClaude(["--resume", request.sessionId, "--bg"]);
-    if (got.code !== 0) return { error: `claude --resume: ${got.err.trim()}` };
+    if (got.code !== 0) return { error: `claude --resume: ${failureText(got)}` };
     if (got.err.trim()) appendLog(root, `resume ${request.sessionId}: ${got.err.trim()}`);
     const session = findResumed(root, request.sessionId);
     if (seat && session) {
