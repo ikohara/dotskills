@@ -309,32 +309,68 @@ const NO_BG_ISOLATION = JSON.stringify({ worktree: { bgIsolation: "none" } });
 
 /**
  * The `--bg` command line of a spawn: the seat's name and the isolation
- * setting, then the request's own flags. A resume passes none of them — any
- * flag on `--resume … --bg` starts a copy under a new id — and the CLI
- * brings back the options the spawn passed. `request.branch` is not read
- * here — it is informational, carried through into the result and then into
- * `record --seat`'s Branch column (`boundary.js`); a worktree seat's real
- * branch is the CLI's own (Important 4, task 26; Minor 5, branch-review.md).
+ * setting, then the request's own flags, then the prompt, and every
+ * `--add-dir` last. No `-w` is passed for any seat: a worktree seat runs with
+ * the worktree Kanri cut as its cwd (`opSpawn`, spec 2.2). A resume passes
+ * none of them — any flag on `--resume … --bg` starts a copy under a new id —
+ * and the CLI brings back the options the spawn passed. `request.branch` is
+ * not read here — it is informational, carried through into the result and
+ * then into `record --seat`'s Branch column (`boundary.js`); a worktree
+ * seat's real branch is Kanri's `worktree-shoki-<topic>`, cut in the merge
+ * act (Important 4, task 26; Minor 5, branch-review.md).
  */
 function spawnArgs(request, name) {
   const args = ["--bg", "--name", name, "--settings", NO_BG_ISOLATION];
   if (request.model) args.push("--model", request.model);
   if (request.effort) args.push("--effort", request.effort);
   args.push("--permission-mode", request.mode || "auto");
-  if (request.worktree) args.push("-w", request.worktree);
-  for (const dir of request.addDir || []) args.push("--add-dir", dir);
-  args.push(request.prompt);
-  return args;
+  // The prompt before every `--add-dir`: that option is variadic, so a prompt
+  // after it is read as one more directory and the seat starts with no first
+  // turn (spec 1.1).
+  const addDirs = (request.addDir || []).flatMap((dir) => ["--add-dir", dir]);
+  return [...args, request.prompt, ...addDirs];
 }
 
 /**
  * The short id `--bg` prints, for a listing entry that carries no `id`: the
  * CLI prints `backgrounded · <short id> · <name>` on a spawn, and the same
- * line with ` (idle — send a prompt to start)` after it on a resume.
+ * line with ` (idle — send a prompt to start)` after it on a resume — and on
+ * a spawn whose prompt was lost, which `opSpawn` treats as an error.
  */
 function shortIdOf(text) {
   const found = /backgrounded\s+·\s+([A-Za-z0-9][\w-]*)\s+·/.exec(text || "");
   return found ? found[1] : null;
+}
+
+/** The note `claude --bg` prints for a session started with no prompt (spec 1.2). */
+const IDLE_NOTE = "(idle — send a prompt to start)";
+
+/** The line of `text` carrying the idle note, trimmed, or null. */
+function idleLine(text) {
+  const line = String(text || "")
+    .split(/\r?\n/)
+    .find((l) => l.includes(IDLE_NOTE));
+  return line ? line.trim() : null;
+}
+
+/**
+ * A spawn whose prompt was not delivered (spec 1.2): the seat exists, so it
+ * is recorded with `undelivered` and removed with `claude rm` — not `stop`,
+ * since such a session is listed with no `pid` and holds nothing worth
+ * keeping. A removal that fails leaves the seat `running`, for the census to
+ * see gone; the result is an error either way, which Kanri reads at its next
+ * act, and the log line has a prefix of its own, apart from the guard's.
+ */
+function removeUndelivered(root, seat, line) {
+  seat.undelivered = line;
+  const got = runClaude(["rm", seat.id || seat.sessionId]);
+  if (got.code !== 0 && !alreadyExited(got)) {
+    appendLog(root, `spawn: ${seat.sessionId} rm failed — ${failureText(got)}`);
+    return { error: `prompt not delivered: ${line}; claude rm: ${failureText(got)}` };
+  }
+  seat.status = "removed";
+  appendLog(root, `spawn: ${seat.sessionId} removed — prompt not delivered`);
+  return { error: `prompt not delivered: ${line}` };
 }
 
 function findNew(root, before) {
@@ -377,7 +413,12 @@ function opSpawn(root, request, seats) {
   const name = seatName(root, request, seats);
   const got = runClaude(spawnArgs(request, name));
   if (got.code !== 0) return { error: `claude --bg exited ${got.code}: ${got.err.trim()}` };
+  // The idle note on a spawn is a prompt that never reached the seat (spec
+  // 1.2). On a resume it is the CLI's normal line, and the resume op does not
+  // read it.
+  const undelivered = idleLine(got.out);
   const session = findNew(root, before);
+  if (!session && undelivered) return { error: `prompt not delivered: ${undelivered}` };
   if (!session) {
     return {
       error:
@@ -408,6 +449,7 @@ function opSpawn(root, request, seats) {
     ...(stray ? { strayed: session.cwd } : {}),
   };
   seats.push(seat);
+  if (undelivered) return removeUndelivered(root, seat, undelivered);
   if (stray) {
     runClaude(["stop", id || session.sessionId]);
     appendLog(root, `guard stopped ${session.sessionId} at ${session.cwd}`);
@@ -421,6 +463,20 @@ function opSpawn(root, request, seats) {
     transcript: transcriptOf(session.sessionId),
     startedAt,
   };
+}
+
+/**
+ * A `claude stop` or `claude rm` that failed because the CLI has already
+ * dropped the session (spec 5.1): not an error, since what the op asked for
+ * is done.
+ */
+function alreadyExited(got) {
+  return got.code !== 0 && got.err.includes("No job matching");
+}
+
+/** A failed command's text: its stderr, or its stdout when the stderr is empty (spec 5.1). */
+function failureText(got) {
+  return got.err.trim() || got.out.trim();
 }
 
 /** `stop` and `rm` take the short id on some builds and the long one on others. */
@@ -443,17 +499,26 @@ function handleRequest(root, request, seats) {
 
   if (request.op === "stop") {
     const got = runWithEitherId("stop", seat, request.sessionId);
-    if (got.code !== 0) return { error: `claude stop: ${got.err.trim()}` };
+    const exited = alreadyExited(got);
+    if (got.code !== 0 && !exited) return { error: `claude stop: ${failureText(got)}` };
     if (seat) seat.status = "stopped";
-    return { stopped: stamp() };
+    return { stopped: stamp(), ...(exited ? { note: "already exited" } : {}) };
   }
 
   if (request.op === "rm") {
     const got = runWithEitherId("rm", seat, request.sessionId);
-    if (got.code !== 0) return { error: `claude rm: ${got.err.trim()}` };
+    const exited = alreadyExited(got);
+    if (got.code !== 0 && !exited) return { error: `claude rm: ${failureText(got)}` };
     if (seat) seat.status = "removed";
+    // The worktree `claude rm` printed it removed, and none when it printed
+    // none: Kanri's worktree is the seat's cwd and not the CLI's, and a name
+    // is not a removal (spec 2.4).
     const printed = /Removed worktree (.+)/i.exec(got.out);
-    return { removed: stamp(), worktree: printed ? printed[1].trim() : seat?.worktree };
+    return {
+      removed: stamp(),
+      ...(printed ? { worktree: printed[1].trim() } : {}),
+      ...(exited ? { note: "already exited" } : {}),
+    };
   }
 
   if (request.op === "resume") {
@@ -520,7 +585,9 @@ function takeRequests(root, seats) {
     writeJsonAtomic(path.join(resultsDir(root), name), { ...request, ...outcome });
     fs.rmSync(file, { force: true });
     writeSeats(root, seats);
-    appendLog(root, `${request.op} ${name} ${outcome.error ? `error: ${outcome.error}` : "ok"}`);
+    // A `note` rides on success: `rm <name> ok (already exited)` (spec 5.1).
+    const said = outcome.error ? `error: ${outcome.error}` : outcome.note ? `ok (${outcome.note})` : "ok";
+    appendLog(root, `${request.op} ${name} ${said}`);
   }
 }
 

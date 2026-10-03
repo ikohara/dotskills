@@ -28,6 +28,13 @@ if (fail[sub]) {
   process.stderr.write(fail[sub] + "\\n");
   process.exit(1);
 }
+// A refusal printed on stdout with nothing on stderr, the shape 37ec's item 4
+// measured for claude rm (spec 5.1).
+const failOut = state.failOut || {};
+if (failOut[sub]) {
+  process.stdout.write(failOut[sub] + "\\n");
+  process.exit(1);
+}
 const save = () => fs.writeFileSync(statePath, JSON.stringify(state));
 if (sub === "agents") {
   // A session marked hidden is the reboot case: the process is gone, so the
@@ -121,7 +128,11 @@ if (argv.includes("--bg")) {
   if (next.noListedId) delete session.id;
   state.sessions.push(session);
   save();
-  process.stdout.write("backgrounded · " + printed + " · " + session.name + "\\n");
+  // next.idleNote: the note the CLI prints for a session started with no
+  // prompt -- a resume's normal line, and a spawn's when its prompt was lost
+  // (spec 1.2).
+  const idle = next.idleNote ? " (idle — send a prompt to start)" : "";
+  process.stdout.write("backgrounded · " + printed + " · " + session.name + idle + "\\n");
   process.exit(0);
 }
 process.exit(0);
@@ -325,12 +336,15 @@ test("a spawn writes the result, the seat, and deletes the request", () => {
   assert.equal(seats(ws)[0].role, "jisso");
 });
 
-test("a spawn's command line carries the name, the isolation setting, and the flags the request names", () => {
+test("a spawn's command line carries the name, the isolation setting, the request's flags, and the prompt before --add-dir", () => {
   const ws = workspace();
+  fs.mkdirSync(path.join(ws.root, ".claude", "worktrees", "shoki-t"), { recursive: true });
   request(ws, { ...SPAWN, role: "shoki", worktree: "shoki-t", addDir: [ws.root] });
   run(ws, ["run", "--root", ws.root, "--once"]);
   const spawned = calls(ws).find((argv) => argv.includes("--bg"));
   assert.match(spawned[2], namePattern(ws, "shoki", "t"));
+  // No -w for any seat (spec 2.2), and the prompt before the variadic
+  // --add-dir, which would read it as one more directory (spec 1.1).
   assert.deepEqual(spawned, [
     "--bg",
     "--name",
@@ -343,11 +357,9 @@ test("a spawn's command line carries the name, the isolation setting, and the fl
     "xhigh",
     "--permission-mode",
     "auto",
-    "-w",
-    "shoki-t",
+    SPAWN.prompt,
     "--add-dir",
     ws.root,
-    SPAWN.prompt,
   ]);
 });
 
@@ -454,8 +466,9 @@ test("stop falls back to the short id when the CLI takes only that form", () => 
   );
 });
 
-test("rm reports the worktree it removed", () => {
+test("rm reports the worktree claude rm printed, and none when it printed none (spec 2.4)", () => {
   const ws = workspace();
+  fs.mkdirSync(path.join(ws.root, ".claude", "worktrees", "shoki-t"), { recursive: true });
   setState(ws, { next: { sessionId: "sess-shoki", id: "bg09", worktree: "/repo/.claude/worktrees/shoki-t" } });
   request(ws, { ...SPAWN, role: "shoki", worktree: "shoki-t" });
   run(ws, ["run", "--root", ws.root, "--once"]);
@@ -464,6 +477,72 @@ test("rm reports the worktree it removed", () => {
   assert.match(result(ws, id).removed, /\d/);
   assert.match(result(ws, id).worktree, /shoki-t/);
   assert.equal(seats(ws)[0].status, "removed");
+
+  // Kanri's worktree is the seat's cwd and never the CLI's: claude rm prints
+  // no Removed worktree line, and the result names no worktree.
+  const second = workspace();
+  fs.mkdirSync(path.join(second.root, ".claude", "worktrees", "shoki-t"), { recursive: true });
+  request(second, { ...SPAWN, role: "shoki", worktree: "shoki-t" });
+  run(second, ["run", "--root", second.root, "--once"]);
+  const rm = request(second, { op: "rm", sessionId: "sess-new" });
+  run(second, ["run", "--root", second.root, "--once"]);
+  assert.match(result(second, rm.id).removed, /\d/);
+  assert.equal(result(second, rm.id).worktree, undefined);
+  assert.equal(seats(second)[0].status, "removed");
+});
+
+test("a spawn whose --bg line carries the idle note is an error, and its seat is removed (spec 1.2)", () => {
+  const ws = workspace();
+  setState(ws, { next: { idleNote: true } });
+  const { id } = request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.match(
+    result(ws, id).error,
+    /^prompt not delivered: backgrounded · bg01 · \S+ \(idle — send a prompt to start\)$/,
+  );
+  assert.deepEqual(
+    calls(ws)
+      .filter((argv) => argv[0] === "rm")
+      .map((argv) => argv[1]),
+    ["bg01"],
+  );
+  assert.equal(seats(ws)[0].status, "removed");
+  assert.match(seats(ws)[0].undelivered, /\(idle — send a prompt to start\)$/);
+  const log = fs.readFileSync(path.join(ws.root, ".tanto", "spawner", "log"), "utf8");
+  assert.match(log, /spawn: sess-new removed — prompt not delivered/);
+  assert.doesNotMatch(log, /guard stopped/);
+});
+
+test("stop and rm on a session the CLI has already dropped succeed, with a note (spec 5.1)", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  setState(ws, { fail: { stop: "No job matching sess-new", rm: "No job matching sess-new" } });
+  const stop = request(ws, { op: "stop", sessionId: "sess-new" });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(result(ws, stop.id).error, undefined);
+  assert.match(result(ws, stop.id).stopped, /\d/);
+  assert.equal(result(ws, stop.id).note, "already exited");
+  assert.equal(seats(ws)[0].status, "stopped");
+  const rm = request(ws, { op: "rm", sessionId: "sess-new" });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(result(ws, rm.id).error, undefined);
+  assert.match(result(ws, rm.id).removed, /\d/);
+  assert.equal(result(ws, rm.id).note, "already exited");
+  assert.equal(seats(ws)[0].status, "removed");
+  const log = fs.readFileSync(path.join(ws.root, ".tanto", "spawner", "log"), "utf8");
+  assert.ok(log.includes(`rm ${rm.id}.json ok (already exited)`), log);
+});
+
+test("a failed rm with nothing on stderr reports the line it printed on stdout (spec 5.1)", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  setState(ws, { failOut: { rm: "refused: the worktree has changes" } });
+  const { id } = request(ws, { op: "rm", sessionId: "sess-new" });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(result(ws, id).error, "claude rm: refused: the worktree has changes");
+  assert.equal(seats(ws)[0].status, "running");
 });
 
 test("resume passes --resume <sessionId> --bg and no other flag", () => {
