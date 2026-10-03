@@ -17,6 +17,13 @@ const SPAWN_POLL_MS = 1000;
 const SPAWN_POLL_TRIES = 30;
 const TRANSCRIPT_POLL_MS = 500;
 const TRANSCRIPT_POLL_TRIES = 20;
+// A seat with no transcript this long after its spawn has run no first turn
+// (spec 3.1): twice the longest healthy start the probes saw, eight passes.
+const FIRST_TURN_WAIT_MS = 120000;
+// A heartbeat older than this is not this spawner's, or is one that stopped
+// working (spec 4.1): the longest silence between two beats is one `claude`
+// call and one sleep, under two seconds.
+const HEARTBEAT_STALE_MS = 60000;
 
 // The ops, in the order `templates/spawn-request.md` documents them.
 const OPS = ["spawn", "stop", "rm", "resume", "attention", "ack"];
@@ -111,6 +118,43 @@ function sleepSync(ms) {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 }
 
+/**
+ * Now, in epoch milliseconds, for a seat's age (spec 3.2): `TANTO_NOW_MS`
+ * when set — a test seam, like `TANTO_CLAUDE_NODE` — else the clock.
+ */
+function nowMs() {
+  const fixed = process.env.TANTO_NOW_MS;
+  return fixed ? Number(fixed) : Date.now();
+}
+
+function heartbeatPath(root) {
+  return path.join(spawnerDir(root), "heartbeat");
+}
+
+/**
+ * The spawner's proof that it is alive and working (spec 4.1): the clock's
+ * epoch milliseconds — never `TANTO_NOW_MS`, since the launcher compares it
+ * with its own clock — through a temp file and rename. The launcher trusts
+ * it over `pid`, which a dead spawner leaves behind and the system may give
+ * to another process. Never throws: a beat that cannot be written reads to
+ * the launcher as a stale one.
+ */
+function beat(root) {
+  const file = heartbeatPath(root);
+  try {
+    fs.writeFileSync(`${file}.tmp`, `${Date.now()}\n`);
+    fs.renameSync(`${file}.tmp`, file);
+  } catch {
+    // As `appendLog`'s: not a reason to stop spawning seats.
+  }
+}
+
+/** Every poll loop's wait: a beat, then the sleep, so no poll outlasts the heartbeat's budget. */
+function pause(root, ms) {
+  beat(root);
+  sleepSync(ms);
+}
+
 function appendLog(root, line) {
   try {
     fs.appendFileSync(path.join(spawnerDir(root), "log"), `${stamp()} ${line}\n`);
@@ -200,13 +244,14 @@ function findTranscript(sessionId) {
  * look at the first sighting can miss it and freeze a `null` into the
  * result -- which `boundary.js record --seat` would then write into the
  * roster as `unavailable`, and `reading.js --share` would skip at the
- * close. Ten seconds of looking costs nothing and closes that window.
+ * close. Ten seconds of looking costs nothing and narrows that window; the
+ * census looks again at every pass while the seat has none (spec 3.1).
  */
-function transcriptOf(sessionId) {
+function transcriptOf(root, sessionId) {
   for (let attempt = 0; attempt < TRANSCRIPT_POLL_TRIES; attempt++) {
     const found = findTranscript(sessionId);
     if (found) return found;
-    sleepSync(TRANSCRIPT_POLL_MS);
+    pause(root, TRANSCRIPT_POLL_MS);
   }
   return null;
 }
@@ -401,7 +446,7 @@ function findNew(root, before) {
     const listing = listAgents(root);
     const fresh = listing.sessions.find((s) => s.sessionId && !before.has(s.sessionId));
     if (fresh) return fresh;
-    sleepSync(SPAWN_POLL_MS);
+    pause(root, SPAWN_POLL_MS);
   }
   return null;
 }
@@ -421,7 +466,7 @@ function findResumed(root, sessionId) {
     // (spec 3.1).
     const found = listing.sessions.find((s) => s.sessionId === sessionId && s.pid);
     if (found) return found;
-    sleepSync(SPAWN_POLL_MS);
+    pause(root, SPAWN_POLL_MS);
   }
   return null;
 }
@@ -464,6 +509,9 @@ function opSpawn(root, request, seats) {
   const stray = !request.worktree && underAdHocWorktree(root, session.cwd);
   const id = session.id || shortIdOf(got.out);
   const startedAt = formatStartedAt(session.startedAt);
+  // The epoch value beside the formatted one, for the census's first-turn
+  // budget (spec 3.2); absent when the listing gave no number.
+  const startedAtMs = typeof session.startedAt === "number" ? session.startedAt : undefined;
   const seat = {
     sessionId: session.sessionId,
     id,
@@ -476,6 +524,7 @@ function opSpawn(root, request, seats) {
     worktree: request.worktree,
     cwd: session.cwd,
     startedAt,
+    startedAtMs,
     status: stray ? "stopped" : "running",
     ...(stray ? { strayed: session.cwd } : {}),
   };
@@ -486,12 +535,15 @@ function opSpawn(root, request, seats) {
     appendLog(root, `guard stopped ${session.sessionId} at ${session.cwd}`);
     return { error: `ad hoc worktree ${session.cwd}` };
   }
+  // The seat carries its transcript too (spec 3.2): null when the poll
+  // missed it, which the census fills later.
+  seat.transcript = transcriptOf(root, session.sessionId);
   return {
     id,
     sessionId: session.sessionId,
     name: session.name,
     cwd: session.cwd,
-    transcript: transcriptOf(session.sessionId),
+    transcript: seat.transcript,
     startedAt,
   };
 }
@@ -608,11 +660,15 @@ function takeRequests(root, seats) {
       continue;
     }
     let outcome;
+    // A beat before and after every request (spec 4.1): a spawn or a resume
+    // is the longest stretch the spawner works without returning here.
+    beat(root);
     try {
       outcome = handleRequest(root, request, seats);
     } catch (error) {
       outcome = { error: String(error?.message) };
     }
+    beat(root);
     writeJsonAtomic(path.join(resultsDir(root), name), { ...request, ...outcome });
     fs.rmSync(file, { force: true });
     writeSeats(root, seats);
@@ -653,12 +709,51 @@ function strand(root, seat, cwd) {
   raiseNotice(`strayed: ${seat.role} ${seat.topic} ${seat.name} — ${cwd}`);
 }
 
+/**
+ * Look once for a seat's transcript while `seats.json` holds none (spec 3.1):
+ * the spawn's ten-second poll can miss it, and the path that reaches the
+ * seat here is what `record --seat` and the roster's Transcript column read
+ * next. A mark of no first turn that the transcript answers is cleared.
+ * Returns whether the seat has a transcript now.
+ */
+function lookForTranscript(root, seat) {
+  if (seat.transcript) return true;
+  const found = findTranscript(seat.sessionId);
+  if (!found) return false;
+  seat.transcript = found;
+  if (seat.noFirstTurn) {
+    delete seat.noFirstTurn;
+    appendLog(root, `census: ${seat.sessionId} first turn`);
+  }
+  return true;
+}
+
+/**
+ * A seat that has run no first turn (spec 3.1): marked once, with one toast
+ * and one log line, and never stopped — the one cause the design knows is
+ * closed at the spawn, and what reaches here is for the human to look at. A
+ * seat with no `startedAtMs`, one from before this rule, is never judged.
+ */
+function noFirstTurn(root, seat, line) {
+  if (seat.noFirstTurn || typeof seat.startedAtMs !== "number") return false;
+  seat.noFirstTurn = stamp();
+  const where = seat.id ? ` — claude attach ${seat.id}` : "";
+  raiseNotice(`no first turn: ${seat.role} ${seat.topic} ${seat.name}${where}`);
+  appendLog(root, line);
+  return true;
+}
+
 /** One `running` or `blocked` seat against the listing's entry for it. */
 function censusSeat(root, seat, session) {
   if (!session) {
     seat.status = "gone";
     seat.goneAt = stamp();
-    appendLog(root, `census: ${seat.sessionId} gone`);
+    // Gone with no transcript: a session that never ran a turn and did not
+    // stay — listed with no pid, so absent here at its first pass, before
+    // the budget below could see it.
+    const marked =
+      !lookForTranscript(root, seat) && noFirstTurn(root, seat, `census: ${seat.sessionId} gone — no first turn`);
+    if (!marked) appendLog(root, `census: ${seat.sessionId} gone`);
     return;
   }
   if (!seat.worktree && underAdHocWorktree(root, session.cwd)) {
@@ -678,10 +773,15 @@ function censusSeat(root, seat, session) {
   } else if (session.state !== "blocked" && seat.status === "blocked") {
     seat.status = "running";
   }
+  if (lookForTranscript(root, seat)) return;
+  if (nowMs() - seat.startedAtMs >= FIRST_TURN_WAIT_MS) {
+    noFirstTurn(root, seat, `census: ${seat.sessionId} no first turn after 2m`);
+  }
 }
 
 /** The spawner's census: one pass over `seats.json` against the listing. */
 function runCensus(root, seats) {
+  beat(root);
   const listing = listAgents(root);
   if (listing.error) {
     appendLog(root, `census: ${listing.error}`);
@@ -739,11 +839,13 @@ function cmdRun(argv) {
   // Every child this process spawns — `claude --bg` above all — must land in
   // the workspace root, never wherever the spawner itself was started from
   // (Critical 1, branch-review.md): `spawnSync` with no `cwd` inherits this
-  // process's own, so fixing it here once covers `runClaude`'s every caller.
+  // process's own, so fixing it here once covers `runClaude`'s every caller
+  // but a worktree seat's spawn, which names its own (spec 2.2).
   process.chdir(root);
   ensureDirs(root);
   fs.writeFileSync(path.join(spawnerDir(root), "pid"), `${process.pid}\n`);
   const pass = guarded(root, () => {
+    beat(root);
     const seats = readSeats(root);
     takeRequests(root, seats);
     runCensus(root, seats);
@@ -752,8 +854,9 @@ function cmdRun(argv) {
   if (values.once) return 0;
   // The two intervals below and the watch callback never interleave a
   // read-modify-write of `seats.json`, because `sleepSync`'s `Atomics.wait`
-  // — used by the transcript poll and by `findNew`/`findResumed` — blocks
-  // this event loop for up to ~40 s per spawn or resume. Making any of those
+  // — used by the transcript poll and by `findNew`/`findResumed`, through
+  // `pause`, which beats first — blocks this event loop for up to about a
+  // minute per spawn or resume (M-6). Making any of those
   // polls async needs one shared array between the loops first (Minor 17,
   // branch-review.md).
   setInterval(
@@ -813,7 +916,21 @@ function main(argv) {
   return 2;
 }
 
-module.exports = { main, noticeCommand, handleRequest, runCensus, readSeats, spawnerDir, seatName, shortIdOf };
+module.exports = {
+  main,
+  noticeCommand,
+  handleRequest,
+  runCensus,
+  readSeats,
+  spawnerDir,
+  seatName,
+  shortIdOf,
+  // For the launcher (`tanto.js`): the listing's key, the log, and the heartbeat.
+  underRoot,
+  appendLog,
+  heartbeatPath,
+  HEARTBEAT_STALE_MS,
+};
 
 if (require.main === module) {
   process.exitCode = main(process.argv.slice(2));

@@ -165,7 +165,16 @@ function workspace(sessions = []) {
   fs.writeFileSync(fake, FAKE);
   const state = path.join(root, "fake-state.json");
   fs.writeFileSync(state, JSON.stringify({ root, sessions, next: {} }));
-  return { root, fake, state, log: path.join(root, "fake-log.txt"), notices: path.join(root, "notices.txt") };
+  return {
+    root,
+    fake,
+    state,
+    log: path.join(root, "fake-log.txt"),
+    notices: path.join(root, "notices.txt"),
+    // The workspace's own config directory: the census looks for a
+    // transcript at every pass, and no test reads the user's `projects/`.
+    config: path.join(root, "claude-config"),
+  };
 }
 
 function setState(ws, patch) {
@@ -173,7 +182,12 @@ function setState(ws, patch) {
   fs.writeFileSync(ws.state, JSON.stringify({ ...state, ...patch }));
 }
 
+// The fake's --bg startedAt. `run` fixes TANTO_NOW_MS at it, so that no seat
+// reaches the two-minute first-turn budget unless its test says so (spec 3.4).
+const STARTED_AT = 1789984800000;
+
 function run(ws, argv, opts = {}) {
+  const { env, ...rest } = opts;
   const result = spawnSync(process.execPath, [SPAWNER, ...argv], {
     encoding: "utf8",
     env: {
@@ -182,10 +196,27 @@ function run(ws, argv, opts = {}) {
       TANTO_NOTICE_LOG: ws.notices,
       FAKE_STATE: ws.state,
       FAKE_LOG: ws.log,
+      CLAUDE_CONFIG_DIR: ws.config,
+      TANTO_NOW_MS: String(STARTED_AT),
+      ...env,
     },
-    ...opts,
+    ...rest,
   });
   return { code: result.status, out: result.stdout || "", err: result.stderr || "" };
+}
+
+/** A transcript of `sessionId` under one project slug of the workspace's config directory. */
+function writeTranscript(ws, sessionId, slug = "c--repo") {
+  const dir = path.join(ws.config, "projects", slug);
+  fs.mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, `${sessionId}.jsonl`);
+  fs.writeFileSync(file, "{}\n");
+  return file;
+}
+
+function spawnerLog(ws) {
+  const file = path.join(ws.root, ".tanto", "spawner", "log");
+  return fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "";
 }
 
 /** Write one request file; the caller still runs `run --once` to take it. */
@@ -890,6 +921,9 @@ test("the census revives a gone seat the listing holds again, and never a stoppe
   const ws = workspace();
   request(ws, SPAWN);
   run(ws, ["run", "--root", ws.root, "--once"]);
+  // A seat that ran its first turn, so that its gone is the ordinary one and
+  // raises no no-first-turn toast (spec 3.1).
+  writeTranscript(ws, "sess-new");
   const listed = JSON.parse(fs.readFileSync(ws.state, "utf8")).sessions;
   setState(ws, { sessions: [] });
   run(ws, ["run", "--root", ws.root, "--once"]);
@@ -978,4 +1012,79 @@ test("run --once writes the pidfile and leaves no process behind", () => {
     alive = false;
   }
   assert.equal(alive, false);
+});
+
+test("run --once leaves a heartbeat within the test's own clock (spec 4.1)", () => {
+  const ws = workspace();
+  const before = Date.now();
+  assert.equal(run(ws, ["run", "--root", ws.root, "--once"]).code, 0);
+  const after = Date.now();
+  const beat = Number(fs.readFileSync(path.join(ws.root, ".tanto", "spawner", "heartbeat"), "utf8").trim());
+  assert.ok(beat >= before && beat <= after, `${before} <= ${beat} <= ${after}`);
+});
+
+// The two-minute budget, with TANTO_NOW_MS past it (spec 3.1, 3.4).
+const LATE = { env: { TANTO_NOW_MS: String(STARTED_AT + 120000) } };
+
+test("a seat with no transcript under two minutes after its spawn gets no mark (spec 3.1)", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  run(ws, ["run", "--root", ws.root, "--once"], { env: { TANTO_NOW_MS: String(STARTED_AT + 119000) } });
+  assert.equal(seats(ws)[0].noFirstTurn, undefined);
+  assert.deepEqual(notices(ws), []);
+  assert.doesNotMatch(spawnerLog(ws), /first turn/);
+});
+
+test("a seat with no transcript two minutes after its spawn is marked, toasted, and logged once (spec 3.1)", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  run(ws, ["run", "--root", ws.root, "--once"], LATE);
+  run(ws, ["run", "--root", ws.root, "--once"], LATE);
+  const seat = seats(ws)[0];
+  assert.equal(seat.status, "running");
+  assert.match(seat.noFirstTurn, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
+  assert.deepEqual(notices(ws), [`no first turn: jisso t ${seat.name} — claude attach bg01`]);
+  assert.equal(spawnerLog(ws).match(/census: sess-new no first turn after 2m/g).length, 1);
+});
+
+test("a transcript under any project slug clears the mark and reaches the seat (spec 3.1)", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  run(ws, ["run", "--root", ws.root, "--once"], LATE);
+  assert.match(seats(ws)[0].noFirstTurn, /\d/);
+  const file = writeTranscript(ws, "sess-new", "c--repo--claude-worktrees-shoki-t");
+  run(ws, ["run", "--root", ws.root, "--once"], LATE);
+  assert.equal(seats(ws)[0].noFirstTurn, undefined);
+  assert.equal(seats(ws)[0].transcript, file);
+  assert.match(spawnerLog(ws), /census: sess-new first turn/);
+  assert.equal(notices(ws).length, 1);
+});
+
+test("a seat the listing drops with no transcript goes gone with the mark; one with a transcript goes plainly gone (spec 3.1)", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  const listed = JSON.parse(fs.readFileSync(ws.state, "utf8")).sessions;
+  setState(ws, { sessions: listed.map((s) => ({ ...s, hidden: true })) });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  const seat = seats(ws)[0];
+  assert.equal(seat.status, "gone");
+  assert.match(seat.noFirstTurn, /\d/);
+  assert.deepEqual(notices(ws), [`no first turn: jisso t ${seat.name} — claude attach bg01`]);
+  assert.match(spawnerLog(ws), /census: sess-new gone — no first turn/);
+
+  const second = workspace();
+  request(second, SPAWN);
+  run(second, ["run", "--root", second.root, "--once"]);
+  writeTranscript(second, "sess-new");
+  const held = JSON.parse(fs.readFileSync(second.state, "utf8")).sessions;
+  setState(second, { sessions: held.map((s) => ({ ...s, hidden: true })) });
+  run(second, ["run", "--root", second.root, "--once"]);
+  assert.equal(seats(second)[0].status, "gone");
+  assert.equal(seats(second)[0].noFirstTurn, undefined);
+  assert.deepEqual(notices(second), []);
+  assert.match(spawnerLog(second), /census: sess-new gone\n/);
 });
