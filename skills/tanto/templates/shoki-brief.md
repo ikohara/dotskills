@@ -51,7 +51,9 @@ yours, the report's shape and your closing line included.
 ## The procedure
 
 1. Read, at their absolute paths in the main checkout, the recommendation,
-   the direction, and every inbox copy the recommendation names — every `inbox <YYYY-MM-DD>-<slug>` token of its headings, whether the pointer stands alone or follows a topic's `S-n` in one parenthesis. Read
+   the direction, and every inbox copy the recommendation names — every
+   `inbox <YYYY-MM-DD>-<slug>` token of its headings, whether the pointer
+   stands alone or follows a topic's `S-n` in one parenthesis. Read
    `docs/AGENTS.md` in the worktree — the document-management system you
    write by is the one on this branch.
 2. Dispatch `shoroku.apply`, `subagent_type: tanto-shoroku-apply`, with the

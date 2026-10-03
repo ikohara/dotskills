@@ -115,8 +115,10 @@ decision, or records a measured defect; a low-severity gap or drift in the
 skill's own prose whose whole repair is one sentence, or a few adjacent ones
 in one file, and needs no decision is grouped `Recommended fix`, its body
 carrying `File: <path>`, the text as it reads in an `Old:` fence, the text
-as it should read in a `New:` fence, the one-line reason, and — when the fix adds a name to a list — the file's other mentions of that list, found by a grep, as sibling fixes — an item the
-apply can act on without judgment; a fix the caller's dispatch does not
+as it should read in a `New:` fence, the one-line reason, and (when the fix
+adds a name to a list) the file's other mentions of that list, found by a
+grep, as sibling fixes — an item the apply can act on without judgment; a fix
+the caller's dispatch does not
 allow — a file outside the paths it names — is grouped `Recommended reject`
 with the correction in the reason. An experience item that is `[inferred]`,
 or whose wording names a path, a command, a config key, a file format, a role
