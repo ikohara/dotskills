@@ -101,6 +101,15 @@ CLI 2.1.288:
   SIGTERMs it; the spawner writes `pid` once at `cmdRun` and nothing after.
   `tanto.js` has its own `listAgents(root)` with `--cwd <root>`, and
   already imports `readSeats` and `spawnerDir` from `spawner.js`.
+- **M-6** (the spec reviewer's, 2026-10-03) — `claude agents --json` takes
+  390 to 470 ms per call on this host with 21 entries listed, so
+  `findNew`'s thirty attempts at a one-second sleep block about 44 s, not
+  30. In the live listing an interactive entry carries `pid`, `cwd` (its
+  drive letter lower-case), `status`, and no `state` or `id`; a background
+  entry carries `state` and `id`; a stale entry has no `pid` and
+  `state: blocked`; no entry has `cwd: null`. `claude rm --help` reads
+  "Unlike `stop`, works on already-exited sessions". Probe 1's prompt-less
+  session was listed with no `pid` (the decision's section 1).
 
 ## 1. The command line, and a prompt that was not delivered
 
@@ -119,15 +128,20 @@ take one value are safe on either side of the prompt and keep their order.
 `(idle — send a prompt to start)` — the line a session started with no
 prompt prints — the spawn has failed: the result is
 `error: "prompt not delivered: <the stdout line>"`. The seat exists, so it
-is still found (`findNew`), recorded in `seats.json` as `stopped` with
-`undelivered: <the stdout line>` beside its status, and stopped by its
-short id, the log saying `guard stopped <sessionId> — prompt not
-delivered`; a seat `findNew` cannot find within its poll is reported in the
-same error with no row, as today's "listed no new session" case is. The
-check is `opSpawn`'s alone: on a `resume` the same note is the CLI's normal
-line (M-4), and `opResume` is untouched. A regression of 1.1 is therefore a
-result file with `error` that Kanri reads at its next act, and a `stopped`
-seat — never a `blocked` row that waits for the human.
+is still found (`findNew`), recorded in `seats.json` as `removed` with
+`undelivered: <the stdout line>` beside its status, and **removed** with
+`claude rm` by its short id — `rm` rather than `stop`, because such a
+session is listed with no `pid` (M-6) and `stop` on a session with no
+process is what the CLI's own help says `rm` alone handles; a session that
+never ran holds nothing worth keeping. The log says
+`spawn: <sessionId> removed — prompt not delivered`, a prefix of its own,
+so that a reader grepping for the ad hoc-worktree guard's `guard stopped`
+matches the guard alone. A seat `findNew` cannot find within its poll is
+reported in the same error with no row, as today's "listed no new session"
+case is. The check is `opSpawn`'s alone: on a `resume` the same note is the
+CLI's normal line (M-4), and `opResume` is untouched. A regression of 1.1
+is therefore a result file with `error` that Kanri reads at its next act,
+and a `removed` seat — never a `blocked` row that waits for the human.
 
 ### 1.3 Tests
 
@@ -136,8 +150,8 @@ setting, and the flags the request names" expects the new order: no `-w`,
 the prompt after `--permission-mode auto` and before `--add-dir <root>`.
 One test is added: the fake `claude`, told through its state
 (`next.idleNote`) to print the note after the spawn line, yields a result
-with `error` matching `prompt not delivered`, a `stop` call in its log, and
-a seat `stopped` with `undelivered`.
+with `error` matching `prompt not delivered`, an `rm` call in its log, and
+a seat `removed` with `undelivered`.
 
 ## 2. The worktree Kanri cuts
 
@@ -154,7 +168,13 @@ from the shared checkout, whatever branch it is on. The branch name is the
 one every landing step already uses; the worktree is cut from `main`'s tip,
 so shoki's `git rebase main` (its step 4) is a no-op unless `main` moved
 while it wrote — and the rebase stays in the brief, because it may have.
-Section 6 names the two sentences of `roles/kanri.md` this changes.
+`git worktree add -b` refuses an existing branch and a non-empty existing
+directory — a close that crashed before its landing leaves both — so Kanri
+first removes a worktree or branch of that name when one exists, the way
+the landing removes them (`git worktree remove --force --force`,
+`git branch -D`), and when that removal fails holds the merge act and tells
+the human in one line. Section 6 names the sentences of `roles/kanri.md`
+this changes.
 
 ### 2.2 The spawner's cwd
 
@@ -162,8 +182,8 @@ The request's `worktree` field keeps its name and its value,
 `shoki-<topic>`, and changes meaning: it is **the name of a directory Kanri
 has cut under `<root>/.claude/worktrees/`, which the spawner makes the
 child's `cwd`**. `opSpawn` resolves `<root>/.claude/worktrees/<worktree>`,
-returns `error: "worktree <path> is not a directory"` without calling
-`claude` when it is not one, and otherwise runs `claude --bg` with that
+returns `error: "worktree <path> is not a directory"` without running
+`claude --bg` when it is not one, and otherwise runs `claude --bg` with that
 path as `spawnSync`'s `cwd` — `runClaude` gains an optional `cwd`, every
 other caller passing none and inheriting the root as today. No `-w` is
 passed for any seat. The field stays because the ad hoc-worktree guard's
@@ -195,14 +215,23 @@ failed to list. One `claude agents` call per pass, as today.
 
 ### 2.4 The landing
 
-Unchanged in its steps: `claude rm` deletes the session and, having no
-worktree of the CLI's own to delete, leaves Kanri's; the result's
-`Removed worktree` parse stays and reads empty; Kanri's
+Unchanged in its steps, with one tolerance: `claude rm` deletes the
+session; whether it also removes a worktree it did not cut — one that is
+merely the session's cwd — is unmeasured, so Kanri's removal step reads
+"remove the worktree when `git worktree list` still shows it", and the
+fifth landing measurement (Verification) records which. The `rm` result's
+`worktree` field is what `claude rm` printed after `Removed worktree`, and
+absent when it printed none — the fallback to the request's own `worktree`
+name goes, since a name is not a removal. Kanri's
 `git worktree remove --force --force <root>/.claude/worktrees/shoki-<topic>`
-and `git branch -D worktree-shoki-<topic>` stand. The CLI no longer holds
-the worktree locked, which is where a881's `Permission denied` is expected
-to ease; whether it does is a measurement of this plan's own landing
-(Verification), not a promise of this design.
+and `git branch -D worktree-shoki-<topic>` stand, the branch now Kanri's
+own from its cut. On a881: the `Permission denied` it measured is a
+Windows file lock — a process whose cwd is the directory, most likely the
+shoki process itself — not git's worktree lock, which `--force --force`
+already overrides; under this design as under the last the shoki process
+has that cwd, and `claude rm` ending it before the removal is what would
+release the lock. Whether it does is a measurement of this plan's own
+landing, not a promise of this design.
 
 ### 2.5 Tests
 
@@ -236,6 +265,18 @@ re-judged, so the toast is raised once. The seat is **not stopped**: the
 one cause this design knows is closed at the spawn by 1.2, and what reaches
 this rule is a cause not yet seen, for the human to look at.
 
+A second shape reaches the same toast without the budget. `runCensus` sees
+only listing entries with a `pid` (decision-ebbd), so a seat the listing
+holds without one — probe 1's shape, a session that never ran a turn and
+whose process is gone (M-6) — is `gone` at the first census, within
+fifteen seconds. In `censusSeat`'s `gone` branch, a seat whose
+`transcript` is unset and for which `findTranscript` finds nothing now is
+the no-first-turn case too: it gets the same `noFirstTurn: <stamp>`, the
+same toast once, and the log line `census: <sessionId> gone — no first
+turn`. A gone seat that did write a transcript is the ordinary `gone`, as
+today. So the two-minute rule covers the seat that lives and never starts,
+and the `gone` branch covers the one that never started and did not stay.
+
 The budget is twice the longest healthy start the probes saw (about one
 minute) and eight census passes; `FIRST_TURN_WAIT_MS` is a constant beside
 the spawner's other intervals.
@@ -254,8 +295,8 @@ test seam like `TANTO_CLAUDE_NODE`, else `Date.now()`.
 
 `boundary.js census` reads `<root>/.tanto/spawner/seats.json` when it
 exists — absent, nothing changes — and appends
-` — no first turn since <stamp>` to the Listed line of a seat that carries
-`noFirstTurn`. The same Listed line also gains ` — blocked` when the
+` — no first turn since <stamp>` to the Listed or Not listed line of a seat
+that carries `noFirstTurn`. The Listed line also gains ` — blocked` when the
 listing's `state` is `blocked` (section 5.2 reads it). Kanri's part is the
 existing one: on a census line that says `no first turn`, write an
 `attention` request whose message is
@@ -265,13 +306,16 @@ see the toast and the human may have missed it. One sentence in
 
 ### 3.4 Tests
 
-Three, with `TANTO_NOW_MS` fixed: under two minutes a seat with no
+Four, with `TANTO_NOW_MS` fixed: under two minutes a seat with no
 transcript gets no mark, no toast, no log line; past two minutes it gets
 the mark, one toast in `TANTO_NOTICE_LOG`, one log line, and a second pass
 adds neither; a transcript file written under any project slug clears the
-mark, fills `seat.transcript`, and logs `first turn`. One `boundary.test.js`
-case: a `seats.json` beside the roster with a marked seat makes `census`
-print the suffix on that seat's Listed line.
+mark, fills `seat.transcript`, and logs `first turn`; a seat the listing
+drops (the fake's `hidden`) with no transcript goes `gone` with the mark,
+the toast, and the `gone — no first turn` line, while one with a transcript
+goes `gone` with none of them. One `boundary.test.js` case: a `seats.json`
+beside the roster with a marked seat makes `census` print the suffix on
+that seat's line.
 
 ## 4. The launcher trusts a heartbeat, not a PID
 
@@ -279,12 +323,16 @@ print the suffix on that seat's Listed line.
 
 The spawner writes `.tanto/spawner/heartbeat` — the epoch milliseconds as
 text, through a temp file and rename — at the start of its first `pass`,
-before and after every request `takeRequests` handles, and at every
-`runCensus`. The longest stretch it blocks without one is one spawn's
-listing poll plus its transcript poll, about forty seconds (M-4's
-`sleepSync` note), so a beat older than `HEARTBEAT_STALE_MS` (60000) means
-the process behind `pid` is not this spawner, or is a spawner that has
-stopped working.
+before and after every request `takeRequests` handles, at every
+`runCensus`, and **inside every poll loop**: `sleepSync`'s three callers
+(`findNew`, `findResumed`, `transcriptOf`) go through one `pause(root, ms)`
+that beats and then sleeps. Without the last, a spawn whose seat never
+appears blocks about 55 to 60 s — thirty listings at 390 to 470 ms each
+plus thirty one-second sleeps (M-6), the transcript poll, the pre-spawn
+listing, and the `--bg` call — against the budget below. With it, the
+longest silence is one `claude` call plus one sleep, under two seconds, so
+a beat older than `HEARTBEAT_STALE_MS` (60000) means the process behind
+`pid` is not this spawner, or is a spawner that has stopped working.
 
 ### 4.2 The launcher reads it
 
@@ -301,9 +349,15 @@ running beside the new one, both taking requests by rename, so none is
 handled twice — ends at the next `tanto down`, which stops the one that
 beats. `cmdDown` on a stale heartbeat removes `pid` and `heartbeat`, prints
 `no spawner running`, and sends nothing; on a fresh one it SIGTERMs as
-today and removes both files after. `startSpawner`'s wait after launching
-waits for `liveSpawner`, which the new process satisfies at its first
-`pass`.
+today and removes both files after. One more case, for the transition
+(D-6): `cmdDown` with a PID that answers `process.kill(pid, 0)` and **no
+heartbeat file at all** — a spawner on the code before this change, or a
+reused PID — signals nothing, removes `pid`, and prints
+`spawner pid <n> has no heartbeat — a spawner from before the heartbeat,
+or a reused pid; end it by hand if it is the spawner: taskkill /PID <n>
+(kill <n>)`; the human, who is at the terminal, decides, and 73d6's hazard
+is reintroduced for no one. `startSpawner`'s wait after launching waits
+for `liveSpawner`, which the new process satisfies at its first `pass`.
 
 ### 4.3 Tests
 
@@ -311,8 +365,10 @@ In `tanto.test.js`: a `pid` file holding the test's own PID and no
 heartbeat makes `tanto` start a spawner and log the stale line; the same
 PID with a heartbeat of now makes it start none; `down` with a stale
 heartbeat removes the two files, prints `no spawner running`, and the
-test's own process is still alive. In `spawner.test.js`: `run --once`
-leaves a heartbeat whose value is within the test's clock.
+test's own process is still alive; `down` with the test's own PID and no
+heartbeat file prints the `has no heartbeat` line with that PID, removes
+`pid`, and the test's own process is still alive. In `spawner.test.js`:
+`run --once` leaves a heartbeat whose value is within the test's clock.
 
 ## 5. Two landing points
 
@@ -336,7 +392,11 @@ already uses is written down for `blocked`: Kanri appends
 `(blocked since <HH:MM>)` to a `live` cell when the census's Listed line
 for that seat carries ` — blocked` (3.3), and removes it when a later
 census does not; the intake's address rule and every other reader test the
-cell's first word, as they do for `idle since`. The cell names no cause,
+cell's first word, as they do for `idle since`. The suffix records the last
+census that saw the seat blocked, not the seat's state now: Kanri runs the
+census at the moments "The census" names, so the cell can lag the seat by a
+batch, where `idle since` is written on the seat's own report and does not.
+The cell names no cause,
 because the census sees none: a permission prompt, a usage-limit pause, and
 a seat idling on a kessai all read `blocked`, and telling them apart is
 feac's other half, deferred.
@@ -356,15 +416,28 @@ Every site by file and heading; the plan writes the passages.
   2.2, 3.2); `runClaude`'s optional `cwd` and `listAgents` with `underRoot`
   (2.2, 2.3); `censusSeat` and the two constants (3.1, 3.2); the heartbeat
   in `cmdRun`'s passes and `takeRequests` (4.1); `handleRequest`'s `stop`
-  and `rm` branches (5.1); `shortIdOf`'s comment, which now names the
-  spawn's lost-prompt case beside the resume's; the `NO_BG_ISOLATION` and
-  `spawnArgs` comments, which say "a worktree seat's real branch is the
-  CLI's own" — now Kanri's `worktree-shoki-<topic>`.
+  and `rm` branches (5.1), the `rm` result's `worktree` field without its
+  fallback (2.4); `shortIdOf`'s comment, which now names the spawn's
+  lost-prompt case beside the resume's; `spawnArgs`'s comment, which says
+  "a worktree seat's real branch is the CLI's own" — now Kanri's
+  `worktree-shoki-<topic>`; `listAgents`'s comment "`claude agents --json
+  --cwd <root>`, parsed." and `opSpawn`'s error string "`claude agents
+  --json --cwd <root>` listed no new session within 30 s", both of which
+  name the `--cwd` that 2.3 drops.
 - `skills/tanto/scripts/spawner.test.js` — the argv test's expected list;
-  the tests of 1.3, 2.5, 3.4, 4.3, 5.3.
+  the tests of 1.3, 2.5, 3.4, 4.3, 5.3; and two existing tests that spawn
+  `worktree: "shoki-t"` with no such directory — "the guard leaves a seat
+  whose request named a worktree alone" and "rm reports the worktree it
+  removed" — which now create `<workspace>/.claude/worktrees/shoki-t`
+  first, the second also asserting the result's `worktree` only when the
+  fake printed `Removed worktree`.
 - `skills/tanto/scripts/tanto.js` — `liveSpawner`, `startSpawner`,
-  `cmdDown` (4.2); `listAgents` (2.3).
-- `skills/tanto/scripts/tanto.test.js` — the tests of 4.3.
+  `cmdDown` (4.2); `listAgents` (2.3) and its comment "`claude agents
+  --json --cwd <root>`, parsed.".
+- `skills/tanto/scripts/tanto.test.js` — the tests of 4.3; and every
+  listing fixture, which today carries `cwd: null` — a shape the real
+  listing never shows (M-6) and one `underRoot` excludes — given
+  `cwd: ws.root`, so that the existing tests hold under 2.3.
 - `skills/tanto/scripts/boundary.js` — `cmdCensus` reads `seats.json` and
   prints the two suffixes (3.3); `boundary.test.js` — its case.
 - `skills/tanto/SKILL.md` — Artifacts, the row
@@ -381,15 +454,21 @@ Every site by file and heading; the plan writes the passages.
   gains "on a seat with no first turn two minutes after its spawn", and
   "keeps `seats.json`" gains "and a heartbeat"; the `scripts/tanto.js`
   sentence: "starts the spawner" becomes "starts the spawner when none
-  beats".
+  beats", and "`tanto down [--seats]` stops it all and keeps every
+  conversation" becomes "stops the spawner that beats, and with `--seats`
+  the seats, keeping every conversation".
 - `skills/tanto/templates/spawn-request.md` — the `worktree` bullet: "The
   spawner passes it as `-w`, and the worktree is the CLI's own, under
   `.claude/worktrees/`" becomes 2.2's meaning — a directory Kanri has cut,
   the spawner's `cwd`, never `-w`, an error when absent; the `prompt`
   bullet gains the position and its reason (`--add-dir` is variadic; a
-  prompt after it is a directory); the result paragraph gains `note:
-  "already exited"` on `stop` and `rm`, and the `spawn` error
-  `prompt not delivered` with the seat's `undelivered` and `stopped`.
+  prompt after it is a directory); the result paragraph: "`rm` adds
+  `removed` and the worktree it removed" becomes "and, when `claude rm`
+  printed one, the worktree it removed"; "An op that failed adds `error`,
+  which carries the command's stderr, and nothing else" becomes "the
+  command's stderr, or its stdout when the stderr is empty"; and it gains
+  `note: "already exited"` on `stop` and `rm`, and the `spawn` error
+  `prompt not delivered` with the seat's `undelivered` and `removed`.
 - `skills/tanto/templates/shoki-brief.md` — the Worktree argument: "the
   CLI's own, at …, cut in the same act as Kanri's merge; your `git rebase
   main` (step 4) is what makes it carry this topic's product, whatever HEAD
@@ -405,15 +484,21 @@ Every site by file and heading; the plan writes the passages.
   and "Whatever HEAD the CLI cuts that worktree from, shoki's own
   `git rebase main` is what lands the product's fixes before the records"
   becomes the worktree being cut from `main`'s tip, the rebase kept for
-  what `main` gains meanwhile; "remove the worktree `claude rm` leaves
-  locked" becomes "remove the worktree you cut"; "Create", the merge row:
-  "one `spawn` for shoki, in the same act as the merge and never before it"
+  what `main` gains meanwhile, with 2.1's removal of a stale worktree or
+  branch of the same name before the cut; "remove the worktree `claude rm`
+  leaves locked" becomes "remove the worktree you cut, when
+  `git worktree list` still shows it" (2.4), and "delete the branch
+  `worktree-shoki-<topic>` that `claude rm` keeps" becomes "delete the
+  branch `worktree-shoki-<topic>` you cut"; "Create", the merge row: "one
+  `spawn` for shoki, in the same act as the merge and never before it"
   gains "after `git worktree add`"; "Session lifecycle", the census
   paragraph: 3.3's sentence on `no first turn` and 5.2's on the `blocked`
-  annotation.
-- `skills/tanto/README.md` — the paragraph on `tanto` and `tanto down`:
-  one sentence, the launcher starts a spawner when none has beaten within
-  a minute, and `tanto down` signals only one that has.
+  annotation with its lag clause.
+- `skills/tanto/README.md` — "What it does": "except shoki's, which works
+  in the CLI's own worktree" becomes "except shoki's, which works in a
+  worktree Kanri cuts"; the paragraph on `tanto` and `tanto down`: one
+  sentence, the launcher starts a spawner when none has beaten within a
+  minute, and `tanto down` signals only one that has.
 
 Not changed: `templates/boundary-brief.md`, `templates/batch-prompt.md`,
 `templates/kanri-handover.md` (the three run-time templates), the six
@@ -438,14 +523,20 @@ Two facts of this plan's own run, which its Global Constraints state:
   cuts `shoki-shoki-seat` and the old spawner then passes
   `-w shoki-shoki-seat` over an existing directory. So, after the final
   batch (the fix wave included) is accepted and **before the kessai**,
-  Kanri's line asks the human to run `tanto down` then `tanto` in a
-  terminal — the seats keep running, Kanri included; only the spawner
-  restarts, and `tanto` finds the live Kanri and prints its attach line —
-  and Kanri, before it writes the shoki `spawn` request, checks that
-  `.tanto/spawner/heartbeat` exists and is within sixty seconds of now: the
-  file only the new code writes is the proof that the restart happened. A
-  heartbeat absent or stale holds the merge act and is one line to the
-  human, asking for the two commands again.
+  Kanri's line asks the human for three acts in a terminal: `tanto down`,
+  which on the pre-heartbeat spawner signals nothing and prints its PID
+  with the `has no heartbeat` line (4.2, D-6); ending that PID by hand
+  (`taskkill /PID <n>`, or `kill <n>`) — the one time this is asked, since
+  every later spawner beats; then `tanto`. The seats keep running, Kanri
+  included; only the spawner changes, and `tanto` finds the live Kanri and
+  prints its attach line. Kanri, before it writes the shoki `spawn`
+  request, checks that `.tanto/spawner/heartbeat` exists and is within
+  sixty seconds of now: the file only the new code writes is the proof
+  that the restart happened. A heartbeat absent or stale holds the merge
+  act and is one line to the human, asking for the three acts again. The
+  old spawner left running by a skipped second act would take requests
+  beside the new one, which the heartbeat check cannot see — the reviewer's
+  finding 1 — and the second act is why the ask is three lines and not two.
 - **This plan's close runs on the landed text.** Kanri re-reads
   `roles/kanri.md`'s "Shusei, shoki, and the landing" from disk before the
   merge act, as the bg-seat-ergonomics plan had its Kanri re-read the close
@@ -462,13 +553,28 @@ over the files it touches.
 - `scripts/spawner.js`, `shortIdOf`'s comment: "the same line with
   ` (idle — send a prompt to start)` after it on a resume" — also on a
   spawn whose prompt was lost, which 1.2 treats as an error.
-- `scripts/spawner.js`, `spawnArgs`'s comment and `NO_BG_ISOLATION`'s: "a
-  worktree seat's real branch is the CLI's own" — it is Kanri's
-  `worktree-shoki-<topic>` (2.1).
+- `scripts/spawner.js`, `spawnArgs`'s comment: "a worktree seat's real
+  branch is the CLI's own" — it is Kanri's `worktree-shoki-<topic>` (2.1).
+- `scripts/spawner.js`, `listAgents`'s comment and `opSpawn`'s error
+  string, and `scripts/tanto.js`, `listAgents`'s comment: "`claude agents
+  --json --cwd <root>`" — no `--cwd` (2.3).
+- `scripts/spawner.js`, `handleRequest`'s `rm` branch: the fallback
+  `seat?.worktree` in the result's `worktree` (2.4).
 - `scripts/spawner.test.js`: the expected argv list carrying `"-w",
-  "shoki-t"` and `SPAWN.prompt` last (1.3).
+  "shoki-t"` and `SPAWN.prompt` last (1.3); the two worktree tests spawning
+  with no directory (section 6).
 - `scripts/tanto.js`, `livePid`: `process.kill(pid, 0)` as the whole test
   (4.2).
+- `scripts/tanto.test.js`: every listing fixture's `cwd: null` (2.3).
+- `README.md`, "What it does": "which works in the CLI's own worktree"
+  (2.1).
+- `SKILL.md`, the `scripts/tanto.js` sentence: "`tanto down [--seats]`
+  stops it all" (4.2).
+- `templates/spawn-request.md`, the result paragraph: "carries the
+  command's stderr, and nothing else" (5.1) and "the worktree it removed"
+  (2.4).
+- `roles/kanri.md`, "Shusei, shoki, and the landing": "the branch
+  `worktree-shoki-<topic>` that `claude rm` keeps" (2.4).
 - `templates/spawn-request.md`, the `worktree` bullet: "The spawner passes
   it as `-w`, and the worktree is the CLI's own, under `.claude/worktrees/`"
   (2.2).
@@ -522,10 +628,10 @@ Written by the close's apply under `docs/decisions/`.
    writes would move to Kanri; recorded as **the fallback** if a later CLI
    isolates a session on detecting that its cwd is a worktree, together
    with moving the inbox Triage fill to Kanri, which rides with it. Amends
-   decision-26fd in one part: the one worktree the design admits is cut by
-   Kanri, not by the CLI on `claude --bg -w`; the rest of 26fd stands —
-   shoki after the merge, in a worktree, reporting `shoroku ready:`, Kanri
-   fast-forwarding. The bg-seat-ergonomics design's §1.2 setting stands
+   none: decision-26fd admits the one worktree and never says who cuts it
+   — the `-w` form lives in the bg-seats and bg-seat-ergonomics designs
+   and the skill text alone — so this ADR supplies the cut, and 26fd
+   stands whole. The bg-seat-ergonomics design's §1.2 setting stands
    unchanged: `--settings '{"worktree":{"bgIsolation":"none"}}'` on every
    spawn, shoki's included.
 3. **A seat with no first turn two minutes after its spawn is a notice.**
@@ -536,8 +642,10 @@ Written by the close's apply under `docs/decisions/`.
    the close is the one unattended stretch and has no clock; the human's
    observation as the detector — the record of eight spawns says what that
    costs. Amends decision-1c07 in one part: the spawner's census raises a
-   toast on a third signal, the no-first-turn mark, beside `blocked` and an
-   `attention` request; the rest of 1c07 stands.
+   toast on a further signal, the no-first-turn mark — beside `blocked`,
+   an `attention` request, and the strayed seat of the bg-seat-ergonomics
+   design's §1.4, which no ADR had recorded and this one does; the rest of
+   1c07 stands.
 4. **The launcher trusts a heartbeat, not a PID.** `.tanto/spawner/heartbeat`
    written at every pass; `liveSpawner` is PID alive and heartbeat within
    sixty seconds; a stale heartbeat is ignored and logged, never signalled
@@ -553,7 +661,10 @@ Written by the close's apply under `docs/decisions/`.
   `node --test` green at every task; **B** the documents of section 6
   (`SKILL.md`, the two templates, `templates/roster.md`, `roles/kanri.md`,
   `README.md`). Batch B is the safe boundary. Sections 1 to 5 each name
-  their tests; a task lands its code and its tests together.
+  their tests; a task lands its code and its tests together, and the task
+  that lands 2.3 brings the existing fixtures with it — `tanto.test.js`'s
+  `cwd: null` entries and `spawner.test.js`'s two worktree tests (section
+  6) — so that no boundary sees a red suite the plan did not name.
 - The Global Constraints carry rule 11's authority sentence, the queue, the
   safe boundary, and the two facts of section 7 — the spawner restart asked
   for before the kessai and checked by the heartbeat, and the re-read of
@@ -577,9 +688,12 @@ Written by the close's apply under `docs/decisions/`.
   whether its transcript appeared under `<repo slug>--claude-worktrees-shoki-shoki-seat`;
   whether its Triage fills and `shoroku-review.md` write were unrefused —
   the landing check "every swept inbox copy's Triage filled" passing is the
-  evidence; and whether `git worktree remove --force --force` returned
-  without `Permission denied` (a881). The restart's heartbeat check is a
-  fifth, implicit: the spawn request was written only after it held.
+  evidence; whether `git worktree remove --force --force` returned
+  without `Permission denied` (a881); and whether `git worktree list`
+  still showed the worktree after the `rm` result — that is, whether
+  `claude rm` removes a worktree it did not cut (2.4). The restart's
+  heartbeat check is a sixth, implicit: the spawn request was written only
+  after it held.
 
 ## Out of scope
 
@@ -615,8 +729,9 @@ read for the two carried: feac, and a14f's use of the word).
 - **59a5** — closes by 5.1, with M-2 noted in its resolution: the CLI's
   `rm` help now says it works on exited sessions.
 - **a881** — closes when the landing's fourth measurement passes; stays
-  open with that measurement when it does not. The dogfood report carries
-  the result either way.
+  open with that measurement when it does not, its resolution naming the
+  process-cwd lock of 2.4 as the mechanism. The dogfood report carries the
+  result either way.
 - **feac** — closes for its roster half by 5.2; its cause-distinction half
   is re-filed by the close's recommender as a narrower issue if the human
   wants it kept (Deferred items).
