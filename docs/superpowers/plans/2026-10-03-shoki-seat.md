@@ -179,14 +179,16 @@ replay-skip: ./scripts/lint.sh skills/ — the scratch tree carries no `.git`, `
 | Batch | Tasks | Delivers | Stop conditions at this boundary |
 | --- | --- | --- | --- |
 | A | 1-5 | the spawner's command line, its prompt check, its `stop`/`rm` landing points, the worktree cwd, the listing's `underRoot` key, the no-first-turn notice, and the heartbeat (Tasks 1-3); the launcher's `liveSpawner`, `startSpawner`, `cmdDown`, and listing key, with the listing fixtures (Task 4); `boundary.js census`'s two suffixes (Task 5) | `node --version` is 22 or later; the whole suite `skills/tanto/scripts/*.test.js` green; `passage-check.js verify` clean for Tasks 1-5; `./scripts/lint.sh` clean on the six script files; every O-needle of Tasks 1-5 at 0 over `skills/tanto/scripts/`; `passage-check.js diff` clean outside `docs/superpowers/` — every one a fence of How a batch is verified |
-| B — the safe boundary, the plan's last batch | 6-9 | spec section 6's documents: `SKILL.md` (Task 6); `templates/spawn-request.md`, `templates/shoki-brief.md`, `templates/roster.md` (Task 7); `roles/kanri.md` (Task 8); `README.md` (Task 9) | everything batch A's row names, again; `passage-check.js verify` clean for Tasks 6-9; `./scripts/lint.sh` clean on the six documents; **every O-needle of the whole plan at 0 over every file the plan touches**; the whole-skill sweep of `-w`, `the CLI's own`, and `--json --cwd` over `skills/tanto/` showing no hit outside its stated dispositions; none of the files no task touches changed since `b8bca1b` |
+| A-rework-1 (R-8, added after batch A's boundary) | 10 | `record --seat` writes the bare `<sessionId>.jsonl` into the roster's Transcript cell when the result found no transcript, so the census matches the row by `sessionId` and spec 3.3's suffixes reach a seat that never started (Task 10); `transcriptOf`'s comment repaired | `node --version` is 22 or later; the whole suite `skills/tanto/scripts/*.test.js` green, 233 tests; `passage-check.js verify` clean for Tasks 1-5 and 10; `./scripts/lint.sh` clean on the six script files; every O-needle of Tasks 1-5 and 10 at 0 over `skills/tanto/scripts/`; `passage-check.js diff` clean outside `docs/superpowers/` — every one a fence of How a batch is verified |
+| B — the safe boundary, the plan's last batch | 6-9 | spec section 6's documents: `SKILL.md` (Task 6); `templates/spawn-request.md`, `templates/shoki-brief.md`, `templates/roster.md` (Task 7); `roles/kanri.md` (Task 8); `README.md` (Task 9) | everything batch A's row and the rework's row name, again; `passage-check.js verify` clean for Tasks 6-9; `./scripts/lint.sh` clean on the six documents; **every O-needle of the whole plan at 0 over every file the plan touches**; the whole-skill sweep of `-w`, `the CLI's own`, and `--json --cwd` over `skills/tanto/` showing no hit outside its stated dispositions; none of the files no task touches changed since `b8bca1b` |
 
 A stop condition worded as a property of the whole tree — "the suite is
 green", "every O-needle … is 0", "no hit over `skills/tanto/`" — is backed
 by a fence that sweeps the whole of that scope, not only the files the
-batch wrote. The table's two rows plus one for the whole-branch review's
+batch wrote. The table's two batch rows plus one for the whole-branch review's
 fix wave size Kanri's Jisso queue: **three** seats, spawned at the plan's
-landing with `queue=shoki-seat`.
+landing with `queue=shoki-seat`. The `A-rework-1` row is run by batch A's own
+Jisso and adds no seat.
 
 ## How a batch is verified
 
@@ -230,8 +232,9 @@ rm -f "$out"
 [ "$status" -eq 0 ] && [ "$fails" = "0" ] || exit 1
 ```
 
-Expected: `# fail 0`, and `# pass` equal to `# tests` — 231 after batch A
-and after batch B (215 at `b8bca1b`, plus the sixteen tests Tasks 1-5 add).
+Expected: `# fail 0`, and `# pass` equal to `# tests` — 231 at batch A's first
+boundary, 233 from the rework on and after batch B (215 at `b8bca1b`, plus the
+sixteen tests Tasks 1-5 add and the two Task 10 adds).
 
 **3. Lint, by name.** The batch's own changed paths, every file named.
 
@@ -290,6 +293,7 @@ A|seatName, shortIdOf };|skills/tanto/scripts
 A|...opts,|skills/tanto/scripts
 A|return { sessions, error: null };|skills/tanto/scripts
 A|livePid|skills/tanto/scripts
+A|"unavailable",|skills/tanto/scripts
 A|(${session.kind})${renamed}|skills/tanto/scripts
 B|the CLI, on |skills/tanto
 B|works in the CLI's own worktree|skills/tanto
@@ -310,6 +314,8 @@ B|leaves locked|skills/tanto
 B|keeps, move shoki's|skills/tanto
 B|for shoki, in the same act|skills/tanto
 B|which works in the CLI's|skills/tanto
+B|holds the path and therefore the id|skills/tanto
+B|absolute path or unavailable|skills/tanto
 NEEDLES
 [ "$residual" -eq 0 ] || exit 1
 echo "every old value at 0"
@@ -1796,7 +1802,7 @@ function transcriptOf(sessionId) {
 
 ```js
  * result -- which `boundary.js record --seat` would then write into the
- * roster as `unavailable`, and `reading.js --share` would skip at the
+ * roster as `<sessionId>.jsonl`, and `reading.js --share` would skip at the
  * close. Ten seconds of looking costs nothing and narrows that window; the
  * census looks again at every pass while the seat has none (spec 3.1).
  */
@@ -2902,7 +2908,9 @@ reads the cell's first word and is unchanged. Kanri's worktree is also
 `roles/kanri.md`'s merge act and Create row (Task 8), and the README's
 "What it does" (Task 9); "Session exit"'s "a seat spawned into a worktree
 with `--add-dir` to the main checkout" stays true and is unchanged. The
-heartbeat is also `tanto.js` (Task 4) and the README (Task 9).
+heartbeat is also `tanto.js` (Task 4) and the README (Task 9). The form of the
+Transcript cell is also `scripts/boundary.js`'s `writeSeatRow` and
+`templates/roster.md`'s placeholder rows (Task 10, Task 7).
 
 **O6.1** `the CLI, on ` — the Artifacts worktree row's writer, "the CLI, on `claude --bg -w`" (spec 2.1); before: 1 in `skills/tanto/SKILL.md`, after: 0.
 
@@ -2920,9 +2928,11 @@ heartbeat is also `tanto.js` (Task 4) and the README (Task 9).
 
 **O6.8** `never written by a role` — the worktree row's content, which Kanri now cuts (spec 2.1); before: 1 in `skills/tanto/SKILL.md`, after: 0.
 
+**O6.15** `holds the path and therefore the id` — the Transcript column's sentence, which names no seat whose transcript is not found yet (R-8, Task 10); before: 1 in `skills/tanto/SKILL.md`, after: 0.
+
 - [ ] **Step 1: Apply the passages**
 
-Apply P6.9 to P6.14.
+Apply P6.9 to P6.14, then P6.16.
 
 **P6.9** `skills/tanto/SKILL.md` — replace exactly these 3 lines
 
@@ -3050,6 +3060,24 @@ close's scribe, which works in the worktree Kanri cuts at
 `.claude/worktrees/shoki-<topic>` and holds no runtime resource. Every batch
 ```
 
+**P6.16** `skills/tanto/SKILL.md` — replace exactly these 3 lines
+
+```markdown
+The roster's Transcript column holds the path and therefore the id — the
+basename, which holds when the path does not — and no `Sess` column is
+added, because it would duplicate the basename.
+```
+
+**P6.16 →**
+
+```markdown
+The roster's Transcript column holds the path — or, for a terminal seat
+whose transcript the spawner had not found when it wrote its result, the
+bare `<sessionId>.jsonl` — and therefore the id: the basename, which holds
+when the path does not. `unavailable` stands only where there is neither,
+and no `Sess` column is added, because it would duplicate the basename.
+```
+
 - [ ] **Step 2: Verify the passages**
 
 ```bash
@@ -3118,13 +3146,15 @@ brief's step 4 and its report line, which name `git rebase main` and
 
 **O7.5** `whatever HEAD the CLI cut it from` — the same argument's rebase clause (spec 2.1); before: 1 in `skills/tanto/templates/shoki-brief.md`, after: 0.
 
+**O7.11** `absolute path or unavailable` — the two placeholder rows' Transcript cell, which names no seat whose transcript is not found yet (R-8, Task 10); before: 2 in `skills/tanto/templates/roster.md`, after: 0.
+
 **O7.6** `address rule reads, so a reader` — the roster's Status paragraph with `(idle since <HH:MM>)` as the only suffix (spec 5.2); before: 1 in `skills/tanto/templates/roster.md`, after: 0.
 
 - [ ] **Step 1: Apply the passages**
 
 Apply P7.7 to P7.8,
-P7.9, and
-P7.10.
+P7.9, P7.10, and
+P7.12.
 
 **P7.7** `skills/tanto/templates/spawn-request.md` — replace exactly these 6 lines
 
@@ -3237,6 +3267,20 @@ of a skill-editing plan waiting for its batch prompt, in spawn order.
 the spawner stopped on Kanri's request or the spawner's guard stopped, its
 ```
 
+**P7.12** `skills/tanto/templates/roster.md` — replace exactly these 2 lines
+
+```markdown
+| kanri | — | <name> [<ref>] | <absolute path> | <model id> | <level or unknown> | <branch> | <auto or unknown> | <YYYY-MM-DD HH:MM> | live | <absolute path or unavailable> |
+| <role> | <topic> | <name> [<ref>] | <absolute path> | <model id> | <level or unknown> | <branch> | <auto or unknown> | <YYYY-MM-DD HH:MM> | live | <absolute path or unavailable> |
+```
+
+**P7.12 →**
+
+```markdown
+| kanri | — | <name> [<ref>] | <absolute path> | <model id> | <level or unknown> | <branch> | <auto or unknown> | <YYYY-MM-DD HH:MM> | live | <absolute path, <sessionId>.jsonl, or unavailable> |
+| <role> | <topic> | <name> [<ref>] | <absolute path> | <model id> | <level or unknown> | <branch> | <auto or unknown> | <YYYY-MM-DD HH:MM> | live | <absolute path, <sessionId>.jsonl, or unavailable> |
+```
+
 - [ ] **Step 2: Run the suites that copy the roster template**
 
 ```bash
@@ -3245,7 +3289,8 @@ node --test skills/tanto/scripts/spawner.test.js skills/tanto/scripts/boundary.t
 
 Expected: every test passes — "a spawn's startedAt reaches the roster's
 Started cell in the same shape" and `boundary.test.js`'s record tests copy
-`templates/roster.md`, whose table this task does not touch.
+`templates/roster.md`, whose table this task changes only in the last cell
+of its two placeholder rows.
 
 - [ ] **Step 3: Verify the passages**
 
@@ -3529,9 +3574,228 @@ git commit --only -m "docs: the README names the worktree Kanri cuts and the spa
 
 Expected: lint passes with no file changed; one commit.
 
+### Task 10: `record --seat` writes the session id into the Transcript cell when the path is unknown (batch A's rework, R-8)
+
+Added after batch A's boundary, for the human's answer to R-6 (option (c),
+through Kikaku, 2026-10-04). A spawn result that carries a `sessionId` and a
+null `transcript` — the poll missed the file, which Task 3's census looks
+for again later — made `record --seat` write the roster's Transcript cell as
+`unavailable`, and the census matches a row by `sessionId` alone, so spec
+3.3's suffixes could not reach a seat that never started: its row stayed
+`live` with no process behind it. Now `writeSeatRow` writes the bare
+`<sessionId>.jsonl` — no directory, since the project slug varies with the
+cwd and the letter case, and a worktree seat has a slug of its own — and
+`unavailable` only where the result holds neither. `sessionIdOf` already
+reads the bare form, so the census code of Task 5 and spec 3.3's text are
+unchanged. The task is batch A's rework, `A-rework-1`: it runs under batch
+A's own Jisso, after Tasks 1-5, which stay committed, and before Task 6.
+
+**Files:**
+
+- Modify: `skills/tanto/scripts/boundary.js` — `writeSeatRow`'s Transcript
+  cell.
+- Modify: `skills/tanto/scripts/spawner.js` — the doc comment of
+  `transcriptOf`, brought to what P3.15 now says (Step 3).
+- Test: `skills/tanto/scripts/boundary.test.js` — one `--seat` test after
+  the existing one, and one census test after Task 5's.
+
+**Interfaces:**
+
+- Consumes: Task 3's result fields, `sessionId` and a possibly null
+  `transcript`; Task 5's census, unchanged.
+- Produces: a Transcript cell that is the path, else `<sessionId>.jsonl`,
+  else `unavailable`; the census reads the second form as the row's
+  `sessionId`, so a blocked seat reaches Listed and a seat gone without a
+  first turn reaches Not listed, each with its suffixes.
+
+**Named-mechanism sites.** The form of the Transcript cell is also
+`SKILL.md`'s "The roster's Transcript column holds the path and therefore
+the id" (Task 6, P6.16) and `templates/roster.md`'s two placeholder rows
+(Task 7, P7.12). `SKILL.md`'s "a roster row's is the basename of its
+Transcript column without `.jsonl`" holds as written, and `roles/kanri.md`'s
+"`transcript=unavailable` is accepted … its row carries `unavailable`" is a
+tab seat's handshake and stays. `reading.js --share` skips a file it cannot
+read and names it in its line, which covers a bare name; it is unchanged.
+The `transcriptOf` comment is the one sentence of the tree that said the
+cell would read `unavailable`.
+
+**O10.1** `"unavailable",` — `writeSeatRow`'s cell, `seat.transcript || "unavailable",` (R-8); before: 1 in `skills/tanto/scripts/boundary.js`, after: 0.
+
+- [ ] **Step 1: Write the tests**
+
+Apply P10.3 and P10.4.
+
+**P10.3** `skills/tanto/scripts/boundary.test.js` — replace exactly these 2 lines
+
+```js
+  assert.ok(second.includes("| next |"), second);
+});
+```
+
+**P10.3 →**
+
+```js
+  assert.ok(second.includes("| next |"), second);
+});
+
+test("--seat writes the session id in the Transcript cell when the result found no transcript, and unavailable when it has neither", () => {
+  const fixture = ledgerAndRoster();
+  const seatRows = (seat) => {
+    const file = write(fixture.dir, "result.json", JSON.stringify(seat));
+    const args = ["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--seat", file];
+    assert.strictEqual(run(args, fixture.dir).code, 0);
+    return fs.readFileSync(fixture.roster, "utf8");
+  };
+  const bare = seatRows({ ...SEAT, transcript: null });
+  assert.ok(bare.includes("| live | sess-one.jsonl |"), bare);
+  const neither = seatRows({ ...SEAT, name: "seat-two [bbbbbb]", transcript: null, sessionId: undefined });
+  assert.ok(neither.includes("| live | unavailable |"), neither);
+  const found = seatRows(SEAT);
+  assert.ok(found.includes("| live | /tmp/seat-one.jsonl |"), found);
+  assert.ok(!found.includes("| sess-one.jsonl |"), found);
+});
+```
+
+**P10.4** `skills/tanto/scripts/boundary.test.js` — replace exactly these 4 lines
+
+```js
+    result.out.includes("\n## Not listed\n\nshoki t shoki-i — sess-shoki — no first turn since 2026-10-03 10:05\n"),
+    result.out,
+  );
+});
+```
+
+**P10.4 →**
+
+```js
+    result.out.includes("\n## Not listed\n\nshoki t shoki-i — sess-shoki — no first turn since 2026-10-03 10:05\n"),
+    result.out,
+  );
+});
+
+test("census matches a row whose Transcript cell is the bare session id: a blocked seat and a seat that never started carry their suffixes", () => {
+  const f = censusFixture(
+    [
+      KANRI_ROW,
+      sessionRow("jisso", "t", "jisso-h", "live", "sess-jisso.jsonl"),
+      sessionRow("shoki", "t", "shoki-i", "live", "sess-shoki.jsonl"),
+    ],
+    (root) => [
+      { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, pid: 1111 },
+      { sessionId: "sess-jisso", name: "jisso-h", kind: "background", cwd: root, pid: 1112, state: "blocked" },
+      { sessionId: "sess-shoki", name: "shoki-i", kind: "background", cwd: root, state: "blocked" },
+    ],
+  );
+  fs.mkdirSync(path.join(f.root, ".tanto", "spawner"), { recursive: true });
+  const seats = [
+    { sessionId: "sess-jisso", status: "blocked", noFirstTurn: "2026-10-04 10:02" },
+    { sessionId: "sess-shoki", status: "gone", noFirstTurn: "2026-10-04 10:05" },
+  ];
+  fs.writeFileSync(path.join(f.root, ".tanto", "spawner", "seats.json"), JSON.stringify({ seats }));
+  const result = census(f, "");
+  assert.strictEqual(result.code, 0, result.err);
+  assert.ok(
+    result.out.includes(
+      "jisso t jisso-h — sess-jisso — listed as jisso-h (background) — blocked — no first turn since 2026-10-04 10:02\n",
+    ),
+    result.out,
+  );
+  assert.ok(
+    result.out.includes(
+      "\n## Not listed\n\nshoki t shoki-i — sess-shoki — listed without a pid (a stale entry) — no first turn since 2026-10-04 10:05\n",
+    ),
+    result.out,
+  );
+  assert.ok(result.out.includes("\n## No session id\n\nnone\n"), result.out);
+});
+```
+
+- [ ] **Step 2: Run the new tests**
+
+```bash
+node --test --test-name-pattern "Transcript cell" skills/tanto/scripts/boundary.test.js
+```
+
+Expected: the `--seat` test FAILS — the cell reads `unavailable` where
+`sess-one.jsonl` is expected. The census test passes from the start: option
+(c) leaves the census as spec 3.3 wrote it, so that test pins the contract
+the code of Step 3 feeds and is not red first.
+
+- [ ] **Step 3: Write the session id into the cell, and repair the comment**
+
+Apply P10.5.
+
+**P10.5** `skills/tanto/scripts/boundary.js` — replace exactly these 1 lines
+
+```js
+    seat.transcript || "unavailable",
+```
+
+**P10.5 →**
+
+```js
+    // The path; a seat whose transcript is not on disk yet carries the bare
+    // `<sessionId>.jsonl`, which the census matches by `sessionId`, and
+    // `unavailable` stands only where the result held neither.
+    seat.transcript || (seat.sessionId ? `${seat.sessionId}.jsonl` : "unavailable"),
+```
+
+Then bring the doc comment of `transcriptOf` in `skills/tanto/scripts/spawner.js`
+to what P3.15 now says. P3.15 was amended after Task 3 landed, so its new
+text already reads so, and this step is the one hand edit that brings the
+tree to it. The comment's second line
+
+```js
+ * roster as `unavailable`, and `reading.js --share` would skip at the
+```
+
+becomes
+
+```js
+ * roster as `<sessionId>.jsonl`, and `reading.js --share` would skip at the
+```
+
+Nothing else of that comment, and nothing else of `spawner.js`, changes.
+
+- [ ] **Step 4: Run the whole suite**
+
+```bash
+node --test skills/tanto/scripts/*.test.js 2>&1 | tail -8
+```
+
+Expected: `fail 0` and `pass 233` — 231 at batch A's first boundary, plus the
+two tests of Step 1.
+
+- [ ] **Step 5: Verify the passages**
+
+```bash
+TANTO="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/tanto"; node "$TANTO/scripts/passage-check.js" verify --plan docs/superpowers/plans/2026-10-03-shoki-seat.md --task 10
+```
+
+Expected: `task 10: verify clean`.
+
+- [ ] **Step 6: Verify Task 3 again**
+
+```bash
+TANTO="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/tanto"; node "$TANTO/scripts/passage-check.js" verify --plan docs/superpowers/plans/2026-10-03-shoki-seat.md --task 3
+```
+
+Expected: `task 3: verify clean`. It is clean only once Step 3's comment edit
+is made, because P3.15's new text carries the repaired line.
+
+- [ ] **Step 7: Lint and commit**
+
+```bash
+./scripts/lint.sh skills/tanto/scripts/spawner.js skills/tanto/scripts/boundary.js skills/tanto/scripts/boundary.test.js
+git commit --only -m "fix: record --seat writes the session id into the Transcript cell when the transcript is not found, so the census can match the row" -m "Co-Authored-By: Claude <noreply@anthropic.com>" -- skills/tanto/scripts/spawner.js skills/tanto/scripts/boundary.js skills/tanto/scripts/boundary.test.js
+```
+
+Expected: lint passes with no file changed; one commit.
+
 ## Self-Review
 
-**Size.** Nine tasks: five in batch A, four in batch B. Batch A carries
+**Size.** Ten tasks: five in batch A, four in batch B, and Task 10, batch
+A's rework (R-8), added after batch A's boundary. Batch A carries
 five rather than four because `spawner.js` needs three — the command line
 and the two landing points (Task 1), the worktree cwd and the listing's
 key (Task 2), the notice and the heartbeat (Task 3) — each landing its own
@@ -3542,8 +3806,9 @@ split further because the notice and the heartbeat share the census pass,
 the spawner's poll loops, and the test helper `run` whose environment both
 need; two tasks there would touch the same lines, which `verify` cannot
 hold at the batch's boundary. The next largest is Task 1 at 561 lines.
-The plan carries 88 passages and 47 old-value needles, 135 blocks in all,
-and no anchor, since no block is an insertion.
+The plan carries 93 passages and 50 old-value needles, 143 blocks in all,
+and no anchor, since no block is an insertion. Task 10 is 217 lines and
+seven steps.
 
 **No sweep-and-check task.** Every task's deliverable is a file and a
 commit; the sweeps are fences of How a batch is verified, run by the
@@ -3579,7 +3844,7 @@ no residual, no stale hit.
 | 2.4 the landing | 1 (the `rm` result's `worktree`, its test); 8 (removal sentences); 7 (result paragraph) |
 | 2.5 tests | 2 |
 | 3.1 the rule, 3.2 two fields, 3.4 tests | 3; 6 (notice list) |
-| 3.3 the census line for Kanri | 5; 8 (census bullet) |
+| 3.3 the census line for Kanri | 5; 8 (census bullet); 10 (the row cell that lets the census match a seat with no transcript yet) |
 | 4.1 the spawner beats | 3 |
 | 4.2 the launcher reads it, D-6 | 4; 6 and 9 (documents) |
 | 4.3 tests | 3 (spawner's), 4 (launcher's four) |
@@ -3587,7 +3852,7 @@ no residual, no stale hit.
 | 5.2 `live (blocked since <HH:MM>)` | 5 (` — blocked`); 6, 7, 8 (documents) |
 | 6 file by file | 1-9, one task per file group; the sites it does not name are listed under the title |
 | 7 rule 11 and this plan | Global Constraints (authority, queue, safe boundary, the two facts); How a batch is verified, fence 6 (untouched files) |
-| Old values | O1.1 to O9.1, swept by fence 4 |
+| Old values | O1.1 to O10.1, swept by fence 4 |
 | What the plan must contain | the two batches, the fixtures in Task 2, fences 4 and 5 |
 
 **Gaps and ambiguities resolved.**
@@ -3628,6 +3893,18 @@ no residual, no stale hit.
   describe: `transcriptOf`'s (the census looks again), `cmdRun`'s two (a
   worktree spawn names its own cwd; the event loop blocks about a minute,
   M-6), and `runClaude`'s new one.
+
+- R-8, the human's answer to R-6 (option (c), 2026-10-04): the spec's 3.3
+  text and Task 5's census stand, and `writeSeatRow` writes the bare
+  `<sessionId>.jsonl` (Task 10) so a seat the poll missed is matched by
+  `sessionId`. Task 10 is an added task, run as batch A's rework; Tasks 1-5
+  stay committed. P3.15 is amended in place, so that its new text carries the
+  repaired comment line and Task 3's `verify` holds after the rework: the
+  committed tree differs from the amended P3.15 by that one line, and Task
+  10's Step 3 is the hand edit that closes it, checked by Step 6. Measured
+  in a scratch copy of the tree at batch A's boundary: the `--seat` test is
+  red before Step 3 and the census test is green from the start; the whole
+  suite is 233 tests green after; `biome check` is clean on the three files.
 
 **Not resolved here.** Whether the landing's
 `git worktree remove --force --force` returns without `Permission denied`
