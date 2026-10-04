@@ -444,7 +444,12 @@ at a time and the next plan's queue opens at its predecessor's close — or
 `—` for Kanri, Kikaku, Hosa, and a standalone Kaiseki. The Status column
 carries one of seven
 words: `queued` a Jisso of a skill-editing plan waiting for its batch prompt;
-`live`, which may carry the suffix `(idle since <HH:MM>)`; `stopped` a
+`live`, which may carry one suffix: `(idle since <HH:MM>)`, or
+`(blocked since <HH:MM>)`, which Kanri appends when the census's Listed line
+for the seat carries `— blocked` and removes when a later census's does not —
+the last census that saw the seat blocked, not its state now, and no cause,
+since a permission prompt, a usage-limit pause, and a kessai wait all read
+`blocked`; every reader tests the cell's first word; `stopped` a
 terminal seat the spawner stopped on Kanri's request or the spawner's guard
 stopped, its conversation kept; `cleared` a tab seat Kanri released with
 `release:`, or whose `/clear` a `no-role` reply revealed; `replaced` a
@@ -469,7 +474,9 @@ session to a row — a handshake, `/tanto fukki`, Kanri's start, the census —
 compares `sessionId`s, never a name, a `[ref]`, or a full path: a name and
 a `[ref]` pass to another session across a `/clear`, one file has two paths
 under a changed config directory, and a transcript moves when its session
-enters a worktree. `node "$TANTO/scripts/boundary.js" census` lists every
+enters a worktree. When a handshake's `transcript=` names another path than
+the row's and the `sessionId` matches, Kanri rewrites the row's Transcript
+cell to the handshake's path and notes the move in an Events line. `node "$TANTO/scripts/boundary.js" census` lists every
 session under the repository, the tab seats included, and Kanri marks a
 `live` row whose `sessionId` it does not list `dead` on that signal alone —
 no timeout, no inference, no name — except while a restart is being
@@ -541,9 +548,12 @@ figure below is a token count, and a documented one: it is the harness's own
 Locate the file from the scratchpad path the system prompt names,
 `<...>/<project slug>/<session id>/scratchpad`: the transcript is
 `<config dir>/projects/<project slug>/<session id>.jsonl`, where the config
-directory is `$CLAUDE_CONFIG_DIR` when set and `~/.claude` otherwise. Then,
-with `T` the transcript path and `$TANTO` the skill's own directory, **both
-set in the same tool call as the command**:
+directory is `$CLAUDE_CONFIG_DIR` when set and `~/.claude` otherwise. A
+session whose cwd is a worktree under the repository — shoki's — writes its
+transcript under the slug `<repo slug>--claude-worktrees-<name>`, the
+harness's encoding of that cwd, and the spawner's `findTranscript` searches
+every slug. Then, with `T` the transcript path and `$TANTO` the skill's own
+directory, **both set in the same tool call as the command**:
 
 ```bash
 node "$TANTO/scripts/reading.js" "$T"
@@ -600,7 +610,9 @@ role file passes them.
 The first line the command prints is the reading, and it travels as it is:
 appended after ` — ` to the boundary and exit lines the roles already send,
 and written into the batch and Kaiseki reports where their templates have a
-slot. A compaction does not shrink the file, and a tool result is stored at
+slot. A reading appended to an answer line is the output of a run made after
+the file that line points at was written, in the step that sends the line —
+never one recalled from an earlier run. A compaction does not shrink the file, and a tool result is stored at
 full size, so bytes overstate what the context holds: bytes and records are
 compared with each other across sessions and with no token count. `context=`
 is the exception, and it is why it was added — it is a token count, it is
@@ -642,9 +654,11 @@ transcript path is a function of it —
 what `claude agents --json` and `ListAgents` currently print for it. The
 editor's resume of a tab seat keeps the id and changes the name; a terminal
 seat's flag-less resume keeps both, since the spawner named it at its spawn.
-The roster's Transcript column holds the path and therefore the id — the
-basename, which holds when the path does not — and no `Sess` column is
-added, because it would duplicate the basename.
+The roster's Transcript column holds the path — or, for a terminal seat
+whose transcript the spawner had not found when it wrote its result, the
+bare `<sessionId>.jsonl` — and therefore the id: the basename, which holds
+when the path does not. `unavailable` stands only where there is neither,
+and no `Sess` column is added, because it would duplicate the basename.
 
 | what happened | what the run does |
 | --- | --- |
@@ -837,7 +851,7 @@ say it in Kanri's window. **The intake is the target repository's `live`
 Hosa, else its Kanri**: the sender reads `<workspace>/.tanto/roster.md`,
 takes the bare `<name>` before the bracket of the `Name [ref]` column of the
 row whose Role is `hosa` and whose Status begins with `live` — Kanri appends
-the suffix `(idle since <HH:MM>)` to that cell while a Hosa idles — or, when there is
+one of the two suffixes the Status column names to that cell, `(idle since <HH:MM>)` while a Hosa idles — or, when there is
 none, of the first data row, the human supplying the workspace's path where the sender
 does not know it; checks that name against `ListAgents`; and asks the human
 for the address when the roster is absent — a workspace not yet migrated, or
@@ -1164,12 +1178,12 @@ census's "Not listed", and continues.
 | `<cwd>/.claude/tanto.json` | the repository | every role at start, Kanri at each handshake, `scripts/reading.js` | the project expected-model config, overlaid on the personal one; committed or ignored as the repository decides |
 | `~/.claude/agents/tanto-*.md`, or `$CLAUDE_CONFIG_DIR/agents/` when that variable is set | every role at its start, from the built-in and personal layers | the harness, at the next session start | one definition per kind, from `templates/agent.md`; a definition is dispatchable only from the sessions started after it was written |
 | `<cwd>/.claude/agents/tanto-*.md`, and `<cwd>/.claude/agents/.gitignore` beside them | every role at its start, for the kinds whose effort the project file changes | the harness, at the next session start; git | the project-scope definitions, from the same template with its `<scope>` clause rendered; the `.gitignore` holds `tanto-*.md` and `.gitignore`, is written once and never overwritten |
-| `.tanto/spawner/` — `pid`, `log`, `seats.json`, `requests/<id>.json`, `results/<id>.json` | the spawner, and Kanri for a request file | the launcher, Kanri | the spawner's own state: one seat entry per session it started, one request and one result per act. The roster is not here and the spawner never reads it |
+| `.tanto/spawner/` — `pid`, `heartbeat`, `log`, `seats.json`, `requests/<id>.json`, `results/<id>.json` | the spawner, and Kanri for a request file | the launcher, Kanri | the spawner's own state: one seat entry per session it started, one request and one result per act, and the heartbeat — the epoch milliseconds of its last beat, which the launcher trusts over `pid`. The roster is not here and the spawner never reads it |
 | `.tanto/<topic>/spawner-results/` | Kanri, at the plan close | Kanri | the topic's result files, moved with the archive move |
 | `.tanto/<topic>/shoki-brief.md` | Kanri, from `templates/shoki-brief.md` | shoki, as its whole prompt | the scribe's contract: the arguments, what it never does, the five steps, the report line |
 | `.tanto/<topic>/shoroku-review.md` | the `shoroku.review` kind shoki dispatches | shoki, then Kanri | the review of shoki's own diff against `main`, before it reports |
 | `.tanto/<topic>/batch-shusei-prompt.md` | Kanri, from `templates/batch-prompt.md` | the shusei Jisso | the one-task fix batch of the close |
-| `<root>/.claude/worktrees/shoki-<topic>` | the CLI, on `claude --bg -w` | shoki | shoki's worktree; never written by a role, removed by Kanri (`git worktree remove --force --force`) along with its branch, after the `rm` request |
+| `<root>/.claude/worktrees/shoki-<topic>` | Kanri, by `git worktree add` in the merge act | shoki | shoki's worktree and its cwd, on the branch `worktree-shoki-<topic>` cut from `main`'s tip; the spawner runs the seat in it and passes no `-w`; removed by Kanri (`git worktree remove --force --force`) along with its branch, after the `rm` request, which leaves both |
 
 Templates are copied and filled, never restated in prose. Seventeen of them:
 `templates/roster.md`, `templates/roster-archive.md`, `templates/kanri.md`,
@@ -1211,15 +1225,17 @@ root, under four headings — Listed, Not listed, No session id, and Not held.
 `scripts/spawner.js` is the one process in a run that issues `claude --bg`,
 `claude stop`, `claude rm`, and `claude --resume`: a resident started by the
 launcher and never by a session, which takes request files, writes result
-files, keeps `seats.json`, names each seat it spawns, runs the spawner's
-census of `claude agents --json` every fifteen seconds — which revives a
-seat that returns to the listing and stops one that strays into
-`.claude/worktrees/` — and raises a desktop notice on a blocked seat, on a
-strayed one, and on an `attention` request; `spawner.js notify --stdin` is the one-shot an optional
-harness hook may call. `scripts/tanto.js` is the human's one command — it
-starts the spawner, finds or asks for a Kanri, resumes what a restart took,
-and prints `claude attach <id>`; `tanto down [--seats]` stops it all and
-keeps every conversation.
+files, keeps `seats.json` and a heartbeat, and names each seat it spawns,
+runs the spawner's census of `claude agents --json` every fifteen seconds —
+which revives a seat that returns to the listing and stops one that strays
+into `.claude/worktrees/` — and raises a desktop notice on a blocked seat,
+on a strayed one, on a seat with no first turn two minutes after its spawn,
+and on an `attention` request; `spawner.js notify --stdin` is the one-shot
+an optional harness hook may call. `scripts/tanto.js` is the human's one
+command — it starts the spawner when none beats, finds or asks for a Kanri,
+resumes what a restart took, and prints `claude attach <id>`;
+`tanto down [--seats]` stops the spawner that beats, and with `--seats` the
+seats, keeping every conversation.
 All five are Node with no dependencies, and all five have their tests
 beside them, run by `node --test`. Their paths are written skill-relative,
 like every other path in
@@ -1363,7 +1379,7 @@ the tree is on. Jisso continues on it;
 the merge decision is the human's, taken with the close kessai's one answer.
 **No worktree by default** — Kanri verifies
 the tree in place and the human can watch it. The one exception is shoki, the
-close's scribe, which works in the CLI's own worktree under
+close's scribe, which works in the worktree Kanri cuts at
 `.claude/worktrees/shoki-<topic>` and holds no runtime resource. Every batch
 prompt restates that
 as a Kanri directive. A modification in the shared tree that a session or its

@@ -55,10 +55,15 @@ field explained beside it.
   the one line `brief: <.tanto/<topic>/shoki-brief.md>`, which is not a
   `/tanto` invocation at all.
   A slash command in a `--bg` initial prompt invokes the skill, measured
-  2026-09-21 against CLI 2.1.278; no other form is needed.
-- `worktree` — shoki's `shoki-<topic>`, and absent for every other seat. The
-  spawner passes it as `-w`, and the worktree is the CLI's own, under
-  `.claude/worktrees/`.
+  2026-09-21 against CLI 2.1.278; no other form is needed. The spawner puts
+  the prompt after the fixed flags and before every `--add-dir`: that
+  option is variadic, so a prompt after it is read as one more directory and
+  the seat starts with no first turn.
+- `worktree` — shoki's `shoki-<topic>`, and absent for every other seat: the
+  name of the directory Kanri cut under `<root>/.claude/worktrees/` in the
+  merge act. The spawner runs `claude --bg` with that directory as its cwd
+  and never passes `-w`, and a directory that is not there is an `error`
+  before `claude --bg` runs.
 - `addDir` — a list of directories, shoki's being the repository root, so
   that the scribe in its worktree can read `.tanto/`. Absent otherwise.
 - No field carries the seat's name or its settings: the spawner adds both
@@ -84,13 +89,21 @@ field explained beside it.
 A result carries the request's fields and the op's own: `spawn` adds `id`,
 `sessionId`, `name` — the seat's name from its spawn, as the listing's first
 sighting carries it — `cwd`, `transcript`, and `startedAt`; `stop` adds
-`stopped`; `rm` adds `removed` and the worktree it removed; `resume` adds
-the `id` and the `name` under the same `sessionId`, the name the one the
-spawn gave; `attention` adds `notified` and `channel`; `ack` adds `acked`.
-An op that failed adds `error`, which carries the command's stderr, and
-nothing else — except the ad hoc-worktree guard at a spawn's first
-sighting, which also records the seat as `stopped`, with `strayed: <cwd>`,
-before returning `error`. The same guard at a pass of the spawner's census
+`stopped`; `rm` adds `removed` and, when `claude rm` printed one, the
+worktree it removed — never for shoki, whose worktree is Kanri's; `resume`
+adds the `id` and the `name` under the same `sessionId`, the name the one
+the spawn gave; `attention` adds `notified` and `channel`; `ack` adds
+`acked`. A `stop` or `rm` whose session the CLI had already dropped —
+`No job matching` — is not a failure: it adds `stopped` or `removed` and
+`note: "already exited"`. An op that failed adds `error`, which carries the
+command's stderr, or its stdout when the stderr is empty, and nothing
+else, with two exceptions. A `spawn` whose `claude --bg` printed the CLI's idle note
+`(idle — send a prompt to start)` returns
+`error: "prompt not delivered: <that line>"`, and the seat, recorded with
+`undelivered: <that line>`, is removed with `claude rm` and marked
+`removed` — or kept `running`, for the census, when that `rm` fails. And
+the ad hoc-worktree guard at a spawn's first sighting also records the seat
+as `stopped`, with `strayed: <cwd>`, before returning `error`. The same guard at a pass of the spawner's census
 writes no result file at all: `strayed: <cwd>` beside the seat's `stopped`
 in `seats.json`, the log line, and the toast
 `strayed: <role> <topic> <name> — <cwd>` carry it.

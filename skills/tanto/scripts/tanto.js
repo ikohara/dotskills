@@ -10,7 +10,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { spawnSync, spawn } = require("node:child_process");
 const { loadSessions } = require("./reading.js");
-const { readSeats, spawnerDir } = require("./spawner.js");
+const { readSeats, spawnerDir, underRoot, appendLog, heartbeatPath, HEARTBEAT_STALE_MS } = require("./spawner.js");
 
 const USAGE = "Usage: tanto [<root>] [--timeout <ms>], or tanto down [<root>] [--seats] [--timeout <ms>]";
 const SPAWNER = path.join(__dirname, "spawner.js");
@@ -98,14 +98,17 @@ function claudeCommand(args) {
 }
 
 /**
- * `claude agents --json --cwd <root>`, parsed. `sessions` is `null` on a
+ * `claude agents --json`, parsed, keeping the entries whose listed `cwd` is
+ * the root or under it — the spawner's own key (`underRoot`, spec 2.3), so
+ * that `tanto` never writes a `resume` for a live seat, shoki's in its
+ * worktree above all, that it failed to list. `sessions` is `null` on a
  * non-zero exit or unparseable output, never `[]` — a real empty listing and
  * a failed one used to look the same to every caller, which resumed or
  * re-spawned a seat the CLI simply failed to report on (Important 5,
  * branch-review.md). `error` then carries the reason to show the human.
  */
 function listAgents(root) {
-  const command = claudeCommand(["agents", "--json", "--cwd", root]);
+  const command = claudeCommand(["agents", "--json"]);
   const got = spawnSync(command.file, command.args, { encoding: "utf8", windowsHide: true });
   if (got.status !== 0) {
     return { sessions: null, error: (got.stderr || "").trim() || `claude agents exited ${got.status}` };
@@ -113,7 +116,7 @@ function listAgents(root) {
   try {
     const parsed = JSON.parse(got.stdout || "");
     const sessions = Array.isArray(parsed) ? parsed : Array.isArray(parsed.sessions) ? parsed.sessions : [];
-    return { sessions, error: null };
+    return { sessions: sessions.filter((s) => underRoot(root, s?.cwd)), error: null };
   } catch {
     return { sessions: null, error: "claude agents --json did not print JSON" };
   }
@@ -218,26 +221,66 @@ function pidPath(root) {
   return path.join(spawnerDir(root), "pid");
 }
 
-function livePid(root) {
-  const text = (() => {
-    try {
-      return fs.readFileSync(pidPath(root), "utf8");
-    } catch {
-      return "";
-    }
-  })();
-  const pid = Number(text.trim());
-  if (!pid) return null;
+/** The PID `.tanto/spawner/pid` records, or null. */
+function recordedPid(root) {
   try {
-    process.kill(pid, 0);
-    return pid;
+    return Number(fs.readFileSync(pidPath(root), "utf8").trim()) || null;
   } catch {
     return null;
   }
 }
 
+function pidAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** The heartbeat's epoch milliseconds — `NaN` when it does not parse — or null when there is no file. */
+function heartbeatMs(root) {
+  try {
+    return Number(fs.readFileSync(heartbeatPath(root), "utf8").trim());
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The PID of a spawner that is alive and working, or null (spec 4.2): the
+ * PID in `pid` answers `process.kill(pid, 0)` and the heartbeat is within
+ * `HEARTBEAT_STALE_MS` of now. A PID alone proves nothing — a spawner that
+ * died leaves its file, and the system gives the number to another process
+ * (issue-73d6) — and a missing heartbeat, a spawner on the code before it,
+ * reads as stale.
+ */
+function liveSpawner(root) {
+  const pid = recordedPid(root);
+  if (!pid || !pidAlive(pid)) return null;
+  const beat = heartbeatMs(root);
+  return beat !== null && Math.abs(Date.now() - beat) <= HEARTBEAT_STALE_MS ? pid : null;
+}
+
+function removeSpawnerFiles(root) {
+  for (const file of [pidPath(root), heartbeatPath(root)]) {
+    try {
+      fs.rmSync(file, { force: true });
+    } catch {
+      // Nothing to remove is the ordinary case here.
+    }
+  }
+}
+
 function startSpawner(root) {
-  if (livePid(root)) return false;
+  if (liveSpawner(root)) return false;
+  // A live PID behind a stale heartbeat is never signalled: it may be any
+  // process by now (spec 4.2, D-4). A real spawner left so runs beside the
+  // new one until the next `tanto down`; both take requests by rename, so
+  // none is handled twice.
+  const stale = recordedPid(root);
+  if (stale && pidAlive(stale)) appendLog(root, `stale spawner pid ${stale} ignored`);
   const log = fs.openSync(path.join(spawnerDir(root), "log"), "a");
   const child = spawn(process.execPath, [SPAWNER, "run", "--root", root], {
     cwd: root,
@@ -246,7 +289,8 @@ function startSpawner(root) {
     windowsHide: true,
   });
   child.unref();
-  for (let i = 0; i < 40 && !livePid(root); i++) sleepSync(POLL_MS);
+  // The new spawner satisfies this at its first pass, which beats first.
+  for (let i = 0; i < 40 && !liveSpawner(root); i++) sleepSync(POLL_MS);
   return true;
 }
 
@@ -482,14 +526,21 @@ function cmdDown(argv) {
     }
   }
 
-  const pid = livePid(root);
-  if (!pid) {
+  // Only a spawner that beats is signalled (spec 4.2). A live PID with no
+  // heartbeat file at all is a spawner from before the heartbeat or a reused
+  // PID, which the human at the terminal tells apart (D-6); one behind a
+  // stale heartbeat is no spawner of this run's.
+  const pid = recordedPid(root);
+  if (pid && pidAlive(pid) && heartbeatMs(root) === null) {
+    fs.rmSync(pidPath(root), { force: true });
+    process.stdout.write(
+      `spawner pid ${pid} has no heartbeat — a spawner from before the heartbeat, or a reused pid; end it by hand if it is the spawner: taskkill /PID ${pid} (kill ${pid})\n`,
+    );
+    return seatsFailed ? 1 : 0;
+  }
+  if (!liveSpawner(root)) {
     process.stdout.write("no spawner running\n");
-    try {
-      fs.rmSync(pidPath(root), { force: true });
-    } catch {
-      // Nothing to remove is the ordinary case here.
-    }
+    removeSpawnerFiles(root);
     return seatsFailed ? 1 : 0;
   }
   try {
@@ -497,8 +548,8 @@ function cmdDown(argv) {
   } catch {
     // Already gone between the check and the signal.
   }
-  for (let i = 0; i < 40 && livePid(root); i++) sleepSync(POLL_MS);
-  fs.rmSync(pidPath(root), { force: true });
+  for (let i = 0; i < 40 && pidAlive(pid); i++) sleepSync(POLL_MS);
+  removeSpawnerFiles(root);
   process.stdout.write("tanto down: spawner stopped; the conversations are kept\n");
   return seatsFailed ? 1 : 0;
 }

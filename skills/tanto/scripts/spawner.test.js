@@ -28,6 +28,13 @@ if (fail[sub]) {
   process.stderr.write(fail[sub] + "\\n");
   process.exit(1);
 }
+// A refusal printed on stdout with nothing on stderr, the shape 37ec's item 4
+// measured for claude rm (spec 5.1).
+const failOut = state.failOut || {};
+if (failOut[sub]) {
+  process.stdout.write(failOut[sub] + "\\n");
+  process.exit(1);
+}
 const save = () => fs.writeFileSync(statePath, JSON.stringify(state));
 if (sub === "agents") {
   // A session marked hidden is the reboot case: the process is gone, so the
@@ -119,9 +126,16 @@ if (argv.includes("--bg")) {
   // id, which is what the spawner's fallback parse of this line is for.
   const printed = session.id;
   if (next.noListedId) delete session.id;
+  // next.foreign: a session another repository started in the same seconds,
+  // listed ahead of this one (spec 2.3).
+  if (next.foreign) state.sessions.push(next.foreign);
   state.sessions.push(session);
   save();
-  process.stdout.write("backgrounded · " + printed + " · " + session.name + "\\n");
+  // next.idleNote: the note the CLI prints for a session started with no
+  // prompt -- a resume's normal line, and a spawn's when its prompt was lost
+  // (spec 1.2).
+  const idle = next.idleNote ? " (idle — send a prompt to start)" : "";
+  process.stdout.write("backgrounded · " + printed + " · " + session.name + idle + "\\n");
   process.exit(0);
 }
 process.exit(0);
@@ -151,7 +165,16 @@ function workspace(sessions = []) {
   fs.writeFileSync(fake, FAKE);
   const state = path.join(root, "fake-state.json");
   fs.writeFileSync(state, JSON.stringify({ root, sessions, next: {} }));
-  return { root, fake, state, log: path.join(root, "fake-log.txt"), notices: path.join(root, "notices.txt") };
+  return {
+    root,
+    fake,
+    state,
+    log: path.join(root, "fake-log.txt"),
+    notices: path.join(root, "notices.txt"),
+    // The workspace's own config directory: the census looks for a
+    // transcript at every pass, and no test reads the user's `projects/`.
+    config: path.join(root, "claude-config"),
+  };
 }
 
 function setState(ws, patch) {
@@ -159,7 +182,12 @@ function setState(ws, patch) {
   fs.writeFileSync(ws.state, JSON.stringify({ ...state, ...patch }));
 }
 
+// The fake's --bg startedAt. `run` fixes TANTO_NOW_MS at it, so that no seat
+// reaches the two-minute first-turn budget unless its test says so (spec 3.4).
+const STARTED_AT = 1789984800000;
+
 function run(ws, argv, opts = {}) {
+  const { env, ...rest } = opts;
   const result = spawnSync(process.execPath, [SPAWNER, ...argv], {
     encoding: "utf8",
     env: {
@@ -168,10 +196,27 @@ function run(ws, argv, opts = {}) {
       TANTO_NOTICE_LOG: ws.notices,
       FAKE_STATE: ws.state,
       FAKE_LOG: ws.log,
+      CLAUDE_CONFIG_DIR: ws.config,
+      TANTO_NOW_MS: String(STARTED_AT),
+      ...env,
     },
-    ...opts,
+    ...rest,
   });
   return { code: result.status, out: result.stdout || "", err: result.stderr || "" };
+}
+
+/** A transcript of `sessionId` under one project slug of the workspace's config directory. */
+function writeTranscript(ws, sessionId, slug = "c--repo") {
+  const dir = path.join(ws.config, "projects", slug);
+  fs.mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, `${sessionId}.jsonl`);
+  fs.writeFileSync(file, "{}\n");
+  return file;
+}
+
+function spawnerLog(ws) {
+  const file = path.join(ws.root, ".tanto", "spawner", "log");
+  return fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "";
 }
 
 /** Write one request file; the caller still runs `run --once` to take it. */
@@ -325,12 +370,15 @@ test("a spawn writes the result, the seat, and deletes the request", () => {
   assert.equal(seats(ws)[0].role, "jisso");
 });
 
-test("a spawn's command line carries the name, the isolation setting, and the flags the request names", () => {
+test("a spawn's command line carries the name, the isolation setting, the request's flags, and the prompt before --add-dir", () => {
   const ws = workspace();
+  fs.mkdirSync(path.join(ws.root, ".claude", "worktrees", "shoki-t"), { recursive: true });
   request(ws, { ...SPAWN, role: "shoki", worktree: "shoki-t", addDir: [ws.root] });
   run(ws, ["run", "--root", ws.root, "--once"]);
   const spawned = calls(ws).find((argv) => argv.includes("--bg"));
   assert.match(spawned[2], namePattern(ws, "shoki", "t"));
+  // No -w for any seat (spec 2.2), and the prompt before the variadic
+  // --add-dir, which would read it as one more directory (spec 1.1).
   assert.deepEqual(spawned, [
     "--bg",
     "--name",
@@ -343,11 +391,9 @@ test("a spawn's command line carries the name, the isolation setting, and the fl
     "xhigh",
     "--permission-mode",
     "auto",
-    "-w",
-    "shoki-t",
+    SPAWN.prompt,
     "--add-dir",
     ws.root,
-    SPAWN.prompt,
   ]);
 });
 
@@ -454,8 +500,9 @@ test("stop falls back to the short id when the CLI takes only that form", () => 
   );
 });
 
-test("rm reports the worktree it removed", () => {
+test("rm reports the worktree claude rm printed, and none when it printed none (spec 2.4)", () => {
   const ws = workspace();
+  fs.mkdirSync(path.join(ws.root, ".claude", "worktrees", "shoki-t"), { recursive: true });
   setState(ws, { next: { sessionId: "sess-shoki", id: "bg09", worktree: "/repo/.claude/worktrees/shoki-t" } });
   request(ws, { ...SPAWN, role: "shoki", worktree: "shoki-t" });
   run(ws, ["run", "--root", ws.root, "--once"]);
@@ -464,6 +511,112 @@ test("rm reports the worktree it removed", () => {
   assert.match(result(ws, id).removed, /\d/);
   assert.match(result(ws, id).worktree, /shoki-t/);
   assert.equal(seats(ws)[0].status, "removed");
+
+  // Kanri's worktree is the seat's cwd and never the CLI's: claude rm prints
+  // no Removed worktree line, and the result names no worktree.
+  const second = workspace();
+  fs.mkdirSync(path.join(second.root, ".claude", "worktrees", "shoki-t"), { recursive: true });
+  request(second, { ...SPAWN, role: "shoki", worktree: "shoki-t" });
+  run(second, ["run", "--root", second.root, "--once"]);
+  const rm = request(second, { op: "rm", sessionId: "sess-new" });
+  run(second, ["run", "--root", second.root, "--once"]);
+  assert.match(result(second, rm.id).removed, /\d/);
+  assert.equal(result(second, rm.id).worktree, undefined);
+  assert.equal(seats(second)[0].status, "removed");
+});
+
+test("a spawn whose --bg line carries the idle note is an error, and its seat is removed (spec 1.2)", () => {
+  const ws = workspace();
+  setState(ws, { next: { idleNote: true } });
+  const { id } = request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.match(
+    result(ws, id).error,
+    /^prompt not delivered: backgrounded · bg01 · \S+ \(idle — send a prompt to start\)$/,
+  );
+  assert.deepEqual(
+    calls(ws)
+      .filter((argv) => argv[0] === "rm")
+      .map((argv) => argv[1]),
+    ["sess-new"],
+  );
+  assert.equal(seats(ws)[0].status, "removed");
+  assert.match(seats(ws)[0].undelivered, /\(idle — send a prompt to start\)$/);
+  const log = fs.readFileSync(path.join(ws.root, ".tanto", "spawner", "log"), "utf8");
+  assert.match(log, /spawn: sess-new removed — prompt not delivered/);
+  assert.doesNotMatch(log, /guard stopped/);
+});
+
+test("an undelivered seat is removed by the short id when the build takes only that one", () => {
+  const ws = workspace();
+  setState(ws, { next: { idleNote: true }, idForm: "short" });
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.deepEqual(
+    calls(ws)
+      .filter((argv) => argv[0] === "rm")
+      .map((argv) => argv[1]),
+    ["sess-new", "bg01"],
+  );
+  assert.equal(seats(ws)[0].status, "removed");
+});
+
+test("a failed spawn or resume with nothing on stderr reports the line it printed on stdout (spec 5.1)", () => {
+  const ws = workspace();
+  setState(ws, { failOut: { "--bg": "refused: the classifier said no" } });
+  const spawn = request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(result(ws, spawn.id).error, "claude --bg exited 1: refused: the classifier said no");
+  const second = workspace();
+  request(second, SPAWN);
+  run(second, ["run", "--root", second.root, "--once"]);
+  setState(second, { failOut: { "--resume": "refused: no such session" } });
+  const resume = request(second, { op: "resume", sessionId: "sess-new" });
+  run(second, ["run", "--root", second.root, "--once"]);
+  assert.equal(result(second, resume.id).error, "claude --resume: refused: no such session");
+});
+
+test("an undelivered seat whose rm failed is not marked as having run no first turn", () => {
+  const ws = workspace();
+  setState(ws, { next: { idleNote: true }, fail: { rm: "boom" } });
+  const { id } = request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.match(result(ws, id).error, /claude rm: boom$/);
+  run(ws, ["run", "--root", ws.root, "--once"], LATE);
+  assert.equal(seats(ws)[0].noFirstTurn, undefined);
+  assert.deepEqual(notices(ws), []);
+});
+
+test("stop and rm on a session the CLI has already dropped succeed, with a note (spec 5.1)", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  setState(ws, { fail: { stop: "No job matching sess-new", rm: "No job matching sess-new" } });
+  const stop = request(ws, { op: "stop", sessionId: "sess-new" });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(result(ws, stop.id).error, undefined);
+  assert.match(result(ws, stop.id).stopped, /\d/);
+  assert.equal(result(ws, stop.id).note, "already exited");
+  assert.equal(seats(ws)[0].status, "stopped");
+  const rm = request(ws, { op: "rm", sessionId: "sess-new" });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(result(ws, rm.id).error, undefined);
+  assert.match(result(ws, rm.id).removed, /\d/);
+  assert.equal(result(ws, rm.id).note, "already exited");
+  assert.equal(seats(ws)[0].status, "removed");
+  const log = fs.readFileSync(path.join(ws.root, ".tanto", "spawner", "log"), "utf8");
+  assert.ok(log.includes(`rm ${rm.id}.json ok (already exited)`), log);
+});
+
+test("a failed rm with nothing on stderr reports the line it printed on stdout (spec 5.1)", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  setState(ws, { failOut: { rm: "refused: the worktree has changes" } });
+  const { id } = request(ws, { op: "rm", sessionId: "sess-new" });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(result(ws, id).error, "claude rm: refused: the worktree has changes");
+  assert.equal(seats(ws)[0].status, "running");
 });
 
 test("resume passes --resume <sessionId> --bg and no other flag", () => {
@@ -740,9 +893,11 @@ test("the guard compares the paths with the separators unified and, on Windows, 
   assert.equal(seats(ws)[0].status, "stopped");
 });
 
-test("the guard leaves a seat whose request named a worktree alone", () => {
+test("the guard leaves alone a seat running in the worktree Kanri cut for it", () => {
   const ws = workspace();
-  setState(ws, { next: { cwd: path.join(ws.root, ".claude", "worktrees", "shoki-t") } });
+  const worktree = path.join(ws.root, ".claude", "worktrees", "shoki-t");
+  fs.mkdirSync(worktree, { recursive: true });
+  setState(ws, { next: { cwd: worktree } });
   request(ws, { ...SPAWN, role: "shoki", worktree: "shoki-t", addDir: [ws.root] });
   run(ws, ["run", "--root", ws.root, "--once"]);
   run(ws, ["run", "--root", ws.root, "--once"]);
@@ -750,10 +905,65 @@ test("the guard leaves a seat whose request named a worktree alone", () => {
   assert.equal(calls(ws).filter((argv) => argv[0] === "stop").length, 0);
 });
 
+test("a worktree request runs claude --bg in the directory Kanri cut, with no -w (spec 2.2)", () => {
+  const ws = workspace();
+  const worktree = path.join(ws.root, ".claude", "worktrees", "shoki-t");
+  fs.mkdirSync(worktree, { recursive: true });
+  setState(ws, { next: { cwd: worktree } });
+  const { id } = request(ws, { ...SPAWN, role: "shoki", worktree: "shoki-t", addDir: [ws.root] });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(result(ws, id).error, undefined);
+  const spawned = calls(ws).find((argv) => argv.includes("--bg"));
+  assert.equal(spawned.includes("-w"), false);
+  const state = JSON.parse(fs.readFileSync(ws.state, "utf8"));
+  assert.equal(fs.realpathSync(state.cwdSeen), fs.realpathSync(worktree));
+  assert.equal(seats(ws)[0].cwd, worktree);
+  assert.equal(seats(ws)[0].status, "running");
+});
+
+test("a worktree request whose directory is not there is an error, and claude --bg never runs (spec 2.2)", () => {
+  const ws = workspace();
+  const { id } = request(ws, { ...SPAWN, role: "shoki", worktree: "shoki-t", addDir: [ws.root] });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.match(result(ws, id).error, /^worktree .*shoki-t is not a directory$/);
+  assert.equal(calls(ws).filter((argv) => argv.includes("--bg")).length, 0);
+  assert.equal(seats(ws).length, 0);
+});
+
+test("a spawn adopts the new session under the root, never one another repository started meanwhile (spec 2.3)", () => {
+  const ws = workspace();
+  const worktree = path.join(ws.root, ".claude", "worktrees", "shoki-t");
+  fs.mkdirSync(worktree, { recursive: true });
+  const foreign = {
+    sessionId: "sess-foreign",
+    name: "elsewhere",
+    cwd: path.dirname(ws.root),
+    kind: "background",
+    state: "running",
+    id: "bg99",
+    pid: 999,
+  };
+  setState(ws, { next: { sessionId: "sess-shoki", cwd: worktree, foreign } });
+  const { id } = request(ws, { ...SPAWN, role: "shoki", worktree: "shoki-t", addDir: [ws.root] });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(result(ws, id).sessionId, "sess-shoki");
+  assert.deepEqual(
+    seats(ws).map((s) => s.sessionId),
+    ["sess-shoki"],
+  );
+  assert.equal(
+    calls(ws).some((argv) => argv[0] === "agents" && argv.includes("--cwd")),
+    false,
+  );
+});
+
 test("the census revives a gone seat the listing holds again, and never a stopped one", () => {
   const ws = workspace();
   request(ws, SPAWN);
   run(ws, ["run", "--root", ws.root, "--once"]);
+  // A seat that ran its first turn, so that its gone is the ordinary one and
+  // raises no no-first-turn toast (spec 3.1).
+  writeTranscript(ws, "sess-new");
   const listed = JSON.parse(fs.readFileSync(ws.state, "utf8")).sessions;
   setState(ws, { sessions: [] });
   run(ws, ["run", "--root", ws.root, "--once"]);
@@ -842,4 +1052,79 @@ test("run --once writes the pidfile and leaves no process behind", () => {
     alive = false;
   }
   assert.equal(alive, false);
+});
+
+test("run --once leaves a heartbeat within the test's own clock (spec 4.1)", () => {
+  const ws = workspace();
+  const before = Date.now();
+  assert.equal(run(ws, ["run", "--root", ws.root, "--once"]).code, 0);
+  const after = Date.now();
+  const beat = Number(fs.readFileSync(path.join(ws.root, ".tanto", "spawner", "heartbeat"), "utf8").trim());
+  assert.ok(beat >= before && beat <= after, `${before} <= ${beat} <= ${after}`);
+});
+
+// The two-minute budget, with TANTO_NOW_MS past it (spec 3.1, 3.4).
+const LATE = { env: { TANTO_NOW_MS: String(STARTED_AT + 120000) } };
+
+test("a seat with no transcript under two minutes after its spawn gets no mark (spec 3.1)", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  run(ws, ["run", "--root", ws.root, "--once"], { env: { TANTO_NOW_MS: String(STARTED_AT + 119000) } });
+  assert.equal(seats(ws)[0].noFirstTurn, undefined);
+  assert.deepEqual(notices(ws), []);
+  assert.doesNotMatch(spawnerLog(ws), /first turn/);
+});
+
+test("a seat with no transcript two minutes after its spawn is marked, toasted, and logged once (spec 3.1)", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  run(ws, ["run", "--root", ws.root, "--once"], LATE);
+  run(ws, ["run", "--root", ws.root, "--once"], LATE);
+  const seat = seats(ws)[0];
+  assert.equal(seat.status, "running");
+  assert.match(seat.noFirstTurn, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
+  assert.deepEqual(notices(ws), [`no first turn: jisso t ${seat.name} — claude attach bg01`]);
+  assert.equal(spawnerLog(ws).match(/census: sess-new no first turn after 2m/g).length, 1);
+});
+
+test("a transcript under any project slug clears the mark and reaches the seat (spec 3.1)", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  run(ws, ["run", "--root", ws.root, "--once"], LATE);
+  assert.match(seats(ws)[0].noFirstTurn, /\d/);
+  const file = writeTranscript(ws, "sess-new", "c--repo--claude-worktrees-shoki-t");
+  run(ws, ["run", "--root", ws.root, "--once"], LATE);
+  assert.equal(seats(ws)[0].noFirstTurn, undefined);
+  assert.equal(seats(ws)[0].transcript, file);
+  assert.match(spawnerLog(ws), /census: sess-new first turn/);
+  assert.equal(notices(ws).length, 1);
+});
+
+test("a seat the listing drops with no transcript goes gone with the mark; one with a transcript goes plainly gone (spec 3.1)", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  const listed = JSON.parse(fs.readFileSync(ws.state, "utf8")).sessions;
+  setState(ws, { sessions: listed.map((s) => ({ ...s, hidden: true })) });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  const seat = seats(ws)[0];
+  assert.equal(seat.status, "gone");
+  assert.match(seat.noFirstTurn, /\d/);
+  assert.deepEqual(notices(ws), [`no first turn: jisso t ${seat.name}`]);
+  assert.match(spawnerLog(ws), /census: sess-new gone — no first turn/);
+
+  const second = workspace();
+  request(second, SPAWN);
+  run(second, ["run", "--root", second.root, "--once"]);
+  writeTranscript(second, "sess-new");
+  const held = JSON.parse(fs.readFileSync(second.state, "utf8")).sessions;
+  setState(second, { sessions: held.map((s) => ({ ...s, hidden: true })) });
+  run(second, ["run", "--root", second.root, "--once"]);
+  assert.equal(seats(second)[0].status, "gone");
+  assert.equal(seats(second)[0].noFirstTurn, undefined);
+  assert.deepEqual(notices(second), []);
+  assert.match(spawnerLog(second), /census: sess-new gone\n/);
 });

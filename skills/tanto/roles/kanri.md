@@ -324,7 +324,8 @@ Then, in this order.
    against the tree; and the output path, `.tanto/<topic>/coldread.md`. The
    subagent reads the spec whole and the frame, spot-checks the dry-run
    report, and writes a numbered list of open questions, or `none`. Read that
-   file by `sections`, send Keikaku **one message** carrying every question,
+   file directly — it carries no headings, so `sections` cannot read it —
+   and send Keikaku **one message** carrying every question,
    numbered, or the single line `coldread: none`, and wait for its answer:
 
    `coldread answered: <pointer, one per question, or none>; shoroku proposal: <path> — <reading>`
@@ -335,7 +336,9 @@ Then, in this order.
    shoroku proposal path from that same line — it wrote the proposal unasked, and no
    `exit:` goes to it at this boundary. If the plan
    edits this skill's own files,
-   record as `R-n`, before any batch prompt or subagent is dispatched, that
+   record as `R-n`, before the batch prompt is rendered and the first Jisso
+   is sent — the cold read above is dispatched before it, and that is the
+   written order — that
    the run's sessions follow the constraints, your orders line, and the
    batch prompts rather than the role text on disk, and the boundary the plan
    names for a role start or replacement (contract rule 11); every batch
@@ -362,7 +365,11 @@ Then, in this order.
    amendment land only at this commit. Nothing is copied and nothing is recommended: the close's
    recommender reads those four sections of the spec by name, and Keikaku's
    shoroku proposal, named in the `coldread answered:` line, is form-checked
-   and recorded the same way ("A seat's exit", step 2).
+   and recorded the same way ("A seat's exit", step 2). A row whose section
+   the plan's own last task lands — its ADRs, its issue edits — is recorded
+   `yes`, with that task's commit subject in Written, at your passage-check
+   answer and before the recommender runs; the others stay `pending` for the
+   close.
 4. Write batch A's prompt from `templates/batch-prompt.md` —
    `First batch, no previous verdict, no check: line.` in its
    previous-batch-verdict section, the first-Jisso line in its Setup on
@@ -602,7 +609,11 @@ Per batch, in this order.
    step 6 — and the loop stops here; the next prompt is the successor's.
 6. **Record and send.** Fill the rendered prompt's two `<Kanri fills>`
    slots — the Previous batch verdict's ruling line
-   and the Rulings section's first line — and save it. The render is the
+   and the Rulings section's first line — and save it. When the prompt, or
+   your own word to the human, promises a notice for an event inside the
+   batch, arm one background watcher per promised event in the same act as
+   the spawn and write each down there: you hold no clock between a spawn
+   and the report, so a promise without a watcher cannot be kept. The render is the
    brief's, from `templates/batch-prompt.md`, addressed to no name — the
    seat the `spawn` request below will create — or, under a skill-editing
    plan's queue, to the next `queued` seat in spawn order, and it already carries the resume line and, on
@@ -1235,15 +1246,29 @@ override the answer gave. An empty `fix` group merges on the answer
 directly.
 
 **The merge is where shoki is spawned, never before it.** In the same act
-as the merge, whichever form it took, write
-`.tanto/<topic>/shoki-brief.md` from `templates/shoki-brief.md` and its
-`spawn` request — `role: shoki`, `worktree: shoki-<topic>`,
-`addDir: [<root>]`, `sessions.shoki`'s family and effort, mode `auto`, the
-prompt the one line `brief: <that path>`. Whatever HEAD the CLI cuts that
-worktree from, shoki's own `git rebase main` is what lands the product's
-fixes before the records rather than after them. Started in the same
-act as shusei's own request it would race that batch, put the records on
-`main` first, and leave a rebase you never re-run.
+as the merge, whichever form it took, cut shoki's worktree from `main`'s
+tip, from the shared checkout whatever branch it is on:
+
+```console
+git worktree add <root>/.claude/worktrees/shoki-<topic> -b worktree-shoki-<topic> main
+```
+
+`git worktree add -b` refuses an existing branch and a non-empty existing
+directory, which a close that crashed before its landing leaves behind, so
+first remove a worktree or a branch of that name when one exists, as the
+landing below removes them (`git worktree remove --force --force`,
+`git branch -D`); when that removal fails, hold the merge act and tell the
+human in one line. Then write `.tanto/<topic>/shoki-brief.md` from
+`templates/shoki-brief.md` and its `spawn` request — `role: shoki`,
+`worktree: shoki-<topic>`, `addDir: [<root>]`, `sessions.shoki`'s family and
+effort, mode `auto`, the prompt the one line `brief: <that path>`. The
+spawner runs the seat with that directory as its cwd, never with `-w`, so
+the seat is not worktree-isolated and its writes into the main checkout go
+through. The worktree is cut from `main`'s tip, which already carries the
+product's fixes, so shoki's own `git rebase main` is a no-op unless `main`
+moved while it wrote — and it stays in the brief, because `main` may have.
+Started in the same act as shusei's own request it would race that batch,
+put the records on `main` first, and leave a rebase you never re-run.
 
 **The checkout is free the moment that merge lands, and two acts follow at
 once.** Cut the next topic's branch if it is not cut yet — `git checkout -b
@@ -1265,10 +1290,10 @@ swept inbox copy's Triage filled), fast-forward `main` onto it by the form
 own reading — `node "$TANTO/scripts/reading.js" <its transcript>`, written
 into its roster row — and only after it write the `rm` request: a
 transcript is not promised to survive `claude rm`, and taking the reading
-first costs nothing where it does survive. Then remove the worktree
-`claude rm` leaves locked — `git worktree remove --force --force
+first costs nothing where it does survive. Then remove the worktree you
+cut, which `claude rm` leaves — `git worktree remove --force --force
 <root>/.claude/worktrees/shoki-<topic>` — and delete the branch
-`worktree-shoki-<topic>` that `claude rm` keeps, move shoki's result file to
+`worktree-shoki-<topic>` you cut, move shoki's result file to
 `.tanto/<topic>/spawner-results/`, mark the `S-n` rows written, and write
 the Events line. A landing check that fails is a follow-up `docs:` commit
 through the hotfix lane, never a re-run of shoki. A `shoroku blocked:` line
@@ -1481,8 +1506,10 @@ is none,
 asking the human for the workspace's path if you do not know it, and
 expecting, outside auto mode, a harness permission prompt in your window
 for a read outside your working directory; check that the name is in
-`ListAgents`, and ask the human for the address when it is not, or when
-that roster is absent; send `bug-report: <absolute path>` to that bare
+`ListAgents` — a `hosa` row whose name it does not list is treated as not
+live, and the first data row is taken instead, with the choice noted in
+your Events line — and ask the human for the address only when that roster
+is absent or no listed row remains; send `bug-report: <absolute path>` to that bare
 name. The sent copy is the record of the send, and it is kept.
 
 ### Limits
@@ -1615,6 +1642,28 @@ What it prints decides:
   listed name and the `[ref]` one `ListAgents` call prints, and write
   `resumed: <old name> → <new name>`; for a terminal seat, clear the
   spawner's `renamed` mark with an `ack` request.
+- **Listed**, carrying `— blocked` — append `(blocked since <HH:MM>)`, this
+  census's time, to the row's `live` cell only where the cell carries no
+  suffix — a cell already carrying `(blocked since …)` or `(idle since <HH:MM>)`
+  keeps it, since a `live` cell carries one suffix (`SKILL.md`) and the idle
+  one is written on the seat's own report, the more specific fact — and remove `(blocked since …)`
+  at a later census whose Listed line for that seat does not carry
+  `— blocked`. The suffix records the last census that saw the seat
+  blocked, not its state now: you run the census at the moments above, so
+  the cell can lag the seat by a batch, where `idle since` is written on the
+  seat's own report and does not. It names no cause — a permission prompt,
+  a usage-limit pause, and a seat idling on a kessai all read `blocked` —
+  and every reader tests the cell's first word.
+- **Listed** or **Not listed**, carrying `— no first turn since <stamp>` —
+  the spawner found no transcript for that seat two minutes after its spawn,
+  or saw it gone with none. Write one `attention` request whose message is
+  `no first turn: <role> <topic>`, with a space and `— claude attach <id>` after it for
+  a **Listed** seat only: a Not listed seat is marked `dead` by the bullet
+  above, with no transcript to resume it from, so there is nothing to attach. Once per seat, since you
+  see no toast and the human may have missed the spawner's: the record is
+  the roster Events line `no first turn: <name>` you write with the request,
+  and a later census that prints the suffix for a seat that line names writes
+  no second request. The seat is not stopped.
 - **Not held** — nothing to the human. A session becomes the run's through
   a handshake or a result file, never by being listed.
 - **No session id** — nothing.
@@ -1650,7 +1699,7 @@ The requests you write, and the asks you make. **Requests:**
 | every later batch, and the fix wave | one `spawn` per batch, at its boundary | `/tanto jisso batch=<path>` |
 | the spec review is accepted | one `spawn` for Keikaku | `/tanto keikaku topic=<topic> spec=<path> plan=<path> ledger=<path>` — `ledger=` only when another topic's batch is in flight, naming that ledger |
 | the kessai is answered | one `spawn` for the shusei batch, when the direction accepted a `fix` group | `/tanto jisso batch=<path>` |
-| the merge lands | one `spawn` for shoki, in the same act as the merge and never before it | `brief: <path>` |
+| the merge lands | one `spawn` for shoki, after `git worktree add` cuts its worktree, in the same act as the merge and never before it | `brief: <path>` |
 | a handover is due | one `spawn` for your successor | `/tanto kanri` |
 | a seat retires, or the run goes down | one `stop` per seat | — |
 | the human asks in your window for a live terminal seat to be held for a while — a priority call, not a lifecycle signal | one `stop` for that seat, its row `stopped` with an Events line quoting the human's word, its conversation kept and no shoroku proposal asked, since nothing of the seat's is lost; when the human says so, one `resume` on the same `sessionId`, the resumed seat sent the Resuming line for its role, its row `live` again | — |
@@ -1694,7 +1743,7 @@ confirm the session is gone first — uncommitted work may be in the tree.
 | the `coldread answered:` line named the shoroku proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; record its proposal's items as `pending` rows and write its `stop` request as soon as the proposal passes the form check — no released line and no `/clear`, its conversation kept; a Keikaku is never reused across topics (decision-f496) |
 | Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; record its proposal's items as `pending` rows and send `release:` as soon as the proposal passes the form check, or keep it if more of the same bug is expected |
 | the final batch is accepted, the close's shoroku proposal is written and passes the form check, and leftovers are clean | the last Jisso is done; write its `stop` request at once, the close being its exit — no released line and no `/clear`, its conversation kept — the recommendation and the kessai run with it gone, and a merge declined with fixes wanted is a new batch on a new Jisso either way; a `queued` Jisso that never ran gets a `stop` request the same way, its row `stopped` |
-| the kessai is answered, shusei's batch is verified, the merge is done, and the ledger's Progress line says closed | this plan is closed. **First, while every row still carries its Transcript column**, run `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]` over the sessions of **this topic**: every seat the ledger's Session events accepted for it — Sekkei, Keikaku, every Jisso, `queued` ones that never ran included, an attached Kaiseki — and every Kanri whose tenure overlapped it, the current one and any predecessor the Events' handover lines name, each path taken from its roster or archive row. Shoki's transcript is not in the list: it is not a session of the ledger's Session events. A refused handshake has no row and no transcript and is not in the list; rows of another plan that a shared roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not of this topic and are left out. A path that is denied, `unavailable`, or on another host is skipped and named by the script, and is never read by asking the peer. Record the share line, the sessions it ran over, and the ones it skipped in the Measurements share row; the target is 30% or less. Then run the census and mark `dead` every row it prints under "Not listed", which covers the tab seats too; bring the roster's Shoroku proposal items table to the template's shape if it still has its pre-rename heading or the retired seventh column, its rows kept; move the stopped, dead, replaced, refused, and cleared rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet — move the topic's result files to `.tanto/<topic>/spawner-results/`, fill the ledger's remaining Measurements fixed rows, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
+| the kessai is answered, shusei's batch is verified, the merge is done, and the ledger's Progress line says closed | this plan is closed. **First, while every row still carries its Transcript column**, run `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]` over the sessions of **this topic**: every seat the ledger's Session events accepted for it — Sekkei, Keikaku, every Jisso, `queued` ones that never ran included, an attached Kaiseki — and every Kanri whose tenure overlapped it, the current one and any predecessor the Events' handover lines name, each path taken from its roster or archive row. Shoki's transcript is not in the list: it is not a session of the ledger's Session events. A refused handshake has no row and no transcript and is not in the list; rows of another plan that a shared roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not of this topic and are left out. A path that is denied, `unavailable`, or on another host is skipped and named by the script, and is never read by asking the peer. A bare `<sessionId>.jsonl` cell, the form a spawn result with no transcript leaves, is no path the script can open: find the file under `<config dir>/projects/` first, by basename, and pass that path. Record the share line, the sessions it ran over, and the ones it skipped in the Measurements share row; the target is 30% or less. Then run the census and mark `dead` every row it prints under "Not listed", which covers the tab seats too; bring the roster's Shoroku proposal items table to the template's shape if it still has its pre-rename heading or the retired seventh column, its rows kept; move the stopped, dead, replaced, refused, and cleared rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet — move the topic's result files to `.tanto/<topic>/spawner-results/`, fill the ledger's remaining Measurements fixed rows, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
 
 The role is resident; the session that carries it is not. A plan's end is a
 boundary like any other for the run, and the next topic starts with a new topic

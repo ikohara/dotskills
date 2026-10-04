@@ -6,8 +6,8 @@ one implementation plan.
 ## What it does
 
 - Runs one plan through separate Claude Code sessions in the same
-  repository, on the same branch except shoki's, which works in the CLI's
-  own worktree: **Kanri** (管理) manages, **Sekkei** (設計)
+  repository, on the same branch except shoki's, which works in a worktree
+  Kanri cuts: **Kanri** (管理) manages, **Sekkei** (設計)
   writes the spec, **Keikaku** (計画) writes the plan, **Jisso** (実装)
   implements, **Kaiseki** (解析) root-causes. A seat whose work is dialogue
   with the human — Sekkei, Kaiseki, and the two below — is a tab the human
@@ -145,7 +145,9 @@ holds as `running` or `blocked` — or, for Kanri alone, `gone` — is resumed;
 one it holds as `stopped` or `removed` is not. `tanto down` stops the
 spawner and keeps every conversation; `tanto down --seats` stops the seats
 too, which retires the run — the conversations are kept, but a seat the run
-stopped is not resumed.
+stopped is not resumed. The spawner writes a heartbeat as it works: `tanto`
+starts a spawner when none has beaten within a minute, and `tanto down`
+signals only one that has.
 
 The tab seats are the human's own, opened as before — or
 `担当して <role>` / `tantoして <role>`, the role word in hiragana, kanji, or

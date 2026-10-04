@@ -728,6 +728,23 @@ test("--seat writes a terminal seat's roster row, and a second call rewrites it"
   assert.ok(second.includes("| next |"), second);
 });
 
+test("--seat writes the session id in the Transcript cell when the result found no transcript, and unavailable when it has neither", () => {
+  const fixture = ledgerAndRoster();
+  const seatRows = (seat) => {
+    const file = write(fixture.dir, "result.json", JSON.stringify(seat));
+    const args = ["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--seat", file];
+    assert.strictEqual(run(args, fixture.dir).code, 0);
+    return fs.readFileSync(fixture.roster, "utf8");
+  };
+  const bare = seatRows({ ...SEAT, transcript: null });
+  assert.ok(bare.includes("| live | sess-one.jsonl |"), bare);
+  const neither = seatRows({ ...SEAT, name: "seat-two [bbbbbb]", transcript: null, sessionId: undefined });
+  assert.ok(neither.includes("| live | unavailable |"), neither);
+  const found = seatRows(SEAT);
+  assert.ok(found.includes("| live | /tmp/seat-one.jsonl |"), found);
+  assert.ok(!found.includes("| sess-one.jsonl |"), found);
+});
+
 test("--seat on a file that is not there exits 2 and writes nothing", () => {
   const fixture = ledgerAndRoster();
   const before = fs.readFileSync(fixture.roster, "utf8");
@@ -1060,4 +1077,77 @@ test("census places a session whose cwd spells the root's drive letter in the ot
   const result = census(f, "");
   assert.strictEqual(result.code, 0, result.err);
   assert.ok(result.out.includes("kanri — kanri-a [aaaaaa] — sess-kanri — listed as kanri-a (interactive)"), result.out);
+});
+
+test("census reads seats.json beside the roster: a blocked seat's line and a marked seat's line carry their suffixes (spec 3.3)", () => {
+  const f = censusFixture(
+    [
+      KANRI_ROW,
+      sessionRow("jisso", "t", "jisso-h", "live", "/home/u/.claude/projects/p/sess-jisso.jsonl"),
+      sessionRow("shoki", "t", "shoki-i", "live", "/home/u/.claude/projects/p/sess-shoki.jsonl"),
+    ],
+    (root) => [
+      { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, pid: 1111, state: "blocked" },
+      { sessionId: "sess-jisso", name: "jisso-h", kind: "background", cwd: root, pid: 1112, state: "blocked" },
+    ],
+  );
+  fs.mkdirSync(path.join(f.root, ".tanto", "spawner"), { recursive: true });
+  const seats = [
+    { sessionId: "sess-jisso", status: "blocked", noFirstTurn: "2026-10-03 10:02" },
+    { sessionId: "sess-shoki", status: "gone", noFirstTurn: "2026-10-03 10:05" },
+  ];
+  fs.writeFileSync(path.join(f.root, ".tanto", "spawner", "seats.json"), JSON.stringify({ seats }));
+  const result = census(f, "");
+  assert.strictEqual(result.code, 0, result.err);
+  assert.ok(
+    result.out.includes(
+      [
+        "\n## Listed\n",
+        "kanri — kanri-a [aaaaaa] — sess-kanri — listed as kanri-a (background) — blocked",
+        "jisso t jisso-h — sess-jisso — listed as jisso-h (background) — blocked — no first turn since 2026-10-03 10:02",
+        "",
+      ].join("\n"),
+    ),
+    result.out,
+  );
+  assert.ok(
+    result.out.includes("\n## Not listed\n\nshoki t shoki-i — sess-shoki — no first turn since 2026-10-03 10:05\n"),
+    result.out,
+  );
+});
+
+test("census matches a row whose Transcript cell is the bare session id: a blocked seat and a seat that never started carry their suffixes", () => {
+  const f = censusFixture(
+    [
+      KANRI_ROW,
+      sessionRow("jisso", "t", "jisso-h", "live", "sess-jisso.jsonl"),
+      sessionRow("shoki", "t", "shoki-i", "live", "sess-shoki.jsonl"),
+    ],
+    (root) => [
+      { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, pid: 1111 },
+      { sessionId: "sess-jisso", name: "jisso-h", kind: "background", cwd: root, pid: 1112, state: "blocked" },
+      { sessionId: "sess-shoki", name: "shoki-i", kind: "background", cwd: root, state: "blocked" },
+    ],
+  );
+  fs.mkdirSync(path.join(f.root, ".tanto", "spawner"), { recursive: true });
+  const seats = [
+    { sessionId: "sess-jisso", status: "blocked", noFirstTurn: "2026-10-04 10:02" },
+    { sessionId: "sess-shoki", status: "gone", noFirstTurn: "2026-10-04 10:05" },
+  ];
+  fs.writeFileSync(path.join(f.root, ".tanto", "spawner", "seats.json"), JSON.stringify({ seats }));
+  const result = census(f, "");
+  assert.strictEqual(result.code, 0, result.err);
+  assert.ok(
+    result.out.includes(
+      "jisso t jisso-h — sess-jisso — listed as jisso-h (background) — blocked — no first turn since 2026-10-04 10:02\n",
+    ),
+    result.out,
+  );
+  assert.ok(
+    result.out.includes(
+      "\n## Not listed\n\nshoki t shoki-i — sess-shoki — listed without a pid (a stale entry) — no first turn since 2026-10-04 10:05\n",
+    ),
+    result.out,
+  );
+  assert.ok(result.out.includes("\n## No session id\n\nnone\n"), result.out);
 });

@@ -9,7 +9,7 @@ renders. The `#` title line is the first of the eight headings: render it
 like the other seven and never drop it. The form markers are the exception
 and stay exactly as they are
 here: the bracketed tag words `confirm`, `choose`, `decide`, `nothing`, the
-labels `Q:`, `A:`, `Serves:`, `Adds or changes:`, `See:`,
+labels `Document:`, `Q:`, `A:`, `Serves:`, `Adds or changes:`, `See:`,
 `— If unanswered:`, the `## <n>.` numbers, and the pointer after `See:`. The
 brief selects and renders; it does
 not analyze anew.

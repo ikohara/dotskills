@@ -48,8 +48,8 @@ Kept by Kanri at `.tanto/roster.md`. Kanri is the only writer.
 
 | Role | Topic | Name [ref] | cwd | Model | Effort | Branch | Mode | Started | Status | Transcript |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| kanri | — | <name> [<ref>] | <absolute path> | <model id> | <level or unknown> | <branch> | <auto or unknown> | <YYYY-MM-DD HH:MM> | live | <absolute path or unavailable> |
-| <role> | <topic> | <name> [<ref>] | <absolute path> | <model id> | <level or unknown> | <branch> | <auto or unknown> | <YYYY-MM-DD HH:MM> | live | <absolute path or unavailable> |
+| kanri | — | <name> [<ref>] | <absolute path> | <model id> | <level or unknown> | <branch> | <auto or unknown> | <YYYY-MM-DD HH:MM> | live | <absolute path, <sessionId>.jsonl, or unavailable> |
+| <role> | <topic> | <name> [<ref>] | <absolute path> | <model id> | <level or unknown> | <branch> | <auto or unknown> | <YYYY-MM-DD HH:MM> | live | <absolute path, <sessionId>.jsonl, or unavailable> |
 
 Topic is the topic word Kanri's orders line gave that session — for a Jisso,
 the topic whose queue its handshake joined: the plan whose batches are in
@@ -60,9 +60,15 @@ the handshake's `effort=` carried.
 The status words are seven: `queued`, `live`, `stopped`, `cleared`,
 `replaced`, `dead`, and `refused`. A `live` cell may carry the suffix
 `(idle since <HH:MM>)`, which Kanri appends while a Kikaku, Hosa, or Kaiseki
-idles and the intake's address rule reads, so a reader tests the cell's
-first word, not the whole cell. `queued` is a Jisso of a skill-editing plan
-waiting for its batch prompt, in spawn order. `stopped` is a terminal seat
+idles and the intake's address rule reads, or the suffix
+`(blocked since <HH:MM>)`, which Kanri appends when the census's Listed line
+for the seat carries `— blocked` and removes when a later census's does
+not. The blocked suffix records the last census that saw the seat blocked,
+not its state now — the census runs at the moments Kanri's role names, so
+the cell can lag the seat by a batch — and names no cause. Either way a
+reader tests the cell's first word, not the whole cell. `queued` is a Jisso
+of a skill-editing plan waiting for its batch prompt, in spawn order.
+`stopped` is a terminal seat
 the spawner stopped on Kanri's request or the spawner's guard stopped, its
 conversation kept, or a `queued` row that never ran. `cleared` records a
 tab seat Kanri released — `release:` sent, the row marked as the line goes
