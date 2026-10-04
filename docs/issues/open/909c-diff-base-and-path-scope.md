@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 Source: shoroku tanto-sweep
@@ -233,3 +233,10 @@ the `--base 2d396cd` label; not reproduced, but real enough in the verdict to
 need a cause before such a block is trusted unread.
 
 Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).
+
+**A further occurrence** (inbox 2026-10-03-boundary-fences-and-plan-checks,
+items 1 and 3): on a branch other work still lands on, a commit or a merge
+from elsewhere after the plan was committed is reported by `diff` as
+`unaccounted-added`, as if the batch had strayed, because nothing says what
+`<base>` is at the second and later boundaries and nothing moves it; a
+scratch-repository reproduction is in that report.

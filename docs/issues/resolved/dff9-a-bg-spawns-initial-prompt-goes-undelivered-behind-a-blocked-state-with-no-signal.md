@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-02
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 Source: shoroku experience-layer S-1
@@ -91,3 +91,17 @@ yet started.
   dialog") is a hypothesis the observation does not support — Kanri's own
   first reading of this occurrence, a trust or startup dialog, was wrong;
   the observation, as above, is that the prompt is never read.
+
+Resolved by the shoki-seat design
+(`docs/superpowers/specs/2026-10-03-shoki-seat-design.md`, sections 1.1, 1.2
+and 6), decision-b282. The cause is the argument order: `--add-dir` is a
+variadic option, the spawner pushed the prompt after it, and the prompt was
+consumed as a second directory, so the seat started with no prompt — every
+one of eight shoki spawns with `addDir` set, and no spawn without it. The
+"delivery race" read above was a hypothesis three by-hand probes retired
+(`docs/notes/claude-code-sessions-observed.md`). The prompt now precedes
+every variadic option, and the CLI's idle note on a spawn is a failed
+delivery: an `error` result and a removed seat, never a `blocked` seat that
+waits. The detection for a cause not yet seen is decision-6c00's notice. The
+worktree-scoped transcript slug of the second finding is stated in
+`SKILL.md`'s "The transcript reading".

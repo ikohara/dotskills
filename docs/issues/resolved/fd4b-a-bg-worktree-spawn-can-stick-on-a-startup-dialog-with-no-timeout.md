@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-22
-updated: 2026-09-22
+updated: 2026-10-04
 ---
 
 Source: shoroku tanto-bg-seats S-45
@@ -31,3 +31,11 @@ turn has not arrived within some budget.
 
 Related: issue-7fa4 (a hung foreground call is invisible to every notice the
 design has — the same blind spot from the seat's side).
+
+Resolved by the shoki-seat design
+(`docs/superpowers/specs/2026-10-03-shoki-seat-design.md`, sections 1 and 3).
+The "startup dialog" of this issue's title did not exist: the seat had been
+started with no prompt, because `--add-dir` consumed it (issue-dff9's
+resolution, decision-b282). The detection half is decision-6c00: a seat with
+no first turn two minutes after its spawn raises a notice once, and Kanri
+writes an `attention` request for it.

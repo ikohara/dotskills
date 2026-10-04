@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-02
-updated: 2026-10-02
+updated: 2026-10-04
 ---
 
 Source: inbox 2026-10-01-tanto-findings-from-a-plan-close
@@ -153,3 +153,8 @@ and `templates/kanri.md`: item 17 with `--event "2026-01-01 00:00 — x"` (two
 stamps print), item 19 with `--status "<name> idle since 10:00"` (refused),
 and item 18 with a `--seat` result file whose `name` has no `[ref]`,
 followed by `--status "<name> [<ref>] stopped"`.
+
+Scripts and the spawner, item 5, is resolved by the shoki-seat design
+(decision-b282, decision-6c00): the shoki's prompt never ran because
+`--add-dir` consumed it, and the spawner now puts the prompt first and treats
+the CLI's idle note as a failed delivery. The bundle's other items stay open.

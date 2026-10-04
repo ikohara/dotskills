@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-02
-updated: 2026-10-02
+updated: 2026-10-04
 ---
 
 Source: shoroku experience-layer S-6
@@ -36,3 +36,12 @@ Undecided in `SKILL.md` and `roles/kanri.md`: whether the roster gets a word
 or a stated convention for "alive, stuck outside its control", and whether
 the spawner's attention notice names a usage-limit block apart from a
 permission block.
+
+Resolved for its roster half by the shoki-seat design
+(`docs/superpowers/specs/2026-10-03-shoki-seat-design.md`, section 5.2): no
+eighth status word; Kanri appends `(blocked since <HH:MM>)` to a `live` cell
+when the census's Listed line carries `— blocked`, and removes it at a later
+census that does not, the convention `(idle since <HH:MM>)` already used.
+The cause-distinction half — telling a usage-limit block from a permission
+prompt from a kessai wait — is not taken: the census sees one word, and the
+design deferred it, to be filed again as a narrower issue if it is wanted.

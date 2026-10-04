@@ -20,6 +20,7 @@ At most five at MUST level. Each generalizes the expectations it points at.
 - **c018** SHOULD keep the always-read set small ← exp-48b2, exp-b6bf
 - **c233** SHOULD let the agent weigh stated concerns and propose alternatives ← exp-51d2, exp-58f1, exp-59eb
 - **c60e** SHOULD NOT add human steps or gates just to capture reasons ← exp-0cfa, exp-75bc, exp-81aa
+- **d4d7** SHOULD ask the user only for judgment, and keep the mechanical steps off his hands ← exp-26d5, exp-27e8, exp-c53d
 
 ## Won't
 

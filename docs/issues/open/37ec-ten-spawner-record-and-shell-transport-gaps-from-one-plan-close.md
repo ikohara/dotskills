@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 Source: inbox 2026-10-02-spawner-record-and-shell-mechanics-gaps-from-a-plan-close
@@ -131,3 +131,9 @@ seat lost across a restart, and a line sent to it went unread), and item 3
 Files: `scripts/boundary.js`, `scripts/spawner.js`, `scripts/tanto.js`,
 `roles/kanri.md`, `roles/hosa.md`, `roles/jisso.md`,
 `templates/spawn-request.md`, `SKILL.md`.
+
+Item 4's first half is resolved by the shoki-seat design (its section 5.1):
+a failed `rm` or `stop` reports the stdout when the stderr is empty. Its
+second half — what Kanri does when `claude rm` keeps a worktree — is moot for
+shoki, whose worktree is now Kanri's own cut (decision-598a), and stays open
+here for any other seat. The bundle's other items stay open.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-02
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 Source: shoroku experience-layer S-3
@@ -57,3 +57,13 @@ Transcript column's basename, already computed by `sessionIdOf()` — in both
 skill does.
 
 Carries issue-65e4 (merged by tanto-issue-triage, 2026-10-03).
+
+**Three more occurrences on the `shoki-seat` plan** (shoki-seat S-56,
+2026-10-04). `record --seat` wrote a second `live` row for one Jisso session,
+`<name> [<ref>]` beside the bare `<name>`, with the same Transcript — the fifth
+occurrence — and did so again at both boundaries of the same tenure, the sixth
+and seventh; the census then printed the seat twice. Each time the bare row
+was removed by hand. The `sessionId`-keyed fix proposed above needs every
+seat row to carry an id; since that plan's rework, `record --seat` writes the
+bare `<sessionId>.jsonl` into the Transcript cell when the spawn result
+carries no transcript path, so every seat row now carries one.

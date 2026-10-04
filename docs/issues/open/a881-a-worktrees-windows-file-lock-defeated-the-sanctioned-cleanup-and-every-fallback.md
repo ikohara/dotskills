@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-24
-updated: 2026-09-24
+updated: 2026-10-04
 ---
 
 Source: shoroku bg-seat-fixes S-24
@@ -31,3 +31,13 @@ narrower-scoped delete permission that a landing Kanri can actually use.
 
 Related: issue-4724 (the auto-mode classifier blocks sanctioned Kanri acts),
 which carries the classifier's half of the same denial.
+
+**A pruned worktree's directory stayed with no process in it** (shoki-seat
+S-19, 2026-10-03). A probe worktree cut by hand for the shoki-seat design
+(`probe-g`) was pruned, and its directory stayed on disk hours later with no
+process whose cwd was inside it. That is this issue's shape without a shoki,
+which weakens "the shoki process holds the lock" as the whole account and
+leaves the mechanism open. The shoki-seat design closes this issue only if
+its landing's removal of shoki's worktree returns without
+`Permission denied`; that measurement is the landing's, and is recorded with
+the close's records.

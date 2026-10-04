@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-02
-updated: 2026-10-02
+updated: 2026-10-04
 ---
 
 Source: inbox 2026-09-30-spawner-pid-reuse-false-liveness
@@ -43,3 +43,13 @@ random token the spawner re-affirms on each census pass) and compare it
 before trusting the PID; since `process.kill` alone has no cheap portable
 identity check, likely a spawner heartbeat timestamp beside `seats.json`,
 checked for recency.
+
+Resolved by the shoki-seat design
+(`docs/superpowers/specs/2026-10-03-shoki-seat-design.md`, section 4),
+decision-262a: the spawner writes `.tanto/spawner/heartbeat` at every pass,
+the launcher holds a spawner live only when its PID answers and the heartbeat
+is within sixty seconds, and no signal is ever sent to a recorded PID whose
+heartbeat is stale or missing. The cost that decision accepted — a real
+spawner behind a stale heartbeat left running beside the new one — is not
+harmless as built, because the requests are not claimed by rename; that is
+issue-f03b.

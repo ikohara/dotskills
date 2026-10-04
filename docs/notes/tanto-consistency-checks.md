@@ -1221,6 +1221,11 @@ from a reversion to the marked one — which is exactly the break that wave
 fixed. Five occurrences: the shape line under `## How to answer`, and one per
 group section, of which there are now four.
 
+A form checker compares a pointer **raw**, as `SKILL.md`'s "The brief's form"
+says. A scratch checker that normalized pointers — it stripped a trailing
+backtick — reported a false failure on a heading ending in code, at the
+`shoki-seat` spec's review brief.
+
 ## 20. The enumerations the second sweep re-synchronized
 
 ```bash

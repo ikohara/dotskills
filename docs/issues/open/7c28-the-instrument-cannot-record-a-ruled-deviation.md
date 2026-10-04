@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-12
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 Source: shoroku tanto-workspace
@@ -68,3 +68,11 @@ housekeeping, not a code fix, and the opposite of what the deviation marker this
 issue proposes would cost.
 
 Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).
+
+**A further occurrence** (inbox 2026-10-03-boundary-fences-and-plan-checks,
+items 4 and 5): two fences of one plan held a figure and a pattern a ruling
+later changed, and every boundary after the ruling failed on them alone,
+because `boundary.js check` passes only the plan, the report, the base and
+fixed paths, none of which carries a ruling; the reporter proposed a
+`fences:` override line in the boundary dispatch, or Keikaku amending the
+plan at the ruling.

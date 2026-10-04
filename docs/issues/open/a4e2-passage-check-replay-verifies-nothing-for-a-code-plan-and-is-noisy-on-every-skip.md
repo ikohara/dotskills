@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 Source: inbox 2026-09-14-replay-vacuous-for-code-plans
@@ -83,3 +83,19 @@ reader who did not write the tool — the same headline the paragraph above
 asks for, from the passing side.
 
 Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).
+
+**Two measurements from `shoki-seat`** (2026-10-04).
+
+- **40 of 41 skipped** (shoki-seat S-73). The replay skipped every command
+  that needs git, the toolchain or the whole skill — 40 of the plan's 41 —
+  so for a plan whose checks are `node --test`, `lint.sh` and `verify`, the
+  replay's one live assertion was the Node version. The whole-branch
+  reviewer's own runs of `verify` (ten tasks), `diff`, the untouched-file
+  check and the stale sweep covered the plan's verification in about two
+  minutes. The replay could run `verify` against the working tree itself when
+  `--base` names the real merge base.
+- **`boundary` prints every skipped fence in full** (inbox
+  2026-10-03-passage-check-boundary-prints-skipped-fences). The `boundary`
+  subcommand's replay report prints each skipped fence's whole text — about
+  12 KB for a plan whose fences were all skipped — where a count and each
+  fence's first line with its stated reason would carry the same information.

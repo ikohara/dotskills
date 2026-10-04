@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 Source: inbox 2026-09-17-passage-check-diff-enobufs-on-large-branch
@@ -31,3 +31,10 @@ Reported by Hosa `kuchidome-6b [d17de0]` from `C:\Users\0000105523\devel\kuchido
 by this repository's own Kanri 2026-09-17).
 
 Assigned to passage-check-hardening (tanto-issue-triage, 2026-10-03).
+
+**A second `ENOBUFS`** (inbox
+2026-10-03-passage-check-diff-enobufs-second-occurrence). `diff` failed with
+`ENOBUFS` again at a plan's last boundary, over a range of 66 commits above
+the merge base. The script still sets no `maxBuffer`, so `spawnSync`'s
+default of 1 MiB bounds the `git diff` output; the remedy is a large
+`maxBuffer` or a streamed read.

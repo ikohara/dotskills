@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-19
+updated: 2026-10-04
 ---
 
 Source: shoroku tanto-sweep-2
@@ -61,3 +61,8 @@ batch's own exit/boundary commit — plus the boundary-check step in
 `skills/tanto/roles/kanri.md` reading it mechanically as the `--base` for the
 *next* batch's `diff`, rather than relying on the prose narrative to carry it
 forward correctly every time.
+
+**A further occurrence** (inbox 2026-10-03-boundary-fences-and-plan-checks,
+items 1 and 3): the single fixed `<merge base>` that `roles/jisso.md` and
+`templates/boundary-brief.md` name made a merge landing under an open plan
+read as the batch's own work, and the verdict `fail`.

@@ -149,3 +149,32 @@ printed the ledger to its end — about 15,000 tokens of the S table and the
 Measurements text into a Kanri's context. A ledger or roster read by a start
 pattern takes a line-number range or a `grep`, never an open-ended `sed`
 range.
+
+## `node --test` on a directory fails at once on Node 24.16 (2026-10-03)
+
+`node --test skills/tanto/scripts/` — a directory — fails at once on
+Node 24.16: the directory is read as one test file, and the run reports
+`1 test / fail 1`. The shoki-seat spec's verification line named the
+directory and was not runnable on this host; the plan named
+`skills/tanto/scripts/*.test.js` in every command instead. Earlier plans'
+verification lines that name the directory carry the same defect, and a plan
+reusing one names the files.
+
+## `$CLAUDE_JOB_DIR` prints as a Windows path, and a redirect to it wrote a stray file (2026-10-04)
+
+`$CLAUDE_JOB_DIR` prints as a Windows path with backslashes in the Bash tool,
+and `mkdir -p`, `awk -v` and a redirect to `"$CLAUDE_JOB_DIR/tmp/..."` then
+treat it as a relative name: a first awk extraction wrote a stray file named
+`C:Users…` into the repository root (removed before it was staged).
+`cygpath -u "$CLAUDE_JOB_DIR"` gives the usable form, and a background
+seat's `$CLAUDE_JOB_DIR/tmp` instruction would need it.
+
+## `git diff` and Git Bash `grep` hide CRs, so a CRLF check through them fails by construction (2026-10-04)
+
+On this host `git diff` and Git Bash `grep` hide carriage returns (the index
+holds LF and the working tree CRLF under `core.autocrlf`), so a check that
+every new line ends in CRLF, written as `git diff | cat -A | grep '^+'`,
+fails by construction: it printed every `+` line. Count `\r\n` and bare `\n`
+over the file's bytes with node instead. Measured by an implementer of the
+shoki-seat fix wave and confirmed on three files. A neighbor of the
+`grep -c $'\r'` entry above.

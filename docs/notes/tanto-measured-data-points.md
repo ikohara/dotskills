@@ -999,3 +999,128 @@ and the script fix one more (about 88 s, 14 tool calls), with no fix round in
 either, and the reviews found only Minors. Whether
 `templates/branch-review.md` adopts the diagnosed-findings form is a later
 choice this informs.
+
+## Reading a plan-keyed `fail` verdict's Failures section costs about 14k tokens (2026-10-03)
+
+`passage-check.js sections --file <verdict> Failures` on a `fail` verdict
+prints the whole verbatim `boundary` output — at a `tanto-issue-triage`
+boundary about 14k tokens, 50 of them false `bad line` reports from one
+inline-awk artifact — and moved the Kanri from 178762 to about 199000 in one
+turn. A Kanri that reads Failures at a plan-keyed `fail` pays that every
+time. When the rulings already explain the failing passes, a head-limited
+read (`| head -30`) or a read of `Rulings needed` alone is enough.
+
+## A Kanri's cold start and its ceiling, tenure by tenure (2026-10-03, 2026-10-04)
+
+Eight readings from the Kanri tenures of the `tanto-issue-triage` close and
+of `shoki-seat`, each the session's own `reading.js` figure:
+
+| Tenure | Start | Baseline and ceiling | What followed |
+| --- | --- | --- | --- |
+| `tanto-issue-triage` close, first | 122,874 at the first reading (the contract, the role file to line 939, the handover, the roster); 161,482 after the ledger's Rulings (about 12k) and the direction file, before any act | — | The handover had said not to read the Rulings whole; the direction file and the `S-n` mapping were all the next step needed |
+| `tanto-issue-triage` close, successor | 155,253 after the role file (two reads), the roster, the handover and the proposals | ceiling 218,092 | Crossed at 219,189 after two hotfix commits, a roster rewrite and a delegated chore, with the shoki landing still ahead: about 60k of room before the first act |
+| `shoki-seat` opening | 140,019 before any act | baseline 88,272, the first turn's context, taken before the role file was read; ceiling 218,272 | One handshake, two decision files, a topic opening and the Shoroku-table move: 219,250, so the handover fired at the spec stage's entrance with no batch, Sekkei or Jisso yet |
+| `shoki-seat` spec to landing | 126,941 | baseline 88,102, ceiling 218,102 | Crossed at 224,533 about three hours later with no batch in flight: one handshake and release, one spawn and stop, one cold-read dispatch, two proposals' form checks, 46 `S-n` rows, and later sections of the role file |
+| `shoki-seat` landing and batch A | 130,631 | baseline 86,169, ceiling 216,169 | 249,153 at the rework's boundary, about three hours later: one landing (prompt and three spawns), two boundary dispatches and verdicts, one `fail` with three rulings, one human question through Kikaku, one Keikaku resume, a handshake |
+| `shoki-seat` batch B and the whole-branch review | 161,551 after 2 wake-ups | baseline 88,190 | 221,135 after one boundary (the Jisso report, one `boundary.verify` dispatch and its verdict, a ruling) and one `branch.review` dispatch with its 19 KB report: about 60,000 against `per_batch` 65,000 |
+| `shoki-seat` fix wave and close | 156,129 at the start line | baseline 88,634, ceiling 218,634 | About 207,000 by the Jisso's proposal, after the handover's acceptance, the fix wave's prompt, its boundary dispatch and the close's opening |
+
+What the series says:
+
+- **The baseline does not see the role file.** It is the first turn's
+  context, taken before `roles/kanri.md` is read, so a spawned Kanri's
+  headroom is about half of what `ceiling.kanri` states: the role file's two
+  reads and the start commands are a fixed load of about 50k the derivation
+  leaves out.
+- **The role file costs two Reads, and a plain Read cannot select a
+  section.** The harness caps one read at 25,000 tokens and
+  `roles/kanri.md` is 1,757 lines, about 40,000 tokens. A handover's "read
+  only the role file's Start, The batch loop, Session lifecycle's Create
+  table and Handover" cannot be honored by Read; `passage-check.js sections`
+  takes a Markdown file's headings and works on the role file. Beside
+  issue-401e.
+- **A start leaves one boundary of headroom.** Four `shoki-seat` tenures in a
+  row crossed the ceiling inside the plan's own stages — the spec entrance,
+  the plan stage, the first boundary, the whole-branch review — and a successor
+  that starts at a boundary reaches its own handover after about one more. A
+  spec-to-landing stretch, which counts no boundary, costs about a full
+  handover cycle.
+- **Delegation keeps a dispatch out of the context.** The last tenure gave
+  the fix wave's prompt to a `default` subagent, which ran each command once
+  and returned a 20-line report (138,050 subagent tokens, none in the
+  Kanri's context); it kept about 40,000 out of the Kanri.
+
+The retuning decision these feed is issue-306f.
+
+## A Kikaku decision's claim about the tree was stale on arrival, and one grep caught it (2026-10-03)
+
+The decision that opened `shoki-seat` said the previous close's ten swept
+inbox copies had unfilled Triage sections. The previous Kanri had filled all
+thirteen at the landing, and one grep of `.tanto/inbox/` showed one blank
+copy, received after the sweep. The Start rule that a decision's checkable
+claim is checked before it is relayed caught it, for one grep and a read of
+the archive's landing line. The decision's Kikaku had read the ledger row
+that said shoki could not write Triage, but not the landing line that closed
+it. Kin issue-7b7b.
+
+## A three-minute probe settled what a spec had deferred to the landing (2026-10-03)
+
+The `shoki-seat` spec deferred one point to the plan's landing as a
+measurement. A by-hand probe of about three minutes (its probe 4) settled it
+in the spec stage, and the human offered it as soon as it was named. A spec
+that lists "measured at the landing" items can offer the by-hand probe first
+where one exists, since the landing is the run's one unattended stretch.
+
+## Four of five tasks drew an Important finding on a passage the plan mandates (2026-10-04)
+
+In `shoki-seat`'s batch A, four of the five tasks drew an Important finding
+on a passage the plan mandates, and none could be fixed in the batch: any
+edit to a plan-mandated block fails `verify` and the boundary's `diff`, and
+only Kanri or Keikaku can amend the plan. The rubric's "Important means
+block" and the plan's block-for-block discipline do not meet inside a batch;
+each such finding became a ruling and an entry in Rulings needed. A plan
+review that runs the quality lens over the plan's blocks, before the batch,
+is where these would be cheap to fix. Kin issue-cabf.
+
+The same batch's review dispatches also reported the plan's literal trailer
+text as a "finding" every time (`Claude` against the harness's model-named
+line plus `Claude-Session`). The plan allows the harness's line, so a
+dispatch that says so once removes the repeated non-defect.
+
+## A Jisso that kept its context across a rework verdict resumed cheaply (2026-10-04)
+
+After `shoki-seat`'s batch A was returned for rework, its Jisso — which had
+held its context across the verdict, at 21 wake-ups and context=393556
+against a ceiling of 218217 — resumed on the plan's two new commits and the
+ledger's rulings with no re-read of Tasks 1 to 9. A data point for
+decision-aacb's "a batch that ran keeps its files".
+
+## Two rules files named by path kept twelve dispatch prompts to 15-30 lines (2026-10-04)
+
+`shoki-seat`'s batch B Jisso put the implementer rules and the review rules
+in two files under the SDD workspace and named them by path in every
+dispatch. Each of the twelve dispatch prompts stayed at 15 to 30 lines and
+still carried the foreground-command sentences, the verification substitutes
+for documents, and the Part 1 / Part 2 split without re-pasting them. The
+quality reviewers followed "read the sibling files at HEAD and name which",
+and each checked every named fact against the scripts, which is where the
+batch's one Important finding came from. Whether such files become templates
+of the skill is issue-6c5b.
+
+## shoki-seat: costs by stage (2026-10-03, 2026-10-04)
+
+Figures from the task notifications' usage lines; the batches' figures are in
+`docs/reports/2026-10-04-shoki-seat-dogfood.md`.
+
+- **The spec review** (`spec.review`, fable, high): 190,096 tokens, 37 tool
+  uses, 10 minutes; fifteen findings — one critical, four important, ten
+  minor — every one accepted. The spec's brief writer (`brief.write`,
+  sonnet): 69,700 tokens, 8 tool uses, 86 s, and the form check passed first
+  time.
+- **The plan stage.** `plan.draft` (opus, high): 504,065 tokens, 274 tool
+  uses and 4,126 s (about 69 minutes) for a 3,609-line plan of nine tasks
+  and 135 blocks, applying every passage in a scratch copy with one commit
+  per task and the suite run at each. `plan.review` (fable, high): 278,323
+  tokens, 33 tool uses, 854 s (about 14 minutes); 0 critical, 2 important,
+  7 minor. The plan's brief writer (sonnet): 67,816 tokens, 10 tool uses,
+  74 s, and the form check passed first time.

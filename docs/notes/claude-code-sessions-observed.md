@@ -633,3 +633,103 @@ A message to a finished subagent resumes it, whatever the message says:
 `SendMessage` returned `Resuming agent …`. Checking an address by sending
 `test` cost a wake-up and a restated report (26 seconds, two tool calls). The
 address of a live agent is read from `ListAgents`, never tested by a send.
+
+## `--add-dir` is variadic and swallows a prompt placed after it (2026-10-03)
+
+`claude --help` lists `--add-dir <directories...>`, a variadic option: it
+takes every following argument until the next option as a directory. The
+spawner pushed a shoki request's `--add-dir <dir>` and then the prompt, so
+the prompt was read as a second directory. Three by-hand probes, run by the
+human with the spawner's own flags
+(`--bg --name <n> --settings '{"worktree":{"bgIsolation":"none"}}' --permission-mode auto`):
+
+- **The prompt after `--add-dir`, a hand-cut worktree as cwd, no `-w`.** The
+  CLI printed `backgrounded · <id> · <name> (idle — send a prompt to start)`
+  — its line for a session started with no prompt — and
+  `claude agents --json` listed the session `state: "blocked"` with no
+  `pid`.
+- **The prompt before `--add-dir`, the main checkout as cwd.** Listed
+  `status: "idle", state: "done"` within a minute; the file the prompt asked
+  for was written.
+- **The prompt before `--add-dir`, the hand-cut worktree as cwd, no `-w`.**
+  No trust refusal; the session was listed with the worktree as its `cwd`,
+  ran, and finished. Its Write to a file in the main checkout was not
+  refused, `git status` in the worktree ran clean, and the transcript landed
+  under the worktree-scoped project slug.
+
+Every shoki spawn the spawner had made — eight of eight, each with `addDir`
+set — had blocked at its start, and no spawn without `addDir` ever had. The
+fix is decision-b282's order.
+
+**The isolation guard.** A `-w` session is worktree-isolated, and the
+harness refuses two kinds of act in it. The Edit tool on a path in the main
+checkout:
+
+```text
+This session is isolated in the worktree <path>. Edit the worktree copy of this file instead of the shared-checkout path.
+```
+
+and a git command it cannot verify as staying inside the worktree:
+
+```text
+This session is isolated in the worktree <path>, but this command names git in a form too complex to verify that it stays inside the worktree. Refusing to run it — a worktree-isolated session's git operations must target its own worktree. Split it into plain, separate commands and run them from <path>
+```
+
+The first was met three times by shoki seats filling inbox Triage sections,
+the second four times. A session whose cwd is a worktree it did not enter by
+`-w` meets neither (the third probe); decision-598a rests on that.
+
+## `claude agents --json --cwd <root>` lists a `-w` seat whose listed `cwd` is its worktree (2026-10-03)
+
+Measured by the shoki-seat design (its M-1):
+`claude agents --json --cwd <root>` lists a `-w` seat under the root while
+the entry's listed `cwd` is the worktree path, and `--cwd <that worktree path>` lists nothing. The CLI's
+filter keys on something other than the listed `cwd`; what, is unmeasured.
+The scripts filter on the listed `cwd` themselves (design-4807).
+
+## `claude rm`'s help says it works on sessions that have already exited (2026-10-03)
+
+Measured by the shoki-seat design (its M-2): CLI 2.1.288's `rm <id>` help
+says "Works on sessions that have already exited", which `stop`'s does not —
+the data point against the 2026-09-22 failure of issue-59a5.
+
+## `seats.json`'s `startedAt` is to the minute; the listing's is epoch milliseconds (2026-10-03, 2026-10-04)
+
+Measured by the shoki-seat design (its M-4): the spawner's `seats.json`
+records `startedAt` as a minute-precision string, so a rule that measures a
+seat's age needs the epoch value beside it — the `startedAtMs` field the
+no-first-turn notice reads. The whole-branch review then measured
+`claude agents --json` on this host listing `startedAt` as an
+epoch-millisecond number (three sampled entries), so `startedAtMs` is filled
+for every seat spawned since; the seats recorded before it carry none and are
+never judged.
+
+## `claude rm` leaves a worktree it did not cut, and a worktree cwd lists nothing (2026-10-03)
+
+Measured by the shoki-seat design (its M-7): `claude rm` on a session whose
+cwd is a worktree the CLI did not cut removes the session and leaves the
+worktree and its branch. And `claude agents` with no argument, run from that
+worktree, lists nothing: the listing's default filter keys a session on
+something other than its process cwd.
+
+## `claude agents --json` takes 390 to 470 ms per call (2026-10-03)
+
+Measured by the shoki-seat spec review: `claude agents --json` takes 390 to
+470 ms per call on this host with CLI 2.1.288 and 21 entries, so a
+thirty-attempt poll with a one-second sleep blocks about 44 s, not 30.
+
+## The live listing's three entry shapes (2026-10-03)
+
+Measured by the shoki-seat spec review: in the live listing an interactive
+entry carries `pid`, `cwd` (drive letter lower-case, `c:\...`) and `status`,
+and no `state` or `id`; a background entry carries `state` and `id`; a stale
+entry has no `pid` and `state: blocked`. `tanto.test.js`'s fixtures gave
+every entry `cwd: null`, a shape the real listing never showed.
+
+## Finding a detached `node spawner.js run` on Windows (2026-10-03)
+
+Measured at the shoki-seat plan's cold read: `tasklist /V` prints a window
+title, not a command line, so it cannot find a detached
+`node spawner.js run`; `Get-CimInstance Win32_Process -Filter "Name='node.exe'"`
+prints `CommandLine` on this host (Windows 11, build 26100); and `wmic` is
+absent from current Windows 11.

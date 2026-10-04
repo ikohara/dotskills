@@ -94,6 +94,14 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   passage — so no dry run, plan review, or cold read reaches it either, and
   only a reading of the neighbourhood does. `docs/notes/tanto-measured-data-points.md`
   carries the count from the batch that measured it.
+- **Anchor a negation-word filter with `\b`.** The `shoki-seat` plan's
+  sweep allowed a hit when a negation preceded it, as
+  `(No|no|never|Never)[^.]*`, which also admits `node`, `note`, `not` and
+  `now` as the negation; harmless on that tree, but a filter that passes by
+  accident. The plan review asked for the `\b`-anchored form — and the
+  repair, typed through a tool, landed as two literal backspace bytes that
+  failed the check on correct code (issue-b873). Type `\b` where no tool
+  interprets escapes, and look at the bytes.
 
 ## An entity-level sweep beside the phrase-level one
 
@@ -155,6 +163,11 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   threshold. A threshold that fixes a plan's task list states which side a
   tie falls on and which measurement decides; that plan carried a
   conditional task for the borderline round instead.
+- **An `O` row's fence can sweep the whole skill directory at no cost.** All
+  19 of the `shoki-seat` batch B needles counted the same over the whole of
+  `skills/tanto` as over their own file. The per-file scope was the drafter's
+  caution, not a measured need, and the wider scope also catches a site the
+  plan did not name.
 
 ## Expectations
 
@@ -327,6 +340,11 @@ with `--fix` before the commit. A block the linter rewrites can never match.
 - So the plan-time check is a `--fix` dry run of every new-passage block against
   the **destination's own** lint configuration, not against the repository's
   default. The same gap for non-Markdown targets is issue-f851.
+- **A code span that opens or closes with a space cannot survive the lint.**
+  A "should read" block whose code span begins or ends with a space —
+  `` ` — claude attach <id>` `` — fails `MD038`, and the hook rewrites it
+  silently, so the literal changes (the `shoki-seat` fix wave, Task 14). Text
+  an agent is to copy puts the space in words or outside the span.
 
 ## The instrument's domains
 
@@ -738,3 +756,42 @@ as the spec review's run of the two-file command showed. The task-reviewer
 template's "Do not re-run the suite" line leaves a reviewer to run whatever it
 likes; a dispatch that names the exact command and its expected totals
 removes the mismatch before it is raised.
+
+## Two halves that edit the same lines are one task
+
+The `shoki-seat` plan's largest task (the no-first-turn notice and the
+heartbeat, 792 lines in six steps) was not split, though its size argued for
+it. The notice and the heartbeat share the spawner's census pass, its three
+poll loops, and the test helper whose environment both need, so two tasks
+would edit the same lines, and `verify` could not hold at a batch boundary
+between them. A split is by the lines a task edits, not by its size.
+
+## The boundary's preconditions sit in ignore files outside `.gitignore`
+
+`passage-check.js boundary --plan`'s check 1 — `git status --porcelain`
+prints nothing — holds only because three ignore files outside the root
+`.gitignore` hide the run's own files (this repository has no root
+`.gitignore`): `.tanto/.gitignore` and `.superpowers/sdd/.gitignore`, both
+`*`, and `.git/info/exclude`, which carries the harness's own
+`**/.claude/worktrees/` entry. A fresh clone gets the first two when
+`tanto.js` and the SDD skill first write them, and the third only where the
+harness has run. A plan whose fence relies on a clean status names those
+files as its precondition.
+
+## An implementer step runs the per-file suites, and the whole suite runs at the boundary
+
+The whole tanto suite took 6 min 51 s to 7 min 10 s during `shoki-seat`,
+which leaves little headroom under a foreground command's ten-minute ceiling
+when an implementer's dispatch runs it. That plan's Task 10 Step 4 was moved
+to the Jisso for that reason. A plan that names per-file runs in its
+implementer steps and leaves the whole suite to the boundary avoids the
+substitution. Kin issue-46d3.
+
+## A wave's untouched-file fence compares against the wave's own base
+
+A fence that compares against the merge base cannot say "this wave did not
+touch a file" when an earlier batch of the same plan did: in the
+`shoki-seat` fix wave, such a fence over `templates/spawn-request.md` listed
+Task 7's edit from batch B. A fence that asserts what one wave left untouched
+compares against the wave's own base commit, the one its prompt names. Kin
+issue-f94f.

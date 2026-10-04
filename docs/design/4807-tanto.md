@@ -2,12 +2,12 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 ## Purpose and shape
 
-Serves exp-06b2.
+Serves exp-06b2 and exp-57f4.
 
 `tanto` (担当, "take charge of") runs implementation plans through up to seven
 interactive Claude Code sessions on the same repository, the same working tree,
@@ -202,6 +202,27 @@ The run's first Kanri is started the same way as every other terminal seat —
 the launcher asks the spawner for it rather than running `claude --bg` itself
 — so that the rule that the spawner is the only process that runs
 `claude --bg` has no exception a reader has to remember.
+
+## The session listing's one key
+
+Serves exp-173f.
+
+Three scripts read `claude agents --json`: the spawner (`listAgents` in
+`scripts/spawner.js`, behind its spawn, resume and census), the launcher
+(`scripts/tanto.js`, which decides whether to write a `resume`), and
+`scripts/boundary.js census`, Kanri's one signal for the roster. All three
+run the listing with no `--cwd` and keep the entries whose **listed `cwd` is
+the root or under it** — one test, `underRoot`, which `spawner.js` defines
+and exports and `tanto.js` imports; `boundary.js` carries its own copy. Until
+the shoki-seat topic the census already keyed on the listed `cwd` while the
+spawner and the launcher passed `--cwd <root>` to the CLI: three readers of
+one listing with two keys. The CLI's own filter is measured for the root
+alone, and a seat whose process cwd is a worktree under the root — the shoki
+seat, run in the worktree Kanri cuts (decision-598a) — may be keyed by it on
+something else, which is unmeasured (`docs/notes/claude-code-sessions-observed.md`).
+Filtering on the listed `cwd` finds such a seat whatever the CLI's key is,
+and excludes a session another repository spawns in the same moment. One
+listing call per pass, as before.
 
 ## Addressing, and why by born name
 
@@ -398,6 +419,21 @@ one status per fact is what keeps the archive rule readable. `dead` survives for
 a window that is gone without ever having been on the roster. Three small
 drifts this vocabulary left on the roster template are tracked as issue-7f28.
 
+**A `live` cell carries one suffix, and the idle one wins** (exp-3a9e). No
+status word was added for a seat the census sees `blocked`; Kanri appends
+`(blocked since <HH:MM>)` to its `live` cell, the convention
+`(idle since <HH:MM>)` already used, and removes it at a later census that
+does not see the seat blocked. The suffix is the last census that saw the seat blocked,
+not its state now, and names no cause: a permission prompt, a usage-limit
+pause and a seat idling on a kessai all read `blocked`, and telling them
+apart is the half of issue-feac left open. When both would apply — an idle
+Kikaku whose window shows a permission prompt — the cell keeps the suffix it
+already carries: the blocked suffix is added only to a `live` cell with no
+suffix, because the idle one is written on the seat's own report and is the
+more specific fact. The shoki-seat design left that precedence open, and the
+fix wave's clause in `roles/kanri.md`'s census bullets decided it. Every
+reader still tests the cell's first word.
+
 The address book gained a **Transcript** column with the same change. It holds
 the path each role's handshake carried, and it is the identity that survives a
 resume, so a handshake whose `transcript=` matches a row is that row's session
@@ -511,7 +547,7 @@ than asking for it. A Kanri with nothing said yet waits for the human to say
 what the next work is; it does not ask for a word. The human may override the
 slug until the orders line has gone to Sekkei, after which it is fixed, because
 Sekkei's file names carry it. Nothing about the word needs the human's judgment
-beyond its being short and unique, and under exp-06b2 the human is interrupted
+beyond its being short and unique, and under exp-57f4 the human is interrupted
 only at defined checkpoints.
 
 The word reaches five places, which is why it is fixed at the orders line: the
@@ -532,7 +568,7 @@ send it.
 N = batches + 1 windows, and the rotation is fixed: one fresh Jisso per batch,
 in queue order, with the spare seat standing in for a Jisso lost mid-batch.
 That is what removes the replacement decision from every boundary and puts the
-whole ask in front of the human while they are present (exp-06b2). The queued
+whole ask in front of the human while they are present (exp-57f4). The queued
 windows cost nothing while they wait, under the addressing rule above; what
 the editor pays for N idle windows is unmeasured and is issue-6c44. One case
 takes the full N and cannot be topped up: a plan that edits this skill and
@@ -674,7 +710,7 @@ runs without a threshold
 and without asking, because the close is the moment with nothing in flight and
 the record complete, and a resident session's per-turn cost is its age, so the
 reset is a planned step rather than a question put to the human once a plan
-(exp-06b2). **The human's word**, which always overrides, at any boundary. And
+(exp-57f4). **The human's word**, which always overrides, at any boundary. And
 a **compaction noticed**, which is the one signal a session can see about
 itself and is the mid-plan case — a human who says "continue" at a plan close
 declines that close's handover the way this section already describes, which a
