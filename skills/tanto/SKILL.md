@@ -474,7 +474,9 @@ session to a row — a handshake, `/tanto fukki`, Kanri's start, the census —
 compares `sessionId`s, never a name, a `[ref]`, or a full path: a name and
 a `[ref]` pass to another session across a `/clear`, one file has two paths
 under a changed config directory, and a transcript moves when its session
-enters a worktree. `node "$TANTO/scripts/boundary.js" census` lists every
+enters a worktree. When a handshake's `transcript=` names another path than
+the row's and the `sessionId` matches, Kanri rewrites the row's Transcript
+cell to the handshake's path and notes the move in an Events line. `node "$TANTO/scripts/boundary.js" census` lists every
 session under the repository, the tab seats included, and Kanri marks a
 `live` row whose `sessionId` it does not list `dead` on that signal alone —
 no timeout, no inference, no name — except while a restart is being
@@ -608,7 +610,9 @@ role file passes them.
 The first line the command prints is the reading, and it travels as it is:
 appended after ` — ` to the boundary and exit lines the roles already send,
 and written into the batch and Kaiseki reports where their templates have a
-slot. A compaction does not shrink the file, and a tool result is stored at
+slot. A reading appended to an answer line is the output of a run made after
+the file that line points at was written, in the step that sends the line —
+never one recalled from an earlier run. A compaction does not shrink the file, and a tool result is stored at
 full size, so bytes overstate what the context holds: bytes and records are
 compared with each other across sessions and with no token count. `context=`
 is the exception, and it is why it was added — it is a token count, it is

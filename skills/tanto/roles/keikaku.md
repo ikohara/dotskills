@@ -230,7 +230,8 @@ reports and prompts follow the tanto templates, and names nothing else.
 1. Run `node "$TANTO/scripts/passage-check.js" lint --plan <path>`, then the
    same script's `replay --plan <path> --base <merge base>`, and write
    `.tanto/<topic>/plan-dryrun.md` from what they print: the two
-   commands, each one's output, and your ruling on every failure. `lint`
+   commands, each one's output, and your ruling on every failure — written
+   after the checks it names have run, never before them. `lint`
    checks the plan against itself — the lead lines, each `N` against its
    block's real line count, the ids' uniqueness, that every cited id exists,
    that every anchor states both of its values. `replay` applies the passages
@@ -261,7 +262,11 @@ reports and prompts follow the tanto templates, and names nothing else.
    `subagent_type: tanto-plan-review` and its `model` together, to run the
    writing-plans checklist against the plan **and the dry-run report**: it
    reads the report and spot-checks a few of its commands rather than
-   re-running the set, and writes `.tanto/<topic>/plan-review.md`
+   re-running the set — `lint`, the needle counts, and the fence regexes over
+   the plan's new blocks, never `verify --task`, which prints
+   `passage-absent` for every block of a task not yet applied and so tells a
+   reviewer nothing before the batch lands — and writes
+   `.tanto/<topic>/plan-review.md`
    with a **Shoroku proposal** section at the end; after you have ruled,
    send Kanri one line with the report path.
    Between the reviewer's dispatch and its report, and between the brief

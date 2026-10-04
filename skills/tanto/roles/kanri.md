@@ -324,7 +324,8 @@ Then, in this order.
    against the tree; and the output path, `.tanto/<topic>/coldread.md`. The
    subagent reads the spec whole and the frame, spot-checks the dry-run
    report, and writes a numbered list of open questions, or `none`. Read that
-   file by `sections`, send Keikaku **one message** carrying every question,
+   file directly — it carries no headings, so `sections` cannot read it —
+   and send Keikaku **one message** carrying every question,
    numbered, or the single line `coldread: none`, and wait for its answer:
 
    `coldread answered: <pointer, one per question, or none>; shoroku proposal: <path> — <reading>`
@@ -335,7 +336,9 @@ Then, in this order.
    shoroku proposal path from that same line — it wrote the proposal unasked, and no
    `exit:` goes to it at this boundary. If the plan
    edits this skill's own files,
-   record as `R-n`, before any batch prompt or subagent is dispatched, that
+   record as `R-n`, before the batch prompt is rendered and the first Jisso
+   is sent — the cold read above is dispatched before it, and that is the
+   written order — that
    the run's sessions follow the constraints, your orders line, and the
    batch prompts rather than the role text on disk, and the boundary the plan
    names for a role start or replacement (contract rule 11); every batch
@@ -362,7 +365,11 @@ Then, in this order.
    amendment land only at this commit. Nothing is copied and nothing is recommended: the close's
    recommender reads those four sections of the spec by name, and Keikaku's
    shoroku proposal, named in the `coldread answered:` line, is form-checked
-   and recorded the same way ("A seat's exit", step 2).
+   and recorded the same way ("A seat's exit", step 2). A row whose section
+   the plan's own last task lands — its ADRs, its issue edits — is recorded
+   `yes`, with that task's commit subject in Written, at your passage-check
+   answer and before the recommender runs; the others stay `pending` for the
+   close.
 4. Write batch A's prompt from `templates/batch-prompt.md` —
    `First batch, no previous verdict, no check: line.` in its
    previous-batch-verdict section, the first-Jisso line in its Setup on
@@ -602,7 +609,11 @@ Per batch, in this order.
    step 6 — and the loop stops here; the next prompt is the successor's.
 6. **Record and send.** Fill the rendered prompt's two `<Kanri fills>`
    slots — the Previous batch verdict's ruling line
-   and the Rulings section's first line — and save it. The render is the
+   and the Rulings section's first line — and save it. When the prompt, or
+   your own word to the human, promises a notice for an event inside the
+   batch, arm one background watcher per promised event in the same act as
+   the spawn and write each down there: you hold no clock between a spawn
+   and the report, so a promise without a watcher cannot be kept. The render is the
    brief's, from `templates/batch-prompt.md`, addressed to no name — the
    seat the `spawn` request below will create — or, under a skill-editing
    plan's queue, to the next `queued` seat in spawn order, and it already carries the resume line and, on
@@ -1495,8 +1506,10 @@ is none,
 asking the human for the workspace's path if you do not know it, and
 expecting, outside auto mode, a harness permission prompt in your window
 for a read outside your working directory; check that the name is in
-`ListAgents`, and ask the human for the address when it is not, or when
-that roster is absent; send `bug-report: <absolute path>` to that bare
+`ListAgents` — a `hosa` row whose name it does not list is treated as not
+live, and the first data row is taken instead, with the choice noted in
+your Events line — and ask the human for the address only when that roster
+is absent or no listed row remains; send `bug-report: <absolute path>` to that bare
 name. The sent copy is the record of the send, and it is kept.
 
 ### Limits

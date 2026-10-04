@@ -51,7 +51,9 @@ your exit.>
 ### Rulings needed
 
 1. <the question> — <the cause, if it is known> — <what stays blocked until it
-   is answered>
+   is answered>; a correction this item proposes names its file, line, old
+   text and new text here, never by a pointer to another section, so that a
+   delegate told to read this subsection alone can make it
 
 ### Verify in the tree
 
