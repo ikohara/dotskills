@@ -804,6 +804,42 @@ test("requests are taken in name order", () => {
   assert.deepEqual(notices(ws), ["first", "second"]);
 });
 
+test("a request another spawner renamed first is not handled twice (issue-f03b)", () => {
+  const ws = workspace();
+  const { id, file } = request(ws, { op: "attention", message: "once" });
+  // Stands in for the second spawner: the first rename of a request file
+  // succeeds for it and fails for this process, as it does for the loser.
+  const preload = path.join(ws.root, "lose-the-rename.js");
+  fs.writeFileSync(
+    preload,
+    `const fs = require("node:fs");
+const real = fs.renameSync;
+fs.renameSync = (from, to) => {
+  if (String(from).endsWith(".json") && String(from).includes("requests")) {
+    real(from, to + ".other");
+    const error = new Error("ENOENT: no such file or directory, rename");
+    error.code = "ENOENT";
+    throw error;
+  }
+  return real(from, to);
+};
+`,
+  );
+  run(ws, ["run", "--root", ws.root, "--once"], {
+    env: { NODE_OPTIONS: `--require ${JSON.stringify(preload)}` },
+  });
+  assert.deepEqual(notices(ws), []);
+  assert.equal(fs.existsSync(path.join(ws.root, ".tanto", "spawner", "results", `${id}.json`)), false);
+  assert.equal(fs.existsSync(file), false);
+  // The same request taken without a rival is handled once and leaves no claim behind.
+  const second = request(ws, { op: "attention", message: "twice" });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.deepEqual(notices(ws), ["twice"]);
+  assert.match(result(ws, second.id).notified, /\d/);
+  const left = fs.readdirSync(path.join(ws.root, ".tanto", "spawner", "requests")).filter((n) => !n.endsWith(".other"));
+  assert.deepEqual(left, []);
+});
+
 test("the census raises one notice per block, not one per pass", () => {
   const ws = workspace();
   request(ws, SPAWN);

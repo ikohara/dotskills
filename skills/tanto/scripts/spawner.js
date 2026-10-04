@@ -647,7 +647,17 @@ function takeRequests(root, seats) {
     return;
   }
   for (const name of names) {
-    const file = path.join(requestsDir(root), name);
+    const listed = path.join(requestsDir(root), name);
+    // Claim the request by rename before reading it, so that two spawners on
+    // one root never both handle it (issue-f03b): the rename that fails is the
+    // one that lost, and that spawner skips the request. A claim a crash
+    // leaves behind is not retried, since a retry could spawn a seat twice.
+    const file = `${listed}.${process.pid}.claimed`;
+    try {
+      fs.renameSync(listed, file);
+    } catch {
+      continue;
+    }
     const request = readJson(file);
     if (!request) {
       // Removing the file with no result and no log line left the requester

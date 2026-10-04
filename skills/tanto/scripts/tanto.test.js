@@ -87,7 +87,10 @@ function requests(ws) {
   for (const place of [dir, results]) {
     if (!fs.existsSync(place)) continue;
     for (const name of fs.readdirSync(place).sort()) {
-      if (name.endsWith(".json")) byName.set(name, JSON.parse(fs.readFileSync(path.join(place, name), "utf8")));
+      // A request the spawner is handling is renamed to `<name>.<pid>.claimed`
+      // and stays that way until its result is written (issue-f03b).
+      const key = name.replace(/\.\d+\.claimed$/, "");
+      if (key.endsWith(".json")) byName.set(key, JSON.parse(fs.readFileSync(path.join(place, name), "utf8")));
     }
   }
   return [...byName.values()];
@@ -743,6 +746,7 @@ test("a live pid with no heartbeat is not trusted: tanto starts a spawner and lo
     const got = launch(ws, [ws.root, "--timeout", "20000"]);
     assert.equal(got.code, 0, got.err);
     assert.match(got.out, /claude attach bg01/);
+    assert.ok(got.out.includes(`spawner pid ${child.pid} has no heartbeat`), got.out);
     const dir = path.join(ws.root, ".tanto", "spawner");
     assert.ok(fs.readFileSync(path.join(dir, "log"), "utf8").includes(`stale spawner pid ${child.pid} ignored`));
     assert.notEqual(Number(fs.readFileSync(path.join(dir, "pid"), "utf8").trim()), child.pid);

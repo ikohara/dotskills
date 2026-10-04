@@ -273,14 +273,23 @@ function removeSpawnerFiles(root) {
   }
 }
 
+function noHeartbeatLine(pid) {
+  return `spawner pid ${pid} has no heartbeat — a spawner from before the heartbeat, or a reused pid; end it by hand if it is the spawner: taskkill /PID ${pid} (kill ${pid})\n`;
+}
+
 function startSpawner(root) {
   if (liveSpawner(root)) return false;
   // A live PID behind a stale heartbeat is never signalled: it may be any
   // process by now (spec 4.2, D-4). A real spawner left so runs beside the
-  // new one until the next `tanto down`; both take requests by rename, so
-  // none is handled twice.
+  // new one until the next `tanto down`. Both claim a request by rename, so
+  // none is handled twice — except by a spawner started before that claim
+  // (issue-f03b), which a PID with no heartbeat file is the sign of, and
+  // which the line printed here makes visible.
   const stale = recordedPid(root);
-  if (stale && pidAlive(stale)) appendLog(root, `stale spawner pid ${stale} ignored`);
+  if (stale && pidAlive(stale)) {
+    appendLog(root, `stale spawner pid ${stale} ignored`);
+    if (heartbeatMs(root) === null) process.stdout.write(noHeartbeatLine(stale));
+  }
   const log = fs.openSync(path.join(spawnerDir(root), "log"), "a");
   const child = spawn(process.execPath, [SPAWNER, "run", "--root", root], {
     cwd: root,
@@ -533,9 +542,7 @@ function cmdDown(argv) {
   const pid = recordedPid(root);
   if (pid && pidAlive(pid) && heartbeatMs(root) === null) {
     fs.rmSync(pidPath(root), { force: true });
-    process.stdout.write(
-      `spawner pid ${pid} has no heartbeat — a spawner from before the heartbeat, or a reused pid; end it by hand if it is the spawner: taskkill /PID ${pid} (kill ${pid})\n`,
-    );
+    process.stdout.write(noHeartbeatLine(pid));
     return seatsFailed ? 1 : 0;
   }
   if (!liveSpawner(root)) {
