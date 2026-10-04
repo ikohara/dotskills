@@ -60,4 +60,7 @@ stands.
   only for a seat the listing still holds, and a seat whose prompt was never
   delivered (decision-b282) is removed rather than marked.
 - What the notice cannot do is name its cause; telling a permission prompt
-  from a usage-limit pause stays open in issue-feac.
+  from a usage-limit pause is deferred, recorded in issue-feac's resolution.
+  (Corrected in place on 2026-10-04, before merge: this bullet first said the
+  distinction stays open in issue-feac, which the same shoroku moved to
+  resolved.)

@@ -111,7 +111,7 @@ instrument does not count by design. So:
 ## Two readings a round task needs: the breadth of a scene line, and an absence grep over the mechanisms
 
 - **A broad scene line takes many issues.** Three broad scene lines (178d,
-  19c1 and 1b75 in scene exp-06b2) took six of round 3's issues, and the
+  19c1 and 1b75, then in scene exp-06b2) took six of round 3's issues, and the
   reviews moved none of them; the near misses (6620, fff8, d3f1) were the
   judgment the human is most likely to move. The sittings are where that
   breadth gets checked.

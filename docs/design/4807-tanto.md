@@ -426,7 +426,7 @@ status word was added for a seat the census sees `blocked`; Kanri appends
 does not see the seat blocked. The suffix is the last census that saw the seat blocked,
 not its state now, and names no cause: a permission prompt, a usage-limit
 pause and a seat idling on a kessai all read `blocked`, and telling them
-apart is the half of issue-feac left open. When both would apply — an idle
+apart is deferred, recorded in issue-feac's resolution. When both would apply — an idle
 Kikaku whose window shows a permission prompt — the cell keeps the suffix it
 already carries: the blocked suffix is added only to a `live` cell with no
 suffix, because the idle one is written on the seat's own report and is the
