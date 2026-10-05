@@ -442,7 +442,8 @@ Per batch, in this order.
    file" in `templates/boundary-brief.md`. The last two
    lines are the two things the subagent cannot see and you hold
    as text. The readings are the ones peers' last lines carried since the
-   previous boundary, one `<role> <name> [<ref>] <reading>` per line. The
+   previous boundary, one `<role> <name> <reading>` per line, the name bare.
+   The
    dispatches are every one since the previous boundary whose kind
    `tanto.json` puts on the top family of the ladder — `fable` today, and the
    merged config decides, not the family a session happens to run on, so an
@@ -512,27 +513,28 @@ Per batch, in this order.
    lines, and the next batch's `planned` row with its Prompt cell are the brief's,
    written by `record` from the dispatch you sent at step 2 — at a boundary you
    take no reading and rewrite no row.
-   If an ask of the human is due — a Sekkei or a Kaiseki — make it, unless a
-   handover trigger has fired, in which case the
-   successor makes it from the handover's Next step. Then the exits that
+   If a Sekkei's or a Kaiseki's `spawn` request is due ("Create"), write it,
+   unless a handover trigger has fired, in which case the
+   successor writes it from the handover's Next step. Then the exits that
    fall at this boundary, per "A seat's exit": the retiring Jisso's proposal
    is its report's Shoroku proposal section, recorded by the brief at step 2,
    so write its `stop` request now and let step 6's `record` call mark its
-   row `stopped`; no `release:` line goes to it and nothing is `/clear`ed,
-   and its conversation is kept on the same terms as `.tanto/<topic>/` — it
+   row `stopped`; nothing is said to it, and its conversation is kept on
+   the same terms as `.tanto/<topic>/` — it
    is never `rm`ed — a batch returned for rework
    is not accepted, and its Jisso stays live for the rework prompt — a file
    of its own, which step 6 writes — and the
    Jisso whose boundary is the plan's last waits — the last implementation
    batch's while the review is pending, and the fix wave's — see
-   "The final batch", steps 2 and 3; if a
-   release or a replace of another live, coherent session is due, or a
+   "The final batch", steps 2 and 3; if the end or the replacement of
+   another live, coherent seat is due, or a
    handover trigger has fired, send the `exit:` lines to
-   the sessions whose proposal is not already named — a Sekkei or Keikaku at
+   the seats whose proposal is not already named — a Sekkei or Keikaku at
    its own final boundary named it in its report line and is waiting for
    nothing — check each proposal's form, name its items as `--s-item`
-   arguments of step 6's `record` call, and send `release:` as soon as the
-   form check passes; when the trigger that fired is your own handover, write
+   arguments of step 6's `record` call, and write each seat's `stop`
+   request as soon as its form check passes; when the trigger that fired is
+   your own handover, write
    your own proposal here too, as "Handover" step 1 says, so that it is done
    when that list is reached. Nothing is recommended or applied before the
    close.
@@ -596,8 +598,9 @@ Per batch, in this order.
    the verdict file's Commit window section names and to no others: each is
    a Sekkei or Keikaku whose `commit-ready:` event has no `commit-done:`
    pair, and a peer with no event is sent nothing and answers nothing. Send
-   each one line — the boundary is verified, commit, naming any Kaiseki ask
-   or release since the last boundary — and wait for its
+   each one line — the boundary is verified, commit, naming any Kaiseki
+   spawned or ended since the last boundary — by "Sending to a seat", the
+   peers woken in one `wake` call, and wait for its
    `committed <subject> — <reading>` before the next spawn;
    subscribe to its idle only
    when the reply is overdue, and record in the ledger's Session events if a
@@ -626,34 +629,34 @@ Per batch, in this order.
    `task.implement`, `task.review-spec`, `task.review-quality`, and
    `task.escalate` — each with the family `tanto.json` gives it and the
    definition name that family is dispatched with, so that the prompt still
-   says them after a compaction. Then **write the `spawn` request** for the
+   says them after a compaction. Before the next request, run the census
+   and act on what it prints ("Session lifecycle"), and then `beat`
+   ("Sending to a seat"). Then **write the `spawn` request** for the
    next Jisso — `<Y>` the next batch's letter, the path the boundary brief
    rendered — with `batch=.tanto/<topic>/batch-<Y>-prompt.md`; under a
    skill-editing plan's queue, send the next `queued` seat the one line
    `batch: .tanto/<topic>/batch-<Y>-prompt.md` with the `no-role` line
-   after it instead, without an idle subscription. That send goes on the
-   roster as recorded, with no census first, and the seat's row goes `live`
-   before it — the send and the rewrite are one act, whether the prompt is
-   this boundary's render or one a handover left you already rendered for
-   an already-`queued` seat: a send that errors, or a row the roster records `dead`, is
-   `SKILL.md`'s Resuming — the census, a `resume` request for a terminal
-   seat it does not list, a stale entry with no `pid` included, and the line
-   sent again when the result lands, to the name the result carries. Then
-   this boundary's `record` call:
+   after it instead, without an idle subscription. That send goes by
+   "Sending to a seat", and the seat's row goes `live` before it — the send
+   and the rewrite are one act, whether the prompt is this boundary's
+   render or one a handover left you already rendered for an
+   already-`queued` seat: a queued Jisso the supervisor collected reads
+   `gone` and is woken first, and a wake that fails is the Replace table's
+   first row. Then this boundary's `record` call:
 
    ```bash
    node "$TANTO/scripts/boundary.js" record --ledger <.tanto/<topic>/kanri.md> \
      --roster <.tanto/roster.md> --batch <key> --state accepted|rework \
      --verdict "<one line>" --progress "<one line>" \
-     --status "<name [ref]> cleared" --status "<name [ref]> live" \
+     --status "<name> stopped" --status "<name> live" \
      --s-item "<source> | <item>" \
      --event "commit-done: <role> <topic> — <subject>"
    ```
 
    It carries the Batches row's state and verdict your ruling gives, the
    Progress line, the Status changes this boundary decided — the retiring
-   Jisso `stopped`, the Jisso you have just started `live`, a tab seat
-   released at step 4 `cleared` — one `--s-item` per item of a shoroku
+   Jisso `stopped`, the Jisso you have just started `live`, any other seat
+   step 4 ended `stopped`, each by its bare name — one `--s-item` per item of a shoroku
    proposal step 4 form-checked, and one `commit-done:` event per boundary
    reply step 5 took; `<key>` is the key of the batch whose boundary this
    is. At a boundary no table is edited by hand: that call, and for a
@@ -730,18 +733,18 @@ After the last implementation batch is accepted:
    — the test suites, the census, `verify` — so that the reviewer runs those in
    the working tree itself instead of deriving the list.
 2. Turn its findings into one more batch prompt — the final batch — and send
-   it to the next queued Jisso, as any batch. In that same turn send
-   `release:` to the Jisso that ran the last implementation batch — its wait
-   ended with this review's verdict. Two Jissos are the exception
-   to loop step 4's release at the boundary, not one: the Jisso that ran
-   the last implementation batch, whose `release:` waits for this review's
-   verdict and goes out when the fix-wave prompt goes to its successor; and
-   that successor, the fix-wave Jisso, who does not release at its own
-   boundary either, but takes step 3's `close:` line once you accept the fix
-   wave. When the review has no findings there is no fix wave: the
+   it to the next queued Jisso, as any batch. In that same turn write the
+   `stop` request of the Jisso that ran the last implementation batch — its
+   wait ended with this review's verdict. Two Jissos are the exception
+   to loop step 4's stop at the boundary, not one: the Jisso that ran
+   the last implementation batch, whose `stop` request waits for this
+   review's verdict and is written when the fix-wave prompt goes to its
+   successor; and that successor, the fix-wave Jisso, who is not stopped at
+   its own boundary either, but takes step 3's `close:` line once you accept
+   the fix wave. When the review has no findings there is no fix wave: the
    last-implementation-batch Jisso stays live and takes step 3's `close:` line
-   directly, and the spare queued window is named in the close's released
-   line for the human to `/clear`. A fix-wave list is
+   directly, and the spare queued seat gets its `stop` request with the
+   close's. A fix-wave list is
    drafted under the same conditions as a plan: run each command it
    specifies once before dispatching it, and compare its output with what
    the list expects. There is no second fix wave.
@@ -750,9 +753,9 @@ After the last implementation batch is accepted:
    the live Jisso one line, `<short id>` being the first eight hexadecimal
    digits of its `sessionId`, the basename of its row's Transcript column —
    `close: propose; write it to .tanto/<topic>/shoroku-proposal-jisso-<short id>.md`
-   — sent on the roster as recorded, as loop step 6 sends a `batch:` line,
+   — sent by "Sending to a seat", as loop step 6 sends a `batch:` line,
    so that a Jisso gone while it waited through the review and the fix wave
-   is resumed first and the line sent again — check the proposal's form,
+   is woken first — check the proposal's form,
    record its rows, and write its `stop` request.
    Then your own: write `.tanto/shoroku-proposal-kanri-<short id>.md`, the
    `<short id>` your own, from the ledger and the roster, as "A seat's exit"
@@ -780,15 +783,20 @@ is the classification rule.
 
 1. Jisso reports the Kaiseki trigger and idles, with the failing state
    committed as a WIP commit.
-2. Classify. Known cause — rule and send Jisso back to work. Unknown — ask the
-   human to create Kaiseki; after its handshake, write
+2. Classify. Known cause — rule and send Jisso back to work. Unknown — write
    `.tanto/<topic>/kaiseki-<n>-brief.md` from
-   `templates/kaiseki-brief.md`, its Human access line filled — the debugging
-   conversation in Kaiseki's window until its report is written, unless you
-   judge otherwise — and send its path, without an idle subscription. If the
-   human declines to create Kaiseki, rule `continue the SDD rounds`: Jisso
-   resumes at round 3 with the resumed implementer, and rounds 4-5 go to
-   `task.escalate`.
+   `templates/kaiseki-brief.md` first, since the Kaiseki's prompt carries
+   its path, its Human access line filled — the debugging conversation with
+   the human in Kaiseki's own session until its report is written, unless
+   you judge otherwise. Then write the Kaiseki's `spawn` request ("Create"),
+   once `boundary.js seat` shows every Sekkei of the run with no turn in
+   progress — `parked`, or `running` with its fifth word `ended`. While the
+   Kaiseki is active you send a Sekkei nothing and wake none (rule 9); a
+   wake that makes a second top-family seat run is the Session event the
+   Measurements row "top-family sessions active at once" is filled from.
+   When the human has said no Kaiseki for this case, rule
+   `continue the SDD rounds`: Jisso resumes at round 3 with the resumed
+   implementer, and rounds 4-5 go to `task.escalate`.
 3. Kaiseki writes `kaiseki-<n>.md` and sends you one line with the path.
 4. Record `R-n` as `fix per kaiseki-<n>.md` and send Jisso one line — resume
    task N, apply the report, add the regression test, fix-round counter back to
@@ -797,14 +805,14 @@ is the classification rule.
 5. Work the report's "Other defects observed" section item by item. An item
    tagged `blocks this task: yes` goes through the classification rule again —
    a known cause is a ruling, an unknown cause gets
-   `kaiseki-<n+1>-brief.md` sent to the **same** Kaiseki, which is not released
+   `kaiseki-<n+1>-brief.md` sent to the **same** Kaiseki, which has not ended
    yet. An item tagged `blocks this task: no` is copied into the `S-n` table at
    this boundary with Adopted `pending`; nothing is adopted
    here, and the close is where it is recommended and checked.
 6. When Jisso's fix passes review and tests and no `blocks this task: yes` item
    is open, run Kaiseki's exit as "A seat's exit" below prescribes — its
-   proposal, its form check, then `release:` — or keep it if more of the
-   same bug is expected. Not before: a fix that misses goes back to
+   proposal, its form check, and then its `stop` request — or keep it if
+   more of the same bug is expected. Not before: a fix that misses goes back to
    the same Kaiseki with its context intact. The apply is not Kaiseki's work:
    the apply subagent commits the accepted subset, and Kaiseki may be gone by
    then.
@@ -826,13 +834,14 @@ nothing you must wait for beyond an unanswered line, which that peer re-sends
 to the roster's first row at its own next wake-up. Signal 4 **is** checked in
 that stage, at the
 start of every turn while no batch is in flight, because your context grows
-there — a between-plans inbox sweep, the handshakes, a resume — with no
-batch boundary to catch it;
-and Timing below admits a handover there, for the reason it gives. You run
-no resume self-check at any of these points, here or at loop step 6: a
-terminal seat's rename is the spawner's census to detect (1.7), and your
-own identity is the `sessionId` your request carried or your transcript's
-own path, never a `ListAgents` reading of your own.
+there — a between-plans inbox sweep, a Kikaku's decision, a resume — with
+no batch boundary to catch it;
+and Timing below admits a handover there, for the reason it gives. You read
+no name of your own from `ListAgents` at any of these points, here or at
+loop step 6: a seat's name is whatever the listing prints for its
+`sessionId`, which the spawner's census writes into the state file, and
+your own identity is the `sessionId` your request carried or your
+transcript's own path.
 
 1. **The plan close**, and this is the ordinary one — the close of the topic
    whose batches were in flight. After the close's four steps, the merge decision, the peers'
@@ -946,12 +955,12 @@ next batch inherits" rather than from the tree.
 At every plan close, and whenever the human asks, print one of two lines to the
 human. At a plan close it is always the second, because the close is itself a
 handover trigger; "Kanri stays" is only ever the answer to the human's own
-mid-plan question. The `[<ref>]` is the identity, and no request and no ask
-carries it: every seat reads the roster's first data row.
+mid-plan question. The name is your bare name, as the roster's first data
+row carries it, and no request carries it: every seat reads that row.
 
 ```text
-Kanri stays — <name> [<ref>] — <n> batches, <m> plans since <YYYY-MM-DD>, <k> compactions noticed — <reading>; handover not due.
-Kanri hands over — <name> [<ref>] — <n> batches, <m> plans since <YYYY-MM-DD>, <k> compactions noticed — <reading>; handover written.
+Kanri stays — <name> — <n> batches, <m> plans since <YYYY-MM-DD>, <k> compactions noticed — <reading>; handover not due.
+Kanri hands over — <name> — <n> batches, <m> plans since <YYYY-MM-DD>, <k> compactions noticed — <reading>; handover written.
 ```
 
 The second form is followed by nothing: the successor is spawned, and the
@@ -979,17 +988,17 @@ so that a topic still in its spec or plan stage is handed over together with
 the topic whose batches were in flight. There is no `Deferred` line: nothing
 defers any more, and every handover that fires runs in full before this file
 is even written. Live peers lists every peer of every
-open topic, each with its Topic and what it is waiting for, and marks the ones
+open topic, each by its `sessionId` and its bare name as last read, with its
+Topic and what it is waiting for, and marks the ones
 whose last line you had not answered: the successor answers those marked lines
 first, pairing them with the ledger's `unanswered:` events, and announces
-nothing. The `queued` Jissos are listed after them by
-name and place and get nothing, since their batch prompt is a path they read
+nothing. The `queued` Jissos are listed after them by `sessionId`, name,
+and place and get nothing, since their batch prompt is a path they read
 at their own wake-up.
-A Sekkei whose last line named a shoroku proposal is waiting
-for nothing but `release:`, and a Keikaku whose last line did the same is
-waiting for its `stop` request instead; your successor's first act for it
-is that line or that request, if the proposal's form check is recorded in
-the ledger and it had not yet gone out.
+A Sekkei or a Keikaku whose last line named a shoroku proposal is waiting
+for its `stop` request alone; your successor's first act for it is that
+request, if the proposal's form check is recorded in the ledger and the
+request had not yet been written.
 
 ### The handover, in a plan and between plans
 
@@ -1019,9 +1028,11 @@ the ledger and it had not yet gone out.
    ledger's Progress line to "handover
    written". **At a plan close** that line already says "closed", which the
    Release table's row keys on, so leave it and record "handover written by
-   `<name> [<ref>]`" as a roster Events line. **Between plans** there is no
+   `<name>`", your bare name, as a roster Events line. **Between plans** there is no
    ledger, and that Events line is the only record.
-4. Write the `spawn` request for `/tanto kanri` on `sessions.kanri`, print
+4. Write the `spawn` request for `/tanto kanri` on `sessions.kanri`, with
+   `contract: 2` and `succeeds: <your own sessionId>` — the spawner refuses
+   a second Kanri but to a request that names the holder it succeeds — print
    the "Kanri hands over" line, and idle
    with your closing line — opening with your own identity, as every
    closing line does: your work is in the handover file, the roster,
