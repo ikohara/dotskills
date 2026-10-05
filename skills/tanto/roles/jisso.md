@@ -19,8 +19,8 @@ read fresh, at your next wake-up.
 
 ## Start
 
-You have done the model check and sent **no** handshake: you are a terminal
-seat, and your own prompt carries one of two keys. With `batch=<path>` the
+You have done the model check, and your own prompt carries one of two keys.
+With `batch=<path>` the
 file that path names is your orders — read it first — carrying the plan
 path, the conductor ledger path, the branch, and which of the plan's Jissos
 you are; begin at once. With `queue=<topic>`, which only a plan that edits
@@ -83,10 +83,10 @@ batch is the next Jisso's. At the boundary:
    script prints no ceiling line — an unavailable transcript, a `node` that
    will not run — the Ceiling slot carries `unavailable`, which is a value and
    not a failure.
-2. Send Kanri one line with that path. No self-check runs first: a terminal
-   seat's rename is the spawner's census to notice, and the identity word
-   your closing line carries is the `name` your own result file carried —
-   your identity itself is your `sessionId`.
+2. Send Kanri one line with that path. The name your closing line carries
+   is the one the listing, `claude agents --json`, prints for your own
+   `sessionId` — your identity itself is your `sessionId`, and the name is
+   only what the listing calls it now.
 3. Idle, with your closing line: your work is in the report and the commits;
    the step that still needs this seat is the boundary's verdict. Kanri
    verifies the tree and rules. A batch returned for rework comes back to
@@ -95,8 +95,8 @@ batch is the next Jisso's. At the boundary:
    file you read from disk like every other (Start); a batch accepted is
    your exit — the
    report's Shoroku proposal section is your shoroku proposal, nothing else is
-   written, and Kanri's `stop` request follows — no line reaches you,
-   nothing is `/clear`ed, and your conversation is kept. Two batches
+   written, and Kanri's `stop` request follows — no line reaches you, and
+   your conversation is kept. Two batches
    are the exception: the plan's last implementation batch, whose Jisso
    waits for the whole-branch review's verdict and is then stopped
    — the fix wave is the next Jisso's — or, when the review finds nothing,

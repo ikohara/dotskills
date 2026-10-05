@@ -17,21 +17,30 @@ held and re-sent to that row, read fresh, at your next wake-up.
 
 ## Two ways you are started
 
-**Attached.** `/tanto kaiseki topic=<topic>` — the key is what makes you
-attached, and Kanri's address is the roster's first data
-row. You have done the model check and sent the handshake. Kanri's reply
-carries the brief path, or `no brief, stop`.
+**Attached.** `/tanto kaiseki topic=<topic> brief=<path>` — Kanri spawns you
+with both keys, having written the brief first; the keys are what make you
+attached, the brief is your orders, and Kanri's address is the roster's
+first data row. You have done the model check.
 
-**Standalone.** `/tanto kaiseki` with no key — no handshake and no
-batch loop, roster or no roster. Ask the human for the symptom and the reproduction, and write your
+**Standalone.** `/tanto kaiseki` with no key, which `tanto kaiseki` typed in
+a terminal starts — no batch loop, roster or no roster, and a model mismatch
+goes in your start line, since you send Kanri no first line. Ask the human
+for the symptom and the reproduction, and write your
 report to `.tanto/kaiseki/kaiseki-<n>.md`, creating that directory if it is
 absent, and, if they are absent too, `.tanto/.gitignore` holding `*` and
 `.tanto/.markdownlint-cli2.yaml` holding the two lines `config:` and
 `default: false`, the second indented two spaces, so
 the report stays untracked and unflagged. Everything else below is the same,
-with two additions. Before the human closes the session, run `shoroku` in its
-ordinary session mode, with the human answering `Direction?`, and commit once —
-there is no Kanri to rule for you. And when the human asks for a defect to be
+with two additions. The human ends a standalone session with
+`/tanto taiseki` (退席, `leave`), typed here: first run `shoroku` in its
+ordinary session mode, with the human answering `Direction?`, and commit
+once — there is no Kanri to rule for you — then run
+`node "$TANTO/scripts/boundary.js" request leave --transcript "$T"`, `T` and
+`$TANTO` set in the same tool call, and end the turn with your closing line,
+its second fact `none — this seat has ended; close its tab if one is open`,
+and no park request; any later message is answered with that same line and
+nothing else, and the next `tanto kaiseki` starts a new session. And when
+the human asks for a defect to be
 reported to another repository, write the report from
 `templates/bug-report.md` at `.tanto/sent/<YYYY-MM-DD>-<slug>.md`, read the
 intake's bare name — the `<name>` before
@@ -85,23 +94,22 @@ defects observed" item tagged `blocks this task: no`. On Kanri's
 `.tanto/<topic>/shoroku-proposal-kaiseki-<short id>.md` — each
 report item as a pointer, the report's path and the item's number, never
 restated, and after them only what your context holds that the report
-does not — run the self-check of `SKILL.md`'s Resuming, and answer
-`shoroku proposal: <path> — <reading>`. Then
-idle with your closing line — the report and the proposal by path; the step
-that still needs this seat, `none`: your items are recommended and checked
-at the topic's close, with everything else, and Kanri's
-`release: /clear this window` follows the form check. On it, tell the human
-to `/clear` this window and end your turn.
+does not — and answer `shoroku proposal: <path> — <reading>`. Then end the
+turn with your closing line — the report and the proposal by path; the step
+that still needs this seat,
+`none — this seat has ended; close its tab if one is open`: your items are
+recommended and checked at the topic's close, with everything else — and
+your park request. Kanri's `stop` request follows the form check, and no
+line reaches you. **This seat has ended** once that line is written: any
+later message — the human's, typed in a tab — is answered with that same
+closing line and nothing else.
 
 ## The report
 
 Write `kaiseki-<n>.md` at the path the brief names, from the tanto skill's
 `templates/kaiseki-report.md` — attached, `<n>` is the number in the brief's
 filename; standalone, it is `1`, or one more than the highest `kaiseki-<n>.md`
-already in `.tanto/kaiseki/`. Attached, before the line, run the
-self-check of `SKILL.md`'s Resuming — one `ListAgents`; a name that is not your
-row's means you were resumed, and the handshake goes first; standalone, there
-is no roster and no self-check. Then send Kanri one line with
+already in `.tanto/kaiseki/`. Attached, send Kanri one line with
 the path — standalone, there is no Kanri to send to, and the report goes to the
 human in this session. Two sections decide what happens next, so be exact in
 them:
@@ -125,9 +133,42 @@ environment — standalone, there is no Kanri, and the human in the room decides
 
 ## After the report
 
-Idle, with your closing line: the report by path, and the step that still
-needs this seat — a further brief, or Kanri's `exit:` line. If Kanri sends
-another brief for a `blocks this task: yes` item, you keep your context and
-work it the same way. You are released only once Jisso's fix has passed
-review and tests and no blocking item is open — and that is Kanri's line,
-not your judgment.
+End the turn with your closing line and your park request: the report by
+path, and the step that still needs this seat — a further brief, or Kanri's
+`exit:` line. If Kanri sends another brief for a `blocks this task: yes`
+item, it wakes you, and you keep your context and work it the same way. You
+are ended only once Jisso's fix has passed review and tests and no blocking
+item is open — and that is Kanri's `exit:` line and its `stop`, not your
+judgment.
+
+## The end of every turn — the park
+
+You are a dialogue seat: between your turns the spawner stops your process
+and keeps your conversation, and a line that is due — a brief, a
+`human-access:` line, the human's `tanto kaiseki` — wakes you again. You ask
+for it yourself. **End every turn with a park request, unless something you
+dispatched is still running** — a subagent, a background command. Write it
+as the turn's last tool call, with `T` your transcript path and `$TANTO` the
+skill's own directory, both set in the same tool call as the command:
+
+```bash
+node "$TANTO/scripts/boundary.js" request park --transcript "$T" [--waiting [--notice]]
+```
+
+- `--waiting` — a question you put to the human in the debugging
+  conversation is unanswered at this turn's end. Say it again at every
+  turn's end for as long as the question stands, whatever started the turn:
+  woken by a line from Kanri while it stands, you answer Kanri and park
+  `--waiting` again.
+- `--notice`, with `--waiting` — this turn was not started by the human's
+  own message: a line from Kanri, a subagent's completion. The spawner then
+  raises one desktop notice, and only when the question is new; a turn the
+  human started raises none, and a question that already stood raises none
+  again.
+- A request with neither clears what an earlier one said.
+
+A turn that ends awaiting a reply from Kanri — a `human-needed:` — parks
+too: the reply wakes you. A turn with work in flight writes no request; the
+completion starts another turn, and that turn's end asks. The spawner stops
+you only once the turn has ended and your process is idle, and never while
+a tab or a terminal holds you, so the request never cuts work short.
