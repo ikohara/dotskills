@@ -7,7 +7,8 @@
     "jisso": { "model": "sonnet", "effort": "xhigh" },
     "kaiseki": { "model": "fable", "effort": "xhigh" },
     "hosa": { "model": "sonnet", "effort": "medium" },
-    "shoki": { "model": "sonnet", "effort": "medium" }
+    "shoki": { "model": "sonnet", "effort": "medium" },
+    "denrei": { "model": "sonnet", "effort": "low" }
   },
   "subagents": {
     "task.implement": { "model": "sonnet", "effort": "high" },

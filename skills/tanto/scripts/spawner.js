@@ -581,7 +581,142 @@ function findResumed(root, sessionId) {
   return null;
 }
 
-function opSpawn(root, request, seats) {
+// Within this long of a park or a stop, a listed entry is the process still
+// leaving (spec 2.5, S-5), not a seat that is alive.
+const STOP_SETTLE_MS = 30000;
+
+/**
+ * Poll the listing once a second, up to thirty times, until `sessionId` has
+ * left it (spec 2.5): a resume issued while a stop is finishing starts a
+ * copy (S-5). Returns whether it left.
+ */
+function waitUnlisted(root, sessionId) {
+  for (let attempt = 0; attempt < SPAWN_POLL_TRIES; attempt++) {
+    const { entry, error } = listedEntry(root, sessionId);
+    if (!error && !entry) return true;
+    pause(root, SPAWN_POLL_MS);
+  }
+  return false;
+}
+
+/**
+ * The copy a resume started instead of waking the seat (spec 2.5, P-8), or
+ * null: the id after `started a copy as` on either stream — the CLI writes
+ * its note to stderr — or stdout's `backgrounded · <id>` when that id is
+ * neither the seat's short id nor the head of its `sessionId`.
+ */
+function copyOf(got, sessionId, seat) {
+  const noted = /started a copy as ([A-Za-z0-9][\w-]*)/.exec(`${got.err}\n${got.out}`);
+  if (noted) return noted[1];
+  const printed = shortIdOf(got.out);
+  if (!printed || printed === seat?.id || sessionId.startsWith(printed)) return null;
+  return printed;
+}
+
+/**
+ * `resume` (spec 2.5). A parked seat is woken, never handed a line: a
+ * prompt is taken for a Kanri alone (S-3), as the command's one positional
+ * and still no flag (decision-7c87). Before the command, on a fresh
+ * listing, a seat a tab holds or one alive in the background is `listed`,
+ * since a resume would start a copy that holds its whole conversation and
+ * acts on its prompt (M-6, P-8); a seat whose park or stop is under thirty
+ * seconds old is waited out. After it, a copy is stopped and removed, and a
+ * prompt the CLI did not take is an error. The CLI names the options it
+ * brought back on stderr, which a result does not carry, so the log keeps
+ * it.
+ */
+function opResume(root, request, seat) {
+  if (request.prompt && (seat?.role || request.role) !== "kanri") return { error: "no prompt for this role" };
+  if (seat?.status === "removed") return { error: "removed" };
+  const { entry, error } = listedEntry(root, request.sessionId);
+  if (error) return { error: `claude agents: ${error}` };
+  if (entry) {
+    const listed = { error: "listed", name: entry.name, kind: entry.kind };
+    if (entry.kind === "interactive") return listed;
+    const endedAtMs = Math.max(seat?.parkedAtMs || 0, seat?.stoppedAtMs || 0);
+    if (nowMs() - endedAtMs >= STOP_SETTLE_MS) return listed;
+    if (!waitUnlisted(root, request.sessionId)) return { error: "still listed" };
+  }
+  const got = runClaude(["--resume", request.sessionId, "--bg", ...(request.prompt ? [request.prompt] : [])]);
+  if (got.code !== 0) return { error: `claude --resume: ${failureText(got)}` };
+  const copy = copyOf(got, request.sessionId, seat);
+  if (copy) {
+    runClaude(["stop", copy]);
+    runClaude(["rm", copy]);
+    appendLog(root, `resume ${request.sessionId}: copy ${copy} removed`);
+    return { error: `copy ${copy} removed` };
+  }
+  if (request.prompt && idleLine(got.out)) return { error: "prompt not delivered" };
+  if (got.err.trim()) appendLog(root, `resume ${request.sessionId}: ${got.err.trim()}`);
+  const session = findResumed(root, request.sessionId);
+  if (seat && session) {
+    seat.name = session.name;
+    seat.id = session.id || shortIdOf(got.out) || seat.id;
+    seat.status = "running";
+    delete seat.goneAt;
+    delete seat.parkedAtMs;
+    delete seat.midTurn;
+  }
+  return {
+    sessionId: request.sessionId,
+    name: session ? session.name : undefined,
+    id: seat ? seat.id : shortIdOf(got.out),
+  };
+}
+
+// The roles whose turns can end on a question to the human (spec, Words).
+const DIALOGUE_ROLES = ["sekkei", "keikaku", "kikaku", "hosa", "kaiseki"];
+
+// The roles a marked spawn gives one holder at a time (spec 1.2).
+const ONE_HOLDER_ROLES = ["kanri", "kikaku", "hosa"];
+
+/**
+ * Whether the state file holds a seat (spec, Words): `running`, `blocked`,
+ * or `parked` — or `gone`, for a seat that is not a dialogue seat, which a
+ * resume brings back.
+ */
+function holds(seat) {
+  if (["running", "blocked", "parked"].includes(seat.status)) return true;
+  return seat.status === "gone" && !DIALOGUE_ROLES.includes(seat.role);
+}
+
+// A `once` seat is stopped and removed this long after its spawn, whatever
+// its turn did (spec 4.4).
+const ONCE_WAIT_MS = 300000;
+
+/**
+ * The census's end of a `once` seat (spec 4.4) — a messenger, which
+ * forwards one line and has nothing more to do: stopped and removed when its
+ * turn has ended (spec 2.8), or five minutes after its spawn in any case. A
+ * removal that fails is logged and tried again at the next pass.
+ */
+function endOnceSeats(root, seats) {
+  for (const seat of seats) {
+    if (!seat.once || seat.status === "removed") continue;
+    const transcript = seat.transcript || findTranscript(seat.sessionId);
+    const ended = Boolean(transcript && turnEnded(transcript)?.ended);
+    const late = typeof seat.startedAtMs === "number" && nowMs() - seat.startedAtMs >= ONCE_WAIT_MS;
+    if (!ended && !late) continue;
+    runWithEitherId("stop", seat, seat.sessionId);
+    const got = runWithEitherId("rm", seat, seat.sessionId);
+    if (got.code !== 0 && !alreadyExited(got)) {
+      appendLog(root, `once: ${seat.sessionId} rm failed — ${failureText(got)}`);
+      continue;
+    }
+    seat.status = "removed";
+    appendLog(root, `once: ${seat.sessionId} removed — ${ended ? "its turn ended" : "five minutes after its spawn"}`);
+  }
+}
+
+function opSpawn(root, request, seats, requestId) {
+  // One holder per role (spec 1.2): a marked request for a role the state
+  // file holds a seat of is refused, unless it names that seat as the one it
+  // succeeds — a Kanri's handover. An unmarked request is never refused: a
+  // Kanri that read the old text hands over with no `succeeds`.
+  if (request.contract === 2 && ONE_HOLDER_ROLES.includes(request.role)) {
+    const holder = seats.find((s) => s.role === request.role && holds(s) && s.sessionId !== request.succeeds);
+    if (holder) return { error: `held: ${holder.sessionId}` };
+  }
   // A worktree seat runs with the directory Kanri cut as its cwd (spec 2.2),
   // never with `-w`: an ordinary session, so the harness's worktree isolation
   // does not apply to it. A directory that is not there is an error before
@@ -600,8 +735,7 @@ function opSpawn(root, request, seats) {
   const got = runClaude(spawnArgs(request, name), cwd);
   if (got.code !== 0) return { error: `claude --bg exited ${got.code}: ${failureText(got)}` };
   // The idle note on a spawn is a prompt that never reached the seat (spec
-  // 1.2). On a resume it is the CLI's normal line, and the resume op does not
-  // read it.
+  // 1.2); a resume reads it only when it carried a prompt (`opResume`).
   const undelivered = idleLine(got.out);
   const session = findNew(root, before);
   if (!session && undelivered) return { error: `prompt not delivered: ${undelivered}` };
@@ -637,8 +771,16 @@ function opSpawn(root, request, seats) {
     startedAtMs,
     status: stray ? "stopped" : "running",
     ...(stray ? { strayed: session.cwd } : {}),
+    // The request's mark (spec 1.1), the request file it came in, and a
+    // messenger's `once` (spec 4.4).
+    ...(request.contract !== undefined ? { contract: request.contract } : {}),
+    ...(requestId ? { requestId } : {}),
+    ...(request.once === true ? { once: true } : {}),
   };
   seats.push(seat);
+  // On disk at once, before the transcript poll below (spec 1.5): a seat
+  // whose first act is `boundary.js seat` finds its own entry.
+  writeSeats(root, seats);
   if (undelivered) return removeUndelivered(root, seat, undelivered);
   if (stray) {
     runClaude(["stop", id || session.sessionId]);
@@ -810,11 +952,11 @@ function leavePass(root, seats, sessions = null) {
   writeSeats(root, seats);
 }
 
-function handleRequest(root, request, seats) {
+function handleRequest(root, request, seats, requestId) {
   if (!OPS.includes(request.op)) return { error: `unknown op ${request.op}` };
   const seat = request.sessionId ? seatOf(seats, request.sessionId) : null;
 
-  if (request.op === "spawn") return opSpawn(root, request, seats);
+  if (request.op === "spawn") return opSpawn(root, request, seats, requestId);
 
   // A seat's own `taiseki` carries `self` and `after` (spec 5.2).
   if (request.op === "stop") return request.self ? opLeave(root, request, seat) : opStop(root, request, seat);
@@ -835,25 +977,7 @@ function handleRequest(root, request, seats) {
     };
   }
 
-  if (request.op === "resume") {
-    // No flag: the CLI brings back the options the spawn passed and names
-    // them on stderr, which a result does not carry, so the log keeps it.
-    const got = runClaude(["--resume", request.sessionId, "--bg"]);
-    if (got.code !== 0) return { error: `claude --resume: ${failureText(got)}` };
-    if (got.err.trim()) appendLog(root, `resume ${request.sessionId}: ${got.err.trim()}`);
-    const session = findResumed(root, request.sessionId);
-    if (seat && session) {
-      seat.name = session.name;
-      seat.id = session.id || shortIdOf(got.out) || seat.id;
-      seat.status = "running";
-      delete seat.goneAt;
-    }
-    return {
-      sessionId: request.sessionId,
-      name: session ? session.name : undefined,
-      id: seat ? seat.id : shortIdOf(got.out),
-    };
-  }
+  if (request.op === "resume") return opResume(root, request, seat);
 
   if (request.op === "attention") {
     const text = String(request.message || "").replace("<id>", seat?.id || "<id>");
@@ -905,7 +1029,8 @@ function takeRequests(root, seats) {
     // is the longest stretch the spawner works without returning here.
     beat(root);
     try {
-      outcome = handleRequest(root, request, seats);
+      // The request's file name, less `.json`, is the id a spawned seat records (spec 1.5).
+      outcome = handleRequest(root, request, seats, path.basename(name, ".json"));
     } catch (error) {
       outcome = { error: String(error?.message) };
     }
@@ -1039,6 +1164,7 @@ function runCensus(root, seats) {
     if (LIVE.includes(seat.status)) censusSeat(root, seat, session);
   }
   leavePass(root, seats, listing.sessions);
+  endOnceSeats(root, seats);
   writeSeats(root, seats);
   return seats;
 }

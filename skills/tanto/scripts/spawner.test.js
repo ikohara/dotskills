@@ -9,7 +9,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { spawnSync } = require("node:child_process");
+const { spawn, spawnSync } = require("node:child_process");
 
 const SPAWNER = path.join(__dirname, "spawner.js");
 const BOUNDARY = path.join(__dirname, "boundary.js");
@@ -40,6 +40,15 @@ if (sub === "agents") {
   // A session marked hidden is the reboot case: the process is gone, so the
   // listing does not carry it, but --resume still finds it by sessionId.
   let sessions = state.sessions.filter((s) => !s.hidden);
+  // A session whose stop is finishing (spec 2.5, S-5): listed leaving more
+  // times, then gone from the listing as a hidden one is -- --resume still
+  // finds it.
+  const leaving = sessions.filter((s) => s.leaving > 0);
+  for (const s of leaving) {
+    s.leaving -= 1;
+    if (s.leaving === 0) s.hidden = true;
+  }
+  if (leaving.length > 0) save();
   // agentsHideSessionId/agentsHideCount simulate a session that exists but
   // has not yet re-registered with the listing -- the window a single
   // post-resume poll used to miss (Important 8, branch-review.md).
@@ -87,6 +96,19 @@ if (sub === "--resume") {
     process.stderr.write("unknown session " + argv[1] + "\\n");
     process.exit(1);
   }
+  // state.copy: the CLI started a copy instead of waking the session (spec
+  // 2.5, P-8) -- a new session under the root, the note on stderr unless
+  // quiet, and the copy's own id on stdout.
+  if (state.copy) {
+    const copy = { sessionId: "sess-copy", id: state.copy.id, name: found.name, cwd: state.root };
+    state.sessions.push({ ...copy, kind: "background", pid: 4400 });
+    save();
+    if (!state.copy.quiet) {
+      process.stderr.write("note: already running in the background, so this started a copy as " + copy.id + "\\n");
+    }
+    process.stdout.write("backgrounded · " + copy.id + " · " + copy.name + " (idle — send a prompt to start)\\n");
+    process.exit(0);
+  }
   // A collected seat's entry has no pid; with resumeStaleListings set, the
   // listing keeps showing it that way for that many listings after the
   // resume. The resumed process itself always registers with a pid.
@@ -102,7 +124,10 @@ if (sub === "--resume") {
   process.stderr.write(
     "note: woke session " + found.id + " with its saved options (--name, --settings, --model, --effort, --permission-mode).\\n",
   );
-  process.stdout.write("backgrounded · " + found.id + " · " + found.name + " (idle — send a prompt to start)\\n");
+  // A prompt on the line is the session's turn, and the CLI prints no idle
+  // note (S-3).
+  const idle = argv.length > 3 ? "" : " (idle — send a prompt to start)";
+  process.stdout.write("backgrounded · " + found.id + " · " + found.name + idle + "\\n");
   process.exit(0);
 }
 if (argv.includes("--bg")) {
@@ -406,6 +431,96 @@ test("a spawn writes the result, the seat, and deletes the request", () => {
   assert.equal(fs.existsSync(file), false);
   assert.equal(seats(ws)[0].status, "running");
   assert.equal(seats(ws)[0].role, "jisso");
+});
+
+test("a marked spawn of a held role is refused unless it names the holder it succeeds; an unmarked one is not (spec 1.2)", () => {
+  const ws = workspace();
+  const KANRI = { ...SPAWN, role: "kanri", topic: "—", prompt: "/tanto kanri", contract: 2 };
+  const spawnAs = (sessionId, body) => {
+    setState(ws, { next: { sessionId, id: `id-${sessionId}` } });
+    writeTranscript(ws, sessionId);
+    const { id } = request(ws, body);
+    run(ws, ["run", "--root", ws.root, "--once"]);
+    return { id, got: result(ws, id) };
+  };
+  const first = spawnAs("sess-k1", KANRI);
+  assert.equal(first.got.sessionId, "sess-k1");
+  assert.equal(spawnAs("sess-k2", KANRI).got.error, "held: sess-k1");
+  assert.equal(spawnAs("sess-k2", { ...KANRI, succeeds: "sess-k1" }).got.sessionId, "sess-k2");
+  assert.equal(spawnAs("sess-k3", { ...KANRI, contract: undefined }).got.sessionId, "sess-k3");
+  assert.equal(calls(ws).filter((argv) => argv.includes("--bg")).length, 3);
+  const byId = Object.fromEntries(seats(ws).map((seat) => [seat.sessionId, seat]));
+  assert.equal(byId["sess-k1"].contract, 2);
+  assert.equal(byId["sess-k1"].requestId, first.id);
+  assert.equal(byId["sess-k3"].contract, undefined);
+});
+
+test("a spawn writes the state file as soon as the listing shows the session, before its transcript poll ends (spec 1.5)", async () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  const env = {
+    ...process.env,
+    TANTO_CLAUDE_NODE: ws.fake,
+    TANTO_NOTICE_LOG: ws.notices,
+    FAKE_STATE: ws.state,
+    FAKE_LOG: ws.log,
+    CLAUDE_CONFIG_DIR: ws.config,
+    TANTO_NOW_MS: String(STARTED_AT),
+  };
+  const child = spawn(process.execPath, [SPAWNER, "run", "--root", ws.root, "--once"], { env, stdio: "ignore" });
+  const exited = new Promise((resolve) => child.on("exit", resolve));
+  const file = path.join(ws.root, ".tanto", "spawner", "seats.json");
+  const holds = () => {
+    try {
+      return JSON.parse(fs.readFileSync(file, "utf8")).seats.some((seat) => seat.sessionId === "sess-new");
+    } catch {
+      return false;
+    }
+  };
+  let seen = false;
+  for (let i = 0; i < 80 && !seen; i++) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    seen = holds();
+  }
+  // No transcript exists, so the poll runs its ten seconds: the seat was on
+  // disk while it ran.
+  assert.equal(seen, true);
+  assert.equal(child.exitCode, null);
+  await exited;
+});
+
+test("a once seat is stopped and removed when its turn has ended, and five minutes after its spawn in any case (spec 4.4)", () => {
+  const MESSENGER = {
+    ...SPAWN,
+    role: "denrei",
+    topic: "—",
+    effort: "low",
+    once: true,
+    contract: 2,
+    prompt: "Forward.",
+  };
+  const ws = workspace();
+  writeRecords(ws, "sess-new", [REC.human("u1"), REC.end("u2", "m1"), REC.close("stop_hook_summary")]);
+  request(ws, MESSENGER);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(seats(ws)[0].once, true);
+  assert.equal(seats(ws)[0].status, "removed");
+  assert.deepEqual(
+    calls(ws)
+      .filter((argv) => argv[0] === "stop" || argv[0] === "rm")
+      .map((argv) => argv[0]),
+    ["stop", "rm"],
+  );
+  assert.match(spawnerLog(ws), /once: sess-new removed — its turn ended/);
+
+  const late = workspace();
+  writeRecords(late, "sess-new", [REC.human("u1"), REC.tool("u2", "m1")]);
+  request(late, MESSENGER);
+  run(late, ["run", "--root", late.root, "--once"]);
+  assert.equal(seats(late)[0].status, "running");
+  run(late, ["run", "--root", late.root, "--once"], { env: { TANTO_NOW_MS: String(STARTED_AT + 300000) } });
+  assert.equal(seats(late)[0].status, "removed");
+  assert.match(spawnerLog(late), /once: sess-new removed — five minutes after its spawn/);
 });
 
 test("a spawn's command line carries the name, the isolation setting, the request's flags, and the prompt before --add-dir", () => {
@@ -779,7 +894,12 @@ test("a failed spawn or resume with nothing on stderr reports the line it printe
   const second = workspace();
   request(second, SPAWN);
   run(second, ["run", "--root", second.root, "--once"]);
-  setState(second, { failOut: { "--resume": "refused: no such session" } });
+  // Not listed, so that the resume reaches the command (spec 2.5).
+  const listed = JSON.parse(fs.readFileSync(second.state, "utf8")).sessions;
+  setState(second, {
+    sessions: listed.map((s) => ({ ...s, hidden: true })),
+    failOut: { "--resume": "refused: no such session" },
+  });
   const resume = request(second, { op: "resume", sessionId: "sess-new" });
   run(second, ["run", "--root", second.root, "--once"]);
   assert.equal(result(second, resume.id).error, "claude --resume: refused: no such session");
@@ -832,7 +952,9 @@ test("resume passes --resume <sessionId> --bg and no other flag", () => {
   const ws = workspace();
   request(ws, SPAWN);
   run(ws, ["run", "--root", ws.root, "--once"]);
-  setState(ws, { next: { name: "seat-back [bbbbbb]", id: "bg02" } });
+  // Not listed, so that the resume reaches the command (spec 2.5).
+  const listed = JSON.parse(fs.readFileSync(ws.state, "utf8")).sessions;
+  setState(ws, { sessions: listed.map((s) => ({ ...s, hidden: true })), next: { name: "seat-back [bbbbbb]" } });
   const { id } = request(ws, { op: "resume", sessionId: "sess-new" });
   run(ws, ["run", "--root", ws.root, "--once"]);
   const resumed = calls(ws).find((argv) => argv[0] === "--resume");
@@ -840,7 +962,7 @@ test("resume passes --resume <sessionId> --bg and no other flag", () => {
   assert.equal(result(ws, id).sessionId, "sess-new");
   assert.equal(result(ws, id).name, "seat-back [bbbbbb]");
   const log = fs.readFileSync(path.join(ws.root, ".tanto", "spawner", "log"), "utf8");
-  assert.match(log, /resume sess-new: note: woke session bg02 with its saved options/);
+  assert.match(log, /resume sess-new: note: woke session bg01 with its saved options/);
 });
 
 test("resume polls the listing until the resumed session reappears (Important 8)", () => {
@@ -859,17 +981,18 @@ test("resume polls the listing until the resumed session reappears (Important 8)
         cwd: ws.root,
         kind: "background",
         state: "running",
-        id: "bg02",
+        id: "bg01",
         pid: 1111,
       },
     ],
-    next: { name: "seat-back [bbbbbb]", id: "bg02" },
+    next: { name: "seat-back [bbbbbb]" },
     // The session exists in the backing store already -- the fake's own
     // "--resume" handler finds it there -- but the first listing after the
     // resume still misses it, exactly as a single, un-retried poll used to
-    // (Important 8, branch-review.md).
+    // (Important 8, branch-review.md). The first of the two hidden listings
+    // is the resume's own look before its command (spec 2.5).
     agentsHideSessionId: "sess-new",
-    agentsHideCount: 1,
+    agentsHideCount: 2,
   });
   const { id } = request(ws, { op: "resume", sessionId: "sess-new" });
   run(ws, ["run", "--root", ws.root, "--once"]);
@@ -897,15 +1020,109 @@ test("resume waits past the stale pid-less entry of its own sessionId, for the e
   assert.equal(seats(ws)[0].status, "gone");
   // The first listing after the resume still shows the stale entry, with the
   // old name and id; the next one shows the resumed process, with a pid.
-  setState(ws, { next: { name: "seat-back [bbbbbb]", id: "bg02" }, resumeStaleListings: 1 });
+  setState(ws, { next: { name: "seat-back [bbbbbb]" }, resumeStaleListings: 1 });
   const { id } = request(ws, { op: "resume", sessionId: "sess-new" });
   run(ws, ["run", "--root", ws.root, "--once"]);
   const got = result(ws, id);
   assert.notEqual(got.name, spawned.name);
   assert.equal(got.name, "seat-back [bbbbbb]");
-  assert.equal(got.id, "bg02");
+  assert.equal(got.id, "bg01");
   assert.equal(seats(ws)[0].status, "running");
   assert.equal(seats(ws)[0].goneAt, undefined);
+});
+
+/** A listing entry and a contract-2 Sekkei seat of `sessionId`, for the resume tests (spec 2.5). */
+function resumable(ws, sessionId, listing = {}, seat = {}) {
+  const shared = { sessionId, id: `id-${sessionId}`, name: `name-${sessionId}` };
+  return {
+    entry: { ...shared, cwd: ws.root, kind: "background", pid: 4321, ...listing },
+    seat: { ...shared, role: "sekkei", topic: "t", contract: 2, status: "running", ...seat },
+  };
+}
+
+test("resume answers listed for a seat a tab holds or that is alive, waits out a stop finishing, and wakes an unlisted one (spec 2.5)", () => {
+  const ws = workspace();
+  const cases = {
+    tab: resumable(ws, "sess-tab", { kind: "interactive" }),
+    live: resumable(ws, "sess-live", {}, { status: "stopped", stoppedAtMs: STARTED_AT - 60000 }),
+    parked: resumable(ws, "sess-parked", { hidden: true }, { status: "parked", parkedAtMs: STARTED_AT - 3600000 }),
+  };
+  setState(ws, { sessions: Object.values(cases).map((c) => c.entry) });
+  putSeats(
+    ws,
+    Object.values(cases).map((c) => c.seat),
+  );
+  const asked = Object.fromEntries(
+    Object.entries(cases).map(([key, c]) => [key, request(ws, { op: "resume", sessionId: c.seat.sessionId }).id]),
+  );
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.deepEqual(
+    [result(ws, asked.tab).error, result(ws, asked.tab).kind, result(ws, asked.tab).name],
+    ["listed", "interactive", "name-sess-tab"],
+  );
+  assert.deepEqual([result(ws, asked.live).error, result(ws, asked.live).kind], ["listed", "background"]);
+  assert.equal(result(ws, asked.parked).error, undefined);
+  assert.deepEqual(
+    calls(ws)
+      .filter((argv) => argv[0] === "--resume")
+      .map((argv) => argv[1]),
+    ["sess-parked"],
+  );
+  const parked = seats(ws).find((seat) => seat.sessionId === "sess-parked");
+  assert.equal(parked.status, "running");
+  assert.equal(parked.parkedAtMs, undefined);
+
+  // Parked five seconds ago and still listed: the stop is finishing (S-5).
+  const leaving = workspace();
+  const finishing = resumable(leaving, "sess-d", { leaving: 1 }, { status: "parked", parkedAtMs: STARTED_AT - 5000 });
+  setState(leaving, { sessions: [finishing.entry] });
+  putSeats(leaving, [finishing.seat]);
+  const { id } = request(leaving, { op: "resume", sessionId: "sess-d" });
+  run(leaving, ["run", "--root", leaving.root, "--once"]);
+  assert.equal(result(leaving, id).error, undefined);
+  assert.deepEqual(
+    calls(leaving)
+      .slice(0, 3)
+      .map((argv) => argv[0]),
+    ["agents", "agents", "--resume"],
+  );
+});
+
+test("resume refuses a prompt for any role but kanri, and passes a Kanri's as its one positional (spec 2.5, 4.4)", () => {
+  const ws = workspace();
+  const sekkei = resumable(ws, "sess-s", { hidden: true });
+  const kanri = resumable(ws, "sess-k", { hidden: true }, { role: "kanri", topic: "—", status: "gone" });
+  setState(ws, { sessions: [sekkei.entry, kanri.entry] });
+  putSeats(ws, [sekkei.seat, kanri.seat]);
+  const refused = request(ws, { op: "resume", sessionId: "sess-s", prompt: "resume: go on" });
+  const fukki = request(ws, { op: "resume", sessionId: "sess-k", prompt: "/tanto fukki" });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(result(ws, refused.id).error, "no prompt for this role");
+  assert.equal(result(ws, fukki.id).error, undefined);
+  assert.deepEqual(
+    calls(ws).filter((argv) => argv[0] === "--resume"),
+    [["--resume", "sess-k", "--bg", "/tanto fukki"]],
+  );
+});
+
+test("a copy a resume started is stopped and removed, found on stderr or on stdout alone (spec 2.5, P-8)", () => {
+  for (const quiet of [false, true]) {
+    const ws = workspace();
+    const parked = resumable(ws, "sess-s", { hidden: true }, { status: "parked", parkedAtMs: STARTED_AT - 3600000 });
+    setState(ws, { sessions: [parked.entry], copy: { id: "cp01", quiet } });
+    putSeats(ws, [parked.seat]);
+    const { id } = request(ws, { op: "resume", sessionId: "sess-s" });
+    run(ws, ["run", "--root", ws.root, "--once"]);
+    assert.equal(result(ws, id).error, "copy cp01 removed");
+    assert.deepEqual(
+      calls(ws).filter((argv) => argv[0] === "stop" || argv[0] === "rm"),
+      [
+        ["stop", "cp01"],
+        ["rm", "cp01"],
+      ],
+    );
+    assert.equal(seats(ws)[0].status, "parked");
+  }
 });
 
 test("attention fills a bare id from seats.json and names its channel", () => {

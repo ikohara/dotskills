@@ -454,9 +454,12 @@ test("loadSessions returns the built-in seats when no file overrides them", () =
   const { loadSessions } = require("./reading.js");
   const root = tmpDir();
   const sessions = loadSessions(root, path.join(EMPTY_CONFIG_DIR, "tanto.json"));
-  assert.strictEqual(Object.keys(sessions).length, 8);
+  assert.strictEqual(Object.keys(sessions).length, 9);
   assert.deepStrictEqual(sessions.kanri, { model: "sonnet", effort: "high" });
   assert.deepStrictEqual(sessions.shoki, { model: "sonnet", effort: "medium" });
+  // The messenger `tanto fukki` sends a live Kanri (spec 4.4): sonnet, since
+  // haiku answered the line it was to forward itself (P-5).
+  assert.deepStrictEqual(sessions.denrei, { model: "sonnet", effort: "low" });
 });
 
 test("loadSessions overlays the project file field by field", () => {
