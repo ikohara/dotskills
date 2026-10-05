@@ -298,7 +298,8 @@ Kanri; a run started before this contract is moved first — README,
 "Moving a run"`, and stops; it reads no role file, writes nothing, and
 sends nothing. This holds for every role, a standalone Kaiseki and a
 Kanri included: `tanto kaiseki` and `tanto` are their ways in.
-`/tanto fukki` is answered the same way in any seat but Kanri.
+`/tanto fukki` typed in any seat but Kanri is answered as 4.1 answers any
+launcher word: one line naming `tanto fukki`, and nothing else is done.
 
 ## 2. The park
 
