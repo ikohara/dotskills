@@ -80,6 +80,22 @@ normalizes CRLF before every comparison. A task that ever creates a
 Markdown file writes `rm <path> && git checkout -- <path>` after its commit
 into its own steps, since a written file lands `w/lf` here.
 
+**Running the suite and the boundary.** The whole suite takes nine minutes on
+this host — 461 seconds at the end of Task 11 alone, 539 to 545 with three
+runs at once, and `spawner.test.js` by itself about eight — which is longer
+than the Bash tool's ten-minute foreground maximum once `boundary --plan`
+runs fence 2 and the six fences after it. A step that runs
+`node --test skills/tanto/scripts/*.test.js` or one test file of it, and the
+boundary's `passage-check.js boundary --plan`, runs in the background
+(`run_in_background: true`) with its output redirected to a file, and its
+result is read from that file once the completion notice arrives: the
+`# tests`, `# pass`, and `# fail` lines of the TAP stream, or the `pass` and
+`fail` lines of `boundary`. A run cut at a timeout is no result, and is never
+read as a failure or as a pass; it is run again in the background. Only
+`boundary.test.js` and `reading.test.js`, which take ten to twenty seconds,
+may run in the foreground; `tanto.test.js` takes two to three minutes and
+`spawner.test.js` about eight, and run in the background too.
+
 **No measurement task, no alternative block (spec D-18).** Every figure the
 design rests on is in the spec's "Measured while designing". No task of this
 plan measures anything; the acceptance scene below is Kanri's and the
@@ -136,7 +152,19 @@ which is an order of these Constraints.
   2. The human restarts the resident spawner: `tanto teishi`, then
      `tanto`, which enters Kanri again.
   3. Kanri reads `.tanto/spawner/contract`. Unless it holds `2`, it asks
-     for step 2 again and starts nothing (I-17).
+     for step 2 again and starts nothing (I-17). It then retires the stale
+     Kanri rows, since spec 1.2's refusal counts every seat of the role the
+     state file holds, a `gone` one included: for each seat in
+     `.tanto/spawner/seats.json` whose role is `kanri`, other than its own,
+     that the listing does not show, it writes
+     `{ "op": "stop", "sessionId": "<that seat's sessionId>" }`, which the
+     restarted spawner, running Task 1's `stop`, answers by recording the
+     seat `stopped` with no command. It reads `seats.json` back and goes on
+     to step 4 only when its own seat is the one Kanri the file holds
+     (when this plan was written the file held eight `gone` Kanri seats
+     beside the running one, and the successor's `spawn` would have been
+     answered `held:`). A seat the listing does show is no stale row: it
+     is a second Kanri, and Kanri stops and asks the human.
   4. Kanri hands over. Its successor's `spawn` request carries
      `contract: 2` and `succeeds: <its own sessionId>` — an order of
      these Constraints, since the Kanri in the seat read the old text —
@@ -2864,9 +2892,12 @@ file does not hold.
 (Task 5), `tanto.js`'s `s.state !== "stopped"` filters (Task 11) and
 `jokyo`'s `blocked — <cause>` (Task 10), `SKILL.md`'s "The roster" (Task
 13), and `templates/roster.md`'s status paragraph (Task 7); the fixtures
-that set `state: "blocked"` in `boundary.test.js` (Task 5) and
-`tanto.test.js` (Task 11) move with those tasks, since this one changes
-`spawner.js`'s key alone. `parked` and `midTurn` are also `boundary.js
+that set `state: "blocked"` in `boundary.test.js` (Task 5) move with that
+task, since this one changes `spawner.js`'s key alone. The one in
+`tanto.test.js`, in "a pid-less listing entry is not read as a live seat",
+stays on purpose: its comment calls it the measured real shape of a pid-less
+entry, which still lists `state: "blocked"`, and no launcher code reads
+`state` as a blocked signal. `parked` and `midTurn` are also `boundary.js
 census`'s **Parked** and ` — mid-turn` (Task 5), `boundary.js seat`
 (Task 6), `tanto.js`'s `fukki`, `jokyo`, and `teishi --seats` (Tasks 10,
 11), and `roles/kanri.md`'s Recovery (Task 19). `.tanto/spawner/contract`
@@ -11127,9 +11158,9 @@ as the Events line `unsent: <sessionId or op> — <the line or the request>`
 none is open — and tell the human in one line to run `tanto fukki`, saying
 that a stale spawner raises no notice of its own. "Recovery" sends every
 `unsent:` that has no `sent:` pair and writes the pair. A pair is matched
-on the text after the prefix, without the ` (batch <X>)` that
-`record --event` appends at a boundary, and two different lines to one
-seat are two events.
+on the text after the prefix, without the batch suffix, `(batch <X>)`,
+that `record --event` appends at a boundary, and two different lines to
+one seat are two events.
 
 **A `no-role` reply** means the line reached a session that holds no role —
 a name read seconds before a window reload gave it to another window. Run
@@ -14873,12 +14904,14 @@ Expected: `skills/tanto/README.md:2` — the prerequisites' command list and C-1
 **Where the spec left a choice, and what the plan chose** — each stated in its task, listed for the cold read:
 
 - `roles/kanri.md`'s "On a handshake" is deleted but for its three kept paragraphs, which sit under a new `## Sending to a seat`, and "Recovery after a VS Code restart" becomes `### Recovery`, as section 6 says; `SKILL.md`'s "Handshake and roster" becomes "The roster" likewise, and its "### 2. Handshake" heading keeps its text over a body that says no seat sends one. No other file names these headings.
-- `/tanto fukki` typed in a seat that is not Kanri is answered by 4.1's one line naming the terminal command, not 1.5's seat-check refusal.
+- `/tanto fukki` typed in a seat that is not Kanri is answered by 4.1's one line naming the terminal command, not 1.5's seat-check refusal; spec 1.5's last sentence, which read "answered the same way", was edited to say so (the cold read's question 4).
 - A Jisso's closing line at its boundary is unchanged: it cannot know which boundary is its last, and section 6 says `roles/jisso.md` has no behavior change; the ended-seat closing line is Sekkei's, Keikaku's, Kikaku's, Hosa's, and Kaiseki's.
 - `roles/keikaku.md`'s `--waiting` is written for the plan dialogue only; the review gate asks the human nothing, since Keikaku answers the plan brief by default.
 - `boundary.js census` prints under Not held only seats the state file holds as `running`, `blocked`, or `parked`, so a repository's old `gone` Jissos do not print forever; `seat` reads kind and name from a fresh listing and falls back to the state file's.
 - The seat schema gains `leaveRequest` (a `self` stop waiting for its turn to end) and `endedAtMs` inside `parkRequest`, which 2.3's "ten minutes after the turn ended" needs; a hold with neither `pid` nor `forMs` is `error: "a hold names a pid or forMs"`, and a hold or release for a seat the state file does not hold is `unknown seat <sessionId>`.
-- The launcher's own Kanri `spawn` carries `succeeds: <the Kanri the state file holds>`, so 1.2's refusal does not fire on it.
+- The launcher's own Kanri `spawn` carries `succeeds: <the Kanri the state file holds>`, so 1.2's refusal does not fire on it. The successor's `spawn` at step 4 of the Global Constraints would still be refused in this repository, whose `seats.json` holds eight `gone` Kanri seats, so step 3 retires them first with `stop` requests, each recorded `stopped` with no command (the cold read's question 1; the alternative, a narrower refusal in Task 2, was not taken, since it would change spec 1.2's rule for every run).
+- The `state: "blocked"` fixture in `tanto.test.js` ("a pid-less listing entry is not read as a live seat") stays: it is the measured real shape of a pid-less entry, and no launcher code reads `state` as a blocked signal (the cold read's question 5).
+- The whole suite and `boundary --plan` run in the background and are read from their output files; the Global Constraints say so (the cold read's question 3).
 - `the park rule`'s one text is written once, in `roles/sekkei.md`'s new section "The end of every turn — the park", and the other four dialogue seats reuse it in substance.
 - The generic Old-values needles that cannot be written in the passage grammar — a needle cannot hold a backtick or open with `<` — are narrowed to a phrase that spans the change (`name> [<ref>]`, `name [ref]>`, and phrase needles for the status words `cleared` and `refused`), and the status words themselves are swept by fence 5 over `skills/tanto/`.
 
