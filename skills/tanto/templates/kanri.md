@@ -89,15 +89,22 @@ ledger of the topic that raised it, never a compound value.
 
 ## Session events
 
-- <YYYY-MM-DD HH:MM> — <a spawn, stop, rm, or resume request and its result; an
-  ask of the human and their answer; a `release:` sent to a tab seat, a
-  `no-role` received; a handshake accepted or refused; a session declared dead and what was
-  verified; a recovery after a VS Code restart; a handover written or accepted;
+- <YYYY-MM-DD HH:MM> — <a spawn, stop, rm, or resume request, or a `wake`,
+  and its result; an ask of the human and their answer; a `no-role`
+  received, and a second one from the same `sessionId`, which ends that
+  seat; a seat ended and by what — `taiseki`, or your own `stop` request; a
+  session declared dead and what was verified; a recovery (`fukki`) and
+  what it put back; a handover written or accepted; a second top-family
+  session gone live, spawned or woken;
   a peer line you received and did not answer in the same turn, as
   `unanswered: <from> — <line>`, paired with `answered: <from> — <line>`
-  when it is answered, both written through `record --event`, which ends a
+  when it is answered; a line or a request you owed while the spawner was
+  stale, as `unsent: <sessionId or op> — <the line or the request>`, paired
+  with `sent: <sessionId or op> — <the line or the request>` when `fukki`
+  sends it; all four written through `record --event`, which ends a
   line it writes at a boundary with `(batch <X>)` so that the same event in
-  two batches is two lines and twice in one batch is one; a shoroku
+  two batches is two lines and twice in one batch is one, and a pair is
+  matched on the text after its prefix, without that suffix; a shoroku
   proposal form-checked and its
   rows recorded, or a shoroku proposal not written and what was lost; a human access
   grant and the human-access: done line that
@@ -107,9 +114,10 @@ ledger of the topic that raised it, never a compound value.
 
 1. <one line each, added when the request is made and removed when it is
    done: the four SDD stop classes, a scope or spec change, escalated
-   shoroku items, and every other open act asked of the human — a `/clear`,
-   a window to queue, an answer waited on — the idle block's own source for
-   its `for you:` list. Everything else is a ruling.>
+   shoroku items, and every other open act asked of the human — a tab to
+   close before a replacement, a `tanto fukki` after a stale spawner, an
+   answer waited on — the idle block's own source for its `for you:` list.
+   Everything else is a ruling.>
 
 ## Measurements
 

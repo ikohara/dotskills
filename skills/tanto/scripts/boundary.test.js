@@ -484,7 +484,7 @@ test("a peer reading and a status each name the row they write", () => {
   const fixture = ledgerAndRoster();
   const sessions = fs
     .readFileSync(fixture.roster, "utf8")
-    .replace("| kanri | — | <name> [<ref>] |", "| keikaku | tanto-diet | keikaku-a [ccdd11] |");
+    .replace("| kanri | — | <name> |", "| keikaku | tanto-diet | keikaku-a [ccdd11] |");
   fs.writeFileSync(fixture.roster, sessions, "utf8");
   const args = [
     "record",

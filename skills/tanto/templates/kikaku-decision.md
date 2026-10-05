@@ -25,5 +25,7 @@ answer, when this file names that stage's recommendation and answers it by
 exception — item numbers the recommendation's, everything not listed as
 recommended, every override with its reason; or a source row in the `S-n`
 table. A decision that places a topic also names the input files its spec
-starts from, so that Sekkei's orders line goes out in one turn. Kanri
-rules; this is what you expect, and why.>
+starts from, so that Kanri's `spawn` of the topic's Sekkei goes out in one
+turn: its prompt's `input=` key is one path, and with several inputs it is
+this file, which lists the rest. Kanri rules; this is what you expect, and
+why.>
