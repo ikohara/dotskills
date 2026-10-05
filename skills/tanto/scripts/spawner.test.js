@@ -67,7 +67,7 @@ if (sub === "agents") {
     stale.listings -= 1;
     if (stale.listings <= 0) delete s.stale;
     staleShown = true;
-    return { ...rest, name: stale.name, id: stale.id, state: "blocked" };
+    return { ...rest, name: stale.name, id: stale.id };
   });
   if (staleShown) save();
   process.stdout.write(JSON.stringify({ sessions }));
@@ -350,9 +350,9 @@ test("no argument prints the usage line and exits 2", () => {
 
 test("notify --text raises the notice through the log channel", () => {
   const ws = workspace();
-  const got = run(ws, ["notify", "--text", "kessai: t — claude attach bg01"]);
+  const got = run(ws, ["notify", "--text", "kessai: t — tanto kanri"]);
   assert.equal(got.code, 0);
-  assert.deepEqual(notices(ws), ["kessai: t — claude attach bg01"]);
+  assert.deepEqual(notices(ws), ["kessai: t — tanto kanri"]);
 });
 
 test("notify --stdin reads the hook payload and raises one notice", () => {
@@ -371,6 +371,22 @@ test("notify --stdin reads the hook payload and raises one notice", () => {
   assert.equal(got.code, 0);
   assert.equal(notices(ws).length, 1);
   assert.match(notices(ws)[0], /permission_prompt/);
+});
+
+test("the hook's notice names the way in by role for a seat the state file holds, and claude attach for any other session (spec 1.1)", () => {
+  const ws = workspace();
+  putSeats(ws, [{ sessionId: "sess-1", id: "bg01", name: "s", role: "sekkei", topic: "t", status: "running" }]);
+  const hook = (sessionId, cwd) =>
+    run(ws, ["notify", "--stdin"], {
+      input: JSON.stringify({ session_id: sessionId, cwd, notification_type: "permission_prompt" }),
+    });
+  const worktree = path.join(ws.root, ".claude", "worktrees", "x");
+  hook("sess-1", worktree);
+  hook("sess-9", ws.root);
+  assert.deepEqual(notices(ws), [
+    `tanto: permission_prompt in ${worktree} — tanto sekkei t`,
+    `tanto: permission_prompt in ${ws.root} — claude attach sess-9`,
+  ]);
 });
 
 test("the notice command is the platform's, and nothing is installed for it", () => {
@@ -1016,7 +1032,7 @@ test("resume waits past the stale pid-less entry of its own sessionId, for the e
   setState(ws, {
     sessions: listed.map((s) => {
       const { pid, ...rest } = s;
-      return { ...rest, state: "blocked" };
+      return rest;
     }),
   });
   run(ws, ["run", "--root", ws.root, "--once"]);
@@ -1128,19 +1144,19 @@ test("a copy a resume started is stopped and removed, found on stderr or on stdo
   }
 });
 
-test("attention fills a bare id from seats.json and names its channel", () => {
+test("attention raises its message as written and names its channel (spec 1.1)", () => {
   const ws = workspace();
   request(ws, SPAWN);
   run(ws, ["run", "--root", ws.root, "--once"]);
   const { id } = request(ws, {
     op: "attention",
     sessionId: "sess-new",
-    message: "human-needed: jisso t — claude attach <id>",
+    message: "human-needed: jisso t — tanto jisso t",
   });
   run(ws, ["run", "--root", ws.root, "--once"]);
   assert.equal(result(ws, id).channel, "log");
   assert.match(result(ws, id).notified, /\d/);
-  assert.deepEqual(notices(ws), ["human-needed: jisso t — claude attach bg01"]);
+  assert.deepEqual(notices(ws), ["human-needed: jisso t — tanto jisso t"]);
 });
 
 test("ack clears the renamed mark of the session it names", () => {
@@ -1395,7 +1411,8 @@ test("a pass that throws is caught, and the resident's own log carries it (Impor
         name: "seat-new [aaaaaa]",
         cwd: ws.root,
         kind: "background",
-        state: "blocked",
+        status: "waiting",
+        waitingFor: "permission prompt",
         id: "bg01",
         pid: 1111,
       },
@@ -1477,7 +1494,7 @@ test("the census raises one notice per block, not one per pass", () => {
         name: "seat-new [aaaaaa]",
         cwd: ws.root,
         kind: "background",
-        state: "blocked",
+        status: "waiting",
         waitingFor: "permission prompt",
         id: "bg01",
         pid: 1111,
@@ -1630,7 +1647,7 @@ test("the census revives a gone seat the listing holds again, and never a stoppe
   setState(ws, { sessions: [] });
   run(ws, ["run", "--root", ws.root, "--once"]);
   assert.equal(seats(ws)[0].status, "gone");
-  setState(ws, { sessions: listed.map((s) => ({ ...s, state: "blocked" })) });
+  setState(ws, { sessions: listed.map((s) => ({ ...s, status: "waiting", waitingFor: "permission prompt" })) });
   run(ws, ["run", "--root", ws.root, "--once"]);
   assert.equal(seats(ws)[0].status, "blocked");
   assert.equal(seats(ws)[0].goneAt, undefined);
@@ -1674,7 +1691,7 @@ test("a pid-less listing entry is treated as absent by the census (fix 1)", () =
   assert.equal(seats(ws)[0].status, "gone");
   setState(ws, {
     sessions: [
-      { sessionId: "sess-new", name: "seat-new [aaaaaa]", cwd: ws.root, kind: "background", state: "blocked" },
+      { sessionId: "sess-new", name: "seat-new [aaaaaa]", cwd: ws.root, kind: "background", status: "waiting" },
     ],
   });
   run(ws, ["run", "--root", ws.root, "--once"]);
@@ -1716,6 +1733,12 @@ test("run --once writes the pidfile and leaves no process behind", () => {
   assert.equal(alive, false);
 });
 
+test("run writes the contract file, holding 2, at its start (spec 4.2)", () => {
+  const ws = workspace();
+  assert.equal(run(ws, ["run", "--root", ws.root, "--once"]).code, 0);
+  assert.equal(fs.readFileSync(path.join(ws.root, ".tanto", "spawner", "contract"), "utf8"), "2\n");
+});
+
 test("run --once leaves a heartbeat within the test's own clock (spec 4.1)", () => {
   const ws = workspace();
   const before = Date.now();
@@ -1747,7 +1770,7 @@ test("a seat with no transcript two minutes after its spawn is marked, toasted, 
   const seat = seats(ws)[0];
   assert.equal(seat.status, "running");
   assert.match(seat.noFirstTurn, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
-  assert.deepEqual(notices(ws), [`no first turn: jisso t ${seat.name} — claude attach bg01`]);
+  assert.deepEqual(notices(ws), [`no first turn: jisso t ${seat.name} — tanto jisso t`]);
   assert.equal(spawnerLog(ws).match(/census: sess-new no first turn after 2m/g).length, 1);
 });
 
@@ -1789,4 +1812,110 @@ test("a seat the listing drops with no transcript goes gone with the mark; one w
   assert.equal(seats(second)[0].noFirstTurn, undefined);
   assert.deepEqual(notices(second), []);
   assert.match(spawnerLog(second), /census: sess-new gone\n/);
+});
+
+test("the census marks blocked on a background entry's status waiting, with its cause, never on state blocked or in a tab (spec 2.6)", () => {
+  const ws = workspace();
+  const ids = ["sess-prompt", "sess-idle", "sess-tab"];
+  const listing = {
+    "sess-prompt": { kind: "background", status: "waiting", waitingFor: "permission prompt" },
+    "sess-idle": { kind: "background", status: "idle" },
+    "sess-tab": { kind: "interactive", status: "waiting", waitingFor: "permission prompt" },
+  };
+  // An idle seat lists the retired `state` as blocked too (S-1).
+  listing["sess-idle"].state = "blocked";
+  setState(ws, {
+    sessions: ids.map((sessionId) => ({
+      sessionId,
+      name: `n-${sessionId}`,
+      cwd: ws.root,
+      pid: 4321,
+      ...listing[sessionId],
+    })),
+  });
+  const seat = (sessionId) => ({ sessionId, name: `n-${sessionId}`, role: "jisso", topic: "t", status: "running" });
+  putSeats(
+    ws,
+    ids.map((sessionId) => ({ ...seat(sessionId), transcript: writeTranscript(ws, sessionId) })),
+  );
+  once(ws);
+  const byId = Object.fromEntries(seats(ws).map((each) => [each.sessionId, each]));
+  assert.equal(byId["sess-prompt"].status, "blocked");
+  assert.equal(byId["sess-prompt"].waitingFor, "permission prompt");
+  assert.equal(byId["sess-prompt"].kind, "background");
+  assert.equal(byId["sess-idle"].status, "running");
+  assert.equal(byId["sess-tab"].status, "running");
+  assert.equal(byId["sess-tab"].kind, "interactive");
+  assert.deepEqual(notices(ws), ["blocked: jisso t n-sess-prompt — permission prompt — tanto jisso t"]);
+});
+
+test("the census parks a contract-2 dialogue seat that leaves the listing, with midTurn, and marks an unmarked one and a Jisso gone (spec 2.7)", () => {
+  const ws = workspace();
+  const seat = (sessionId, role, records, extra = {}) => ({
+    sessionId,
+    name: sessionId,
+    role,
+    topic: "t",
+    status: "running",
+    transcript: writeRecords(ws, sessionId, records),
+    ...extra,
+  });
+  putSeats(ws, [
+    seat("sess-cut", "sekkei", [REC.human("u1"), REC.tool("u2", "m1")], { contract: 2 }),
+    seat("sess-done", "keikaku", ENDED_TURN, { contract: 2 }),
+    seat("sess-old", "keikaku", ENDED_TURN),
+    seat("sess-j", "jisso", ENDED_TURN, { contract: 2 }),
+  ]);
+  once(ws);
+  const byId = Object.fromEntries(seats(ws).map((each) => [each.sessionId, each]));
+  assert.equal(byId["sess-cut"].status, "parked");
+  assert.equal(byId["sess-cut"].midTurn, true);
+  assert.equal(byId["sess-cut"].parkedAtMs, STARTED_AT);
+  assert.equal(byId["sess-done"].status, "parked");
+  assert.equal(byId["sess-done"].midTurn, undefined);
+  assert.equal(byId["sess-old"].status, "gone");
+  assert.equal(byId["sess-j"].status, "gone");
+  assert.match(spawnerLog(ws), /census: sess-cut parked — mid-turn/);
+});
+
+test("the census sets a parked seat running when the listing shows it again, and parked once more when it goes (spec 2.7)", () => {
+  const ws = workspace();
+  const seat = { status: "parked", parkedAtMs: STARTED_AT - 600000, midTurn: true };
+  dialogueSeat(ws, { listing: { kind: "interactive", name: "dotskills-7b" }, seat });
+  once(ws);
+  const back = seats(ws)[0];
+  assert.equal(back.status, "running");
+  assert.equal(back.kind, "interactive");
+  assert.equal(back.name, "dotskills-7b");
+  assert.equal(back.listedAtMs, STARTED_AT);
+  assert.equal(back.midTurn, undefined);
+  setState(ws, { sessions: [] });
+  once(ws);
+  assert.equal(seats(ws)[0].status, "parked");
+
+  // Parked five seconds ago and still listed: the process is leaving (S-5).
+  const leaving = workspace();
+  dialogueSeat(leaving, { seat: { status: "parked", parkedAtMs: STARTED_AT - 5000 } });
+  once(leaving);
+  assert.equal(seats(leaving)[0].status, "parked");
+});
+
+test("the census clears a dead launcher's hold, and a forMs hold once the transcript has been quiet that long (spec 2.4)", () => {
+  const dead = spawnSync(process.execPath, ["-e", ""]).pid;
+  const ws = workspace();
+  dialogueSeat(ws, { seat: { held: { atMs: STARTED_AT, pid: dead } } });
+  once(ws);
+  assert.equal(seats(ws)[0].held, undefined);
+  assert.match(spawnerLog(ws), /census: sess-d hold cleared/);
+  for (const [quietMs, cleared] of [
+    [3360000, true],
+    [600000, false],
+  ]) {
+    const each = workspace();
+    const transcript = dialogueSeat(each, { seat: { held: { atMs: STARTED_AT - 3600000, forMs: 3300000 } } });
+    const at = new Date(STARTED_AT - quietMs);
+    fs.utimesSync(transcript, at, at);
+    once(each);
+    assert.equal(seats(each)[0].held === undefined, cleared);
+  }
 });

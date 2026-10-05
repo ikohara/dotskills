@@ -28,8 +28,10 @@ const HEARTBEAT_STALE_MS = 60000;
 // The ops, in the order `templates/spawn-request.md` documents them.
 const OPS = ["spawn", "stop", "rm", "resume", "attention", "ack", "park", "hold", "release"];
 
-// The seat statuses `seats.json` carries. They are not the roster's words:
-// the roster gains `stopped` alone, and Kanri writes it.
+// The statuses a census pass checks against the listing's entry (spec 2.7):
+// a `parked` seat the listing shows again is `relist`ed into them first,
+// and a `gone` one `revive`d. They are not the roster's words: a `parked`
+// seat's row stays `live`, and Kanri writes `stopped`.
 const LIVE = ["running", "blocked"];
 
 // No caller in this file reads `positionals` — unlike `tanto.js`'s own copy
@@ -366,10 +368,13 @@ function turnEnded(transcript, after) {
   return { ended: (isEnd(last) && settled) || last.synthetic, newTurn, midTurn: !isEnd(last) };
 }
 
-function noticeText(seat, message) {
-  if (message) return message;
-  const where = seat.id ? ` — claude attach ${seat.id}` : "";
-  return `blocked: ${seat.role} ${seat.topic} ${seat.name}${where}`;
+/**
+ * The census's notice for a seat on a prompt (spec 2.6): its cause, as the
+ * listing gives it, and the launcher's way in, by role — a seat's id
+ * changes at every handover, and its role does not (I-11).
+ */
+function noticeText(seat) {
+  return `blocked: ${seat.role} ${seat.topic} ${seat.name} — ${seat.waitingFor} — ${enterCommand(seat)}`;
 }
 
 /**
@@ -980,7 +985,8 @@ function handleRequest(root, request, seats, requestId) {
   if (request.op === "resume") return opResume(root, request, seat);
 
   if (request.op === "attention") {
-    const text = String(request.message || "").replace("<id>", seat?.id || "<id>");
+    // As written: a message names `tanto <role> [<topic>]`, never an id (spec 1.1).
+    const text = String(request.message || "");
     const channel = raiseNotice(text);
     appendLog(root, `attention ${text}`);
     return { notified: stamp(), channel };
@@ -1273,15 +1279,69 @@ function takeRequests(root, seats) {
 
 /**
  * A seat `seats.json` holds as `gone` whose `sessionId` the listing holds
- * again — one the human `/stop`ped and reopened with `claude attach <id>`
- * (spec 1.3). It goes back to `running`, and the pass that follows sets
- * `blocked` when the listing says so, the notice with it. A seat the run's
- * own `stop` request stopped, or one removed, is never revived.
+ * again — one the human `/stop`ped and reopened (spec 1.3). It goes back to
+ * `running`, and the pass that follows sets `blocked` when the listing says
+ * so, the notice with it. A seat the run's own `stop` request stopped, or
+ * one removed, is never revived.
  */
 function revive(root, seat) {
   seat.status = "running";
   delete seat.goneAt;
   appendLog(root, `census: ${seat.sessionId} back`);
+}
+
+/**
+ * A `parked` seat the listing shows again (spec 2.7) — woken by an attach, a
+ * click on its row, or a wake — is `running`, and the pass that follows
+ * records its listed kind and name. Within thirty seconds of its park the
+ * entry is the stopped process leaving (S-5), not a return.
+ */
+function relist(root, seat) {
+  if (typeof seat.parkedAtMs === "number" && nowMs() - seat.parkedAtMs < STOP_SETTLE_MS) return;
+  seat.status = "running";
+  seat.listedAtMs = nowMs();
+  delete seat.parkedAtMs;
+  delete seat.midTurn;
+  appendLog(root, `census: ${seat.sessionId} listed again`);
+}
+
+/**
+ * A contract-2 dialogue seat the listing no longer shows (spec 2.7) — parked
+ * by a pass, its tab closed, collected after its idle hour, cut by a reboot
+ * — is `parked`, never `gone`: its conversation is on disk, and a wake
+ * brings it back. `midTurn` marks a last turn that did not end by itself,
+ * read over the whole transcript (spec 2.8), for Kanri's Recovery and
+ * `tanto jokyo`.
+ */
+function parkByAbsence(root, seat) {
+  seat.status = "parked";
+  seat.parkedAtMs = nowMs();
+  delete seat.kind;
+  delete seat.listedAtMs;
+  delete seat.waitingFor;
+  if (lookForTranscript(root, seat) && turnEnded(seat.transcript)?.midTurn) seat.midTurn = true;
+  else delete seat.midTurn;
+  appendLog(root, `census: ${seat.sessionId} parked${seat.midTurn ? " — mid-turn" : ""}`);
+}
+
+/**
+ * The census's end of a hold (spec 2.4): a launcher's mark once its pid no
+ * longer answers signal 0 — a launcher that died released nothing — and a
+ * mark for a face with no launcher once the seat's transcript has gone
+ * unwritten for its `forMs`. A seat's standing request then parks it.
+ */
+function clearHold(root, seat) {
+  const mark = seat.held;
+  if (!mark) return;
+  if (mark.pid) {
+    if (pidAlive(mark.pid)) return;
+  } else if (mark.forMs) {
+    const transcript = seat.transcript || findTranscript(seat.sessionId);
+    const writtenMs = (transcript && fs.statSync(transcript, { throwIfNoEntry: false })?.mtimeMs) || 0;
+    if (nowMs() - Math.max(writtenMs, mark.atMs || 0) < mark.forMs) return;
+  }
+  delete seat.held;
+  appendLog(root, `census: ${seat.sessionId} hold cleared`);
 }
 
 /**
@@ -1325,15 +1385,15 @@ function lookForTranscript(root, seat) {
  * A seat that has run no first turn (spec 3.1): marked once, with one toast
  * and one log line, and never stopped — the one cause the design knows is
  * closed at the spawn, and what reaches here is for the human to look at. The
- * attach hint rides only on a seat the listing still holds (a gone seat has no
- * pid to attach to). A seat with no `startedAtMs`, one from before this rule,
- * is never judged. A seat whose prompt was not delivered (spec 1.2) is never
- * marked: its cause is already in its result.
+ * way in, `tanto <role> [<topic>]`, rides only on a seat the listing still
+ * holds: a gone seat has no process to enter. A seat with no `startedAtMs`,
+ * one from before this rule, is never judged. A seat whose prompt was not
+ * delivered (spec 1.2) is never marked: its cause is already in its result.
  */
 function noFirstTurn(root, seat, line, listed = false) {
   if (seat.noFirstTurn || seat.undelivered || typeof seat.startedAtMs !== "number") return false;
   seat.noFirstTurn = stamp();
-  const where = listed && seat.id ? ` — claude attach ${seat.id}` : "";
+  const where = listed ? ` — ${enterCommand(seat)}` : "";
   raiseNotice(`no first turn: ${seat.role} ${seat.topic} ${seat.name}${where}`);
   appendLog(root, line);
   return true;
@@ -1341,6 +1401,10 @@ function noFirstTurn(root, seat, line, listed = false) {
 
 /** One `running` or `blocked` seat against the listing's entry for it. */
 function censusSeat(root, seat, session) {
+  if (!session && isContractDialogue(seat)) {
+    parkByAbsence(root, seat);
+    return;
+  }
   if (!session) {
     seat.status = "gone";
     seat.goneAt = stamp();
@@ -1362,12 +1426,22 @@ function censusSeat(root, seat, session) {
     appendLog(root, `census: ${seat.sessionId} renamed to ${session.name}`);
   }
   if (session.id) seat.id = session.id;
-  if (session.state === "blocked" && seat.status !== "blocked") {
-    seat.status = "blocked";
-    raiseNotice(noticeText(seat));
-    appendLog(root, `census: ${seat.sessionId} blocked`);
-  } else if (session.state !== "blocked" && seat.status === "blocked") {
-    seat.status = "running";
+  seat.kind = session.kind;
+  // A prompt in the background (spec 2.6, S-1): the listing's `status:
+  // "waiting"`, its cause in `waitingFor`. A seat that answered and waits is
+  // `idle` and not blocked, and a prompt in a tab is in front of the human
+  // already.
+  const onPrompt = session.kind === "background" && session.status === "waiting";
+  if (onPrompt) {
+    seat.waitingFor = session.waitingFor || "waiting";
+    if (seat.status !== "blocked") {
+      seat.status = "blocked";
+      raiseNotice(noticeText(seat));
+      appendLog(root, `census: ${seat.sessionId} blocked — ${seat.waitingFor}`);
+    }
+  } else {
+    if (seat.status === "blocked") seat.status = "running";
+    delete seat.waitingFor;
   }
   if (lookForTranscript(root, seat)) return;
   if (nowMs() - seat.startedAtMs >= FIRST_TURN_WAIT_MS) {
@@ -1387,7 +1461,9 @@ function runCensus(root, seats) {
   for (const seat of seats) {
     const session = byId.get(seat.sessionId);
     if (seat.status === "gone" && session) revive(root, seat);
+    if (seat.status === "parked" && session) relist(root, seat);
     if (LIVE.includes(seat.status)) censusSeat(root, seat, session);
+    clearHold(root, seat);
   }
   leavePass(root, seats, listing.sessions);
   endOnceSeats(root, seats);
@@ -1443,6 +1519,10 @@ function cmdRun(argv) {
   process.chdir(root);
   ensureDirs(root);
   fs.writeFileSync(path.join(spawnerDir(root), "pid"), `${process.pid}\n`);
+  // The contract this spawner keeps (spec 4.2): a launcher that finds a
+  // spawner beating and no such file is talking to code from before it.
+  // `tanto teishi` removes it with `pid` and `heartbeat`.
+  fs.writeFileSync(path.join(spawnerDir(root), "contract"), "2\n");
   const pass = guarded(root, () => {
     beat(root);
     const seats = readSeats(root);
@@ -1484,6 +1564,21 @@ function cmdRun(argv) {
   return 0;
 }
 
+/**
+ * The seats of the run whose root is `cwd` or above it — a worktree seat's
+ * cwd lies under the root — or none when no state file is found.
+ */
+function seatsAbove(cwd) {
+  let dir = cwd ? path.resolve(cwd) : "";
+  while (dir) {
+    if (fs.existsSync(path.join(spawnerDir(dir), "seats.json"))) return readSeats(dir);
+    const parent = path.dirname(dir);
+    if (parent === dir) return [];
+    dir = parent;
+  }
+  return [];
+}
+
 function cmdNotify(argv) {
   const { values } = parseArgs(argv);
   if (typeof values.text === "string") {
@@ -1503,7 +1598,10 @@ function cmdNotify(argv) {
   const what = payload.notification_type || "notification";
   const where = payload.cwd || "";
   const who = payload.session_id || "";
-  raiseNotice(`tanto: ${what} in ${where} — claude attach ${who}`);
+  // The way in by role for a seat the state file holds (spec 1.1); `claude
+  // attach` only for a session no run of this design started.
+  const seat = seatOf(seatsAbove(where), who);
+  raiseNotice(`tanto: ${what} in ${where} — ${seat ? enterCommand(seat) : `claude attach ${who}`}`);
   return 0;
 }
 
