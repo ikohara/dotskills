@@ -37,9 +37,7 @@ Rule on an item. Message any session. Edit a tracked file. Run
 `git checkout --` or `git clean`. Dispatch an agent. A tracked-file
 modification `check` finds that the plan does not account for goes into the
 verdict file's Failures section, **not** into the tree (contract rule 5): only
-Kanri decides whether it is stray. The `ListAgents` self-check of `SKILL.md`'s
-Resuming is not yours either — the listing shows the resident's own name, which
-only the resident can compare with its roster row.
+Kanri decides whether it is stray.
 
 ## The procedure
 
@@ -72,10 +70,10 @@ only the resident can compare with its roster row.
    node "<tanto>/scripts/boundary.js" record --ledger <ledger> --roster <roster> \
      --batch <key> --tasks <N-M> --state reported --report <report> \
      --verdict "<the check: line>" \
-     --kanri "<name [ref]>" --kanri-reading "<Kanri's reading, with its ttl= line>" \
-     --jisso "<name [ref]>" --jisso-reading "<Jisso's reading>" \
+     --kanri "<name>" --kanri-reading "<Kanri's reading, with its ttl= line>" \
+     --jisso "<name>" --jisso-reading "<Jisso's reading>" \
      --seat <the seat= results path, when the dispatch carried one> \
-     --peer-reading "<role> <name [ref]> <reading>" \
+     --peer-reading "<role> <name> <reading>" \
      --s-item "<source> | <item>" --event "dispatch: <kind> on <family>"
    ```
 
