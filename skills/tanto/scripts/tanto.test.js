@@ -391,7 +391,7 @@ test("a handover successor row the live listing has lost is not attached to dire
   );
 });
 
-test("a running seat the listing lost is resumed, and fukki is printed", () => {
+test("a running seat the listing lost is resumed, and no line asks for fukki", () => {
   const ws = workspace([
     {
       sessionId: "sess-live",
@@ -412,7 +412,7 @@ test("a running seat the listing lost is resumed, and fukki is printed", () => {
   const resumed = requests(ws).filter((r) => r.op === "resume");
   assert.equal(resumed.length, 1);
   assert.equal(resumed[0].sessionId, "sess-gone");
-  assert.match(got.out, /tanto fukki/);
+  assert.doesNotMatch(got.out, /tanto fukki/);
 });
 
 test("a rebooted Kanri the listing lost is resumed, never spawned again", () => {
@@ -442,7 +442,7 @@ test("a rebooted Kanri the listing lost is resumed, never spawned again", () => 
     ["sess-live"],
   );
   assert.equal(lastAttach(ws), "bg07", got.err);
-  assert.match(got.out, /tanto fukki/);
+  assert.doesNotMatch(got.out, /tanto fukki/);
 });
 
 test("a Kanri seat with no roster row is resumed once, never spawned or double-resumed (Important 7)", () => {
@@ -473,6 +473,174 @@ test("a Kanri seat with no roster row is resumed once, never spawned or double-r
     resumed.map((r) => r.sessionId),
     ["sess-crashed"],
   );
+});
+
+test("tanto puts back what a restart took, and leaves a contract-2 dialogue seat to the spawner (spec 4.4)", () => {
+  const ws = workspace([LIVE_KANRI]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  writeSeats(ws, [
+    { sessionId: "sess-live", id: "bg07", role: "kanri", topic: "—", status: "running", contract: 2 },
+    { sessionId: "sess-jisso", id: "bg08", role: "jisso", topic: "t", status: "running", contract: 2 },
+    { sessionId: "sess-sekkei", id: "bg12", role: "sekkei", topic: "t", status: "running", contract: 2 },
+    { sessionId: "sess-keikaku", id: "bg14", role: "keikaku", topic: "t", status: "blocked" },
+    { sessionId: "sess-hosa", id: "bg15", role: "hosa", topic: "—", status: "parked", contract: 2 },
+  ]);
+  const child = quietSpawner(ws);
+  try {
+    const got = launch(ws, ["kanri", "--timeout", "5000"]);
+    assert.equal(got.code, 0, got.err);
+    assert.deepEqual(
+      requests(ws)
+        .filter((r) => r.op === "resume")
+        .map((r) => r.sessionId)
+        .sort(),
+      ["sess-jisso", "sess-keikaku"],
+    );
+  } finally {
+    child.kill();
+  }
+});
+
+test("entering a role puts nothing back: the resume list is the Kanri path's alone (spec 4.4)", () => {
+  const ws = workspace();
+  writeSeats(ws, [
+    { sessionId: "sess-kikaku", id: "bg21", role: "kikaku", topic: "—", status: "parked", contract: 2 },
+    { sessionId: "sess-jisso", id: "bg08", role: "jisso", topic: "t", status: "running", contract: 2 },
+  ]);
+  const child = quietSpawner(ws);
+  try {
+    const got = launch(ws, ["kikaku", "-n", "--timeout", "5000"]);
+    assert.equal(got.code, 0, got.err);
+    assert.deepEqual(requests(ws), []);
+  } finally {
+    child.kill();
+  }
+});
+
+test("fukki, and a bare tanto, carry the fukki word in a Kanri's resume and send no messenger (spec 4.4)", () => {
+  for (const argv of [["fukki"], ["kanri"]]) {
+    const ws = workspace([{ ...LIVE_KANRI, hidden: true }]);
+    writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+    writeSeats(ws, [{ sessionId: "sess-live", id: "bg07", role: "kanri", topic: "—", status: "gone", contract: 2 }]);
+    const got = launch(ws, [...argv, "--timeout", "20000"]);
+    assert.equal(got.code, 0, got.err);
+    assert.deepEqual(
+      requests(ws)
+        .filter((r) => r.op === "resume")
+        .map((r) => [r.sessionId, r.prompt]),
+      [["sess-live", "/tanto fukki"]],
+    );
+    assert.equal(requests(ws).filter((r) => r.role === "denrei").length, 0, argv[0]);
+  }
+});
+
+test("fukki with a live Kanri spawns a once messenger that forwards the fukki line to Kanri's name (spec 4.4)", () => {
+  const ws = workspace([LIVE_KANRI]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  writeSeats(ws, [{ sessionId: "sess-live", id: "bg07", role: "kanri", topic: "—", status: "running", contract: 2 }]);
+  const got = launch(ws, ["ふっき", "--timeout", "20000"]);
+  assert.equal(got.code, 0, got.err);
+  const spawned = requests(ws).filter((r) => r.op === "spawn");
+  assert.deepEqual(
+    spawned.map((r) => [r.role, r.once, r.contract, r.model, r.effort]),
+    [["denrei", true, 2, "sonnet", "low"]],
+  );
+  assert.ok(spawned[0].prompt.startsWith("You are a messenger."), spawned[0].prompt);
+  assert.ok(spawned[0].prompt.includes("with to set to seat-live [ffffff] and message set to"), spawned[0].prompt);
+  assert.ok(
+    spawned[0].prompt.endsWith(
+      "\nBEGIN\nfukki: requested at the launcher\n(tanto line — if this window has not run /tanto, reply no-role to the sender and do nothing else)\nEND",
+    ),
+    spawned[0].prompt,
+  );
+  assert.deepEqual(attaches(ws), ["bg07"]);
+});
+
+test("fukki in a run that has not moved sends no messenger, and asks for /tanto fukki in Kanri before the attach (spec 4.4)", () => {
+  const ws = workspace([LIVE_KANRI]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  writeSeats(ws, [{ sessionId: "sess-live", id: "bg07", role: "kanri", topic: "—", status: "running" }]);
+  const got = launch(ws, ["resume", "--timeout", "20000"]);
+  assert.equal(got.code, 0, got.err);
+  const lines = got.out.split(/\r?\n/);
+  const asked = lines.indexOf("Kanri is on the old contract: type /tanto fukki there");
+  assert.notEqual(asked, -1, got.out);
+  assert.ok(asked < lines.indexOf(LEAVE), got.out);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn").length, 0);
+});
+
+test("jokyo prints one line per seat from the state file and the listing, and starts and writes nothing (spec 4.5)", () => {
+  const listed = (sessionId, extra) => ({ sessionId, name: `x-${sessionId}`, cwd: ROOT, pid: 1200, ...extra });
+  const ws = workspace([
+    listed("sess-kanri", { kind: "background", status: "busy" }),
+    listed("sess-jisso", { kind: "background", status: "waiting", waitingFor: "permission prompt" }),
+    listed("sess-kikaku", { kind: "interactive", status: "idle" }),
+    listed("sess-kaiseki", { kind: "background", status: "idle" }),
+  ]);
+  const seat = (sessionId, role, topic, status, extra = {}) => ({
+    sessionId,
+    role,
+    topic,
+    status,
+    contract: 2,
+    ...extra,
+  });
+  writeSeats(ws, [
+    seat("sess-sekkei", "sekkei", "t", "parked", {
+      waiting: true,
+      transcript: writeTranscript(ws, "sess-sekkei", 212340),
+    }),
+    seat("sess-kanri", "kanri", "—", "running"),
+    seat("sess-jisso", "jisso", "t", "blocked"),
+    seat("sess-kikaku", "kikaku", "—", "running", {
+      waiting: true,
+      transcript: writeTranscript(ws, "sess-kikaku", 96120),
+    }),
+    seat("sess-hosa", "hosa", "—", "parked", { transcript: writeTranscript(ws, "sess-hosa", 41870) }),
+    seat("sess-keikaku", "keikaku", "t", "parked", { midTurn: true }),
+    seat("sess-kaiseki", "kaiseki", "—", "running"),
+    seat("sess-old", "jisso", "u", "stopped"),
+    seat("sess-gone", "jisso", "u", "gone"),
+  ]);
+  const got = launch(ws, ["状況"]);
+  assert.equal(got.code, 0, got.err);
+  const lines = got.out.trimEnd().split(/\r?\n/);
+  assert.equal(lines[0], "no spawner running: the seats below are as the state file last held them");
+  const expected = [
+    /^kanri\s+—\s+working$/,
+    /^sekkei\s+t\s+parked — waiting for you\s+context=212340\s+tanto sekkei$/,
+    /^jisso\s+t\s+blocked — permission prompt\s+tanto jisso t$/,
+    /^kikaku\s+—\s+in a tab — waiting for you\s+context=96120$/,
+    /^hosa\s+—\s+parked\s+context=41870$/,
+    /^keikaku\s+t\s+parked — mid-turn\s+tanto fukki$/,
+    /^kaiseki\s+—\s+idle$/,
+    /^jisso\s+u\s+gone$/,
+  ];
+  assert.equal(lines.length, expected.length + 1, got.out);
+  for (const [i, pattern] of expected.entries()) assert.match(lines[i + 1], pattern);
+  assert.equal(fs.existsSync(path.join(ws.root, ".tanto", "spawner", "pid")), false);
+  assert.equal(fs.existsSync(path.join(ws.root, ".tanto", "spawner", "requests")), false);
+});
+
+test("jokyo names tanto fukki for a gone Kanri and a Kikaku's own word for its cut turn, and no stale line while a spawner beats (spec 4.5)", () => {
+  const ws = workspace([{ sessionId: "sess-kikaku", name: "x-05", cwd: ROOT, pid: 1201, kind: "interactive" }]);
+  writeSeats(ws, [
+    { sessionId: "sess-kanri", role: "kanri", topic: "—", status: "gone" },
+    { sessionId: "sess-kikaku", role: "kikaku", topic: "—", status: "running", contract: 2 },
+    { sessionId: "sess-hosa", role: "hosa", topic: "—", status: "parked", contract: 2, midTurn: true },
+  ]);
+  const child = quietSpawner(ws);
+  try {
+    const got = launch(ws, ["jokyo"]);
+    assert.equal(got.code, 0, got.err);
+    const lines = got.out.trimEnd().split(/\r?\n/);
+    assert.equal(lines.length, 3, got.out);
+    assert.match(lines[0], /^kanri\s+—\s+gone\s+tanto fukki$/);
+    assert.match(lines[1], /^kikaku\s+—\s+in a tab$/);
+    assert.match(lines[2], /^hosa\s+—\s+parked — mid-turn\s+tanto hosa$/);
+  } finally {
+    child.kill();
+  }
 });
 
 test("claude agents failing exits 1 with the stderr, and writes no request (Important 5)", () => {
@@ -912,7 +1080,7 @@ test("a pid-less listing entry is not read as a live seat, and gets a resume req
   const got = launch(ws, ["--timeout", "20000"]);
   const resumed = requests(ws).filter((r) => r.op === "resume");
   assert.deepEqual(resumed.map((r) => r.sessionId).sort(), ["sess-gone", "sess-live"]);
-  assert.match(got.out, /tanto fukki/);
+  assert.doesNotMatch(got.out, /tanto fukki/);
 });
 
 test("a Kanri resume that fails says so in one line and spawns a new Kanri", () => {
