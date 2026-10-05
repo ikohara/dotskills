@@ -13,6 +13,9 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
+// The spawner's own paths, its heartbeat's budget, and its transcript test,
+// so that this file reads the state file exactly as the spawner writes it.
+const spawner = require("./spawner.js");
 
 /** The five report headings the boundary reads, in the brief's order. */
 const REPORT_HEADINGS = [
@@ -529,8 +532,9 @@ function writeStatus(doc, name, status, written) {
 }
 
 /**
- * A terminal seat's roster row, written from the spawner's result file
- * rather than from a handshake it never sends. Idempotent: a second call
+ * A seat's roster row, written from the spawner's result file for every
+ * seat, whoever asked for it: Kanri records a seat the launcher started once
+ * the census prints it under Not held (spec 1.3). Idempotent: a second call
  * rewrites the row in place, matched by the Name column, and a name the
  * table does not hold is appended. The Status cell is always written as
  * `live`, on purpose (Minor 13, branch-review.md): `--seat` is only ever
@@ -732,26 +736,85 @@ function sessionIdOf(transcript) {
 }
 
 /**
- * The `noFirstTurn` marks of `<root>/.tanto/spawner/seats.json`, by
- * `sessionId` (spec 3.3): empty when the file is absent or does not parse,
- * so the census prints as it did before.
+ * The seats of `<root>/.tanto/spawner/seats.json`, the state file, by
+ * `sessionId` (spec 2.7): empty when the file is absent or does not parse,
+ * so that a root with no spawner is read as the roster and the listing
+ * place its rows.
  */
-function firstTurnMarks(root) {
+function stateSeats(root) {
   try {
-    const doc = JSON.parse(fs.readFileSync(path.join(root, ".tanto", "spawner", "seats.json"), "utf8"));
+    const doc = JSON.parse(fs.readFileSync(path.join(spawner.spawnerDir(root), "seats.json"), "utf8"));
     const seats = Array.isArray(doc?.seats) ? doc.seats : [];
-    return new Map(seats.filter((s) => s?.sessionId && s.noFirstTurn).map((s) => [s.sessionId, s.noFirstTurn]));
+    return new Map(seats.filter((s) => s?.sessionId).map((s) => [s.sessionId, s]));
   } catch {
     return new Map();
   }
 }
 
-/** The four headings `census` prints, in order. */
-const CENSUS_HEADINGS = ["Listed", "Not listed", "No session id", "Not held"];
+/**
+ * The `spawner:` line (spec 2.5, 2.7): `beating` while the heartbeat is
+ * within the spawner's own budget of now, `stale` when it is older, absent,
+ * or does not parse. A stale spawner takes no request and raises no notice,
+ * and the state file has stopped moving (R-2).
+ */
+function spawnerLine(root) {
+  let beat = Number.NaN;
+  try {
+    beat = Number(fs.readFileSync(spawner.heartbeatPath(root), "utf8").trim());
+  } catch {
+    // No heartbeat: no spawner ever ran under this root, or `teishi` removed it.
+  }
+  return Math.abs(Date.now() - beat) <= spawner.HEARTBEAT_STALE_MS ? "spawner: beating" : "spawner: stale";
+}
 
 /**
- * `census [--root <dir>] [--roster <path>]` (spec 2.2): the roster's `live`
- * and `queued` rows against `claude agents --json`'s sessions under the root.
+ * `claude agents --json`'s sessions under the root that carry a `pid`, by
+ * `sessionId`, and the ids of the entries without one; or `error`, the
+ * reason, when the listing failed or printed no JSON. The paths are compared
+ * here rather than passed as `--cwd`: the CLI's filter is measured for the
+ * root alone (spec 2.2).
+ */
+function listing(root) {
+  const command = claudeCommand(["agents", "--json"]);
+  const got = spawnSync(command.file, command.args, { encoding: "utf8", windowsHide: true });
+  if (got.status !== 0) {
+    const said = (got.stderr || "").trim().split(/\r?\n/)[0];
+    return { error: said || `claude agents exited ${got.status}` };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(got.stdout || "");
+  } catch {
+    return { error: "claude agents --json printed no JSON" };
+  }
+  const all = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.sessions) ? parsed.sessions : [];
+  const listed = new Map(
+    all.filter((s) => s?.sessionId && s.pid && underRoot(root, s.cwd)).map((s) => [s.sessionId, s]),
+  );
+  // An entry with no pid is a process gone, whatever else it carries (spec
+  // 3.1): its row prints under Not listed with the signal named, by its
+  // sessionId alone, since the row is already this repository's.
+  const stale = new Set(all.filter((s) => s?.sessionId && !s.pid).map((s) => s.sessionId));
+  return { listed, stale, error: null };
+}
+
+/**
+ * Spec 1.3's suffix on a Not held line, for a seat the state file holds and
+ * no `live` or `queued` row does: the result Kanri records it from. None for
+ * a seat that has ended.
+ */
+function spawnedAs(seat) {
+  if (!seat || seat.status === "stopped" || seat.status === "removed") return "";
+  return ` — spawned as ${seat.role || "—"} ${seat.topic || "—"}, result ${seat.requestId || "unknown"}`;
+}
+
+/** The six headings `census` prints after its `spawner:` line, in order (spec 2.7). */
+const CENSUS_HEADINGS = ["Listed", "Parked", "Ended", "Not listed", "No session id", "Not held"];
+
+/**
+ * `census [--root <dir>] [--roster <path>]` (spec 2.2, 2.7): the `spawner:`
+ * line, then the roster's `live` and `queued` rows against the state file and
+ * `claude agents --json`'s sessions under the root, under six headings.
  * Read-only — Kanri, the roster's one writer, acts on what it prints.
  */
 function cmdCensus(argv) {
@@ -770,34 +833,21 @@ function cmdCensus(argv) {
   const table = tableByHeader(lines, SESSIONS_HEADER);
   if (!table) return fail(`census: no sessions table in ${rosterPath}`, 2);
 
-  const command = claudeCommand(["agents", "--json"]);
-  const got = spawnSync(command.file, command.args, { encoding: "utf8", windowsHide: true });
-  if (got.status !== 0) {
-    const said = (got.stderr || "").trim().split(/\r?\n/)[0];
-    console.log(`census: unavailable — ${said || `claude agents exited ${got.status}`}`);
+  const found = listing(root);
+  if (found.error) {
+    console.log(`census: unavailable — ${found.error}`);
     return 1;
   }
-  let parsed;
-  try {
-    parsed = JSON.parse(got.stdout || "");
-  } catch {
-    console.log("census: unavailable — claude agents --json printed no JSON");
-    return 1;
-  }
-  const all = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.sessions) ? parsed.sessions : [];
-  const listed = new Map(
-    all.filter((s) => s?.sessionId && s.pid && underRoot(root, s.cwd)).map((s) => [s.sessionId, s]),
-  );
-  // An entry with no pid is a process gone, whatever its state says (spec
-  // 3.1): its row prints under Not listed with the signal named, by its
-  // sessionId alone, since the row is already this repository's.
-  const stale = new Set(all.filter((s) => s?.sessionId && !s.pid).map((s) => s.sessionId));
+  const { listed, stale } = found;
+  const seats = stateSeats(root);
   // The spawner's mark on a seat with no first turn, on the seat's Listed or
   // Not listed line, so that Kanri, who sees no toast, reads it (spec 3.3).
-  const marks = firstTurnMarks(root);
-  const firstTurn = (sessionId) => (marks.has(sessionId) ? ` — no first turn since ${marks.get(sessionId)}` : "");
+  const firstTurn = (sessionId) => {
+    const mark = seats.get(sessionId)?.noFirstTurn;
+    return mark ? ` — no first turn since ${mark}` : "";
+  };
 
-  const out = { Listed: [], "Not listed": [], "No session id": [], "Not held": [] };
+  const out = Object.fromEntries(CENSUS_HEADINGS.map((heading) => [heading, []]));
   const held = new Set();
   const others = new Map();
   for (let i = table.first; i < table.end; i++) {
@@ -815,25 +865,54 @@ function cmdCensus(argv) {
       continue;
     }
     held.add(sessionId);
+    const seat = seats.get(sessionId);
+    const where = `${role} ${topic} ${name} — ${sessionId}`;
+    // Ended by the state file, whatever the listing shows: a seat a tab still
+    // holds is recorded `stopped` with no command run (spec 5.1). Kanri writes
+    // the row `stopped`, with an Events line naming what ended it.
+    if (seat?.status === "stopped" || seat?.status === "removed") {
+      out.Ended.push(`${where} — ${seat.status}${seat.endedBy ? ` by ${seat.endedBy}` : ""}`);
+      continue;
+    }
     const session = listed.get(sessionId);
+    if (!session && seat?.status === "parked") {
+      // The run's seat, its conversation on disk: nothing to mark. A cut turn
+      // is Recovery's to continue, never a boundary's (spec 2.7).
+      out.Parked.push(`${where}${seat.midTurn ? " — mid-turn" : ""}${seat.waiting ? " — waiting" : ""}`);
+      continue;
+    }
     if (!session) {
       const note = stale.has(sessionId) ? " — listed without a pid (a stale entry)" : "";
-      out["Not listed"].push(`${role} ${topic} ${name} — ${sessionId}${note}${firstTurn(sessionId)}`);
+      out["Not listed"].push(`${where}${note}${firstTurn(sessionId)}`);
       continue;
     }
     const bare = name.replace(/\s*\[[^\]]*\]$/, "");
     const renamed = session.name && session.name !== bare ? " — renamed" : "";
-    // The listing's `state`, for the roster's `live (blocked since <HH:MM>)`
-    // (spec 5.2): the census names no cause, since the listing gives none.
-    const blocked = session.state === "blocked" ? " — blocked" : "";
+    // Blocked on a background entry's `status: "waiting"`, with the listing's
+    // cause (spec 2.6): a seat that answered and waits lists `idle`, and a
+    // prompt in a tab is in front of the human already. The roster's
+    // `(blocked since <HH:MM>)` keeps its form.
+    const waiting = session.kind === "background" && session.status === "waiting";
+    const blocked = waiting ? ` — blocked (${session.waitingFor || "no cause listed"})` : "";
     const listedAs = `listed as ${session.name} (${session.kind})`;
-    out.Listed.push(`${role} ${topic} ${name} — ${sessionId} — ${listedAs}${renamed}${blocked}${firstTurn(sessionId)}`);
+    out.Listed.push(`${where} — ${listedAs}${renamed}${blocked}${firstTurn(sessionId)}`);
   }
   for (const [sessionId, session] of listed) {
     if (held.has(sessionId)) continue;
     const other = others.has(sessionId) ? ` — row ${others.get(sessionId)}` : "";
-    out["Not held"].push(`${session.name} (${session.kind}) — ${sessionId}${other}`);
+    out["Not held"].push(`${session.name} (${session.kind}) — ${sessionId}${other}${spawnedAs(seats.get(sessionId))}`);
   }
+  // A seat the launcher started is in the state file before any row holds
+  // it, and a parked one is in no listing (spec 1.3): it prints here either
+  // way, for Kanri to record from its result. A `gone` seat no row holds is
+  // an earlier run's, collected and never stopped, and prints nothing.
+  for (const [sessionId, seat] of seats) {
+    if (held.has(sessionId) || listed.has(sessionId)) continue;
+    if (!["running", "blocked", "parked"].includes(seat.status)) continue;
+    const other = others.has(sessionId) ? ` — row ${others.get(sessionId)}` : "";
+    out["Not held"].push(`${seat.name || "—"} (not listed) — ${sessionId}${other}${spawnedAs(seat)}`);
+  }
+  console.log(spawnerLine(root));
   for (const heading of CENSUS_HEADINGS) {
     console.log(`\n## ${heading}\n`);
     console.log(out[heading].length > 0 ? out[heading].join("\n") : "none");

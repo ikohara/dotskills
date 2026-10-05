@@ -710,7 +710,7 @@ const SEAT = {
   sessionId: "sess-one",
 };
 
-test("--seat writes a terminal seat's roster row, and a second call rewrites it", () => {
+test("--seat writes a seat's roster row from its result file, and a second call rewrites it", () => {
   const fixture = ledgerAndRoster();
   const seat = write(fixture.dir, "result.json", JSON.stringify(SEAT));
   const args = ["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--seat", seat];
@@ -959,7 +959,7 @@ function census(f, mode, args = ["--root", f.root, "--roster", f.roster]) {
 
 const KANRI_ROW = sessionRow("kanri", "—", "kanri-a [aaaaaa]", "live", "/home/u/.claude/projects/p/sess-kanri.jsonl");
 
-test("census prints the live and queued rows under its four headings, by its own path comparison", () => {
+test("census prints the spawner: line, then the live and queued rows under its six headings, by its own path comparison", () => {
   const f = censusFixture(
     [
       KANRI_ROW,
@@ -990,12 +990,21 @@ test("census prints the live and queued rows under its four headings, by its own
   assert.strictEqual(
     result.out,
     [
+      "spawner: stale",
       "",
       "## Listed",
       "",
       "kanri — kanri-a [aaaaaa] — sess-kanri — listed as kanri-a (background)",
       "sekkei t sekkei-b [bbbbbb] — sess-sekkei — listed as dotskills-4d (interactive) — renamed",
       "jisso t jisso-f — sess-queued — listed as jisso-f (background)",
+      "",
+      "## Parked",
+      "",
+      "none",
+      "",
+      "## Ended",
+      "",
+      "none",
       "",
       "## Not listed",
       "",
@@ -1023,7 +1032,7 @@ test("census prints none under a heading with no entry, and writes nothing", () 
   const before = fs.readFileSync(f.roster, "utf8");
   const result = census(f, "");
   assert.strictEqual(result.code, 0, result.err);
-  for (const heading of ["Not listed", "No session id", "Not held"]) {
+  for (const heading of ["Parked", "Ended", "Not listed", "No session id", "Not held"]) {
     assert.ok(result.out.includes(`## ${heading}\n\nnone\n`), result.out);
   }
   assert.strictEqual(fs.readFileSync(f.roster, "utf8"), before);
@@ -1087,8 +1096,26 @@ test("census reads seats.json beside the roster: a blocked seat's line and a mar
       sessionRow("shoki", "t", "shoki-i", "live", "/home/u/.claude/projects/p/sess-shoki.jsonl"),
     ],
     (root) => [
-      { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, pid: 1111, state: "blocked" },
-      { sessionId: "sess-jisso", name: "jisso-h", kind: "background", cwd: root, pid: 1112, state: "blocked" },
+      // A seat that answered and waits lists `state: "blocked"` beside
+      // `status: "idle"`, and is not blocked (spec 2.6, S-1).
+      {
+        sessionId: "sess-kanri",
+        name: "kanri-a",
+        kind: "background",
+        cwd: root,
+        pid: 1111,
+        state: "blocked",
+        status: "idle",
+      },
+      {
+        sessionId: "sess-jisso",
+        name: "jisso-h",
+        kind: "background",
+        cwd: root,
+        pid: 1112,
+        status: "waiting",
+        waitingFor: "permission prompt",
+      },
     ],
   );
   fs.mkdirSync(path.join(f.root, ".tanto", "spawner"), { recursive: true });
@@ -1103,8 +1130,8 @@ test("census reads seats.json beside the roster: a blocked seat's line and a mar
     result.out.includes(
       [
         "\n## Listed\n",
-        "kanri — kanri-a [aaaaaa] — sess-kanri — listed as kanri-a (background) — blocked",
-        "jisso t jisso-h — sess-jisso — listed as jisso-h (background) — blocked — no first turn since 2026-10-03 10:02",
+        "kanri — kanri-a [aaaaaa] — sess-kanri — listed as kanri-a (background)",
+        "jisso t jisso-h — sess-jisso — listed as jisso-h (background) — blocked (permission prompt) — no first turn since 2026-10-03 10:02",
         "",
       ].join("\n"),
     ),
@@ -1113,6 +1140,130 @@ test("census reads seats.json beside the roster: a blocked seat's line and a mar
   assert.ok(
     result.out.includes("\n## Not listed\n\nshoki t shoki-i — sess-shoki — no first turn since 2026-10-03 10:05\n"),
     result.out,
+  );
+});
+
+test("census prints Parked with its marks, Ended, a blocked background seat's cause, and a seat no row holds (spec 1.3, 2.6, 2.7)", () => {
+  const f = censusFixture(
+    [
+      KANRI_ROW,
+      sessionRow("sekkei", "t", "sekkei-b", "live", "/home/u/.claude/projects/p/sess-sekkei.jsonl"),
+      sessionRow("keikaku", "t", "keikaku-c", "live", "/home/u/.claude/projects/p/sess-keikaku.jsonl"),
+      sessionRow("hosa", "—", "hosa-d", "live", "/home/u/.claude/projects/p/sess-hosa.jsonl"),
+      sessionRow("jisso", "t", "jisso-e", "live", "/home/u/.claude/projects/p/sess-done.jsonl"),
+      sessionRow("jisso", "t", "jisso-f", "queued", "/home/u/.claude/projects/p/sess-gone.jsonl"),
+      sessionRow("kaiseki", "t", "kaiseki-g", "live", "/home/u/.claude/projects/p/sess-tab.jsonl"),
+      sessionRow("jisso", "u", "jisso-h", "live", "/home/u/.claude/projects/p/sess-prompt.jsonl"),
+    ],
+    (root) => [
+      { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, pid: 1111, status: "busy" },
+      // A prompt in a tab is never blocked; a background one is, with its cause.
+      {
+        sessionId: "sess-tab",
+        name: "dotskills-7b",
+        kind: "interactive",
+        cwd: root,
+        pid: 1112,
+        status: "waiting",
+        waitingFor: "permission prompt",
+      },
+      {
+        sessionId: "sess-prompt",
+        name: "jisso-h",
+        kind: "background",
+        cwd: root,
+        pid: 1113,
+        status: "waiting",
+        waitingFor: "permission prompt",
+      },
+      {
+        sessionId: "sess-hosa2",
+        name: "dotskills-hosa-3c4d",
+        kind: "background",
+        cwd: root,
+        pid: 1114,
+        status: "idle",
+      },
+    ],
+  );
+  const spawnerDir = path.join(f.root, ".tanto", "spawner");
+  fs.mkdirSync(spawnerDir, { recursive: true });
+  fs.writeFileSync(path.join(spawnerDir, "heartbeat"), `${Date.now()}\n`);
+  const seats = [
+    { sessionId: "sess-kanri", role: "kanri", status: "running" },
+    {
+      sessionId: "sess-sekkei",
+      role: "sekkei",
+      topic: "t",
+      status: "parked",
+      contract: 2,
+      midTurn: true,
+      waiting: true,
+    },
+    { sessionId: "sess-keikaku", role: "keikaku", topic: "t", status: "parked", contract: 2 },
+    { sessionId: "sess-hosa", role: "hosa", status: "stopped", endedBy: "taiseki" },
+    { sessionId: "sess-done", role: "jisso", topic: "t", status: "removed" },
+    { sessionId: "sess-gone", role: "jisso", topic: "t", status: "gone" },
+    {
+      sessionId: "sess-kikaku",
+      name: "dotskills-kikaku-1a2b",
+      role: "kikaku",
+      topic: "—",
+      status: "parked",
+      contract: 2,
+      requestId: "req-kikaku",
+    },
+    {
+      sessionId: "sess-hosa2",
+      name: "dotskills-hosa-3c4d",
+      role: "hosa",
+      topic: "—",
+      status: "running",
+      contract: 2,
+      requestId: "req-hosa",
+    },
+    // An earlier run's seats no row holds: collected, or ended.
+    { sessionId: "sess-old", name: "dotskills-kanri-9f9f", role: "kanri", status: "gone" },
+    { sessionId: "sess-left", name: "dotskills-kikaku-7c7c", role: "kikaku", status: "stopped", endedBy: "taiseki" },
+  ];
+  fs.writeFileSync(path.join(spawnerDir, "seats.json"), JSON.stringify({ seats }));
+  const result = census(f, "");
+  assert.strictEqual(result.code, 0, result.err);
+  assert.strictEqual(
+    result.out,
+    [
+      "spawner: beating",
+      "",
+      "## Listed",
+      "",
+      "kanri — kanri-a [aaaaaa] — sess-kanri — listed as kanri-a (background)",
+      "kaiseki t kaiseki-g — sess-tab — listed as dotskills-7b (interactive) — renamed",
+      "jisso u jisso-h — sess-prompt — listed as jisso-h (background) — blocked (permission prompt)",
+      "",
+      "## Parked",
+      "",
+      "sekkei t sekkei-b — sess-sekkei — mid-turn — waiting",
+      "keikaku t keikaku-c — sess-keikaku",
+      "",
+      "## Ended",
+      "",
+      "hosa — hosa-d — sess-hosa — stopped by taiseki",
+      "jisso t jisso-e — sess-done — removed",
+      "",
+      "## Not listed",
+      "",
+      "jisso t jisso-f — sess-gone",
+      "",
+      "## No session id",
+      "",
+      "none",
+      "",
+      "## Not held",
+      "",
+      "dotskills-hosa-3c4d (background) — sess-hosa2 — spawned as hosa —, result req-hosa",
+      "dotskills-kikaku-1a2b (not listed) — sess-kikaku — spawned as kikaku —, result req-kikaku",
+      "",
+    ].join("\n"),
   );
 });
 
@@ -1125,7 +1276,15 @@ test("census matches a row whose Transcript cell is the bare session id: a block
     ],
     (root) => [
       { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, pid: 1111 },
-      { sessionId: "sess-jisso", name: "jisso-h", kind: "background", cwd: root, pid: 1112, state: "blocked" },
+      {
+        sessionId: "sess-jisso",
+        name: "jisso-h",
+        kind: "background",
+        cwd: root,
+        pid: 1112,
+        status: "waiting",
+        waitingFor: "permission prompt",
+      },
       { sessionId: "sess-shoki", name: "shoki-i", kind: "background", cwd: root, state: "blocked" },
     ],
   );
@@ -1139,7 +1298,7 @@ test("census matches a row whose Transcript cell is the bare session id: a block
   assert.strictEqual(result.code, 0, result.err);
   assert.ok(
     result.out.includes(
-      "jisso t jisso-h — sess-jisso — listed as jisso-h (background) — blocked — no first turn since 2026-10-04 10:02\n",
+      "jisso t jisso-h — sess-jisso — listed as jisso-h (background) — blocked (permission prompt) — no first turn since 2026-10-04 10:02\n",
     ),
     result.out,
   );
