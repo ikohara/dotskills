@@ -26,7 +26,7 @@ const FIRST_TURN_WAIT_MS = 120000;
 const HEARTBEAT_STALE_MS = 60000;
 
 // The ops, in the order `templates/spawn-request.md` documents them.
-const OPS = ["spawn", "stop", "rm", "resume", "attention", "ack"];
+const OPS = ["spawn", "stop", "rm", "resume", "attention", "ack", "park", "hold", "release"];
 
 // The seat statuses `seats.json` carries. They are not the roster's words:
 // the roster gains `stopped` alone, and Kanri writes it.
@@ -986,9 +986,234 @@ function handleRequest(root, request, seats, requestId) {
     return { notified: stamp(), channel };
   }
 
+  if (request.op === "park") return opPark(request, seat);
+  if (request.op === "hold") return opHold(root, request, seat);
+  if (request.op === "release") {
+    if (!seat) return { error: `unknown seat ${request.sessionId}` };
+    // The mark alone (spec 2.4): a park the seat asked for while it was held
+    // proceeds at the next pass, and a seat that asked for none is left to
+    // its own next turn's end.
+    delete seat.held;
+    return { released: stamp() };
+  }
+
   // ack
   if (seat) delete seat.renamed;
   return { acked: stamp() };
+}
+
+// A seat parked at its own request and listed again with no new turn is
+// stopped again once it has been listed this long (spec 2.3): long enough
+// for a wake's `SendMessage` to begin a turn.
+const RELISTED_PARK_MS = 120000;
+
+/** Whether a seat is a contract-2 dialogue seat (spec 1.1, Words), the one kind the park and its census rules touch. */
+function isContractDialogue(seat) {
+  return seat?.contract === 2 && DIALOGUE_ROLES.includes(seat.role);
+}
+
+/** The launcher's way into a seat (spec 1.1): `tanto <role>`, with its topic when it has one. */
+function enterCommand(seat) {
+  const topic = seat.topic && seat.topic !== "—" ? ` ${seat.topic}` : "";
+  return `tanto ${seat.role}${topic}`;
+}
+
+/** Whether a process answers signal 0 — a launcher holds a seat while it does (spec 2.4). */
+function pidAlive(pid) {
+  try {
+    process.kill(Number(pid), 0);
+    return true;
+  } catch (error) {
+    return error?.code === "EPERM";
+  }
+}
+
+/**
+ * `park` (spec 2.2, 2.3): the request is recorded on the seat, replacing any
+ * earlier one, and answered at once; `tryParks` carries it out at the passes
+ * that follow.
+ */
+function opPark(request, seat) {
+  if (!isContractDialogue(seat)) return { error: "not a dialogue seat" };
+  if (seat.status === "stopped" || seat.status === "removed") return { error: "ended" };
+  const atMs = nowMs();
+  seat.parkRequest = { after: request.after, waiting: request.waiting === true, notice: request.notice === true, atMs };
+  return { parkRequested: atMs };
+}
+
+/**
+ * `hold` (spec 2.4): a launcher's mark, `pid` its own, written before an
+ * attach, which the listing does not show (H-1a); or Kanri's for a face with
+ * no launcher, `forMs` long. It wakes nothing — the attach does (P-4). A
+ * seat whose park is under thirty seconds old and still listed is waited out
+ * first, so that the attach does not meet a process that is leaving (S-5).
+ */
+function opHold(root, request, seat) {
+  if (!seat) return { error: `unknown seat ${request.sessionId}` };
+  if (seat.contract !== 2) return { error: "old-contract seat" };
+  if (seat.status === "stopped" || seat.status === "removed") return { error: "ended" };
+  if (!request.pid && !request.forMs) return { error: "a hold names a pid or forMs" };
+  if (seat.held?.pid && pidAlive(seat.held.pid)) return { error: "held by another terminal" };
+  const { entry, error } = listedEntry(root, seat.sessionId);
+  if (error) return { error: `claude agents: ${error}` };
+  if (entry?.kind === "interactive") return { error: "in a tab" };
+  if (entry && typeof seat.parkedAtMs === "number" && nowMs() - seat.parkedAtMs < STOP_SETTLE_MS) {
+    waitUnlisted(root, seat.sessionId);
+  }
+  const atMs = nowMs();
+  seat.held = request.pid ? { atMs, pid: Number(request.pid) } : { atMs, forMs: Number(request.forMs) };
+  return { held: atMs };
+}
+
+/** A park done (spec 2.3): `parked` now, its request kept as `lastPark` until a new turn begins. */
+function markParked(seat, park) {
+  seat.status = "parked";
+  seat.parkedAtMs = nowMs();
+  seat.lastPark = { after: park.after, waiting: park.waiting };
+  delete seat.kind;
+  delete seat.listedAtMs;
+}
+
+/**
+ * The park's stop (spec 2.3): the state file is written with the seat
+ * `parked` before `claude stop` runs, so that a sender who reads it
+ * meanwhile wakes the seat rather than sending into a process that is
+ * stopping. A stop that fails puts the seat back to `running`, and its
+ * `lastPark` is tried again by the standing request.
+ */
+function stopToPark(root, seats, seat, park) {
+  markParked(seat, park);
+  writeSeats(root, seats);
+  const got = runWithEitherId("stop", seat, seat.sessionId);
+  if (got.code !== 0 && !alreadyExited(got)) {
+    seat.status = "running";
+    delete seat.parkedAtMs;
+    appendLog(root, `park: ${seat.sessionId} stop failed — ${failureText(got)}`);
+    return;
+  }
+  appendLog(root, `park: ${seat.sessionId} stopped`);
+}
+
+/**
+ * One park request, tried (spec 2.3): decided by the transcript and a fresh
+ * listing, never by the seat's recorded status, which may be a pass behind.
+ * A new turn since `after` voids it; until the turn has ended nothing is
+ * done, and ten minutes after the request it is dropped. Once the turn has
+ * ended the seat's `waiting` is set from the request, once, with the notice
+ * when it goes from unset to set at a turn the human did not start. Then a
+ * seat not listed is `parked`; one a tab holds stays `running`; one in the
+ * background is stopped once it is `idle` and not held, and ten minutes
+ * after its turn ended with no hold the request is dropped and the seat left
+ * alive. A condition that cannot be read parks nothing.
+ */
+function tryPark(root, seats, seat, fresh) {
+  const park = seat.parkRequest;
+  const now = nowMs();
+  const transcript = seat.transcript || findTranscript(seat.sessionId);
+  const turn = transcript ? turnEnded(transcript, park.after) : null;
+  if (turn?.newTurn) {
+    delete seat.parkRequest;
+    appendLog(root, `park: ${seat.sessionId} void — a new turn began`);
+    return;
+  }
+  if (!turn?.ended) {
+    if (now - park.atMs >= STANDING_WAIT_MS) {
+      delete seat.parkRequest;
+      appendLog(root, `park: ${seat.sessionId} dropped — its turn did not end`);
+    }
+    return;
+  }
+  if (park.endedAtMs === undefined) {
+    park.endedAtMs = now;
+    if (park.waiting && park.notice && !seat.waiting) {
+      raiseNotice(`waiting: ${seat.role} ${seat.topic} — ${enterCommand(seat)}`);
+    }
+    if (park.waiting) seat.waiting = true;
+    else delete seat.waiting;
+  }
+  const sessions = fresh();
+  if (!sessions) return;
+  const entry = sessions.find((s) => s.sessionId === seat.sessionId && s.pid);
+  if (!entry) {
+    delete seat.parkRequest;
+    markParked(seat, park);
+    appendLog(root, `park: ${seat.sessionId} parked — not listed`);
+    return;
+  }
+  if (entry.kind === "interactive") {
+    delete seat.parkRequest;
+    appendLog(root, `park: ${seat.sessionId} left running — a tab holds it`);
+    return;
+  }
+  if (seat.held) return;
+  if (entry.status === "idle") {
+    delete seat.parkRequest;
+    stopToPark(root, seats, seat, park);
+    return;
+  }
+  if (now - park.endedAtMs >= STANDING_WAIT_MS) {
+    delete seat.parkRequest;
+    appendLog(
+      root,
+      `park: ${seat.sessionId} dropped — ${entry.status || "no status"} ten minutes after its turn ended`,
+    );
+  }
+}
+
+/**
+ * The standing request (spec 2.3): a seat parked at its own request and
+ * listed in the background again — woken by an attach or a wake — in which
+ * no new turn has begun since `lastPark.after` is stopped again, state
+ * first, once it has been listed two minutes, is `idle`, and is not held:
+ * its own last request carried out again, not a park on the spawner's
+ * reading. A new turn ends the standing request.
+ */
+function standingPark(root, seats, seat, fresh) {
+  const park = seat.lastPark;
+  const transcript = seat.transcript || findTranscript(seat.sessionId);
+  const turn = transcript ? turnEnded(transcript, park.after) : null;
+  if (!turn) return;
+  if (turn.newTurn) {
+    delete seat.lastPark;
+    delete seat.listedAtMs;
+    return;
+  }
+  const entry = fresh()?.find((s) => s.sessionId === seat.sessionId && s.pid);
+  if (!entry || entry.kind === "interactive") return;
+  if (typeof seat.listedAtMs !== "number") {
+    seat.listedAtMs = nowMs();
+    return;
+  }
+  if (nowMs() - seat.listedAtMs < RELISTED_PARK_MS || entry.status !== "idle" || seat.held) return;
+  appendLog(root, `park: ${seat.sessionId} listed again with no new turn`);
+  stopToPark(root, seats, seat, park);
+}
+
+/**
+ * Every park request, at every request pass and every census pass (spec
+ * 2.3), and the standing request of every seat parked at its own word, at a
+ * census pass. A listing is taken once, and only when a seat needs one;
+ * `sessions` is the census's own.
+ */
+function tryParks(root, seats, sessions = null, census = false) {
+  const due = seats.filter(
+    (seat) => seat.status !== "stopped" && seat.status !== "removed" && (seat.parkRequest || (census && seat.lastPark)),
+  );
+  if (due.length === 0) return;
+  let listed = sessions;
+  const fresh = () => {
+    if (!listed) {
+      const listing = listAgents(root);
+      if (listing.error) return null;
+      listed = listing.sessions;
+    }
+    return listed;
+  };
+  for (const seat of due) {
+    if (seat.parkRequest) tryPark(root, seats, seat, fresh);
+    else standingPark(root, seats, seat, fresh);
+  }
+  writeSeats(root, seats);
 }
 
 function takeRequests(root, seats) {
@@ -1042,6 +1267,7 @@ function takeRequests(root, seats) {
     const said = outcome.error ? `error: ${outcome.error}` : outcome.note ? `ok (${outcome.note})` : "ok";
     appendLog(root, `${request.op} ${name} ${said}`);
   }
+  tryParks(root, seats);
   leavePass(root, seats);
 }
 
@@ -1165,6 +1391,7 @@ function runCensus(root, seats) {
   }
   leavePass(root, seats, listing.sessions);
   endOnceSeats(root, seats);
+  tryParks(root, seats, listing.sessions, true);
   writeSeats(root, seats);
   return seats;
 }

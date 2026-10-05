@@ -81,6 +81,9 @@ if (sub === "stop" || sub === "rm") {
     process.exit(1);
   }
   if (sub === "stop") {
+    // What seats.json held as the stop ran: the park writes it first (spec 2.3).
+    const seatsFile = state.root + "/.tanto/spawner/seats.json";
+    if (fs.existsSync(seatsFile)) state.seatsAtStop = fs.readFileSync(seatsFile, "utf8");
     found.state = "stopped";
     if (state.dropsOnStop) state.sessions = state.sessions.filter((s) => s !== found);
   } else {
@@ -1164,6 +1167,203 @@ test("ack clears the renamed mark of the session it names", () => {
   assert.match(result(ws, id).acked, /\d/);
   assert.equal(seats(ws)[0].renamed, undefined);
   assert.equal(seats(ws)[0].name, "seat-two [cccccc]");
+});
+
+/**
+ * A contract-2 Sekkei the spawner holds, its transcript `records`, listed in
+ * the background and idle with `listing` merged in; the fake drops a stopped
+ * session from the listing, as the CLI does once the process has left.
+ */
+function dialogueSeat(ws, { seat = {}, listing = {}, records = ENDED_TURN } = {}) {
+  const transcript = writeRecords(ws, "sess-d", records);
+  const name = "dotskills-sekkei-t-0a0b";
+  setState(ws, {
+    sessions: [
+      {
+        sessionId: "sess-d",
+        id: "bg05",
+        name,
+        cwd: ws.root,
+        kind: "background",
+        pid: 4321,
+        status: "idle",
+        ...listing,
+      },
+    ],
+    dropsOnStop: true,
+  });
+  putSeats(ws, [
+    {
+      sessionId: "sess-d",
+      id: "bg05",
+      name,
+      role: "sekkei",
+      topic: "t",
+      contract: 2,
+      status: "running",
+      transcript,
+      ...seat,
+    },
+  ]);
+  return transcript;
+}
+
+const PARK = { op: "park", sessionId: "sess-d", after: "u2" };
+const once = (ws, opts) => run(ws, ["run", "--root", ws.root, "--once"], opts);
+const stopsOf = (ws) =>
+  calls(ws)
+    .filter((argv) => argv[0] === "stop")
+    .map((argv) => argv[1]);
+const LATER = (ms) => ({ env: { TANTO_NOW_MS: String(STARTED_AT + ms) } });
+
+test("a park stops an idle seat once its turn has ended, state first, decided by the listing and not the recorded status (spec 2.3)", () => {
+  for (const status of ["running", "blocked"]) {
+    const ws = workspace();
+    dialogueSeat(ws, { seat: { status } });
+    const { id } = request(ws, PARK);
+    once(ws);
+    assert.equal(result(ws, id).parkRequested, STARTED_AT);
+    assert.deepEqual(stopsOf(ws), ["sess-d"]);
+    const seat = seats(ws)[0];
+    assert.equal(seat.status, "parked");
+    assert.equal(seat.parkedAtMs, STARTED_AT);
+    assert.deepEqual(seat.lastPark, { after: "u2", waiting: false });
+    assert.equal(seat.parkRequest, undefined);
+    const atStop = JSON.parse(JSON.parse(fs.readFileSync(ws.state, "utf8")).seatsAtStop).seats[0];
+    assert.equal(atStop.status, "parked");
+  }
+});
+
+test("a park waits on a busy seat, a seat on a prompt, and a held one, and is dropped ten minutes after the turn ended unless held (spec 2.3)", () => {
+  const cases = [
+    { listing: { status: "busy" } },
+    { listing: { status: "waiting", waitingFor: "permission prompt" } },
+    { seat: { held: { atMs: STARTED_AT, pid: process.pid } } },
+  ];
+  for (const { listing, seat } of cases) {
+    const ws = workspace();
+    dialogueSeat(ws, { listing, seat });
+    request(ws, PARK);
+    once(ws);
+    assert.deepEqual(stopsOf(ws), []);
+    assert.equal(seats(ws)[0].parkRequest.endedAtMs, STARTED_AT);
+    once(ws, LATER(600000));
+    assert.deepEqual(stopsOf(ws), []);
+    assert.equal(seats(ws)[0].parkRequest === undefined, !seat?.held);
+  }
+});
+
+test("a park is kept until the turn ends, dropped ten minutes after it was asked, and voided by a new turn (spec 2.3)", () => {
+  const ws = workspace();
+  dialogueSeat(ws, { records: ENDED_TURN.slice(0, 2) });
+  request(ws, PARK);
+  once(ws);
+  assert.equal(seats(ws)[0].parkRequest.after, "u2");
+  once(ws, LATER(600000));
+  assert.equal(seats(ws)[0].parkRequest, undefined);
+  assert.match(spawnerLog(ws), /park: sess-d dropped — its turn did not end/);
+
+  const voided = workspace();
+  dialogueSeat(voided, { records: [...ENDED_TURN, REC.human("u5")] });
+  request(voided, PARK);
+  once(voided);
+  assert.equal(seats(voided)[0].parkRequest, undefined);
+  assert.match(spawnerLog(voided), /park: sess-d void — a new turn began/);
+  assert.deepEqual(stopsOf(voided), []);
+});
+
+test("a park parks an unlisted seat with no stop, leaves one a tab holds running, and raises the waiting notice once (spec 2.2, 2.3)", () => {
+  const gone = workspace();
+  dialogueSeat(gone, { listing: { hidden: true } });
+  request(gone, PARK);
+  once(gone);
+  assert.equal(seats(gone)[0].status, "parked");
+  assert.deepEqual(stopsOf(gone), []);
+
+  const tab = workspace();
+  dialogueSeat(tab, { listing: { kind: "interactive" } });
+  request(tab, { ...PARK, waiting: true, notice: true });
+  once(tab);
+  assert.equal(seats(tab)[0].status, "running");
+  assert.equal(seats(tab)[0].waiting, true);
+  assert.equal(seats(tab)[0].parkRequest, undefined);
+  assert.deepEqual(notices(tab), ["waiting: sekkei t — tanto sekkei t"]);
+  // A peer's line starts a turn while the question stands: no second notice.
+  const second = [REC.human("u5", { isMeta: true }), REC.tool("u6", "m3"), REC.result("u7"), REC.end("u8", "m4")];
+  writeRecords(tab, "sess-d", [...ENDED_TURN, ...second, REC.close("stop_hook_summary")]);
+  request(tab, { ...PARK, after: "u6", waiting: true, notice: true });
+  once(tab);
+  assert.equal(notices(tab).length, 1);
+  // A turn's end without --waiting clears it.
+  request(tab, { ...PARK, after: "u6" });
+  once(tab);
+  assert.equal(seats(tab)[0].waiting, undefined);
+});
+
+test("the standing request stops a seat listed again with no new turn two minutes on, not while held, and ends at a new turn (spec 2.3)", () => {
+  for (const held of [false, true]) {
+    const ws = workspace();
+    const mark = held ? { held: { atMs: STARTED_AT, pid: process.pid } } : {};
+    const lastPark = { after: "u2", waiting: false };
+    dialogueSeat(ws, { seat: { status: "parked", parkedAtMs: STARTED_AT - 600000, lastPark, ...mark } });
+    once(ws);
+    assert.deepEqual(stopsOf(ws), []);
+    assert.equal(seats(ws)[0].listedAtMs, STARTED_AT);
+    once(ws, LATER(120000));
+    assert.deepEqual(stopsOf(ws), held ? [] : ["sess-d"]);
+    if (!held) assert.equal(seats(ws)[0].status, "parked");
+  }
+  const ws = workspace();
+  const lastPark = { after: "u2", waiting: false };
+  dialogueSeat(ws, { records: [...ENDED_TURN, REC.human("u5")], seat: { lastPark } });
+  once(ws);
+  assert.equal(seats(ws)[0].lastPark, undefined);
+});
+
+test("hold marks a contract-2 seat, answers its errors, and release unmarks it and stops nothing (spec 2.4)", () => {
+  const ws = workspace();
+  dialogueSeat(ws);
+  const marked = request(ws, { op: "hold", sessionId: "sess-d", pid: process.pid });
+  once(ws);
+  assert.equal(result(ws, marked.id).held, STARTED_AT);
+  assert.deepEqual(seats(ws)[0].held, { atMs: STARTED_AT, pid: process.pid });
+  const other = request(ws, { op: "hold", sessionId: "sess-d", pid: process.pid + 1 });
+  once(ws);
+  assert.equal(result(ws, other.id).error, "held by another terminal");
+  const release = request(ws, { op: "release", sessionId: "sess-d" });
+  once(ws);
+  assert.match(result(ws, release.id).released, /\d/);
+  assert.equal(seats(ws)[0].held, undefined);
+  assert.equal(seats(ws)[0].status, "running");
+  const forFace = request(ws, { op: "hold", sessionId: "sess-d", forMs: 3300000 });
+  once(ws);
+  assert.deepEqual(seats(ws)[0].held, { atMs: STARTED_AT, forMs: 3300000 });
+  assert.equal(result(ws, forFace.id).error, undefined);
+  assert.deepEqual(stopsOf(ws), []);
+
+  const errorOf = (options, body) => {
+    const each = workspace();
+    dialogueSeat(each, options);
+    const { id } = request(each, { sessionId: "sess-d", ...body });
+    once(each);
+    return result(each, id).error;
+  };
+  const hold = { op: "hold", pid: process.pid };
+  assert.equal(errorOf({ listing: { kind: "interactive" } }, hold), "in a tab");
+  assert.equal(errorOf({ seat: { status: "stopped" } }, hold), "ended");
+  assert.equal(errorOf({ seat: { contract: undefined } }, hold), "old-contract seat");
+  assert.equal(errorOf({ seat: { contract: undefined } }, PARK), "not a dialogue seat");
+  assert.equal(errorOf({ seat: { status: "removed" } }, PARK), "ended");
+});
+
+test("hold waits out a park under thirty seconds old that the listing still shows (spec 2.4, S-5)", () => {
+  const ws = workspace();
+  dialogueSeat(ws, { listing: { leaving: 1 }, seat: { status: "parked", parkedAtMs: STARTED_AT - 5000 } });
+  const { id } = request(ws, { op: "hold", sessionId: "sess-d", pid: process.pid });
+  once(ws);
+  assert.equal(result(ws, id).held, STARTED_AT);
+  // The hold's own look, the wait's look that finds it gone, and the census's.
+  assert.equal(calls(ws).filter((argv) => argv[0] === "agents").length, 3);
 });
 
 test("an unparseable request writes an error result and a log line (Important 10)", () => {
