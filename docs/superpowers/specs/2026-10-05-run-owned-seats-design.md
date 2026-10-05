@@ -5,7 +5,7 @@ Written by Sekkei (fable, high; `sessionId` `2664b3f0`; its tab was named
 window reloads on the day) on 2026-10-05 on the branch `run-owned-seats`,
 cut from `main` at the topic's opening with no batch in flight, so this
 spec is not a draft and is committed at this path. The dialogue is
-`.tanto/run-owned-seats/dialogue.md`: the human's answers D-1 to D-24, and
+`.tanto/run-owned-seats/dialogue.md`: the human's answers D-1 to D-26, and
 the answers to the review brief. The measurements are
 `.tanto/run-owned-seats/notes-spike.md`, two rounds. This is the spec's
 fourth text: the second answered Kanri's I-1 to I-12; the third answered
@@ -119,7 +119,8 @@ reached by it") — or says that none does.
 
 Three things in this text are Sekkei's own, decided under the reviewer's
 second pass and Kanri's delta check; the review brief put them to the
-human, who has answered the first (D-22):
+human, who chose the spec's answer for each (D-22, D-26, D-25, in the
+order below):
 
 - **A wake that Kanri makes for the human holds the seat awake**, until
   55 minutes after its last turn (2.4, Finding 21, D-22). Without it, a
