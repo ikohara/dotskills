@@ -1,11 +1,17 @@
 // tanto's boundary instrument, beside `passage-check.js` and `reading.js`.
-// Three subcommands: `check`, which runs the boundary's read-only commands
-// and prints their output under fixed headings, and `record`, which writes
-// the ledger's and the roster's rows — both run by the `boundary.verify` kind
-// from `templates/boundary-brief.md`, and, under the design's shape 2, by a
-// headless session running the same brief — and `census`, which Kanri runs
-// itself: the roster's `live` and `queued` rows against the CLI's listing of
-// the sessions under the root, read-only. It judges nothing.
+// Seven subcommands. `check` runs the boundary's read-only commands and
+// prints their output under fixed headings, and `record` writes the ledger's
+// and the roster's rows — both run by the `boundary.verify` kind from
+// `templates/boundary-brief.md`, and, under the design's shape 2, by a
+// headless session running the same brief. Kanri runs the next four itself:
+// `census`, the roster's `live` and `queued` rows against the spawner's state
+// file and the CLI's listing of the sessions under the root, read-only;
+// `seat`, a seat's status and its name at the moment of sending; `wake`, a
+// `resume` for each parked seat it names; and `beat`, the spawner's
+// heartbeat, read before every request. `request` is a seat's own, its
+// `park` or its `leave`, written as its turn's last tool call. Only `record`
+// writes a document, and only `wake` and `request` write request files. It
+// judges nothing.
 //
 // Node, no dependencies, no shebang: always
 // `node "$TANTO/scripts/boundary.js" <subcommand>`.
@@ -920,12 +926,281 @@ function cmdCensus(argv) {
   return 0;
 }
 
+/**
+ * The four subcommands' arguments after `census`: a flag named in `switches`
+ * is bare, every other `--flag` takes the next argument, and the rest are
+ * positionals, in order — `wake --hold <sessionId>` must not read the id as
+ * the switch's value, as `parseArgs` would.
+ */
+function parseLine(argv, switches) {
+  const values = {};
+  const positionals = [];
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (!arg.startsWith("--")) {
+      positionals.push(arg);
+      continue;
+    }
+    const name = arg.slice(2);
+    const next = argv[i + 1];
+    if (switches.includes(name) || next === undefined || next.startsWith("--")) {
+      values[name] = true;
+      continue;
+    }
+    values[name] = next;
+    i++;
+  }
+  return { values, positionals };
+}
+
+/** `--root`, else the cwd, resolved; null when `--root` is given bare. */
+function rootOf(values) {
+  if (values.root === true) return null;
+  return path.resolve(given(values, "root") || process.cwd());
+}
+
+function sleepSync(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+/**
+ * Request files under the spawner's `requests/`, each through a temp file
+ * and a rename, as `tanto.js` writes them. The ids share one stamp and are
+ * numbered in order, so that the spawner, which takes requests in name
+ * order, takes a `hold` before the `resume` written after it. Returns the
+ * ids; throws when there is no requests directory.
+ */
+function writeRequests(root, bodies) {
+  const dir = path.join(spawner.spawnerDir(root), "requests");
+  if (!fs.statSync(dir).isDirectory()) throw new Error(`${dir} is not a directory`);
+  const at = new Date().toISOString().replace(/[:.]/g, "-");
+  const tag = Math.random().toString(36).slice(2, 8);
+  return bodies.map((body, i) => {
+    const id = `${at}-${String(i).padStart(3, "0")}-${tag}`;
+    const file = path.join(dir, `${id}.json`);
+    fs.writeFileSync(`${file}.tmp`, `${JSON.stringify(body, null, 2)}\n`);
+    fs.renameSync(`${file}.tmp`, file);
+    return id;
+  });
+}
+
+/**
+ * The `uuid` of a transcript's last record that carries one — a record may
+ * carry none — or null. A last line cut by a write in progress is skipped.
+ * Throws when the file cannot be read.
+ */
+function lastUuid(file) {
+  const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (!lines[i].trim()) continue;
+    try {
+      const record = JSON.parse(lines[i]);
+      if (typeof record?.uuid === "string" && record.uuid) return record.uuid;
+    } catch {
+      // Not a whole record; the one before it is read instead.
+    }
+  }
+  return null;
+}
+
+/**
+ * `request <park|leave> --transcript <path> [--waiting [--notice]]` (spec
+ * 2.2, 5.2): a seat's request about itself, written as its turn's last tool
+ * call. The `sessionId` is the transcript's basename and `after` the `uuid`
+ * of its last record that carries one, so that the spawner acts only once
+ * the turn that wrote the request has ended. `park` carries `waiting` and
+ * `notice`; `leave` is a `stop` with `self: true`.
+ */
+function cmdRequest(argv) {
+  const { values, positionals } = parseLine(argv, ["waiting", "notice"]);
+  const act = positionals[0];
+  if (act !== "park" && act !== "leave") return fail("request needs park or leave", 2);
+  const transcript = given(values, "transcript");
+  if (!transcript?.endsWith(".jsonl")) return fail("request needs --transcript <path>.jsonl", 2);
+  if (act === "leave" && (values.waiting || values.notice)) {
+    return fail("request leave takes no --waiting and no --notice", 2);
+  }
+  if (values.notice && !values.waiting) return fail("request park: --notice goes with --waiting", 2);
+  const root = rootOf(values);
+  if (!root) return fail("request: --root needs a value", 2);
+  let after;
+  try {
+    after = lastUuid(transcript);
+  } catch {
+    return fail(`request: cannot read the transcript at ${transcript}`, 2);
+  }
+  const sessionId = path.basename(transcript, ".jsonl");
+  const body =
+    act === "park"
+      ? { op: "park", sessionId, waiting: values.waiting === true, notice: values.notice === true }
+      : { op: "stop", sessionId, self: true };
+  if (after) body.after = after;
+  let ids;
+  try {
+    ids = writeRequests(root, [body]);
+  } catch {
+    return fail(`request: no spawner requests directory under ${root}`, 2);
+  }
+  console.log(`${act} requested: ${ids[0]}`);
+  return 0;
+}
+
+/** A seat by its `sessionId`, else the last one of that name — a `removed` messenger's among them (spec 4.4). */
+function findSeat(seats, who) {
+  if (seats.has(who)) return seats.get(who);
+  return [...seats.values()].filter((seat) => seat.name === who).pop() || null;
+}
+
+/**
+ * `seat`'s line, `<status> <name> <kind> <role> <turn>` (spec 2.5). The name
+ * and the kind are the listing's now, else the state file's name and `-`: a
+ * seat a tab holds stays listed after its `stop` (spec 5.1), which no census
+ * pass of the spawner records. `<turn>` is `ended` or `open` by the
+ * spawner's `turnEnded` over the whole transcript, `-` when none is on disk.
+ */
+function seatLine(seat, listed) {
+  const session = listed.get(seat.sessionId);
+  const name = session?.name || seat.name || "-";
+  const kind = session?.kind || "-";
+  let turn = "-";
+  if (seat.transcript && fs.existsSync(seat.transcript)) {
+    turn = spawner.turnEnded(seat.transcript)?.ended ? "ended" : "open";
+  }
+  return `${seat.status || "-"} ${name} ${kind} ${seat.role || "-"} ${turn}`;
+}
+
+/**
+ * `seat <sessionId or name> [--root <dir>]` (spec 2.5, 1.5): the seat's line
+ * from the state file, then the `spawner:` line. A session the state file
+ * does not hold prints `no entry <kind>`, the kind the listing's for it, `-`
+ * when it is not listed — what a session that ran `/tanto <role>` by hand
+ * reads to learn whether the run started it.
+ */
+function cmdSeat(argv) {
+  const { values, positionals } = parseLine(argv, []);
+  const who = positionals[0];
+  if (!who) return fail("seat needs a sessionId or a name", 2);
+  const root = rootOf(values);
+  if (!root) return fail("seat: --root needs a value", 2);
+  const listed = listing(root).listed || new Map();
+  const seat = findSeat(stateSeats(root), who);
+  if (seat) {
+    console.log(seatLine(seat, listed));
+  } else {
+    const session = listed.get(who) || [...listed.values()].find((s) => s.name === who);
+    console.log(`no entry ${session?.kind || "-"}`);
+  }
+  console.log(spawnerLine(root));
+  return 0;
+}
+
+/** A hold for a face with no launcher: 55 minutes past the seat's last turn, inside the hour's cache (spec 2.4, D-22). */
+const HOLD_FOR_MS = 3300000;
+
+/** How long `wake` waits for all its results (spec 2.5); `TANTO_WAKE_WAIT_MS` is a test seam. */
+function wakeWaitMs() {
+  return Number(process.env.TANTO_WAKE_WAIT_MS) || 60000;
+}
+
+/** The results of `ids` that land within `waitMs` in all, by id; one that does not is absent. */
+function waitForResults(root, ids, waitMs) {
+  const dir = path.join(spawner.spawnerDir(root), "results");
+  const found = new Map();
+  const until = Date.now() + waitMs;
+  for (;;) {
+    for (const id of ids) {
+      if (found.has(id)) continue;
+      try {
+        found.set(id, JSON.parse(fs.readFileSync(path.join(dir, `${id}.json`), "utf8")));
+      } catch {
+        // Not there yet: the spawner writes a result through a rename.
+      }
+    }
+    if (found.size === ids.length || Date.now() >= until) return found;
+    sleepSync(500);
+  }
+}
+
+/**
+ * `wake [--hold] <sessionId>... [--root <dir>]` (spec 2.5): the `spawner:`
+ * line; then a `resume` with no prompt for each seat, all written at once —
+ * each after a `hold` with `forMs` and no `pid` when `--hold` is given (spec
+ * 2.4) — one wait of up to sixty seconds for every result, and one line per
+ * seat: `seat`'s line, or `error: <the result's error> — <sessionId>` with
+ * the name the result carries. On a stale spawner it writes nothing: a
+ * request no spawner takes is a line that waits unseen.
+ */
+function cmdWake(argv) {
+  const { values, positionals } = parseLine(argv, ["hold"]);
+  const ids = [...new Set(positionals)];
+  if (ids.length === 0) return fail("wake needs a sessionId", 2);
+  const root = rootOf(values);
+  if (!root) return fail("wake: --root needs a value", 2);
+  const beat = spawnerLine(root);
+  console.log(beat);
+  if (beat !== "spawner: beating") return 1;
+  const bodies = [];
+  const plan = ids.map((sessionId) => {
+    const entry = { sessionId, hold: null, resume: null };
+    if (values.hold) {
+      entry.hold = bodies.length;
+      bodies.push({ op: "hold", sessionId, forMs: HOLD_FOR_MS });
+    }
+    entry.resume = bodies.length;
+    bodies.push({ op: "resume", sessionId });
+    return entry;
+  });
+  let written;
+  try {
+    written = writeRequests(root, bodies);
+  } catch {
+    return fail(`wake: no spawner requests directory under ${root}`, 2);
+  }
+  const results = waitForResults(root, written, wakeWaitMs());
+  const listed = listing(root).listed || new Map();
+  const seats = stateSeats(root);
+  let failed = false;
+  for (const entry of plan) {
+    const result = results.get(written[entry.resume]);
+    if (!result || result.error) {
+      failed = true;
+      const name = result?.name ? ` ${result.name}` : "";
+      console.log(`error: ${result ? result.error : "no result"} — ${entry.sessionId}${name}`);
+      continue;
+    }
+    // A hold that failed leaves the seat awake and unheld: said on its line,
+    // which still begins with the five words.
+    let held = "";
+    if (entry.hold !== null) {
+      const hold = results.get(written[entry.hold]);
+      if (!hold || hold.error) held = ` — hold: ${hold ? hold.error : "no result"}`;
+    }
+    const seat = seats.get(entry.sessionId);
+    console.log(`${seat ? seatLine(seat, listed) : `no entry ${listed.get(entry.sessionId)?.kind || "-"}`}${held}`);
+  }
+  return failed ? 1 : 0;
+}
+
+/** `beat [--root <dir>]` (spec 2.5): the `spawner:` line alone, exit 1 when stale. */
+function cmdBeat(argv) {
+  const { values } = parseLine(argv, []);
+  const root = rootOf(values);
+  if (!root) return fail("beat: --root needs a value", 2);
+  const line = spawnerLine(root);
+  console.log(line);
+  return line === "spawner: beating" ? 0 : 1;
+}
+
 function main(argv) {
   const sub = argv[0];
   if (sub === "check") return cmdCheck(argv.slice(1));
   if (sub === "record") return cmdRecord(argv.slice(1));
   if (sub === "census") return cmdCensus(argv.slice(1));
-  return fail("usage: boundary.js check|record|census <options>", 2);
+  if (sub === "request") return cmdRequest(argv.slice(1));
+  if (sub === "seat") return cmdSeat(argv.slice(1));
+  if (sub === "wake") return cmdWake(argv.slice(1));
+  if (sub === "beat") return cmdBeat(argv.slice(1));
+  return fail("usage: boundary.js check|record|census|request|seat|wake|beat <options>", 2);
 }
 
 process.exitCode = main(process.argv.slice(2));

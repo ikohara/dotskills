@@ -4,7 +4,7 @@ const assert = require("node:assert");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { spawnSync } = require("node:child_process");
+const { spawn, spawnSync } = require("node:child_process");
 
 const SCRIPT = path.join(__dirname, "boundary.js");
 const TANTO = path.dirname(__dirname);
@@ -242,11 +242,11 @@ test("check exits 2 when an argument is unnamed and when a path is absent", () =
   assert.match(gone.err, /--report .* is not on disk/);
 });
 
-test("an unknown subcommand exits 2 and names the three that exist", () => {
+test("an unknown subcommand exits 2 and names the seven that exist", () => {
   const f = fixture();
   const result = run(["verify"], f.dir);
   assert.strictEqual(result.code, 2);
-  assert.match(result.err, /check\|record\|census/);
+  assert.match(result.err, /check\|record\|census\|request\|seat\|wake\|beat/);
 });
 
 // The ledger and the roster the tests write to are copies of the templates
@@ -1309,4 +1309,268 @@ test("census matches a row whose Transcript cell is the bare session id: a block
     result.out,
   );
   assert.ok(result.out.includes("\n## No session id\n\nnone\n"), result.out);
+});
+
+// `request`, `seat`, `wake`, and `beat`: a root with the spawner's directory,
+// its state file, and its heartbeat — fresh, or ten minutes old — and the
+// census's fake `claude` for the listing.
+function spawnerFixture(seatsOf, sessionsOf, beating = true) {
+  const f = censusFixture([KANRI_ROW], sessionsOf);
+  const dir = path.join(f.root, ".tanto", "spawner");
+  fs.mkdirSync(path.join(dir, "requests"), { recursive: true });
+  fs.mkdirSync(path.join(dir, "results"), { recursive: true });
+  fs.writeFileSync(path.join(dir, "seats.json"), JSON.stringify({ seats: seatsOf(f) }));
+  fs.writeFileSync(path.join(dir, "heartbeat"), `${Date.now() - (beating ? 0 : 600000)}\n`);
+  return { ...f, spawner: dir };
+}
+
+function fakeEnv(f) {
+  return { ...process.env, TANTO_CLAUDE_NODE: f.fake, FAKE_LISTING: f.listing, FAKE_ARGS: f.args, FAKE_MODE: "" };
+}
+
+function sub(f, args, env = {}) {
+  const result = spawnSync(process.execPath, [SCRIPT, ...args], {
+    encoding: "utf8",
+    cwd: f.root,
+    env: { ...fakeEnv(f), ...env },
+  });
+  return { code: result.status, out: (result.stdout || "").replace(/\r\n/g, "\n"), err: result.stderr || "" };
+}
+
+/** The request files `wake` or `request` wrote, in the order the spawner takes them. */
+function requestsOf(f) {
+  const dir = path.join(f.spawner, "requests");
+  return fs
+    .readdirSync(dir)
+    .filter((name) => name.endsWith(".json"))
+    .sort()
+    .map((name) => JSON.parse(fs.readFileSync(path.join(dir, name), "utf8")));
+}
+
+/**
+ * A transcript of one turn: ended — an `end_turn` message its Stop hook's
+ * record settles — or open on a tool call; with `tail`, records after it.
+ */
+function transcriptOf(dir, sessionId, ended, tail = []) {
+  const reply = ended
+    ? { id: "msg-1", model: "claude-test", stop_reason: "end_turn", content: [{ type: "text", text: "done" }] }
+    : { id: "msg-1", model: "claude-test", stop_reason: "tool_use", content: [{ type: "tool_use", id: "t-1" }] };
+  const records = [
+    { type: "user", uuid: "u-1", message: { role: "user", content: "go" } },
+    { type: "assistant", uuid: "a-1", message: reply },
+    ...(ended ? [{ type: "system", subtype: "stop_hook_summary", uuid: "s-1" }] : []),
+    ...tail,
+  ];
+  return write(dir, `${sessionId}.jsonl`, `${records.map((r) => JSON.stringify(r)).join("\n")}\n`);
+}
+
+test("request park and request leave write the seat's own request, after its transcript's last uuid (spec 2.2, 5.2)", () => {
+  const f = spawnerFixture(
+    () => [],
+    () => [],
+  );
+  // The last record carries no uuid; the one before it does.
+  const t = transcriptOf(f.dir, "sess-park", true, [{ type: "file-history-snapshot", messageId: "m-1" }]);
+  assert.strictEqual(sub(f, ["request", "park", "--transcript", t, "--waiting", "--notice"]).code, 0);
+  assert.deepStrictEqual(requestsOf(f), [
+    { op: "park", sessionId: "sess-park", waiting: true, notice: true, after: "s-1" },
+  ]);
+  for (const name of fs.readdirSync(path.join(f.spawner, "requests"))) {
+    fs.rmSync(path.join(f.spawner, "requests", name));
+  }
+  const parked = sub(f, ["request", "park", "--transcript", t]);
+  assert.strictEqual(parked.code, 0, parked.err);
+  assert.match(parked.out, /^park requested: \S+\n$/);
+  const leave = sub(f, ["request", "leave", "--transcript", t]);
+  assert.strictEqual(leave.code, 0, leave.err);
+  assert.deepStrictEqual(requestsOf(f), [
+    { op: "park", sessionId: "sess-park", waiting: false, notice: false, after: "s-1" },
+    { op: "stop", sessionId: "sess-park", self: true, after: "s-1" },
+  ]);
+});
+
+test("request refuses --notice without --waiting, a flag on leave, and a root with no spawner, writing nothing", () => {
+  const f = spawnerFixture(
+    () => [],
+    () => [],
+  );
+  const t = transcriptOf(f.dir, "sess-park", true);
+  const refusals = [
+    [["park", "--transcript", t, "--notice"], /--notice goes with --waiting/],
+    [["leave", "--transcript", t, "--waiting"], /takes no --waiting and no --notice/],
+    [["sleep", "--transcript", t], /needs park or leave/],
+    [["park", "--transcript", t, "--root", f.dir], /no spawner requests directory/],
+  ];
+  for (const [args, said] of refusals) {
+    const got = sub(f, ["request", ...args]);
+    assert.strictEqual(got.code, 2, got.err);
+    assert.match(got.err, said);
+  }
+  assert.deepStrictEqual(requestsOf(f), []);
+});
+
+test("seat prints its five words and the spawner: line, by sessionId or by name, and no entry with the listing's kind (spec 1.5, 2.5)", () => {
+  const f = spawnerFixture(
+    (fx) => [
+      {
+        sessionId: "sess-a",
+        name: "dotskills-sekkei-t-1a2b",
+        role: "sekkei",
+        status: "parked",
+        transcript: transcriptOf(fx.dir, "sess-a", true),
+      },
+      {
+        sessionId: "sess-b",
+        name: "dotskills-keikaku-t-3c4d",
+        role: "keikaku",
+        status: "running",
+        transcript: transcriptOf(fx.dir, "sess-b", false),
+      },
+      // Stopped while a tab holds it: still listed, under the editor's name.
+      { sessionId: "sess-c", name: "dotskills-kikaku-5e6f", role: "kikaku", status: "stopped" },
+      { sessionId: "sess-d", name: "dotskills-denrei-7a8b", role: "denrei", status: "removed" },
+    ],
+    (root) => [
+      { sessionId: "sess-b", name: "dotskills-keikaku-t-3c4d", kind: "background", cwd: root, pid: 1112 },
+      { sessionId: "sess-c", name: "dotskills-7b", kind: "interactive", cwd: root, pid: 1113 },
+      { sessionId: "sess-bg", name: "dotskills-kanri-9e9e", kind: "background", cwd: root, pid: 1114 },
+      { sessionId: "sess-tab", name: "dotskills-3f", kind: "interactive", cwd: root, pid: 1115 },
+    ],
+  );
+  const lines = (who) => sub(f, ["seat", who, "--root", f.root]).out;
+  assert.strictEqual(lines("sess-a"), "parked dotskills-sekkei-t-1a2b - sekkei ended\nspawner: beating\n");
+  assert.strictEqual(lines("sess-b"), "running dotskills-keikaku-t-3c4d background keikaku open\nspawner: beating\n");
+  assert.strictEqual(lines("sess-c"), "stopped dotskills-7b interactive kikaku -\nspawner: beating\n");
+  assert.strictEqual(lines("dotskills-denrei-7a8b"), "removed dotskills-denrei-7a8b - denrei -\nspawner: beating\n");
+  assert.strictEqual(lines("sess-bg"), "no entry background\nspawner: beating\n");
+  assert.strictEqual(lines("sess-tab"), "no entry interactive\nspawner: beating\n");
+  assert.strictEqual(lines("sess-none"), "no entry -\nspawner: beating\n");
+});
+
+test("beat prints the spawner: line and exits 1 when the heartbeat is stale or absent (spec 2.5)", () => {
+  const live = spawnerFixture(
+    () => [],
+    () => [],
+  );
+  assert.deepStrictEqual(sub(live, ["beat", "--root", live.root]), {
+    code: 0,
+    out: "spawner: beating\n",
+    err: "",
+  });
+  const stale = spawnerFixture(
+    () => [],
+    () => [],
+    false,
+  );
+  assert.strictEqual(sub(stale, ["beat", "--root", stale.root]).out, "spawner: stale\n");
+  assert.strictEqual(sub(stale, ["beat", "--root", stale.root]).code, 1);
+  fs.rmSync(path.join(stale.spawner, "heartbeat"));
+  assert.strictEqual(sub(stale, ["beat", "--root", stale.root]).out, "spawner: stale\n");
+});
+
+/**
+ * `wake`, run beside a fake spawner that answers each request it finds with
+ * `answer(request)` merged into it, as the spawner writes a result.
+ */
+async function wakeBeside(f, args, answer) {
+  const child = spawn(process.execPath, [SCRIPT, "wake", "--root", f.root, ...args], {
+    cwd: f.root,
+    env: { ...fakeEnv(f), TANTO_WAKE_WAIT_MS: "10000" },
+  });
+  let out = "";
+  child.stdout.on("data", (chunk) => {
+    out += chunk;
+  });
+  let code = null;
+  child.on("close", (status) => {
+    code = status;
+  });
+  const seen = [];
+  while (code === null) {
+    const dir = path.join(f.spawner, "requests");
+    const names = fs.readdirSync(dir).filter((n) => n.endsWith(".json"));
+    for (const name of names.sort()) {
+      const request = JSON.parse(fs.readFileSync(path.join(dir, name), "utf8"));
+      fs.rmSync(path.join(dir, name));
+      seen.push(request);
+      const result = path.join(f.spawner, "results", name);
+      fs.writeFileSync(`${result}.tmp`, JSON.stringify({ ...request, ...answer(request) }));
+      fs.renameSync(`${result}.tmp`, result);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  return { code, out: out.replace(/\r\n/g, "\n"), seen };
+}
+
+test("wake resumes several seats with no prompt in one call, and prints each seat's line or its error (spec 2.5)", async () => {
+  const f = spawnerFixture(
+    (fx) => [
+      {
+        sessionId: "sess-a",
+        name: "dotskills-sekkei-t-1a2b",
+        role: "sekkei",
+        status: "parked",
+        transcript: transcriptOf(fx.dir, "sess-a", true),
+      },
+      { sessionId: "sess-b", name: "dotskills-keikaku-t-3c4d", role: "keikaku", status: "parked" },
+    ],
+    (root) => [{ sessionId: "sess-a", name: "dotskills-sekkei-t-1a2b", kind: "background", cwd: root, pid: 1112 }],
+  );
+  const seatsFile = path.join(f.spawner, "seats.json");
+  const woken = await wakeBeside(f, ["sess-a", "sess-b"], (request) => {
+    if (request.sessionId === "sess-b") return { error: "listed", name: "dotskills-4d", kind: "interactive" };
+    const doc = JSON.parse(fs.readFileSync(seatsFile, "utf8"));
+    doc.seats[0].status = "running";
+    fs.writeFileSync(seatsFile, JSON.stringify(doc));
+    return { id: "1a2b", name: "dotskills-sekkei-t-1a2b" };
+  });
+  assert.deepStrictEqual(woken.seen, [
+    { op: "resume", sessionId: "sess-a" },
+    { op: "resume", sessionId: "sess-b" },
+  ]);
+  assert.strictEqual(
+    woken.out,
+    [
+      "spawner: beating",
+      "running dotskills-sekkei-t-1a2b background sekkei ended",
+      "error: listed — sess-b dotskills-4d",
+      "",
+    ].join("\n"),
+  );
+  assert.strictEqual(woken.code, 1);
+});
+
+test("wake --hold writes each seat's hold, with forMs and no pid, before its resume (spec 2.4)", async () => {
+  const f = spawnerFixture(
+    () => [{ sessionId: "sess-a", name: "dotskills-hosa-1a2b", role: "hosa", status: "parked" }],
+    () => [],
+  );
+  const woken = await wakeBeside(f, ["--hold", "sess-a"], () => ({}));
+  assert.deepStrictEqual(woken.seen, [
+    { op: "hold", sessionId: "sess-a", forMs: 3300000 },
+    { op: "resume", sessionId: "sess-a" },
+  ]);
+  assert.strictEqual(woken.out, "spawner: beating\nparked dotskills-hosa-1a2b - hosa -\n");
+  assert.strictEqual(woken.code, 0);
+});
+
+test("wake writes nothing on a stale spawner, and names a seat whose result never came", () => {
+  const stale = spawnerFixture(
+    () => [],
+    () => [],
+    false,
+  );
+  assert.deepStrictEqual(sub(stale, ["wake", "sess-a", "--root", stale.root]), {
+    code: 1,
+    out: "spawner: stale\n",
+    err: "",
+  });
+  assert.deepStrictEqual(requestsOf(stale), []);
+  const quiet = spawnerFixture(
+    () => [],
+    () => [],
+  );
+  const got = sub(quiet, ["wake", "sess-a", "--root", quiet.root], { TANTO_WAKE_WAIT_MS: "300" });
+  assert.strictEqual(got.out, "spawner: beating\nerror: no result — sess-a\n");
+  assert.strictEqual(got.code, 1);
 });
