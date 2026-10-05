@@ -9,16 +9,19 @@ one implementation plan.
   repository, on the same branch except shoki's, which works in a worktree
   Kanri cuts: **Kanri** (管理) manages, **Sekkei** (設計)
   writes the spec, **Keikaku** (計画) writes the plan, **Jisso** (実装)
-  implements, **Kaiseki** (解析) root-causes. A seat whose work is dialogue
-  with the human — Sekkei, Kaiseki, and the two below — is a tab the human
-  opens; every other seat is a background session, an instrument of the
-  skill's starts, stops, and resumes on a request file the run writes, so
-  that no session ever issues a session-creating command. The human reaches
-  a terminal seat with `claude attach` in the editor's own terminal.
-- Adds two seats outside that lifecycle, opened by the human and never
-  requested by Kanri: **Kikaku** (企画) thinks with the human about what the
-  next work is and hands Kanri a decision file, and **Hosa** (補佐) takes the
-  small jobs, editing tracked files only in a slot Kanri gives.
+  implements, **Kaiseki** (解析) root-causes. Every seat is a background
+  session the run starts, stops, and resumes on a request file it writes,
+  so that no session ever issues a session-creating command. A seat whose
+  work is dialogue with the human — Sekkei, Keikaku, Kaiseki, and the two
+  below — is parked between its turns, its process stopped and its
+  conversation kept, and is woken when a line is due. The human enters any
+  seat with `tanto <role>` in the editor's own terminal, and a dialogue seat
+  also by a click on its row in the editor's session list.
+- Adds two seats outside that lifecycle, started by the human with
+  `tanto kikaku` and `tanto hosa`, ended by `/tanto taiseki` typed in them,
+  and never requested by Kanri: **Kikaku** (企画) thinks with the human about
+  what the next work is and hands Kanri a decision file, and **Hosa** (補佐)
+  takes the small jobs, editing tracked files only in a slot Kanri gives.
 - Gives each session one procedure file plus a shared contract, so a session
   loads its own role and not the whole protocol.
 - Keeps state in files rather than in messages — a roster, a conductor ledger,
@@ -45,8 +48,10 @@ one implementation plan.
   started at its landing and wait, so that every one of them read the same
   skill.
 - Takes bug reports about the skills this repository ships: a report is a
-  file and one line to the run's live Hosa, or to Kanri when none is live,
-  which copies it and answers `received:`; every report is decided at the
+  file and one line to the run's Hosa while the listing shows one in a
+  turn, else to Kanri — in practice Kanri, since a Hosa is parked between
+  its turns — which copies it and answers `received:`; every report is
+  decided at the
   next topic's close with everything else — an issue, a one-sentence fix
   applied to the skill's text, a redirect, a root-cause session, an input to
   a spec in progress, or dismissed — and nothing tracked names the
@@ -72,7 +77,8 @@ one implementation plan.
   `SendMessage` to address them by name. Unlike `kisou`, `shoroku`, and
   `wayaku`, it is not host-agnostic and does not run on other Agent Skills
   hosts.
-- **Claude Code CLI 2.1.280 or newer**, for `claude --bg`,
+- **Claude Code CLI 2.1.289 or newer** — the version every rule of the
+  run-owned seats was measured on — for `claude --bg`,
   `claude agents --json`, `claude attach`, `claude --resume <id> --bg`,
   `claude stop`, and `claude rm` — the six commands the spawner and the
   launcher are built on. The spawner names each background seat and passes
@@ -96,8 +102,8 @@ one implementation plan.
   requesting-code-review. Sekkei, Keikaku, and Jisso invoke them directly.
   The SDD skill's `sdd-workspace` script owns `.superpowers/sdd/`; tanto's
   own state lives under `.tanto/`, which it ignores and lint-silences
-  itself, and the spec and the plan are wherever Kanri's orders line says,
-  by default the superpowers convention.
+  itself, and the spec and the plan are wherever the Sekkei's and the
+  Keikaku's prompt keys say, by default the superpowers convention.
 - **A `kisou`-style `docs/` system** in the target repo, for the `shoroku`
   write-out at each topic's close. Without `docs/AGENTS.md` the adopted items
   have nowhere to land.
@@ -122,58 +128,111 @@ and `tanto.sh`, are the human's one command — and run it in VS Code's
 integrated terminal, at the repository's top level:
 
 ```console
-tanto
+tanto [<role>] [<topic>] [--attach | --no-attach] [--root <path>] [--timeout <ms>]
+tanto fukki [--no-attach] [--root <path>] [--timeout <ms>]
+tanto teishi [--seats] [--root <path>] [--timeout <ms>]
+tanto jokyo [--root <path>]
 ```
 
-It starts the spawner if none is running, finds the run's Kanri or asks the
-spawner for one, resumes any terminal seat a reboot took, and prints the
-one line to type next:
+A bare `tanto` is `tanto kanri`: it starts the spawner if none is beating,
+finds the run's Kanri or asks the spawner for one, resumes what a reboot
+took, and attaches this terminal to Kanri. `tanto <role>` enters that
+role's seat the same way, the role word in romaji, kana, or kanji
+(`kikaku` / `きかく` / `企画`): a `kikaku`, a `hosa`, and a `kaiseki` with no
+topic are started when the run holds none; a `sekkei`, `keikaku`, or
+`jisso` is Kanri's to start, and the launcher says so when none is held. A
+`<topic>` picks the seat when two of a role are held. `-n` (`--no-attach`)
+starts or ensures the seat, prints its name and the ways in, and exits.
+When Kanri hands over while you are attached to it, the launcher follows to
+the successor, and nothing is typed. Run twice, `tanto` starts nothing
+twice; without `PATH`, `node <skill>/scripts/tanto.js` does the same, and a
+root other than the current directory is given with `--root`.
 
-```console
-claude attach <id>
-```
+Four more words, each also in kana, kanji, and English:
 
-Every way out of a seat — `←` or `/exit` to the agent view, `Ctrl+Z` to the
-shell, closing the terminal — leaves it running; `/stop` alone stops it,
-and a Kanri you `/stop` comes back with `tanto`. `claude agents` lists every
-seat by name, `<repo>-<role>[-<topic>]-<hex>`, and terminal panes, one
-`claude attach <id>` each, show several at once; no multiplexer is needed,
-since a seat outlives its terminal. `tanto` is also the way back after a
-restart, and it is idempotent: run twice, it starts nothing twice. Without
-`PATH`, `node <skill>/scripts/tanto.js` does the same. A seat `seats.json`
-holds as `running` or `blocked` — or, for Kanri alone, `gone` — is resumed;
-one it holds as `stopped` or `removed` is not. `tanto down` stops the
-spawner and keeps every conversation; `tanto down --seats` stops the seats
-too, which retires the run — the conversations are kept, but a seat the run
-stopped is not resumed. The spawner writes a heartbeat as it works: `tanto`
-starts a spawner when none has beaten within a minute, and `tanto down`
-signals only one that has.
+| Word | Also | Typed | Does |
+| --- | --- | --- | --- |
+| `fukki` | ふっき, 復帰, `resume` | at the terminal, or as `/tanto fukki` in Kanri | puts the run back after a reboot, a spawner's death, or a quota's return, and tells Kanri, which recovers what was cut |
+| `teishi` | ていし, 停止, `stop` | at the terminal | stops the spawner and keeps every conversation; `--seats` stops every seat too, which retires the run |
+| `jokyo` | じょうきょう, 状況, `status` | at the terminal | prints one line per seat — what it is doing, whether it waits on you, its `context=`, and the command that enters it — and changes nothing |
+| `taiseki` | たいせき, 退席, `leave` | as `/tanto taiseki` in a Kikaku, a Hosa, or a standalone Kaiseki | ends that seat; the next `tanto <role>` starts a new conversation |
 
-The tab seats are the human's own, opened as before — or
-`担当して <role>` / `tantoして <role>`, the role word in hiragana, kanji, or
-romaji (`かんり` / `管理` / `kanri`):
+Leave an attach with `←` and then leave the agent view: the seat keeps
+running, a dialogue seat parks at its turn's end, and the launcher prints
+the `jokyo` listing. `/stop` stops a seat's process, and a Kanri you `/stop`
+comes back with `tanto`. `claude agents` lists every seat by name,
+`<repo>-<role>[-<topic>]-<hex>`, and terminal panes, one `tanto <role>`
+each, show several at once; no multiplexer is needed, since a seat outlives
+its terminal.
 
-```console
-/tanto sekkei
-/tanto kaiseki topic=<topic>
-/tanto kikaku
-/tanto hosa
-```
+After a reboot, `tanto` resumes a Kanri, a Jisso, or a shoki that
+`seats.json` holds as `running` or `blocked` — or, for Kanri alone, `gone`;
+one it holds as `stopped` or `removed` is not resumed. A dialogue seat is
+not resumed: it is parked, and is woken when a line is due — one whose turn
+the reboot cut is continued by Kanri's Recovery, which `tanto fukki`
+starts. The spawner writes a heartbeat as it works: `tanto` starts a
+spawner when none has beaten within a minute, and `tanto teishi` signals
+only one that has.
 
-Each finds Kanri in the roster's first data row, read at the moment it
-sends, and there is no address argument. `/tanto kaiseki` with no key is
-standalone Kaiseki — the strong model leads one debugging session, with no
-batch loop. The terminal seats — Keikaku, every Jisso, the shusei batch, the
-scribe that writes the records, and Kanri's own successors — are never
-typed: the run starts them with the keys they need.
+Inside a session, `/tanto <role>` — or `担当して <role>` / `tantoして <role>`,
+the role word in hiragana, kanji, or romaji (`かんり` / `管理` / `kanri`) —
+is what a seat's own prompt runs. A session the run did not start that
+types it is told to use `tanto <role>`, and stops. Every seat finds Kanri in
+the roster's first data row, read at the moment it sends, and there is no
+address argument. `tanto kaiseki` with no topic is standalone Kaiseki — the
+strong model leads one debugging session, with no batch loop.
 
-A tab that comes back after an editor restart keeps its context and its
-transcript and gets a new name, which Kanri matches to its roster row by its
-session id; nothing is typed there. A terminal seat is
-unaffected by the restart, and after a reboot `tanto` resumes it under the
-same session id. The desktop notice tells the human when a seat is waiting
-on them; an optional harness hook makes it immediate, and nothing requires
-it.
+An editor reload asks nothing: a tab that held a seat comes back under a
+new name, nothing keys on it, and a seat whose tab is not reopened is
+parked. A Kanri, a Jisso, or a shoki is unaffected by the reload. The
+desktop notice tells the human when a seat waits on them — a dialogue
+seat's question at the end of a turn the run started, a permission prompt,
+a kessai — and an optional harness hook makes it immediate; nothing
+requires it.
+
+## The faces of a seat
+
+A face is a place you talk to a seat from: the terminal attach that
+`tanto <role>` gives, a VS Code tab, and Remote Control through Kanri. A seat
+is in one place at a time — the launcher refuses a seat a tab holds, and
+says which tab to close. A dialogue seat is parked between its turns, which
+is what lets a click on its row open it in a tab with a normal prompt box.
+Five constraints come with that:
+
+- **C-1** — enter a dialogue seat from a terminal by `tanto <role>`, never
+  by a bare `claude attach` and never from the agent view that `←` opens:
+  neither tells the spawner you are there, and the seat's park at its turn's
+  end closes that screen under you. Kanri is entered by `tanto`, and is not
+  opened in a tab.
+- **C-2** — a parked seat is offline to Remote Control until something wakes
+  it. From there, ask Kanri: it wakes the seat and holds it awake until 55
+  minutes after its last turn, or until you say you are done.
+- **C-3** — a seat started after the editor's list was loaded is in the list
+  after `Developer: Reload Window`; a click on its row opens it. For about
+  half a minute after a turn ends the row may still show the "open somewhere
+  else" notice.
+- **C-4** — a tab's turn runs at the editor's effort and on the extension's
+  bundled binary; a version gap that keeps a tab from opening leaves the
+  terminal.
+- **C-5** — a window reload cuts the turn of a seat open in a tab, with its
+  background work; a word in the tab continues it.
+
+## Moving a run
+
+A run started before seats were run-owned has a Kanri that read the older
+text, and seats the human opened in tabs. The text on disk reaches every
+repository the moment it lands, so such a run opens no new dialogue seat: a
+`/tanto <role>` typed in a window there stops with one line, and its Kanri
+cannot spawn one. Its open seats go on, its Jissos and its close are
+untouched, and `tanto` still enters its Kanri. A Kikaku and a standalone
+Kaiseki, which that Kanri never addresses, can be started there by
+`tanto kikaku` and `tanto kaiseki` once its spawner is a current one —
+`tanto teishi`, then `tanto`, which touch no seat. Everything else waits for
+the move, made once, at a batch boundary or a plan's close:
+`tanto teishi --seats`, then `tanto`, and close the windows of that run's
+old seats. The new Kanri takes the run from its roster and ledger as a
+Kanri does after any loss. Until then, `tanto` prints one line naming the
+roster's old-contract rows, and goes on; the line asks for nothing.
 
 ## Layout
 
@@ -201,15 +260,19 @@ it.
 - `scripts/boundary.js` — the boundary's own instrument, run by the subagent
   Kanri dispatches there: `check`, which runs the boundary's read-only
   commands and prints their output under fixed headings, and `record`, which
-  writes the conductor ledger's and the roster's rows idempotently; and
+  writes the conductor ledger's and the roster's rows idempotently;
   `census`, which Kanri runs itself, read-only, to place the roster's rows
-  against the sessions `claude agents --json` lists under the repository.
-  `scripts/boundary.test.js` beside it.
+  against the spawner's `seats.json` and the sessions `claude agents --json`
+  lists under the repository; `request`, the park or leave request a seat
+  writes for itself; and `seat`, `wake`, and `beat`, which Kanri runs before
+  it sends a seat a line or writes a request. `scripts/boundary.test.js`
+  beside it.
 - `scripts/spawner.js` — the one process in a run that issues `claude --bg`,
   `claude stop`, `claude rm`, and `claude --resume`: a resident started by
   the launcher and never by a session, taking request files, writing result
-  files, keeping `seats.json`, running a census of `claude agents --json`,
-  and raising the desktop notice. `spawner.js notify --stdin` is the
+  files, keeping `seats.json`, parking a dialogue seat at its own request,
+  running a census of `claude agents --json`, and raising the desktop
+  notice. `spawner.js notify --stdin` is the
   one-shot the optional hook calls. `scripts/spawner.test.js` beside it.
 - `scripts/tanto.js`, with `scripts/tanto.bat` and `scripts/tanto.sh` — the
   human's one command, and the two wrappers that are put on `PATH` as
