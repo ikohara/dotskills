@@ -5,12 +5,14 @@ Written by Sekkei (fable, high; `sessionId` `2664b3f0`; its tab was named
 window reloads on the day) on 2026-10-05 on the branch `run-owned-seats`,
 cut from `main` at the topic's opening with no batch in flight, so this
 spec is not a draft and is committed at this path. The dialogue is
-`.tanto/run-owned-seats/dialogue.md`: the human's answers D-1 to D-20, and
+`.tanto/run-owned-seats/dialogue.md`: the human's answers D-1 to D-21, and
 the answers to the review brief. The measurements are
 `.tanto/run-owned-seats/notes-spike.md`, two rounds. This is the spec's
-third text: the second answered Kanri's I-1 to I-12, and this one answers
+fourth text: the second answered Kanri's I-1 to I-12; the third answered
 the review (`.tanto/run-owned-seats/spec-review.md`, sixteen findings) and
-carries the second round's results in place of every conditional block.
+carried the second round's results in place of every conditional block;
+this one answers the reviewer's second pass (`spec-review-2.md`, Findings
+17 to 25) and Kanri's I-13 to I-20.
 
 **The skill this spec read.** `main`'s tip when the branch was cut, the
 commit "fix: a request taken by two spawners on one root is handled twice".
@@ -27,7 +29,9 @@ repository root or under it; an entry counts only when it carries a `pid`
 *held* by the state file when its status there is `running`, `blocked`, or
 `parked` — or `gone`, for a seat that is not a dialogue seat. A *face* is a
 place the human talks to a seat from: a terminal attach, a VS Code tab,
-Remote Control.
+Remote Control. A *contract-2 seat* is one whose `spawn` request carried
+`contract: 2`; a run has *moved* when the Kanri the state file holds is
+one, or when it holds no Kanri (4.2).
 
 ## Fixed inputs
 
@@ -89,9 +93,15 @@ reached by it") — or says that none does.
   and the launcher's line at an attach print its `context=`. Serves
   `exp-19c1`, in the weak form this design can give a seat he paces: the
   figure is in front of him before he goes on.
-- **No compatibility code** (D-7): each run moves by hand at its own
-  break; one informational line on an old-shape roster. Serves none; it is
-  the price of leaving no tab-seat rule behind.
+- **No compatibility code in the contract's text** (D-7, D-21): each run
+  moves by hand at its own break, and no rule for a tab seat is kept for
+  the sake of a run that has not; one informational line on an old-shape
+  roster. Its consequence, acknowledged: once the contract's text is on
+  disk, a run that has not moved opens no new dialogue seat, so the
+  moment he chooses has a deadline. Serves none; it is the price of
+  leaving no tab-seat rule behind. What the scripts do so that a run not
+  yet moved is not broken by them is section 7's, and is not a rule of
+  the contract.
 - **The issue line** (D-13, D-17): 5601 is left and a14f is closed in part,
   as approved; the additions the greps found are kept as consequences.
 - **The measurements are in** (D-18): the spec carries results, and the
@@ -102,6 +112,24 @@ reached by it") — or says that none does.
   second seat on one part.
 - **The risks of section 2 are known and accepted** (D-11), R-1 the
   heaviest. Serves none.
+
+Three things in this text are Sekkei's own, decided under the reviewer's
+second pass and Kanri's delta check and not put to the human as
+questions; the review brief is where he sees them:
+
+- **A wake that Kanri makes for the human holds the seat awake**, until
+  thirty minutes after its last turn (2.4, Finding 21). Without it, a
+  park at every turn's end would leave a dialogue seat one turn long from
+  Remote Control — more than the cost the Kikaku file's 2.3 named. Serves
+  `exp-1c96`.
+- **A seat woken that takes no turn is parked again after two minutes**
+  (2.3, Finding 18) — the seat's own last request, carried out again.
+  Serves `exp-1c96`: the row he clicks after looking in opens with no
+  notice.
+- **This run's Kanri hands over once after batch D**, so that a Kanri
+  that read the new text runs the acceptance scene and the close (section
+  7, Finding 20). It asks nothing more of the human than the restart: the
+  launcher follows the handover. Serves `exp-c53d`.
 
 ## Measured while designing
 
@@ -114,6 +142,7 @@ under the definition the rule uses (CLI 2.1.289, Windows 11):
 | S-1 | A seat that answered and waits lists `status: idle`; a seat on a permission prompt lists `status: waiting` with `waitingFor: "permission prompt"`. Both list `state: blocked`. | 2.3; 2.6 |
 | P-1 | A seat whose turn ended with a background command or a background subagent still running lists `status: busy` for as long as that work runs, and some seconds beyond. | 2.3's listing condition; R-1 |
 | S-2, P-1b, P-7b, and the review's count | A turn's end is an `assistant` record with `stop_reason: end_turn`. A `system`/`stop_hook_summary` follows it in both entrypoints here; a `system`/`turn_duration` follows only some `cli` turns and no tab turn (0 of 79 in the reviewer's count). | 2.8's definition of "the turn ended" |
+| The second pass's count | Over 30 transcripts of this project: 72 of 250 final messages are written as two `assistant` records sharing one `message.id`, both with `stop_reason: end_turn`; the message record after an ended turn is a `user` record — the human's, or one marked `isMeta` for a peer's line; 5097 of 12976 records carry no `uuid`. Three `cli` transcripts hold an `assistant` record with `model: "<synthetic>"`, the text "No response requested.", and `stop_reason: stop_sequence` — written, in each of the three, when a session was woken with a turn left open (a line unanswered, a tool call interrupted). | 2.8's definition, over messages and not records |
 | S-4 | A seat stopped on a permission prompt and woken is idle with its `tool_use` dangling; the prompt is not presented again. | 2.3's listing condition |
 | S-5 | A resume issued in the same second as the stop: `already running in the background, so this started a copy`. | 2.5's guard |
 | M-6, P-8 | A resume issued while a tab holds the conversation starts a copy under a new id. The note is on **stderr**; stdout reads `backgrounded · <the copy's id>`. The copy takes the seat's spawn name, holds the tab's whole conversation, and **acts on the prompt it was started with**. A copy started with no prompt waits (M-6). | 2.5: no prompt for a dialogue seat; the copy's removal |
@@ -171,10 +200,19 @@ first. `input=` is one path: a topic with several inputs names the
 document that lists the rest, which the Sekkei reads whole. An attached
 Kaiseki's brief is written before its spawn, since the prompt carries its
 path — "The Kaiseki branch" is reordered so. Rule 9 stands as it is, and
-Kanri keeps it by two acts before a Kaiseki's spawn: it sends Sekkei
-nothing while a Kaiseki is active, and it writes the Kaiseki's `spawn`
-only once `boundary.js seat` shows the Sekkei `parked` — a Sekkei parks
-at every turn's end (2.2), so `running` there means a turn in progress.
+Kanri keeps it by two acts before a Kaiseki's spawn: it sends a Sekkei
+nothing, and wakes none, while a Kaiseki is active; and it writes the
+Kaiseki's `spawn` only once `boundary.js seat` shows the Sekkei with no
+turn in progress — `parked`, or `running` with its fifth word `ended`
+(2.5). A wake that makes a second top-family seat run is the Session
+event the Measurements row "top-family sessions active at once" is
+filled from (I-15).
+
+Every `spawn` request written under this contract — the launcher's, and a
+Kanri's that read this text — carries `contract: 2`, which the spawner
+records on the seat. What section 2 does to a seat it does to a
+contract-2 seat alone; a seat spawned without the mark, by a Kanri that
+read the old text, keeps the old behavior to its end (section 7).
 
 Every `attention` message of Kanri's that names a way in — the kessai's,
 `human-needed:`, `no first turn:` — names `tanto <role> [<topic>]`, in
@@ -183,14 +221,18 @@ the role does not (I-11). The spawner's own notices do the same.
 
 ### 1.2 One holder per role
 
-The spawner refuses a `spawn` whose `role` is `kanri`, `kikaku`, or `hosa`
-while the state file holds a seat of that role, with
-`error: "held: <sessionId>"`. A handover's request carries
+The spawner refuses a `spawn` that carries `contract: 2` and whose `role`
+is `kanri`, `kikaku`, or `hosa` while the state file holds a seat of that
+role, with `error: "held: <sessionId>"`. A handover's request carries
 `succeeds: <the outgoing Kanri's sessionId>`, and a request that names the
 holder it succeeds is not refused. The launcher reads the same state
 before it writes, and enters the holder instead of asking for a second.
-Whoever wrote the two stray Kanri requests of issue-a14f, the second one
-now returns an error.
+Whoever wrote the two stray Kanri requests of issue-a14f — both in the
+launcher's format — a launcher of this design gets an error for the
+second. A request without the mark is not refused: a Kanri that read the
+old text hands over with no `succeeds:`, in this repository until its
+handover of section 7 and in any repository whose run has not moved
+(Finding 19).
 
 ### 1.3 The roster row
 
@@ -236,17 +278,21 @@ turns, and nothing is asked of the human (C-4).
 ### 1.5 A `/tanto <role>` typed by hand
 
 A session that runs `/tanto <role>` checks, as the first act of its start
-sequence, that the state file holds its own `sessionId`:
-`node "$TANTO/scripts/boundary.js" seat <its sessionId>`, once more after
-five seconds when the first answer is `no entry`, since the spawner
-records a seat a moment after it starts it. A session the state file does
-not hold — a tab opened from habit, a tab of a run that has not moved yet
-— says, in the human's language, that seats are started by
-`tanto <role>` in a terminal or by Kanri, and stops; it reads no role
-file, writes nothing, and sends nothing. This holds for every role, a
-standalone Kaiseki and a Kanri included: `tanto kaiseki` and `tanto` are
-their ways in. `/tanto fukki` is answered the same way in any seat but
-Kanri.
+sequence, that it is a seat the run started:
+`node "$TANTO/scripts/boundary.js" seat <its sessionId>`. It goes on when
+the command prints an entry, and when it prints `no entry background` —
+its own listing entry is a background session's, which the human cannot
+have typed into, and the spawner's record of it is a moment behind; the
+spawner writes a new seat into the state file as soon as it sees the
+session, before it looks for the transcript, so that moment is short
+(Finding 24). On `no entry interactive` or `no entry -` — a tab opened
+from habit, a tab of a run that has not moved — the session says, in the
+human's language, `seats are started by tanto <role> in a terminal, or by
+Kanri; a run started before this contract is moved first — README,
+"Moving a run"`, and stops; it reads no role file, writes nothing, and
+sends nothing. This holds for every role, a standalone Kaiseki and a
+Kanri included: `tanto kaiseki` and `tanto` are their ways in.
+`/tanto fukki` is answered the same way in any seat but Kanri.
 
 ## 2. The park
 
@@ -279,12 +325,15 @@ the request atomically with that `uuid` as `after`.
   Kanri while its question stands answers Kanri and parks `--waiting`
   again.
 - `--notice`, with `--waiting`, says that this turn was not started by the
-  human's own message — a peer's line, a subagent's completion. The
-  spawner then raises one desktop notice,
-  `waiting: <role> <topic> — tanto <role> [<topic>]`, when the turn has
-  ended, whether or not a stop follows (the seat may be held, or open in a
-  tab he is not looking at). A turn the human started raises none
-  (`exp-9d8f`, `exp-3a9e`).
+  human's own message — a peer's line, a subagent's completion. When the
+  turn has ended and the seat's `waiting` goes from unset to set by this
+  request, the spawner raises one desktop notice,
+  `waiting: <role> <topic> — tanto <role> [<topic>]`, whether or not a
+  stop follows (the seat may be held, or open in a tab he is not looking
+  at). A turn the human started raises none, and a question that already
+  stood raises none again: a Sekkei woken three times in an evening while
+  one question waits calls him once (`exp-9d8f`, `exp-3a9e`; Finding 23).
+  A request without `--waiting` clears the seat's `waiting`.
 
 A seat that awaits a reply from Kanri parks too: the reply reaches a
 parked seat by 2.5. A seat with work in flight writes no request; its turn
@@ -292,20 +341,24 @@ ends, the completion starts another, and that turn's end asks.
 
 ### 2.3 The spawner's act
 
-On a `park` request for a seat whose role is not a dialogue seat's, the
+On a `park` request for a seat that is not a contract-2 dialogue seat, the
 result is `error: "not a dialogue seat"`; for a seat that is `stopped` or
 `removed`, `error: "ended"`. Otherwise the spawner records
 `parkRequest: { after, waiting, notice, atMs }` on the seat, replacing any
 earlier one, writes the result at once (`parkRequested: <atMs>`), and
 tries the park at every request pass and every census pass until it is
-done or void.
+done or void. What it then does is decided by the transcript and by a
+fresh listing, never by the seat's recorded status, which may be a census
+pass behind.
 
 1. **Void.** When a new turn has begun since `after` (2.8), the request is
    deleted with a log line; that turn's end asks again.
-2. **Not yet.** Until the turn has ended since `after` (2.8), nothing.
+2. **Not yet.** Until the turn has ended since `after` (2.8), nothing; ten
+   minutes after `atMs` the request is deleted with a log line — a turn
+   that ended on anything but `end_turn` never satisfies it.
 3. **The turn has ended.** Once, for this request: set the seat's
-   `waiting` to the request's, and raise the notice when `notice` is set.
-   Then, on a fresh listing:
+   `waiting` to the request's, raising the notice as 2.2 says. Then, on a
+   fresh listing:
    - **Not listed** — the process is already gone. The seat is `parked`,
      `parkedAtMs` now; the request is deleted.
    - **Listed, `kind: "interactive"`** — a tab holds it; there is no
@@ -324,6 +377,17 @@ The state is written before the stop so that a sender who reads the state
 during the stop wakes the seat instead of sending into a stopping process,
 and the wake's guard waits for the stop to finish (2.5).
 
+**A request that was honored stands until a new turn begins** (Finding
+18). When a park is done the spawner keeps the request's `after` and
+`waiting` on the seat as `lastPark`. A seat that is listed in the
+background again — woken by an attach, or by a wake — and in which no new
+turn has begun since `lastPark.after` is stopped again, state first, once
+it has been listed for two minutes, is `idle`, and carries no `held`
+mark. Two minutes covers a wake's `SendMessage`; a human who attached,
+read, and left without typing finds the seat parked seconds after the
+launcher's `release`, the two minutes being long past. That is the seat's
+own last request carried out again, not a park on the spawner's reading.
+
 When a condition cannot be read — no transcript found, a listing entry
 without `status` — the spawner does not park. The failure of this section
 is a seat left alive, whose row shows the editor's notice; no work and no
@@ -338,17 +402,32 @@ dialogue seat: a `hold` request before `claude attach`, a `release`
 request after it. For Kanri, a Jisso, or a shoki it writes neither.
 
 - `hold` sets `held: { atMs, pid: <the launcher's pid> }` on the seat and
-  does nothing else; the attach itself wakes a parked seat (P-4). Its
-  errors: `in a tab` when a fresh listing shows the seat with
-  `kind: "interactive"`; `ended` for a `stopped` or `removed` seat;
-  `held by another terminal` when a mark is set and its `pid` answers
-  signal 0.
+  does nothing else; the attach itself wakes a parked seat (P-4). Before
+  it answers, a seat whose `parkedAtMs` is less than thirty seconds old
+  and that the listing still shows is waited out, as 2.5's second case
+  waits, so that the attach does not meet a process that is leaving
+  (S-5 measured that second for a resume). Its errors: `in a tab` when a
+  fresh listing shows the seat with `kind: "interactive"`; `ended` for a
+  `stopped` or `removed` seat; `held by another terminal` when a mark is
+  set and its `pid` answers signal 0; `old-contract seat` for a seat
+  without the mark of 1.1.
 - `release` deletes the mark and does nothing else. A request the seat
   wrote while it was held then proceeds by 2.3; a seat that wrote none —
   work in flight — is left to its own next turn's end. The spawner never
   parks a seat on its own reading.
 - A `held` mark whose `pid` no longer answers signal 0 is deleted by the
   spawner's census: a launcher that died released nothing.
+- **A hold for a face with no launcher** (Finding 21). Parking at every
+  turn's end would make a dialogue seat one turn long from Remote Control:
+  the human asks Kanri to wake it, sends one message, and half a minute
+  after the answer the seat is offline again. So Kanri's wake for the
+  human (2.5, `wake --hold`) writes a `hold` with no `pid` and
+  `forMs: 1800000`; the spawner deletes such a mark when the seat's
+  transcript has not been written for that long — thirty minutes after
+  the last turn — and the seat's standing request then parks it. Kanri
+  writes `release` when the human says he is done sooner. This keeps the
+  cost at what the Kikaku file's 2.3 put to him: a parked seat is offline
+  until something wakes it, and a woken one can be talked to.
 
 The mark lasts while the launcher's child process lives, which includes
 the agent view that ← opens (H-1c). That is constraint C-1, stated in the
@@ -394,20 +473,27 @@ the names of `live` roster rows". Two commands:
 
 ```bash
 node "$TANTO/scripts/boundary.js" seat <sessionId or name>
-node "$TANTO/scripts/boundary.js" wake <sessionId>
+node "$TANTO/scripts/boundary.js" wake [--hold] <sessionId> [<sessionId> ...]
 ```
 
 `seat` prints one line from the state file, `<status> <name> <kind>
-<role>` — `<kind>` is `background`, `interactive`, or `-` when the seat is
-not listed — or `no entry`, and `spawner: beating` or `spawner: stale`
-under it. `wake` checks the beat, writes a `resume` request with no
-prompt, waits for its result for up to sixty seconds, and prints what
-`seat` would print then, or `error: <the result's error>` with the `name`
-when the result carries one. What Kanri does (I-2):
+<role> <turn>` — `<kind>` is `background`, `interactive`, or `-` when the
+seat is not listed; `<turn>` is `ended` or `open` by 2.8's test over the
+seat's transcript, or `-` when no transcript is found — and
+`spawner: beating` or `spawner: stale` under it. For a `sessionId` the
+state file does not hold it prints `no entry <kind>`, the kind being the
+listing's for that session (1.5). `wake` checks the beat, writes a
+`resume` request with no prompt for each `sessionId`, all at once, waits
+for the results for up to sixty seconds in all, and prints one line per
+seat: what `seat` would print then, or `error: <the result's error>` with
+the `name` when the result carries one. Several seats — a Recovery, a
+boundary with two commit-window peers — are woken in one call and sent to
+afterwards, so the wait is paid once (I-15). `--hold` writes 2.4's hold
+for a face with no launcher before each resume. What Kanri does (I-2):
 
 - `running`, `blocked` — send to `<name>` with `SendMessage`.
-- `parked`; and `gone`, for a Jisso or a shoki — run `wake`, then send to
-  the `<name>` it prints, in the same turn. On `error: listed` the seat is
+- `parked`; and `gone`, for any seat but a Kanri — run `wake`, then send
+  to the `<name>` it prints, in the same turn. On `error: listed` the seat is
   alive after all — in a tab, or woken by the human — and the line goes to
   the name printed with it.
 - `stopped` — nothing is sent, with one exception: a seat whose row's
@@ -432,13 +518,19 @@ stale` Kanri writes no request, records what it owes as the Events line
 `record --event` in the open ledger, in the roster's Events when none is
 open — and tells the human in one line to run `tanto fukki`, saying that
 a stale spawner raises no notice of its own (R-2). The fukki procedure
-(4.4) sends every `unsent:` with no `sent:` pair and writes the pair.
+(4.4) sends every `unsent:` with no `sent:` pair and writes the pair. A
+pair is matched on the text after the prefix — `<sessionId or op> — <the
+line or the request>` — without the ` (batch <X>)` that `record --event`
+appends at a boundary, and two different lines to one seat are two
+events.
 
 ### 2.6 `blocked` carries its cause
 
-The spawner's census marks a seat `blocked` when the listing's entry
-carries `status: "waiting"`, and records the entry's `waitingFor` on the
-seat; it no longer reads `state`. A seat that answered and waits is `idle`
+The spawner's census marks a seat `blocked` when the listing's entry is a
+background one and carries `status: "waiting"`, and records the entry's
+`waitingFor` on the seat; it no longer reads `state`. A prompt in a tab
+is in front of the human already, and an `interactive` entry is never
+`blocked` (Finding 22). A seat that answered and waits is `idle`
 there (S-1) and is not blocked — today every such seat reads `blocked`,
 which is the half of issue feac that asked for the cause. The notice
 becomes
@@ -453,22 +545,30 @@ from the seat's own `paused:` line.
 
 ### 2.7 The census, and a seat that is not listed
 
-A dialogue seat that leaves the listing — parked by the spawner, held in a
-tab that was closed, collected after its idle hour, cut by a reboot — is
-`parked` in the state file, never `gone`: its conversation is on disk and
-a wake brings it back when a line is due. `gone` stays for Kanri, Jisso,
-and shoki. The spawner's census visits `parked` seats as it visits live
-ones: one the listing shows again is `running`, with the listed `kind` and
-name, and `parked` once more when the entry goes. It sets `midTurn: true`
-on a parked seat whose last turn has not ended (2.8, over the whole
-transcript).
+A contract-2 dialogue seat that leaves the listing — parked by the
+spawner, held in a tab that was closed, collected after its idle hour, cut
+by a reboot — is `parked` in the state file, never `gone`: its
+conversation is on disk and a wake brings it back when a line is due.
+`gone` stays for Kanri, Jisso, and shoki, and for a dialogue seat spawned
+without the mark — a Keikaku of a run that has not moved, which its Kanri
+resumes as its own text says (Finding 19). The spawner's census visits
+`parked` seats as it visits live ones: one the listing shows again is
+`running`, with the listed `kind` and name, and `parked` once more when
+the entry goes. It sets `midTurn: true` on a parked seat whose last turn
+did not end by itself (2.8, over the whole transcript).
 
-A cut turn has an actor (Finding 7). For a seat with a topic — a Sekkei, a
-Keikaku, an attached Kaiseki — it is Kanri's Recovery (4.4): the census
-prints ` — mid-turn` under **Parked**, and Kanri wakes the seat and sends
-`resume: your turn was cut — continue from where it stopped`. For a
-Kikaku, a Hosa, and a standalone Kaiseki it is the human, whose word in
-the seat continues it (P-7); `tanto jokyo` shows the mark.
+A cut turn has an actor (Finding 7), and one moment. For a seat with a
+topic — a Sekkei, a Keikaku, an attached Kaiseki — it is Kanri's Recovery
+(4.4), and only there: the census prints ` — mid-turn` under **Parked** at
+every census, and Kanri wakes the seat and sends
+`resume: your turn was cut — continue from where it stopped, and dispatch
+again anything you had running` in Recovery alone, never at a boundary's
+census — a Sekkei whose tab the human closed mid-turn on purpose is not
+woken at the next boundary to be told to go on (I-16). The line names the
+re-dispatch because a cut turn loses the seat's subagents and background
+commands with its process (P-7). For a Kikaku, a Hosa, and a standalone
+Kaiseki the actor is the human, whose word in the seat continues it;
+`tanto jokyo` shows the mark.
 
 `boundary.js census` reads the state file and prints the `spawner:` line
 first and then six headings, in this order: **Listed**, **Parked**,
@@ -496,18 +596,36 @@ step 6 before the next request.
 
 ### 2.8 "The turn ended", the states, and the ops
 
-**The turn ended.** Let M be the transcript's records of `type` `user` or
-`assistant`, not marked `isSidechain`, that come after the record whose
-`uuid` is `after` — all of them when no `after` is given. *The turn has
-ended* when M's last record is an `assistant` whose `message.stop_reason`
-is `"end_turn"`, and that record is settled: a `system` record whose
-`subtype` is `turn_duration` or `stop_hook_summary` follows it, or the
-transcript file was last modified ten or more seconds ago. *A new turn
-has begun* when M holds such an `assistant` that is not M's last record.
-This is one reader in `spawner.js`, `turnEnded(transcript, after)`, used
-by the park (2.3), a `self` stop (5.2), a `once` seat (4.4), and `midTurn`
-(2.7); the last two pass no `after`. It holds for a turn taken in a tab,
-which writes no `turn_duration`.
+**The turn ended.** The test is over *messages*, not records: a final
+message is often written as two `assistant` records that share one
+`message.id` — a thinking block and a text block — each carrying
+`stop_reason: end_turn` (the second pass's count: 72 of 250). Let M be the
+transcript's records of `type` `user` or `assistant`, not marked
+`isSidechain`, that come after the record whose `uuid` is `after` — all
+of them when no `after` is given — with consecutive `assistant` records
+of one `message.id` taken as one message.
+
+- *The turn has ended* when M's last message is an `assistant` whose
+  `stop_reason` is `"end_turn"`, and it is settled: a `system` record
+  whose `subtype` is `turn_duration` or `stop_hook_summary` follows it, or
+  the transcript file was last modified ten or more seconds ago. It has
+  also ended when M's last message is the harness's own closing record —
+  an `assistant` whose `message.model` is `"<synthetic>"` — which is
+  written when a session is woken with a turn left open; that turn is
+  closed and did not end by itself.
+- *A new turn has begun* when a message follows an ended one: a `user`
+  record, or an `assistant` of another `message.id` that is not
+  synthetic.
+- *The last turn did not end by itself* — `midTurn` — when M's last
+  message is neither an `end_turn` assistant nor followed by one: a
+  `tool_use`, a `user` record, the synthetic record, or any other
+  `stop_reason`.
+
+This is one reader in `spawner.js`, `turnEnded(transcript, after)`,
+exported for `boundary.js seat`, and used by the park (2.3), a `self` stop
+(5.2), a `once` seat (4.4), and `midTurn` (2.7); the last two pass no
+`after`. It holds for a turn taken in a tab, which writes no
+`turn_duration`.
 
 **The states.** A seat's `status` is one of six; `kind` is the listing's,
 recorded at each census pass.
@@ -515,28 +633,31 @@ recorded at each census pass.
 | Status | Means | Set by |
 | --- | --- | --- |
 | `running` | listed with a `pid`; `kind: "background"`, or `"interactive"` when a tab holds it | a spawn, a wake, the census |
-| `blocked` | listed, `status: "waiting"`; `waitingFor` says on what | the census |
-| `parked` | a dialogue seat not listed; `waiting` and `midTurn` may be set | 2.3, the census |
-| `gone` | a Kanri, a Jisso, or a shoki not listed | the census |
+| `blocked` | listed in the background, `status: "waiting"`; `waitingFor` says on what | the census |
+| `parked` | a contract-2 dialogue seat not listed; `waiting`, `midTurn`, and `lastPark` may be set | 2.3, the census |
+| `gone` | any other seat not listed | the census |
 | `stopped` | ended by a `stop`, by `taiseki`, by `teishi --seats`, or by the guard | those |
 | `removed` | removed by `rm`, an undelivered spawn, or a `once` seat's end | those |
 
-Every stamp this design adds — `atMs`, `parkedAtMs`, `stoppedAtMs` — is
-epoch milliseconds, as `startedAtMs` is; none is compared with the
-minute-resolution `stamp()` strings the file also carries.
+Every stamp this design adds — `atMs`, `parkedAtMs`, `stoppedAtMs`,
+`listedAtMs` — is epoch milliseconds, as `startedAtMs` is; none is
+compared with the minute-resolution `stamp()` strings the file also
+carries.
 
-**The ops.** What each does to a seat in each state; "—" is an error
-naming the state.
+**The ops.** What each does. The columns are what a fresh listing shows
+for the seat, since the recorded status may be a census pass behind; the
+last two are recorded states, which no listing changes. "—" is an error
+naming the case.
 
-| Op | `running` or `blocked`, background | `running`, interactive | `parked` | `gone` | `stopped` | `removed` |
-| --- | --- | --- | --- | --- | --- | --- |
-| `park` | 2.3 | 2.3: `waiting` recorded, no stop | 2.3: `waiting` recorded | `not a dialogue seat` | `ended` | `ended` |
-| `hold` | mark | `in a tab` | mark | mark | `ended` | `ended` |
-| `release` | unmark | unmark | unmark | unmark | nothing | nothing |
-| `resume` | `listed`, or 2.5's wait | `listed` | the command | the command | the command | — |
-| `stop` | `claude stop`; `stopped` | no command; `stopped`, `note: "in a tab"` (P-9) | no command; `stopped`, `note: "already exited"` | as `parked` | nothing, the same note | nothing |
-| `stop`, `self` | the same, once the turn has ended since `after` | at once | at once | — | nothing | nothing |
-| `rm` | as today | — | as today | as today | as today | nothing |
+| Op | listed, background | listed, interactive | not listed | recorded `stopped` | recorded `removed` |
+| --- | --- | --- | --- | --- | --- |
+| `park` (a contract-2 dialogue seat; else `not a dialogue seat`) | 2.3: the stop, when `idle` and not held | `waiting` recorded, no stop | `parked`; `waiting` recorded | `ended` | `ended` |
+| `hold` (a contract-2 seat; else `old-contract seat`) | mark, after 2.4's wait | `in a tab` | mark | `ended` | `ended` |
+| `release` | unmark | unmark | unmark | nothing | nothing |
+| `resume` | `listed`, or 2.5's wait when a stop is finishing | `listed` | the command | the command, when not listed | — |
+| `stop` | `claude stop`; `stopped` | no command; `stopped`, `note: "in a tab"` (P-9) | no command; `stopped`, `note: "already exited"` | nothing, the same note | nothing |
+| `stop`, `self` (a Kikaku, a Hosa, or a Kaiseki whose topic is `—`; else `not a seat the human paces`) | the same, once the turn has ended since `after`; dropped ten minutes after its `atMs`, with a log line and the notice `taiseki not done: <role> — tanto <role>` | at once | at once | nothing | nothing |
+| `rm` | as today | — | as today | as today | nothing |
 
 ## 3. Identity and address
 
@@ -648,7 +769,20 @@ talking to code from before this design: it still enters a Kanri the
 listing holds — which needs no request at all — and for every other act,
 `fukki` and a Kanri that would need a resume among them, it prints
 `the spawner is older than this launcher: run tanto teishi, then tanto`
-and exits 1, having written nothing (Finding 2).
+and exits 1, having written nothing (Finding 2). Those two commands
+restart the spawner and touch no seat.
+
+**A run that has not moved.** A run has moved when the Kanri the state
+file holds is a contract-2 seat, or when it holds none — the next Kanri
+is then the launcher's own spawn, which carries the mark. In a run that
+has not moved, with a spawner of this design, the launcher does what
+needs nothing of that run's Kanri: it enters Kanri; it runs `teishi` and
+`jokyo`; it recovers a restart as a bare `tanto` does (4.4); and it
+starts or enters a Kikaku and a standalone Kaiseki, which that Kanri
+never addresses. For a Hosa, and for a Sekkei, a Keikaku, a Jisso, or an
+attached Kaiseki, it prints
+`this run is on the old contract — move it first: README, "Moving a run"`
+and exits 1 (Finding 19, D-21).
 
 ### 4.3 The attach, and following a handover
 
@@ -681,14 +815,15 @@ decides.
 
 `tanto fukki` does, in order: read the state file; start the spawner when
 none beats; write a `resume` request for every seat that read showed
-`running` or `blocked`, whose role is not a dialogue seat's, and that the
-listing does not hold — and for a Kanri it showed `gone` — never for a
-`parked`, `stopped`, or `removed` seat; then tell Kanri; then attach to
-Kanri unless `--no-attach`. Dialogue seats are not in that list at all: a
-dialogue seat a reboot took is `parked` at the new spawner's first census
-pass, with `midTurn` when its turn was cut, and Recovery below is its
-actor (2.7). So the launcher's read and the spawner's first pass cannot
-race over one seat.
+`running` or `blocked`, that is not a contract-2 dialogue seat, and that
+the listing does not hold — and for a Kanri it showed `gone` — never for
+a `parked`, `stopped`, or `removed` seat; then tell Kanri; then attach to
+Kanri unless `--no-attach`. Contract-2 dialogue seats are not in that
+list at all: one a reboot took is `parked` at the new spawner's first
+census pass, with `midTurn` when its turn was cut, and Recovery below is
+its actor (2.7). So the launcher's read and the spawner's first pass
+cannot race over one seat. A dialogue seat without the mark — a Keikaku
+of a run that has not moved — is resumed as today.
 
 Telling Kanri takes one of two forms, and the human types nothing in
 either (D-15):
@@ -724,15 +859,20 @@ either (D-15):
 A bare `tanto` keeps doing what it does: it starts the spawner, resumes
 what a restart took by the same list, and enters Kanri; it passes the
 fukki word to a Kanri it resumed and sends no messenger. `tanto fukki` is
-the same recovery with Kanri told in every case.
+the same recovery with Kanri told in every case. In a run that has not
+moved (4.2) a Kanri that read the old text knows `/tanto fukki` and not
+the `fukki:` line, so the launcher sends no messenger there and prints
+`Kanri is on the old contract: type /tanto fukki there` before the
+attach.
 
 `/tanto fukki` in Kanri, and the `fukki:` line, and a resume whose prompt
 is `/tanto fukki`, are one procedure, `roles/kanri.md`'s rewritten
 "Recovery":
 
-1. Run the census and act on its six headings; for every topic seat under
-   **Parked** marked ` — mid-turn`, wake it and send the `resume:` line of
-   2.7; send a Jisso resumed mid-batch `resume batch X from task N`.
+1. Run the census and act on its six headings; wake, in one `wake` call,
+   every topic seat under **Parked** marked ` — mid-turn`, and send each
+   the `resume:` line of 2.7 — the one moment that line is sent; send a
+   Jisso resumed mid-batch `resume batch X from task N`.
 2. Reconcile the `renamed` marks; send every `unsent:` line with no
    `sent:` pair; answer every `unanswered:` line.
 3. For every `paused:` line the ledger's Measurements holds unanswered,
@@ -779,8 +919,10 @@ The third column is `working` (listed, `busy`), `idle`,
 `parked — waiting for you` (`waiting` set), `parked — mid-turn`, or
 `gone`. The fourth is a dialogue seat's `context=` (D-19), empty when no
 transcript is found. The fifth is the command for a line that waits on
-the human: `tanto <role> [<topic>]`; and `tanto fukki` for `gone` and for
-a topic seat's `parked — mid-turn`. It is printed in English, as the
+the human: `tanto <role> [<topic>]`; and `tanto fukki` for a Kanri that
+is `gone` and for a topic seat's `parked — mid-turn`. A Jisso that is
+`gone` gets none: a queued Jisso the supervisor collected is woken when
+its batch is due, and needs nothing of him. It is printed in English, as the
 launcher's lines are. With no spawner beating it says so on its first
 line and prints what the state file holds. The same listing is printed
 once when an attach is left (4.3). This is where "what waits on him" is
@@ -789,10 +931,12 @@ read from disk and not from Kanri's last message (`exp-9d8f`).
 ### 4.6 teishi
 
 `cmdDown` under its new word. Without `--seats` no seat is touched. With
-it, the run is retired, as today's `down --seats` retires it: a `stop` for
-every `running` or `blocked` seat, and every `parked` seat marked
-`stopped` with `note: "already exited"` — which seats survive a retirement
-does not depend on which happened to be parked. It removes `pid`,
+it, the run is retired: a `stop` for every seat the state file holds —
+`running` and `blocked` ones by the command, `parked` and `gone` ones
+recorded `stopped` with `note: "already exited"` — so that which seats
+survive a retirement does not depend on which happened to be parked or
+collected. Today's `down --seats` leaves a `gone` seat resumable; a
+retirement that a later `tanto` half undoes is not one. It removes `pid`,
 `heartbeat`, and `contract`.
 
 ### 4.7 An old-shape roster
@@ -803,9 +947,11 @@ whose `sessionId` the state file does not hold, is an old-contract row.
 The launcher prints
 `old-contract rows in .tanto/roster.md (<roles>): those windows are no longer seats of this run — see the README, "Moving a run"`
 and goes on; the line informs and asks for no act. Kanri says the same in
-its start line, sends nothing to those rows, and marks them `dead` at its
-census with the Events line `old-contract row retired: <name>`. That is
-the whole of the migration's code (D-7).
+its start line, sends nothing to those rows, and at its census marks the
+`live` and `queued` ones `dead` with the Events line
+`old-contract row retired: <name>`; a `cleared` row is left as it is, for
+the archive. With 4.2's two checks, that is the whole of the migration's
+code (D-7).
 
 ## 5. A seat's end
 
@@ -855,11 +1001,16 @@ run` and does nothing. The seat:
    `self: true` and `after`, as a park request carries it.
 3. Ends its turn with its closing line, the second fact as 5.1's.
 
-The spawner acts on a `self` stop for a background seat only once the
-turn has ended since `after` (2.8), so the closing line is written; for a
-seat a tab holds, and for one not listed, it records the end at once
-(2.8's table), which is what makes the word work the same from a terminal
-and from a tab. The seat is `stopped` with `endedBy: "taiseki"`; the next
+The spawner honors a `self` stop only for a Kikaku, a Hosa, or a Kaiseki
+whose topic is `—`, whatever a role's text let through. For a background
+seat it acts only once the turn has ended since `after` (2.8), so the
+closing line is written; for a seat a tab holds, and for one not listed,
+it records the end at once (2.8's table), which is what makes the word
+work the same from a terminal, from a tab, and from Remote Control. A
+closing turn that never ends by `end_turn` leaves the request unmet: ten
+minutes on it is dropped, logged, and said to the human by the notice
+`taiseki not done: <role> — tanto <role>`, so that the word never fails
+in silence. The seat is `stopped` with `endedBy: "taiseki"`; the next
 `tanto kikaku` finds no holder and starts a new conversation, whether or
 not the ended seat's tab is still open — rule 4 counts held seats, and an
 ended seat answers only with its closing line (5.1). Kanri writes the row
@@ -883,19 +1034,23 @@ template a session reads once — by Keikaku, and reported in the plan.
   for a role other than `kanri`, takes the four listing cases and the
   copy check on both streams (2.5), and loses the comment "On a resume it
   is the CLI's normal line, and the resume op does not read it"; `spawn`
-  refuses a second holder and reads `succeeds` (1.2), accepts `once` and
-  stops and removes such a seat (4.4), and records the request's id on
-  the seat; `stop` accepts `self` with `after`, runs no command for an
-  `interactive` or a `parked` seat, and writes `stoppedAtMs` (2.8, 5.1,
-  5.2); the seat schema gains `parkedAtMs`, `stoppedAtMs`, `waiting`,
-  `midTurn`, `parkRequest`, `held`, `kind`, `waitingFor`, `endedBy`,
-  `requestId`, `once`; `turnEnded(transcript, after)` (2.8); `tryPark` at
-  every request pass and census pass; the census reads `kind`, `status`,
-  and `waitingFor`, writes the listed name of an entry of any kind, keys
-  `blocked` on `status: "waiting"` (2.6), visits `parked` seats — today
-  `LIVE` gates `censusSeat` to `running` and `blocked` — turns a dialogue
+  reads `contract`, refuses a second holder and reads `succeeds` (1.2),
+  accepts `once` and stops and removes such a seat (4.4), records the
+  request's id on the seat, and writes the state file as soon as
+  `findNew` returns, before `transcriptOf`'s poll (1.5); `stop` accepts
+  `self` with `after` for the three roles of 5.2, runs no command for an
+  `interactive` or an unlisted seat, and writes `stoppedAtMs` (2.8, 5.1,
+  5.2); the seat schema gains `contract`, `parkedAtMs`, `stoppedAtMs`,
+  `listedAtMs`, `waiting`, `midTurn`, `parkRequest`, `lastPark`, `held`,
+  `kind`, `waitingFor`, `endedBy`, `requestId`, `once`;
+  `turnEnded(transcript, after)`, exported (2.8); `tryPark` at every
+  request pass and census pass, with the standing request of 2.3; the
+  census reads `kind`, `status`, and `waitingFor`, writes the listed name
+  of an entry of any kind, keys `blocked` on a background entry's
+  `status: "waiting"` (2.6), visits `parked` seats — today `LIVE` gates
+  `censusSeat` to `running` and `blocked` — turns a contract-2 dialogue
   seat's absence into `parked` with `midTurn` (2.7), and clears a dead
-  launcher's `held`; `cmdRun` writes `.tanto/spawner/contract` (4.2);
+  launcher's `held` and an expired `forMs` one (2.4); `cmdRun` writes `.tanto/spawner/contract` (4.2);
   `noticeText` for `waiting:` and for `blocked:` with its cause, each
   ending `tanto <role> [<topic>]`; `noFirstTurn`'s `— claude attach
   ${seat.id}` and the notification-hook subcommand's `— claude attach
@@ -910,8 +1065,9 @@ template a session reads once — by Keikaku, and reported in the plan.
 - **`scripts/boundary.js`** (B) — `census` reads the state file and prints
   the `spawner:` line and the six headings with their suffixes (1.3, 2.6,
   2.7); four new subcommands, `request <park|leave> --transcript <path>
-  [--waiting] [--notice]`, `seat <sessionId or name>`, `wake <sessionId>`,
-  and `beat` (2.2, 2.5, 5.2); `writeSeatRow`'s comment. `record --status`
+  [--waiting] [--notice]`, `seat <sessionId or name>` with its `<turn>`
+  word and its `no entry <kind>`, `wake [--hold] <sessionId>...`, and
+  `beat` (1.5, 2.2, 2.5, 5.2); `writeSeatRow`'s comment. `record --status`
   keeps `cleared` in the vocabulary it accepts, since this run's own close
   still writes it (section 7); its removal is a deferred item.
 - **`scripts/tanto.js`** (C) — `main` dispatches the four words with their
@@ -919,13 +1075,13 @@ template a session reads once — by Keikaku, and reported in the plan.
   error for any other first positional; `USAGE`; `cmdUp` loses its
   positional root, runs the attach itself with the follow loop (4.3), and
   no longer prints `claude attach <id>` or `then type /tanto fukki there
-  once`; role resolution (4.2), with the older-spawner check; `cmdFukki`
-  (4.4), whose resume list replaces step 9's and leaves dialogue seats
-  out; `cmdJokyo` (4.5); `cmdDown` renamed `cmdTeishi`, marking `parked`
-  seats and removing `contract` (4.6); the old-shape line (4.7);
-  `kanriRequest` for a handover is Kanri's, not the launcher's, and is not
-  touched, but `KANRI_RESUMABLE` and every `s.state !== "stopped"` filter
-  are (2.6); the branch "Kanri is an interactive tab; hand over first"
+  once`; role resolution (4.2), with the older-spawner check and the
+  moved-run check; `contract: 2` on every `spawn` it writes, `kanriRequest`
+  among them; `cmdFukki` (4.4), whose resume list replaces step 9's and
+  leaves contract-2 dialogue seats out; `cmdJokyo` (4.5); `cmdDown`
+  renamed `cmdTeishi`, recording `parked` and `gone` seats `stopped` and
+  removing `contract` (4.6); the old-shape line (4.7); `KANRI_RESUMABLE`
+  and every `s.state !== "stopped"` filter (2.6); the branch "Kanri is an interactive tab; hand over first"
   becomes 4.3's refusal; `LEAVE_LINE` rewritten for ← and the agent view;
   the comments naming `tanto down`.
 
@@ -1096,7 +1252,8 @@ template a session reads once — by Keikaku, and reported in the plan.
   no behavior changes.
 - **`templates/spawn-request.md`** — the writers; the ops and their
   fields; `role`'s list and the sentence "A tab seat is never spawned and
-  never has a request"; the results; `succeeds`, `once`, `self`, `after`.
+  never has a request"; the results; `contract`, `succeeds`, `once`,
+  `self`, `after`, `forMs`.
 - **`templates/kanri-handover.md`** — "`- <role> — <topic> — <name>
   [<ref>] — <what that session is waiting for>`" and "`- <topic> — <name>
   [<ref>] — queued`": each peer by its `sessionId` and its bare name as
@@ -1120,34 +1277,49 @@ in letter; `scripts/passage-check.js`; `scripts/reading.js`.
 repository loads is a link into this working tree, so a script on the
 topic branch runs at the next launcher call anywhere, and a text on it is
 read by the next session started anywhere — at the commit, not at the
-merge (Finding 2). The batches are cut so that nothing on disk breaks a
-run that has not moved:
+merge (Finding 2). A spawner anywhere may also be restarted at any time,
+by a reboot or by the human, and then runs whatever script is on disk.
+Two things keep a run that has not moved whole through all of that, and
+neither is a rule of the contract: what section 2 does, it does to a
+contract-2 seat alone, and the one-holder refusal reads the mark on the
+request (1.1, 1.2); and the launcher asks nothing new of a run whose
+Kanri is not a contract-2 seat (4.2). The batches:
 
 - **A** — `spawner.js`, `templates/tanto.json`, and `reading.js`'s test.
-  A resident spawner keeps the code it started with, so nothing changes
-  until a restart; a spawner restarted after this batch runs the new code
-  under an old Kanri, which is safe but for one refusal — a handover's
-  `spawn` with no `succeeds:` (1.2). The Global Constraints order it.
+  A resident spawner keeps the code it started with. One restarted after
+  this batch runs the new code under seats that carry no mark, and treats
+  them as the old code did: `gone` on absence, no refusal of an unmarked
+  handover. What changes for such a run is the spawner's `blocked`, now a
+  prompt and no longer any idle seat (2.6), and the copy guard of a
+  resume, both of which only remove false signals.
 - **B** — `boundary.js` and the five read-once templates. The new
-  subcommands are additions; the census prints two headings an old Kanri
-  does not know, and the Global Constraints say what they mean.
+  subcommands are additions. The census prints two headings an old Kanri
+  does not know; both stay empty in a run with no contract-2 dialogue
+  seat.
 - **C** — `tanto.js`. From here `tanto down` is `tanto teishi` everywhere.
-  A launcher that meets an older spawner still enters Kanri and says what
-  to do for anything else (4.2).
+  A launcher that meets an older spawner, or a run that has not moved,
+  still enters Kanri and says what to do for anything else (4.2).
 - **D** — `SKILL.md`, the seven role files, four templates —
   `spawn-request.md`, which describes requests the Kanri in flight must
   not write yet, and the three a boundary or a handover reads from disk,
   `kanri-handover.md`, `boundary-brief.md`, and `batch-prompt.md` — and
-  `README.md`, in one batch, which is the safe boundary from which a role may be started or replaced — or the fix
-  wave's, when the whole-branch review's findings touch `SKILL.md`, a
-  role file, or a template.
+  `README.md`, in one batch, which is the safe boundary from which a role
+  may be started or replaced — or the fix wave's, when the whole-branch
+  review's findings touch `SKILL.md`, a role file, or a template.
 
-**Other repositories** (D-7). A run in flight elsewhere moves when the
-human chooses: `tanto teishi --seats`, then `tanto`, once, and he closes
-the windows of that run's old tab seats. Until then such a run is on seats
-that read the old text and a spawner on old code; from batch C its `tanto`
-attaches to its Kanri directly, and 4.7's line is what it prints about the
-roster. The README's "Moving a run" carries the paragraph.
+**Other repositories** (D-7, D-21). From batch D's commit the text on disk
+has no handshake, so a run that has not moved opens no new dialogue seat:
+a `/tanto <role>` typed in a window there stops with 1.5's line, and its
+Kanri, which read the old text, cannot spawn one. Its open seats go on,
+its Jissos and its close are untouched, and `tanto` still enters its
+Kanri. A Kikaku and a standalone Kaiseki, which that Kanri never
+addresses, can be started there by `tanto kikaku` and `tanto kaiseki`
+once its spawner is one of this design — `tanto teishi`, then `tanto`,
+which touch no seat. Everything else waits for the move: `tanto teishi
+--seats`, then `tanto`, once, at a batch boundary or a plan's close, and
+he closes the windows of that run's old tab seats; the new Kanri takes
+the run from its roster and ledger as a Kanri does after any loss. The
+README's "Moving a run" carries this paragraph.
 
 **This plan** edits the skill it runs on, so rule 11 governs it: its
 Jissos are all spawned at the landing with `queue=run-owned-seats`; the
@@ -1155,23 +1327,44 @@ authority while it is in flight is its Global Constraints, Kanri's orders,
 and the batch prompts. Its Global Constraints state, beside rule 11's
 sentence and the queue:
 
-- From batch A's boundary, a handover's `spawn` request carries
-  `succeeds: <the outgoing Kanri's sessionId>`.
-- From batch B's boundary, the census prints **Parked**, which asks for
-  nothing, and **Ended**, a row to write `stopped`.
+- From batch B's boundary, the census prints **Parked** and **Ended**;
+  should either print a row before the handover below, **Parked** asks
+  for nothing to be marked and **Ended** is a row to write `stopped`.
 - From batch C's boundary, the launcher's word is `tanto teishi`, and its
-  old-contract line about this run's own roster is not acted on.
+  old-contract lines about this run are not acted on.
 - This run's own Kikaku and Sekkei are tab seats of the old contract to
-  the end, their rows written and released as the text Kanri read says;
-  `record --status` keeps `cleared` for that.
-- After batch D is accepted, and before the acceptance scene, the human
-  restarts the resident spawner — `tanto teishi`, then `tanto` — and
-  Kanri checks that `.tanto/spawner/contract` holds `2` before the scene.
-  That restart is the first run of the new spawner against the real CLI;
-  the scripts' own tests use the `TANTO_CLAUDE` seam. What the scene
-  finds goes to the fix wave.
+  their end: their rows are written and released as the old contract
+  says, whichever text the Kanri in the seat read, and `record --status`
+  keeps `cleared` for that.
+- From batch D's commit until the handover below, no new Kikaku and no
+  Hosa can be started in this repository — a typed `/tanto kikaku` stops
+  by 1.5, and `tanto kikaku` meets the older spawner; the Kikaku already
+  open goes on until step 1.
+- **After batch D is accepted**, in this order, before the whole-branch
+  review:
+  1. Kanri asks the human to close this run's old Kikaku tab, and any
+     other old tab seat still open, and not to reopen them; it writes
+     their rows as the old contract says, with an Events line (I-20).
+  2. The human restarts the resident spawner: `tanto teishi`, then
+     `tanto`, which enters Kanri again.
+  3. Kanri reads `.tanto/spawner/contract`. Unless it holds `2`, it asks
+     for step 2 again and starts nothing (I-17).
+  4. Kanri hands over. Its successor's `spawn` request carries
+     `contract: 2` and `succeeds: <its own sessionId>` — an order of
+     these Constraints, since the Kanri in the seat read the old text —
+     and the successor, which reads batch D's text, is the Kanri of
+     everything after: the scene, the review, the fix wave, the close
+     (Finding 20). The human, attached by `tanto`, is taken to it by the
+     launcher.
+  5. **The acceptance scene** of "Verification", by that Kanri and the
+     human. It is not a task of any batch and no Jisso runs it. That
+     restart is the first run of the new spawner against the real CLI —
+     the scripts' own tests use the `TANTO_CLAUDE` seam — and what the
+     scene finds joins the whole-branch review's findings in the fix
+     wave.
 
-After the close, this repository moves as every other does.
+After the close, this repository has moved: its Kanri is a contract-2
+seat from step 4 on.
 
 ## 8. Constraints, costs, and risks
 
@@ -1182,7 +1375,11 @@ seat":
   not by a bare `claude attach`, and not from the agent view that ←
   opens (2.4). Kanri is entered by `tanto`, and is not opened in a tab.
 - **C-2** — a parked seat is offline to Remote Control until something
-  wakes it; from there the human asks Kanri.
+  wakes it. From there the human asks Kanri, which wakes it and holds it
+  awake until thirty minutes after its last turn (2.4); without that hold
+  a dialogue seat would be one turn long from that face. Whether the
+  listing shows a Remote Control connection to a background seat is not
+  measured, and nothing rests on it.
 - **C-3** — a seat started after the editor's list was loaded is in the
   list after `Developer: Reload Window`; a click on its row opens it. For
   about half a minute after a turn ends the row may still show the
@@ -1202,7 +1399,13 @@ Costs, accepted:
 - An ended seat's row stays in the editor's list beside its successor's;
   it answers with its closing line alone (5.1).
 - A wake costs Kanri's turn up to a minute, in place of a wake-up of its
-  own (2.5).
+  own, and with every dialogue seat parked between turns most of Kanri's
+  lines to a Sekkei or a Keikaku are a wake first: a cold start of that
+  seat's whole context, which an idle seat past its cache window would
+  have paid as well (2.5).
+- From the contract's text landing until a run moves, that run opens no
+  new dialogue seat but a Kikaku and a standalone Kaiseki (section 7,
+  D-21).
 
 Risks, as put to the human (D-11), with what the second round changed:
 
@@ -1315,9 +1518,10 @@ is the amended ADR's remaining decision on its own recorded reasoning.
 **Decision.** Sections 1, 3, and 5.1. No seat is opened by the human and
 none sends a handshake; a seat's orders are its prompt's keys; a session
 the state file does not hold stops at `/tanto <role>`; one holder per
-role, refused at the spawner; a seat's end is a `stop` request that
-follows the form check directly, with nothing said to the seat or to the
-human; `release:`, `cleared`, and every `/clear` rule go; the address of a
+role, refused at the spawner for a request that carries the contract's
+mark, which every request written under this text does; a seat's end is a
+`stop` request that follows the form check directly, with nothing said to
+the seat or to the human; `release:`, `cleared`, and every `/clear` rule go; the address of a
 seat is the name the listing prints for its `sessionId` at the moment of
 sending, the roster's first row staying Kanri's stored address; the
 `no-role` second line stays, for a name that moved in a reload and for a
@@ -1368,9 +1572,11 @@ holds in its own words and ADR 2 narrows.
   seat": what follows it directly is the `stop` request. The rest stands:
   the slot, its reason, and that a seat is never re-woken to explain an
   item.
-- decision-d831 and decision-ce83, in the reading decision-ded8 gave them
-  — a session "is released, and the window is kept": a session is
-  stopped, and its conversation is kept. The rest of each stands.
+- decision-d831 and decision-ce83, each in its own words, since
+  decision-ded8's reading of them is retired with it — d831's "before the
+  delete request", and ce83's "with its proposal on disk before the
+  session is deleted": a session is not deleted; it is stopped by a
+  `stop` request, and its conversation is kept. The rest of each stands.
 - decision-5ec7 — in its amendment of decision-b6cb, "a window is
   `/clear`ed and reused, not closed" and "one `release:` per seat": a
   seat is stopped and its conversation kept, one `stop` request per seat.
@@ -1397,15 +1603,27 @@ holds in its own words and ADR 2 narrows.
 of every turn unless work it dispatched is running, with `--waiting` while
 a question to the human stands and `--notice` when the run started the
 turn; the spawner stops the seat only when the turn has ended since the
-request — a last message record that is an `assistant` with
+request — a last message that is an `assistant` with
 `stop_reason: end_turn`, settled — and the listing shows it in the
-background, `idle`, and not held by a launcher; the state is written
-before the stop; the launcher's hold and release do nothing but set and
-clear a mark; a wake carries no prompt for any seat but Kanri, waits out
-a stop in progress, refuses a seat the listing holds, and removes a copy;
-a line is sent by `SendMessage` after the wake, in the same turn;
-`blocked` is the listing's `status: "waiting"` with its cause; a dialogue
-seat the listing no longer holds is `parked`, its row `live`.
+background, `idle`, and not held; the state is written before the stop;
+an honored request stands until a new turn begins, so a seat woken that
+takes no turn is stopped again; the launcher's hold and release do
+nothing but set and clear a mark, and Kanri's hold for a face with no
+launcher expires thirty minutes after the seat's last turn; a wake
+carries no prompt for any seat but Kanri, waits out a stop in progress,
+refuses a seat the listing holds, and removes a copy; a line is sent by
+`SendMessage` after the wake, in the same turn; `blocked` is a background
+entry's `status: "waiting"` with its cause; a dialogue seat the listing
+no longer holds is `parked`, its row `live`. All of it applies to a seat
+whose `spawn` carried the contract's mark, and to no other.
+
+An attach that wakes a parked seat is admitted. decision-1ea3 gives the
+spawner alone `claude --bg`, `stop`, and `rm`, so that no session starts
+one; `claude attach` is the human's own act, run for him by the launcher
+on a seat the spawner already holds, and it stands outside that rule in
+letter and in reason. It is preferred to a resume through the spawner
+before the attach because it was measured to work (P-4) and takes one
+process out of the second in which a resume makes a copy (S-5).
 
 **Rejected.**
 
@@ -1429,6 +1647,16 @@ seat the listing no longer holds is `parked`, its row `live`.
   waits, and is removed.
 - A link from outside the editor to open a tab: three attempts opened
   nothing, and the editor went down once around them.
+- The new behavior switched on for a whole spawner, not seat by seat: a
+  spawner restarted under a run that has not moved — by a reboot, in any
+  repository, from the first batch on — would refuse that run's next
+  handover and park a Keikaku its Kanri knows only as gone.
+- A park at every turn's end with no hold but the launcher's: a dialogue
+  seat would be one turn long from Remote Control, which the Kikaku
+  file's cost — offline until something wakes it — did not say.
+- A request dropped once it is honored: a seat woken that takes no turn
+  would stay alive until the supervisor's idle hour, its row showing the
+  editor's notice to the human who had just looked in and left.
 
 **Amends**, in these parts and no others:
 
@@ -1515,7 +1743,11 @@ fukki — it starts a run when none is live and rejoins the live one.
   than one task by heading.
 - No measurement task and no alternative block: every figure this design
   rests on is in "Measured while designing" (D-18).
-- The Global Constraints of section 7, word for word in substance.
+- The Global Constraints of section 7, word for word in substance, the
+  five steps after batch D among them.
+- No task for the acceptance scene: it is step 5 of those Constraints,
+  run by Kanri and the human after batch D is accepted and before the
+  whole-branch review, and its findings are the fix wave's (I-17).
 - The Old values list, measured at zero over the touched files at every
   boundary; its first nine needles grepped across `skills/tanto/`, a hit
   outside section 6 handled as that section's first paragraph says.
@@ -1525,48 +1757,80 @@ fukki — it starts a run when none is live and rejoins the live one.
   "blocked"` with it.
 - The status words of `SKILL.md`'s roster section decided by grep in the
   task that rewrites it: `refused` stays only if a use remains.
-- A last task, the acceptance scene of "Verification", after the restart
-  section 7 places before it.
 
 ## Verification
 
 - `node --test skills/tanto/scripts/` green at every boundary, with new
-  tests for: `turnEnded` over a `cli` tail with `turn_duration`, a `cli`
-  tail with `stop_hook_summary` alone, a tab's tail, a tail settled only
-  by the file's age, a tail on a `tool_use`, and a new turn after
-  `after`; each of 2.3's outcomes — void, not yet, not listed,
-  `interactive`, `busy`, `waiting`, held, the stop, the ten-minute drop;
-  the notice raised once, with and without a stop; the state written
-  before the stop; `hold`'s three errors; a dead launcher's hold cleared;
-  `release` leaving a seat with no request alone; `resume`'s four listing
-  cases, the prompt refused for a dialogue seat, the copy found on stderr
-  and on stdout and removed; `blocked` on `status: "waiting"` and not on
-  `state: "blocked"`; a dialogue seat's absence read as `parked` and a
-  Jisso's as `gone`; a `parked` seat listed again; `midTurn`; the
-  second-holder refusal and `succeeds`; a `once` seat removed after its
-  turn and after five minutes; a `self` stop in each column of 2.8's
-  table; `contract` written and removed; the census's `spawner:` line and
-  six headings; `request park`, `request leave`, `seat`, `wake`, and
-  `beat`; the word table with every alias and the usage error; role
-  resolution for each row of 4.2; the older-spawner line; the follow loop
-  taking a successor and exiting on a detach; each of `jokyo`'s
-  third-column values, and `context=`; `teishi --seats` marking a parked
-  seat; the old-shape roster line.
+  tests for:
+  - `turnEnded` — a `cli` tail with `turn_duration`; a `cli` tail with
+    `stop_hook_summary` alone; a tab's tail; a final message written as
+    two records of one `message.id`; a tail settled only by the file's
+    age; a tail on a `tool_use`; a synthetic closing record; a new turn
+    after `after`, by a human's `user` record and by an `isMeta` one;
+  - the park — each of 2.3's outcomes: void, not yet and its ten-minute
+    drop, not listed, `interactive`, `busy`, `waiting`, held, the stop,
+    the ten-minute drop after the turn ended; the notice raised when
+    `waiting` goes from unset to set and not again; a request without
+    `--waiting` clearing it; the state written before the stop; a park
+    decided by the listing when the recorded status lags; the standing
+    request — a seat listed again with no new turn stopped after two
+    minutes, and not while held; every `park`, `hold`, and absence rule
+    refused or skipped for a seat without the contract's mark;
+  - the hold — its four errors; the wait for a stop that is finishing; a
+    dead launcher's hold cleared; a `forMs` hold cleared when the
+    transcript has been quiet that long; `release` leaving a seat with
+    no request alone;
+  - `resume` — its four listing cases; the prompt refused for a role
+    other than `kanri`; the copy found on stderr and on stdout and
+    removed;
+  - the census — `blocked` on a background entry's `status: "waiting"`,
+    not on `state: "blocked"`, and never for an `interactive` entry; a
+    contract-2 dialogue seat's absence read as `parked`, an unmarked
+    one's and a Jisso's as `gone`; a `parked` seat listed again;
+    `midTurn`;
+  - `spawn` — the second-holder refusal for a marked request, none for
+    an unmarked one, and `succeeds`; the state file written before the
+    transcript poll; a `once` seat removed after its turn and after five
+    minutes; `contract` written at the start;
+  - `stop` — each column of 2.8's table; a `self` stop refused for
+    another role, and its drop with the notice;
+  - `boundary.js` — the census's `spawner:` line and six headings, with
+    ` — mid-turn`, ` — waiting`, and 1.3's line for a seat no row holds;
+    `request park` and `request leave` writing `after`; `seat` with its
+    five words and `no entry <kind>`; `wake` over several seats and with
+    `--hold`; `beat`;
+  - `tanto.js` — the word table with every alias and the usage error;
+    role resolution for each row of 4.2; the older-spawner line; a run
+    that has not moved, for each role; `contract: 2` on every `spawn`;
+    the follow loop taking a successor and exiting on a detach; each of
+    `jokyo`'s third-column values, `context=`, and no `tanto fukki` for a
+    `gone` Jisso; `fukki` with a resumed Kanri, with a live one, and in a
+    run that has not moved; `teishi --seats` recording `parked` and
+    `gone` seats; the old-shape roster line.
 - The Old values at zero; `./scripts/lint.sh` on the changed paths.
-- **The acceptance scene**, by the human's hands on the landed text and a
-  restarted spawner, its observations recorded in the ledger's
-  Measurements for the dogfood report:
-  1. `tanto kikaku` starts a Kikaku, prints its `context=`, and attaches.
-  2. A turn; then ← and leaving the agent view; the launcher prints the
-     listing, and within a minute it reads `parked`.
-  3. `Developer: Reload Window`; a click on the Kikaku's row opens it
-     with no notice; a turn there.
-  4. The tab closed; `tanto jokyo` reads `parked`.
-  5. Kanri runs `wake` on it and sends a line; the line is answered, and
-     the seat parks again.
-  6. `/tanto taiseki` in the seat ends it; `tanto jokyo` no longer lists
-     it; a second `tanto kikaku` starts a new conversation.
-  7. With Kanri alive, `tanto fukki`: the messenger's line reaches Kanri,
+- **The acceptance scene** — step 5 of section 7's Constraints, by the
+  successor Kanri and the human's hands, on the landed text and the
+  restarted spawner. Its observations are recorded in the ledger's
+  Measurements for the dogfood report, the first of them made at step 4:
+  1. At the handover, the launcher took the human to the successor with
+     nothing typed.
+  2. `tanto kikaku` starts a Kikaku, prints its `context=`, and attaches.
+  3. A turn; then ← and leaving the agent view; the launcher prints the
+     listing, and within a minute `tanto jokyo` reads `parked`.
+  4. `Developer: Reload Window`; a click on the Kikaku's row opens it
+     with no notice; a turn there; the tab closed, and `tanto jokyo`
+     reads `parked`.
+  5. `tanto hosa -n` starts a Hosa without attaching, and it parks after
+     its start. Kanri runs `wake` on it and sends a `chore:` line for an
+     untracked trifle under `.tanto/`; the line is answered, and the Hosa
+     parks again.
+  6. `tanto kikaku` again, without a word typed, then ←: within two
+     minutes of leaving, `tanto jokyo` reads `parked` (the standing
+     request).
+  7. `/tanto taiseki` in the Kikaku, typed in a tab, and in the Hosa,
+     typed in a terminal: each ends; `tanto jokyo` lists neither; a
+     further `tanto kikaku` starts a new conversation.
+  8. With Kanri alive, `tanto fukki`: the messenger's line reaches Kanri,
      and Kanri prints what it put back.
 
 ## Out of scope
@@ -1645,7 +1909,10 @@ Left, and named under "Out of scope": dfb3, cd46, e843, e525, 9d17, 5601,
 
 `.tanto/run-owned-seats/spec-inputs.md` holds I-1 to I-12, Kanri's own
 reading of the passages that rewrite its procedure, asked for before the
-reviewer was dispatched. None is a scope change, and all twelve are taken.
+reviewer was dispatched, and I-13 to I-20, its reading of the third text.
+None is a scope change. The first twelve are taken; of the last eight,
+six are taken, one is answered by a rule other than the one it proposed,
+and one rests on a misreading.
 
 - **I-1** — the frame of the other eleven; nothing to answer.
 - **I-2** — taken: 2.5 maps every status the `seat` command can print.
@@ -1674,6 +1941,38 @@ reviewer was dispatched. None is a scope change, and all twelve are taken.
   (1.1, section 6).
 - **I-12** — taken: `succeeds:` on a handover's spawn, and "Second Kanri"
   as section 6's `roles/kanri.md` bullet has it, narrowed by 1.5.
+- **I-13** — the frame of the next seven; nothing to answer.
+- **I-14** — not taken as proposed. Letting a typed `/tanto <role>` pass
+  wherever the spawner is not one of this design would start a session on
+  the new role text with no run behind it — no handshake to send, and no
+  spawner to park it. The window it names is real, and is answered
+  elsewhere: this run's open Kikaku goes on until step 1 after batch D,
+  and the Constraints say that no new one can be started between batch
+  D's commit and the handover; in another repository a Kikaku and a
+  standalone Kaiseki are started by the launcher once its spawner is
+  restarted, and everything else waits for the move, which the human
+  acknowledged (D-21). 1.5's check is on the session's own listing kind,
+  not on the contract file.
+- **I-15** — taken: `wake` takes several seats in one call; the rule 9
+  sentence and the Measurements row (1.1); the pairing key of `unsent:`
+  and `sent:` (2.5). The cost of a wake is named in section 8.
+- **I-16** — taken: the `resume:` line is sent in Recovery alone, and it
+  names the re-dispatch (2.7).
+- **I-17** — taken, as its option (a): the scene is outside the batches,
+  step 5 after batch D's acceptance, before the whole-branch review; the
+  `contract` check is step 3, and a value other than `2` starts nothing
+  (section 7).
+- **I-18** — rests on the second text. The third, which Kanri was sent,
+  already keeps `cleared` in `record --status` (section 6) and says so in
+  the Constraint; the script and the Constraint agree.
+- **I-19** — answered by the handover of step 4: the Kanri that read the
+  old text sends by the old rule to its end, which the new spawner
+  serves unchanged for an unmarked seat, and the successor that read
+  batch D's text sends by `seat`, `wake`, and `beat`. No Kanri chooses
+  between two rules.
+- **I-20** — taken: step 1 after batch D, the old tab seats closed and
+  their rows written before the restart; a `/tanto` typed in one of them
+  afterwards stops by 1.5, there being no handshake left to refuse.
 
 ## Deferred items
 
@@ -1687,6 +1986,9 @@ reviewer was dispatched. None is a scope change, and all twelve are taken.
 - Waking a parked seat from Remote Control without Kanri.
 - `cleared` in `boundary.js`'s `record --status` vocabulary, kept for
   this run's own close: removed once no run writes it.
+- The `contract` mark on a seat, the launcher's moved-run check, and
+  `.tanto/spawner/contract`: the code that keeps a run not yet moved
+  whole. Removed once every repository that reads this skill has moved.
 - Whether `renamed` and `ack` are still worth keeping once nothing
   addresses by name, and Residency rows matched by `sessionId`:
   `roster-ledger`'s to decide.
