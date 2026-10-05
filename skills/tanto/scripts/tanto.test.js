@@ -1026,6 +1026,76 @@ test("teishi --seats writes a stop request for every running seat", () => {
   );
 });
 
+test("teishi --seats stops every seat the state file holds, parked and gone ones as well as listed ones (spec 4.6)", () => {
+  const ws = workspace([LIVE_KANRI]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  launch(ws, ["kanri", "--timeout", "20000"]);
+  writeSeats(ws, [
+    { sessionId: "sess-live", id: "bg07", role: "kanri", topic: "—", status: "running", contract: 2 },
+    { sessionId: "sess-parked", id: "bg12", role: "sekkei", topic: "t", status: "parked", contract: 2 },
+    { sessionId: "sess-gone", id: "bg13", role: "jisso", topic: "t", status: "gone", contract: 2 },
+    { sessionId: "sess-old", id: "bg05", role: "jisso", topic: "t", status: "stopped" },
+  ]);
+  const got = launch(ws, ["停止", "--seats", "--timeout", "20000"]);
+  assert.equal(got.code, 0, got.err);
+  assert.deepEqual(
+    requests(ws)
+      .filter((r) => r.op === "stop")
+      .map((r) => r.sessionId)
+      .sort(),
+    ["sess-gone", "sess-live", "sess-parked"],
+  );
+});
+
+test("teishi removes the contract file with pid and heartbeat (spec 4.2, 4.6)", () => {
+  const ws = workspace([LIVE_KANRI]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  launch(ws, ["kanri", "--timeout", "20000"]);
+  const dir = path.join(ws.root, ".tanto", "spawner");
+  assert.equal(fs.readFileSync(path.join(dir, "contract"), "utf8").trim(), "2");
+  const got = launch(ws, ["stop"]);
+  assert.equal(got.code, 0, got.err);
+  assert.equal(got.out.trim(), "tanto teishi: spawner stopped; the conversations are kept");
+  for (const name of ["pid", "heartbeat", "contract"]) assert.equal(fs.existsSync(path.join(dir, name)), false, name);
+});
+
+test("an old-shape roster earns one line naming its roles, and the launcher goes on (spec 4.7)", () => {
+  const ws = workspace([LIVE_KANRI]);
+  const row = (role, topic, status, sessionId) =>
+    `| ${role} | ${topic} | x-${role} | ${ws.root} | sonnet | high | main | auto | 2026-10-05 09:00 | ${status} | /tmp/${sessionId}.jsonl |`;
+  fs.mkdirSync(path.join(ws.root, ".tanto"), { recursive: true });
+  const roster = [
+    ...ROSTER_HEAD,
+    row("kanri", "—", "live", "sess-live"),
+    row("kikaku", "—", "cleared", "sess-tab"),
+    row("sekkei", "t", "live", "sess-sekkei"),
+    row("jisso", "t", "stopped", "sess-jisso"),
+  ];
+  fs.writeFileSync(path.join(ws.root, ".tanto", "roster.md"), `${roster.join("\n")}\n`);
+  writeSeats(ws, [{ sessionId: "sess-live", id: "bg07", role: "kanri", topic: "—", status: "running", contract: 2 }]);
+  const old = launch(ws, ["kanri", "--timeout", "20000"]);
+  assert.equal(old.code, 0, old.err);
+  const line =
+    'old-contract rows in .tanto/roster.md (kikaku, sekkei): those windows are no longer seats of this run — see the README, "Moving a run"';
+  assert.equal(old.out.split(/\r?\n/).filter((l) => l === line).length, 1, old.out);
+  assert.deepEqual(attaches(ws), ["bg07"]);
+  fs.writeFileSync(
+    path.join(ws.root, ".tanto", "roster.md"),
+    `${[...ROSTER_HEAD, row("kanri", "—", "live", "sess-live")].join("\n")}\n`,
+  );
+  const moved = launch(ws, ["kanri", "--timeout", "20000"]);
+  assert.equal(moved.out.includes("old-contract rows"), false, moved.out);
+});
+
+test("a listing entry counts by its pid, whatever its state says (spec 2.6)", () => {
+  const ws = workspace([{ ...LIVE_KANRI, state: "stopped" }]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  const got = launch(ws, ["kanri", "--timeout", "20000"]);
+  assert.equal(got.code, 0, got.err);
+  assert.deepEqual(attaches(ws), ["bg07"]);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn" || r.op === "resume").length, 0);
+});
+
 test("the launcher itself never runs claude --bg", () => {
   const ws = workspace();
   launch(ws, ["--timeout", "20000"]);

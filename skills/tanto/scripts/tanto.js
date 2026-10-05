@@ -33,8 +33,10 @@ const LEAVE_LINE =
 const TRUST_LINE =
   "this folder's trust is not recorded: run claude here once and answer \"Yes, I trust this folder\" — the agent view's own trust question after ← or /exit takes no input";
 
-// A seat `seats.json` holds as `running` or `blocked` — or, for Kanri alone,
-// `gone` — is resumed; one it holds as `stopped` or `removed` is not (spec 4.2).
+// The statuses under which the state file holds a Kanri (spec 2.7, 4.4). A
+// Kanri is never parked, so its absence is `gone`, and a `gone` Kanri is
+// resumed like a `running` or `blocked` one; a `stopped` or `removed` one is
+// not. `blocked` is a prompt now, never an idle seat (spec 2.6).
 const KANRI_RESUMABLE = ["running", "blocked", "gone"];
 const GITIGNORE = "*\n";
 const MARKDOWNLINT = "config:\n  default: false\n";
@@ -308,7 +310,7 @@ function liveSpawner(root) {
 }
 
 function removeSpawnerFiles(root) {
-  for (const file of [pidPath(root), heartbeatPath(root)]) {
+  for (const file of [pidPath(root), heartbeatPath(root), contractPath(root)]) {
     try {
       fs.rmSync(file, { force: true });
     } catch {
@@ -325,7 +327,7 @@ function startSpawner(root) {
   if (liveSpawner(root)) return false;
   // A live PID behind a stale heartbeat is never signalled: it may be any
   // process by now (spec 4.2, D-4). A real spawner left so runs beside the
-  // new one until the next `tanto down`. Both claim a request by rename, so
+  // new one until the next `tanto teishi`. Both claim a request by rename, so
   // none is handled twice — except by a spawner started before that claim
   // (issue-f03b), which a PID with no heartbeat file is the sign of, and
   // which the line printed here makes visible.
@@ -386,6 +388,47 @@ function firstRosterRow(root) {
     .map((cell) => cell.trim());
   if (cells.length < 11) return null;
   return { name: cells[2], status: cells[9], sessionId: path.basename(cells[10], ".jsonl") };
+}
+
+/** Every data row of the roster as `{ role, status, sessionId }`, or `[]` (spec 4.7). */
+function rosterRows(root) {
+  let lines;
+  try {
+    lines = fs.readFileSync(path.join(root, ".tanto", "roster.md"), "utf8").split(/\r?\n/);
+  } catch {
+    return [];
+  }
+  const head = lines.findIndex((line) => /^\|\s*Role\s*\|/.test(line));
+  if (head === -1) return [];
+  const rows = [];
+  for (const line of lines.slice(head + 2)) {
+    if (!line.startsWith("|")) break;
+    const cells = line
+      .split("|")
+      .slice(1, -1)
+      .map((cell) => cell.trim());
+    if (cells.length >= 11)
+      rows.push({ role: cells[0], status: cells[9], sessionId: path.basename(cells[10], ".jsonl") });
+  }
+  return rows;
+}
+
+/**
+ * The one line an old-shape roster earns (spec 4.7), read once at a start: a
+ * row whose status is cleared, or a live or queued row whose session the
+ * state file has no seat for, belongs to the old contract. The line informs
+ * and asks for no act.
+ */
+function oldShapeLine(root, seats) {
+  const known = new Set(seats.map((s) => s.sessionId));
+  const old = rosterRows(root).filter(
+    (row) => row.status.startsWith("cleared") || (/^(live|queued)/.test(row.status) && !known.has(row.sessionId)),
+  );
+  if (old.length === 0) return;
+  const roles = [...new Set(old.map((row) => row.role))].join(", ");
+  process.stdout.write(
+    `old-contract rows in .tanto/roster.md (${roles}): those windows are no longer seats of this run — see the README, "Moving a run"\n`,
+  );
 }
 
 /**
@@ -704,9 +747,10 @@ function cmdUp(values, role, topic, word) {
     fail(`tanto: claude agents failed — ${listing.error}`);
     return 1;
   }
-  const byId = new Map(
-    listing.sessions.filter((s) => s.sessionId && s.pid && s.state !== "stopped").map((s) => [s.sessionId, s]),
-  );
+  // An entry counts by its `pid` alone: the listing's `state` is a field
+  // nothing reads any more (spec 2.6).
+  const byId = new Map(listing.sessions.filter((s) => s.sessionId && s.pid).map((s) => [s.sessionId, s]));
+  oldShapeLine(root, seats);
   const handoverFile = path.join(root, ".tanto", "kanri-handover.md");
   const handover = fs.existsSync(handoverFile);
   const row = firstRosterRow(root);
@@ -721,8 +765,8 @@ function cmdUp(values, role, topic, word) {
   // branches above can never see, and the loop below would resume it a
   // second time on top of this one (Important 7, branch-review.md).
   // A `gone` Kanri is one the human `/stop`ped, or one that crashed while the
-  // spawner ran, and it is resumed like a `running` one (spec 4.2); a
-  // `stopped` one — after `tanto down --seats`, or a handover — is not.
+  // spawner ran, and it is resumed like a `running` one (spec 4.4); a
+  // `stopped` one — after `tanto teishi --seats`, or a handover — is not.
   const held = row
     ? seats.find((s) => s.sessionId === row.sessionId)
     : seats.find((s) => s.role === "kanri" && KANRI_RESUMABLE.includes(s.status));
@@ -817,8 +861,12 @@ function cmdTeishi(values) {
   let seatsFailed = false;
   if (values.seats) {
     const stops = [];
+    // A retirement stops every seat the state file holds (spec 4.6): a listed
+    // one by the command, and a `parked` or `gone` one recorded `stopped`
+    // with `note: "already exited"`, so that which seats survive it does not
+    // depend on which were parked or collected at that moment.
     for (const seat of readSeats(root)) {
-      if (seat.status !== "running" && seat.status !== "blocked") continue;
+      if (!["running", "blocked", "parked", "gone"].includes(seat.status)) continue;
       const id = writeRequest(root, { op: "stop", role: seat.role, topic: seat.topic, sessionId: seat.sessionId });
       stops.push({ sessionId: seat.sessionId, id });
     }
@@ -854,7 +902,7 @@ function cmdTeishi(values) {
   }
   for (let i = 0; i < 40 && pidAlive(pid); i++) sleepSync(POLL_MS);
   removeSpawnerFiles(root);
-  process.stdout.write("tanto down: spawner stopped; the conversations are kept\n");
+  process.stdout.write("tanto teishi: spawner stopped; the conversations are kept\n");
   return seatsFailed ? 1 : 0;
 }
 
