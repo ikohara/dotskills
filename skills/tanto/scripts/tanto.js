@@ -1,15 +1,15 @@
 // No shebang: the two wrappers beside this file are what is invoked bare,
 // and they name `node` themselves. This is the human's one command — it
-// starts the spawner, finds or asks for a Kanri, puts back what a restart
-// took, and prints the one line the human types next. It is idempotent, and
-// it never runs `claude --bg` itself: its Kanri goes through the spawner
-// like every other seat.
+// starts the spawner, enters a seat by its role, stays with the human
+// through a Kanri handover, and puts back what a restart took (spec 4.1 to
+// 4.4). It runs the CLI's `attach` itself, and never `claude --bg`: every
+// seat, its own Kanri included, goes through the spawner.
 
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const { spawnSync, spawn } = require("node:child_process");
-const { loadSessions } = require("./reading.js");
+const { loadSessions, readTranscript } = require("./reading.js");
 const { readSeats, spawnerDir, underRoot, appendLog, heartbeatPath, HEARTBEAT_STALE_MS } = require("./spawner.js");
 
 const USAGE = [
@@ -22,10 +22,12 @@ const SPAWNER = path.join(__dirname, "spawner.js");
 const WAIT_MS = 60000;
 const POLL_MS = 250;
 
-// The line printed after every attach line (spec 4.1): every way out of a
-// seat but `/stop` leaves it running.
+// The line printed before every attach (spec 4.3, C-1): ← leaves the seat
+// for the agent view, and leaving that view brings the human back here,
+// where the hold is released. A seat opened from the agent view carries no
+// hold, and its own park at its turn's end closes that screen.
 const LEAVE_LINE =
-  "← or /exit returns to the agent view, Ctrl+Z to the shell; the seat keeps running — /stop alone stops it, and a Kanri you /stop comes back with tanto";
+  "← or /exit leaves for the agent view, and leaving the agent view comes back here; open no seat from the agent view — tanto <role> is the way in. Leaving ends no seat, and a Kanri you /stop comes back with tanto";
 
 // The trust hint (spec 4.3), printed before the attach line.
 const TRUST_LINE =
@@ -107,10 +109,27 @@ function rootOf(values) {
   return resolveRoot(typeof values.root === "string" ? values.root : undefined);
 }
 
+let claudeFile = null;
+
+/**
+ * `claude`, resolved to a path once (spec 4.3, P-6): the attach runs with no
+ * shell, and on Windows the path `where claude` gives is the one measured.
+ * The bare name elsewhere, and when nothing is found.
+ */
+function claudePath() {
+  if (claudeFile === null) {
+    const found =
+      process.platform === "win32" ? spawnSync("where", ["claude"], { encoding: "utf8", windowsHide: true }) : null;
+    const lines = (found?.status === 0 ? found.stdout : "").split(/\r?\n/).map((line) => line.trim());
+    claudeFile = lines.find((line) => /\.exe$/i.test(line)) || "claude";
+  }
+  return claudeFile;
+}
+
 function claudeCommand(args) {
   const viaNode = process.env.TANTO_CLAUDE_NODE;
   if (viaNode) return { file: process.execPath, args: [viaNode, ...args] };
-  return { file: process.env.TANTO_CLAUDE || "claude", args };
+  return { file: process.env.TANTO_CLAUDE || claudePath(), args };
 }
 
 /**
@@ -390,6 +409,172 @@ function trustHint(root) {
   return project?.hasTrustDialogAccepted === true ? null : TRUST_LINE;
 }
 
+/**
+ * The seat whose short id or `sessionId` is `id`, as the state file and a
+ * fresh listing know it now: its `sessionId`, its listed name and `kind`,
+ * and the state file's record (`seat`, undefined when it holds none).
+ */
+function seatAt(root, id) {
+  const seat = readSeats(root).find((s) => s.id === id || s.sessionId === id);
+  const sessions = listAgents(root).sessions || [];
+  const sessionId = seat?.sessionId || sessions.find((s) => s.id === id || s.sessionId === id)?.sessionId || id;
+  const entry = sessions.find((s) => s.sessionId === sessionId && s.pid);
+  return { sessionId, name: entry?.name || seat?.name, kind: entry?.kind, seat };
+}
+
+/** A seat's size as `reading.js` reads it (spec 4.3, D-19), or null when its transcript is not found. */
+function seatContext(seat) {
+  if (!seat?.transcript) return null;
+  try {
+    return readTranscript(seat.transcript).context;
+  } catch {
+    return null;
+  }
+}
+
+/** The refusal for a seat a tab holds (spec 4.3): a seat is in one place at a time. */
+function inTab(role) {
+  return say(`${role} is open in a VS Code tab; close the tab and run this again`, 1);
+}
+
+/** What a seat is doing, the third column of `jokyo` (spec 4.5); `entry` is its listing entry. */
+function doingOf(seat, entry) {
+  if (entry?.kind === "interactive") return seat.waiting ? "in a tab — waiting for you" : "in a tab";
+  if (entry?.status === "waiting") return entry.waitingFor ? `blocked — ${entry.waitingFor}` : "blocked";
+  if (entry) return entry.status === "busy" ? "working" : "idle";
+  if (seat.status !== "parked") return "gone";
+  if (seat.midTurn) return "parked — mid-turn";
+  return seat.waiting ? "parked — waiting for you" : "parked";
+}
+
+/**
+ * The run's seats, one line each (spec 4.5): every seat the state file holds
+ * that is not `stopped` or `removed`, Kanri first, with what it is doing, a
+ * dialogue seat's `context=`, and the command for a line that waits on the
+ * human — `tanto <role>`, with the topic when two seats share the role, and
+ * `tanto fukki` for a `gone` Kanri and a topic seat's cut turn. A `gone`
+ * Jisso gets none: it is woken when its batch is due.
+ */
+function seatLines(seats, sessions) {
+  const listed = new Map(sessions.filter((s) => s.sessionId && s.pid).map((s) => [s.sessionId, s]));
+  const shown = seats.filter((s) => s.status !== "stopped" && s.status !== "removed");
+  shown.sort((a, b) => Number(b.role === "kanri") - Number(a.role === "kanri"));
+  const cell = (text, width) => `${text} `.padEnd(width);
+  return shown.map((seat) => {
+    const doing = doingOf(seat, listed.get(seat.sessionId));
+    const context = DIALOGUE_ROLES.includes(seat.role) ? seatContext(seat) : null;
+    const topicSeat = Boolean(seat.topic) && seat.topic !== "—";
+    const twin = shown.some((s) => s !== seat && s.role === seat.role);
+    const enter = `tanto ${seat.role}${twin && topicSeat ? ` ${seat.topic}` : ""}`;
+    let command = "";
+    if (doing.startsWith("blocked") || doing === "parked — waiting for you") command = enter;
+    if (doing === "gone" && seat.role === "kanri") command = "tanto fukki";
+    if (doing === "parked — mid-turn") command = topicSeat ? "tanto fukki" : enter;
+    const size = context === null ? "" : `context=${context}`;
+    return `${cell(seat.role, 9)}${cell(seat.topic || "—", 18)}${cell(doing, 31)}${cell(size, 17)}${command}`.trimEnd();
+  });
+}
+
+/** Print the run's seats (spec 4.5); a listing that cannot be read is said, and every seat read as unlisted. */
+function printSeats(root) {
+  const listing = listAgents(root);
+  if (listing.sessions === null) fail(`tanto: claude agents failed — ${listing.error}`);
+  for (const line of seatLines(readSeats(root), listing.sessions || [])) process.stdout.write(`${line}\n`);
+}
+
+/**
+ * The successor of the Kanri just left (spec 4.3, step 5): none unless the
+ * state file now holds that Kanri `stopped`; then the roster's first row when
+ * it names another session, or the handover spawn `kanriSuccessor` finds,
+ * waited for up to `waitMs`. `{ id }`, `{ code }` with the line said, or null.
+ */
+function successorOf(root, outgoing, sinceMs, waitMs) {
+  const seats = readSeats(root);
+  if (seats.find((s) => s.sessionId === outgoing)?.status !== "stopped") return null;
+  const row = firstRosterRow(root);
+  if (row && row.sessionId !== outgoing) {
+    return { id: seats.find((s) => s.sessionId === row.sessionId)?.id || row.sessionId };
+  }
+  const sessions = listAgents(root).sessions || [];
+  const byId = new Map(sessions.filter((s) => s.sessionId && s.pid).map((s) => [s.sessionId, s]));
+  const handoverMs = statMtimeMs(path.join(root, ".tanto", "kanri-handover.md"));
+  const found = kanriSuccessor(root, Math.min(sinceMs, handoverMs ?? sinceMs), seats, byId, outgoing);
+  if (found?.attach) return { id: found.attach };
+  if (!found?.waitId) return null;
+  const result = waitForResult(root, found.waitId, waitMs);
+  if (!result || result.error) {
+    fail(`tanto: the successor Kanri did not start — ${result ? result.error : "no result; see .tanto/spawner/log"}`);
+    return { code: 1 };
+  }
+  return { id: result.id || result.sessionId };
+}
+
+/**
+ * Enter the seat whose short id is `id` (spec 4.3) and return the exit code.
+ * A dialogue seat is held while the human is in it, since the listing does
+ * not show an attach; any other seat is refused when a tab holds it. When
+ * the seat left is a Kanri that has ended and a successor exists, the
+ * successor is entered with nothing typed; otherwise the run's seats are
+ * printed once. The decision is read from the files, never from the
+ * attach's exit code: a stopped session ends an attach with 0 (H-1b).
+ */
+function enterSeat(root, firstId, role, waitMs) {
+  let id = firstId;
+  for (;;) {
+    const seat = seatAt(root, id);
+    const topic = seat.seat?.topic || "—";
+    const dialogue = DIALOGUE_ROLES.includes(role);
+    let held = false;
+    if (dialogue) {
+      const hold = { op: "hold", role, topic, sessionId: seat.sessionId, pid: process.pid };
+      const result = waitForResult(root, writeRequest(root, hold), waitMs);
+      if (!result) {
+        fail("tanto: the spawner wrote no result for the hold request; see .tanto/spawner/log");
+        return 1;
+      }
+      const error = result.error || "";
+      if (error.includes("in a tab")) return inTab(role);
+      if (error.includes("held by another terminal")) return say(`${role} is held by another terminal`, 1);
+      // A seat spawned without the contract's mark is entered unheld, as
+      // before this design.
+      if (error && !error.includes("old-contract seat")) {
+        fail(`tanto: the hold on ${role} failed — ${error}`);
+        return 1;
+      }
+      held = !error;
+    } else if (seat.kind === "interactive") {
+      return inTab(role);
+    }
+    const hint = trustHint(root);
+    if (hint) process.stdout.write(`${hint}\n`);
+    const context = dialogue ? seatContext(seat.seat) : null;
+    const named = topic === "—" ? role : `${role} ${topic}`;
+    if (context !== null) process.stdout.write(`${named} — context=${context}\n`);
+    process.stdout.write(`${LEAVE_LINE}\n`);
+    const attachedAtMs = Date.now();
+    const command = claudeCommand(["attach", id]);
+    spawnSync(command.file, command.args, { cwd: root, stdio: "inherit" });
+    if (held) writeRequest(root, { op: "release", role, topic, sessionId: seat.sessionId });
+    const next = role === "kanri" ? successorOf(root, seat.sessionId, attachedAtMs, waitMs) : null;
+    if (next?.code !== undefined) return next.code;
+    if (!next?.id || next.id === id) {
+      printSeats(root);
+      return 0;
+    }
+    id = next.id;
+  }
+}
+
+/** `--no-attach` (spec 4.1): the seat's name and the ways in, and nothing entered. */
+function sayWaysIn(root, id, role) {
+  const seat = seatAt(root, id);
+  const topic = seat.seat?.topic && seat.seat.topic !== "—" ? ` ${seat.seat.topic}` : "";
+  const click = DIALOGUE_ROLES.includes(role)
+    ? ", or by a click on its row in the editor's list after Developer: Reload Window"
+    : "";
+  return say(`${role}${topic} ${seat.name || id} — enter it with tanto ${role}${topic}${click}`, 0);
+}
+
 /** The branch the shared tree is on, which the request schema asks for. */
 function branchOf(root) {
   const got = spawnSync("git", ["-C", root, "rev-parse", "--abbrev-ref", "HEAD"], {
@@ -559,7 +744,7 @@ function cmdUp(values, role, topic, word) {
   } else if (!handover && listed && row.status.startsWith("live") && listed.kind === "background") {
     attach = listed.id || row.sessionId;
   } else if (!handover && listed && row.status.startsWith("live")) {
-    process.stdout.write("Kanri is an interactive tab; hand over first\n");
+    return inTab("kanri");
   } else if (successor?.attach) {
     attach = successor.attach;
   } else if (successor?.waitId) {
@@ -615,15 +800,13 @@ function cmdUp(values, role, topic, word) {
     resumed += 1;
   }
 
-  const hint = trustHint(root);
-  if (hint) process.stdout.write(`${hint}\n`);
-  if (attach) process.stdout.write(`claude attach ${attach}\n${LEAVE_LINE}\n`);
+  if (values["no-attach"]) return sayWaysIn(root, attach, role);
   // Only when a seat the human can reach was actually named above — an
   // interactive first row prints its own line and sets no `attach`, and
   // "then type /tanto fukki there" with nothing before it names nothing to
   // attach to first (Minor 10, branch-review.md).
   if (resumed > 0 && attach) process.stdout.write("then type /tanto fukki there once\n");
-  return 0;
+  return enterSeat(root, attach, role, waitMs);
 }
 
 function cmdTeishi(values) {

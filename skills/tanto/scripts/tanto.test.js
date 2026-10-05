@@ -105,6 +105,48 @@ function calls(ws) {
     .map((l) => JSON.parse(l));
 }
 
+/** The ids the launcher ran the CLI's `attach` on, in order (spec 4.3). */
+function attaches(ws) {
+  return calls(ws)
+    .filter((argv) => argv[0] === "attach")
+    .map((argv) => argv[1]);
+}
+
+function lastAttach(ws) {
+  return attaches(ws).at(-1);
+}
+
+// A fake of its own around the shared one: at the n-th attach it writes the
+// files of `attach-steps.json`'s n-th step, the way a handover changes them
+// while the human is attached, and then runs the shared fake.
+const ATTACH_HOOK = `
+const fs = require("node:fs");
+const path = require("node:path");
+if (process.argv[2] === "attach") {
+  const file = path.join(__dirname, "attach-steps.json");
+  const steps = JSON.parse(fs.readFileSync(file, "utf8"));
+  const step = steps.shift() || {};
+  fs.writeFileSync(file, JSON.stringify(steps));
+  for (const [name, body] of Object.entries(step)) fs.writeFileSync(path.join(__dirname, name), body);
+}
+require("./fake-claude.js");
+`;
+
+/** Write `steps` for the hooked fake, and name it as the workspace's CLI. */
+function onAttach(ws, steps) {
+  fs.writeFileSync(path.join(ws.root, "attach-steps.json"), JSON.stringify(steps));
+  ws.fake = path.join(ws.root, "fake-attach.js");
+  fs.writeFileSync(ws.fake, ATTACH_HOOK);
+}
+
+/** A transcript whose one assistant record `reading.js` reads as `context` tokens. */
+function writeTranscript(ws, sessionId, context) {
+  const file = path.join(ws.root, `${sessionId}.jsonl`);
+  const usage = { input_tokens: 100, cache_creation_input_tokens: 0, cache_read_input_tokens: context - 100 };
+  fs.writeFileSync(file, `${JSON.stringify({ type: "assistant", message: { usage } })}\n`);
+  return file;
+}
+
 const ROSTER_HEAD = [
   "# tanto roster",
   "",
@@ -136,9 +178,9 @@ function backdate(file, seconds) {
   fs.utimesSync(file, past, past);
 }
 
-// The two lines spec 4.1 and 4.3 fix, byte for byte.
+// The two lines the launcher prints before an attach (spec 4.3), byte for byte.
 const LEAVE =
-  "← or /exit returns to the agent view, Ctrl+Z to the shell; the seat keeps running — /stop alone stops it, and a Kanri you /stop comes back with tanto";
+  "← or /exit leaves for the agent view, and leaving the agent view comes back here; open no seat from the agent view — tanto <role> is the way in. Leaving ends no seat, and a Kanri you /stop comes back with tanto";
 const TRUST =
   "this folder's trust is not recorded: run claude here once and answer \"Yes, I trust this folder\" — the agent view's own trust question after ← or /exit takes no input";
 
@@ -187,7 +229,7 @@ test("the first run writes the two workspace files and asks for a Kanri", () => 
   assert.equal(asked.model, "sonnet");
   assert.equal(asked.effort, "high");
   assert.equal(asked.mode, "auto");
-  assert.match(got.out, /claude attach bg01/);
+  assert.equal(lastAttach(ws), "bg01", got.err);
 });
 
 test("an existing .gitignore is never overwritten", () => {
@@ -213,7 +255,7 @@ test("a live background Kanri is attached to, not spawned again", () => {
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   const got = launch(ws, ["--timeout", "20000"]);
-  assert.match(got.out, /claude attach bg07/);
+  assert.equal(lastAttach(ws), "bg07", got.err);
   assert.equal(requests(ws).filter((r) => r.op === "spawn").length, 0);
 });
 
@@ -223,7 +265,8 @@ test("an interactive first row is reported and not attached to", () => {
   ]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   const got = launch(ws, ["--timeout", "20000"]);
-  assert.match(got.out, /interactive tab; hand over first/);
+  assert.equal(got.code, 1);
+  assert.match(got.out, /^kanri is open in a VS Code tab; close the tab and run this again$/m);
   assert.equal(requests(ws).filter((r) => r.op === "spawn").length, 0);
 });
 
@@ -235,7 +278,7 @@ test("a handover file asks for a Kanri whatever the roster says", () => {
   fs.writeFileSync(path.join(ws.root, ".tanto", "kanri-handover.md"), "# tanto Kanri handover\n");
   const got = launch(ws, ["--timeout", "20000"]);
   assert.equal(requests(ws).filter((r) => r.op === "spawn").length, 1);
-  assert.match(got.out, /claude attach bg01/);
+  assert.equal(lastAttach(ws), "bg01", got.err);
 });
 
 test("a handover file with a successor already in seats.json is attached to, not spawned again (R-12)", () => {
@@ -268,7 +311,7 @@ test("a handover file with a successor already in seats.json is attached to, not
   ]);
   const got = launch(ws, ["--timeout", "20000"]);
   assert.equal(requests(ws).filter((r) => r.op === "spawn").length, 0);
-  assert.match(got.out, /claude attach bg09/);
+  assert.equal(lastAttach(ws), "bg09", got.err);
 });
 
 test("a handover file with only the outgoing Kanri in seats.json still spawns a successor (C-2a)", () => {
@@ -293,7 +336,7 @@ test("a handover file with only the outgoing Kanri in seats.json still spawns a 
   ]);
   const got = launch(ws, ["--timeout", "20000"]);
   assert.equal(requests(ws).filter((r) => r.op === "spawn" && r.role === "kanri").length, 1);
-  assert.match(got.out, /claude attach bg01/);
+  assert.equal(lastAttach(ws), "bg01", got.err);
 });
 
 test("a handover file with both the outgoing Kanri and a live successor attaches to the successor (C-2b)", () => {
@@ -319,7 +362,7 @@ test("a handover file with both the outgoing Kanri and a live successor attaches
   ]);
   const got = launch(ws, ["--timeout", "20000"]);
   assert.equal(requests(ws).filter((r) => r.op === "spawn" && r.role === "kanri").length, 0);
-  assert.match(got.out, /claude attach bg09/);
+  assert.equal(lastAttach(ws), "bg09", got.err);
 });
 
 test("a handover successor row the live listing has lost is not attached to directly (Important 1)", () => {
@@ -338,7 +381,7 @@ test("a handover successor row the live listing has lost is not attached to dire
     { sessionId: "sess-ghost", id: "bg-ghost", name: "seat-ghost [999999]", role: "kanri", status: "running" },
   ]);
   const got = launch(ws, ["--timeout", "20000"]);
-  assert.equal(/claude attach bg-ghost/.test(got.out), false);
+  assert.notEqual(lastAttach(ws), "bg-ghost", got.err);
   assert.equal(requests(ws).filter((r) => r.op === "spawn" && r.role === "kanri").length, 1);
   assert.equal(got.code, 1);
   assert.match(got.err, /held: sess-ghost/);
@@ -398,7 +441,7 @@ test("a rebooted Kanri the listing lost is resumed, never spawned again", () => 
     resumed.map((r) => r.sessionId),
     ["sess-live"],
   );
-  assert.match(got.out, /claude attach bg07/);
+  assert.equal(lastAttach(ws), "bg07", got.err);
   assert.match(got.out, /tanto fukki/);
 });
 
@@ -704,7 +747,7 @@ test("teishi --seats keeps a following --root from being consumed as its value (
   assert.equal(fs.existsSync(pidfile), false);
 });
 
-test("an interactive first row with a resumed peer prints no attach or fukki line (Minor 10)", () => {
+test("an interactive first row is refused before any seat is resumed or attached (spec 4.3)", () => {
   const ws = workspace([
     { sessionId: "sess-live", name: "seat-live [ffffff]", cwd: ROOT, kind: "interactive", id: "tab1", pid: 1111 },
   ]);
@@ -714,9 +757,9 @@ test("an interactive first row with a resumed peer prints no attach or fukki lin
     { sessionId: "sess-gone", id: "bg08", name: "seat-gone [eeeeee]", role: "jisso", status: "running" },
   ]);
   const got = launch(ws, ["--timeout", "20000"]);
-  assert.equal(requests(ws).filter((r) => r.op === "resume").length, 1);
-  assert.equal(/claude attach/.test(got.out), false);
-  assert.equal(/tanto fukki/.test(got.out), false);
+  assert.equal(got.code, 1);
+  assert.equal(requests(ws).filter((r) => r.op === "resume").length, 0);
+  assert.deepEqual(attaches(ws), []);
 });
 
 test("teishi --seats retires the run, and the next tanto spawns a fresh Kanri", () => {
@@ -745,7 +788,7 @@ test("teishi --seats retires the run, and the next tanto spawns a fresh Kanri", 
   // any more and step 4 asks for a new one.
   assert.equal(requests(ws).filter((r) => r.op === "resume").length, 0);
   assert.equal(requests(ws).filter((r) => r.op === "spawn" && r.role === "kanri").length, 1);
-  assert.match(got.out, /claude attach bg01/);
+  assert.equal(lastAttach(ws), "bg01", got.err);
 });
 
 test("a stopped seat is not resumed", () => {
@@ -763,7 +806,7 @@ test("a stopped seat is not resumed", () => {
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   writeSeats(ws, [{ sessionId: "sess-old", id: "bg05", name: "seat-old [dddddd]", role: "jisso", status: "stopped" }]);
   const got = launch(ws, ["--timeout", "20000"]);
-  assert.match(got.out, /claude attach bg07/);
+  assert.equal(lastAttach(ws), "bg07", got.err);
   assert.equal(requests(ws).filter((r) => r.op === "resume").length, 0);
   assert.equal(/tanto fukki/.test(got.out), false);
 });
@@ -824,14 +867,13 @@ test("the launcher itself never runs claude --bg", () => {
   assert.equal(seats[0].role, "kanri");
 });
 
-test("the attach line is followed by the line on leaving and stopping a seat", () => {
+test("the line on leaving a seat is printed before the attach, which runs on the seat's id", () => {
   const ws = workspace([LIVE_KANRI]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   const got = launch(ws, ["--timeout", "20000"]);
   const lines = got.out.split(/\r?\n/);
-  const at = lines.indexOf("claude attach bg07");
-  assert.notEqual(at, -1, got.out);
-  assert.equal(lines[at + 1], LEAVE);
+  assert.notEqual(lines.indexOf(LEAVE), -1, got.out);
+  assert.deepEqual(attaches(ws), ["bg07"]);
 });
 
 test("a Kanri seats.json holds as gone is resumed, never spawned again", () => {
@@ -852,10 +894,8 @@ test("a Kanri seats.json holds as gone is resumed, never spawned again", () => {
     ["sess-live"],
   );
   const lines = got.out.split(/\r?\n/);
-  const at = lines.indexOf("claude attach bg07");
-  assert.notEqual(at, -1, got.out);
-  assert.equal(lines[at + 1], LEAVE);
-  assert.equal(lines[at + 2], "then type /tanto fukki there once");
+  assert.notEqual(lines.indexOf(LEAVE), -1, got.out);
+  assert.deepEqual(attaches(ws), ["bg07"]);
 });
 
 test("a pid-less listing entry is not read as a live seat, and gets a resume request (fix 1)", () => {
@@ -883,18 +923,141 @@ test("a Kanri resume that fails says so in one line and spawns a new Kanri", () 
   assert.equal(got.code, 0, got.err);
   assert.match(got.err, /^tanto: the Kanri resume failed — .*unknown session sess-live.*; spawning a new Kanri$/m);
   assert.equal(requests(ws).filter((r) => r.op === "spawn" && r.role === "kanri").length, 1);
-  assert.match(got.out, /claude attach bg01/);
+  assert.equal(lastAttach(ws), "bg01", got.err);
 });
 
-test("the trust hint comes before the attach line when .claude.json does not record the folder's trust", () => {
+test("the trust hint comes before the line on leaving when .claude.json does not record the folder's trust", () => {
   const ws = workspace([LIVE_KANRI]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   writeTrust(ws, false);
   const got = launch(ws, ["--timeout", "20000"]);
   const lines = got.out.split(/\r?\n/);
-  const at = lines.indexOf("claude attach bg07");
+  const at = lines.indexOf(TRUST);
   assert.notEqual(at, -1, got.out);
-  assert.equal(lines[at - 1], TRUST);
+  assert.equal(lines[at + 1], LEAVE);
+});
+
+test("a held Kikaku is entered under a hold, released when the attach ends, its context= said first (spec 4.3)", () => {
+  const ws = workspace([
+    {
+      sessionId: "sess-kikaku",
+      name: "x-kikaku-a1",
+      cwd: ROOT,
+      kind: "background",
+      status: "idle",
+      id: "bg21",
+      pid: 1121,
+    },
+  ]);
+  const transcript = writeTranscript(ws, "sess-kikaku", 96120);
+  writeSeats(ws, [
+    { sessionId: "sess-kikaku", id: "bg21", role: "kikaku", topic: "—", status: "running", contract: 2, transcript },
+  ]);
+  const got = launch(ws, ["kikaku", "--timeout", "20000"]);
+  assert.equal(got.code, 0, got.err);
+  assert.deepEqual(attaches(ws), ["bg21"]);
+  const own = requests(ws).filter((r) => r.sessionId === "sess-kikaku");
+  assert.deepEqual(own.map((r) => r.op).sort(), ["hold", "release"]);
+  assert.equal(typeof own[0].pid, "number");
+  const lines = got.out.split(/\r?\n/);
+  assert.equal(lines[lines.indexOf(LEAVE) - 1], "kikaku — context=96120");
+});
+
+test("a seat a VS Code tab holds is refused: a Kikaku at its hold, a Jisso at the listing (spec 4.3)", () => {
+  const tab = { name: "x-05", cwd: ROOT, kind: "interactive", pid: 1131 };
+  const kikaku = workspace([{ ...tab, sessionId: "sess-kikaku", id: "bg22" }]);
+  writeSeats(kikaku, [
+    { sessionId: "sess-kikaku", id: "bg22", role: "kikaku", topic: "—", status: "running", contract: 2 },
+  ]);
+  const refused = launch(kikaku, ["kikaku", "--timeout", "20000"]);
+  assert.equal(refused.code, 1);
+  assert.match(refused.out, /^kikaku is open in a VS Code tab; close the tab and run this again$/m);
+  assert.deepEqual(attaches(kikaku), []);
+  const jisso = workspace([{ ...tab, sessionId: "sess-jisso", id: "bg23" }]);
+  writeSeats(jisso, [
+    { sessionId: "sess-jisso", id: "bg23", role: "jisso", topic: "t", status: "running", contract: 2 },
+  ]);
+  const listed = launch(jisso, ["jisso", "--timeout", "20000"]);
+  assert.equal(listed.code, 1);
+  assert.match(listed.out, /^jisso is open in a VS Code tab; close the tab and run this again$/m);
+  assert.equal(requests(jisso).filter((r) => r.op === "hold").length, 0);
+  assert.deepEqual(attaches(jisso), []);
+});
+
+test("a Kanri that hands over while the human is attached is followed to its successor, with nothing typed (spec 4.3)", () => {
+  const ws = workspace([
+    LIVE_KANRI,
+    { sessionId: "sess-next", name: "seat-next", cwd: ROOT, kind: "background", id: "bg09", pid: 1112 },
+  ]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  const kanri = { sessionId: "sess-live", id: "bg07", role: "kanri", topic: "—", contract: 2 };
+  const next = { sessionId: "sess-next", id: "bg09", role: "kanri", topic: "—", status: "running", contract: 2 };
+  writeSeats(ws, [{ ...kanri, status: "running" }]);
+  // During the first attach the outgoing Kanri is stopped and its successor
+  // takes the roster's first row; nothing changes during the second.
+  const row = `| kanri | — | seat-next | ${ws.root} | sonnet | high | main | auto | 2026-10-05 09:00 | live | /tmp/sess-next.jsonl |`;
+  onAttach(ws, [
+    {
+      ".tanto/spawner/seats.json": JSON.stringify({ seats: [{ ...kanri, status: "stopped" }, next] }),
+      ".tanto/roster.md": `${[...ROSTER_HEAD, row].join("\n")}\n`,
+    },
+  ]);
+  const child = quietSpawner(ws);
+  try {
+    const got = launch(ws, ["kanri", "--timeout", "5000"]);
+    assert.equal(got.code, 0, got.err);
+    assert.deepEqual(attaches(ws), ["bg07", "bg09"]);
+    assert.deepEqual(requests(ws), []);
+  } finally {
+    child.kill();
+  }
+});
+
+test("leaving the attach with no handover prints the run's seats once, and exits 0 (spec 4.3, 4.5)", () => {
+  const ws = workspace([{ ...LIVE_KANRI, status: "busy" }]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  const transcript = writeTranscript(ws, "sess-sekkei", 212340);
+  writeSeats(ws, [
+    { sessionId: "sess-live", id: "bg07", role: "kanri", topic: "—", status: "running", contract: 2 },
+    {
+      sessionId: "sess-sekkei",
+      id: "bg11",
+      role: "sekkei",
+      topic: "t",
+      status: "parked",
+      contract: 2,
+      waiting: true,
+      transcript,
+    },
+  ]);
+  const child = quietSpawner(ws);
+  try {
+    const got = launch(ws, ["管理", "--timeout", "5000"]);
+    assert.equal(got.code, 0, got.err);
+    assert.deepEqual(attaches(ws), ["bg07"]);
+    const lines = got.out.split(/\r?\n/);
+    const listing = lines.slice(lines.indexOf(LEAVE) + 1).filter((line) => line.length > 0);
+    assert.equal(listing.length, 2, got.out);
+    assert.match(listing[0], /^kanri\s+—\s+working$/);
+    assert.match(listing[1], /^sekkei\s+t\s+parked — waiting for you\s+context=212340\s+tanto sekkei$/);
+  } finally {
+    child.kill();
+  }
+});
+
+test("--no-attach starts the seat, prints its name and the ways in, and attaches nothing (spec 4.1)", () => {
+  const ws = workspace();
+  const got = launch(ws, ["-n", "hosa", "--timeout", "20000"]);
+  assert.equal(got.code, 0, got.err);
+  assert.deepEqual(attaches(ws), []);
+  assert.deepEqual(
+    requests(ws).map((r) => [r.op, r.role]),
+    [["spawn", "hosa"]],
+  );
+  assert.match(
+    got.out,
+    /^hosa \S.* — enter it with tanto hosa, or by a click on its row in the editor's list after Developer: Reload Window$/m,
+  );
 });
 
 test("no trust hint when .claude.json records the trust, is missing, or does not parse, and the file is never written", () => {
@@ -946,7 +1109,7 @@ test("a live pid with no heartbeat is not trusted: tanto starts a spawner and lo
   try {
     const got = launch(ws, ["--timeout", "20000"]);
     assert.equal(got.code, 0, got.err);
-    assert.match(got.out, /claude attach bg01/);
+    assert.equal(lastAttach(ws), "bg01", got.err);
     assert.ok(got.out.includes(`spawner pid ${child.pid} has no heartbeat`), got.out);
     const dir = path.join(ws.root, ".tanto", "spawner");
     assert.ok(fs.readFileSync(path.join(dir, "log"), "utf8").includes(`stale spawner pid ${child.pid} ignored`));
