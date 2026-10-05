@@ -214,6 +214,44 @@ function writeTranscript(ws, sessionId, slug = "c--repo") {
   return file;
 }
 
+/** Put these seats into seats.json, as an earlier pass of the spawner would have left them. */
+function putSeats(ws, list) {
+  fs.writeFileSync(path.join(ws.root, ".tanto", "spawner", "seats.json"), JSON.stringify({ seats: list }));
+}
+
+/** A transcript of `records`, one JSON line each, at `writeTranscript`'s path (spec 2.8). */
+function writeRecords(ws, sessionId, records) {
+  const file = writeTranscript(ws, sessionId);
+  fs.writeFileSync(file, `${records.map((record) => JSON.stringify(record)).join("\n")}\n`);
+  return file;
+}
+
+// Transcript records in the shapes spec 2.8 reads. A closing `system` record
+// carries no uuid, as many records do not.
+const REC = {
+  human: (uuid, extra = {}) => ({ type: "user", uuid, message: { role: "user", content: "go on" }, ...extra }),
+  result: (uuid) => ({ type: "user", uuid, message: { role: "user", content: [{ type: "tool_result" }] } }),
+  tool: (uuid, id) => ({ type: "assistant", uuid, message: { id, model: "claude-opus", stop_reason: "tool_use" } }),
+  end: (uuid, id) => ({ type: "assistant", uuid, message: { id, model: "claude-opus", stop_reason: "end_turn" } }),
+  close: (subtype) => ({ type: "system", subtype }),
+  synthetic: (uuid) => ({
+    type: "assistant",
+    uuid,
+    message: { id: "msg-synthetic", model: "<synthetic>", stop_reason: "stop_sequence" },
+  }),
+};
+
+// A turn that ends on a request: the request is the turn's last tool call
+// (`after` is its uuid), then its result and the closing message, settled
+// by the Stop hook's record.
+const ENDED_TURN = [
+  REC.human("u1"),
+  REC.tool("u2", "m1"),
+  REC.result("u3"),
+  REC.end("u4", "m2"),
+  REC.close("stop_hook_summary"),
+];
+
 function spawnerLog(ws) {
   const file = path.join(ws.root, ".tanto", "spawner", "log");
   return fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "";
@@ -498,6 +536,177 @@ test("stop falls back to the short id when the CLI takes only that form", () => 
     stops.map((argv) => argv[1]),
     ["sess-new", "bg01"],
   );
+});
+
+test("turnEnded reads a turn's end over messages: a cli tail, a tab's tail, one message in two records (spec 2.8)", () => {
+  const { turnEnded } = require("./spawner.js");
+  const ws = workspace();
+  const file = (records) => writeRecords(ws, "sess-t", records);
+  const ended = { ended: true, newTurn: false, midTurn: false };
+  const cli = [REC.human("u1"), REC.end("u2", "m1"), REC.close("stop_hook_summary"), REC.close("turn_duration")];
+  assert.deepEqual(turnEnded(file(cli)), ended);
+  assert.deepEqual(turnEnded(file([REC.human("u1"), REC.end("u2", "m1"), REC.close("stop_hook_summary")])), ended);
+  // A tab's turn writes no turn_duration (0 of 79 in the review's count).
+  const tab = [
+    REC.human("u1", { entrypoint: "claude-vscode" }),
+    { ...REC.end("u2", "m1"), entrypoint: "claude-vscode" },
+    { ...REC.close("stop_hook_summary"), entrypoint: "claude-vscode" },
+  ];
+  assert.deepEqual(turnEnded(file(tab)), ended);
+  // A thinking record and a text record of one message.id are one message.
+  const split = [REC.human("u1"), REC.end("u2", "m1"), REC.end("u3", "m1"), REC.close("stop_hook_summary")];
+  assert.deepEqual(turnEnded(file(split), "u1"), ended);
+  assert.equal(turnEnded(file(split), "u-absent"), null);
+  assert.equal(turnEnded(path.join(ws.root, "no-such.jsonl")), null);
+});
+
+test("turnEnded settles a final message by the file's age, and reads a tool_use and a synthetic close as mid-turn (spec 2.8)", () => {
+  const { turnEnded } = require("./spawner.js");
+  const ws = workspace();
+  const unsettled = writeRecords(ws, "sess-t", [REC.human("u1"), REC.end("u2", "m1")]);
+  assert.deepEqual(turnEnded(unsettled), { ended: false, newTurn: false, midTurn: false });
+  const old = new Date(Date.now() - 11000);
+  fs.utimesSync(unsettled, old, old);
+  assert.equal(turnEnded(unsettled).ended, true);
+  const onTool = writeRecords(ws, "sess-t", [REC.human("u1"), REC.tool("u2", "m1")]);
+  assert.deepEqual(turnEnded(onTool), { ended: false, newTurn: false, midTurn: true });
+  const synthetic = writeRecords(ws, "sess-t", [REC.human("u1"), REC.tool("u2", "m1"), REC.synthetic("u3")]);
+  assert.deepEqual(turnEnded(synthetic), { ended: true, newTurn: false, midTurn: true });
+});
+
+test("turnEnded sees a new turn after `after`, begun by the human's record or by a peer's isMeta one (spec 2.8)", () => {
+  const { turnEnded } = require("./spawner.js");
+  const ws = workspace();
+  // The request's own tool result follows `after` and begins no turn.
+  const settled = turnEnded(writeRecords(ws, "sess-t", ENDED_TURN), "u2");
+  assert.deepEqual(settled, { ended: true, newTurn: false, midTurn: false });
+  for (const next of [REC.human("u5"), REC.human("u5", { isMeta: true })]) {
+    const turn = turnEnded(writeRecords(ws, "sess-t", [...ENDED_TURN, next]), "u2");
+    assert.deepEqual(turn, { ended: false, newTurn: true, midTurn: true });
+  }
+});
+
+test("stop runs claude stop only for a seat listed in the background, and writes stoppedAtMs (spec 2.8, 5.1)", () => {
+  const ws = workspace();
+  const entry = (sessionId, kind, extra = {}) => ({
+    sessionId,
+    id: `id-${sessionId}`,
+    name: sessionId,
+    cwd: ws.root,
+    kind,
+    pid: 4321,
+    ...extra,
+  });
+  setState(ws, {
+    sessions: [
+      entry("sess-bg", "background"),
+      entry("sess-tab", "interactive"),
+      entry("sess-off", "background", { hidden: true }),
+    ],
+  });
+  const ids = ["sess-bg", "sess-tab", "sess-off", "sess-done", "sess-rm"];
+  const status = { "sess-done": "stopped", "sess-rm": "removed" };
+  putSeats(
+    ws,
+    ids.map((sessionId) => ({
+      sessionId,
+      name: sessionId,
+      role: "jisso",
+      topic: "t",
+      status: status[sessionId] || "running",
+    })),
+  );
+  const asked = Object.fromEntries(ids.map((sessionId) => [sessionId, request(ws, { op: "stop", sessionId }).id]));
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.deepEqual(
+    calls(ws)
+      .filter((argv) => argv[0] === "stop")
+      .map((argv) => argv[1]),
+    ["sess-bg"],
+  );
+  const note = (sessionId) => result(ws, asked[sessionId]).note;
+  assert.equal(note("sess-bg"), undefined);
+  assert.equal(note("sess-tab"), "in a tab");
+  assert.equal(note("sess-off"), "already exited");
+  assert.equal(note("sess-done"), "already exited");
+  assert.equal(note("sess-rm"), undefined);
+  const byId = Object.fromEntries(seats(ws).map((seat) => [seat.sessionId, seat]));
+  for (const sessionId of ["sess-bg", "sess-tab", "sess-off"]) {
+    assert.equal(byId[sessionId].status, "stopped");
+    assert.equal(byId[sessionId].stoppedAtMs, STARTED_AT);
+  }
+  assert.equal(byId["sess-done"].stoppedAtMs, undefined);
+  assert.equal(byId["sess-rm"].status, "removed");
+});
+
+test("a self stop is refused for a seat the human does not pace, and ends a paced one in a tab or unlisted at once (spec 5.2)", () => {
+  const ws = workspace();
+  setState(ws, {
+    sessions: [
+      { sessionId: "sess-tab", id: "tab1", name: "dotskills-7b", cwd: ws.root, kind: "interactive", pid: 4321 },
+    ],
+  });
+  putSeats(ws, [
+    { sessionId: "sess-j", name: "j", role: "jisso", topic: "t", status: "running" },
+    { sessionId: "sess-a", name: "a", role: "kaiseki", topic: "t", status: "running" },
+    { sessionId: "sess-tab", id: "tab1", name: "k", role: "kikaku", topic: "—", status: "running" },
+    { sessionId: "sess-off", name: "h", role: "hosa", topic: "—", status: "parked" },
+  ]);
+  const leave = (sessionId) => request(ws, { op: "stop", sessionId, self: true, after: "u2" }).id;
+  const asked = { jisso: leave("sess-j"), attached: leave("sess-a"), tab: leave("sess-tab"), off: leave("sess-off") };
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(result(ws, asked.jisso).error, "not a seat the human paces");
+  assert.equal(result(ws, asked.attached).error, "not a seat the human paces");
+  assert.equal(result(ws, asked.tab).note, "in a tab");
+  assert.equal(result(ws, asked.off).note, "already exited");
+  const byId = Object.fromEntries(seats(ws).map((seat) => [seat.sessionId, seat]));
+  for (const sessionId of ["sess-tab", "sess-off"]) {
+    assert.equal(byId[sessionId].status, "stopped");
+    assert.equal(byId[sessionId].endedBy, "taiseki");
+  }
+  assert.equal(byId["sess-j"].endedBy, undefined);
+  assert.equal(calls(ws).filter((argv) => argv[0] === "stop").length, 0);
+});
+
+test("a self stop in the background waits for its turn's end, and is dropped ten minutes on with a notice (spec 5.2)", () => {
+  const paced = (ws) => {
+    setState(ws, {
+      sessions: [
+        { sessionId: "sess-k", id: "bg01", name: "k", cwd: ws.root, kind: "background", pid: 4321, status: "busy" },
+      ],
+    });
+    const transcript = writeRecords(ws, "sess-k", ENDED_TURN.slice(0, 2));
+    putSeats(ws, [
+      { sessionId: "sess-k", id: "bg01", name: "k", role: "kikaku", topic: "—", status: "running", transcript },
+    ]);
+    return request(ws, { op: "stop", sessionId: "sess-k", self: true, after: "u2" }).id;
+  };
+  const ws = workspace();
+  const asked = paced(ws);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.equal(result(ws, asked).leaveRequested, STARTED_AT);
+  assert.equal(seats(ws)[0].status, "running");
+  assert.equal(calls(ws).filter((argv) => argv[0] === "stop").length, 0);
+  writeRecords(ws, "sess-k", ENDED_TURN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.deepEqual(
+    calls(ws)
+      .filter((argv) => argv[0] === "stop")
+      .map((argv) => argv[1]),
+    ["sess-k"],
+  );
+  assert.equal(seats(ws)[0].status, "stopped");
+  assert.equal(seats(ws)[0].endedBy, "taiseki");
+  assert.equal(seats(ws)[0].leaveRequest, undefined);
+
+  const late = workspace();
+  paced(late);
+  run(late, ["run", "--root", late.root, "--once"]);
+  run(late, ["run", "--root", late.root, "--once"], { env: { TANTO_NOW_MS: String(STARTED_AT + 600000) } });
+  assert.equal(seats(late)[0].status, "running");
+  assert.equal(seats(late)[0].leaveRequest, undefined);
+  assert.deepEqual(notices(late), ["taiseki not done: kikaku — tanto kikaku"]);
+  assert.match(spawnerLog(late), /leave: sess-k dropped — its turn did not end/);
 });
 
 test("rm reports the worktree claude rm printed, and none when it printed none (spec 2.4)", () => {

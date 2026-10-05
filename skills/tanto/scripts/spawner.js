@@ -83,6 +83,31 @@ function writeJsonAtomic(file, value) {
   fs.renameSync(temp, file);
 }
 
+/**
+ * `seats.json` holds one array, `seats`. A seat carries what its spawn knew
+ * — `sessionId`, `id`, `name`, `role`, `topic`, `model`, `effort`, `mode`,
+ * `worktree`, `cwd`, `startedAt`, `startedAtMs`, `transcript` — the marks
+ * earlier rules set — `renamed`, `goneAt`, `noFirstTurn`, `strayed`,
+ * `undelivered` — and these (spec 2.8, section 6):
+ *
+ * - `status`, one of six: `running` (listed with a pid, in the background or
+ *   in a tab), `blocked` (listed in the background on a prompt), `parked` (a
+ *   contract-2 dialogue seat not listed), `gone` (any other seat not
+ *   listed), `stopped`, and `removed`.
+ * - `contract` — the `spawn` request's mark, `2` under this contract (spec
+ *   1.1): the park, the hold, and the census's `parked` touch a seat that
+ *   carries it. `requestId` — the request file that spawned it. `once` — a
+ *   seat stopped and removed once its turn has ended (spec 4.4).
+ * - `kind` — the listing's, `background` or `interactive`, at the last
+ *   census pass; `waitingFor` — a `blocked` seat's cause (spec 2.6).
+ * - `parkRequest`, `lastPark`, `waiting`, `midTurn` — the park (spec 2.3,
+ *   2.7); `held` — the hold (spec 2.4); `leaveRequest` — a `self` stop
+ *   waiting for its turn's end, and `endedBy: "taiseki"` once it is done
+ *   (spec 5.2).
+ * - `parkedAtMs`, `stoppedAtMs`, `listedAtMs` — epoch milliseconds, as
+ *   `startedAtMs` is, and never compared with the minute-resolution
+ *   `stamp()` strings the file also carries.
+ */
 function readSeats(root) {
   const doc = readJson(path.join(spawnerDir(root), "seats.json"));
   return Array.isArray(doc?.seats) ? doc.seats : [];
@@ -256,6 +281,91 @@ function transcriptOf(root, sessionId) {
   return null;
 }
 
+// A final message is settled once a closing `system` record follows it, or
+// once the transcript has not been written for this long (spec 2.8): a turn
+// taken in a tab writes no `turn_duration`, and a session with no Stop hook
+// writes no `stop_hook_summary` either.
+const TURN_SETTLED_MS = 10000;
+
+/** The `system` records the harness writes after a turn's final message (S-2, P-1b). */
+const CLOSING_SUBTYPES = ["turn_duration", "stop_hook_summary"];
+
+/**
+ * "The turn ended" (spec 2.8), read over messages and not records: the
+ * transcript's `user` and `assistant` records that are not `isSidechain` and
+ * come after the record whose `uuid` is `after` — all of them with no
+ * `after` — with consecutive `assistant` records of one `message.id` taken
+ * as one message, since a final message is often a thinking record and a
+ * text record that both carry `stop_reason: end_turn`. Returns null when
+ * the transcript cannot be read or does not hold `after`, which no caller
+ * takes for an end; otherwise:
+ *
+ * - `ended` — the last message is an `end_turn` assistant that is settled,
+ *   or the harness's own `<synthetic>` record, which closes a turn left
+ *   open when a session is woken;
+ * - `newTurn` — a message follows an ended one: a `user` record, or an
+ *   assistant message that is not synthetic;
+ * - `midTurn` — the last message is anything but an `end_turn` assistant: a
+ *   `tool_use`, a `user` record, the synthetic record, any other
+ *   `stop_reason`.
+ *
+ * The park, a `self` stop, a `once` seat, and `boundary.js seat` read
+ * `ended`; the park reads `newTurn`; the census's `parked` reads `midTurn`.
+ */
+function turnEnded(transcript, after) {
+  let text;
+  let writtenMs;
+  try {
+    text = fs.readFileSync(transcript, "utf8");
+    writtenMs = fs.statSync(transcript).mtimeMs;
+  } catch {
+    return null;
+  }
+  const records = [];
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    try {
+      records.push(JSON.parse(line));
+    } catch {
+      // A line the harness is still writing; the next pass reads it whole.
+    }
+  }
+  let start = 0;
+  if (after) {
+    const at = records.findIndex((record) => record?.uuid === after);
+    if (at === -1) return null;
+    start = at + 1;
+  }
+  const messages = [];
+  let closedAt = -1;
+  for (let i = start; i < records.length; i++) {
+    const record = records[i];
+    if (record?.type === "system" && CLOSING_SUBTYPES.includes(record.subtype)) closedAt = i;
+    if ((record?.type !== "user" && record?.type !== "assistant") || record.isSidechain) continue;
+    const id = record.message?.id;
+    const last = messages[messages.length - 1];
+    if (record.type === "assistant" && last?.type === "assistant" && id && last.id === id) {
+      last.stopReason = record.message?.stop_reason;
+      last.at = i;
+      continue;
+    }
+    messages.push({
+      type: record.type,
+      id,
+      stopReason: record.message?.stop_reason,
+      synthetic: record.type === "assistant" && record.message?.model === "<synthetic>",
+      at: i,
+    });
+  }
+  const isEnd = (m) => m.type === "assistant" && !m.synthetic && m.stopReason === "end_turn";
+  const closes = (m) => isEnd(m) || m.synthetic;
+  const newTurn = messages.some((m, i) => i > 0 && closes(messages[i - 1]) && !m.synthetic);
+  const last = messages[messages.length - 1];
+  if (!last) return { ended: false, newTurn, midTurn: false };
+  const settled = closedAt > last.at || nowMs() - writtenMs >= TURN_SETTLED_MS;
+  return { ended: (isEnd(last) && settled) || last.synthetic, newTurn, midTurn: !isEnd(last) };
+}
+
 function noticeText(seat, message) {
   if (message) return message;
   const where = seat.id ? ` — claude attach ${seat.id}` : "";
@@ -329,7 +439,7 @@ function randomHex() {
 }
 
 /**
- * A terminal seat's name, `<repo>-<role>[-<topic>]-<hex>` (spec 1.1): the
+ * A seat's name, `<repo>-<role>[-<topic>]-<hex>` (spec 1.1): the
  * root's basename, the request's role, its topic unless absent or `—`, and
  * four hexadecimal digits, drawn again while a seat in `seats.json` carries
  * the whole name. The CLI registers it as the user's own, which no
@@ -574,19 +684,140 @@ function runWithEitherId(verb, seat, sessionId) {
   return first;
 }
 
+// A request a seat leaves standing — a `self` stop here, a park (spec 2.3)
+// — is dropped this long after it was written, or after its turn ended,
+// with a log line.
+const STANDING_WAIT_MS = 600000;
+
+/**
+ * Whether the human paces this seat (spec 5.2): a Kikaku, a Hosa, or a
+ * Kaiseki whose topic is `—`. Only such a seat ends by its own `taiseki`,
+ * whatever a role's text let through.
+ */
+function pacedByHuman(seat) {
+  if (seat?.role === "kikaku" || seat?.role === "hosa") return true;
+  return seat?.role === "kaiseki" && (!seat.topic || seat.topic === "—");
+}
+
+/** A seat ended (spec 2.8): `stopped`, the moment in epoch milliseconds, and who ended it. */
+function markStopped(seat, endedBy) {
+  seat.status = "stopped";
+  seat.stoppedAtMs = nowMs();
+  if (endedBy) seat.endedBy = endedBy;
+  delete seat.leaveRequest;
+}
+
+/**
+ * The listing's entry for `sessionId` when it carries a pid (decision-ebbd),
+ * from `sessions` when a listing was already taken, else from a fresh one.
+ * Returns { entry } — `entry` null when the session is not listed — or
+ * { error } when the listing cannot be read.
+ */
+function listedEntry(root, sessionId, sessions = null) {
+  let listed = sessions;
+  if (!listed) {
+    const listing = listAgents(root);
+    if (listing.error) return { error: listing.error };
+    listed = listing.sessions;
+  }
+  return { entry: listed.find((s) => s.sessionId === sessionId && s.pid) || null };
+}
+
+/**
+ * `stop` (spec 2.8's table, 5.1): `claude stop` for a seat a fresh listing
+ * shows in the background, and no command otherwise — the CLI reports a
+ * seat a tab holds stopped and does not stop it (P-9), and a seat not listed
+ * has no process. Both are recorded `stopped` with a note. A listing that
+ * cannot be read leaves the command to decide, as before this rule; a seat
+ * already ended is answered with nothing done.
+ */
+function opStop(root, request, seat) {
+  if (seat?.status === "removed") return { stopped: stamp() };
+  if (seat?.status === "stopped") return { stopped: stamp(), note: "already exited" };
+  const { entry, error } = listedEntry(root, request.sessionId);
+  if (!error && (!entry || entry.kind === "interactive")) {
+    if (seat) markStopped(seat);
+    return { stopped: stamp(), note: entry ? "in a tab" : "already exited" };
+  }
+  const got = runWithEitherId("stop", seat, request.sessionId);
+  const exited = alreadyExited(got);
+  if (got.code !== 0 && !exited) return { error: `claude stop: ${failureText(got)}` };
+  if (seat) markStopped(seat);
+  return { stopped: stamp(), ...(exited ? { note: "already exited" } : {}) };
+}
+
+/**
+ * A seat's end by its own word (spec 5.2), tried when the request comes and
+ * at every pass after: at once for a seat a tab holds or that is not listed,
+ * which is what makes the word work the same from a terminal, a tab, and
+ * Remote Control, and for a seat in the background once its turn has ended
+ * since `after` (spec 2.8), so that its closing line is written. Ten minutes
+ * on, an unmet request is dropped, logged, and said to the human, so that
+ * the word never fails in silence. Returns the result once the seat ended,
+ * else null.
+ */
+function tryLeave(root, seat, sessions = null) {
+  const leave = seat.leaveRequest;
+  if (nowMs() - leave.atMs >= STANDING_WAIT_MS) {
+    delete seat.leaveRequest;
+    appendLog(root, `leave: ${seat.sessionId} dropped — its turn did not end`);
+    raiseNotice(`taiseki not done: ${seat.role} — tanto ${seat.role}`);
+    return null;
+  }
+  const { entry, error } = listedEntry(root, seat.sessionId, sessions);
+  if (error) return null;
+  let note = entry ? "in a tab" : "already exited";
+  if (entry && entry.kind !== "interactive") {
+    const transcript = seat.transcript || findTranscript(seat.sessionId);
+    if (!transcript || !turnEnded(transcript, leave.after)?.ended) return null;
+    const got = runWithEitherId("stop", seat, seat.sessionId);
+    if (got.code !== 0 && !alreadyExited(got)) {
+      appendLog(root, `leave: ${seat.sessionId} stop failed — ${failureText(got)}`);
+      return null;
+    }
+    note = alreadyExited(got) ? "already exited" : null;
+  }
+  markStopped(seat, "taiseki");
+  appendLog(root, `leave: ${seat.sessionId} stopped`);
+  return { stopped: stamp(), ...(note ? { note } : {}) };
+}
+
+/** `stop` with `self` and `after` (spec 5.2): a seat the human paces, ending itself. */
+function opLeave(root, request, seat) {
+  if (!pacedByHuman(seat)) return { error: "not a seat the human paces" };
+  if (seat.status === "removed") return { stopped: stamp() };
+  if (seat.status === "stopped") return { stopped: stamp(), note: "already exited" };
+  const atMs = nowMs();
+  seat.leaveRequest = { after: request.after, atMs };
+  return tryLeave(root, seat) || { leaveRequested: atMs };
+}
+
+/**
+ * Every `self` stop still waiting for its turn's end, tried again (spec
+ * 5.2): at a request pass, which takes a listing only when one waits, and at
+ * a census pass, on the listing it already took.
+ */
+function leavePass(root, seats, sessions = null) {
+  const waiting = seats.filter((seat) => seat.leaveRequest && seat.status !== "stopped" && seat.status !== "removed");
+  if (waiting.length === 0) return;
+  let listed = sessions;
+  if (!listed) {
+    const listing = listAgents(root);
+    if (listing.error) return;
+    listed = listing.sessions;
+  }
+  for (const seat of waiting) tryLeave(root, seat, listed);
+  writeSeats(root, seats);
+}
+
 function handleRequest(root, request, seats) {
   if (!OPS.includes(request.op)) return { error: `unknown op ${request.op}` };
   const seat = request.sessionId ? seatOf(seats, request.sessionId) : null;
 
   if (request.op === "spawn") return opSpawn(root, request, seats);
 
-  if (request.op === "stop") {
-    const got = runWithEitherId("stop", seat, request.sessionId);
-    const exited = alreadyExited(got);
-    if (got.code !== 0 && !exited) return { error: `claude stop: ${failureText(got)}` };
-    if (seat) seat.status = "stopped";
-    return { stopped: stamp(), ...(exited ? { note: "already exited" } : {}) };
-  }
+  // A seat's own `taiseki` carries `self` and `after` (spec 5.2).
+  if (request.op === "stop") return request.self ? opLeave(root, request, seat) : opStop(root, request, seat);
 
   if (request.op === "rm") {
     const got = runWithEitherId("rm", seat, request.sessionId);
@@ -686,6 +917,7 @@ function takeRequests(root, seats) {
     const said = outcome.error ? `error: ${outcome.error}` : outcome.note ? `ok (${outcome.note})` : "ok";
     appendLog(root, `${request.op} ${name} ${said}`);
   }
+  leavePass(root, seats);
 }
 
 /**
@@ -806,6 +1038,7 @@ function runCensus(root, seats) {
     if (seat.status === "gone" && session) revive(root, seat);
     if (LIVE.includes(seat.status)) censusSeat(root, seat, session);
   }
+  leavePass(root, seats, listing.sessions);
   writeSeats(root, seats);
   return seats;
 }
@@ -938,6 +1171,8 @@ module.exports = {
   spawnerDir,
   seatName,
   shortIdOf,
+  // For `boundary.js seat`'s fifth word (spec 2.5).
+  turnEnded,
   // For the launcher (`tanto.js`): the listing's key, the log, and the heartbeat.
   underRoot,
   appendLog,

@@ -459,9 +459,13 @@ test("down --seats reports a failed stop and exits 1 (Important 6)", () => {
     { sessionId: "sess-live", id: "bg07", name: "seat-live [ffffff]", role: "kanri", status: "running" },
     { sessionId: "sess-missing", id: "bg99", name: "seat-missing [999999]", role: "jisso", status: "running" },
   ]);
+  // A seat the listing does not show is recorded stopped with no command
+  // (spawner spec 2.8), so the failure here is the CLI refusing a listed one.
+  const state = JSON.parse(fs.readFileSync(ws.state, "utf8"));
+  fs.writeFileSync(ws.state, JSON.stringify({ ...state, fail: { stop: "refused" } }));
   const got = launch(ws, ["down", ws.root, "--seats", "--timeout", "20000"]);
   assert.equal(got.code, 1);
-  assert.match(got.err, /tanto: stop sess-missing failed/);
+  assert.match(got.err, /tanto: stop sess-live failed/);
 });
 
 test("--help's usage line documents --timeout (Minor 10)", () => {
