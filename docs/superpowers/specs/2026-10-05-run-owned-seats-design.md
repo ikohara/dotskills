@@ -128,9 +128,22 @@ only in a slot I give" — is already `roles/hosa.md`'s "The slot".
 
 The Asks table and the numbered list of `roles/kanri.md`'s "Session
 lifecycle" go: Kanri asks the human for no seat. Where it asked for a
-Sekkei or a Kaiseki it writes the `spawn` request, at the same moments. A
-Sekkei the human may decline is declined by saying so to Kanri before the
-moment, or by `claude stop`; nothing asks first.
+Sekkei or a Kaiseki it writes the `spawn` request, at the same moments
+(I-10). A Sekkei is spawned only for a topic Kanri has opened (its Start,
+step 5), never on a guess at the next work; the human declines one by
+saying so to Kanri, which records his words as an `R-n`, and nothing asks
+first. `input=` is one path: a topic with several inputs names the
+document that lists the rest, which the Sekkei reads whole. An attached
+Kaiseki's brief is written before its spawn, since the prompt carries its
+path — "The Kaiseki branch" is reordered so. Rule 9 stands as it is, and
+Kanri keeps it by two acts before a Kaiseki's spawn: it sends Sekkei
+nothing while a Kaiseki is active, and it lets a Sekkei that
+`boundary.js seat` shows mid-turn finish that turn first.
+
+Every `attention` message of Kanri's that names a way in — the kessai's,
+`human-needed:`, `no first turn:` — names `tanto <role> [<topic>]`, the
+form 2.2's notice uses, in place of `claude attach <id>`: a Kanri's id
+changes at every handover, and the role does not (I-11).
 
 ### 1.2 One holder per role
 
@@ -159,7 +172,10 @@ listing by its `sessionId` and never from `ListAgents`, and no seat writes
 a `[ref]` about itself — the closing line, the roster, and Kanri's start
 line carry `<name>` alone. The `[ref]` stays what `SendMessage`'s error
 asks for when a name is ambiguous, read from one `ListAgents` call at that
-moment (issue-fcd3).
+moment (issue-fcd3). `templates/boundary-brief.md`'s `record` call, which
+carries `<name [ref]>` three times, carries `<name>` (I-9); whether
+`record` matches a Residency row by that name or by the `sessionId` is
+`roster-ledger`'s question and is not moved here.
 
 ### 1.4 The model and the effort
 
@@ -294,14 +310,34 @@ node "$TANTO/scripts/boundary.js" seat <sessionId>
 ```
 
 prints one line from the state file, `<status> <name> <kind>`, and
-`spawner: beating` or `spawner: stale` under it. On `running` or
-`blocked`, send to `<name>` with `SendMessage`. On `parked`, write a
-`resume` request whose `prompt` is the line with its `no-role` second line;
-on its result's `error: "listed"`, send to the `name` the result carries.
+`spawner: beating` or `spawner: stale` under it; it also takes a name in
+place of the `sessionId`. What the status says to do (I-2):
+
+- `running`, `blocked` — send to `<name>` with `SendMessage`.
+- `parked` — write a `resume` request whose `prompt` is the line with its
+  `no-role` second line; on its result's `error: "listed"`, send to the
+  `name` the result carries.
+- `gone` — a Jisso, a shoki, or a Kanri whose process is gone: resume it
+  as "Resuming" says today, with the line as the request's `prompt`.
+- `stopped` — nothing is sent, with one exception: a seat whose row's
+  Events line says Kanri stopped it to hold it on the human's word is
+  resumed once the human has lifted the hold.
+- `removed` — never.
+- no entry — run the census; the row's status then decides.
+
 A `SendMessage` that errors is answered by running the command again and
-following what it prints, once. On `spawner: stale` Kanri writes no
-request, holds the line as an `unanswered:` event of its own, and tells
-the human in one line to run `tanto fukki` (R-2).
+following what it prints, once.
+
+**The beat comes before every request** (I-3), not only before a line:
+`node "$TANTO/scripts/boundary.js" beat` prints the same `spawner:` line,
+and Kanri runs it before a `spawn`, a `stop`, a `resume`, an `attention`,
+or an `ack` — "Create" and loop step 6 say so. On `spawner: stale` Kanri
+writes no request, records what it owes as the Events line
+`unsent: <sessionId or op> — <the line or the request>` — through
+`record --event` in the open ledger, in the roster's Events when none is
+open — and tells the human in one line to run `tanto fukki`, saying that
+a stale spawner raises no notice of its own (R-2). The fukki procedure
+(4.4) sends every `unsent:` with no `sent:` pair and writes the pair.
 
 A line that reached a seat in the seconds of its stop and was not read is
 caught as every unanswered line is: the answer does not arrive, and the
@@ -344,6 +380,18 @@ id**, **Not held**.
 - **Not listed** — as today, for a row the state file does not hold, or
   holds `running`, `blocked`, or `gone`.
 
+The census prints the `spawner:` line first. On `spawner: stale` the state
+file has stopped moving and Kanri marks nothing, as on `census:
+unavailable` (I-5).
+
+With the handshake gone the census loses two of its moments, and gains
+two (I-4): Kanri runs it at every wake-up whose line comes from a name no
+roster row holds — a Hosa's `slot-needed:` or `kessai answer:`, a Kikaku's
+`decision:` — before it handles the line, and at every boundary, in loop
+step 6 before the next request. A session printed under **Not held** as
+`spawned as kaiseki —` (a standalone Kaiseki, which has no row today) or
+as `spawned as denrei` gets no row.
+
 ## 3. Identity and address
 
 ### 3.1 The `sessionId` alone
@@ -375,7 +423,12 @@ role any more, but two senders can still reach a session that holds no
 role: one that read a name from the state file seconds before a reload
 gave that name to another window, and a bug-report sender reading another
 repository's roster. On a `no-role` reply the sender re-reads the address
-and sends once more; it marks no row.
+and sends once more, marking no row. A second `no-role` from one
+`sessionId` is, for Kanri, the end of that seat (I-6) — a seat held in a
+tab that the human `/clear`ed in his own chat is still a bare window under
+a known row: an Events line with what was lost as far as Kanri knows, the
+row `stopped`, the tree verified first when the row was the live Jisso's,
+and the Replace table.
 
 ## 4. The launcher
 
@@ -484,9 +537,17 @@ is `/tanto fukki`, are one procedure, `roles/kanri.md`'s rewritten
 the ledger's Measurements holds unanswered, probe the family once and send
 `continue: <dispatch> — same model`; send a Jisso resumed mid-batch
 `resume batch X from task N`; and print, in the idle block, what was put
-back. A Kanri that finds `.tanto/kanri-handover.md` naming itself as the
-outgoing session asks the human whether to continue or hand over, and
-infers neither (issue-bed3). There is no "windows are back" to wait for:
+back. A probe that fails sends nothing, leaves the `paused:` entry, and
+tells the human the reset time again: `fukki` is typed after a spawner's
+death as well as after a quota's return (I-8). A Kanri that finds
+`.tanto/kanri-handover.md` naming itself as the outgoing session asks the
+human whether to continue or hand over, and infers neither (issue-bed3);
+since a resumed background Kanri has nobody in the room, the question is
+an item of its idle block's `for you:` list and an `attention` request,
+`fukki: Kanri asks — tanto kanri`. Kanri acts on a `fukki:` line only when
+`boundary.js seat <the envelope's from-name>` shows a seat whose role is
+`denrei`; from any other sender the line is answered with nothing and
+noted in the Events. There is no "windows are back" to wait for:
 no tab holds state the run needs, so the `recovery: begun` and `recovery:
 windows back` events go, and the census marks at once.
 
@@ -553,6 +614,15 @@ is sent to the seat again. The seat's own closing line at its final
 boundary reads `Still needs this seat: none — this seat has ended; close
 its tab if one is open`, in place of `none — /clear this window` (R-7).
 
+Two obligations of Kanri's rested on the process being gone (I-7). A write
+or a `commit-ready:` event from a seat Kanri has ended is stray, and goes
+by rule 5's report path. And a `spawn` that **replaces** a seat — the
+Replace table's Sekkei, Keikaku, and Kaiseki rows — waits while
+`boundary.js seat <the old sessionId>` prints `interactive`: Kanri tells
+the human in one line which tab to close, and writes the request when a
+later reading no longer does, so that no two seats of one role and topic
+are ever open to the human at once (rule 4).
+
 ### 5.2 taiseki
 
 `/tanto taiseki` is accepted by a Kikaku, a Hosa, and a standalone
@@ -607,9 +677,10 @@ Scripts, each with its `.test.js` in the same task.
   "Kanri is an interactive tab; hand over first" goes, since no Kanri is a
   tab; `LEAVE_LINE` rewritten for ← and the agent view.
 - **`scripts/boundary.js`** — `census` reads the state file and prints the
-  six headings with the suffixes of 1.3 and 2.6 (2.7); two new
-  subcommands, `request <park|leave> --transcript <path> [--notice]` and
-  `seat <sessionId>` (2.2, 2.5, 5.2); `record --status` loses `cleared`
+  six headings with the suffixes of 1.3 and 2.6, the `spawner:` line
+  first (2.7); three new subcommands, `request
+  <park|leave> --transcript <path> [--notice]`, `seat <sessionId or
+  name>`, and `beat` (2.2, 2.5, 5.2); `record --status` loses `cleared`
   from its vocabulary; `writeSeatRow`'s comment.
 - **`scripts/reading.js`** — nothing but `loadSessions` returning
   `sessions.denrei` with the other eight keys, which it does by reading
@@ -665,7 +736,16 @@ Documents.
   (issue-5601's row can no longer be written at all); "Release": every
   `release:` and `/clear`; "Recovery after a VS Code restart" becomes
   "Recovery", 4.4's procedure. The Handover section's spawn of the
-  successor gains `successor:` (1.2).
+  successor gains `successor:` (1.2), and the outgoing Kanri's own `stop`
+  in the Handover case stays; "Second Kanri" loses its `/clear` clause and
+  now means a Kanri started by hand outside the launcher, a census that
+  lists two Kanris during a handover being the Handover case as today
+  (I-12). "The batch loop", step 6, and "Create": the beat before every
+  request and the census at every boundary (2.5, 2.7). "The Kaiseki
+  branch": the brief before the spawn (1.1). The idle block's `for you:`
+  examples lose the `/clear` of an idle Kikaku or Hosa, the windows-back
+  word, and a Kaiseki's release, and gain `tanto fukki` after a stale
+  spawner and a tab to close before a replacement (I-11).
 - **`roles/sekkei.md`** — the opening's grant sentence and "You have done
   the model check and sent the handshake"; the keys in place of the orders
   line throughout; the park rule (2.2), at Step 1's questions and at the
@@ -691,11 +771,13 @@ Documents.
   never has a request"; the results.
 - **`templates/kanri-handover.md`** — its Live peers section's wording
   where it names windows; it lands with the role files (rule 11).
+- **`templates/boundary-brief.md`** — the three `<name [ref]>` of its
+  `record` call (1.3); it lands with the role files (rule 11).
 - **`README.md`** — the way in (`tanto`, `tanto <role>`, the four words);
   the faces and C-1 to C-4; the migration paragraph of section 7.
 
-Not touched: `templates/boundary-brief.md`, `templates/batch-prompt.md`,
-`templates/shoki-brief.md`, `scripts/passage-check.js`.
+Not touched: `templates/batch-prompt.md`, `templates/shoki-brief.md`,
+`scripts/passage-check.js`.
 
 ## 7. Migration, rule 11, and this plan
 
@@ -908,8 +990,9 @@ subject, so that each can be amended alone.
   tasks after it, then `spawner.js` with its tests; **B** `tanto.js`,
   `boundary.js`, `reading.js`'s test, and `templates/tanto.json`, with
   their tests; **C** `templates/roster.md`, `templates/spawn-request.md`,
-  and `README.md`; **D** `SKILL.md`, the seven role files, and
-  `templates/kanri-handover.md`, in one batch, which is the safe boundary.
+  and `README.md`; **D** `SKILL.md`, the seven role files,
+  `templates/kanri-handover.md`, and `templates/boundary-brief.md`, in one
+  batch, which is the safe boundary.
   The cut inside a batch is Keikaku's.
 - The Global Constraints carry rule 11's authority sentence, the queue,
   the safe boundary, and section 7's two facts: this run's own tab seats
@@ -1019,10 +1102,35 @@ greps named in `notes-issues-2.md`.
 
 ## Answers to the spec inputs
 
-No `spec-inputs.md` exists and no `I-n` reached this seat. Sections 1.1,
-2.5, 2.7, 4.4, and 5.1 rewrite Kanri's own procedure; Step 2 puts those
-passages to Kanri before the reviewer is dispatched, and its answer is
-recorded here.
+`.tanto/run-owned-seats/spec-inputs.md` holds I-1 to I-12, Kanri's own
+reading of the passages that rewrite its procedure, asked for before the
+reviewer was dispatched. None is a scope change, and all twelve are taken.
+
+- **I-1** — the frame of the other eleven; nothing to answer.
+- **I-2** — taken: 2.5 maps every status the `seat` command can print.
+- **I-3** — taken: the beat before every request, the `unsent:` event and
+  its `sent:` pair, and the sentence that a stale spawner raises no notice
+  (2.5).
+- **I-4** — taken: the census's two new moments, and no row for a
+  standalone Kaiseki or a messenger (2.7).
+- **I-5** — taken: nothing is marked on `spawner: stale` (2.7).
+- **I-6** — taken: a second `no-role` from one `sessionId` ends the seat
+  (3.2).
+- **I-7** — taken: an ended seat's later writes are stray, and a
+  replacement waits for the old seat's tab to close (5.1).
+- **I-8** — taken: the `fukki:` line's sender is checked, a failed probe
+  sends nothing, and the handover question reaches the human as an idle
+  block item and an `attention` request (4.4); no row for a `denrei`
+  (2.7).
+- **I-9** — taken: `templates/boundary-brief.md` is touched, for its three
+  `<name [ref]>`, and lands in batch D; Residency matching by `sessionId`
+  is left to `roster-ledger` (1.3, section 6).
+- **I-10** — taken: a Sekkei only for an opened topic and a decline as an
+  `R-n`; the brief before a Kaiseki's spawn; rule 9's two acts; `input=`
+  as one path (1.1).
+- **I-11** — taken: `tanto <role> [<topic>]` in every `attention` message
+  that names a way in, and the idle block's examples (1.1, section 6).
+- **I-12** — taken: section 6's `roles/kanri.md` bullet.
 
 ## Deferred items
 
