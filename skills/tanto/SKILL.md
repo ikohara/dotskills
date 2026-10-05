@@ -424,159 +424,188 @@ reads as progress. The dispatcher verifies the file, not the reply.
   its own.
 - Not detected: a `/model` or `/effort` change mid-run; the rule is protocol.
 
-## Handshake and roster
-
-This is a **tab seat's** act. Kikaku, Hosa, Sekkei, and an attached Kaiseki
-read the first data row of `.tanto/roster.md`, which is Kanri's own row, and
-send it the one line below. A spawned seat sends none: the request that
-created it carried its orders, and the result carried its identity. A
-Kaiseki started with no `topic=` key is standalone and does not shake hands,
-roster or no roster.
-
-Send Kanri exactly one message:
-
-```text
-handshake role=<role> topic=<topic|—> name=<name [ref]> cwd=<path> model=<model id> effort=<level|unknown> branch=<branch> mode=<auto|unknown> transcript=<absolute path|unavailable>
-```
-
-`name [ref]` is what `ListAgents` prints for this session on its first line
-("This session is `<name> [<ref>]`").
-
-`effort=` is read from this session's own transcript: the last record of
-`type` `assistant`, its `perTurnEffort` field, or its `effort` field when
-`perTurnEffort` is absent or is not a quoted string — a `null` value is
-present and unreadable, and falls through the same way; `unknown` when the
-transcript is unavailable. The same
-read is the effort half of the start sequence's model check. Kanri compares
-`model=` with `sessions.<role>.model` and `effort=` with
-`sessions.<role>.effort`; a mismatch of either is one line to the human, and
-the handshake still gets its roster row when only the effort differs — the
-effort is the human's to change with `/effort` in that window, and the roster
-records what runs. A model mismatch in a tab seat's handshake is refused, as
-today; a spawned seat's mismatch is not refusable — it arrives appended to a
-line the seat has already acted on — and becomes an `attention` request
-instead.
-
-`mode=` is what you can see about your own permission mode — `auto` when your
-system prompt says auto mode is active, otherwise `unknown`. It is advisory,
-and `unknown` is the measured ceiling rather than a gap: a session outside auto
-mode carries no statement of which mode is active, only the harness's line that
-tools run behind a user-selected one, so nothing better than `unknown` can be
-reported and Kanri's warning stays keyed on the absence of `auto` (measured
-2026-09-10, issue-15bf).
-
-`transcript=` is the path of this session's own transcript per "The transcript
-reading", so that Kanri can record it and, where its session may read that
-path, verify a reading it doubts.
-
-Sekkei, Kikaku, Hosa, and an attached Kaiseki start reading while they wait —
-the human is in the room, and the reply arrives as a
-`<cross-session-message>`. Keikaku and Jisso wait for nothing and no longer
-appear here: both are spawned, both take their orders from the keys of their
-own prompt, and neither sends a handshake to be answered.
+## The roster
 
 The roster lives at `.tanto/roster.md`, is written only by Kanri from
 `templates/roster.md`, and has Kanri's row first. Columns are Role, Topic,
 Name `[ref]`, cwd, Model, Effort, Branch, Mode, Started, Status, and
-Transcript. Topic is the topic word the session's own orders gave it — a
-tab seat's orders line, a spawned seat's own prompt keys — for a Jisso,
-the topic whose queue it was spawned into: the plan whose
-batches are in flight, or, with none in flight, the plan whose landing
-requested the queue, since the shared checkout carries one topic's batches
-at a time and the next plan's queue opens at its predecessor's close — or
-`—` for Kanri, Kikaku, Hosa, and a standalone Kaiseki. The Status column
-carries one of seven
-words: `queued` a Jisso of a skill-editing plan waiting for its batch prompt;
-`live`, which may carry one suffix: `(idle since <HH:MM>)`, or
-`(blocked since <HH:MM>)`, which Kanri appends when the census's Listed line
-for the seat carries `— blocked` and removes when a later census's does not —
-the last census that saw the seat blocked, not its state now, and no cause,
-since a permission prompt, a usage-limit pause, and a kessai wait all read
-`blocked`; every reader tests the cell's first word; `stopped` a
-terminal seat the spawner stopped on Kanri's request or the spawner's guard
-stopped, its conversation kept; `cleared` a tab seat Kanri released with
-`release:`, or whose `/clear` a `no-role` reply revealed; `replaced` a
-Kanri that handed over; `dead` a session the census no longer lists — for
-a terminal seat whose transcript is on disk not final, since its process is
-gone and its conversation kept, and a resume puts the row back to `live`
-when a line is next due to it ("Resuming"), while `stopped` keeps meaning a
-stop the run made; `refused` a handshake that got no row. A terminal seat's
-row is written from
-the spawner's result file rather than from a handshake — by
-`boundary.js record --seat` for a Jisso, by Kanri's own hand for a Keikaku
-or a successor — and a row that does not exist yet while its seat works is
-not an error. The keeping rule is one live seat per role and topic; Kanri,
-Kikaku, and Hosa one each. `ListAgents` shows name, `[ref]`, kind, and start
-time for every session on the machine — not the cwd, the model, or the
-role; the handshake carries those, and the census places a session under
-this repository by its cwd.
+Transcript. A row is written from the spawner's result file, by
+`boundary.js record --seat`: for a seat Kanri requested, when the result
+lands; for a seat the launcher started — a Kikaku, a Hosa — at the census
+whose **Not held** first prints it, Kanri not being woken for it. A
+standalone Kaiseki and the messenger get no row, and a row that does not
+exist yet while its seat works is not an error. The Name cell holds the bare
+name the listing printed when the row was written — a record, not an
+address ("The address") — and no seat writes a `[ref]` about itself. Topic
+is the topic word the seat's own prompt keys gave it — for a Jisso, the
+topic whose queue it was spawned into: the plan whose batches are in
+flight, or, with none in flight, the plan whose landing requested the
+queue, since the shared checkout carries one topic's batches at a time and
+the next plan's queue opens at its predecessor's close — or `—` for Kanri,
+Kikaku, Hosa, and a standalone Kaiseki.
 
-**The census.** A session is its `sessionId`, and a roster row's is the
-basename of its Transcript column without `.jsonl`. Every match of a
-session to a row — a handshake, `/tanto fukki`, Kanri's start, the census —
-compares `sessionId`s, never a name, a `[ref]`, or a full path: a name and
-a `[ref]` pass to another session across a `/clear`, one file has two paths
-under a changed config directory, and a transcript moves when its session
-enters a worktree. When a handshake's `transcript=` names another path than
-the row's and the `sessionId` matches, Kanri rewrites the row's Transcript
-cell to the handshake's path and notes the move in an Events line. `node "$TANTO/scripts/boundary.js" census` lists every
-session under the repository, the tab seats included, and Kanri marks a
-`live` row whose `sessionId` it does not list `dead` on that signal alone —
-no timeout, no inference, no name — except while a restart is being
-recovered (`roles/kanri.md`); a `queued` row it does not list stays
-`queued`, since a waiting seat's absence is expected and the send of its
-prompt resumes it. An entry with no `pid` is not listed, whatever its
-`state` says: its process is gone, and the census prints its row under Not
-listed, the line ending `— listed without a pid (a stale entry)`. A listing
-that fails is no signal, and nothing is marked on it. A send error is a
-reason to run the census, not a signal of its own: a send that errors to a
-session the census still lists is a message failure, the row stays, and
-Kanri tells the human in one line; a terminal seat the census does not list
-is resumed and the line sent again ("Resuming").
+The Status column carries one of five words: `queued` a Jisso of a
+skill-editing plan waiting for its batch prompt; `live`, which may carry one
+suffix: `(idle since <HH:MM>)`, or `(blocked since <HH:MM>)`, which Kanri
+appends when the census's Listed line for the seat carries `— blocked` and
+removes when a later census's does not — the last census that saw the seat
+blocked, not its state now; the cause, `— blocked (<waitingFor>)`, is in the
+census line and the notice and not in the cell, and every reader tests the
+cell's first word; `stopped` a seat the run ended — by Kanri's `stop`
+request, by `taiseki`, by `tanto teishi --seats`, by the spawner's guard, or
+on a second `no-role` ("Messages") — its conversation kept and nothing sent
+to it again; `replaced` a Kanri that handed over; `dead` a seat whose
+process is gone and that is not parked — its conversation on disk and not
+final, since a wake puts the row back to `live` when a line is next due to
+it ("Resuming") — or a row of the old contract that Kanri retired at its
+census (`roles/kanri.md`). A dialogue seat that is parked keeps its row
+`live`: a park is its ordinary state between turns ("The faces of a seat").
+
+The keeping rule is one held seat per role and topic, and one Kanri, one
+Kikaku, and one Hosa per repository; the spawner refuses a request for a
+second Kanri, Kikaku, or Hosa while it holds one, a handover's successor
+excepted (rule 4). `ListAgents` shows name, `[ref]`, kind, and start time
+for every session on the machine — not the cwd, the model, or the role; the
+spawn request and its result carry those, and the census places a session
+under this repository by its cwd.
+
+**The census.** A seat is its `sessionId`, and a roster row's is the
+basename of its Transcript column without `.jsonl`. Every match of a session
+to a row — the census, a result file, Kanri's start — compares `sessionId`s,
+never a name, a `[ref]`, or a full path: a name changes when a tab takes the
+seat and at every window reload, one file has two paths under a changed
+config directory, and a transcript moves when its session enters a
+worktree. `node "$TANTO/scripts/boundary.js" census` reads the spawner's
+state file, `.tanto/spawner/seats.json`, beside the listing, and prints the
+`spawner:` line — `spawner: beating`, or `spawner: stale` — and then six
+headings, in this order:
+
+- **Listed** — a `live` or `queued` row whose session is listed, its line
+  ending `— renamed` when the spawner marked it so, and
+  `— blocked (<waitingFor>)` for a background seat on a prompt. A seat open
+  in a tab is never `blocked`: its prompt is in front of the human already.
+- **Parked** — a `live` row whose seat the state file holds `parked`, with
+  `— mid-turn` when its last turn did not end by itself and `— waiting`
+  when a question of its to the human stands. Nothing is marked, and the row
+  stays `live`; a seat with a topic marked `— mid-turn` is woken in Kanri's
+  Recovery alone, never at a boundary's census ("Resuming").
+- **Ended** — a `live` or `queued` row whose seat the state file holds
+  `stopped` or `removed`; the line ends in `by taiseki` when the seat ended
+  itself. Kanri writes the row `stopped`, with an Events line naming what
+  ended it — `taiseki`, or its own request.
+- **Not listed** — a row whose seat the state file does not hold, or holds
+  `running`, `blocked`, or `gone`, and the listing does not show. Kanri marks
+  a `live` row `dead` on that signal alone — no timeout, no inference, no
+  name; a `queued` row stays `queued`, since a waiting Jisso's absence is
+  expected and the send of its prompt wakes it. An entry with no `pid` is
+  not listed, whatever its `state` says: its process is gone, and its line
+  ends `— listed without a pid (a stale entry)`.
+- **No session id** — a row whose Transcript cell carries no `sessionId`.
+- **Not held** — a session under the root that no row holds; and, for every
+  seat the state file holds that no row holds, listed or not, the line
+  `— spawned as <role> <topic>, result <id>`, from whose result Kanri writes
+  the row.
+
+On `spawner: stale` the state file has stopped moving and Kanri marks
+nothing, as on `census: unavailable`; a listing that fails is no signal
+either. Kanri runs the census at its start; at every boundary, in loop step
+6, before the next request; at every wake-up whose line comes from a name no
+row holds — a Hosa's `slot-needed:` or `kessai answer:`, a Kikaku's
+`decision:` — before it handles the line; and when `seat` prints `no entry`
+("The address").
 
 ### The address
 
-- The address of a session is the **bare name** its handshake carried:
-  `dotskills-0d`, not `kanri`. `SendMessage` delivers a bare name that matches
-  exactly one live session. When it reports the name ambiguous, run
-  `ListAgents` once and append the `[ref]` from that listing, with the space
-  that precedes it.
-- **An address written `<name> [<ref>]` is used as the bare `<name>`.** The
-  `[ref]` is an identity, shown wherever a session is named so that the
-  listing, the roster, and the handover agree on which session is meant; it is
-  appended to a `to` value only after `SendMessage` reports the name ambiguous,
-  and never pasted from a file. Every `to` value and every "Send to" blank
-  carries the bare name — no command line carries an address at all (there
-  is no address argument, "Invocation" above).
-- **Kanri's address** is the first data row of `.tanto/roster.md`,
-  read at the moment of sending. No role caches it, no line announces it,
-  and no command line carries it. A workspace whose roster does not exist
-  yet has no peer to bootstrap: its first session is the Kanri the launcher
-  spawns, and that Kanri writes the roster.
-- **Every other role's address** is known only to Kanri, from the handshake,
-  and Kanri is the only session that sends to Sekkei, Keikaku, Jisso,
-  Kaiseki, or Hosa. Kikaku is the human's seat: it sends Kanri a
-  `decision: <path>` line and Kanri answers, but Kanri never addresses it
-  first. A reply copies the envelope's `from` into `to` and needs no name at
-  all.
-- **Kanri sends only to the names of `live` roster rows** — never to a
-  `queued` Jisso, which reads Kanri's row when its prompt wakes it, and never
-  to a `cleared` one, which is a bare window. The roster
-  is the address book; `ListAgents` confirms that a name is listed and
-  nothing more. A window keeps its name and `[ref]` across a `/clear`
-  (measured 2026-09-16), so a listed name is no evidence that a role is
-  behind it.
+- **A seat is its `sessionId`.** Its name is whatever the listing prints for
+  that id now: the spawner's `<repo>-<role>[-<topic>]-<hex>` while it runs in
+  the background, the editor's `<repo>-<2 hex>` while a tab holds it, and a
+  new one of those after every window reload. The spawner's census writes
+  the listed name into its state file at every pass, and the commands below
+  read it there at the moment of sending. A name is looked up at the send
+  and never stored as an address; the roster's Name cell is a record.
+- `SendMessage` delivers a bare name that matches exactly one live session.
+  When it reports the name ambiguous, run `ListAgents` once and append the
+  `[ref]` from that listing, with the space that precedes it. That is the
+  one use of a `[ref]`: no seat writes one about itself — its closing line,
+  the roster, Kanri's start line, the handover file's Live peers, and a
+  batch prompt's Kanri line carry the bare name — none is pasted from a
+  file, and no command line carries an address at all ("Invocation").
+- **Kanri's address** is the first data row of `.tanto/roster.md`, read at
+  the moment of sending — the one address still stored, and a safe one:
+  Kanri is named by the spawner, is never parked, and is never opened in a
+  tab, and the launcher refuses a Kanri the listing shows `interactive`. No
+  role caches it and no line announces it. A workspace whose roster does not
+  exist yet has no Kanri to address.
+- **Every other seat** is addressed by Kanri alone, the only session that
+  sends to Sekkei, Keikaku, Jisso, Kaiseki, or Hosa. Kikaku is the human's
+  seat: it sends Kanri a `decision: <path>` line and Kanri answers, but
+  Kanri never addresses it first. A reply copies the envelope's `from` into
+  `to` and needs no name at all.
 
-Kanri's address is the first data row of the roster,
-read at the moment of sending. A role whose send to Kanri errors, or gets
-`no-role` back, holds its line and re-sends it to that row, read fresh, at
-its next wake-up. No line announces a successor's address: a window keeps its
-name and `[ref]` across a `/clear` (measured 2026-09-16), so the row the
-successor rewrites already holds the address every peer would have been told.
-On Kanri's side, a peer line it receives and does not answer in the same turn
-becomes the ledger's `unanswered: <from> — <line>` events line, written
-through `record --event` and paired with `answered: <from> — <line>` when it
-is answered.
+**How Kanri sends a seat a line.** Two commands, with `$TANTO` set in the
+same tool call:
+
+```bash
+node "$TANTO/scripts/boundary.js" seat <sessionId or name>
+node "$TANTO/scripts/boundary.js" wake [--hold] <sessionId> [<sessionId> ...]
+```
+
+`seat` prints one line from the state file,
+`<status> <name> <kind> <role> <turn>` — the kind `background`,
+`interactive`, or `-` when the seat is not listed; the turn `ended` or
+`open` by the spawner's own test over the seat's transcript, or `-` when
+none is found — and `spawner: beating` or `spawner: stale` under it. For a
+`sessionId` the state file does not hold it prints `no entry <kind>`, the
+kind being the listing's. `wake` checks the beat, writes a `resume` request
+with no prompt for each `sessionId` at once, waits up to sixty seconds in
+all, and prints one line per seat: what `seat` would print then, or
+`error: <the result's error>` with the name. A parked seat is woken, never
+handed a line: a resume carries a prompt for a Kanri alone. By what `seat`
+prints:
+
+- `running`, `blocked` — send to `<name>` with `SendMessage`.
+- `parked`; and `gone`, for any seat but a Kanri — run `wake`, then send to
+  the name it prints, in the same turn; several seats are woken in one call
+  and sent to afterwards. On `error: listed` the seat is alive after all —
+  in a tab, or woken by the human — and the line goes to the name printed
+  with it. `--hold` is for a wake the human asked for, from Remote Control
+  or from anywhere else: it keeps the seat awake until 55 minutes after its
+  last turn ("The faces of a seat", C-2).
+- `stopped` — nothing is sent, but to a seat whose row's Events line says
+  Kanri stopped it to hold it on the human's word, which is woken once he
+  has lifted the hold.
+- `removed` — never. `no entry` — run the census; the row's status then
+  decides.
+
+Any other error from `wake`, and a `SendMessage` that errors, is answered by
+running `seat` again and following what it prints, once. A second failure is
+the Events line `unsent: <sessionId> — <the line>` and one line to the
+human. A line whose answer does not come, from a seat that `seat` now shows
+`parked`, was caught by its stop: Kanri wakes the seat and sends the line
+again, and the seat reads it twice and answers once.
+
+**The beat comes before every request.**
+`node "$TANTO/scripts/boundary.js" beat` prints the `spawner:` line, and
+Kanri runs it before a `spawn`, a `stop`, an `attention`, or an `ack`;
+`wake` runs it itself. On `spawner: stale` Kanri writes no request, records
+what it owes as the Events line
+`unsent: <sessionId or op> — <the line or the request>` — through
+`record --event` in the open ledger, in the roster's Events when none is
+open — and tells the human in one line to run `tanto fukki`, saying that a
+stale spawner raises no notice of its own. Kanri's Recovery sends every
+`unsent:` line with no `sent:` pair and writes the pair. A pair is matched
+on the text after the prefix, without the `(batch <X>)` that
+`record --event` appends at a boundary, and two different lines to one seat
+are two events.
+
+**A peer's line to Kanri.** A role whose send to Kanri errors, or gets
+`no-role` back, holds its line and re-sends it to the roster's first data
+row, read fresh, at its next wake-up. No line announces a successor's
+address: the successor rewrites the first row at its start, and that row is
+what every peer reads. On Kanri's side, a peer line it receives and does not
+answer in the same turn becomes the ledger's `unanswered: <from> — <line>`
+events line, written through `record --event` and paired with
+`answered: <from> — <line>` when it is answered.
 
 ## The transcript reading
 
@@ -647,8 +676,8 @@ role file passes them.
   record's `perTurnEffort` when that is a string, else its `effort` when that
   is a string, else `unknown` — so a `perTurnEffort` of `null` falls through
   to `effort`, and an unavailable transcript reads as `unknown`. The start
-  sequence's check and the handshake's `effort=` take it; the reading itself
-  travels without it.
+  sequence's effort check takes it, and the start line reports it; the
+  reading itself travels without it.
 
 The first line the command prints is the reading, and it travels as it is:
 appended after ` — ` to the boundary and exit lines the roles already send,
@@ -691,49 +720,45 @@ are in the dialogue file, the ledger, and the human's own window.
 
 ## Resuming
 
-**Identity is the `sessionId`**, for every seat, the tab seats included. The
-transcript path is a function of it —
-`<config dir>/projects/<project slug>/<sessionId>.jsonl` — and the name is
-what `claude agents --json` and `ListAgents` currently print for it. The
-editor's resume of a tab seat keeps the id and changes the name; a terminal
-seat's flag-less resume keeps both, since the spawner named it at its spawn.
-The roster's Transcript column holds the path — or, for a terminal seat
-whose transcript the spawner had not found when it wrote its result, the
-bare `<sessionId>.jsonl` — and therefore the id: the basename, which holds
-when the path does not. `unavailable` stands only where there is neither,
-and no `Sess` column is added, because it would duplicate the basename.
+**Identity is the `sessionId`**, for every seat. The transcript path is a
+function of it — `<config dir>/projects/<project slug>/<sessionId>.jsonl` —
+and the name is what `claude agents --json` and `ListAgents` currently print
+for it ("The address"). The spawner names a seat at its spawn; a tab that
+holds the seat shows the editor's name instead, and a resume keeps the id.
+The roster's Transcript column holds the path — or, for a seat whose
+transcript the spawner had not found when it wrote its result, the bare
+`<sessionId>.jsonl` — and therefore the id: the basename, which holds when
+the path does not. `unavailable` stands only where there is neither, and no
+`Sess` column is added, because it would duplicate the basename.
 
 | what happened | what the run does |
 | --- | --- |
-| a tab seat resumed by the editor | nothing is typed there: Kanri's census finds the row's `sessionId` under a new name, rewrites that row's name in place, and writes `resumed: <old name> → <new name>`. `/tanto fukki` stays accepted there, and its handshake rewrites the same row with the same values |
-| a terminal seat renamed | the spawner's census sees a known `sessionId` under a new name and marks `renamed` in `seats.json`; Kanri rewrites the row, writes the same Events line, and clears the mark with an `ack` request. The seat itself does nothing and checks nothing |
-| a terminal seat gone while the run is up — a send to it errors, or the roster records its row `dead` | Kanri sends on the roster as recorded, with no census first; either signal runs the census, and a terminal seat it does not list — a stale entry with no `pid` included — gets a `resume` request, `claude --resume <sessionId> --bg` with no other flag, which keeps the `sessionId` and the whole conversation. The line is sent again when the result lands, to the name the result carries, and the row goes `live` with it; a result that carries no name is answered by the census again, which names the session by its `sessionId`. A `queued` row goes `live` before its `batch:` line is sent, resumed or not, so that Kanri still sends only to `live` rows. A seat the census does list after a send error is a message failure: the row stays, and Kanri tells the human in one line. A resume is never a spawn and never a replacement; it covers every line to a terminal seat — a queued Jisso's `batch:` line, a rework prompt's, the `close:` line, a `coldread:` line, a `continue:` after a pause — and costs nothing for a seat that is alive. It fails when its result carries an error or the seat's transcript is not on disk, and the seat is then lost: `roles/kanri.md`'s Replace table decides what follows |
-| an editor restart | the terminal seats are still running — separate processes, unreached by the restart. Only the tab seats came back renamed |
-| a reboot or a crash | `tanto` writes a `resume` request for every terminal seat `seats.json` lists as `running` or `blocked`, with `claude --resume <sessionId> --bg` and no other flag. The roster's first row is settled first and separately, so a Kanri the listing has lost but `seats.json` still holds — `gone` included, a Kanri the human `/stop`ped or one that crashed while the spawner ran — is **resumed and never spawned again**. A seat `seats.json` holds as `running` or `blocked` — or, for Kanri alone, `gone` — is resumed; one it holds as `stopped` or `removed` is not, which is why `tanto down --seats` retires a run rather than pausing it |
+| an editor reload or restart, or a tab closed | nothing is asked of anyone: no fukki, no report. The background processes are unreached by it; a tab the human does not reopen is a parked seat, woken when a line is next due to it; a turn the reload cut is continued by a word in the tab ("The faces of a seat", C-5). A seat a tab held is listed again under a new name, which the next row covers |
+| a seat renamed | the spawner's census sees a known `sessionId` under a new name and marks `renamed` in `seats.json`; Kanri rewrites the row's Name cell, writes `resumed: <old name> → <new name>`, and clears the mark with an `ack` request. The seat itself does nothing and checks nothing |
+| a line due to a seat that is not running — parked, or gone | Kanri runs `seat` and follows "The address": a `parked` seat, or a `gone` one that is not a Kanri — a stale entry with no `pid` included — is woken by `wake`, a `resume` request run as `claude --resume <sessionId> --bg` with no prompt and no flag, which keeps the `sessionId` and the whole conversation, and the line goes to the name `wake` prints. A `queued` row goes `live` before its `batch:` line is sent, woken or not. A wake is never a spawn and never a replacement; it covers every line to a seat — a queued Jisso's `batch:` line, a rework prompt's, the `close:` line, a `coldread:` line, a `continue:` after a pause — and costs nothing for a seat that is alive, which `wake` answers `listed`. A seat whose wake fails twice, or whose transcript is not on disk, is lost: `roles/kanri.md`'s Replace table decides what follows |
+| a reboot, a crash, or a spawner that died | `tanto`, or `tanto fukki`, reads the state file, starts the spawner when none beats, and writes a `resume` request for every seat it holds as `running` or `blocked` that is not a dialogue seat and that the listing does not hold, and for a Kanri it holds `gone`; never for a `parked`, `stopped`, or `removed` seat. A dialogue seat the reboot took is `parked` at the new spawner's first census pass, with `— mid-turn` when its turn was cut, and Kanri's Recovery wakes it. The roster's first row is settled first and separately, so a Kanri the listing has lost but the state file still holds — `gone` included, a Kanri the human `/stop`ped or one that crashed while the spawner ran — is **resumed and never spawned again**. A seat held as `stopped` or `removed` is not resumed, which is why `tanto teishi --seats` retires a run rather than pausing it |
 
-`tanto` is fukki. It is idempotent: run twice it starts nothing twice, and it
-puts back what a restart took. A resumed background Kanri idles until a line
-reaches it, so the launcher prints the one act that is the human's —
-`claude attach <id>`, and `/tanto fukki` typed there once. That Kanri's fukki
-reconciles the roster with `seats.json`'s `renamed` marks and
-the census, answers the ledger's unanswered lines, sends a Jisso
-resumed mid-batch the one line `resume batch X from task N`, and continues
-where the Progress line says.
+`tanto` and `tanto fukki` are idempotent: run twice, they start nothing
+twice. `tanto` puts back what a restart took and enters Kanri; `tanto fukki`
+is the same recovery with Kanri told in every case, and the human types
+nothing in Kanri for it. A Kanri the launcher resumed gets `/tanto fukki` as
+its resume's prompt — the one role a resume carries a prompt for; a Kanri
+that is alive gets the line `fukki: requested at the launcher` from the
+messenger, a `denrei` seat on `sessions.denrei` that forwards that one line
+and is stopped and removed when its turn ends. A bare `tanto` passes the
+word to a Kanri it resumed and sends no messenger.
 
-`/tanto fukki` is a **tab seat's** word everywhere else, and the
-`ListAgents` self-check that used to run at every boundary is a tab seat's
-too: a terminal seat's rename is for the spawner's census to detect, and a
-seat with no roster row yet would otherwise handshake, which it must not.
-The self-check stays the tab seat's own trigger to re-handshake after its
-name changed; the match that follows is Kanri's, by `sessionId`. A tab
-seat's `/tanto fukki` reads this file and nothing else — its role file is
-already in the session's context, which is what a resume preserves —
-re-reads its own name for its closing line, and re-runs the Start
-sequence's definitions write-and-count in both scopes, saying the result
-the same way the Start sequence does. Its match is the row whose Transcript
-basename is its own `sessionId`; a session whose `sessionId` is no row's
-Transcript basename is not a resumed role: `/tanto fukki` says so and stops,
-and the human runs `/tanto <role>` there as for a new session.
+`/tanto fukki` typed in Kanri, the `fukki:` line, and a resume whose prompt
+is `/tanto fukki` are one procedure, `roles/kanri.md`'s "Recovery": the
+census acted on at once, with no window to wait for; one `wake` for every
+seat with a topic marked `— mid-turn` under **Parked**, each sent the one
+`resume:` line that continues a cut turn; a Jisso resumed mid-batch sent
+`resume batch X from task N`; the `renamed` marks reconciled; every
+`unsent:` line with no `sent:` pair sent, and every `unanswered:` line
+answered; every `paused:` line still unanswered probed once; and what was
+put back printed in the idle block. Kanri acts on a `fukki:` line only when
+`boundary.js seat <the envelope's from-name>` prints a seat whose role is
+`denrei`. `fukki` is Kanri's word alone among the sessions ("Invocation").
 
 ## Messages
 
