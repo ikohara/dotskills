@@ -12,7 +12,12 @@ const { spawnSync, spawn } = require("node:child_process");
 const { loadSessions } = require("./reading.js");
 const { readSeats, spawnerDir, underRoot, appendLog, heartbeatPath, HEARTBEAT_STALE_MS } = require("./spawner.js");
 
-const USAGE = "Usage: tanto [<root>] [--timeout <ms>], or tanto down [<root>] [--seats] [--timeout <ms>]";
+const USAGE = [
+  "Usage: tanto [<role>] [<topic>] [--attach | --no-attach] [--root <path>] [--timeout <ms>]",
+  "       tanto fukki [--no-attach] [--root <path>] [--timeout <ms>]",
+  "       tanto teishi [--seats] [--root <path>] [--timeout <ms>]",
+  "       tanto jokyo [--root <path>]",
+].join("\n");
 const SPAWNER = path.join(__dirname, "spawner.js");
 const WAIT_MS = 60000;
 const POLL_MS = 250;
@@ -32,16 +37,22 @@ const KANRI_RESUMABLE = ["running", "blocked", "gone"];
 const GITIGNORE = "*\n";
 const MARKDOWNLINT = "config:\n  default: false\n";
 
-// Flags that take a value. Every other `--flag` is boolean, so a positional
-// right after it (`tanto down --seats <root>`) is never mistaken for its
-// value (Minor 10, branch-review.md).
-const VALUE_FLAGS = new Set(["timeout"]);
+// Flags that take a value. Every other `--flag` is boolean, so a word right
+// after it (`tanto --no-attach kikaku`) is never mistaken for its value
+// (Minor 10, branch-review.md). `-a`, `-n`, and `-h` are the short forms of
+// `--attach`, `--no-attach`, and `--help` (spec 4.1).
+const VALUE_FLAGS = new Set(["timeout", "root"]);
+const SHORT_FLAGS = { "-a": "attach", "-n": "no-attach", "-h": "help" };
 
 function parseArgs(argv) {
   const values = {};
   const positionals = [];
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
+    if (Object.hasOwn(SHORT_FLAGS, arg)) {
+      values[SHORT_FLAGS[arg]] = true;
+      continue;
+    }
     if (!arg.startsWith("--")) {
       positionals.push(arg);
       continue;
@@ -89,6 +100,11 @@ function resolveRoot(given) {
     return null;
   }
   return candidate;
+}
+
+/** The root `--root` names, or the working directory, checked as `resolveRoot` checks it (spec 4.1). */
+function rootOf(values) {
+  return resolveRoot(typeof values.root === "string" ? values.root : undefined);
 }
 
 function claudeCommand(args) {
@@ -219,6 +235,15 @@ function ensureWorkspace(root) {
 
 function pidPath(root) {
   return path.join(spawnerDir(root), "pid");
+}
+
+/**
+ * `.tanto/spawner/contract`, which a spawner of this design writes at its
+ * start, holding `2`, and `tanto teishi` removes with `pid` and `heartbeat`
+ * (spec 4.2). A spawner that beats and wrote none runs older code.
+ */
+function contractPath(root) {
+  return path.join(spawnerDir(root), "contract");
 }
 
 /** The PID `.tanto/spawner/pid` records, or null. */
@@ -374,23 +399,107 @@ function branchOf(root) {
   return got.status === 0 ? got.stdout.trim() : "";
 }
 
-function kanriRequest(root, sessions) {
-  const seat = sessions.kanri || {};
+/** A line said to the human on stdout, and the exit code that goes with it. */
+function say(line, code) {
+  process.stdout.write(`${line}\n`);
+  return code;
+}
+
+// The seats whose turns may end on a question to the human (spec, Words).
+const DIALOGUE_ROLES = ["sekkei", "keikaku", "kikaku", "hosa", "kaiseki"];
+
+// What the launcher says when an act needs more than this run can give
+// (spec 4.2): a spawner from before the `contract` file is asked for no
+// request, and a run whose Kanri read the old text addresses no new seat.
+const OLDER_SPAWNER = "the spawner is older than this launcher: run tanto teishi, then tanto";
+const OLD_CONTRACT = 'this run is on the old contract — move it first: README, "Moving a run"';
+
+/**
+ * A `spawn` request under this contract (spec 1.1): every one the launcher
+ * writes carries `contract: 2`, which the spawner records on the seat.
+ */
+function spawnRequest(root, sessions, role, prompt) {
+  const seat = sessions[role] || {};
   return {
     op: "spawn",
-    role: "kanri",
+    role,
     topic: "—",
     model: seat.model,
     effort: seat.effort,
     branch: branchOf(root),
     mode: "auto",
-    prompt: "/tanto kanri",
+    prompt,
+    contract: 2,
   };
 }
 
-function cmdUp(argv) {
-  const { values, positionals } = parseArgs(argv);
-  const root = resolveRoot(positionals[0]);
+/**
+ * The Kanri spawn. When the state file still holds a Kanri — the outgoing one
+ * of a handover, or one whose resume failed — the request names it as the
+ * holder it `succeeds`, which the spawner's one-holder rule lets through
+ * (spec 1.2).
+ */
+function kanriRequest(root, sessions, outgoing) {
+  const request = spawnRequest(root, sessions, "kanri", "/tanto kanri");
+  return outgoing && KANRI_RESUMABLE.includes(outgoing.status) ? { ...request, succeeds: outgoing.sessionId } : request;
+}
+
+/**
+ * Whether the state file holds `seat` (spec, Words): `running`, `blocked`,
+ * or `parked` — or `gone`, for a seat that is not a dialogue seat.
+ */
+function isHeld(seat) {
+  if (["running", "blocked", "parked"].includes(seat.status)) return true;
+  return seat.status === "gone" && !DIALOGUE_ROLES.includes(seat.role);
+}
+
+/**
+ * Whether the run has moved (spec 4.2): the Kanri the state file holds is a
+ * contract-2 seat, or it holds none — the next Kanri is then the launcher's
+ * own spawn, which carries the mark.
+ */
+function runMoved(seats) {
+  return seats.filter((s) => s.role === "kanri" && KANRI_RESUMABLE.includes(s.status)).every((s) => s.contract === 2);
+}
+
+/**
+ * The seat `tanto <role> [<topic>]` enters, for every role but Kanri (spec
+ * 4.2): `{ attach }` with its short id — a held seat's, or that of the
+ * Kikaku, Hosa, or standalone Kaiseki spawned when none is held, waited for
+ * up to `waitMs` — or `{ code }` with the line already said.
+ */
+function enterRole(root, sessions, role, topic, seats, older, waitMs) {
+  if (older) return { code: say(OLDER_SPAWNER, 1) };
+  const held = seats.filter((s) => s.role === role && isHeld(s));
+  const ofTopic = topic && role !== "kikaku" && role !== "hosa" ? held.filter((s) => s.topic === topic) : held;
+  // Kanri never addresses a Kikaku or a standalone Kaiseki, so a run that
+  // has not moved may still start or enter one; every other seat waits for
+  // the move.
+  const attached = role === "kaiseki" && Boolean(topic || (ofTopic.length === 1 && ofTopic[0].topic !== "—"));
+  if (!runMoved(seats) && role !== "kikaku" && (role !== "kaiseki" || attached)) return { code: say(OLD_CONTRACT, 1) };
+  if (ofTopic.length > 1) {
+    fail(`tanto: ${ofTopic.length} ${role} seats are held — name the topic:`);
+    for (const seat of ofTopic) fail(`  tanto ${role} ${seat.topic}`);
+    return { code: 2 };
+  }
+  if (ofTopic.length === 1) return { attach: ofTopic[0].id || ofTopic[0].sessionId };
+  if (role !== "kikaku" && role !== "hosa" && (role !== "kaiseki" || topic)) {
+    return { code: say(`no ${role}${topic ? ` ${topic}` : ""} is held; Kanri starts one — tanto kanri`, 1) };
+  }
+  const result = waitForResult(root, writeRequest(root, spawnRequest(root, sessions, role, `/tanto ${role}`)), waitMs);
+  if (!result) {
+    fail(`tanto: the spawner wrote no result for the ${role} request; see .tanto/spawner/log`);
+    return { code: 1 };
+  }
+  if (result.error) {
+    fail(`tanto: the ${role} spawn failed — ${result.error}`);
+    return { code: 1 };
+  }
+  return { attach: result.id || result.sessionId };
+}
+
+function cmdUp(values, role, topic, word) {
+  const root = rootOf(values);
   if (!root) return 2;
   const waitMs = values.timeout ? Number(values.timeout) : WAIT_MS;
   const sessions = loadSessions(root);
@@ -399,7 +508,11 @@ function cmdUp(argv) {
   // race this decision if seats.json were read after startSpawner below.
   const seats = readSeats(root);
   ensureWorkspace(root);
-  startSpawner(root);
+  // A spawner that was beating already and wrote no `contract` runs code
+  // from before this design (spec 4.2): it is asked for no request of this
+  // design, and `fukki` is nothing but requests.
+  const older = !startSpawner(root) && !fs.existsSync(contractPath(root));
+  if (older && word === "fukki") return say(OLDER_SPAWNER, 1);
 
   const listing = listAgents(root);
   if (listing.sessions === null) {
@@ -439,7 +552,11 @@ function cmdUp(argv) {
 
   let attach = null;
   let resumed = 0;
-  if (!handover && listed && row.status.startsWith("live") && listed.kind === "background") {
+  if (role !== "kanri") {
+    const entry = enterRole(root, sessions, role, topic, seats, older, waitMs);
+    if (entry.code !== undefined) return entry.code;
+    attach = entry.attach;
+  } else if (!handover && listed && row.status.startsWith("live") && listed.kind === "background") {
     attach = listed.id || row.sessionId;
   } else if (!handover && listed && row.status.startsWith("live")) {
     process.stdout.write("Kanri is an interactive tab; hand over first\n");
@@ -457,6 +574,9 @@ function cmdUp(argv) {
     }
     attach = result.id || result.sessionId;
   } else {
+    // A Kanri the listing does not hold needs a resume or a spawn, neither of
+    // which an older spawner is asked for (spec 4.2).
+    if (older) return say(OLDER_SPAWNER, 1);
     let request =
       !handover && !listed && kanriHeld
         ? {
@@ -465,11 +585,11 @@ function cmdUp(argv) {
             topic: held.topic,
             sessionId: row ? row.sessionId : held.sessionId,
           }
-        : kanriRequest(root, sessions);
+        : kanriRequest(root, sessions, held);
     let result = waitForResult(root, writeRequest(root, request), waitMs);
     if (result?.error && request.op === "resume") {
       fail(`tanto: the Kanri resume failed — ${result.error}; spawning a new Kanri`);
-      request = kanriRequest(root, sessions);
+      request = kanriRequest(root, sessions, held);
       result = waitForResult(root, writeRequest(root, request), waitMs);
     }
     if (!result) {
@@ -506,9 +626,8 @@ function cmdUp(argv) {
   return 0;
 }
 
-function cmdDown(argv) {
-  const { values, positionals } = parseArgs(argv);
-  const root = resolveRoot(positionals[0]);
+function cmdTeishi(values) {
+  const root = rootOf(values);
   if (!root) return 2;
   const waitMs = values.timeout ? Number(values.timeout) : WAIT_MS;
 
@@ -561,16 +680,49 @@ function cmdDown(argv) {
   return seatsFailed ? 1 : 0;
 }
 
+// One word table for the launcher and `/tanto` (spec 4.1): each word in
+// romaji, kana, kanji, and its English alias; the role words are the seven
+// of `SKILL.md`'s Invocation table. `down` is retired with no alias.
+const WORDS = {
+  fukki: ["fukki", "ふっき", "復帰", "resume"],
+  taiseki: ["taiseki", "たいせき", "退席", "leave"],
+  teishi: ["teishi", "ていし", "停止", "stop"],
+  jokyo: ["jokyo", "じょうきょう", "状況", "status"],
+  kanri: ["kanri", "かんり", "管理"],
+  sekkei: ["sekkei", "せっけい", "設計"],
+  keikaku: ["keikaku", "けいかく", "計画"],
+  jisso: ["jisso", "じっそう", "実装"],
+  kaiseki: ["kaiseki", "かいせき", "解析"],
+  kikaku: ["kikaku", "きかく", "企画"],
+  hosa: ["hosa", "ほさ", "補佐"],
+};
+
+/** The id of the word `arg` spells, or null. */
+function wordOf(arg) {
+  return Object.keys(WORDS).find((id) => WORDS[id].includes(arg)) || null;
+}
+
 function main(argv) {
-  if (argv.includes("--help") || argv.includes("-h")) {
+  const { values, positionals } = parseArgs(argv);
+  if (values.help) {
     process.stderr.write(`${USAGE}\n`);
     return 2;
   }
-  if (argv[0] === "down") return cmdDown(argv.slice(1));
-  return cmdUp(argv);
+  // The first positional is a role or a word; a `<topic>` is read only after
+  // a role, so a topic that spells a word is never taken for it.
+  const word = positionals.length === 0 ? "kanri" : wordOf(positionals[0]);
+  if (word === null) {
+    process.stderr.write(`${USAGE}\ntanto: ${positionals[0]} is no role or word — a root is given with --root\n`);
+    return 2;
+  }
+  if (word === "teishi") return cmdTeishi(values);
+  if (word === "jokyo") return cmdJokyo(values);
+  if (word === "fukki") return cmdUp(values, "kanri", null, word);
+  if (word === "taiseki") return say("taiseki is said in the seat it ends: /tanto taiseki", 2);
+  return cmdUp(values, word, positionals[1] || null, word);
 }
 
-module.exports = { main };
+module.exports = { main, wordOf };
 
 if (require.main === module) {
   process.exitCode = main(process.argv.slice(2));
