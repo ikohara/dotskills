@@ -1088,7 +1088,7 @@ and the close reads them once.
    spec and the heading, recorded when the spec is accepted. A review
    report's and a Kaiseki report's items are rows recorded at the boundary
    that reads the report. Check every proposal's form as "A seat's exit"
-   step 2 says; record its rows; then `release:`.
+   step 2 says, record its rows, and write the seat's `stop` request.
 2. **Recommend.** At the close, dispatch `subagent_type: tanto-shoroku-recommend`
    in the skill's recommend mode over the close's shoroku proposal, every source the
    `pending` rows name — the spec with its four section names, each proposal
@@ -1136,9 +1136,9 @@ and the close reads them once.
    failure dispatch the recommender once more, naming what failed; on a
    second failure paste the brief as it stands and say in one
    line what is wrong with it. Then the **kessai**: one request, one
-   message, one answer. Write an `attention` request whose message is
-   `kessai: <topic> — claude attach <id>`, the spawner filling the id from
-   `seats.json`, and print in your own window, in the human's language:
+   message, one answer. Run `beat`, then write an `attention` request whose
+   message is `kessai: <topic> — tanto kanri`, the command that attaches
+   the human to you, and print in your own session, in the human's language:
 
    ```text
    kessai: <topic> — recommendation <path>; brief <path>; adopt <a>, fix <f>, reject <r>, unsure <u>.
@@ -1147,8 +1147,8 @@ and the close reads them once.
    <the brief's text verbatim>
    ```
 
-   The human answers there — `claude attach <id>`, type, ← back to the
-   agent view — or through a Kikaku decision
+   The human answers there — `tanto kanri` in a terminal, type, then ← and
+   leave the agent view — or through a Kikaku decision
    file whose "What Kanri should do with it" section names this
    recommendation and answers it by exception: that file is the answer,
    read whole, its item numbers the recommendation's, everything it does not
@@ -1364,8 +1364,8 @@ file pattern `shoroku-proposal-<role>-<short id>`; these are your steps.
    `.tanto/<topic>/shoroku-proposal-<role>-<short id>.md`, `<short id>` the
    first eight hexadecimal digits of the session's `sessionId`, the basename
    of its row's Transcript column, with `-<n>` before `.md` when that session
-   has written one already. The session writes it, runs its resume
-   self-check, and answers `shoroku proposal: <path> — <reading>`. **Three
+   has written one already. The session writes it and answers
+   `shoroku proposal: <path> — <reading>`. **Three
    roles are the exception**: a
    Sekkei at its own final boundary names its proposal in its
    `spec accepted:` line, and a Keikaku at its own names it in its
@@ -1382,13 +1382,11 @@ file pattern `shoroku-proposal-<role>-<short id>`; these are your steps.
    the report's section, read with the report's others. A file that fails
    the form is one line back to the session, answered by a rewrite; a file
    that passes is recorded — one `pending` row per item, Source the
-   proposal's path and the item's number — and you send a tab seat
-   `release: /clear this window`, its row going `cleared`, or write a
-   terminal seat's `stop` request, its row going `stopped`, nothing
-   `/clear`ed and nothing said to it; either way tell the human, in your own
-   window,
-   `<role> <name> released — its work is in <paths>; no step needs it — /clear its window when convenient`.
-   No recommender runs here, and no delete request goes out.
+   proposal's path and the item's number — and you write the seat's `stop`
+   request, its row going `stopped`. Nothing is said to the seat and nothing
+   to the human: a seat a tab holds is recorded `stopped` with no command
+   run, and its own closing line has already told the human to close the
+   tab. No recommender runs here, and no delete request goes out.
 3. The rows wait for the close, where steps 2 to 4 of "The four steps" run
    over them with everything else; fill their Written column from the
    close's commit subject.
@@ -1398,21 +1396,31 @@ it: the close's recommender quotes every item in full from that file, which
 is what the human checks. What another session pays for an exit is the
 proposal.
 
-A tab seat that has stopped answering is past answering; a terminal seat
-whose transcript is on disk is not, since a resume brings it back with its
-whole conversation (`SKILL.md`'s Resuming). You learn of either the way you
-learn of a missing batch report: the human says the window is gone, a send
-errors and the census that follows no longer lists it, a `no-role` comes
-back, the census's "Not listed" names it, or your window wakes for another
-reason and the answer has not arrived. A terminal seat is marked `dead`
-with an Events line naming what showed its process gone — the stale entry,
-the send error — and saying its conversation is kept, and is resumed when
-a line is next due to it ("Session lifecycle", **The census.**); only when
-that resume fails is its exit forced ("Replace", its first row). A tab
-seat's exit, and a failed resume's, is forced: write a roster Events line
-saying its shoroku proposal was not written and what was lost as far as you
-know, mark the row `cleared` on a `no-role` or `dead` on the census's "Not
-listed", and continue.
+A seat whose process is gone is not past answering while its transcript is
+on disk: a wake brings it back with its whole conversation, and a parked
+dialogue seat is one whose process the spawner stopped on purpose. You
+learn that a seat is gone the way you learn of a missing batch report: a
+send errors and `seat` then shows it gone, the census's "Not listed" names
+it, a second `no-role` comes back, or your session wakes for another reason
+and the answer has not arrived. A Jisso or a shoki the census does not list
+is marked `dead` with an Events line naming what showed its process gone —
+the stale entry, the send error — and saying its conversation is kept, and
+is woken when a line is next due to it ("Sending to a seat"); only when
+that wake fails is its exit forced ("Replace", its first row). A forced
+exit — a failed wake, a second `no-role` — gets a roster Events line saying
+its shoroku proposal was not written and what was lost as far as you know,
+the row `dead` on the census's "Not listed" or `stopped` on the second
+`no-role`, and you continue.
+
+**Once a seat has ended, nothing is sent to it again**, and two things you
+read off its process being gone you now read off its row. A write or a
+`commit-ready:` event from a seat you have ended is stray, and goes by rule
+5's report path. And a `spawn` that replaces a seat — the Replace table's
+Sekkei, Keikaku, and Kaiseki rows — waits while
+`boundary.js seat <the old sessionId>` prints `interactive`: tell the human
+in one line which tab to close, and write the request once a later reading
+no longer prints it, so that no two seats of one role and topic are held at
+once (rule 4).
 
 **Your own exit.** Propose from the ledger and the roster rather than from
 recollection, to `.tanto/shoroku-proposal-kanri-<short id>.md`,
@@ -1434,8 +1442,10 @@ the commands, and your closing line.
 
 `SKILL.md` defines the terms — the `bug-report:` line, the file written from
 `templates/bug-report.md`, the intake's `received:` answer, and the
-tracked-write rule. The intake is a `live` Hosa; you are the intake only
-while none is live, and then you do exactly what Hosa does and nothing more.
+tracked-write rule. The intake is a Hosa whose row is `live` and whose name
+the listing shows — one in a turn, or held awake. While every Hosa is
+parked, which is most of the time, the intake is you, and you do exactly
+what Hosa does and nothing more.
 
 ### The one act
 
@@ -1491,10 +1501,10 @@ your merge question.
 A live Hosa may be your hand in the lane when you would rather not hold the
 edit: send it the `chore:` line with the paths and the slot. The lane's
 conditions, the ruling `R-n`, and the commit subject stay yours. When a
-hotfix is pending in the lane and the roster has no `live` Hosa row, add to
-your line to the human a suggestion to open one (`/tanto hosa`), in the
-shape of the Kikaku suggestion in "Start"; a report in the inbox is no
-reason for it, since a report pends nothing.
+hotfix is pending in the lane and the roster has no `live` Hosa row,
+suggest to the human in your line that one be opened (`tanto hosa`, in a
+terminal), in the shape of the Kikaku suggestion in "Start"; a report in
+the inbox is no reason for it, since a report pends nothing.
 
 So that hotfixes reach `docs/` once, carry them forward: when you create a new
 topic's ledger, copy the hotfix lines recorded in the roster's Events since the
@@ -1538,9 +1548,9 @@ this is the bookkeeping it leaves to you.
    Measurements table — the dispatch, the family, and the reset time — and
    tell the human that reset time in your next line. The pause has no upper
    bound this skill can state; only the human's word ends it.
-2. When the human says, in your window and in any words, that the quota is
-   back, you may probe the family once with a trivial `default` subagent, and
-   then send the paused role
+2. The human's word that the quota is back is `fukki` — `tanto fukki` at
+   the launcher, or `/tanto fukki` typed in your session — and "Recovery"
+   is where the family is probed and the paused role is sent
    `continue: <dispatch> — same model`. The role
    re-dispatches identically from where it stopped; no model and no effort
    changes at either end.
@@ -1560,21 +1570,21 @@ lines, and these are your steps.
    is no other way. Answer in one line,
    `human-access: granted — <scope> — <until>` or
    `human-access: denied — <alternative>`, and record it as `R-n`.
-2. On a grant, tell the human as a numbered list: 1. `claude attach <id>` for
-   a terminal seat, or go to `<name> [<ref>]` for a tab seat; 2. do
-   `<what>`; 3. ← back to the agent view, or the tab. For a terminal seat,
-   also write an `attention` request whose message is
-   `human-needed: <role> <topic> — claude attach <id>`, because a seat that
-   idles on a grant is not `blocked` and the spawner's census would miss it. The
-   role's exchange
+2. On a grant, tell the human as a numbered list: 1. `tanto <role> [<topic>]`
+   in a terminal; 2. do `<what>`; 3. ← and leave the agent view. Run `beat`,
+   then also write an `attention` request whose message is
+   `human-needed: <role> <topic> — tanto <role> [<topic>]`, because a seat
+   that idles on a grant is not `blocked` and the spawner's census would
+   miss it. The role's exchange
    ends with `human-access: done — <what the human did or decided>`; note that
    line in the ledger's Session events.
-3. Four standing grants are yours to give without a request: Sekkei's spec
-   dialogue and Keikaku's plan dialogue, each in that role's orders line at
-   the handshake; an attached Kaiseki's debugging conversation, in the Human
-   access section of its brief; and Hosa's chores, in the line you answer its
-   handshake with. Kikaku needs none — the human is its counterpart by
-   definition, and you never message it.
+3. Four standing grants stand without a request, and none goes out as a
+   line of yours: Sekkei's spec dialogue, stated in `roles/sekkei.md`;
+   Keikaku's plan dialogue, in `roles/keikaku.md`; an attached Kaiseki's
+   debugging conversation, in the Human access section of the brief you
+   write before its spawn; and Hosa's chores, in `roles/hosa.md`. Kikaku
+   needs none — the human is its counterpart by definition, and you never
+   message it.
 4. A `human-contact:` line from a peer is information — the human spoke in
    that window unprompted and the peer answered. Record it in Session events;
    it grants nothing beyond that exchange.
@@ -1587,8 +1597,9 @@ standing grant, the answers reaching you through `dialogue.md` and the
 document. Record the line in the ledger's Session events and do nothing else.
 Your cold read stays where it is.
 
-The harness's own prompts — a permission dialog, the model-mismatch stop —
-reach the human in the peer's window and are outside this rule.
+The harness's own prompt — a permission dialog — reaches the human in the
+peer's own session, which the spawner's `blocked:` notice names with its
+cause, and is outside this rule.
 
 ## Session lifecycle
 
