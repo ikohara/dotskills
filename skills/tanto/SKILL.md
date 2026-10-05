@@ -21,19 +21,21 @@ This file is the shared contract. Every role reads it, then reads exactly one
 
 | Role | Count | Owns | Talks to |
 | --- | --- | --- | --- |
-| Kanri (管理) | exactly 1 | roster, conductor ledger, batch prompts, rulings, the recommendations and the directions, the bug intake when no Hosa is live, the spawn, stop, and attention requests, the kessai, and the `release:` lines to tab seats | human, Sekkei, Keikaku, Jisso, Kaiseki, Hosa; Kikaku at its handshake only |
+| Kanri (管理) | exactly 1 | roster, conductor ledger, batch prompts, rulings, the recommendations and the directions, the bug intake when no Hosa is listed, the spawn, stop, wake, and attention requests, and the kessai | human, Sekkei, Keikaku, Jisso, Kaiseki, Hosa; Kikaku, answering its `decision:` lines |
 | Sekkei (設計) | 0 or 1 per topic | the spec and its review | Kanri; the human by grant |
 | Keikaku (計画) | 0 or 1 per topic | the plan, its dry run, and its review | Kanri; the human by grant |
 | Jisso (実装) | 1 live per topic, spawned per batch — a self-editing plan's all at its landing | one batch of the SDD run each, its batch report and its commits; the last one, the close's shoroku proposal | Kanri; the human by grant |
 | Kaiseki (解析) | 0 or 1, on demand | root-cause reports; never a fix; no commit | Kanri; the human by grant |
-| Kikaku (企画) | 0 or 1, opened by the human | the consultation, and the decision files under `.tanto/kikaku/` | the human; Kanri, one `decision:` line |
-| Hosa (補佐) | 0 or 1, opened by the human | the human's small chores, the bug intake, the hotfix lane's edits Kanri hands over in a slot Kanri gives, and the kessai relay | the human; Kanri |
+| Kikaku (企画) | 0 or 1, started by the human with `tanto kikaku` | the consultation, and the decision files under `.tanto/kikaku/` | the human; Kanri, one `decision:` line |
+| Hosa (補佐) | 0 or 1, started by the human with `tanto hosa` | the human's small chores, the bug intake while it is listed, the hotfix lane's edits Kanri hands over in a slot Kanri gives, and the kessai relay | the human; Kanri |
 
 ## Invocation
 
 `/tanto <role> [<key>=<value> …]`, or `担当して <role>` / `tantoして <role>`.
 
-Normalize the role word to its romaji id before anything else.
+Normalize the word to its romaji id before anything else. One table serves
+`/tanto` and the launcher, `tanto`, typed in a terminal: the seven roles,
+and four words, each accepted in romaji, kana, kanji, or its English alias.
 
 | Accepted | Id |
 | --- | --- |
@@ -44,51 +46,88 @@ Normalize the role word to its romaji id before anything else.
 | `かいせき`, `解析`, `kaiseki` | `kaiseki` |
 | `きかく`, `企画`, `kikaku` | `kikaku` |
 | `ほさ`, `補佐`, `hosa` | `hosa` |
-| `ふっき`, `復帰`, `fukki` | `fukki` |
+| `ふっき`, `復帰`, `fukki`, `resume` | `fukki` |
+| `たいせき`, `退席`, `taiseki`, `leave` | `taiseki` |
+| `ていし`, `停止`, `teishi`, `stop` | `teishi` |
+| `じょうきょう`, `状況`, `jokyo`, `status` | `jokyo` |
 
-Any other word: say the role is unknown, list those eight ids, and stop.
+Any other word: say it is unknown, list the seven role ids and the four
+words, and stop. `down` is retired and has no alias.
 
-`/tanto fukki` skips the start sequence — no model check, no first
-handshake — and runs "Resuming" below. It is typed in a **tab seat**; a
-terminal seat is resumed by the launcher, `tanto`, and is told to run
-`/tanto fukki` only when it is the Kanri the human then attaches to.
+Each of the four words is taken in one place:
+
+- `fukki` — at the launcher, `tanto fukki`, and in Kanri, `/tanto fukki`:
+  it puts the run back after a restart, a stale spawner, or a quota's
+  return. In Kanri it skips the start sequence and runs "Resuming" below.
+  In any other seat `/tanto fukki` is answered with one line naming
+  `tanto fukki`, and nothing else is done.
+- `taiseki` — typed by the human as `/tanto taiseki` in a Kikaku, a Hosa,
+  or a standalone Kaiseki, the seats he paces: it ends that seat ("Session
+  exit"). Any other role answers `this seat ends at its boundary, by the
+  run` and does nothing; `tanto taiseki` at the launcher is answered with
+  one line naming `/tanto taiseki`.
+- `teishi` and `jokyo` — at the launcher alone: `tanto teishi [--seats]`
+  stops the spawner, and with `--seats` the run's seats; `tanto jokyo`
+  prints the run's seats, read-only. Typed as `/tanto <word>` in a session,
+  either is answered with one line naming the terminal command.
 
 There is no address argument: Kanri's address is the roster's first data
-row, for every role, and a workspace with no roster yet has no peer to
-bootstrap — its first session is the Kanri the launcher spawns, and Kanri
-writes the roster. The keys carry a spawned seat's orders, which a tab seat
-gets in Kanri's reply to its handshake instead:
+row, for every role ("The address"). A workspace with no roster yet has no
+Kanri to address: `tanto` spawns its first Kanri, and that Kanri writes the
+roster. Every seat is spawned on a request, and its prompt's keys are its
+orders — nothing else carries them:
 
-| seat | the prompt |
-| --- | --- |
-| Kanri, first or successor | `/tanto kanri` — the handover file, when one exists, is the Start section's Handover case |
-| Keikaku | `/tanto keikaku topic=<topic> spec=<path> plan=<path> ledger=<path>` — `ledger=` only when another topic's batch is in flight, naming that ledger |
-| Jisso, an ordinary plan | `/tanto jisso batch=<.tanto/<topic>/batch-<key>-prompt.md>` — the prompt file is its orders |
-| Jisso, a plan that edits this skill | `/tanto jisso queue=<topic>` — reads nothing and waits for the one line `batch: <path>` |
-| Kaiseki, attached | `/tanto kaiseki topic=<topic>` — the key is what makes it attached; `/tanto kaiseki` with no key is standalone Kaiseki, roster or no roster |
-| shoki | not a `/tanto` invocation at all: the prompt is the one line `brief: <.tanto/<topic>/shoki-brief.md>`, and shoki reads no role file and no `SKILL.md` |
+| seat | written by | the prompt |
+| --- | --- | --- |
+| Kanri, first or successor | the launcher, when the run has none; Kanri, for its successor | `/tanto kanri` — the handover file, when one exists, is the Start section's Handover case |
+| Sekkei | Kanri, for a topic it has opened | `/tanto sekkei topic=<topic> spec=<path> branch=<branch> input=<path>` — `input=` only when an input document exists, naming the one that lists the rest; `ledger=<path>` added when another topic's batch is in flight, and `spec=` is then the draft path |
+| Keikaku | Kanri | `/tanto keikaku topic=<topic> spec=<path> plan=<path> ledger=<path>` — `ledger=` only when another topic's batch is in flight, naming that ledger |
+| Jisso, an ordinary plan | Kanri | `/tanto jisso batch=<.tanto/<topic>/batch-<key>-prompt.md>` — the prompt file is its orders |
+| Jisso, a plan that edits this skill | Kanri | `/tanto jisso queue=<topic>` — reads nothing and waits for the one line `batch: <path>` |
+| Kaiseki, attached | Kanri, once the brief is written | `/tanto kaiseki topic=<topic> brief=<path>` — the keys are what make it attached |
+| Kaiseki, standalone | the launcher, `tanto kaiseki` | `/tanto kaiseki` with no key, roster or no roster |
+| Kikaku | the launcher, `tanto kikaku` | `/tanto kikaku` |
+| Hosa | the launcher, `tanto hosa` | `/tanto hosa` |
+| shoki | Kanri, at the close | not a `/tanto` invocation at all: the prompt is the one line `brief: <.tanto/<topic>/shoki-brief.md>`, and shoki reads no role file and no `SKILL.md` |
+| denrei, the messenger | the launcher's `tanto fukki`, when Kanri is alive | not a `/tanto` invocation: a fixed prompt that forwards the one line `fukki: requested at the launcher` to Kanri; it reads no role file and no `SKILL.md`, gets no roster row, and is stopped and removed when its turn ends ("Resuming") |
 
 ## Start sequence
 
-Two steps, in this order, before any role work.
+Two steps, in this order, before any role work, and one check before them.
+
+**The seat check** is your first act. Run
+`node "$TANTO/scripts/boundary.js" seat <your sessionId>`, the `sessionId`
+being your transcript's basename ("The transcript reading"). Go on when it
+prints an entry, and when it prints `no entry background`: that listing
+entry is a background session's, which nobody typed into, and the spawner
+records a new seat a moment after it starts. On `no entry interactive` or
+`no entry -` — a tab opened from habit, or a tab of a run that has not
+moved — say this, in the human's language, and stop, reading no role file,
+writing nothing, and sending nothing:
+
+```text
+seats are started by tanto <role> in a terminal, or by Kanri; a run started before this contract is moved first — README, "Moving a run"
+```
+
+The check holds for every role, Kanri and a standalone Kaiseki included:
+`tanto` and `tanto kaiseki` are their ways in.
 
 ### 1. Model check
 
 Read the expected-model config below and compare `sessions.<role>.model` with
 your own model id, which your system prompt states; a configured family
-matches when it occurs inside that id. On a mismatch in a **tab seat**, tell
-the human what was expected and what is running, ask them to run
-`/model <family>` and then `/tanto` again, and stop. A mismatch in a
-**spawned seat** never stops it: it appends `model: expected <a>, running
-<b>` to the first tanto line it sends, and Kanri writes an `attention`
-request on reading it (decision-08bc: the mismatch reaches the human either
-way).
+matches when it occurs inside that id. A mismatch never stops the seat: it
+appends `model: expected <a>, running <b>` to the first tanto line it sends,
+and Kanri writes an `attention` request on reading it (decision-08bc: the
+mismatch reaches the human). A Kikaku, a Hosa, and a standalone Kaiseki,
+which send Kanri no first line, say the mismatch in their start line.
 
 Then read your own effort as "The transcript reading" below says, and compare
-it with `sessions.<role>.effort`. Say both results in your start line —
-Kanri's own start line included, though Kanri sends no handshake. Every other
-role reads the same field again for its handshake, so Kanri checks the effort
-a second time, as it checks the model.
+it with `sessions.<role>.effort`. Say both results in your start line, Kanri's
+included. The reading is of the turn that runs the start sequence: a turn the
+human takes in a tab runs at the editor's effort, not the spawn's, and nothing
+checks the later turns or asks the human about them ("The faces of a seat",
+C-4).
 
 The effort check warns only, and `unknown` is not a mismatch. Never switch a
 model, and never switch an effort: the effort is the human's to change with
@@ -96,15 +135,16 @@ model, and never switch an effort: the effort is the human's to change with
 
 ### 2. Handshake
 
-Kanri skips the handshake and runs the start sequence in `roles/kanri.md`
-instead. A **tab seat** — Kikaku, Hosa, Sekkei, Kaiseki — does the handshake
-below. A **spawned seat** — Keikaku, Jisso, and a spawned Kanri —
-sends none: its role, topic, model, effort, branch, and mode are in the
-request Kanri wrote, and its `sessionId`, name, cwd, and transcript are in
-the result the spawner wrote back. It runs the model check and the
-definitions write-out, then does what its keys say. Shoki is neither: its
-prompt is not a `/tanto` invocation, it reads no role file and no contract,
-and it runs no start sequence at all — its brief is the whole of it.
+No seat sends one. Every seat is spawned on a request — the launcher's for
+Kanri when the run has none, Kikaku, Hosa, a standalone Kaiseki, and the
+messenger; Kanri's for every other seat, its own successor among them — so
+its role, topic, model, effort, branch, and mode are in the request, and its
+`sessionId`, name, cwd, and transcript are in the result the spawner wrote
+back. After the seat check, the model check, and the definitions write-out
+below, it does what its keys say; Kanri runs its start in `roles/kanri.md`.
+Shoki and the messenger are neither: their prompt is not a `/tanto`
+invocation, they read no role file and no contract, and they run no start
+sequence at all — shoki's brief is the whole of it.
 
 ## The expected-model config
 
@@ -123,18 +163,19 @@ Three maps and one scalar, each with its own mechanism. Every value of the
 first two maps is `{ "model": <family>, "effort": <level> }`, or a bare
 string, which sets `model` and leaves `effort` to the layers below.
 
-- `sessions.<role>` is **advisory**. The checks above and Kanri's handshake
-  check compare against it, read at the moment of each comparison — each
+- `sessions.<role>` is **advisory**. The checks above compare against it,
+  read at the moment of each comparison — each
   file's presence as much as its content, since a personal or a project
   override can be created, edited, or deleted at any time, and "it existed
   when I last checked" is never evidence that it exists now. A value stated to
   the human between comparisons — a recommendation, a seat's family — is read
   the same way at that moment, never recalled. Nothing switches a session's
-  model or its effort. Its eight keys are the seven roles and
-  `sessions.shoki`, the scribe the close spawns, which is a seat with a
-  family and an effort and no role file; the launcher reads
-  `sessions.kanri` from it through `reading.js`'s `loadSessions`, and Kanri
-  reads the rest when it writes a spawn request.
+  model or its effort. Its nine keys are the seven roles and two seats with
+  a family, an effort, and no role file: `sessions.shoki`, the scribe the
+  close spawns, and `sessions.denrei`, the messenger `tanto fukki` spawns
+  ("Resuming"). Whoever writes a seat's spawn request reads its key then —
+  the launcher, through `reading.js`'s `loadSessions`, for Kanri, Kikaku,
+  Hosa, a standalone Kaiseki, and the messenger; Kanri for every other.
 - `subagents.<kind>` is **effective**. Its `model` goes into the `model`
   parameter of every subagent that role dispatches, and its `effort` into the
   agent definition below. The fifteen kinds are `task.implement`,
@@ -185,7 +226,7 @@ string, which sets `model` and leaves `effort` to the layers below.
   alone: every seat's closing line; the review briefs; the shoroku briefs,
   the close's check brief and the inbox sweep's; the kessai question and
   every line Kanri prints for the human in its own window — its start line,
-  the `R-n` notices, the released lines, the human-access steps, and the
+  the `R-n` notices, the human-access steps, and the
   idle block, its fixed labels included; an `attention` request's message;
   the batch report's Questions for the human section; the dialogues a seat
   holds with the human — Sekkei's spec dialogue, Keikaku's plan dialogue,
@@ -371,14 +412,16 @@ reads as progress. The dispatcher verifies the file, not the reply.
 - Kanri records the line in the ledger's Measurements table and tells the
   human the reset time. The pause has no upper bound this skill can state;
   only the human's word ends it.
-- When the human says, in Kanri's window and in any words, that the quota is
-  back, Kanri may probe the family once with a trivial `default` subagent and
-  then sends `continue: <dispatch> — same model`, the dispatch being the one
-  the `paused:` line named; the role re-dispatches identically from where it
-  stopped. With no `paused:` marker to bind to, Kanri asks the human what to
-  continue. A human who speaks in the role's window instead is answered and
-  reported as `human-contact:`; a bare 再開 there is ambiguous by
-  construction, and the role asks.
+- The human's word that the quota is back is `fukki` — `tanto fukki` at the
+  launcher, or `/tanto fukki` in Kanri. Its procedure, `roles/kanri.md`'s
+  "Recovery", is the one place the probe is written: one trivial `default`
+  subagent on the family, then `continue: <dispatch> — same model` for every
+  `paused:` line still unanswered, the dispatch being the one that line
+  named, and the role re-dispatches identically from where it stopped; a
+  probe that fails sends nothing and tells the human the reset time again.
+  A human who says it in a role's own window is answered, reported as
+  `human-contact:`, and pointed to `fukki`; the role continues nothing on
+  its own.
 - Not detected: a `/model` or `/effort` change mid-run; the rule is protocol.
 
 ## Handshake and roster
