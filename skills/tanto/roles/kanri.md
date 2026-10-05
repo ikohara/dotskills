@@ -541,14 +541,14 @@ Per batch, in this order.
 
    At the end of every turn, after whatever else the turn said, write the
    idle block — fixed, not only when something changed. Its first line
-   after `---` is your own identity, `<name> [<ref>] · kanri · <family>`
-   (`.tanto/kikaku/2026-09-17-closing-line-identity.md`, R-7), so a window
-   holding you says which Kanri; it needs no `sent:` line, since your own
-   lines are already files or `R-n` text.
+   after `---` is your own identity, `<name> · kanri · <family>`, the name
+   bare (`.tanto/kikaku/2026-09-17-closing-line-identity.md`, R-7), so a
+   terminal attached to you says which Kanri; it needs no `sent:` line,
+   since your own lines are already files or `R-n` text.
 
    ```text
    ---
-   <name> [<ref>] · kanri · <family>
+   <name> · kanri · <family>
    <topic>: <state> — <seat name | no seat> → <what comes next, and whom it waits on>
    for you: none
    ```
@@ -557,7 +557,7 @@ Per batch, in this order.
 
    ```text
    ---
-   <name> [<ref>] · kanri · <family>
+   <name> · kanri · <family>
    <topic>: <state> — <seat name | no seat> → <what comes next, and whom it waits on>
    for you:
    1. <topic | —> — <the act>
@@ -566,10 +566,11 @@ Per batch, in this order.
    At most three topic lines, the most recently active first; a closed
    topic leaves the block at its close. `for you:` is `none` or a numbered
    list, one item per act the human has been asked for and has not done —
-   `—` for an act that belongs to no topic: the `/clear` of an idle Kikaku
-   or Hosa window, your own handover, a quota's return, a Kaiseki's release
-   after its shoroku proposal, the human's word that the windows are back
-   while a restart is being recovered, an answer you are waiting on. An
+   `—` for an act that belongs to no topic: your own handover, a quota's
+   return, `tanto fukki` after a stale spawner, a tab to close before a
+   replacement ("A seat's exit"), the question a handover file naming you
+   as the outgoing session puts ("Recovery"), an answer you are waiting
+   on. An
    item is a pointer to the request already made, not a restatement of it.
    Draw the block from files, never from memory: the roster's Status column
    — append `(idle since <HH:MM>)` to a `live` cell the moment a Kikaku,
@@ -1603,72 +1604,77 @@ cause, and is outside this rule.
 
 ## Session lifecycle
 
-A **terminal seat** — Keikaku, Jisso, the shusei batch, shoki, and your own
-successor — you start yourself, by writing a request file the spawner acts
-on; the human opens no window for it and takes none away. A **tab seat** —
-Sekkei and Kaiseki — you ask the human for, and Kikaku and Hosa the human
-opens unasked. A tab window is `/clear`ed and reused,
-never closed: a session is identified by its `sessionId`, a window by
-its `name [ref]`, which survives `/clear` (measured 2026-09-16), and the
-roster's rows tell them apart. Every ask is this numbered list,
-which the human can paste:
-
-```text
-1. In a free window of <repo path> — one you have /clear'ed, or a new one:
-2. /model <family>
-3. /effort <level>
-4. Make sure the session is in auto mode.
-5. /tanto <role> topic=<topic>
-```
-
-Line 5 always carries `topic=<topic>` and nothing else, as the Asks table's
-third column names it. For Kaiseki the key is what makes the seat
-**attached**: a bare `/tanto kaiseki` is standalone Kaiseki, a different
-seat with no roster row, so this list is never pasted for a Kaiseki without
-it. No address is ever pasted: the new session reads the roster's first
-data row. The
-family and the level are `sessions.<role>` from
-`tanto.json`, and they come before the command because the human forgets the
-effort more often than the model — and because `/clear` resets the effort
-to the default while it keeps the model (measured 2026-09-16), so line 3 is
-never redundant in a reused window. There is no delete request for a tab
-seat: its exit ends with your `release:` line to it, and one line to the
-human in your own window — `<role> <name> released — its work is in <paths>;
-no step needs it — /clear its window when convenient`. A line of yours that
-speaks of a release and of a creation keeps them in two clauses with their
-own times — "released now; a fresh Keikaku is requested at
-`<topic>`'s merge" — never one clause for both.
+Every seat is started by the spawner on a request file: yours for Sekkei,
+Keikaku, Jisso, the shusei batch, an attached Kaiseki, shoki, and your own
+successor; the launcher's for Kikaku, Hosa, a standalone Kaiseki, a Kanri
+when the run has none, and a messenger. You ask the human for no seat, and
+nobody opens a window for one. Every `spawn` you write carries
+`contract: 2`, which the spawner records on the seat. A Kanri, a Kikaku,
+and a Hosa have one holder each: the spawner refuses a second with
+`error: "held: <sessionId>"`, and your successor's request, which names you
+in `succeeds:`, is not refused. A dialogue seat — Sekkei, Keikaku, Kikaku,
+Hosa, Kaiseki — asks to be parked at the end of every turn, and the
+spawner stops its process once the turn has ended; its conversation is
+kept, a wake brings it back ("Sending to a seat"), and its row stays
+`live`. You, a Jisso, shoki, and a messenger are never parked. A seat ends
+at its boundary by your `stop` request, with nothing said to it ("A seat's
+exit"), or — a Kikaku, a Hosa, a standalone Kaiseki — by its own
+`/tanto taiseki`, which the census then prints under **Ended**. A line of
+yours that speaks of an end and of a start keeps them in two clauses with
+their own times — "ended now; a fresh Keikaku is requested at `<topic>`'s
+merge" — never one clause for both.
 
 **The census.** `node "$TANTO/scripts/boundary.js" census`, from the
 repository root, prints the roster's `live` and `queued` rows against the
-sessions `claude agents --json` lists under the root, under four headings —
-Listed, Not listed, No session id, and Not held — and writes nothing: you,
-the roster's one writer, act on what it prints. A session is its
-`sessionId`, a row's being the basename of its Transcript column, and every
-match of a session to a row compares `sessionId`s, never a name, a `[ref]`,
-or a full path. Run the census at your start, before taking a case (Start
-step 1's read of your own name stays, and the census follows it); at every
-handshake; after a send to a peer errors; once the human says the windows
-are back after a restart; at the plan close, before the archive move; and
-before you say anything about a listed session your roster does not hold.
-What it prints decides:
+state file and the sessions `claude agents --json` lists under the root:
+the `spawner:` line first, `beating` or `stale`, then six headings —
+Listed, Parked, Ended, Not listed, No session id, and Not held — and writes
+nothing: you, the roster's one writer, act on what it prints. A session is
+its `sessionId`, a row's being the basename of its Transcript column, and
+every match of a session to a row compares `sessionId`s, never a name, a
+`[ref]`, or a full path. Run the census at your start, before taking a case
+(Start step 1's read of your own name stays, and the census follows it); at
+every boundary, in loop step 6 before the next request; at every wake-up
+whose line comes from a name no roster row holds — a Hosa's
+`slot-needed:` or `kessai answer:`, a Kikaku's `decision:` — before you
+handle the line; when `seat` prints `no entry`; in "Recovery"; at the plan
+close, before the archive move; and before you say anything about a listed
+session your roster does not hold. On `spawner: stale` mark nothing, as on
+`census: unavailable`: the state file has stopped moving. Otherwise what it
+prints decides:
 
-- **Not listed** — a `queued` row stays `queued`: a waiting seat's absence
-  is expected, and the send of its prompt resumes it. Any other row is
-  marked `dead` — except while a restart is being recovered, below. For a
-  terminal seat whose transcript is on disk, `dead` is not final: its Events
-  line names what showed the process gone — the stale entry, its census
-  line ending `— listed without a pid (a stale entry)`, or the send error — and says
+- **Parked** — a `live` row whose seat the state file holds `parked`,
+  carrying `— mid-turn` when its last turn did not end by itself and
+  `— waiting` when a question of its own to the human stands. Nothing is
+  marked: the row stays `live`, and a park costs you no wake-up. A seat
+  with a topic carrying `— mid-turn` — a Sekkei, a Keikaku, an attached
+  Kaiseki — is woken and told to go on in "Recovery" alone, never at a
+  boundary's census: a Sekkei whose tab the human closed mid-turn on
+  purpose is not woken at the next boundary to be told to go on. A
+  Kikaku's, a Hosa's, or a standalone Kaiseki's cut turn is the human's to
+  continue, with a word in the seat.
+- **Ended** — a `live` or `queued` row whose seat the state file holds
+  `stopped` or `removed`; the line ends in `by taiseki` when the seat ended
+  itself. Write the row `stopped`, with an Events line naming what ended
+  it — `taiseki`, or your own request.
+- **Not listed** — a row the state file does not hold, or holds `running`,
+  `blocked`, or `gone`. An old-contract row (Start, step 4), `live` or
+  `queued`, is marked `dead` with the Events line
+  `old-contract row retired: <name>`. Otherwise a `queued` row stays
+  `queued`: a waiting seat's absence is expected, and the send of its
+  prompt wakes it. Any other row is marked `dead`. For a seat whose
+  transcript is on disk, `dead` is not final: its Events line names what
+  showed the process gone — the stale entry, its census line ending
+  `— listed without a pid (a stale entry)`, or the send error — and says
   the conversation is kept, and when a line is next due to that seat you
-  resume it (`SKILL.md`'s Resuming) and its row goes `live` again. A tab
-  seat's Events line, and a terminal seat's whose resume fails, is the one
-  a seat whose shoroku proposal was not written gets, with what was lost as
-  far as you know. A row that was the live Jisso's is the Replace table's
-  first row, the tree verified first.
+  wake it ("Sending to a seat") and its row goes `live` again. A seat whose
+  wake fails gets the Events line a seat whose shoroku proposal was not
+  written gets, with what was lost as far as you know. A row that was the
+  live Jisso's is the Replace table's first row, the tree verified first.
 - **Listed**, marked `renamed` — rewrite the row's Name column with the
-  listed name and the `[ref]` one `ListAgents` call prints, and write
-  `resumed: <old name> → <new name>`; for a terminal seat, clear the
-  spawner's `renamed` mark with an `ack` request.
+  listed name, bare, and write `resumed: <old name> → <new name>`; then
+  `beat` and clear the spawner's `renamed` mark with an `ack` request. The
+  cell is a record: a line still goes to the name `seat` reads at the send.
 - **Listed**, carrying `— blocked` — append `(blocked since <HH:MM>)`, this
   census's time, to the row's `live` cell only where the cell carries no
   suffix — a cell already carrying `(blocked since …)` or `(idle since <HH:MM>)`
@@ -1678,82 +1684,77 @@ What it prints decides:
   `— blocked`. The suffix records the last census that saw the seat
   blocked, not its state now: you run the census at the moments above, so
   the cell can lag the seat by a batch, where `idle since` is written on the
-  seat's own report and does not. It names no cause — a permission prompt,
-  a usage-limit pause, and a seat idling on a kessai all read `blocked` —
-  and every reader tests the cell's first word.
+  seat's own report and does not. The cell names no cause; the census line
+  does, `— blocked (<waitingFor>)`, and a seat that answered and waits for
+  the human is not blocked at all. Every reader tests the cell's first word.
 - **Listed** or **Not listed**, carrying `— no first turn since <stamp>` —
   the spawner found no transcript for that seat two minutes after its spawn,
-  or saw it gone with none. Write one `attention` request whose message is
-  `no first turn: <role> <topic>`, with a space and `— claude attach <id>` after it for
-  a **Listed** seat only: a Not listed seat is marked `dead` by the bullet
-  above, with no transcript to resume it from, so there is nothing to attach. Once per seat, since you
+  or saw it gone with none. Run `beat`, then write one `attention` request
+  whose message is `no first turn: <role> <topic>`, followed by a space and
+  `— tanto <role> [<topic>]` for a **Listed** seat only: a Not listed seat
+  is marked `dead` by the bullet above, with no transcript to wake it from,
+  so there is nothing to enter. Once per seat, since you
   see no toast and the human may have missed the spawner's: the record is
   the roster Events line `no first turn: <name>` you write with the request,
   and a later census that prints the suffix for a seat that line names writes
   no second request. The seat is not stopped.
 - **Not held** — nothing to the human. A session becomes the run's through
-  a handshake or a result file, never by being listed.
+  a result file, never by being listed. A line carrying
+  `— spawned as <role> <topic>, result <id>` is a seat the launcher started
+  that no row holds: write its row from that result file with
+  `boundary.js record --seat`, as you do for the seats you request. A
+  standalone Kaiseki, whose topic is `—`, and a messenger, `denrei`, get no
+  row.
 - **No session id** — nothing.
 - `census: unavailable — <reason>` — nothing is marked; the next census
   decides.
 
-A send error is a reason to run the census, not a signal of its own: its
-"Not listed" marks the row `dead`, and a terminal seat is then resumed and
-the line sent again, as loop step 6 says; a send that errors to a session
-the census still lists is a message failure — the row stays, and you tell
-the human in one line. `ListAgents` lists every session on the machine and
-shows no cwd, so say nothing about a listed session your roster does not
-hold: the census lists only the sessions under this repository, so a
-session it does not list is another repository's, and one it lists that no
-row holds is a window not yet handshaken or the human's own.
-
-**While a restart is being recovered** — from your own `/tanto fukki`, or
-your Recovery case, until the human says the windows are back — a census
-places sessions and marks nothing `dead`: a tab the editor has not restored
-yet is not listed, and has not gone. The window lives in the roster, not in
-your context: open it with the Events line `recovery: begun` and close it
-with `recovery: windows back` on the human's word; a successor reads the
-last of the two before it marks anything, and until the word comes the
-human's part is an open act in your idle block's `for you:` list.
+A send error is answered by "Sending to a seat" — `seat` again, once, then
+the Events line `unsent:` — and not by a census of its own. `ListAgents`
+lists every session on the machine and shows no cwd, so say nothing about
+a listed session your roster does not hold: the census lists only the
+sessions under this repository, so a session it does not list is another
+repository's, and one it lists that no row holds is a seat whose row you
+have not written yet, under **Not held**, or the human's own.
 
 ### Create
 
-The requests you write, and the asks you make. **Requests:**
+The requests you write, each after `beat` ("Sending to a seat"), every
+`spawn` among them carrying `contract: 2`. You ask the human for no seat:
+Kikaku and Hosa are the launcher's to start, and the human runs `tanto`
+for a run with none.
 
 | When | Write | The prompt carries |
 | --- | --- | --- |
 | a plan is committed and your cold read has no open questions | one `spawn` for batch A's Jisso — or N at once, each `queue=<topic>`, on a plan that edits this skill | `/tanto jisso batch=<path>`, or `/tanto jisso queue=<topic>` |
 | every later batch, and the fix wave | one `spawn` per batch, at its boundary | `/tanto jisso batch=<path>` |
+| you open a topic (Start, step 5) — the first batch of the current plan accepted, or every open topic past its spec stage — unless the human has said no Sekkei for it, an `R-n` | one `spawn` for Sekkei | `/tanto sekkei topic=<topic> spec=<path> branch=<branch> input=<path>` — `input=` only when an input document exists; `ledger=<path>` added when another topic's batch is in flight, `spec=` then the draft path |
 | the spec review is accepted | one `spawn` for Keikaku | `/tanto keikaku topic=<topic> spec=<path> plan=<path> ledger=<path>` — `ledger=` only when another topic's batch is in flight, naming that ledger |
+| Jisso reports the Kaiseki trigger with an unknown cause, the brief is written, and `seat` shows every Sekkei with no turn in progress ("The Kaiseki branch") | one `spawn` for an attached Kaiseki | `/tanto kaiseki topic=<topic> brief=<path>` |
 | the kessai is answered | one `spawn` for the shusei batch, when the direction accepted a `fix` group | `/tanto jisso batch=<path>` |
 | the merge lands | one `spawn` for shoki, after `git worktree add` cuts its worktree, in the same act as the merge and never before it | `brief: <path>` |
-| a handover is due | one `spawn` for your successor | `/tanto kanri` |
+| a handover is due | one `spawn` for your successor, with `succeeds: <your own sessionId>` | `/tanto kanri` |
 | a seat retires, or the run goes down | one `stop` per seat | — |
-| the human asks in your window for a live terminal seat to be held for a while — a priority call, not a lifecycle signal | one `stop` for that seat, its row `stopped` with an Events line quoting the human's word, its conversation kept and no shoroku proposal asked, since nothing of the seat's is lost; when the human says so, one `resume` on the same `sessionId`, the resumed seat sent the Resuming line for its role, its row `live` again | — |
-
-**Asks**, which are the numbered list above:
-
-| When | Ask the human to | The line carries |
-| --- | --- | --- |
-| bootstrap | nothing; the human runs `tanto` and attaches | — |
-| the first batch of the current plan is accepted, or every open topic has passed its spec stage | create Sekkei for the next spec, if there is one; the human may decline | `/tanto sekkei topic=<topic>` |
-| Jisso reports the Kaiseki trigger with an unknown cause | create Kaiseki | `/tanto kaiseki topic=<topic>`; the brief follows the handshake |
-| — | nothing; Kikaku and Hosa are opened by the human | — |
+| the human asks, from anywhere — Remote Control included — for a parked seat to be woken | one `wake --hold` on its `sessionId`, which holds the seat awake until 55 minutes after its last turn, its own standing park request then parking it; a `release` request for it when the human says the talk is done sooner | — |
+| the human asks you for a live seat to be held for a while — a priority call, not a lifecycle signal | one `stop` for that seat, its row `stopped` with an Events line quoting the human's word, its conversation kept and no shoroku proposal asked, since nothing of the seat's is lost; when the human says so, one `wake` on the same `sessionId`, the woken seat sent the Resuming line for its role, its row `live` again | — |
 
 ### Replace
 
 | Symptom | Action |
 | --- | --- |
 | the live Jisso is gone — the spawner's census marked it `gone`, or the spawner's guard stopped it (`strayed` in `seats.json`), the census does not list it, `SendMessage` errors, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers). A seat the spawner's guard stopped is marked `stopped`, its conversation kept, with an Events line naming the guard and the worktree's branch, whose commits, if any, go to the human as a ruling, and is not resumed. Any other gone Jisso is **resumed first**: mark the row `dead` with an Events line naming what showed its process gone and saying its conversation is kept, write a `resume` request, and when the result lands send the resumed seat `resume batch X from task N`, the line `SKILL.md`'s Resuming gives a Jisso resumed after a restart, its row `live` again. Only when that resume fails — its result carries an error, or the seat's transcript is not on disk — is the seat lost: its Events line says its shoroku proposal was not written and what was lost. For a lost seat, and for a guard-stopped one, write a `spawn` request with the same `batch=` file, its resume line rewritten to `resume batch X from task N`, or, under a skill-editing plan's queue, send that line to the next `queued` seat and put the lost seat to the human as a ruling, since the queue cannot be refilled early |
-| Sekkei's reading shows a compaction | at its next commit — a verified boundary, or, with no batch in flight, when its work is ready — run "A seat's exit", then the ask; the dialogue, the drafts, and the reviews on disk are the recovery point, and the new Sekkei takes the spec inputs and `dialogue.md` as its own |
+| Sekkei's reading shows a compaction | at its next commit — a verified boundary, or, with no batch in flight, when its work is ready — run "A seat's exit", then a `spawn` request with the same keys; the dialogue, the drafts, and the reviews on disk are the recovery point, and the new Sekkei takes the spec inputs and `dialogue.md` as its own |
 | Keikaku's reading shows a compaction | at its next commit, as for Sekkei (decision-6dea): run "A seat's exit", then a `spawn` request with the same three keys; the spec, `dialogue.md`, and the plan draft on disk are the recovery point, and the new Keikaku takes them as its own |
-| a Kikaku's reading shows a compaction | not replaced: mark the row `cleared`, add its `/clear` as a `for you` item instead of saying it inline, and let the next `/tanto kikaku` handshake write a new row — what the session produced is already on disk or committed |
 | a Hosa's reading shows a compaction | nothing: the count arrives in its next reading, and the Hosa has already confirmed its summary's human items in its own window before continuing |
-| Kaiseki's reading shows a compaction | at its report: the report as it stands is the recovery point; run "A seat's exit", then, if the case is open, the ask with the same brief |
+| Kaiseki's reading shows a compaction | at its report: the report as it stands is the recovery point; run "A seat's exit", then, if the case is open, a `spawn` request with the same brief |
 | A handover trigger fired at a boundary | run the Handover section; your successor is spawned and needs nothing of the human's |
-| Sekkei is gone before the spec review is accepted | the ask; the spec or its draft, the spec inputs, and `dialogue.md` on disk are the recovery point; run "A seat's exit" first if the session is alive and coherent, otherwise record in the roster's Events that its shoroku proposal was not written and what was lost |
+| Sekkei is gone before the spec review is accepted | a `spawn` request with the same keys; the spec or its draft, the spec inputs, and `dialogue.md` on disk are the recovery point; run "A seat's exit" first if the session is alive and coherent, otherwise record in the roster's Events that its shoroku proposal was not written and what was lost |
 | Keikaku is gone before the plan is committed | a `spawn` request with the same three keys; the spec on the branch and the plan draft on disk are the recovery point; run "A seat's exit" first if the session is alive and coherent, otherwise record in the roster's Events that its shoroku proposal was not written and what was lost |
-| Kaiseki is gone before its report | verify `git status` is clean, and revert stray instrumentation if it is not; the ask; the brief and the WIP commit are the recovery point; run "A seat's exit" first if the session is alive and coherent, otherwise record in the roster's Events that its shoroku proposal was not written and what was lost |
+| Kaiseki is gone before its report | verify `git status` is clean, and revert stray instrumentation if it is not; a `spawn` request with the same brief; the brief and the WIP commit are the recovery point; run "A seat's exit" first if the session is alive and coherent, otherwise record in the roster's Events that its shoroku proposal was not written and what was lost |
+
+A `spawn` this table writes for a Sekkei, a Keikaku, or a Kaiseki waits
+while `seat` prints the old seat `interactive` ("A seat's exit"). A Kikaku
+is not replaced by you: its end is the human's word in it, `/tanto taiseki`.
 
 A Jisso's ceiling verdict and a compaction in its reading are no longer
 symptoms: one Jisso runs one batch, and the rotation retires it at the
@@ -1765,12 +1766,12 @@ confirm the session is gone first — uncommitted work may be in the tree.
 
 | When | Say |
 | --- | --- |
-| a batch is accepted at loop step 4 — the Jisso whose boundary is the plan's last excepted: the last implementation batch's while the review is pending, and the fix wave's — see "The final batch", steps 2 and 3 | its Jisso is done; write its `stop` request, its row `stopped` by loop step 6's `record` call; no released line and no `/clear`, and its conversation is kept. The next batch's Jisso is a `spawn` request of its own |
-| the spec review is accepted, the human's answers to the spec brief are in `dialogue.md`, and the `spec accepted:` line named the shoroku proposal | Sekkei is done; record its proposal's items and the spec's four sections as `pending` rows, Source the spec's path as it stands now — rewritten at the landing if that path was a draft's ("When the plan lands", step 3) — and send `release:` as soon as the proposal passes the form check — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
-| the `coldread answered:` line named the shoroku proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; record its proposal's items as `pending` rows and write its `stop` request as soon as the proposal passes the form check — no released line and no `/clear`, its conversation kept; a Keikaku is never reused across topics (decision-f496) |
-| Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; record its proposal's items as `pending` rows and send `release:` as soon as the proposal passes the form check, or keep it if more of the same bug is expected |
-| the final batch is accepted, the close's shoroku proposal is written and passes the form check, and leftovers are clean | the last Jisso is done; write its `stop` request at once, the close being its exit — no released line and no `/clear`, its conversation kept — the recommendation and the kessai run with it gone, and a merge declined with fixes wanted is a new batch on a new Jisso either way; a `queued` Jisso that never ran gets a `stop` request the same way, its row `stopped` |
-| the kessai is answered, shusei's batch is verified, the merge is done, and the ledger's Progress line says closed | this plan is closed. **First, while every row still carries its Transcript column**, run `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]` over the sessions of **this topic**: every seat the ledger's Session events accepted for it — Sekkei, Keikaku, every Jisso, `queued` ones that never ran included, an attached Kaiseki — and every Kanri whose tenure overlapped it, the current one and any predecessor the Events' handover lines name, each path taken from its roster or archive row. Shoki's transcript is not in the list: it is not a session of the ledger's Session events. A refused handshake has no row and no transcript and is not in the list; rows of another plan that a shared roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not of this topic and are left out. A path that is denied, `unavailable`, or on another host is skipped and named by the script, and is never read by asking the peer. A bare `<sessionId>.jsonl` cell, the form a spawn result with no transcript leaves, is no path the script can open: find the file under `<config dir>/projects/` first, by basename, and pass that path. Record the share line, the sessions it ran over, and the ones it skipped in the Measurements share row; the target is 30% or less. Then run the census and mark `dead` every row it prints under "Not listed", which covers the tab seats too; bring the roster's Shoroku proposal items table to the template's shape if it still has its pre-rename heading or the retired seventh column, its rows kept; move the stopped, dead, replaced, refused, and cleared rows with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet — move the topic's result files to `.tanto/<topic>/spawner-results/`, fill the ledger's remaining Measurements fixed rows, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
+| a batch is accepted at loop step 4 — the Jisso whose boundary is the plan's last excepted: the last implementation batch's while the review is pending, and the fix wave's — see "The final batch", steps 2 and 3 | its Jisso is done; write its `stop` request, its row `stopped` by loop step 6's `record` call; nothing is said to it, and its conversation is kept. The next batch's Jisso is a `spawn` request of its own |
+| the spec review is accepted, the human's answers to the spec brief are in `dialogue.md`, and the `spec accepted:` line named the shoroku proposal | Sekkei is done; record its proposal's items and the spec's four sections as `pending` rows, Source the spec's path as it stands now — rewritten at the landing if that path was a draft's ("When the plan lands", step 3) — and write its `stop` request as soon as the proposal passes the form check — a Sekkei is never kept for the next topic: the next spec needs the human's dialogue whether the session is old or new, what it carries is on disk and in the spec inputs, and its context would be re-read at every wake-up of the new topic |
+| the `coldread answered:` line named the shoroku proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; record its proposal's items as `pending` rows and write its `stop` request as soon as the proposal passes the form check — nothing is said to it, its conversation kept; a Keikaku is never reused across topics (decision-f496) |
+| Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; record its proposal's items as `pending` rows and write its `stop` request as soon as the proposal passes the form check, or keep it if more of the same bug is expected |
+| the final batch is accepted, the close's shoroku proposal is written and passes the form check, and leftovers are clean | the last Jisso is done; write its `stop` request at once, the close being its exit — nothing is said to it, its conversation kept — the recommendation and the kessai run with it gone, and a merge declined with fixes wanted is a new batch on a new Jisso either way; a `queued` Jisso that never ran gets a `stop` request the same way, its row `stopped` |
+| the kessai is answered, shusei's batch is verified, the merge is done, and the ledger's Progress line says closed | this plan is closed. **First, while every row still carries its Transcript column**, run `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]` over the sessions of **this topic**: every seat the ledger's Session events accepted for it — Sekkei, Keikaku, every Jisso, `queued` ones that never ran included, an attached Kaiseki — and every Kanri whose tenure overlapped it, the current one and any predecessor the Events' handover lines name, each path taken from its roster or archive row. Shoki's transcript is not in the list: it is not a session of the ledger's Session events. Rows of another plan that a shared roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not of this topic and are left out. A path that is denied, `unavailable`, or on another host is skipped and named by the script, and is never read by asking the peer. A bare `<sessionId>.jsonl` cell, the form a spawn result with no transcript leaves, is no path the script can open: find the file under `<config dir>/projects/` first, by basename, and pass that path. Record the share line, the sessions it ran over, and the ones it skipped in the Measurements share row; the target is 30% or less. Then run the census, write `stopped` every row it prints under **Ended**, and mark `dead` every row it prints under "Not listed"; bring the roster's Shoroku proposal items table to the template's shape if it still has its pre-rename heading or the retired seventh column, its rows kept; move the stopped, dead, replaced, refused, and cleared rows — the last two an old contract's, kept until the archive takes them — with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet — move the topic's result files to `.tanto/<topic>/spawner-results/`, fill the ledger's remaining Measurements fixed rows, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
 
 The role is resident; the session that carries it is not. A plan's end is a
 boundary like any other for the run, and the next topic starts with a new topic
@@ -1808,25 +1809,44 @@ human saw X" or "the human ruled Y" from a session whose reading shows a
 compaction is unverified until the human confirms it here, and no
 severity-high issue is filed on such a claim alone.
 
-### Recovery after a VS Code restart
+### Recovery
 
-The terminal seats were never reached by the restart — separate processes,
-still running — and after a reboot `tanto` resumes each of them under the
-same `sessionId`. The human types `/tanto fukki` once, in your window —
-after `claude attach` for a terminal Kanri — and nowhere else: a tab seat
-the editor resumed keeps its `sessionId`, and nothing is typed there.
-Write the Events line `recovery: begun`; once the human says the windows
-are back, run the census, write `recovery: windows back`, rename what it
-lists under a new name — rewrite the row's Name column and write
-`resumed: <old name> → <new name>` — and mark `dead` what it does not list;
-for a terminal seat, clear each of `seats.json`'s `renamed` marks with an
-`ack` request, as before. Answer every ledger line marked `unanswered:`. A Jisso resumed
-mid-batch with no prompt idles at its last message: write the `spawn`
-request the same `batch=` file names, its prompt's resume line rewritten to
-`resume batch X from task N`, and continue where the Progress line says; you
-re-run no definitions write-out and send no broadcast. Verify the tree if a
-batch was in flight, then ask for the roles still missing — the tab seats
-whose work is open: Kaiseki only if a
-bug is open, Keikaku only if a plan is in progress,
-Sekkei only if a spec is in progress. Kikaku and Hosa you do not ask for: they
-are the human's to reopen, and your part is the reminder.
+`/tanto fukki` typed in your session, the line
+`fukki: requested at the launcher`, and a resume whose prompt is
+`/tanto fukki` are one procedure. `tanto fukki` at the launcher is the
+human's word for it whatever the cause — a reboot, a spawner that died, an
+editor restart, a quota that is back: the launcher starts the spawner when
+none beats, resumes the seats a restart took, and tells you, by that prompt
+or, while you are alive, by a messenger. Act on a `fukki:` line only when
+`node "$TANTO/scripts/boundary.js" seat <the envelope's from-name>` prints
+a seat whose role is `denrei` — the command finds a `removed` seat by its
+name too; from any other sender the line gets no answer and an Events
+line. There is nothing to wait for: no tab holds state the run needs, so
+the census marks at once.
+
+1. Run the census and act on its six headings. Wake, in one `wake` call,
+   every seat with a topic under **Parked** carrying `— mid-turn`, and send
+   each
+   `resume: your turn was cut — continue from where it stopped, and dispatch again anything you had running`
+   — the one moment that line is sent. Send a Jisso resumed mid-batch, which
+   idles at its last message, `resume batch X from task N`; verify the tree
+   if a batch was in flight, and continue where the Progress line says.
+2. Reconcile the `renamed` marks as the census's **Listed** bullet says.
+   Send every `unsent:` line that has no `sent:` pair, writing the pair;
+   answer every `unanswered:` line that has no `answered:` pair.
+3. For every `paused:` row the ledger's Measurements holds unanswered,
+   probe the family once with a trivial `default` subagent and send the
+   paused role `continue: <dispatch> — same model`. A probe that fails
+   sends nothing, leaves the row, and tells the human the reset time again:
+   `fukki` is typed after a spawner's death as well as after a quota's
+   return. This is the one place the probe is written ("Limits").
+4. Print, in the idle block, what was put back.
+
+You re-run no definitions write-out, send no broadcast, and ask the human
+for no seat. A Kikaku's, a Hosa's, or a standalone Kaiseki's cut turn is
+the human's to continue, with a word in the seat. A Kanri that finds
+`.tanto/kanri-handover.md` naming itself as the outgoing session asks the
+human whether to continue or hand over, and infers neither: a resumed Kanri
+may have nobody attached, so the question is an item of the idle block's
+`for you:` list and, after `beat`, an `attention` request,
+`fukki: Kanri asks — tanto kanri`.
