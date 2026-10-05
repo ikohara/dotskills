@@ -789,102 +789,85 @@ put back printed in the idle block. Kanri acts on a `fukki:` line only when
 - A reply copies the incoming message's `from` into `to`.
 - **Every tanto line carries the `no-role` line as its second line** — the
   lines this file names and the ones the role files name, in both
-  directions, the handshake, the bug-report route and its `received:` answer
-  included:
+  directions, the bug-report route and its `received:` answer included:
 
   ```text
   <the tanto line>
   (tanto line — if this window has not run /tanto, reply no-role to the sender and do nothing else)
   ```
 
-  A role skips the second line. A bare window — one the human `/clear`ed
-  and has not yet given a role — finds in it the whole of what is asked of
-  it, so "act on the teammate's request" and "do nothing" coincide. In a
-  message longer than one line the `no-role` line follows the first: a
-  batch prompt travels as the one line `batch: <path>`, and the file that
-  path names carries no such line of its own; a `close:` line, or a
-  handshake with its fields, is one line. A file a
-  line points at — a report, a brief, a bug report — is not a message and
-  carries no such line. The
-  `no-role` reply is the one word, carries no second line of its own, and
-  is the signal that a window was cleared under a role; a send error is a
-  reason to run the census, whose "Not listed" is the signal that a session
-  is gone — and, for a terminal seat, the reason to resume it and send the
-  line again ("Resuming"). What each side does on `no-role`: Kanri marks
-  the sender's row `cleared`, writes the Events line a shoroku proposal not
-  written gets
-  — what was lost, as far as it knows — and treats the exit as forced, a
-  live Jisso's after verifying the tree; a role that receives `no-role` from
-  Kanri's own name is in a handover gap, holds the line it sent, and
-  re-sends it to the roster's first data row, read fresh, at its next
-  wake-up, until it is answered — or, when that row's own name is stale,
-  to the name `claude agents --json` prints for the `sessionId` its
-  Transcript basename carries, since only a wake-up makes Kanri rewrite
-  its row — this holds a line only for a role with an established roster
-  row to hold one on behalf of. A session with no row yet — a tab seat's own first
-  handshake, landing in the same gap — has no line to hold: it treats the
-  `no-role` the way a send error is already treated, re-reads the roster's
-  first data row, and re-handshakes there once a `live` Kanri answers it. A
-  spawned seat never reaches this gap: it sends no handshake, and its row,
-  when it exists, comes from the spawner's result file rather than from one.
-- **`release: /clear this window`** is a **tab seat's** last line, sent by
-  Kanri right after the seat's proposal passes its form check, and the last
-  line that name is ever sent: the row is `cleared` at that moment. The seat
-  tells the human, in its own window, to `/clear` it, and ends its turn;
-  nothing else is expected of it. A **terminal seat** gets no such line: at
-  the same moment, and on the same form check, Kanri writes a `stop`
-  request, the spawner stops the session, the conversation is kept, and the
-  row goes `stopped`. Nothing is `/clear`ed and nothing is said to the
-  human.
+  A role skips the second line. The run no longer asks for a window to be
+  wiped under a role, but two senders can still reach a session that holds
+  no role: one that read a name from the state file seconds before a window
+  reload gave that name to another window, and a bug-report sender reading
+  another repository's roster. A session that holds no role finds in the
+  line the whole of what is asked of it. In a message longer than one line
+  the `no-role` line follows the first: a batch prompt travels as the one
+  line `batch: <path>`, and the file that path names carries no such line of
+  its own; a `close:` line is one line. A file a line points at — a report,
+  a brief, a bug report — is not a message and carries no such line. The
+  `no-role` reply is the one word and carries no second line of its own.
+  On a `no-role` the sender re-reads the address — Kanri, the seat's name by
+  `seat` ("The address"); a role, the roster's first data row — and sends
+  once more, marking no row. A role that gets `no-role` again from Kanri's
+  address is in a handover gap: it holds the line and re-sends it to the
+  first data row, read fresh, at its next wake-up, until it is answered —
+  or, when that row's own name is stale, to the name `claude agents --json`
+  prints for the `sessionId` its Transcript basename carries. A second
+  `no-role` from one `sessionId` is, for Kanri, the end of that seat: a seat
+  held in a tab whose conversation the human wiped in his own chat is a bare
+  window under a known row. Kanri writes an Events line with what was lost
+  as far as it knows, writes the row `stopped` — verifying the tree first
+  when the row was the live Jisso's — and follows `roles/kanri.md`'s Replace
+  table.
 - **A seat's turn ends with its closing line**, in its own window and in the
   human's language: an identity, then two facts, and never an opinion. The
-  identity is `<name> [<ref>]` — for a tab seat, the word its own last
-  `ListAgents` printed for it, at the handshake or at `/tanto fukki`; for a
-  terminal seat, the `name` its request's result carried, or the one
-  `claude agents --json` prints for its own `sessionId`, never a
-  `ListAgents` reading of its own — so the window and Kanri's own lines
-  about it (its idle block, its released line to the human, the roster)
-  always name it the same way — then
-  `<role>[/<topic>]` (the topic named for a Sekkei, Keikaku, Jisso, or
-  attached Kaiseki; bare for Kanri, Kikaku, Hosa) and `<family>`, the model
-  word its own system prompt currently reads, fresh across a `/model`
-  switch. It is as of the seat's own last self-check: a resumed session
-  shows its old name until its next boundary or `/tanto fukki`, and the
-  human, who restarted the editor, knows which day that is — no mechanism
-  is added for this. The two facts, as before: where its work is — the
-  paths its output went to, or the commit subject — and the contract step
-  that still needs this seat, named by step and site, or `none`. A seat
-  never names a step it is not needed for: the recommender's run, the human's
-  check, the apply, and Kanri's verification are not waits of the seat's and
-  are never listed. After `release:` the second fact is
-  `none — /clear this window`. A turn that sends Kanri a line adds it,
-  unchanged and reading included, on a `sent:` line under the closing line —
-  absent on a turn that sends nothing. Kanri's own idle block carries the
-  same identity as its first line after `---`; it needs no `sent:`, since
-  Kanri's own lines are already files or `R-n` text. The form, rendered in
-  the human's language:
+  identity is the seat's bare name — the one `claude agents --json` prints
+  for its own `sessionId` when the line is written, never a `ListAgents`
+  reading of its own and never a `[ref]` — then `<role>[/<topic>]` (the
+  topic named for a Sekkei, Keikaku, Jisso, or attached Kaiseki; bare for
+  Kanri, Kikaku, Hosa) and `<family>`, the model word its own system prompt
+  currently reads, fresh across a `/model` switch. A seat open in a tab is
+  listed under the editor's name, which changes at every window reload; the
+  line names whatever is listed then, and nothing keys on it ("The
+  address"). The two facts, as before: where its work is — the paths its
+  output went to, or the commit subject — and the contract step that still
+  needs this seat, named by step and site, or `none`. A seat never names a
+  step it is not needed for: the recommender's run, the human's check, the
+  apply, and Kanri's verification are not waits of the seat's and are never
+  listed. At its final boundary — its last report line sent, or `taiseki` —
+  the second fact is
+  `none — this seat has ended; close its tab if one is open`, and a seat
+  that has written that line answers any later message with the same line
+  and nothing else: an ended seat's row stays in the editor's list, opens
+  with a normal prompt box, and has its role in its context. A turn that
+  sends Kanri a line adds it, unchanged and reading included, on a `sent:`
+  line under the closing line — absent on a turn that sends nothing.
+  Kanri's own idle block carries the same identity as its first line after
+  `---`; it needs no `sent:`, since Kanri's own lines are already files or
+  `R-n` text. The form, rendered in the human's language:
 
   ```text
-  <name> [<ref>] · <role>[/<topic>] · <family> — Work: <paths, or the commit subject>. Still needs this seat: <step — its site> | none.
+  <name> · <role>[/<topic>] · <family> — Work: <paths, or the commit subject>. Still needs this seat: <step — its site> | none.
   sent: <the one line sent to Kanri this turn, verbatim>
   ```
 
-  Two examples — a Jisso at its boundary, `<name> [<ref>] · jisso/<topic> ·
-  sonnet — Work: .tanto/<topic>/batch-B-report.md, commits b81f677..dba2562.
-  Still needs this seat: the boundary's verdict — roles/jisso.md, "The run".`
+  Two examples — a Jisso at its boundary, `<name> · jisso/<topic> · sonnet
+  — Work: .tanto/<topic>/batch-B-report.md, commits b81f677..dba2562. Still
+  needs this seat: the boundary's verdict — roles/jisso.md, "The run".`
   `sent: .tanto/<topic>/batch-B-report.md — <reading>` (the one line a Jisso
   sends Kanri at its boundary is that path — `roles/jisso.md`, "The run");
-  the same Jisso after `release:`,
-  `<name> [<ref>] · jisso/<topic> · sonnet — Work: the same. Still needs this
-  seat: none — /clear this window.` This shapes the text the harness already
-  requires when a turn ends; it opens no channel, and "Human access" stands
-  as it is.
+  a Sekkei at its final boundary, `<name> · sekkei/<topic> · fable — Work:
+  <spec path>, .tanto/<topic>/dialogue.md. Still needs this seat: none —
+  this seat has ended; close its tab if one is open.` This shapes the text
+  the harness already requires when a turn ends; it opens no channel, and
+  "Human access" stands as it is.
 - **The commit window opens only for a peer with a commit waiting.** A
   Sekkei or Keikaku of another topic whose work is ready while a batch runs
   writes the ledger event
   `commit-ready: <role> <topic> — <subject> — <YYYY-MM-DD HH:MM>` through
-  `boundary.js record --event`, to the ledger a `ledger=` key its own
-  prompt carries names — Sekkei's orders line, Keikaku's own spawn prompt.
+  `boundary.js record --event`, to the ledger its own prompt's `ledger=`
+  key names.
   The boundary's `check` prints every such event with no
   `commit-done:` pair; Kanri sends "the boundary is verified — commit" only
   to those peers, waits for `committed <subject> — <reading>`, and pairs the
@@ -914,22 +897,27 @@ A defect noticed in a skill goes to the repository that ships that skill, as
 a **bug report**: a file written from `templates/bug-report.md` at
 `.tanto/sent/<YYYY-MM-DD>-<slug>.md` under the reporter's own repository, and
 one line, `bug-report: <absolute path>`. Any session may write and send one;
-when the human noticed the defect, they hand it to a live Hosa as a chore, or
-say it in Kanri's window. **The intake is the target repository's `live`
-Hosa, else its Kanri**: the sender reads `<workspace>/.tanto/roster.md`,
-takes the bare `<name>` before the bracket of the `Name [ref]` column of the
-row whose Role is `hosa` and whose Status begins with `live` — Kanri appends
-one of the two suffixes the Status column names to that cell, `(idle since <HH:MM>)` while a Hosa idles — or, when there is
-none, of the first data row, the human supplying the workspace's path where the sender
-does not know it; checks that name against `ListAgents`; and asks the human
-for the address when the roster is absent — a workspace not yet migrated, or
-an older skill — or the name is not listed, since a resumed session carries a
-new name until it rewrites its row. The roster is Kanri's to write and the
-sender's only to read; the read is of a file outside the sender's own working
-directory, and outside auto mode the harness may put a permission prompt for
-it in the sender's window — the harness's own prompt, like the model-mismatch
-stop, and not a failure of the route. A defect that surfaces in a spec
-dialogue reaches Kanri as an `I-n` in `spec-inputs.md`, not as a bug report.
+when the human noticed the defect, they hand it to a Hosa as a chore, or
+say it in Kanri's window. **The intake is the target repository's Hosa while
+one is listed, else its Kanri**: the sender reads
+`<workspace>/.tanto/roster.md`, takes the bare `<name>` before the bracket
+of the `Name [ref]` column of the row whose Role is `hosa` and whose Status
+begins with `live` — Kanri appends one of the two suffixes the Status column
+names to that cell — and checks it against `ListAgents`. A Hosa is parked
+between its turns and its name is then not listed, so when it is not, or
+there is no such row, the sender takes the first data row's name instead;
+in practice the intake is Kanri, a Hosa being named only for the minutes it
+is in a turn or held — decision-c322's "the cheapest seat that is live",
+live read as listed, which is what a sender can check. The human supplies
+the workspace's path where the sender does not know it, and the address
+when the roster is absent — a workspace not yet migrated, or an older
+skill — or the first row's name is not listed either. The roster is
+Kanri's to write and the sender's only to read; the read is of a file
+outside the sender's own working directory, and outside auto mode the
+harness may put a permission prompt for it in the sender's window — the
+harness's own prompt, and not a failure of the route. A defect that
+surfaces in a spec dialogue reaches Kanri as an `I-n` in `spec-inputs.md`,
+not as a bug report.
 
 The intake answers with one line, `received: <inbox path>` — a burst of
 reports from one sender in one message carrying one such line per report,
@@ -983,34 +971,33 @@ Jisso and an attached Kaiseki never address the human unless granted, and a
 role addresses the human directly only for what needs the human's eyes or
 hands — a visual check in a browser or a GUI, an OS dialog, a credential — and
 only after Kanri has judged it necessary and granted it for that scope. Four
-standing grants exist: Sekkei's spec dialogue, named in Kanri's orders line
-at its handshake, and Keikaku's plan dialogue, implied by the role and
-stated in `roles/keikaku.md`, since a spawned seat has no orders line; an
-attached Kaiseki's debugging conversation, written in its brief; and Hosa's
-chores, named in Kanri's answer to its handshake. Kikaku needs no grant: it
-is the human's own seat, and the human in that window is its counterpart by
+standing grants exist, each stated where its seat reads it at its start:
+Sekkei's spec dialogue, in `roles/sekkei.md`; Keikaku's plan dialogue, in
+`roles/keikaku.md`; an attached Kaiseki's debugging conversation, in its
+brief; and Hosa's chores, in `roles/hosa.md`. Kikaku needs no grant: it is
+the human's own seat, and the human in that window is its counterpart by
 definition. A standalone Kaiseki has no Kanri, and the human in the room is
 its counterpart.
 
 The request is one line to Kanri,
 `human-needed: <what the human must do> — <why no other way> — <where: this window>`,
-and the role idles until the answer. Kanri answers in one line,
+and the role waits for the answer. Kanri answers in one line,
 `human-access: granted — <scope> — <until>` or
 `human-access: denied — <alternative>`, recorded as `R-n`. On a grant Kanri
-tells the human, as a numbered list: 1. `claude attach <id>` for a terminal
-seat, or go to `<name> [<ref>]` for a tab seat; 2. do `<what>`; 3. ← back to
-the agent view, or the tab. For a terminal seat Kanri also writes an
-`attention` request, whose message is
-`human-needed: <role> <topic> — claude attach <id>`, because a seat that
-idles on a grant is not `blocked` in the harness's sense and the spawner's
+tells the human, as a numbered list: 1. `tanto <role> [<topic>]` in a
+terminal, or, for a dialogue seat, a click on its row in the editor's list;
+2. do `<what>`; 3. ← and leave the agent view, or close the tab. Kanri also
+writes an `attention` request, whose message is
+`human-needed: <role> <topic> — tanto <role> [<topic>]`, because a seat that
+waits on a grant is not `blocked` in the listing's sense, and the spawner's
 census alone would miss it. The role's direct exchange
 stays within the scope and ends with one line to Kanri,
 `human-access: done — <what the human did or decided>`.
 
 This is protocol, not enforcement: every role has its own window, and two
-things stay outside the rule. The harness's own prompts — a permission dialog,
-the model-mismatch stop of the start sequence — reach the human in the role's
-window and cannot be routed through Kanri. And when the human speaks in a
+things stay outside the rule. The harness's own prompts, a permission dialog
+among them, reach the human in the role's window and cannot be routed
+through Kanri. And when the human speaks in a
 role's window unprompted, the role answers, because silence costs more than
 the exception, and sends Kanri one line,
 `human-contact: <one line on what was said>`; that is not a grant for anything
@@ -1035,9 +1022,8 @@ other moment runs only the first:
    writes at that boundary. Only this step needs a resident context. Kanri
    checks the file's form — the exclusion line and the numbered list, or the
    report's section — records each item as a `pending` row of the ledger's
-   `S-n` table whose Source names the file and the item, and sends the
-   seat `release:` for a tab seat or writes its `stop` request for a
-   terminal one — a retiring Jisso's is always the latter. The spec's
+   `S-n` table whose Source names the file and the item, and writes the
+   seat's `stop` request, a retiring Jisso's as every other's. The spec's
    four sections — Requirements, The ADRs, Deferred
    items, and Shoroku proposal from this spec work — are recorded the same
    way when the spec is accepted, four rows whose Source names the spec and
@@ -1067,14 +1053,14 @@ other moment runs only the first:
    its `### ` marker stripped, appearing exactly once after `See:` in the
    brief — dispatches the recommender once more on a failure and pastes the
    brief as it stands on a second. Then it writes an `attention` request
-   whose message is `kessai: <topic> — claude attach <id>`, and prints in its
+   whose message is `kessai: <topic> — tanto kanri`, and prints in its
    own window **one** question carrying the recommendation's path, the
    brief's path, the three counts, the merge decision, and the merge's
    default form — `--no-ff` into `main`, the local branch deleted, nothing
    pushed — with the brief's text verbatim below it. The human answers by
-   exception: in Kanri's window by `claude attach`, through a Kikaku decision
-   file whose third section names this recommendation and answers it, or by
-   telling a live Hosa, whose chore is then the one line
+   exception: in Kanri's own session, entered by `tanto`, through a Kikaku
+   decision file whose third section names this recommendation and answers
+   it, or by telling a Hosa, whose chore is then the one line
    `kessai answer: <topic> — <the human's words verbatim>`. That one answer
    is the direction and the merge approval. Kanri writes `shoroku-direction.md`
    beside the recommendation, item by item, with the `S-n` rows in the
@@ -1097,8 +1083,8 @@ other moment runs only the first:
    subset of its own proposal, and no machine ever resolves a conflict.
 
 The recommend is Kanri's own dispatch, the check is the kessai in Kanri's
-window, and the apply is shusei's and shoki's. A live Hosa is delegated none
-of it and relays one line when the human answers in its tab,
+window, and the apply is shusei's and shoki's. A Hosa is delegated none of
+it and relays one line when the human gives it his answer,
 `kessai answer: <topic> — <the human's words verbatim>`. **Between plans**,
 when the human asks in Kanri's window for the inbox to be swept, the same
 shape runs over the inbox alone — the recommend dispatch, a kessai message
@@ -1116,8 +1102,35 @@ the human sees the whole recommendation, grouped, once per topic. Proposal
 items are what is not yet in any file — a rejected alternative and its
 reason, a fact measured, a defect noticed, an observation about the run —
 never a restatement of a spec, a plan, a report, or a ledger. Kikaku and
-Hosa write no shoroku proposal; the human `/clear`s those windows at will. A
-standalone Kaiseki has no Kanri, and its role file says how.
+Hosa write no shoroku proposal. A standalone Kaiseki has no Kanri, and its
+role file says how.
+
+**`taiseki`.** A Kikaku, a Hosa, and a standalone Kaiseki — the seats the
+human paces — end only when he types `/tanto taiseki` in one, from a
+terminal, a tab, or Remote Control alike. One never left that way stays
+parked, at no cost, and the next `tanto <role>` continues it, its
+`context=` printed as he enters. The seat:
+
+1. Writes out what is unsent. A Kikaku with something decided and no file
+   writes the decision file and sends its `decision:` line. A Hosa with a
+   `chore:` open or a `slot-needed:` unanswered says which, and does not
+   leave. A standalone Kaiseki runs its shoroku and commits, as its role
+   file asks.
+2. Runs `node "$TANTO/scripts/boundary.js" request leave --transcript "$T"`,
+   which writes a `stop` request for its own `sessionId`, marked `self`,
+   with the `after` a park request carries.
+3. Ends its turn with its closing line, whose second fact is the ended
+   seat's ("Messages").
+
+The spawner honors such a stop for those three seats alone. It stops a
+background seat once its turn has ended, so that the closing line is
+written, and records the end at once for a seat a tab holds or one that is
+not listed. A closing turn that never ends is dropped ten minutes on, with
+the notice `taiseki not done: <role> — tanto <role>`, so that the word
+never fails in silence. The seat is `stopped`, Kanri writes its row
+`stopped` at its next census (**Ended**), and the next `tanto <role>` finds
+no holder and starts a new conversation, whether or not the ended seat's
+tab is still open.
 
 **Who proposes when.**
 
@@ -1128,8 +1141,7 @@ standalone Kaiseki has no Kanri, and its role file says how.
   Jisso writes the close's shoroku proposal on Kanri's line
   `close: propose; write it to .tanto/<topic>/shoroku-proposal-jisso-<short id>.md`
   — the `pending` rows by number and what its own context holds that no
-  file does — and is stopped on its form check: no `/clear`, its
-  conversation kept.
+  file does — and is stopped on its form check, its conversation kept.
 - **Sekkei and Keikaku** write their proposal unasked at their own final
   boundary and name it in the report line —
   `spec accepted: <spec path>; shoroku proposal: <path> — <reading>` for
@@ -1139,8 +1151,8 @@ standalone Kaiseki has no Kanri, and its role file says how.
   the reading, the human not wanting the plan now — takes the `exit:` line
   like a Kaiseki's.
 - **Kaiseki**, attached, is sent `exit: propose; write it to <path>` when
-  its case closes, writes the proposal, runs the resume self-check, and
-  answers `shoroku proposal: <path> — <reading>`.
+  its case closes, writes the proposal, and answers
+  `shoroku proposal: <path> — <reading>`.
 - **Kanri** writes its own proposal from the ledger and the roster, never
   from recollection, at two kinds of moment. **At every plan close**, after
   Jisso's proposal and before the recommender is dispatched, so that the
@@ -1183,30 +1195,34 @@ subscription, like every other tanto line. Kanri checks that the proposal
 exists and opens with the exclusion line and a numbered list — a direct
 read, since the proposal carries no headings for `sections` to select by —
 or, for a Jisso, reads the report's Shoroku proposal section with the
-report's others; records the rows; and sends a tab seat
-`release: /clear this window` — the row going `cleared` as the line goes
-out, its closing line `none — /clear this window` — or writes a terminal
-seat's `stop` request, its row going `stopped`, nothing `/clear`ed and
-nothing said to it. Either way Kanri tells
-the human, in its own window, `<role> <name> released — its work is in
-<paths>; no step needs it — /clear its window when convenient`. Nothing
-waits on the human's `/clear`: the roster no longer addresses that name,
-and the next `/tanto <role>` typed in that window handshakes as a new
-session under the same name and a new `sessionId`. A tab seat that has
-stopped answering is past answering; a terminal seat whose transcript is on
-disk is not, since a resume brings it back with its whole conversation
-("Resuming"). Kanri learns of either the way it learns of a missing batch
-report — the human says the window is gone, a send errors and the census
-that follows no longer lists it, a `no-role` comes back, the census's "Not
-listed" names it, or Kanri's window wakes for another reason and the answer
-has not arrived. A terminal seat is then looked for by the census, whose "Not listed" marks
-its row `dead` — with an Events line naming what showed its process gone
-and saying its conversation is kept — and is resumed when a line is next
-due to it. A tab seat, and a terminal
-seat whose resume failed, is a forced exit — the roster's Events line says
-its shoroku proposal was not written and what was lost, as far as Kanri
-knows — and Kanri marks the row `cleared` on a `no-role` or `dead` on the
-census's "Not listed", and continues.
+report's others; records the rows; and writes the seat's `stop` request,
+its row going `stopped`. Nothing is said to the seat and nothing to the
+human: the seat's own closing line has said that it has ended. The spawner
+runs no command for a seat a tab holds — `claude stop` reports success
+there and stops nothing — and records it `stopped` with
+`note: "in a tab"`; a `parked` seat is recorded `stopped` with
+`note: "already exited"`. Ending a seat means that nothing is sent to it
+again, and two obligations rest on that. A write or a `commit-ready:` event
+from a seat Kanri has ended is stray, and goes by rule 5's report path. And
+a `spawn` that replaces a seat — the Replace table's Sekkei, Keikaku, and
+Kaiseki rows — waits while `boundary.js seat <the old sessionId>` prints
+`interactive`: Kanri tells the human in one line which tab to close, and
+writes the request when a later reading no longer does, so that no two
+seats of one role and topic are held at once (rule 4).
+
+A seat that stops answering before its exit is looked for, not waited on.
+Kanri learns of it the way it learns of a missing batch report — the human
+says so, a send errors, `seat` no longer shows it running, the census's
+"Not listed" names it, or Kanri's session wakes for another reason and the
+answer has not arrived. A seat whose transcript is on disk is not lost: a
+parked one keeps its row `live` and is woken when a line is next due to it,
+and one the census marks `dead` — with an Events line naming what showed
+its process gone and saying its conversation is kept — is woken the same
+way ("Resuming"). A seat whose wake failed twice, or that answered
+`no-role` twice, is a forced exit: the roster's Events line says its
+shoroku proposal was not written and what was lost, as far as Kanri knows;
+the row goes `stopped` on the second `no-role` or stays `dead`; and Kanri
+continues.
 
 ## Artifacts
 
