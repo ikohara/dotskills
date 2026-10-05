@@ -5,7 +5,7 @@ Written by Sekkei (fable, high; `sessionId` `2664b3f0`; its tab was named
 window reloads on the day) on 2026-10-05 on the branch `run-owned-seats`,
 cut from `main` at the topic's opening with no batch in flight, so this
 spec is not a draft and is committed at this path. The dialogue is
-`.tanto/run-owned-seats/dialogue.md`: the human's answers D-1 to D-21, and
+`.tanto/run-owned-seats/dialogue.md`: the human's answers D-1 to D-24, and
 the answers to the review brief. The measurements are
 `.tanto/run-owned-seats/notes-spike.md`, two rounds. This is the spec's
 fourth text: the second answered Kanri's I-1 to I-12; the third answered
@@ -113,12 +113,16 @@ reached by it") — or says that none does.
 - **The risks of section 2 are known and accepted** (D-11), R-1 the
   heaviest. Serves none.
 
+- **The hold is 55 minutes, the intake is in practice Kanri, and the
+  cache is measured** (D-22 to D-24, the first replies to the review
+  brief). Serve none; D-23 leaves decision-c322's rule standing.
+
 Three things in this text are Sekkei's own, decided under the reviewer's
-second pass and Kanri's delta check and not put to the human as
-questions; the review brief is where he sees them:
+second pass and Kanri's delta check; the review brief put them to the
+human, who has answered the first (D-22):
 
 - **A wake that Kanri makes for the human holds the seat awake**, until
-  thirty minutes after its last turn (2.4, Finding 21). Without it, a
+  55 minutes after its last turn (2.4, Finding 21, D-22). Without it, a
   park at every turn's end would leave a dialogue seat one turn long from
   Remote Control — more than the cost the Kikaku file's 2.3 named. Serves
   `exp-1c96`.
@@ -147,6 +151,7 @@ under the definition the rule uses (CLI 2.1.289, Windows 11):
 | S-5 | A resume issued in the same second as the stop: `already running in the background, so this started a copy`. | 2.5's guard |
 | M-6, P-8 | A resume issued while a tab holds the conversation starts a copy under a new id. The note is on **stderr**; stdout reads `backgrounded · <the copy's id>`. The copy takes the seat's spawn name, holds the tab's whole conversation, and **acts on the prompt it was started with**. A copy started with no prompt waits (M-6). | 2.5: no prompt for a dialogue seat; the copy's removal |
 | S-3 | `claude stop`, then `claude --resume <sessionId> --bg "<prompt>"` once the session has left the listing: same id, same name, the prompt ran. | 4.4, for Kanri alone |
+| The cache, from the spike sessions' usage records | Four of four turns after a stop and a `--resume --bg` read the conversation from the cache (`cache_read` 57000 to 70000 tokens, `cache_creation` 1400 to 5300), one of them 55 minutes after the turn before. Three of four turns after a wake by `claude attach` or by a tab rewrote the conversation part (`cache_creation` 24000 to 31000 over a 34000-token shared prefix); the fourth, a tab, read it. Sessions of about 60000 tokens; the cause of the three is not established. | 2.4's 55 minutes; section 8's cost of a wake |
 | P-2 | A `SendMessage` that arrives as its receiver is stopped is written to the transcript and not answered; it is read at the seat's next turn. | 2.5: sent again |
 | H-1a | While a terminal is attached the listing shows nothing for it. | 2.4 |
 | H-1b | `claude stop` of an attached session ends the attach with exit 0; a wrapper then attached the next id with nothing typed. | 4.3 |
@@ -422,9 +427,11 @@ request after it. For Kanri, a Jisso, or a shoki it writes neither.
   the human asks Kanri to wake it, sends one message, and half a minute
   after the answer the seat is offline again. So Kanri's wake for the
   human (2.5, `wake --hold`) writes a `hold` with no `pid` and
-  `forMs: 1800000`; the spawner deletes such a mark when the seat's
-  transcript has not been written for that long — thirty minutes after
-  the last turn — and the seat's standing request then parks it. Kanri
+  `forMs: 3300000`; the spawner deletes such a mark when the seat's
+  transcript has not been written for that long — 55 minutes after
+  the last turn, just inside the one-hour cache window, within which the
+  next message is a warm read and past which the seat may as well be
+  stopped (D-22) — and the seat's standing request then parks it. Kanri
   writes `release` when the human says he is done sooner. This keeps the
   cost at what the Kikaku file's 2.3 put to him: a parked seat is offline
   until something wakes it, and a woken one can be talked to.
@@ -688,7 +695,14 @@ repository's roster for its intake: a Hosa row that is `live` and whose
 name is listed, else the first data row. A parked Hosa's name is not
 listed, so while a Hosa is parked the intake is Kanri — decision-c322's
 "the cheapest seat that is live" read with live meaning listed, which is
-what its sender can check. That is a cost of the park, named in section 8.
+what its sender can check. A Hosa parks at every turn's end, so in
+practice the intake is Kanri, and the rule names a Hosa only for the
+minutes one is in a turn or held (D-23). Waking the Hosa to take a report
+that has already woken Kanri would add a wake, a round trip to the
+sender, and the Hosa's read to an act that is one copy and one line. An
+intake that wakes no session — the spawner taking the report as a
+request — is a redesign of that route and is left as an issue for the
+close (Deferred items).
 
 ### 3.2 What stays of the `no-role` line
 
@@ -1376,7 +1390,7 @@ seat":
   opens (2.4). Kanri is entered by `tanto`, and is not opened in a tab.
 - **C-2** — a parked seat is offline to Remote Control until something
   wakes it. From there the human asks Kanri, which wakes it and holds it
-  awake until thirty minutes after its last turn (2.4); without that hold
+  awake until 55 minutes after its last turn (2.4); without that hold
   a dialogue seat would be one turn long from that face. Whether the
   listing shows a Remote Control connection to a background seat is not
   measured, and nothing rests on it.
@@ -1392,17 +1406,22 @@ seat":
 
 Costs, accepted:
 
-- While a Hosa is parked the bug intake is Kanri, and each report wakes
-  it (3.1).
+- The bug intake is in practice Kanri, since a Hosa is parked between
+  its turns, and each report wakes Kanri (3.1, D-23).
 - A Kikaku or a Hosa never left by `taiseki` grows across subjects. The
   figure is shown (D-19); nothing bounds it.
 - An ended seat's row stays in the editor's list beside its successor's;
   it answers with its closing line alone (5.1).
-- A wake costs Kanri's turn up to a minute, in place of a wake-up of its
-  own, and with every dialogue seat parked between turns most of Kanri's
-  lines to a Sekkei or a Keikaku are a wake first: a cold start of that
-  seat's whole context, which an idle seat past its cache window would
-  have paid as well (2.5).
+- With every dialogue seat parked between turns, most of Kanri's lines to
+  a Sekkei or a Keikaku are a wake first. What that adds is time: five to
+  fifteen seconds of Kanri's turn as measured, sixty at most, and the
+  seat's process start. It did not add a cold read where it was measured:
+  a seat woken by `--resume --bg` within the hour read its conversation
+  from the cache, four times of four. A seat written to after more than
+  an hour pays a full read of its context, parked or not. What is not
+  explained is the cache lost at three of four wakes by an attach or a
+  tab — the human's own entries, not Kanri's — and the acceptance scene
+  observes it (2.5, D-24).
 - From the contract's text landing until a run moves, that run opens no
   new dialogue seat but a Kikaku and a standalone Kaiseki (section 7,
   D-21).
@@ -1609,7 +1628,7 @@ background, `idle`, and not held; the state is written before the stop;
 an honored request stands until a new turn begins, so a seat woken that
 takes no turn is stopped again; the launcher's hold and release do
 nothing but set and clear a mark, and Kanri's hold for a face with no
-launcher expires thirty minutes after the seat's last turn; a wake
+launcher expires 55 minutes after the seat's last turn; a wake
 carries no prompt for any seat but Kanri, waits out a stop in progress,
 refuses a seat the listing holds, and removes a copy; a line is sent by
 `SendMessage` after the wake, in the same turn; `blocked` is a background
@@ -1832,6 +1851,9 @@ fukki — it starts a run when none is live and rejoins the live one.
      further `tanto kikaku` starts a new conversation.
   8. With Kanri alive, `tanto fukki`: the messenger's line reaches Kanri,
      and Kanri prints what it put back.
+  9. From the transcripts of steps 2 to 6, the `cache_read` and
+     `cache_creation` tokens of the first turn after each kind of wake —
+     the launcher's attach, a tab, Kanri's `wake` (D-24).
 
 ## Out of scope
 
@@ -1984,6 +2006,13 @@ and one rests on a misreading.
 - `tanto <role> --new`, should saying the end in the seat prove not
   enough (D-2).
 - Waking a parked seat from Remote Control without Kanri.
+- An intake that wakes no session: the spawner taking a `bug-report:` as
+  a request, copying it to the inbox, and answering with its result file.
+  It redoes decision-c322's route and needs the sender to write into
+  another repository's `.tanto/`; filed as an issue at the close (D-23).
+- Why a wake by `claude attach` or by a tab loses the conversation's
+  cache where a `--resume --bg` keeps it, after the acceptance scene's
+  figures.
 - `cleared` in `boundary.js`'s `record --status` vocabulary, kept for
   this run's own close: removed once no run writes it.
 - The `contract` mark on a seat, the launcher's moved-run check, and
