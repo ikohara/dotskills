@@ -232,7 +232,8 @@ the move, made once, at a batch boundary or a plan's close:
 `tanto teishi --seats`, then `tanto`, and close the windows of that run's
 old seats. The new Kanri takes the run from its roster and ledger as a
 Kanri does after any loss. Until then, `tanto` prints one line naming the
-roster's old-contract rows, and goes on; the line asks for nothing.
+roster's old-contract rows, and goes on; the line asks for nothing, and a `cleared` row,
+which Kanri leaves for the archive, keeps it printing until the plan's close.
 
 ## Layout
 

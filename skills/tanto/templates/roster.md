@@ -18,11 +18,12 @@ Kept by Kanri at `.tanto/roster.md`. Kanri is the only writer.
   and Kanri requests no second seat of a role and topic. A plan that edits
   the tanto skill has all its Jissos spawned at its landing and their rows
   `queued`; every other plan has one Jisso at a time, spawned per batch.
-- A `renamed` mark in the spawner's `seats.json` — a known `sessionId` under
-  a new name — is Kanri's to reconcile: rewrite the row's Name column, write
-  the Events line `resumed: <old name> → <new name>`, and clear the mark
-  with an `ack` request. A seat open in a VS Code tab carries the editor's
-  name, and a new one after every window reload; Kanri's census finds its
+- A seat the census prints with the suffix `— renamed` — a known
+  `sessionId` whose listed name is not the row's Name cell — is Kanri's to
+  reconcile: rewrite the row's Name column and write the Events line
+  `resumed: <old name> → <new name>`; nothing else is asked of it, and the
+  suffix goes at the next census. A seat open in a VS Code tab carries the
+  editor's name, and a new one after every window reload; Kanri's census finds its
   `sessionId` under that name and rewrites the cell the same way, and
   nothing is typed in the tab.
 - A row whose session has gone gets status `dead`: a `live` row the census
@@ -56,13 +57,13 @@ Kept by Kanri at `.tanto/roster.md`. Kanri is the only writer.
 Topic is the topic the seat's spawn request named, as its result file
 carries it — for a Jisso, the topic whose queue it was spawned into: the
 plan whose batches are in flight, or, with none in flight, the plan whose
-landing requested the queue — or `—` for Kanri, Kikaku, Hosa, and a
-standalone Kaiseki. Effort is the spawn's, as the result file records it.
+landing requested the queue — or `—` for Kanri, Kikaku, and Hosa. Effort
+is the spawn's, as the result file records it.
 
 The status words are five: `queued`, `live`, `stopped`, `replaced`, and
 `dead`. A `live` cell may carry the suffix
 `(idle since <HH:MM>)`, which Kanri appends while a Kikaku, Hosa, or Kaiseki
-idles and the intake's address rule reads, or the suffix
+idles, or the suffix
 `(blocked since <HH:MM>)`, which Kanri appends when the census's Listed line
 for the seat carries `— blocked (<cause>)` and removes when a later
 census's does not. The blocked suffix records the last census that saw the

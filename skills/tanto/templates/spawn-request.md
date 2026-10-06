@@ -7,7 +7,7 @@ Keikaku, a Jisso, an attached Kaiseki, shoki, and its own successor — its
 `boundary.js wake`, a `resume` and a `hold`. The launcher writes the `spawn`
 of a Kanri when the run has none, of a Kikaku, a Hosa, a standalone
 Kaiseki, and the messenger of `tanto fukki`; the `hold` and the `release`
-around its attach to a dialogue seat; the `resume`s of `tanto fukki`; and
+around its attach to a dialogue seat; the `resume`s of `tanto` and `tanto fukki`; and
 the `stop`s of `tanto teishi --seats`. A dialogue seat writes its own
 `park`, and a Kikaku, a Hosa, or a standalone Kaiseki its own `stop` with
 `self`, through `boundary.js request`. Every seat of a run is spawned on a
@@ -179,17 +179,25 @@ What the ops of the run-owned seats add:
   seat that is not a contract-2 Sekkei, Keikaku, Kikaku, Hosa, or Kaiseki;
   `ended`, for a seat `stopped` or `removed`.
 - `hold` answers once the mark is set, waiting out a stop that is still
-  finishing. Its errors: `in a tab`, when the listing shows the seat
-  `interactive`; `ended`; `held by another terminal`, when a launcher whose
-  `pid` still answers holds it; `old-contract seat`, for a seat without
-  `contract`. `release` deletes the mark and does nothing else.
+  finishing. Its errors: `unknown seat <sessionId>`, for a `sessionId` the
+  state file does not hold; `old-contract seat`, for a seat without
+  `contract`; `ended`; `a hold names a pid or forMs`, when the request
+  carries neither; `held by another terminal`, when a launcher whose `pid`
+  still answers holds it; `claude agents: <error>`, when the listing could
+  not be read; `in a tab`, when the listing shows the seat `interactive`;
+  `still listed`, when a park that was finishing never let go. `release`
+  deletes the mark and does nothing else.
 - `resume` runs `claude --resume <sessionId> --bg` only when the listing
-  does not show the seat. Its errors: `no prompt for this role`; `listed`,
-  with the entry's `name` and `kind`, when a tab or a live process holds
-  it; `still listed`, when a stop that was finishing never let go;
-  `copy <id> removed`, when the CLI started a copy, which the spawner stops
-  and removes; `prompt not delivered`, when a Kanri's prompt did not reach
-  it. Otherwise the seat is `running`, and the result adds `id` and `name`.
+  does not show the seat. Its errors: `no prompt for this role`; `removed`,
+  for a seat the spawner has removed; `claude agents: <error>`, when the
+  listing could not be read; `listed`, with the entry's `name` and `kind`,
+  when a tab or a live process holds it; `still listed`, when a stop that
+  was finishing never let go; `copy <id> removed`, when the CLI started a
+  copy, which the spawner stops and removes; `copy <id> not removed: <cause>`,
+  when the copy could not be removed, the CLI's words following; `prompt
+  not delivered`, when a Kanri's prompt did not reach it, and the session
+  it resumed is stopped first. Otherwise the seat is `running`, and the
+  result adds `id` and `name`.
 - `stop` runs `claude stop` only for a seat the listing shows in the
   background. A seat a tab holds is recorded `stopped` with
   `note: "in a tab"`, and a seat not listed, a `parked` one included, with
