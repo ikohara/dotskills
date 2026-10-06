@@ -1074,7 +1074,9 @@ function seatLine(seat, listed) {
  * from the state file, then the `spawner:` line. A session the state file
  * does not hold prints `no entry <kind>`, the kind the listing's for it, `-`
  * when it is not listed — what a session that ran `/tanto <role>` by hand
- * reads to learn whether the run started it.
+ * reads to learn whether the run started it. A listing that failed prints no
+ * entry line: `seat: the listing failed — <error>` and exit 1, so a failed
+ * listing is never read as "not listed".
  */
 function cmdSeat(argv) {
   const { values, positionals } = parseLine(argv, []);
@@ -1082,7 +1084,9 @@ function cmdSeat(argv) {
   if (!who) return fail("seat needs a sessionId or a name", 2);
   const root = rootOf(values);
   if (!root) return fail("seat: --root needs a value", 2);
-  const listed = listing(root).listed || new Map();
+  const found = listing(root);
+  if (found.error) return fail(`seat: the listing failed — ${found.error}`, 1);
+  const listed = found.listed;
   const seat = findSeat(stateSeats(root), who);
   if (seat) {
     console.log(seatLine(seat, listed));
@@ -1128,7 +1132,9 @@ function waitForResults(root, ids, waitMs) {
  * 2.4) — one wait of up to sixty seconds for every result, and one line per
  * seat: `seat`'s line, or `error: <the result's error> — <sessionId>` with
  * the name the result carries. On a stale spawner it writes nothing: a
- * request no spawner takes is a line that waits unseen.
+ * request no spawner takes is a line that waits unseen. Exit 1 on an error
+ * line, on a hold that failed, or on a listing that failed (`listing:
+ * <error>`, after the seats' lines).
  */
 function cmdWake(argv) {
   const { values, positionals } = parseLine(argv, ["hold"]);
@@ -1157,7 +1163,8 @@ function cmdWake(argv) {
     return fail(`wake: no spawner requests directory under ${root}`, 2);
   }
   const results = waitForResults(root, written, wakeWaitMs());
-  const listed = listing(root).listed || new Map();
+  const found = listing(root);
+  const listed = found.listed || new Map();
   const seats = stateSeats(root);
   let failed = false;
   for (const entry of plan) {
@@ -1173,10 +1180,17 @@ function cmdWake(argv) {
     let held = "";
     if (entry.hold !== null) {
       const hold = results.get(written[entry.hold]);
-      if (!hold || hold.error) held = ` — hold: ${hold ? hold.error : "no result"}`;
+      if (!hold || hold.error) {
+        held = ` — hold: ${hold ? hold.error : "no result"}`;
+        failed = true;
+      }
     }
     const seat = seats.get(entry.sessionId);
     console.log(`${seat ? seatLine(seat, listed) : `no entry ${listed.get(entry.sessionId)?.kind || "-"}`}${held}`);
+  }
+  if (found.error) {
+    console.log(`listing: ${found.error}`);
+    failed = true;
   }
   return failed ? 1 : 0;
 }

@@ -1447,6 +1447,30 @@ test("seat prints its five words and the spawner: line, by sessionId or by name,
   assert.strictEqual(lines("sess-none"), "no entry -\nspawner: beating\n");
 });
 
+test("seat exits 1 with `seat: the listing failed` and no entry line when the listing fails, for a held seat or not", () => {
+  const f = spawnerFixture(
+    () => [{ sessionId: "sess-a", name: "dotskills-sekkei-t-1a2b", role: "sekkei", status: "parked" }],
+    () => [],
+  );
+  for (const mode of ["fail", "garbage"]) {
+    for (const who of ["sess-a", "sess-none"]) {
+      const got = sub(f, ["seat", who, "--root", f.root], { FAKE_MODE: mode });
+      assert.strictEqual(got.code, 1, `${mode} ${who}: ${got.err}`);
+      assert.strictEqual(got.out, "", `${mode} ${who}`);
+    }
+  }
+  const failed = sub(f, ["seat", "sess-none", "--root", f.root], { FAKE_MODE: "fail" });
+  assert.strictEqual(failed.err, "boundary.js: seat: the listing failed — listing broke\n");
+  const garbage = sub(f, ["seat", "sess-none", "--root", f.root], { FAKE_MODE: "garbage" });
+  assert.strictEqual(garbage.err, "boundary.js: seat: the listing failed — claude agents --json printed no JSON\n");
+  // A listing that works still answers, so the exit 1 above is the listing's alone.
+  assert.deepStrictEqual(sub(f, ["seat", "sess-none", "--root", f.root]), {
+    code: 0,
+    out: "no entry -\nspawner: beating\n",
+    err: "",
+  });
+});
+
 test("beat prints the spawner: line and exits 1 when the heartbeat is stale or absent (spec 2.5)", () => {
   const live = spawnerFixture(
     () => [],
@@ -1472,10 +1496,10 @@ test("beat prints the spawner: line and exits 1 when the heartbeat is stale or a
  * `wake`, run beside a fake spawner that answers each request it finds with
  * `answer(request)` merged into it, as the spawner writes a result.
  */
-async function wakeBeside(f, args, answer) {
+async function wakeBeside(f, args, answer, env = {}) {
   const child = spawn(process.execPath, [SCRIPT, "wake", "--root", f.root, ...args], {
     cwd: f.root,
-    env: { ...fakeEnv(f), TANTO_WAKE_WAIT_MS: "10000" },
+    env: { ...fakeEnv(f), TANTO_WAKE_WAIT_MS: "10000", ...env },
   });
   let out = "";
   child.stdout.on("data", (chunk) => {
@@ -1552,6 +1576,28 @@ test("wake --hold writes each seat's hold, with forMs and no pid, before its res
   ]);
   assert.strictEqual(woken.out, "spawner: beating\nparked dotskills-hosa-1a2b - hosa -\n");
   assert.strictEqual(woken.code, 0);
+});
+
+test("wake --hold exits 1 and says `hold:` on the seat's line when only its hold failed (spec 2.4, 2.5)", async () => {
+  const f = spawnerFixture(
+    () => [{ sessionId: "sess-a", name: "dotskills-hosa-1a2b", role: "hosa", status: "parked" }],
+    () => [],
+  );
+  const woken = await wakeBeside(f, ["--hold", "sess-a"], (request) =>
+    request.op === "hold" ? { error: "no such seat" } : {},
+  );
+  assert.strictEqual(woken.out, "spawner: beating\nparked dotskills-hosa-1a2b - hosa - — hold: no such seat\n");
+  assert.strictEqual(woken.code, 1);
+});
+
+test("wake prints `listing:` and exits 1 when the listing fails, after each seat's line", async () => {
+  const f = spawnerFixture(
+    () => [{ sessionId: "sess-a", name: "dotskills-hosa-1a2b", role: "hosa", status: "parked" }],
+    () => [],
+  );
+  const woken = await wakeBeside(f, ["sess-a"], () => ({}), { FAKE_MODE: "fail" });
+  assert.strictEqual(woken.out, "spawner: beating\nparked dotskills-hosa-1a2b - hosa -\nlisting: listing broke\n");
+  assert.strictEqual(woken.code, 1);
 });
 
 test("wake writes nothing on a stale spawner, and names a seat whose result never came", () => {
