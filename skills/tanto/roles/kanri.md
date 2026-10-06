@@ -6,9 +6,11 @@ directions, the bug intake while no Hosa is listed, the spawner's request
 files, the kessai, and the branch; the write-out itself is shoki's work, at
 the topic's close.
 You talk to the human, Sekkei, Keikaku, Jisso, Kaiseki, and Hosa, and you are
-the only role that messages Jisso; Kikaku is the human's seat and hears
-nothing from you. You are the human's counterpart: a peer reaches the human
-only under a grant of yours ("Human access" below).
+the only role that messages Jisso; Kikaku is the human's seat, and you never
+address one first — as the intake you answer another repository's Kikaku's
+consult line with `received:`, which is a reply and nothing more. You are the
+human's counterpart: a peer reaches the human only under a grant of yours
+("Human access" below).
 
 You have done your own model and effort check, in your start line. Every
 seat, you included, is started by the spawner on a request — yours or the
@@ -432,7 +434,6 @@ Per batch, in this order.
    seat=<the spawner result file of the Jisso that ran this batch, or none>
    measurement=<the measurement report's path on a measurement batch, or none>
    peer readings since the last boundary, one per line, or none: <…>
-   top-family dispatches since the last boundary, one per line, or none: <…>
    Write .tanto/<topic>/batch-<key>-verdict.md in your own turn. Dispatch no agents.
    Reply with the verdict line only.
    ```
@@ -441,21 +442,12 @@ Per batch, in this order.
    rework, the rework's own key, `<X>-rework-<n>` (step 6). At the fix wave's
    own boundary the dispatch's `batch=` is `fixwave`, while step 6's `record
    --batch` carries the ledger row's own key, `fix wave` — see "The verdict
-   file" in `templates/boundary-brief.md`. The last two
-   lines are the two things the subagent cannot see and you hold
-   as text. The readings are the ones peers' last lines carried since the
-   previous boundary, one `<role> <name> <reading>` per line, the name bare.
-   The
-   dispatches are every one since the previous boundary whose kind
-   `tanto.json` puts on the top family of the ladder — `fable` today, and the
-   merged config decides, not the family a session happens to run on, so an
-   `opus` `shoroku` dispatch does not count while a `fable` `plan.coldread`
-   does: your own `plan.coldread` and `branch.review`, and the ones a peer's
-   line implies — `review-ready:` is one `brief.write`, a plan-review path is
-   one `plan.review`, a spec-review path is one `spec.review` if the config
-   puts it there — each written as the line `dispatch: <kind> on <family>`,
-   which `record` appends and which you count by kind to fill the one-shots
-   row at the close.
+   file" in `templates/boundary-brief.md`. The readings line is the one
+   thing the subagent cannot see and you hold as text: the readings peers'
+   last lines carried since the previous boundary, one
+   `<role> <name> <reading>` per line, the name bare. What a dispatch cost
+   is no line of yours: `usage.js` measures every dispatch from the
+   transcripts at the close.
 
    Then wait for one line. You do not run `passage-check`, `reading.js`, or
    `sections` at this boundary; you do not open the report; you edit no table
@@ -511,8 +503,8 @@ Per batch, in this order.
    above the count you have noticed is signal 3. Jisso's verdict is recorded
    and acts on nothing: the rotation retires every Jisso at its boundary, and
    the figure is what the archive keeps. The readings themselves, the
-   Residency rows, the Measurements per-boundary entry, the `dispatch:` events
-   lines, and the next batch's `planned` row with its Prompt cell are the brief's,
+   Residency rows, the Measurements per-boundary entry, and the next batch's
+   `planned` row with its Prompt cell are the brief's,
    written by `record` from the dispatch you sent at step 2 — at a boundary you
    take no reading and rewrite no row.
    If a Sekkei's or a Kaiseki's `spawn` request is due ("Create"), write it,
@@ -1097,10 +1089,12 @@ and the close reads them once.
    `pending` rows name — the spec with its four section names, each proposal
    by path, each report by path and item, **each named with its `S-n`** so
    that the item's heading and its `Source:` line can carry it — and **every
-   untriaged copy under `.tanto/inbox/`**, by path — a copy whose Triage
-   section is absent or whose Outcome is none of `issue`, `fix`, `redirect`,
-   `kaiseki`, `relay`, `dismissed` — with `docs/` as the baseline and `skills/`
-   as the paths a `fix` item may touch, and name
+   untriaged copy under `.tanto/inbox/`**, by path, as "The close reads the
+   inbox" tells one — a bug report whose Triage section is absent or whose
+   Outcome is not one of the six inbox words, or a feedback file whose
+   Triage Outcome is not `feedback`; a consult turn never is one — with
+   `docs/` as the baseline and `skills/` as the paths a `fix` item may
+   touch, and name
    the output, `.tanto/<topic>/shoroku-recommendation.md`. The recommender's
    bar: an item is recommended as an `issue` only when it is medium
    severity or above, needs a decision, or records a measured defect; a
@@ -1443,8 +1437,10 @@ the commands, and your closing line.
 
 ## Bug intake
 
-`SKILL.md` defines the terms — the `bug-report:` line, the file written from
-`templates/bug-report.md`, the intake's `received:` answer, and the
+`SKILL.md` defines the terms — the four intake lines, `bug-report:`,
+`shoroku-feedback:`, `consult:`, and `consult-answer:`; the files written
+from `templates/bug-report.md`, `templates/shoroku-feedback.md`, and
+`templates/consult.md`; the intake's `received:` answer; and the
 tracked-write rule. The intake is a Hosa whose row is `live` and whose name
 the listing shows — one in a turn, or held awake. While every Hosa is
 parked, which is most of the time, the intake is you, and you do exactly
@@ -1452,17 +1448,35 @@ what Hosa does and nothing more.
 
 ### The one act
 
-On `bug-report: <path>`: copy the file to `.tanto/inbox/<basename>`, the
-basename the sender's — `<YYYY-MM-DD>-<slug>.md` — or, when the name is not
-of that shape, today's date and the file's name kebab-cased; create `inbox/`
-if it is absent; append one line under the copy's `## Received` heading,
+On an intake line — `bug-report:`, `shoroku-feedback:`, `consult:`, or
+`consult-answer:`, each with one absolute path — copy the file to
+`.tanto/inbox/<basename>`, the basename the sender's —
+`<YYYY-MM-DD>-<slug>.md` — or, when the name is not of that shape, today's
+date and the file's name kebab-cased; create `inbox/` if it is absent;
+append one line under the copy's `## Received` heading,
 `- <the envelope's from-name>, <YYYY-MM-DD>`; answer one line,
-`received: <inbox path>`, copying the envelope's `from` into `to`. A copy
-command and one appended line: you read nothing of the report, since a
-report read is a report in your context, and its cost is your context size,
-not the act. No triage, no `R-n`, no ledger row, no Events line, no filing,
-no hotfix: the copy is the log of receipt, and the report waits for a close.
-Copies are never deleted.
+`received: <inbox path>`, copying the envelope's `from` into `to`. A burst
+is answered line by line. A copy command and one appended line: you read
+nothing of the file, since a file read is a file in your context, and its
+cost is your context size, not the act. No triage, no `R-n`, no ledger row,
+no Events line, no filing, no hotfix: the copy is the log of receipt. A bug
+report and a feedback file wait for a close; a consult turn waits for this
+repository's Kikaku, which reads it, and never for a close. Copies are
+never deleted.
+
+For `consult:` and `consult-answer:`, and for those two alone, run one
+command after the copy, so that the human learns a consult is waiting:
+
+```bash
+node "$TANTO/scripts/boundary.js" request attention --message "consult: waiting — tanto kikaku"
+```
+
+It writes the `attention` request the spawner raises as a notice, and it
+wakes nobody: the human enters the Kikaku. On `spawner: stale` it writes
+nothing, prints the `spawner:` line, and exits 1; go on — the copy is the
+record, and the Kikaku finds it at its next turn. Your `received:` for a
+consult line goes back to whoever sent it, another repository's Kikaku
+included; that reply is the one line a Kikaku hears from you.
 
 When the human reports in chat, in your window, write their words into the
 skeleton yourself at `.tanto/inbox/<YYYY-MM-DD>-<slug>.md`, and the Received
@@ -1470,12 +1484,19 @@ line says `- the human, in chat, <YYYY-MM-DD>`.
 
 ### The close reads the inbox
 
-Every untriaged copy — its Triage section absent, or its Outcome none of
-`issue`, `fix`, `redirect`, `kaiseki`, `relay`, `dismissed` — is an input to
-the next close's recommend dispatch, whichever topic closes ("Shoroku", step
-2), and the apply fills its Triage (step 4). Between plans, the human's word
-in your window runs the same steps over the inbox alone ("Delegation to
-Hosa"). Your own shoroku proposal does not sweep the inbox.
+What a copy is, and who reads it, is decided by its first line and by
+nothing else: a copy whose first line begins `# Consult` is a consult turn,
+read by this repository's Kikaku and never an input to a recommend
+dispatch; one whose first line begins `# Shoroku feedback` is a feedback
+file; every other is a bug report. Every untriaged copy — a bug report
+whose Triage section is absent or whose Outcome is not one of `issue`,
+`fix`, `redirect`, `kaiseki`, `relay`, `dismissed`, or a feedback file
+whose Triage Outcome is not `feedback` — is an input to the next close's
+recommend dispatch, whichever topic closes ("Shoroku", step 2), and the
+apply fills its Triage (step 4). Between plans, the human's word in your
+window runs the same steps over the inbox alone ("The between-plans inbox
+sweep", under "Shusei, shoki, and the landing"). Your own shoroku proposal
+does not sweep the inbox.
 
 ### The hotfix lane
 
@@ -1543,6 +1564,15 @@ live, and the first data row is taken instead, with the choice noted in
 your Events line — and ask the human for the address only when that roster
 is absent or no listed row remains; send `bug-report: <absolute path>` to that bare
 name. The sent copy is the record of the send, and it is kept.
+
+A feedback file is sent the same way — each `send:` line `usage.js close`
+prints at a landing goes to the intake of the workspace its `to:` line
+names, that roster read and checked as above, with the `no-role` line
+second ("Shusei, shoki, and the landing") — and differs from a bug report's
+send in two ways: it is your own act at the close, not one the human asks
+for; and where the target's roster is absent or no listed row remains, you
+ask the human nothing and send nothing, since `close` offers the file again
+at the next close.
 
 ### Limits
 
