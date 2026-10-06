@@ -145,7 +145,8 @@ yourself, through
 `node "$TANTO/scripts/boundary.js" record --ledger <path> --event "<line>"`,
 giving it the bare line, since `record` prepends its own `<YYYY-MM-DD HH:MM> —`
 stamp and a line that carries one reads with two,
-the ledger being the one your `ledger=` key names, else your own
+the ledger being the one your `ledger=` key names, or the one a later
+`ledger=<path>` line from Kanri names, else your own
 topic's `.tanto/<topic>/kanri.md` — not a message,
 and no wake-up of Kanri's. Then put
 brainstorming's review gate to the human with the brief's text verbatim, the
@@ -185,7 +186,8 @@ from then on.
 You learn both from Kanri. When your work is ready and no boundary line has
 come, write the ledger event
 `commit-ready: sekkei <topic> — <subject> — <YYYY-MM-DD HH:MM>` through
-`boundary.js record --event`, to the ledger your `ledger=` key names, and go
+`boundary.js record --event`, to the ledger your `ledger=` key, or a later
+`ledger=<path>` line from Kanri, names, and go
 on with your work. Kanri opens the commit window at the next
 boundary for the peers that event names, and for no others; you ask nothing
 and wait for nothing.

@@ -240,8 +240,8 @@ name. What you do by the status `seat` prints:
   commit-window peers — are woken in one `wake` call and sent to afterwards,
   so that the wait is paid once.
 - `stopped` — nothing is sent, but to a seat whose row's Events line says
-  you stopped it to hold it on the human's word, which you wake once the
-  human has lifted the hold.
+  you stopped it to set it aside on the human's word, which you wake once the
+  human has said so.
 - `removed` — never. `no entry` — run the census; the row's status then
   decides.
 
@@ -1572,7 +1572,8 @@ lines, and these are your steps.
    `human-access: granted — <scope> — <until>` or
    `human-access: denied — <alternative>`, and record it as `R-n`.
 2. On a grant, tell the human as a numbered list: 1. `tanto <role> [<topic>]`
-   in a terminal; 2. do `<what>`; 3. ← and leave the agent view. Run `beat`,
+   in a terminal, or, for a dialogue seat, a click on its row in the editor's
+   list; 2. do `<what>`; 3. ← and leave the agent view, or close the tab. Run `beat`,
    then also write an `attention` request whose message is
    `human-needed: <role> <topic> — tanto <role> [<topic>]`, because a seat
    that idles on a grant is not `blocked` and the spawner's census would
@@ -1658,7 +1659,7 @@ prints decides:
   itself. Write the row `stopped`, with an Events line naming what ended
   it — `taiseki`, or your own request.
 - **Not listed** — a row the state file does not hold, or holds `running`,
-  `blocked`, or `gone`. An old-contract row (Start, step 4), `live` or
+  `blocked`, or `gone`, and the listing does not show. An old-contract row (Start, step 4), `live` or
   `queued`, is marked `dead` with the Events line
   `old-contract row retired: <name>`. Otherwise a `queued` row stays
   `queued`: a waiting seat's absence is expected, and the send of its
@@ -1672,9 +1673,8 @@ prints decides:
   written gets, with what was lost as far as you know. A row that was the
   live Jisso's is the Replace table's first row, the tree verified first.
 - **Listed**, marked `renamed` — rewrite the row's Name column with the
-  listed name, bare, and write `resumed: <old name> → <new name>`; then
-  `beat` and clear the spawner's `renamed` mark with an `ack` request. The
-  cell is a record: a line still goes to the name `seat` reads at the send.
+  listed name, bare, and write `resumed: <old name> → <new name>`; that is
+  all. The cell is a record: a line still goes to the name `seat` reads at the send.
 - **Listed**, carrying `— blocked` — append `(blocked since <HH:MM>)`, this
   census's time, to the row's `live` cell only where the cell carries no
   suffix — a cell already carrying `(blocked since …)` or `(idle since <HH:MM>)`
@@ -1736,13 +1736,13 @@ for a run with none.
 | a handover is due | one `spawn` for your successor, with `succeeds: <your own sessionId>` | `/tanto kanri` |
 | a seat retires, or the run goes down | one `stop` per seat | — |
 | the human asks, from anywhere — Remote Control included — for a parked seat to be woken | one `wake --hold` on its `sessionId`, which holds the seat awake until 55 minutes after its last turn, its own standing park request then parking it; a `release` request for it when the human says the talk is done sooner | — |
-| the human asks you for a live seat to be held for a while — a priority call, not a lifecycle signal | one `stop` for that seat, its row `stopped` with an Events line quoting the human's word, its conversation kept and no shoroku proposal asked, since nothing of the seat's is lost; when the human says so, one `wake` on the same `sessionId`, the woken seat sent the Resuming line for its role, its row `live` again | — |
+| the human asks you for a live seat to be set aside for a while — a priority call, not a lifecycle signal | one `stop` for that seat, its row `stopped` with an Events line quoting the human's word, its conversation kept and no shoroku proposal asked, since nothing of the seat's is lost; when the human says so, one `wake` on the same `sessionId`, the woken seat sent the Resuming line for its role, its row `live` again | — |
 
 ### Replace
 
 | Symptom | Action |
 | --- | --- |
-| the live Jisso is gone — the spawner's census marked it `gone`, or the spawner's guard stopped it (`strayed` in `seats.json`), the census does not list it, `SendMessage` errors, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers). A seat the spawner's guard stopped is marked `stopped`, its conversation kept, with an Events line naming the guard and the worktree's branch, whose commits, if any, go to the human as a ruling, and is not resumed. Any other gone Jisso is **resumed first**: mark the row `dead` with an Events line naming what showed its process gone and saying its conversation is kept, write a `resume` request, and when the result lands send the resumed seat `resume batch X from task N`, the line `SKILL.md`'s Resuming gives a Jisso resumed after a restart, its row `live` again. Only when that resume fails — its result carries an error, or the seat's transcript is not on disk — is the seat lost: its Events line says its shoroku proposal was not written and what was lost. For a lost seat, and for a guard-stopped one, write a `spawn` request with the same `batch=` file, its resume line rewritten to `resume batch X from task N`, or, under a skill-editing plan's queue, send that line to the next `queued` seat and put the lost seat to the human as a ruling, since the queue cannot be refilled early |
+| the live Jisso is gone — the spawner's census marked it `gone`, or the spawner's guard stopped it (`strayed` in `seats.json`), the census does not list it, `wake` fails, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers). A seat the spawner's guard stopped is marked `stopped`, its conversation kept, with an Events line naming the guard and the worktree's branch, whose commits, if any, go to the human as a ruling, and is not resumed. Any other gone Jisso is **resumed first**: mark the row `dead` with an Events line naming what showed its process gone and saying its conversation is kept, `wake` it (`boundary.js wake <sessionId>`), and when the result lands send the resumed seat `resume batch X from task N`, the line `SKILL.md`'s Resuming gives a Jisso resumed after a restart, its row `live` again. Only when that wake fails — its result carries an error, or the seat's transcript is not on disk — is the seat lost: its Events line says its shoroku proposal was not written and what was lost. For a lost seat, and for a guard-stopped one, write a `spawn` request with the same `batch=` file, its resume line rewritten to `resume batch X from task N`, or, under a skill-editing plan's queue, send that line to the next `queued` seat and put the lost seat to the human as a ruling, since the queue cannot be refilled early |
 | Sekkei's reading shows a compaction | at its next commit — a verified boundary, or, with no batch in flight, when its work is ready — run "A seat's exit", then a `spawn` request with the same keys; the dialogue, the drafts, and the reviews on disk are the recovery point, and the new Sekkei takes the spec inputs and `dialogue.md` as its own |
 | Keikaku's reading shows a compaction | at its next commit, as for Sekkei (decision-6dea): run "A seat's exit", then a `spawn` request with the same three keys; the spec, `dialogue.md`, and the plan draft on disk are the recovery point, and the new Keikaku takes them as its own |
 | a Hosa's reading shows a compaction | nothing: the count arrives in its next reading, and the Hosa has already confirmed its summary's human items in its own window before continuing |
