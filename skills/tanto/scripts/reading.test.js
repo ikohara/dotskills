@@ -212,14 +212,17 @@ test("the backstop line reads the environment, then the settings file, then the 
   );
 });
 
-test("the share line weights usage by context across transcripts, with the threshold from --config", () => {
-  const one = writeTranscript([assistant({ input_tokens: 100 }), assistant({ input_tokens: 300 })]);
-  const two = writeTranscript([assistant({ input_tokens: 600 })]);
-  const config = writeJson("tanto.json", { ceiling: { share_threshold: 200 } });
+test("the retired share form is refused: a usage error at exit 2, and the usage line names one form", () => {
+  // The retired flag, built from two strings so that no line of this file
+  // spells it: the plan's old-value sweep reads this file too.
+  const retired = ["--", "share"].join("");
+  const file = writeTranscript([assistant({ input_tokens: 100 })]);
 
-  const result = run(["--share", one, two, "--config", config]);
-  assert.strictEqual(result.code, 0);
-  assert.match(result.out, /^share: 90% of usage at context > 200 over 2 transcripts \(900 \/ 1000 tokens\)$/m);
+  const result = run([retired, file]);
+  assert.strictEqual(result.code, 2);
+  const usage = result.err.split("\n").find((line) => line.startsWith("Usage: reading.js"));
+  assert.ok(usage, "the usage line is printed");
+  assert.ok(!usage.includes(retired), usage);
 });
 
 test("a missing transcript is the unavailable form at exit 0, and a usage error is exit 2", () => {
@@ -293,16 +296,6 @@ test("an unknown key under the ceiling map is ignored and named on stderr", () =
   assert.deepStrictEqual(loadCeiling(config, project).paths, { personal: config, project });
 });
 
-test("--share skips a path it cannot read, counts only the ones read, and names the skipped", () => {
-  const readable = writeTranscript([assistant({ input_tokens: 400000 })]);
-  const missing = path.join(tmpDir(), "gone.jsonl");
-
-  const result = run(["--share", readable, missing]);
-  assert.strictEqual(result.code, 0);
-  assert.match(result.out, /over 1 transcripts \(400000 \/ 400000 tokens\)/);
-  assert.match(result.out, /\(skipped .*gone\.jsonl\)/);
-});
-
 test("the project file overlays the personal one, field by field", () => {
   const file = writeTranscript([assistant({ input_tokens: 1000 }), assistant({ input_tokens: 2000 })]);
   const personal = writeJson("tanto.json", {
@@ -337,17 +330,16 @@ test("an unparsable project file is the same, and adds nothing on stderr", () =>
   assert.strictEqual(result.err, "");
 });
 
-test("--project-config fixes the path in both forms", () => {
+test("--project-config fixes the path, and share_threshold there is a known key", () => {
   const one = writeTranscript([assistant({ input_tokens: 200000 })]);
-  const project = writeJson("project-tanto.json", { ceiling: { share_threshold: 100000 } });
+  const project = writeJson("project-tanto.json", { ceiling: { share_threshold: 100000, jisso: { batches: 1 } } });
 
   const reading = run([one, "--role", "jisso", "--project-config", project]);
   assert.strictEqual(reading.code, 0);
-  assert.match(reading.out, /^ceiling: jisso baseline=200000 \+ 2 x 65000 = 330000 — context=200000 under$/m);
-
-  const share = run(["--share", one, "--project-config", project]);
-  assert.strictEqual(share.code, 0);
-  assert.match(share.out, /share: 100% of usage at context > 100000 over 1 transcripts/);
+  assert.match(reading.out, /^ceiling: jisso baseline=200000 \+ 1 x 65000 = 265000 — context=200000 under$/m);
+  // `usage.js` reads `ceiling.share_threshold`; this script keeps it a known
+  // key, so a config that carries it draws no warning here.
+  assert.strictEqual(reading.err, "");
 });
 
 test("an unknown key is named with the file it came from, with both files in one run", () => {

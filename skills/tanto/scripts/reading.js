@@ -8,10 +8,10 @@ const os = require("node:os");
 const path = require("node:path");
 const { parseArgs } = require("node:util");
 
-// One line, so that a reader who runs the script bare and takes the first
-// line of its output sees both forms.
+// One line, so that a reader who runs the script bare sees the whole form
+// in the first line of its output.
 const USAGE =
-  "Usage: reading.js <transcript> [--role kanri|jisso] [--presence] [--backstop] [--now <ISO>] [--config <path>] [--project-config <path>] [--settings <path>], or reading.js --share <transcript> [<transcript>...] [--config <path>] [--project-config <path>]";
+  "Usage: reading.js <transcript> [--role kanri|jisso] [--presence] [--backstop] [--now <ISO>] [--config <path>] [--project-config <path>] [--settings <path>]";
 
 // The documented auto-compact point for the 1M-window models
 // (docs/notes/claude-code-sessions-observed.md, and
@@ -407,52 +407,6 @@ function runReading(file, values) {
   return 0;
 }
 
-function runShare(paths, values) {
-  if (paths.length === 0) {
-    process.stderr.write(`${USAGE}\n`);
-    return 2;
-  }
-  const { ceiling, warnings } = loadCeiling(values.config, values["project-config"]);
-  printWarnings(warnings);
-  const threshold = ceiling.share_threshold;
-
-  let total = 0;
-  let over = 0;
-  let read = 0;
-  const skipped = [];
-
-  for (const file of paths) {
-    let raw;
-    try {
-      raw = fs.readFileSync(file, "utf8");
-    } catch {
-      skipped.push(file);
-      continue;
-    }
-    read++;
-    for (const line of recordLines(raw)) {
-      let record;
-      try {
-        record = JSON.parse(line);
-      } catch {
-        continue;
-      }
-      if (!record || record.type !== "assistant") continue;
-      const turn = contextOf(record);
-      if (turn === null) continue;
-      total += turn;
-      if (turn > threshold) over += turn;
-    }
-  }
-
-  const pct = total === 0 ? 0 : Math.round((over / total) * 100);
-  let line =
-    `share: ${pct}% of usage at context > ${threshold} over ${read} transcripts ` + `(${over} / ${total} tokens)`;
-  if (skipped.length > 0) line += ` (skipped ${skipped.join(", ")})`;
-  console.log(line);
-  return 0;
-}
-
 /** Dispatch. Returns the process exit code. */
 function main(argv) {
   let parsed;
@@ -464,7 +418,6 @@ function main(argv) {
         role: { type: "string" },
         presence: { type: "boolean" },
         backstop: { type: "boolean" },
-        share: { type: "boolean" },
         now: { type: "string" },
         config: { type: "string" },
         "project-config": { type: "string" },
@@ -480,9 +433,6 @@ function main(argv) {
   if (values.role !== undefined && !CEILING_ROLES.includes(values.role)) {
     process.stderr.write(`invalid --role '${values.role}'\n${USAGE}\n`);
     return 2;
-  }
-  if (values.share) {
-    return runShare(parsed.positionals, values);
   }
   if (parsed.positionals.length !== 1) {
     process.stderr.write(`${USAGE}\n`);

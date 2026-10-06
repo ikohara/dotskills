@@ -17,13 +17,11 @@ tanto=<the skill's own directory>
 seat=<the spawner result file of the Jisso that ran this batch, or none>
 measurement=<the measurement report's path on a measurement batch, or none>
 peer readings since the last boundary, one per line, or none: <…>
-top-family dispatches since the last boundary, one per line, or none: <…>
 ```
 
-The last two lines are the two things you cannot see for yourself: the readings
-peers' last lines carried since the previous boundary, and the top-family
-dispatches a peer's line implied. They travel in the dispatch and go through
-`record`.
+The last line is the one thing you cannot see for yourself: the readings
+peers' last lines carried since the previous boundary. It travels in the
+dispatch and goes through `record`.
 
 `<key>` is the batch's own key: its letter on a first pass, and
 `<X>-rework-<n>` at the boundary of a batch returned for rework — `<X>` the
@@ -79,15 +77,15 @@ Kanri decides whether it is stray.
      --jisso "<name>" --jisso-reading "<Jisso's reading>" \
      --seat <the seat= results path, when the dispatch carried one> \
      --peer-reading "<role> <name> <reading>" \
-     --s-item "<source> | <item>" --event "dispatch: <kind> on <family>"
+     --s-item "<source> | <item>"
    ```
 
    `<N-M>` is the tasks the plan's Batches table gives the batch — at a
    rework's boundary, the tasks its prompt's title names, since the plan
    has no row for a rework. One `--s-item` per item of the report's Shoroku
    proposal section, one
-   `--peer-reading` per line the dispatch carried, one `--event` per top-family
-   dispatch line it carried. The state you write is `reported` and nothing
+   `--peer-reading` per line the dispatch carried. The state you write is
+   `reported` and nothing
    else: acceptance is a ruling, and the resident's own single `record` call
    carries it. Read what `record` prints — the rows it wrote — into the
    verdict file's Rows written.
