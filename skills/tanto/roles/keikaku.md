@@ -101,7 +101,11 @@ reason to ask for either, and each omission cost one resume round at
   delivers, and the stop conditions at its boundary. Size the batches so that
   one Jisso carries one without growing long: the Batches table's row count,
   plus one for the fix wave, is what Kanri's Jisso queue is sized from, and
-  every boundary rotates. A stop condition worded as a
+  every boundary rotates. When you size them, run
+  `node "$TANTO/scripts/usage.js" report`, whose tables — a command's
+  output, not a report read by sections — show what earlier topics' batches
+  cost per kind and per task and how often they were reworked; they
+  supplement this rule and replace nothing of it. A stop condition worded as a
   property of the whole tree is backed by a command that sweeps the whole
   tree, not only the files the batch wrote;
 - **How a batch is verified**. For a plan that ships Markdown, that section
