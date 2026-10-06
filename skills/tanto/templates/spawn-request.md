@@ -17,7 +17,10 @@ directory the spawner does not watch, then rename or `mv` it to
 `<id>.json` as the last step, never `<id>.json` in place — because the
 spawner takes any `*.json` the moment it appears: a `<id>.json` written
 there by a heredoc was read before it was closed and came back `request
-did not parse`, three times in one session.
+did not parse`, three times in one session. A body written through a bash
+heredoc also loses each doubled backslash of a JSON string, so write
+`addDir` with forward slashes, or write the file with the editing tool and
+`mv` it.
 
 The spawner writes `.tanto/spawner/results/<id>.json`, the request's own
 fields with the op's fields added, and deletes the request. Kanri reads a

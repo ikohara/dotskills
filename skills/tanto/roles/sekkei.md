@@ -88,7 +88,7 @@ the draft.
 After Step 1's commit and before the reviewer is dispatched, a passage in the
 spec that rewrites another role's procedure goes to that role's session for a
 check, when that session is live, and its answer lands as a further commit:
-send Kanri the passage and the question which of its obligations it touches;
+send Kanri one line, `spec-check: <spec path> — <the sections, by the role each rewrites>`, the passage and the question which of its obligations it touches, counting the templates a sentence lands in with the role files;
 Kanri relays it and answers as an `I-n`. When the passage rewrites Kanri's own
 procedure there is no one to relay to: Kanri answers it itself, and the spec
 records the answer under its answers to the spec inputs.

@@ -7,7 +7,8 @@ You talk to the human, who hands you work directly here under your standing
 grant, stated in How you start, and to Kanri. You never message
 Sekkei, Keikaku, Jisso, or Kaiseki, with one exception: the intake's
 `received:` reply, `from` copied into `to`, which answers whichever session
-sent the report and instructs nothing. Kanri's address is the roster's first
+sent an intake line — a bug report, a feedback file, or a consult turn — and
+instructs nothing. Kanri's address is the roster's first
 data row, read at the moment of sending; a send that errors or gets `no-role`
 back is held and re-sent to that row, read fresh, at your next wake-up.
 
@@ -34,28 +35,68 @@ at a time, and `tanto hosa` while one is held enters it.
 `chore: <one line>` when you take one, so that Kanri knows what is in hand
 without a `human-contact:` for every job.
 
+One chore the human may hand you has a fixed form: a feedback file for a
+topic already closed, sent to the repository that ships this skill. Write
+`.tanto/<topic>/shoroku-feedback.md` from `templates/shoroku-feedback.md` —
+Items from what the human tells you, paraphrased under the template's
+anonymity rule; Departures `none`, since a close is not yours to read — and
+run `node "$TANTO/scripts/usage.js" close --topic <topic>`, `$TANTO` set in
+the same tool call, adding `--transcripts <path>...` where the spawner kept
+no results for the topic. Where the topic's transcripts are gone, write the
+figures the repository kept into the file's Usage block yourself, with
+`"measured": false`, and add `--keep-usage` instead, which measures nothing
+and takes the block as it stands. The command checks the file and places
+it. Each `send:` line it prints carries the line to send,
+`shoroku-feedback: <absolute path>`, and its `to:` line the workspace whose
+intake gets it: send it by the route `SKILL.md`'s "Messages" states for a
+feedback line, which, where that roster is absent or no listed row
+remains, sends nothing and leaves the file to be offered again at the next
+close. A run that prints no `send:` line leaves nothing to send. When it prints `feedback: held`, show
+the human the lines it names: they edit the file and you run the command
+again with the same `--transcripts` or `--keep-usage` it had, or they say
+the lines may go and you run it again so, adding `--release`, on their
+word alone.
+
 **The intake's.** While your roster row's Status begins with `live` and the
-listing shows you — in a turn, or held by a terminal — every
-`bug-report: <path>` line for this repository is addressed to you, from
-another repository's session or from a session of this one; while you are
-parked it is Kanri's, as it is in practice, since you park at every turn's
-end. One that arrives after Kanri has since marked your row otherwise is
-answered the same way, since the sender read the roster once and the act is
-harmless —
-and you answer it with one act that reads nothing of the report: copy the file to
-`.tanto/inbox/<basename>` — the sender's `<YYYY-MM-DD>-<slug>.md`, or
-today's date and the file's name kebab-cased when it is not of that shape —
-creating `inbox/` if absent; append one line under the copy's `## Received`
-heading, `- <the envelope's from-name>, <YYYY-MM-DD>`; answer one line,
-`received: <inbox path>`, copying the envelope's `from` into `to`. Nothing
-else: no `chore:` line to Kanri, no triage, no filing — the report waits in
-the inbox for a close, and Kanri learns of it there. When the human hands
-you a defect they noticed, in this window, write it from
-`templates/bug-report.md` yourself: into the inbox when it is this
-repository's, its Received line `- the human, in chat, <YYYY-MM-DD>`, or to
-`.tanto/sent/<YYYY-MM-DD>-<slug>.md` and to the target workspace's intake —
-its `live` Hosa row, else its first data row, checked against `ListAgents` —
-when it is another repository's.
+listing shows you — in a turn, or held by a terminal — every intake line
+sent to this repository is addressed to you: `bug-report:`,
+`shoroku-feedback:`, `consult:`, or `consult-answer:`, each followed by one
+absolute path, from another repository's session or from a session of this
+one. While you are parked it is Kanri's, as it is in practice, since you
+park at every turn's end. One that arrives after Kanri has since marked
+your row otherwise is answered the same way, since the sender read the
+roster once and the act is harmless. You answer every one with the one act,
+which reads nothing of the file: copy it to `.tanto/inbox/<basename>` — a
+copy already there is left as it is, and the reply names it — the
+sender's `<YYYY-MM-DD>-<slug>.md`, or today's date and the file's name
+kebab-cased when it is not of that shape — creating `inbox/` if absent;
+append one line under the copy's `## Received` heading,
+`- <the envelope's from-name>, <YYYY-MM-DD>`; answer one line,
+`received: <inbox path>`, copying the envelope's `from` into `to`. A burst
+is answered line by line. For `consult:` and `consult-answer:`, and for
+those two alone, run one command after the copy, `$TANTO` set in the same
+tool call:
+
+```bash
+node "$TANTO/scripts/boundary.js" request attention --message "consult: waiting — tanto kikaku"
+```
+
+It raises one desktop notice and wakes nobody: the human enters this
+repository's Kikaku, which reads the copy. On `spawner: stale` it writes
+nothing and exits 1, and you go on — the copy is the record, and the Kikaku
+finds it at its next turn. The request is no park request and no chore: you
+still end the turn with your park request, and nothing it leaves keeps you
+from `/tanto taiseki`. Nothing else: no `chore:` line to Kanri, no triage,
+no filing. A bug report or a feedback file waits in the inbox for the next
+close, which reads it; a consult copy is this repository's Kikaku's, and no
+close reads it.
+
+When the human hands you a defect they noticed, in this window, write it
+from `templates/bug-report.md` yourself: into the inbox when it is this
+repository's, its Received line `- the human, in chat, <YYYY-MM-DD>`; or,
+when it is another repository's, to `.tanto/sent/<YYYY-MM-DD>-<slug>.md`,
+and send its `bug-report:` line to that workspace's intake by the route
+`SKILL.md`'s "Messages" states for every intake line.
 
 **Kanri's.** Sent as one line:
 `chore: <what> — <paths> — slot: now | at the next boundary`. These are the

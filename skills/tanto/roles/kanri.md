@@ -6,9 +6,11 @@ directions, the bug intake while no Hosa is listed, the spawner's request
 files, the kessai, and the branch; the write-out itself is shoki's work, at
 the topic's close.
 You talk to the human, Sekkei, Keikaku, Jisso, Kaiseki, and Hosa, and you are
-the only role that messages Jisso; Kikaku is the human's seat and hears
-nothing from you. You are the human's counterpart: a peer reaches the human
-only under a grant of yours ("Human access" below).
+the only role that messages Jisso; Kikaku is the human's seat, and you never
+address one first — as the intake you answer another repository's Kikaku's
+consult line with `received:`, which is a reply and nothing more. You are the
+human's counterpart: a peer reaches the human only under a grant of yours
+("Human access" below).
 
 You have done your own model and effort check, in your start line. Every
 seat, you included, is started by the spawner on a request — yours or the
@@ -184,7 +186,8 @@ instead and runs "Recovery" below. Continue where the current ledger's
 Progress line says, or, if none is open, wait for the human to say what the
 next work is and open the topic as step 5 says. When the row's Name is not
 your name, rewrite it in place with your name, status `live`, and write the
-Events line `resumed: <old name> → <new name>`. No row is marked `dead` on
+Events line `resumed: <old name> → <new name>` under the roster's `## Events`
+heading, after its last line. No row is marked `dead` on
 this case alone, and there is no tree recovery beyond `git status`.
 
 **Second Kanri** — no handover file, the first data row's `sessionId` is
@@ -300,7 +303,7 @@ show --stat`, or a read of a path your session may read before a ruling
 or a line to a seat relays it, as you check a report's claims; one you
 cannot check is relayed marked `(unverified)`. Note `decision: <path>
 received from <name>` in the roster's Events either way. You
-never send to Kikaku: it is the human's seat, not yours.
+never address Kikaku first: it is the human's seat, not yours.
 
 ## When the plan lands
 
@@ -432,7 +435,6 @@ Per batch, in this order.
    seat=<the spawner result file of the Jisso that ran this batch, or none>
    measurement=<the measurement report's path on a measurement batch, or none>
    peer readings since the last boundary, one per line, or none: <…>
-   top-family dispatches since the last boundary, one per line, or none: <…>
    Write .tanto/<topic>/batch-<key>-verdict.md in your own turn. Dispatch no agents.
    Reply with the verdict line only.
    ```
@@ -441,21 +443,12 @@ Per batch, in this order.
    rework, the rework's own key, `<X>-rework-<n>` (step 6). At the fix wave's
    own boundary the dispatch's `batch=` is `fixwave`, while step 6's `record
    --batch` carries the ledger row's own key, `fix wave` — see "The verdict
-   file" in `templates/boundary-brief.md`. The last two
-   lines are the two things the subagent cannot see and you hold
-   as text. The readings are the ones peers' last lines carried since the
-   previous boundary, one `<role> <name> <reading>` per line, the name bare.
-   The
-   dispatches are every one since the previous boundary whose kind
-   `tanto.json` puts on the top family of the ladder — `fable` today, and the
-   merged config decides, not the family a session happens to run on, so an
-   `opus` `shoroku` dispatch does not count while a `fable` `plan.coldread`
-   does: your own `plan.coldread` and `branch.review`, and the ones a peer's
-   line implies — `review-ready:` is one `brief.write`, a plan-review path is
-   one `plan.review`, a spec-review path is one `spec.review` if the config
-   puts it there — each written as the line `dispatch: <kind> on <family>`,
-   which `record` appends and which you count by kind to fill the one-shots
-   row at the close.
+   file" in `templates/boundary-brief.md`. The readings line is the one
+   thing the subagent cannot see and you hold as text: the readings peers'
+   last lines carried since the previous boundary, one
+   `<role> <name> <reading>` per line, the name bare. What a dispatch cost
+   is no line of yours: `usage.js` measures every dispatch from the
+   transcripts at the close.
 
    Then wait for one line. You do not run `passage-check`, `reading.js`, or
    `sections` at this boundary; you do not open the report; you edit no table
@@ -511,8 +504,8 @@ Per batch, in this order.
    above the count you have noticed is signal 3. Jisso's verdict is recorded
    and acts on nothing: the rotation retires every Jisso at its boundary, and
    the figure is what the archive keeps. The readings themselves, the
-   Residency rows, the Measurements per-boundary entry, the `dispatch:` events
-   lines, and the next batch's `planned` row with its Prompt cell are the brief's,
+   Residency rows, the Measurements per-boundary entry, and the next batch's
+   `planned` row with its Prompt cell are the brief's,
    written by `record` from the dispatch you sent at step 2 — at a boundary you
    take no reading and rewrite no row.
    If a Sekkei's or a Kaiseki's `spawn` request is due ("Create"), write it,
@@ -1097,23 +1090,49 @@ and the close reads them once.
    `pending` rows name — the spec with its four section names, each proposal
    by path, each report by path and item, **each named with its `S-n`** so
    that the item's heading and its `Source:` line can carry it — and **every
-   untriaged copy under `.tanto/inbox/`**, by path — a copy whose Triage
-   section is absent or whose Outcome is none of `issue`, `fix`, `redirect`,
-   `kaiseki`, `relay`, `dismissed` — with `docs/` as the baseline and `skills/`
-   as the paths a `fix` item may touch, and name
+   untriaged copy under `.tanto/inbox/`**, by path, as "The close reads the
+   inbox" tells one — a bug report whose Triage section is absent or whose
+   Outcome is not one of the six inbox words, or a feedback file whose
+   Triage Outcome is not `feedback`; a consult turn never is one — with
+   `docs/` as the baseline and `skills/` as the paths a `fix` item may
+   touch, and name
    the output, `.tanto/<topic>/shoroku-recommendation.md`. The recommender's
    bar: an item is recommended as an `issue` only when it is medium
    severity or above, needs a decision, or records a measured defect; a
    low-severity gap or drift in the skill's own prose whose whole repair is
    one sentence, or a few adjacent ones in one file under `skills/`, and
    needs no decision is recommended `fix`, with the file, the text as it
-   reads, and the text as it should read written out in the item. The file
+   reads, and the text as it should read written out in the item, in the
+   exact markup of the file it lands in (a code span stays a code span),
+   and checked against the skill's current text before it is routed — a
+   repair the text already carries is marked so. An item
+   whose citing document would be a tanto role file, a tanto template,
+   `SKILL.md`, a tanto script, or `templates/tanto.json` has the destination
+   `feedback`; one this repository's own documents will also cite — it can
+   say it in its own words, and one of its documents will cite it — has the
+   compound destination `<docs destination>; feedback`. When in doubt the
+   recommender sends: an item wrongly kept fails silently, and one wrongly
+   sent is caught at the receiving close and returned as `redirect`. Every
+   item whose destination carries `feedback` holds one more line under its
+   heading, `Feedback: <one line>` — the item paraphrased in tanto's terms,
+   a role, a kind, a template, a step, under the anonymity rule the lead of
+   `templates/shoroku-feedback.md` states — and that line alone travels.
+   Before the dispatch run `node "$TANTO/scripts/usage.js" id`, and say in
+   the dispatch which case its second line gives:
+   `skill repository: this one` is this repository shipping the skill,
+   where there is no `feedback` destination and such an item is an ordinary
+   item with a `docs/` destination or a `fix`; another root, or `none`, and
+   the destination applies — with `none`, `close` keeps the file rather
+   than sending it. The file
    lists every item once in four groups — Recommended adopt, Recommended
    fix, Recommended reject, Unsure — each item quoted in full from its
-   source under a heading that ends with its pointer, `(<topic> S-<n>)` or
-   `(inbox <YYYY-MM-DD>-<slug>)`, so that the file stands alone as the
-   apply's input, with its destination, its one-line reason, and for a
-   `design` entry the `req-<id>` it serves; a requirement or an ADR item
+   source under a heading that ends with its pointer — `(<topic> S-<n>)`,
+   `(inbox <YYYY-MM-DD>-<slug>)`, or, for an item of a feedback copy, each
+   line under the copy's `## Items` being one inbox item,
+   `(inbox <YYYY-MM-DD>-feedback-<workspace id>[-<m>] #<n>)` — and the file then
+   stands alone as the apply's input, with its destination, its one-line
+   reason, and for a `design` entry the `req-<id>` it serves; a requirement
+   or an ADR item
    carries the original wording followed by a reference translation in the
    human's language. An inbox item's destination is one of `issue`,
    `fix — <file>`, `redirect — <where it belongs>`, `kaiseki — <one line>`,
@@ -1139,16 +1158,24 @@ and the close reads them once.
    failure dispatch the recommender once more, naming what failed; on a
    second failure paste the brief as it stands and say in one
    line what is wrong with it. Then the **kessai**: one request, one
-   message, one answer. Run `beat`, then write an `attention` request whose
-   message is `kessai: <topic> — tanto kanri`, the command that attaches
-   the human to you, and print in your own session, in the human's language:
+   message, one answer. First run
+   `node "$TANTO/scripts/usage.js" measure --topic <topic>`, which writes
+   `.tanto/<topic>/usage.json` and prints one `cost:` line — or
+   `cost: unavailable — <reason>`, which holds nothing up. Then run `beat`,
+   write an `attention` request whose message is
+   `kessai: <topic> — tanto kanri`, the command that attaches the human to
+   you, and print in your own session, in the human's language:
 
    ```text
    kessai: <topic> — recommendation <path>; brief <path>; adopt <a>, fix <f>, reject <r>, unsure <u>.
+   <the cost: line that measure printed>
    merge: --no-ff into main, delete the local branch, push nothing.
-   Answer OK, or the item numbers that go the other way with your word for each, or a merge override; the brief follows.
+   Answer OK, or the item numbers to change, each with your word — the other way, or in part, such as an item's feedback half — or a merge override; the brief follows.
    <the brief's text verbatim>
    ```
+
+   The four counts are by group: an item with a feedback half is counted
+   once, in the group it is recommended in.
 
    The human answers there — `tanto kanri` in a terminal, type, then ← and
    leave the agent view — or through a Kikaku decision
@@ -1162,6 +1189,10 @@ and the close reads them once.
    and the merge is no longer a second question. Write `shoroku-direction.md`
    beside the recommendation,
    item by item, with the `S-n` rows in the ledger: Adopted from the answer.
+   For every item whose destination carries `feedback`, the direction says
+   whether its feedback half was kept; shoki's apply writes the text after
+   the `Feedback:` label of each kept one into the feedback file as one
+   numbered line with its Class, and of no other.
    No item is escalated apart from the rest and none is decided by you
    alone; the human sees the whole list, grouped, and answers by exception.
    Until the answer arrives nothing else happens in this topic; the next
@@ -1172,33 +1203,49 @@ and the close reads them once.
    its `spawn` request, as "Shusei, shoki, and the landing" below
    prescribes; the brief names the recommendation, the direction, the inbox
    copies by absolute path, the commit subject
-   `docs: shoroku for <topic>`, and your own address as the roster's
-   first data row. Shoki, in its worktree, dispatches
+   `docs: shoroku for <topic>`, your own address as the roster's first data
+   row, and three arguments more: Feedback, the absolute path of
+   `.tanto/<topic>/shoroku-feedback.md` in the main checkout, where shoki's
+   apply writes the Items and the Departures of this close's feedback file;
+   Usage record, the absolute path of `docs/notes/tanto-usage.jsonl` in
+   shoki's worktree when `usage.js id` printed `skill repository: this one`,
+   and `none` otherwise, so that shoki's `usage.js collect` appends the
+   inbox's feedback copies to the tracked record; and Skill directory, the
+   skill directory's absolute path. Shoki, in its worktree, dispatches
    `subagent_type: tanto-shoroku-apply` in apply mode and then
    `shoroku.review` over the result; the apply
    writes the accepted subset per `docs/AGENTS.md` and the per-type
    files, every issue opening with the `Source:` line its item's heading
-   names — `Source: shoroku <topic> S-<n>` or `Source: inbox
-   <YYYY-MM-DD>-<slug>` — and naming no report's source otherwise (the
-   tracked-write rule of `SKILL.md`'s Messages); fills the Triage section of
-   every inbox copy the brief named with the direction's outcome, its
-   reference, and the date, so that the copy leaves the queue (untracked, so
-   that write needs no slot); runs the repository's lint on the changed
+   names — `Source: shoroku <topic> S-<n>`,
+   `Source: inbox <YYYY-MM-DD>-<slug>`, or, for an item of a feedback copy,
+   `Source: inbox <YYYY-MM-DD>-feedback-<workspace id>[-<m>] #<n>` — and naming no
+   report's source otherwise (the tracked-write rule of `SKILL.md`'s
+   Messages); fills the Triage section of each inbox copy the brief named,
+   so that the copy leaves the queue (untracked, so that write needs no
+   slot) — a bug report's with the direction's outcome, its reference, and
+   the date; a feedback copy's with Outcome `feedback`, one Items line per
+   item, and the date, a copy whose Items is `none` taking no Items line;
+   runs the repository's lint on the changed
    paths by name — or on the whole repository where the lint script takes
    no path arguments, which satisfies this step — commits once by explicit
    path with the trailer, and reports the subject. A `fix` item is **not**
    the apply's: it is shusei's, a Jisso batch of one task on the topic
    branch, rendered from `templates/batch-prompt.md` with each item's file,
    the text as it reads, and the text as it should read, verified by
-   `passage-check.js verify` and committed once as
+   `passage-check.js verify` and committed once — its commit message naming
+   documents by `<type>-<id>` only and no ledger row — as
    `fix: text corrections from <topic>'s close` — run and reviewed like any
    batch, which is what closes decision-83aa's "a `fix` lands unreviewed by
    a subagent". Verify shoki's commits at their landing and shusei's at its
-   boundary — `git status` clean, the diffs' paths
-   those the direction names, lint on them (again, whole-repository if that
-   is what the script does) — and fill the Written column: the docs subject
-   for an adopted row, shusei's commit subject for a `fix` row, taken from
-   the boundary's verdict. An inbox item has no
+   boundary — `git status` clean, the diffs' paths those the direction
+   names and, in the skill's own repository, `docs/notes/tanto-usage.jsonl`,
+   which `collect` appends beside them, lint on them (again,
+   whole-repository if that is what the script does) — and fill the Written
+   column: the docs subject for an adopted row, a row with a compound
+   destination included, and shusei's commit subject for a `fix` row, taken
+   from the boundary's verdict; a row whose only destination is `feedback`
+   is filled at the landing's last act instead ("Shusei, shoki, and the
+   landing"). An inbox item has no
    row; its Triage is its record. A `relay` outcome is yours to finish:
    append the copy's Symptom as the next `I-n` of that topic's
    `spec-inputs.md` with your note, send its Sekkei one line, and rewrite the
@@ -1227,9 +1274,13 @@ one is live.
 A reference to an `S-n` or an `R-n` from outside its own ledger — the roster, a
 handover file, another ledger — names the topic first, `<topic> S-n`; bare
 numbers stay bare inside a ledger. The Written column takes only a value a
-filter can read: `no`, a commit subject, or `superseded: <topic> R-n`, the last
-counting as written; an item two closes could claim is one row in the
-ledger of the topic that raised it, never a compound value.
+filter can read: `no`; a commit subject; `feedback <basename>`, for an item
+whose only destination is `feedback`, once `usage.js close` has placed the
+file, whether or not a line could be sent, the cell staying `no` while the
+file is held; or `superseded: <topic> R-n`. All but `no` count as written;
+an item two closes could claim is one row in the ledger of the topic that
+raised it, never a compound value — a compound Destination's Written is its
+commit subject.
 
 ### The close
 
@@ -1242,12 +1293,9 @@ ledger of the topic that raised it, never a compound value.
    request: the close is its exit and no line goes to it. Then
    write your own proposal and record its rows ("The final batch", step 3).
 2. **Recommend, then the kessai.** Steps 2 and 3 above, both yours: the
-   recommend dispatch, then the one message answered by exception — with
-   the roster's Residency rows
-   of this run appended to the direction file for the dogfood report's
-   Measurements table — the readings the archive will hold, kept under
-   `docs/reports/` (issue-40ed). A live Hosa holds no part of the close now;
-   its one part is relaying an answer the human speaks in its window.
+   recommend dispatch, then `measure` and the one message answered by
+   exception. A live Hosa holds no part of the close now; its one part is
+   relaying an answer the human speaks in its window.
 3. **Shoki writes.** Step 4 above, in its own worktree, after the merge. The
    human saw the result at the kessai, which is the one answer this close
    waits for.
@@ -1313,7 +1361,8 @@ first costs nothing where it does survive. Then remove the worktree you
 cut, which `claude rm` leaves — `git worktree remove --force --force
 <root>/.claude/worktrees/shoki-<topic>` — and delete the branch
 `worktree-shoki-<topic>` you cut, move shoki's result file to
-`.tanto/<topic>/spawner-results/`, mark the `S-n` rows written, and write
+`.tanto/<topic>/spawner-results/`, mark the `S-n` rows written — a row whose
+only destination is `feedback` waits for the last act below — and write
 the Events line. A landing check that fails is a follow-up `docs:` commit
 through the hotfix lane, never a re-run of shoki. A `shoroku blocked:` line
 is a ruling: read the conflict's paths and either resolve it by hand in the
@@ -1321,7 +1370,54 @@ worktree — a hotfix-lane act, since the tree is yours — or hand the human
 the question at your next line. **The close's handover does not wait for
 shoki**: it fires after the merge and the archive move, so shoki's line
 ordinarily reaches your successor, and the handover file's In flight block
-says so.
+says so, naming with that landing its `usage.js close`, and a held
+feedback file when there is one.
+
+**The landing's last act** is the topic's final measurement and its
+feedback file, run by whichever Kanri lands — after shoki's line, the
+landing checks, the fast-forward, and the steps above:
+
+```bash
+node "$TANTO/scripts/usage.js" close --topic <topic>
+```
+
+It measures again, final; writes `.tanto/<topic>/usage.json`; assembles the
+feedback file from shoki's part and the usage extract; checks it for what
+would name this workspace; places it by where the skill's repository is;
+and prints four lines:
+
+```text
+usage: .tanto/<topic>/usage.json — <the cost line, final>
+feedback: <absolute path of the assembled file>
+to: <the skill repository's workspace root>
+send: shoroku-feedback: <absolute path>
+```
+
+Send each `send:` line — one more is printed for every earlier file the
+target's inbox does not hold — to the intake of the workspace the `to:`
+line names, as "Reporting from the other side" says, with the `no-role`
+line second; write `feedback <basename>` into the Written cell of each row
+whose only destination is `feedback`; and fill the ledger's Measurements
+usage row from the `usage:` line. `feedback: own repository — <inbox path>`
+or `feedback: kept — <reason> — <path>` in place of the `to:` and `send:`
+lines means nothing is sent. `feedback: shoki's part absent — <path>` and
+`usage: unavailable — <reason>` are lines to note, not stops: the file is
+placed all the same. On `feedback: held — <n> lines name this workspace`,
+the lines after it and exit 1, nothing is placed and nothing is sent, and
+the Written cells stay `no`: write one Events line and one line under the
+ledger's Open questions for the human, naming
+`.tanto/<topic>/shoroku-feedback-held.md`. An exit 2, with
+`usage.js: <message>` on stderr, is a failed run and not a hold: nothing is
+sent; write one Events line and one line under the ledger's Open questions
+for the human naming the message, and run `close` again once the cause is
+cleared. The human either edits
+`.tanto/<topic>/shoroku-feedback.md`, or reads the held lines and says they
+may go; after either remedy, run `close` again — a second run rewrites the
+file in place and changes nothing but the measurement —
+and after the second remedy, the human's word that the lines may go, run it
+with `--release`, which places the file as it stands and is run on that
+word alone; after the first remedy, the edit, run it without `--release`, so
+that the mechanical check reads the edited text.
 
 **The between-plans inbox sweep.** When no topic is open and the human
 says, in your window and in any words, that the inbox is to be swept, run
@@ -1337,7 +1433,12 @@ and the subject, landed as "Shusei, shoki, and the landing" says. A sweep's
 `fix` items are a shusei batch on `main`, verified against no plan. No
 `S-n` rows are written, since
 an inbox item's record is its copy's Triage. Write the sweep as one Events
-line of the roster.
+line of the roster. A sweep has no topic, so it measures nothing and
+writes no feedback file: `usage.js measure` and `close` are not run, its
+kessai carries no `cost:` line, and its shoki brief's Feedback argument is
+`none`. It reads the inbox's feedback copies as step 2 says, and in the
+skill's own repository its brief's Usage record is set as at a close, so
+that shoki's `collect` runs; a sweep's own departures are not recorded.
 
 **A topic the human ends before its final batch** — the plan not wanted,
 the branch abandoned — and a completed plan whose final batch ran through
@@ -1443,8 +1544,10 @@ the commands, and your closing line.
 
 ## Bug intake
 
-`SKILL.md` defines the terms — the `bug-report:` line, the file written from
-`templates/bug-report.md`, the intake's `received:` answer, and the
+`SKILL.md` defines the terms — the four intake lines, `bug-report:`,
+`shoroku-feedback:`, `consult:`, and `consult-answer:`; the files written
+from `templates/bug-report.md`, `templates/shoroku-feedback.md`, and
+`templates/consult.md`; the intake's `received:` answer; and the
 tracked-write rule. The intake is a Hosa whose row is `live` and whose name
 the listing shows — one in a turn, or held awake. While every Hosa is
 parked, which is most of the time, the intake is you, and you do exactly
@@ -1452,17 +1555,36 @@ what Hosa does and nothing more.
 
 ### The one act
 
-On `bug-report: <path>`: copy the file to `.tanto/inbox/<basename>`, the
-basename the sender's — `<YYYY-MM-DD>-<slug>.md` — or, when the name is not
-of that shape, today's date and the file's name kebab-cased; create `inbox/`
-if it is absent; append one line under the copy's `## Received` heading,
+On an intake line — `bug-report:`, `shoroku-feedback:`, `consult:`, or
+`consult-answer:`, each with one absolute path — copy the file to
+`.tanto/inbox/<basename>` — a copy already there is left as it is, and the
+reply names it — the basename the sender's —
+`<YYYY-MM-DD>-<slug>.md` — or, when the name is not of that shape, today's
+date and the file's name kebab-cased; create `inbox/` if it is absent;
+append one line under the copy's `## Received` heading,
 `- <the envelope's from-name>, <YYYY-MM-DD>`; answer one line,
-`received: <inbox path>`, copying the envelope's `from` into `to`. A copy
-command and one appended line: you read nothing of the report, since a
-report read is a report in your context, and its cost is your context size,
-not the act. No triage, no `R-n`, no ledger row, no Events line, no filing,
-no hotfix: the copy is the log of receipt, and the report waits for a close.
-Copies are never deleted.
+`received: <inbox path>`, copying the envelope's `from` into `to`. A burst
+is answered line by line. A copy command and one appended line: you read
+nothing of the file, since a file read is a file in your context, and its
+cost is your context size, not the act. No triage, no `R-n`, no ledger row,
+no Events line, no filing, no hotfix: the copy is the log of receipt. A bug
+report and a feedback file wait for a close; a consult turn waits for this
+repository's Kikaku, which reads it, and never for a close. Copies are
+never deleted.
+
+For `consult:` and `consult-answer:`, and for those two alone, run one
+command after the copy, so that the human learns a consult is waiting:
+
+```bash
+node "$TANTO/scripts/boundary.js" request attention --message "consult: waiting — tanto kikaku"
+```
+
+It writes the `attention` request the spawner raises as a notice, and it
+wakes nobody: the human enters the Kikaku. On `spawner: stale` it writes
+nothing, prints the `spawner:` line, and exits 1; go on — the copy is the
+record, and the Kikaku finds it at its next turn. Your `received:` for a
+consult line goes back to whoever sent it, another repository's Kikaku
+included; that reply is a reply, never a first line.
 
 When the human reports in chat, in your window, write their words into the
 skeleton yourself at `.tanto/inbox/<YYYY-MM-DD>-<slug>.md`, and the Received
@@ -1470,12 +1592,19 @@ line says `- the human, in chat, <YYYY-MM-DD>`.
 
 ### The close reads the inbox
 
-Every untriaged copy — its Triage section absent, or its Outcome none of
-`issue`, `fix`, `redirect`, `kaiseki`, `relay`, `dismissed` — is an input to
-the next close's recommend dispatch, whichever topic closes ("Shoroku", step
-2), and the apply fills its Triage (step 4). Between plans, the human's word
-in your window runs the same steps over the inbox alone ("Delegation to
-Hosa"). Your own shoroku proposal does not sweep the inbox.
+What a copy is, and who reads it, is decided by its first line and by
+nothing else: a copy whose first line begins `# Consult` is a consult turn,
+read by this repository's Kikaku and never an input to a recommend
+dispatch; one whose first line begins `# Shoroku feedback` is a feedback
+file; every other is a bug report. Every untriaged copy — a bug report
+whose Triage section is absent or whose Outcome is not one of `issue`,
+`fix`, `redirect`, `kaiseki`, `relay`, `dismissed`, or a feedback file
+whose Triage Outcome is not `feedback` — is an input to the next close's
+recommend dispatch, whichever topic closes ("Shoroku", step 2), and the
+apply fills its Triage (step 4). Between plans, the human's word in your
+window runs the same steps over the inbox alone ("The between-plans inbox
+sweep", under "Shusei, shoki, and the landing"). Your own shoroku proposal
+does not sweep the inbox.
 
 ### The hotfix lane
 
@@ -1543,6 +1672,15 @@ live, and the first data row is taken instead, with the choice noted in
 your Events line — and ask the human for the address only when that roster
 is absent or no listed row remains; send `bug-report: <absolute path>` to that bare
 name. The sent copy is the record of the send, and it is kept.
+
+A feedback file is sent the same way — each `send:` line `usage.js close`
+prints at a landing goes to the intake of the workspace its `to:` line
+names, that roster read and checked as above, with the `no-role` line
+second ("Shusei, shoki, and the landing") — and differs from a bug report's
+send in two ways: it is your own act at the close, not one the human asks
+for; and where the target's roster is absent or no listed row remains, you
+ask the human nothing and send nothing, since `close` offers the file again
+at the next close.
 
 ### Limits
 
@@ -1776,7 +1914,7 @@ confirm the session is gone first — uncommitted work may be in the tree.
 | the `coldread answered:` line named the shoroku proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; record its proposal's items as `pending` rows and write its `stop` request as soon as the proposal passes the form check — nothing is said to it, its conversation kept; a Keikaku is never reused across topics (decision-f496) |
 | Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; record its proposal's items as `pending` rows and write its `stop` request as soon as the proposal passes the form check, or keep it if more of the same bug is expected |
 | the final batch is accepted, the close's shoroku proposal is written and passes the form check, and leftovers are clean | the last Jisso is done; write its `stop` request at once, the close being its exit — nothing is said to it, its conversation kept — the recommendation and the kessai run with it gone, and a merge declined with fixes wanted is a new batch on a new Jisso either way; a `queued` Jisso that never ran gets a `stop` request the same way, its row `stopped` |
-| the kessai is answered, shusei's batch is verified, the merge is done, and the ledger's Progress line says closed | this plan is closed. **First, while every row still carries its Transcript column**, run `node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]` over the sessions of **this topic**: every seat the ledger's Session events accepted for it — Sekkei, Keikaku, every Jisso, `queued` ones that never ran included, an attached Kaiseki — and every Kanri whose tenure overlapped it, the current one and any predecessor the Events' handover lines name, each path taken from its roster or archive row. Shoki's transcript is not in the list: it is not a session of the ledger's Session events. Rows of another plan that a shared roster still holds, and Kikaku's and Hosa's, whose Topic is `—`, are not of this topic and are left out. A path that is denied, `unavailable`, or on another host is skipped and named by the script, and is never read by asking the peer. A bare `<sessionId>.jsonl` cell, the form a spawn result with no transcript leaves, is no path the script can open: find the file under `<config dir>/projects/` first, by basename, and pass that path. Record the share line, the sessions it ran over, and the ones it skipped in the Measurements share row; the target is 30% or less. Then run the census, write `stopped` every row it prints under **Ended**, and mark `dead` every row it prints under "Not listed"; bring the roster's Shoroku proposal items table to the template's shape if it still has its pre-rename heading or the retired seventh column, its rows kept; move the stopped, dead, replaced, refused, and cleared rows — the last two an old contract's, kept until the archive takes them — with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet — move the topic's result files to `.tanto/<topic>/spawner-results/`, fill the ledger's remaining Measurements fixed rows, and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb) |
+| the kessai is answered, shusei's batch is verified, the merge is done, and the ledger's Progress line says closed | this plan is closed. Run the census, write `stopped` every row it prints under **Ended**, and mark `dead` every row it prints under "Not listed"; bring the roster's Shoroku proposal items table to the template's shape if it still has its pre-rename heading or the retired seventh column, its rows kept; move the stopped, dead, replaced, refused, and cleared rows — the last two an old contract's, kept until the archive takes them — with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet — move the topic's result files to `.tanto/<topic>/spawner-results/`, fill the ledger's Measurements row of the top-family peak — its usage row is the landing's, filled from `usage.js close` ("Shusei, shoki, and the landing") — and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb), the landing still ahead, its `usage.js close` with it, named in the handover file's In flight |
 
 The role is resident; the session that carries it is not. A plan's end is a
 boundary like any other for the run, and the next topic starts with a new topic

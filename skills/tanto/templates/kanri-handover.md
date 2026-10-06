@@ -28,7 +28,14 @@ no topic is open. The line after the blocks is written once.
   spawned — always after this topic's merge — and `shoroku ready: not yet
   arrived`, or "none">; the successor runs the landing checks on that line,
   fast-forwards `main`, takes shoki's reading and then writes the `rm`
-  request, and fills the ledger
+  request, fills the ledger, and runs `usage.js close --topic <topic>`, the
+  landing's last act
+- A `close` not finished — <`<topic>`, its `to:` line, and its `send:` lines
+  not yet sent, or its `feedback: held` line,
+  `.tanto/<topic>/shoroku-feedback-held.md`, and the remedy offered the
+  human — an edit, or `--release` on his word — with his answer if he
+  gave one, or "none">; the successor sends the lines, or runs `close`
+  again on that answer
 
 ## Live peers
 
@@ -78,7 +85,7 @@ reading taken when this handover was written.>
 
 ## Next step
 
-<One line — the successor's first act after its cold read.>
+<One line — the successor's first act after its cold read, named as an act and not as a step order: the successor follows the role text it read, which may be newer than the one this file was written from.>
 
 ## Not reconstructed
 

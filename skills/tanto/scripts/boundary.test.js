@@ -615,7 +615,7 @@ test("the same event in two batches is two lines; twice in one batch is one", ()
     "--batch",
     batch,
     "--event",
-    "dispatch: plan.review on fable",
+    "human-access: done — the human signed in",
     "--now",
     now,
   ];
@@ -623,12 +623,12 @@ test("the same event in two batches is two lines; twice in one batch is one", ()
   assert.strictEqual(run(event("Y", "2026-09-19 09:30"), fixture.dir).code, 0);
   assert.strictEqual(run(event("Z", "2026-09-19 10:00"), fixture.dir).code, 0);
   const ledger = fs.readFileSync(fixture.ledger, "utf8");
-  const lines = ledger.split("\n").filter((l) => l.includes("dispatch: plan.review on fable"));
-  // Two dispatches of one kind in two batches are two dispatches, and the
-  // close counts them by kind; the repeated call inside batch Y is one.
+  const lines = ledger.split("\n").filter((l) => l.includes("human-access: done — the human signed in"));
+  // The same exchange in two batches is two exchanges, and both stay in the
+  // ledger; the repeated call inside batch Y is one.
   assert.strictEqual(lines.length, 2);
-  assert.ok(ledger.includes("dispatch: plan.review on fable (batch Y)"), ledger);
-  assert.ok(ledger.includes("dispatch: plan.review on fable (batch Z)"), ledger);
+  assert.ok(ledger.includes("human-access: done — the human signed in (batch Y)"), ledger);
+  assert.ok(ledger.includes("human-access: done — the human signed in (batch Z)"), ledger);
 });
 
 test("an event-only call writes no Batches row and needs no --batch", () => {
@@ -1398,7 +1398,7 @@ test("request refuses --notice without --waiting, a flag on leave, and a root wi
   const refusals = [
     [["park", "--transcript", t, "--notice"], /--notice goes with --waiting/],
     [["leave", "--transcript", t, "--waiting"], /takes no --waiting and no --notice/],
-    [["sleep", "--transcript", t], /needs park or leave/],
+    [["sleep", "--transcript", t], /needs park, leave, or attention/],
     [["park", "--transcript", t, "--root", f.dir], /no spawner requests directory/],
   ];
   for (const [args, said] of refusals) {
@@ -1619,4 +1619,55 @@ test("wake writes nothing on a stale spawner, and names a seat whose result neve
   const got = sub(quiet, ["wake", "sess-a", "--root", quiet.root], { TANTO_WAKE_WAIT_MS: "300" });
   assert.strictEqual(got.out, "spawner: beating\nerror: no result — sess-a\n");
   assert.strictEqual(got.code, 1);
+});
+
+test("request attention writes the intake's notice on a beating spawner, naming no seat, beside a seat's park request (tanto-feedback 7.2)", () => {
+  const f = spawnerFixture(
+    () => [],
+    () => [],
+  );
+  const t = transcriptOf(f.dir, "sess-hosa", true);
+  assert.strictEqual(sub(f, ["request", "park", "--transcript", t]).code, 0);
+  const got = sub(f, ["request", "attention", "--message", "consult: waiting — tanto kikaku", "--root", f.root]);
+  assert.strictEqual(got.code, 0, got.err);
+  assert.match(got.out, /^attention requested: \S+\n$/);
+  // The seat's own park request stands beside it, unchanged.
+  assert.deepStrictEqual(requestsOf(f), [
+    { op: "park", sessionId: "sess-hosa", waiting: false, notice: false, after: "s-1" },
+    { op: "attention", message: "consult: waiting — tanto kikaku" },
+  ]);
+});
+
+test("request attention writes nothing and exits 1 with the spawner: line on a stale or absent heartbeat", () => {
+  const stale = spawnerFixture(
+    () => [],
+    () => [],
+    false,
+  );
+  const args = ["request", "attention", "--message", "consult: waiting — tanto kikaku", "--root", stale.root];
+  assert.deepStrictEqual(sub(stale, args), { code: 1, out: "spawner: stale\n", err: "" });
+  fs.rmSync(path.join(stale.spawner, "heartbeat"));
+  assert.deepStrictEqual(sub(stale, args), { code: 1, out: "spawner: stale\n", err: "" });
+  assert.deepStrictEqual(requestsOf(stale), []);
+});
+
+test("request attention refuses a --transcript, a park flag, and a missing --message, writing nothing", () => {
+  const f = spawnerFixture(
+    () => [],
+    () => [],
+  );
+  const t = transcriptOf(f.dir, "sess-hosa", true);
+  const noSeat = /takes no --transcript, --waiting, or --notice/;
+  const refusals = [
+    [["attention", "--message", "consult: waiting", "--transcript", t], noSeat],
+    [["attention", "--message", "consult: waiting", "--waiting"], noSeat],
+    [["attention"], /needs --message <text>/],
+    [["attention", "--message"], /needs --message <text>/],
+  ];
+  for (const [args, said] of refusals) {
+    const got = sub(f, ["request", ...args]);
+    assert.strictEqual(got.code, 2, got.err);
+    assert.match(got.err, said);
+  }
+  assert.deepStrictEqual(requestsOf(f), []);
 });

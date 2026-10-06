@@ -50,7 +50,7 @@ one implementation plan.
   started at its landing and wait, so that every one of them read the same
   skill.
 - Takes bug reports about the skills this repository ships: a report is a
-  file and one line to the run's Hosa while the listing shows one in a
+  file and one `bug-report:` line to the run's Hosa while the listing shows one in a
   turn, else to Kanri — in practice Kanri, since a Hosa is parked between
   its turns — which copies it and answers `received:`; every report is
   decided at the
@@ -58,6 +58,32 @@ one implementation plan.
   applied to the skill's text, a redirect, a root-cause session, an input to
   a spec in progress, or dismissed — and nothing tracked names the
   reporter's repository.
+- Sends, at each topic's close, one **feedback file** to the repository
+  that ships the skill, unless the repository closing is that one. The
+  close's recommender gives an item whose citing document would be one of
+  tanto's own files the destination `feedback`, alone or beside a `docs/`
+  one, with one paraphrased line that travels, which the human sees before
+  anything is written; shoki writes those lines and the human's departures
+  from the recommendation into the file, and `usage.js close` adds the
+  topic's usage extract, checks that nothing in the file names the
+  workspace, and places it. A workspace is named only by its id, a salted
+  hash of its root commit, the salt kept in `$CLAUDE_CONFIG_DIR/tanto-salt`
+  (or `~/.claude/tanto-salt`) and never in a repository — back it up with
+  that directory, since a lost salt changes every id. Kanri sends one
+  `shoroku-feedback:` line to the skill repository's intake; its next close
+  decides each item as it decides a bug report, and its shoki collects the
+  usage into `docs/notes/tanto-usage.jsonl`, one tracked row per close.
+- Lets the Kikakus of two of the human's own repositories **consult** each
+  other. The human approves a thread once, with its scope in their words;
+  within it, a Kikaku writes each turn from `templates/consult.md` under
+  `.tanto/sent/` and sends one `consult:` or `consult-answer:` line —
+  direct to the other repository's Kikaku while it is running, else to its
+  intake, which copies the turn and raises one desktop notice
+  (`boundary.js request attention`) that wakes nobody. The other Kikaku
+  reads and answers it when the human next enters it. Consultations flow
+  and decisions do not — a decision file quotes only the human — and a
+  consult between repositories whose `user.email` differs stops before its
+  first turn.
 - Puts a **review brief** in front of the human before each spec and plan
   review: the points that need the human's judgment, each with a pointer into
   the document, in the human's language, written by a subagent the document's
@@ -90,8 +116,8 @@ one implementation plan.
   the default would move them out of; a managed policy that forces
   `worktree` wins over the flag, and no settings file is written.
 - **Node 22 or newer on `PATH`**, for `scripts/passage-check.js`,
-  `scripts/reading.js`, `scripts/boundary.js`, `scripts/spawner.js`, and
-  `scripts/tanto.js`. Every role runs the second
+  `scripts/reading.js`, `scripts/boundary.js`, `scripts/spawner.js`,
+  `scripts/tanto.js`, and `scripts/usage.js`. Every role runs the second
   at every exit and every boundary — Kanri's at a boundary through the
   `boundary.verify` subagent — so it is no longer needed only by a plan that carries passages; a
   session on which `node` will not run sends
@@ -114,7 +140,8 @@ one implementation plan.
   on it, committed or ignored as the repository decides. When both are absent,
   every key falls back to the built-in defaults in `templates/tanto.json`; a
   partial file is complete at either layer, because the overlay is field by
-  field, and a key written as a bare model name takes its effort from the
+  field — a model's `rates` row and the `plans` list replace whole — and a
+  key written as a bare model name takes its effort from the
   layers below. An effort the project file changes is carried by project-scope
   agent definitions the roles generate under `<repo>/.claude/agents/`, ignored
   by a `.gitignore` the roles write there. The same files carry `language`,
@@ -122,6 +149,13 @@ one implementation plan.
   `{"language": "ja"}` in the personal file sets it for every repository, and
   a project file may override it; unset, the repository's own language rule
   decides (`SKILL.md`, "The expected-model config").
+  Two more keys are read by `scripts/usage.js` alone, never by a seat:
+  `rates`, a dated table of list prices per model id that turns measured
+  tokens into an amount — the built-in file ships one, with the date and
+  the page its figures were read from, and an id it lacks is reported
+  unpriced — and `plans`, the human's own table of plan budgets, empty in
+  the built-in file, from which `usage.js report` derives an upper bound on
+  the hours a plan's window lasts at a topic's pace.
 
 ## Usage
 
@@ -189,7 +223,8 @@ new name, nothing keys on it, and a seat whose tab is not reopened is
 parked. A Kanri, a Jisso, or a shoki is unaffected by the reload. The
 desktop notice tells the human when a seat waits on them — a dialogue
 seat's question at the end of a turn the run started, a permission prompt,
-a kessai — and an optional harness hook makes it immediate; nothing
+a kessai, a consult turn arrived at the intake — and an optional harness
+hook makes it immediate; nothing
 requires it.
 
 ## The faces of a seat
@@ -250,7 +285,9 @@ plan's close.
   boundary's subagent follows), `shoki-brief.md` (the scribe's whole
   contract), `spawn-request.md` (the request schema), `kaiseki-brief.md`,
   `kaiseki-report.md`, `review-brief.md`, `shoroku-brief.md` (the shoroku
-  check brief), `tanto.json` (the built-in model and effort defaults),
+  check brief), `shoroku-feedback.md` (the file a close sends the skill's
+  repository), `consult.md` (one turn of a consult thread), `tanto.json`
+  (the built-in model and effort defaults, the `rates` table, and `plans`),
   `kikaku-decision.md`, and `agent.md`, the subagent definition every role
   generates from.
 - `scripts/passage-check.js` — the instrument a plan that carries passages
@@ -259,8 +296,7 @@ plan's close.
 - `scripts/reading.js` — the instrument every role measures itself with: three
   lines always — the five-figure reading of one transcript, the effort, and
   `ttl=5m|1h|unknown`, the cache regime — with the ceiling, presence and
-  backstop lines on request, and a `--share` form over several transcripts
-  that Kanri runs at the plan close, with `scripts/reading.test.js` beside it.
+  backstop lines on request, and `scripts/reading.test.js` beside it.
 - `scripts/boundary.js` — the boundary's own instrument, run by the subagent
   Kanri dispatches there: `check`, which runs the boundary's read-only
   commands and prints their output under fixed headings, and `record`, which
@@ -268,9 +304,10 @@ plan's close.
   `census`, which Kanri runs itself, read-only, to place the roster's rows
   against the spawner's `seats.json` and the sessions `claude agents --json`
   lists under the repository; `request`, the park or leave request a seat
-  writes for itself; and `seat`, `wake`, and `beat`, which Kanri runs before
-  it sends a seat a line or writes a request. `scripts/boundary.test.js`
-  beside it.
+  writes for itself, and `request attention`, the desktop notice the intake
+  raises on a consult's arrival; and `seat`, `wake`, and `beat`, which Kanri
+  runs before it sends a seat a line or writes a request.
+  `scripts/boundary.test.js` beside it.
 - `scripts/spawner.js` — the one process in a run that issues `claude --bg`,
   `claude stop`, `claude rm`, and `claude --resume`: a resident started by
   the launcher and never by a session, taking request files, writing result
@@ -281,7 +318,15 @@ plan's close.
 - `scripts/tanto.js`, with `scripts/tanto.bat` and `scripts/tanto.sh` — the
   human's one command, and the two wrappers that are put on `PATH` as
   `tanto`. `scripts/tanto.test.js` beside it.
-- All five scripts are Node, no dependencies, invoked as `node <path>`; the
+- `scripts/usage.js` — what a topic cost, measured after the fact from the
+  transcripts on disk, a response counted once and keyed by the recorded
+  model id: `measure` before the kessai; `close` at the landing, which also
+  assembles, checks, and places the feedback file; `report`, the tables the
+  human and the next Keikaku read; `between`, the sum over an interval that
+  a calibration needs; `collect`, the tracked row per close in the skill's
+  repository; and `id`, the workspace id. `scripts/usage.test.js` beside
+  it.
+- All six scripts are Node, no dependencies, invoked as `node <path>`; the
   two wrappers are what is invoked bare.
 
 ## Relationship to kisou, shoroku, and superpowers

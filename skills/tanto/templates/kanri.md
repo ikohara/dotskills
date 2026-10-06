@@ -54,10 +54,14 @@ rendered that batch's prompt file, because rendering is not sending; no
 ## Shoroku proposal items
 
 Columns: S-n, the row id; Source, the file the item lives in and its place there — a report and its item, a proposal and its number, the spec and a section heading — so that the close's recommender can follow it;
-Item, one line; Destination, one of experience, design, decisions,
-issues, notes, or reports; Adopted, one of `pending`, `yes`, and `no`;
-Written, `no` or the subject of the commit that wrote the row out. The
-placeholder row stays until the first item arrives.
+Item, one line; Destination, one of the six `docs/` types — experience,
+design, decisions, issues, notes, or reports — or `feedback`, for an item
+only the skill's own files would cite, or the compound
+`<docs destination>; feedback`, for one this repository's documents will
+cite as well; Adopted, one of `pending`, `yes`, and `no`; Written, `no`,
+the subject of the commit that wrote the row out, or `feedback <basename>`
+for an item whose only destination is `feedback`. The placeholder row
+stays until the first item arrives.
 
 | S-n | Source | Item | Destination | Adopted | Written |
 | --- | --- | --- | --- | --- | --- |
@@ -70,22 +74,28 @@ the spec's four sections, or a Kanri exit that fell while this ledger was
 open — and stays `pending` until the close. At the close Kanri dispatches
 the `shoroku.recommend` kind over Jisso's proposal and every source these
 rows name, to write `shoroku-recommendation.md` and `shoroku-brief.md`;
-gives the human both paths, the three counts, and the brief verbatim; and
+gives the human both paths, the four counts by group, and the brief verbatim; and
 writes `shoroku-direction.md` from the human's answer, and these rows with it, Adopted
 `yes` or `no` as the direction says. No item is put to the human apart from
 the rest and none is settled by Kanri alone: the human sees the whole list,
 grouped, once, and answers by exception.
 
 The close writes only the adopted rows whose Written column says `no`, and
-fills that column with the commit subject; a row a Kanri exit recorded here is
-written by this topic's close like any other. So nothing is written twice.
+fills that column with the commit subject — or, for a row whose only
+destination is `feedback`, with `feedback <basename>` once `usage.js close`
+has placed the feedback file, whether or not its line could be sent, the
+cell staying `no` while the file is held; a row a Kanri exit recorded here
+is written by this topic's close like any other. So nothing is written
+twice.
 
 A reference to an `S-n` or an `R-n` from outside its own ledger — the roster, a
 handover file, another ledger — names the topic first, `<topic> S-n`; bare
 numbers stay bare inside a ledger. The Written column takes only a value a
-filter can read: `no`, a commit subject, or `superseded: <topic> R-n`, the last
-counting as written; an item two closes could claim is one row in the
-ledger of the topic that raised it, never a compound value.
+filter can read: `no`, a commit subject, `superseded: <topic> R-n`, or
+`feedback <basename>`, the last two counting as written; an item with the
+compound destination is written by its commit subject; an item two closes
+could claim is one row in the ledger of the topic that raised it, never a
+compound value.
 
 ## Session events
 
@@ -101,7 +111,8 @@ ledger of the topic that raised it, never a compound value.
   when it is answered; a line or a request you owed while the spawner was
   stale, as `unsent: <sessionId or op> — <the line or the request>`, paired
   with `sent: <sessionId or op> — <the line or the request>` when `fukki`
-  sends it; all four written through `record --event`, which ends a
+  sends it; all four written through `record --event`, which stamps the
+  time itself — the text carries no date — and ends a
   line it writes at a boundary with `(batch <X>)` so that the same event in
   two batches is two lines and twice in one batch is one, and a pair is
   matched on the text after its prefix, without that suffix; a shoroku
@@ -124,25 +135,25 @@ ledger of the topic that raised it, never a compound value.
 | What | When | Value |
 | --- | --- | --- |
 | top-family sessions active at once, the peak, and whether a 429 was seen | <YYYY-MM-DD, the plan close> | <the peak count, and yes or no for the 429> |
-| top-family one-shots per plan, counted by kind | <YYYY-MM-DD, the plan close> | <one count per kind dispatched on the top family> |
-| each role's last reading | <YYYY-MM-DD, the plan close> | <the roster's Residency figures, copied, one role per line> |
 | Kanri's context at the topic's opening and at the plan's landing with the landing's delta, then Kanri's and each Jisso's at each boundary with the cache regime | <YYYY-MM-DD, each check> | <opening: kanri context=<n>; landing: kanri context=<n> (+<d>); batch <X>: kanri context=<n>, jisso context=<n>, ttl=<v>>, entries separated by `;` — the opening and the landing written by Kanri, every `batch <X>` entry by `boundary.js record`, which replaces its own batch's entry and leaves every other entry alone |
-| the share of usage at context over the threshold | <YYYY-MM-DD, the plan close> | <the share line, the names it ran over> |
+| usage — the file, and the cost line | <YYYY-MM-DD, the close's landing> | <the path and the final cost line of the `usage:` line `usage.js close` printed, or `kept — the file's own Usage block` after a `--keep-usage` run, or `unavailable — <reason>`> |
 
-These five rows are always present; the rows the last paragraph adds sit
-below them. Kanri fills the first at the
-plan close from this ledger's Session events, where it writes one line each
-time a second top-family session goes live; the second by counting those same
-events' one-shot lines by kind and not by stage, since one kind is dispatched
-at several stages; the third by copying the roster's Residency rows. The
-fourth is filled at the topic's opening
+These three rows are always present; the rows the last paragraph adds sit
+below them. Kanri fills the first at the plan close from this ledger's
+Session events, where it writes one line each time a second top-family
+session goes live. The second is filled at the topic's opening
 (Start step 5), at the plan's landing, and at every boundary by
-`boundary.js record`, from the two readings the boundary's dispatch carried;
-the fifth at the plan close from `reading.js --share`, with the sessions it
-ran over and the ones it skipped. The fourth is the record
-behind a rule — the ceiling of `roles/kanri.md`'s trigger, which fires
-without asking whether anyone is present — and the other four
-are the record the next measurement starts from.
+`boundary.js record`, from the two readings the boundary's dispatch
+carried. The third is filled at the close's landing, by whichever Kanri
+lands it, from the `usage:` line `usage.js close` prints as that landing's
+last act: the path of `.tanto/<topic>/usage.json` and the final cost line,
+`kept — the file's own Usage block` after a `--keep-usage` run, or
+`unavailable — <reason>` when no usage could be measured or kept. The second
+is the record behind a rule — the ceiling of `roles/kanri.md`'s trigger,
+which fires without asking whether anyone is present — the first is the
+one limit signal a run keeps, and the third names the file that holds the
+topic's measurement, every seat and every dispatch counted from the
+transcripts.
 
 A `paused: <dispatch> on <family> — resets <time>` line a role sends is
 recorded as a row of its own: What the line as it arrived, When the date, and
