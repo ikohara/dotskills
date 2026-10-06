@@ -75,7 +75,7 @@ const FEEDBACK_HEAD = "# Shoroku feedback";
 
 // The Triage lines of a file not yet triaged, as the template leaves them.
 const TRIAGE_OPEN = [
-  "- Outcome — <feedback>",
+  "- Outcome — <feedback, once triaged>",
   "- Items — <n>: <issue | fix | redirect | kaiseki | relay | dismissed> — <reference>",
   "- Date — <YYYY-MM-DD>",
 ];

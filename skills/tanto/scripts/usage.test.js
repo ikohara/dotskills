@@ -289,7 +289,7 @@ const SHOKI_PART = [
   "",
   "## Triage",
   "",
-  "- Outcome — <feedback>",
+  "- Outcome — <feedback, once triaged>",
   "",
 ].join("\n");
 
@@ -1049,7 +1049,7 @@ test("close in a workspace whose skill repository has a .tanto/ places the file 
   assert.equal(extract.closed, date);
   assert.equal(extract.measured, true);
   assert.equal(section(text, "Received"), "");
-  assert.match(section(text, "Triage"), /^- Outcome — <feedback>$/m);
+  assert.match(section(text, "Triage"), /^- Outcome — <feedback, once triaged>$/m);
 });
 
 test("the extract carries no session, first, last, measured_at, or window key, and no ISO instant", () => {

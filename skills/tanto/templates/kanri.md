@@ -135,7 +135,7 @@ compound value.
 | --- | --- | --- |
 | top-family sessions active at once, the peak, and whether a 429 was seen | <YYYY-MM-DD, the plan close> | <the peak count, and yes or no for the 429> |
 | Kanri's context at the topic's opening and at the plan's landing with the landing's delta, then Kanri's and each Jisso's at each boundary with the cache regime | <YYYY-MM-DD, each check> | <opening: kanri context=<n>; landing: kanri context=<n> (+<d>); batch <X>: kanri context=<n>, jisso context=<n>, ttl=<v>>, entries separated by `;` — the opening and the landing written by Kanri, every `batch <X>` entry by `boundary.js record`, which replaces its own batch's entry and leaves every other entry alone |
-| usage — the file, and the cost line | <YYYY-MM-DD, the close's landing> | <the path and the final cost line of the `usage:` line `usage.js close` printed, or `unavailable — <reason>`> |
+| usage — the file, and the cost line | <YYYY-MM-DD, the close's landing> | <the path and the final cost line of the `usage:` line `usage.js close` printed, or `kept — the file's own Usage block` after a `--keep-usage` run, or `unavailable — <reason>`> |
 
 These three rows are always present; the rows the last paragraph adds sit
 below them. Kanri fills the first at the plan close from this ledger's

@@ -81,10 +81,12 @@ yours, the report's shape and your closing line included.
 
    Where the Feedback argument is a path, the same dispatch writes that
    file, untracked, from `templates/shoroku-feedback.md` in the skill
-   directory, and fills two of its sections. Items: the `Feedback:` line of
-   every item whose feedback half the direction kept, copied from the
-   recommendation and never paraphrased again, or `none`; in the repository
-   that ships the skill no item has a feedback half, and Items is `none`.
+   directory, and fills two of its sections. Items: one numbered line,
+   `<n>. <the text after Feedback:> — Class: tanto-only | both`, per item
+   whose feedback half the direction kept — the text copied from the
+   recommendation and never paraphrased again, `both` for a compound
+   destination — or `none`; in the repository that ships the skill no item
+   has a feedback half, and Items is `none`.
    Departures, read from the recommendation and the direction and from
    nothing else, one line in the template's form for each: an override (a
    recommended adopt directed to reject, or the reverse); a re-typing or a

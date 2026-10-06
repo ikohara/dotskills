@@ -44,6 +44,6 @@ would name the workspace before it places it, and holds a file that does.
 
 ## Triage
 
-- Outcome — <feedback>
+- Outcome — <feedback, once triaged>
 - Items — <n>: <issue | fix | redirect | kaiseki | relay | dismissed> — <reference>
 - Date — <YYYY-MM-DD>
