@@ -9,9 +9,10 @@
 // `seat`, a seat's status and its name at the moment of sending; `wake`, a
 // `resume` for each parked seat it names; and `beat`, the spawner's
 // heartbeat, read before every request. `request` is a seat's own, its
-// `park` or its `leave`, written as its turn's last tool call. Only `record`
-// writes a document, and only `wake` and `request` write request files. It
-// judges nothing.
+// `park` or its `leave`, written as its turn's last tool call, or the
+// intake's `attention`, the notice that a consult has arrived, which names
+// no seat. Only `record` writes a document, and only `wake` and `request`
+// write request files. It judges nothing.
 //
 // Node, no dependencies, no shebang: always
 // `node "$TANTO/scripts/boundary.js" <subcommand>`.
@@ -449,9 +450,9 @@ function writeSItem(doc, item, written) {
  * One Session events line, written once per batch for the same text. The
  * dedup key is the batch and the text together, which is what makes a
  * re-run of the same call a no-op without losing the second real occurrence
- * of an event that recurs in a later batch: two `dispatch: plan.review on
- * fable` lines in two batches are two dispatches and must both be counted at
- * the close, while two in one batch are one call made twice. A call with no
+ * of an event that recurs in a later batch: two `human-access: done — <what
+ * the human did>` lines in two batches are two exchanges, and both stay in
+ * the ledger, while two in one batch are one call made twice. A call with no
  * `--batch` — a between-plans record — keys on the text alone.
  */
 function writeEvent(doc, text, batch, now, written) {
@@ -1004,17 +1005,51 @@ function lastUuid(file) {
 }
 
 /**
+ * `request attention --message <text> [--root <dir>]` (the tanto-feedback
+ * design, 7.2): the intake's notice that a consult has arrived,
+ * `{ op: "attention", message }`, which names no seat and so takes no
+ * `--transcript`. The beat comes first: on a stale spawner it writes nothing,
+ * prints the `spawner:` line, and exits 1 — the inbox copy is the record, and
+ * the Kikaku finds it at its next turn. It is a request of its own and
+ * leaves a seat's park request as it stands.
+ */
+function requestAttention(values) {
+  if (values.transcript !== undefined || values.waiting || values.notice) {
+    return fail("request attention takes no --transcript, --waiting, or --notice", 2);
+  }
+  const message = given(values, "message");
+  if (!message) return fail("request attention needs --message <text>", 2);
+  const root = rootOf(values);
+  if (!root) return fail("request: --root needs a value", 2);
+  const beat = spawnerLine(root);
+  if (beat !== "spawner: beating") {
+    console.log(beat);
+    return 1;
+  }
+  let ids;
+  try {
+    ids = writeRequests(root, [{ op: "attention", message }]);
+  } catch {
+    return fail(`request: no spawner requests directory under ${root}`, 2);
+  }
+  console.log(`attention requested: ${ids[0]}`);
+  return 0;
+}
+
+/**
  * `request <park|leave> --transcript <path> [--waiting [--notice]]` (spec
  * 2.2, 5.2): a seat's request about itself, written as its turn's last tool
  * call. The `sessionId` is the transcript's basename and `after` the `uuid`
  * of its last record that carries one, so that the spawner acts only once
  * the turn that wrote the request has ended. `park` carries `waiting` and
- * `notice`; `leave` is a `stop` with `self: true`.
+ * `notice`; `leave` is a `stop` with `self: true`. `request attention` is
+ * `requestAttention`'s.
  */
 function cmdRequest(argv) {
   const { values, positionals } = parseLine(argv, ["waiting", "notice"]);
   const act = positionals[0];
-  if (act !== "park" && act !== "leave") return fail("request needs park or leave", 2);
+  if (act === "attention") return requestAttention(values);
+  if (act !== "park" && act !== "leave") return fail("request needs park, leave, or attention", 2);
   const transcript = given(values, "transcript");
   if (!transcript?.endsWith(".jsonl")) return fail("request needs --transcript <path>.jsonl", 2);
   if (act === "leave" && (values.waiting || values.notice)) {
