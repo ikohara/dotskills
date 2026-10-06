@@ -29,7 +29,8 @@ const POLL_MS = 250;
 const LEAVE_LINE =
   "← or /exit leaves for the agent view, and leaving the agent view comes back here; open no seat from the agent view — tanto <role> is the way in. Leaving ends no seat, and a Kanri you /stop comes back with tanto";
 
-// The trust hint (spec 4.3), printed before the attach line.
+// The trust hint (spec 4.3), printed before the attach line and again when
+// the attach returns.
 const TRUST_LINE =
   "this folder's trust is not recorded: run claude here once and answer \"Yes, I trust this folder\" — the agent view's own trust question after ← or /exit takes no input";
 
@@ -525,16 +526,34 @@ function printSeats(root) {
   for (const line of seatLines(readSeats(root), listing.sessions || [])) process.stdout.write(`${line}\n`);
 }
 
+// How long the follow waits for the spawner to record the Kanri just left as
+// stopped: its `stop` ends the attach, and the state file is written a moment
+// after the command returns (spawner.js takeRequests), so a read at the
+// attach's exit can be a moment early (spec 4.3, step 5).
+const FOLLOW_SETTLE_MS = 5000;
+
 /**
  * The successor of the Kanri just left (spec 4.3, step 5): none unless the
- * state file now holds that Kanri `stopped`; then the roster's first row when
- * it names another session, or the handover spawn `kanriSuccessor` finds,
- * waited for up to `waitMs`. `{ id }`, `{ code }` with the line said, or null.
+ * state file now holds that Kanri `stopped`, read for up to
+ * `FOLLOW_SETTLE_MS` while the roster's first row or a handover file says a
+ * handover is in progress; then the roster's first row when it names another
+ * session, or the handover spawn `kanriSuccessor` finds, waited for up to
+ * `waitMs`. `{ id }`, `{ code }` with the line said, or null.
  */
 function successorOf(root, outgoing, sinceMs, waitMs) {
-  const seats = readSeats(root);
-  if (seats.find((s) => s.sessionId === outgoing)?.status !== "stopped") return null;
   const row = firstRosterRow(root);
+  // A handover in progress shows in the roster's first row or the handover
+  // file before the stop lands; with neither, a human leaving a live Kanri
+  // waits for nothing.
+  const handingOver =
+    (row && row.sessionId !== outgoing) || fs.existsSync(path.join(root, ".tanto", "kanri-handover.md"));
+  let seats = readSeats(root);
+  const stopped = () => seats.find((s) => s.sessionId === outgoing)?.status === "stopped";
+  for (const until = Date.now() + FOLLOW_SETTLE_MS; handingOver && !stopped() && Date.now() < until; ) {
+    sleepSync(POLL_MS);
+    seats = readSeats(root);
+  }
+  if (!stopped()) return null;
   if (row && row.sessionId !== outgoing) {
     return { id: seats.find((s) => s.sessionId === row.sessionId)?.id || row.sessionId };
   }
@@ -589,14 +608,19 @@ function enterSeat(root, firstId, role, waitMs) {
       return inTab(role);
     }
     const hint = trustHint(root);
-    if (hint) process.stdout.write(`${hint}\n`);
     const context = dialogue ? seatContext(seat.seat) : null;
     const named = topic === "—" ? role : `${role} ${topic}`;
-    if (context !== null) process.stdout.write(`${named} — context=${context}\n`);
-    process.stdout.write(`${LEAVE_LINE}\n`);
+    const contextLine = context !== null ? `${named} — context=${context}` : null;
+    // The attach takes the screen with no scrollback, so a line printed here
+    // flashes by (acceptance scene, step 2): each is printed again when the
+    // attach returns, where the human is looking.
+    const before = [hint, contextLine, LEAVE_LINE].filter(Boolean);
+    process.stdout.write(`${before.join("\n")}\n`);
     const attachedAtMs = Date.now();
     const command = claudeCommand(["attach", id]);
     spawnSync(command.file, command.args, { cwd: root, stdio: "inherit" });
+    const after = [hint, contextLine ? `left ${contextLine}` : null].filter(Boolean);
+    if (after.length > 0) process.stdout.write(`${after.join("\n")}\n`);
     if (held) writeRequest(root, { op: "release", role, topic, sessionId: seat.sessionId });
     const next = role === "kanri" ? successorOf(root, seat.sessionId, attachedAtMs, waitMs) : null;
     if (next?.code !== undefined) return next.code;
@@ -839,7 +863,7 @@ function cmdUp(values, role, topic, word) {
 
   // What a restart took is put back on the Kanri path alone — a bare `tanto`
   // and `tanto fukki` — and `fukki` then tells Kanri (spec 4.4).
-  if (role === "kanri") {
+  if (role === "kanri" && !older) {
     resumeLost(root, seats, byId, held);
     if (word === "fukki") tellKanri(root, sessions, attach, resumed > 0, runMoved(seats), waitMs);
   }
