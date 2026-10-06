@@ -104,6 +104,9 @@ From the dialogue:
 - **Q-12 — what travels and what is tracked carries no instant.** A
   date and durations only; instants stay in the local file. Serves
   `exp-1c02`.
+- **Q-14 — the tracked record is JSON Lines, and CSV is an export.**
+  Decided at the review, on the brief's one open point: `report --csv`
+  writes four flat tables on demand, untracked. Serves `exp-3e3b`.
 
 ## Measured while designing
 
@@ -466,7 +469,12 @@ reported.
 JSON Lines is chosen under `docs/notes/AGENTS.md`'s "format fits the
 concern": a row is one append, a merge never rewrites a line, and no
 parser is needed. A YAML or TOML note would need either rows longer than
-`.yamllint` allows or a hand-written parser. The note's scope, which a
+`.yamllint` allows or a hand-written parser. CSV as the tracked form was
+weighed at the review and set aside (Q-14): a row is nested, so it would
+be four files for one concern, a new field would be a column old rows
+lack, and `collect` and `report` would each grow; a spreadsheet's or a
+dataframe's need for flat tables is met by an export instead (4.7). The
+note's scope, which a
 `.jsonl` file cannot state in a comment, is stated in a Markdown sibling,
 `docs/notes/tanto-usage.md`, written by this topic's close (the last
 section's item 6).
@@ -488,7 +496,7 @@ that file's passages; it exports its pure functions for its tests.
 ```text
 usage.js measure --topic <topic> [--final] [--transcripts <path>...]
 usage.js close   --topic <topic> [--release] [--keep-usage] [--transcripts <path>...]
-usage.js report  [--json]
+usage.js report  [--json] [--csv <dir>]
 usage.js between <from> <to>
 usage.js collect --into <path> --inbox <dir>
 usage.js id
@@ -690,7 +698,14 @@ Markdown tables: per topic, the active hours and the amount by model id;
 per kind, the dispatches, tokens, amount, and mean wall time; per topic,
 the quality counters as rates per task; the plans table's hours (5.3);
 and, in the skill's repository, the rows grouped by workspace id.
-`--json` prints the same as one object. No tracked report is written from
+`--json` prints the same as one object. `--csv <dir>` writes, for
+statistics in a spreadsheet or a dataframe, four flat tables into a
+directory the human names — `closes.csv`, `seats.csv`, `dispatches.csv`,
+and `batches.csv`, one row per close, per seat and model id, per
+dispatching role, kind, and model id, and per batch, each row carrying
+the close's `source` or topic as its key — from the same inputs; the
+export is untracked, is written whole at every run, and is never read
+back. No tracked report is written from
 it. Its readers are the two the by-actor file names: the human, in the
 repository's Kikaku, when touching `.claude/tanto.json` or — in the
 skill's repository — the built-in defaults; and the next Keikaku, when it
@@ -1164,8 +1179,9 @@ the batch prompts. The plan's Global Constraints say, in substance:
 - **`docs/notes/` and JSON Lines.** `docs/notes/AGENTS.md` names Markdown,
   TOML, and YAML; this design adds a `.jsonl` note under its "format fits
   the concern" and its path rule, with a Markdown sibling for the scope.
-  The human confirms that reading at the review; the alternative is a
-  hand-written parser for a restricted TOML.
+  The human confirmed that reading at the review (Q-14), against a
+  hand-written parser for a restricted TOML and against CSV as the
+  tracked form.
 
 ## Old values this plan contradicts
 
@@ -1336,7 +1352,9 @@ interval (Q-3). A numeric field in the boundary's verdict — deferred
 (Q-2). The by-finder count in the measurement — decision-62dd keeps that
 script out of the close until two or three closes have run it by hand,
 and it stands (Q-11). Instants in the row — a date and durations serve a
-trend, and an instant is a second way to tell a repository (Q-12).
+trend, and an instant is a second way to tell a repository (Q-12). CSV
+as the tracked form — four files for one concern and columns that drift;
+it is an export (Q-14).
 
 ### ADR 3 — two Kikakus consult each other over the intake, under a per-thread approval
 
@@ -1426,7 +1444,8 @@ public value for a published repository.
 - **The extract**: no `session`, `first`, `last`, `measured_at`, or
   `window` key, and no ISO instant anywhere in it.
 - **`report`**: the per-topic and per-kind tables from two `usage.json`
-  fixtures, and 5.3's plan line from a `plans` row.
+  fixtures, and 5.3's plan line from a `plans` row; `--csv`'s four files,
+  their headers, and one row of each checked against the fixture.
 - **The two tables' layering**: a later layer replacing one model's row
   whole; `plans` replaced as a list; the warning on an unknown field.
 - **`id`**: its second line in each of the three cases.
