@@ -5,9 +5,9 @@ status: accepted
 supersedes: []
 superseded_by: null
 amends: []
-amended_by: ["cdc4", "362e"]
+amended_by: ["cdc4", "362e", "4d44"]
 created: 2026-09-22
-updated: 2026-09-24
+updated: 2026-10-06
 ---
 
 ## Context

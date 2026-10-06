@@ -795,3 +795,50 @@ touch a file" when an earlier batch of the same plan did: in the
 Task 7's edit from batch B. A fence that asserts what one wave left untouched
 compares against the wave's own base commit, the one its prompt names. Kin
 issue-f94f.
+
+## A plan drafted in parallel is applied and run whole before its review
+
+The `run-owned-seats` plan (23 tasks) was drafted by six `plan.draft`
+subagents in parallel, one per file group, from one brief that fixed the
+task numbers, titles and files; Keikaku wrote the head, Batches, How a batch
+is verified and Self-Review, and assembled the fragments by script. Every
+drafter's own `lint` and `replay` were clean; the defects were all at the
+seams — a return shape read as a boolean, two tasks editing one test, a
+launcher test whose premise a refusal removed — and only the assembled
+plan's cumulative `replay` and a harness that applied every `P` block to a
+copy of `skills/tanto/` and ran the suites found them. A plan drafted in
+parallel needs that cumulative apply-and-run before the review, and the
+review brief names the applied tree.
+
+## A check a plan asks a Jisso to run asserts; it does not print
+
+A drafter's frontmatter check printed `BAD` and exited 0, so the step could
+not fail. A check a plan asks a Jisso to run needs an assertion, not a
+print.
+
+## Where the needle table lives decides what a stage frame prints
+
+The `run-owned-seats` plan's fence 4 needle table (227 rows, generated from
+the plan's O blocks and the applied tree) lived inside How a batch is
+verified, so `frame --stage 1` printed about 650 lines for Kanri. A table
+the fence reads from a file would shrink that reading, at the cost of a file
+the boundary needs on disk.
+
+## A "replace exactly these lines" block names its occurrence
+
+`passage-check.js` reads a block that says "replace exactly these N lines"
+line by line, while an implementer's Edit tool matches a substring. Three
+old texts of one `run-owned-seats` batch (`  } else {`, `  return 0;`, and a
+third) matched several places as substrings, and each implementer had to
+infer the right one from the brief's context. Say "whole lines, anchored",
+or name the occurrence by its neighbors.
+
+## A text moved from the spec into a contract file drops the spec's section numbers
+
+Twice in one fix wave a contract text copied from the spec carried the
+spec's section numbers: one sentence ended "(2.7)" in `SKILL.md`, which has
+no such section, and another ended "(3.1)" in the spec where that section
+says nothing of the subject. Both were caught only at review and fixed at a
+rework. `SKILL.md` points at its own headings and C-n/P-n ids, never at the
+spec's numbers; a text that moves from the spec into a contract file drops
+the number or names the heading.

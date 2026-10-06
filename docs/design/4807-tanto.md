@@ -2,7 +2,7 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-10-04
+updated: 2026-10-06
 ---
 
 ## Purpose and shape
@@ -144,6 +144,16 @@ premise conditionally, because `SKILL.md` ships to hosts where the skill is
 installed as a copy and the hazard does not arise there. decision-5c8e holds the
 reasoning and the alternative that was rejected.
 
+The link reaches further than rule 11 says, and for scripts more sharply than
+for sessions (exp-09c2). `~/.claude/skills/tanto` links into this
+repository's working tree, so a topic branch checked out there reaches every
+repository's launcher calls and new sessions at each commit, and at each
+uncommitted edit — not at the merge. Rule 11 says so for sessions, which load
+the text once at their start; the launcher (`scripts/tanto.js`) and
+`scripts/boundary.js` are executed fresh at every call, so every repository
+that types `tanto` or runs a boundary command runs whatever the tree holds at
+that second.
+
 The boundary that ADR defines — "the first boundary at which every file the
 plan touches agrees with every other" — is read as **every file a session
 loads**: `SKILL.md`, the role files, and the templates. A README or a note is
@@ -223,6 +233,52 @@ something else, which is unmeasured (`docs/notes/claude-code-sessions-observed.m
 Filtering on the listed `cwd` finds such a seat whatever the CLI's key is,
 and excludes a session another repository spawns in the same moment. One
 listing call per pass, as before.
+
+## The spawner's state file, its clock, and its blocked
+
+Serves exp-173f.
+
+Every seat is spawned by the run (decision-7a19), and a dialogue seat is
+parked between its turns by the spawner (decision-97cc), so the state file
+`.tanto/spawner/seats.json` and the result files are what the run continues
+from. Two facts of `scripts/spawner.js` bind every reader of them.
+
+**The stamp is minute-resolution local time.** `stamp()` gives the state and
+result files a local time to the minute, and the only other time they carry
+is `startedAtMs`, in epoch milliseconds. A rule that compares times across
+files — a request against a turn, a handover file against a seat — needs the
+epoch form; the minute stamp cannot order two events inside one minute and
+is not comparable across hosts.
+
+**A new seat enters `seats.json` after its transcript poll.** The spawner
+writes a new seat into the state file only after polling for its
+transcript, up to ten seconds after the session is first listed. Anything
+that reads the state file from inside the new seat's first turn — the
+seat's own `seat` check, a census Kanri runs at that moment — can run ahead
+of the write and find no entry.
+
+**`blocked` carries its cause, and no longer means an idle seat**
+(exp-3a9e). Until decision-97cc the spawner's `blocked` was the listing's
+`state: "blocked"`, which a seat that has answered and waits for its next
+message also carries, so every idle seat with a `pid` read as blocked and
+its toast was raised on that. `blocked` is now a background entry's
+`status: "waiting"`, with its cause, and the census notice carries the
+cause (decision-1c07 as decision-97cc amends it).
+
+## The launcher's attach
+
+Serves exp-1c96.
+
+The launcher enters a seat by role and runs `claude attach` itself, with the
+terminal's standard streams inherited (decision-4d44). Before that, it
+printed `claude attach <id>` for the human to type, and every line printed
+before it — the trust hint, the leave line — stayed on screen. Now **nothing
+printed before an inherited-stdio attach is readable**: the attach takes the
+screen with no scrollback, so any line the launcher writes before
+`spawnSync(attach, stdio inherit)` is a flash. The acceptance scene saw one
+instance — the `context=` line — and the fix wave moved it; the class binds
+every line the launcher adds later. A figure the human must read goes after
+the attach returns, or into `tanto jokyo`.
 
 ## Addressing, and why by born name
 

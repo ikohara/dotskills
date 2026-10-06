@@ -1,13 +1,13 @@
 ---
 id: "363c"
 title: two kinds of seat, drawn by whether the seat's work is dialogue with the human
-status: accepted
+status: superseded
 supersedes: []
-superseded_by: null
+superseded_by: "7a19"
 amends: ["1ab5"]
 amended_by: []
 created: 2026-09-22
-updated: 2026-09-22
+updated: 2026-10-06
 ---
 
 ## Context

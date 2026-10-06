@@ -1124,3 +1124,142 @@ Figures from the task notifications' usage lines; the batches' figures are in
   tokens, 33 tool uses, 854 s (about 14 minutes); 0 critical, 2 important,
   7 minor. The plan's brief writer (sonnet): 67,816 tokens, 10 tool uses,
   74 s, and the form check passed first time.
+
+## A Kanri tenure's context through a close, step by step (2026-10-04)
+
+The `shoki-seat` close's Kanri, measured against its baseline of 88,743
+(ceiling 218,743, or 283,743 once `ceiling.kanri.batches` is 3):
+
+| Step | `context=` |
+| --- | --- |
+| The start line | 130,251 |
+| After the handover's acceptance (roster, ledger head, Shoroku section) | 153,903 |
+| After the recommender's files were checked and the brief (about 25,000 characters) was read and printed once at the kessai | 188,403 |
+| After reading the Kikaku decision file (about 24 KB) and writing the direction and the ledger rows | 248,206 |
+| After the shusei prompt's render, its boundary, the merge and the shoki spawn | 306,545 |
+
+The ceiling was crossed at 306,545 with the close's tail — the landing
+checks, the archive move, `--share` — still ahead. The two whole-file reads
+of one document each, the brief and the decision, were the largest single
+steps, about 35,000 and 25,000. The data behind issue-76df.
+
+The successor that took the tail started at 130,461 and paid for the
+acceptance, shoki's landing checks (lint, frontmatter, Source, Triage), the
+fast-forward, the `rm`, the share reading, the archive move (a node script
+over both files), the Measurements fill, the issue-f03b hotfix with its
+tests and its own proposal. The hotfix's tests were the two long suites —
+the spawner suite, 52 tests in about 7 minutes, and the launcher suite, 34
+tests in about 3 minutes — the price of a hotfix to a script, and a hotfix
+of that kind belongs to the hotfix lane's "no batch in flight" condition.
+
+## The shoki spawn after a merge ran with no human act (2026-10-04)
+
+At the `shoki-seat` close the shoki spawn after the merge — the worktree
+cut, the brief's render and the `spawn` request — took four tool calls and
+one script. Shoki's first turn ran with no human act: its transcript under
+the `…--claude-worktrees-shoki-shoki-seat` slug appeared within 40 seconds
+of the request, state busy. The three restart acts the human took earlier
+meant the spawn was taken once.
+
+## A Kanri tenure's context through a spec stage and a cold read (2026-10-05)
+
+The `run-owned-seats` opening Kanri read 132,792 at its start, 164,303 at
+the topic's opening, 297,026 at the plan's landing and 311,537 at the
+handover, through a spec stage of two Kanri checks over a spec that grew
+from 1,068 to about 2,000 lines and a stage 1 frame of 47 KB. Its ceiling
+(283,892) was crossed during the cold read, so the handover waited for the
+cold-read subagent, about 18 minutes, before it could be written.
+
+## A cold-read dispatch's interim notice, and its cost (2026-10-05)
+
+The `run-owned-seats` cold-read subagent's completion notice read
+"completed", with a note that it still had background work and its result
+might be interim, while `coldread.md` was already written: the file was the
+check, as the contract says. The dispatch took 65 tool uses and 304,456
+subagent tokens, most of it running the suite three times to measure the
+cold read's question 3.
+
+## run-owned-seats: the suite's duration and each batch's cycle (2026-10-05, 2026-10-06)
+
+The whole suite, `node --test skills/tanto/scripts/*.test.js`, on this host,
+one run at a time unless noted:
+
+| When | Tests | Time |
+| --- | --- | --- |
+| Batch A, Tasks 1 to 4 | 243, 249, 256, 262 | 422, 440, 450, 452 s |
+| Batch B, Tasks 5 to 7 | 263, 270, 270 | 451, 452, 452 s |
+| Batch C, Tasks 8 to 11 | 280, 285, 292, 296 | 452 s each |
+| End of Task 11, the plan's dry run | 296 | 461 s; 539 to 545 s with three suites at once |
+| Batch D, the one whole run | — | 457 s |
+| The whole-branch review, in the foreground under a replay and the lint | 296 | 462 s |
+| The fix wave | — | 512 to 520 s quiet, 594 s under load |
+
+Per file at the dry run: `spawner.test.js` alone 449 to 497 s,
+`tanto.test.js` 2 to 3 minutes, `boundary.test.js` and `reading.test.js`
+10 to 20 s. A Bash call is cut at ten minutes, so a boundary that runs the
+suite and six more fences in one `boundary --plan` call cannot finish in the
+foreground. The figure held at about 7.5 minutes across the branch, so the
+plan's Global Constraints' "nine minutes" and fence 2's "ten" (the ledger's
+F-5) were never measured.
+
+Each batch's cycle:
+
+- **Batch A** (2026-10-05): one implementer 280 to 440 s, two reviews 45 to
+  130 s, the suite 7 to 7.5 minutes — about one hour from the `batch:` line
+  to the last suite for four tasks.
+- **Batch B** (2026-10-05): an implementer 124 to 180 s, a review 49 to
+  146 s; the two reviews of a task ran during its suite, and the next
+  implementer waited for the suite to end because the suite reads the tree;
+  about 33 minutes from the first dispatch to the last suite.
+- **Batch C** (2026-10-06): implementers 268, 253, 312 and 293 s, a spec
+  review 55 to 89 s and a quality review 98 to 170 s, the same overlap and
+  wait as B; the batch added 10, 5, 7 and 4 tests; about 55 minutes from the
+  first dispatch (00:04) to the last suite (00:58:39). The Jisso's context
+  went from 106,316 at the start of its window to 332,106 at the boundary.
+- **Batch D** (2026-10-06): twelve document tasks in about 80 minutes from
+  the first dispatch (01:17 by the shell clock) to the last review (02:37);
+  an implementer 66 to 190 s, a spec review 33 to 117 s, a quality review 93
+  to 280 s (the subagents' own duration figures). The Jisso's context went
+  from 104,301 at its start, before the batch line, to 472,436 at the
+  boundary, with no compaction.
+
+## A fix-wave Jisso grew 5.3 times the per-batch figure (2026-10-06)
+
+The `run-owned-seats` fix-wave Jisso's context went from a baseline of
+88,675 to 435,531 over 44 wake-ups, about 346,856 tokens — roughly 5.3
+times the 65,000 the ceiling counts for one batch. Every implementer and
+reviewer wrote its full report to a file and returned under 25 lines, and
+the review lines were appended to the ledger by `grep`. A fix wave of eight
+tasks — twenty-five dispatches, each hand-back and each wake-up re-read in
+full — on one Jisso is not a batch of three or four tasks (rule 7):
+file-first hand-backs slowed the growth but did not stop it, and the
+ceiling's `per_batch` is not a figure for a wave this size. The measurement
+under issue-dccb.
+
+The one-task rework that followed (one implementer and two reviewers) cost
+the same Jisso about 39,754 tokens over 5 wake-ups, from 440,724 at the fix
+wave's report to 480,478.
+
+## The review yield of a fix wave over diagnosed fixes (2026-10-06)
+
+The `run-owned-seats` fix wave and its rework: eighteen review halves (nine
+tasks, the rework's R1 included), no Critical, three Important — all in the
+fix wave itself — and thirty minors (twenty-eight and two), no fix round.
+The three Importants were all in text the batch prompt or a verdict had
+pasted (the failed-wake count twice, the "(3.1)" pointer), labeled
+plan-mandated and ruled to stand for Kanri; the three script tasks (F1 to
+F3) drew only minors, and F3's code was not what failed the suite. For a
+wave whose findings arrive with their old and new text, the reviews found
+problems in the pasted words and none in the transcription. Whether a
+combined review would do for the pasted-text tasks is a question these
+numbers pose and do not answer.
+
+## A wave's instruments were cheap enough to run after every task (2026-10-06)
+
+In the `run-owned-seats` fix wave: `verify-all.sh` (`passage-check.js
+verify` for all 23 plan tasks) took 6.0 s, `replay` 6.5 s,
+`passage-check.js lint` of the 15,000-line plan 0.25 s, and the plan's
+whole-skill sweep 2.5 s, against 512 to 594 s for the whole suite. The
+controller's per-task `verify-all.sh` showed 1 passage superseded after F1
+and 33 after F6, so the prompt's "amend no other passage" was known false
+after the third task and not at the boundary.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-04
-updated: 2026-10-04
+updated: 2026-10-06
 ---
 
 Source: shoroku shoki-seat S-89
@@ -47,3 +47,8 @@ the line `tanto down` already prints. Kin issue-73d6 and issue-a14f.
 Carrier: the hotfix lane, taken on `main` right after the shoki-seat close's
 merge, on the human's word in that close's kessai; whether a code change with
 its test fits the lane is Kanri's ruling at the merge.
+
+Resolved in the hotfix lane on `main` by the commit
+`fix: a request taken by two spawners on one root is handled twice`
+(shoki-seat R-15), the claim by rename in `takeRequests` with its test;
+recorded at the run-owned-seats close (S-7).

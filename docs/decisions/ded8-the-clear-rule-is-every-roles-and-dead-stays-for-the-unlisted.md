@@ -1,13 +1,13 @@
 ---
 id: "ded8"
 title: "the clear rule is every role's; `dead` stays for the unlisted"
-status: accepted
+status: superseded
 supersedes: []
-superseded_by: null
+superseded_by: "7a19"
 amends: ["d831", "ce83"]
 amended_by: ["8320", "cdc4", "39fb"]
 created: 2026-09-18
-updated: 2026-09-24
+updated: 2026-10-06
 ---
 
 ## Context

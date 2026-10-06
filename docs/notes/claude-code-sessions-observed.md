@@ -733,3 +733,207 @@ title, not a command line, so it cannot find a detached
 `node spawner.js run`; `Get-CimInstance Win32_Process -Filter "Name='node.exe'"`
 prints `CommandLine` on this host (Windows 11, build 26100); and `wmic` is
 absent from current Windows 11.
+
+## A background seat's round trip through an editor tab (2026-10-05)
+
+Measured by Kikaku for the `run-owned-seats` topic, recorded in its Kikaku
+decision of 2026-10-05: Windows 11; CLI 2.1.289; supervisor 2.1.289
+(`claude daemon status`); the editor extension's running binary 2.1.288 (the
+`version` field of the records the tab wrote), with extension builds 2.1.287
+to 2.1.289 installed. One throwaway session, started from the Kikaku
+window's shell with the spawner's own argument shape; stopped and removed at
+the end.
+
+| # | Act | Result |
+| --- | --- | --- |
+| M-1 | `claude --bg --name dotskills-spike-tab --settings '{"worktree":{"bgIsolation":"none"}}' --model sonnet --effort low --permission-mode auto "<prompt>"` | `backgrounded · db88a353 · dotskills-spike-tab`; it answered and waited. Listing: `kind: background`, `status: idle`, `state: blocked`. Its transcript carries `agent-name`, `permission-mode`, `mode`, and `custom-title` records. The command was not refused when issued from a session outside auto mode. |
+| M-2 | With that process alive: the link `vscode://anthropic.claude-code/open?session=<sessionId>` (three attempts — two by `Start-Process`, one by `code --open-url`; which one opened it is not known) | One tab opened beside the current one in the workspace's window; the notice `This conversation is still open somewhere else…` stood in place of the prompt box. Clicking the row in the sessions list led to the same tab. No second process appeared in the listing. |
+| M-3 | `claude stop db88a353` | `stopped db88a353`; the process gone; the session absent from `claude agents --json`, with and without `--cwd`. |
+| M-4 | The tab closed, then the row opened from the sessions list (the first time by the row's archive icon after a click on its text seemed not to open it; the second time by a double-click) | A normal prompt box, no notice; the human's message was answered. Same transcript file, same `sessionId`. The tab's records: `entrypoint: claude-vscode`, `version: 2.1.288`, model `claude-sonnet-5-5` (kept), `permissionMode: auto` (kept), effort `high` (the spawn's was `low`). Listing: `kind: interactive`, name `dotskills-04` — the spawn's name is not shown while the tab holds it, though the `agent-name` record still has it. |
+| M-5 | `SendMessage` to `dotskills-04` while the tab held the conversation | Delivered and answered; the send result says the session is also connected via Remote Control. |
+| M-6 | `claude --resume <sessionId> --bg` while the tab held it | Not refused: `note: session db88a353 is open in another Claude Code process, so this started a copy as 246f9607. The original conversation is unchanged.` and `backgrounded · 246f9607 (idle — send a prompt to start)`. The copy was stopped and removed by hand. |
+| M-7 | The tab closed (the `sessionId` no longer listed), then `claude --resume <sessionId> --bg` | `note: woke session db88a353 with its saved options (--name, --settings, --effort, --permission-mode, --model).` `backgrounded · db88a353 · dotskills-spike-tab (idle — send a prompt to start)`. Listing: `kind: background`, name `dotskills-spike-tab`, `status: idle`, `state: working`. A `SendMessage` to that name was answered with the word the tab's turn had asked for; that record: effort `low`, `entrypoint: cli`, `version: 2.1.289`. One transcript file throughout. |
+
+What the documentation said on the same day:
+
+- **When the process is alive** (`agent-view`, "The supervisor process"): a
+  background session's process keeps running while it is working, paused on
+  a permission prompt or another dialog, or attached; finished or waiting
+  for the next message and unattached for about an hour, the supervisor
+  stops the process, the conversation stays on disk, and the next attach or
+  reply resumes it. This is the likely account of the human's "sometimes it
+  opened normally": the row he clicked had been idle past that hour, or
+  stopped.
+- **Detaching never stops a session** (`agent-view`, "Attach to a
+  session"), so detaching alone does not free the conversation for a tab.
+- **A tab resumes; it does not attach** (`vs-code`): the extension bundles
+  its own copy of the CLI; a conversation open in another process shows the
+  notice of M-2, and `Open here anyway` without closing the other place
+  leaves it open in both. With `claudeProcessWrapper` set the extension
+  skips that check; that setting can also point the extension at a
+  separately installed binary, and a wrapped setup starts conversations in
+  Manual mode unless `initialPermissionMode` is set.
+- **The link** (`vs-code`, "Launch a VS Code tab from other tools"):
+  `session` resumes that conversation, which must belong to the workspace
+  open in the window; the link opens in whichever window is focused; a
+  session not found starts a fresh conversation.
+- **Remote Control** (`remote-control`): a new session can be started from
+  another device only where a `claude remote-control` server runs in that
+  directory; otherwise each process registers one remote session.
+
+Not measured: a seat stopped in the middle of its work and then opened; a
+permission prompt arising inside the tab; whether a parked seat can be
+reached or woken from Remote Control; a tab opened across a larger version
+gap (the 2026-09-20 probe's item 8 saw the tab's process exit with code 1,
+not reproduced here at one point release apart); the same round trip for a
+seat spawned by the spawner itself. Whether a single click on a row's text
+opens it was settled by the spike below (P-7): it does.
+
+**A caution beside M-2.** In the spike below, three
+`vscode://anthropic.claude-code/open` attempts from outside the editor
+opened nothing (H-2b, H-2c), one printed a crashpad `CreateFile` error, and
+VS Code went down once around them; the cause was not established. No link
+is sent from outside the editor since.
+
+## The park signal, resume, attach, and tab face: the run-owned-seats spike (2026-10-05)
+
+Run by the `run-owned-seats` Sekkei from its own window's shell, in two
+rounds on one day (the second after the spec review), recorded in the
+topic's spike notes. Windows 11; CLI 2.1.289; supervisor 2.1.289.
+Throwaway sessions A to G and four messengers, `sonnet`/`low` unless said,
+started in the repository root with the spawner's own argument shape; all
+stopped and removed at the end. Listing = `claude agents --json --cwd
+<root>`.
+
+| # | Act | Result |
+| --- | --- | --- |
+| S-1 | Listing of A after it answered and waited; of B on its permission prompt | A: `status: idle`, `state: blocked`. B: `status: waiting`, `waitingFor: "permission prompt"`, `state: blocked`. `state` is the same word for both; `status` and `waitingFor` tell them apart. The listing's keys vary per entry. |
+| S-2 | Transcript tails | A (turn ended): `assistant` with `stop_reason: end_turn`, then `system`/`stop_hook_summary` and `system`/`turn_duration`. B (on the prompt): last message record `assistant` with `stop_reason: tool_use`. While A worked: `status: busy`, `state: working`; for at least 15 s after its turn ended the listing still read `busy`. The transcript is the turn signal; `status` lags. |
+| S-3 | `claude stop` A; a few seconds later `claude --resume <sessionId> --bg "<prompt>"` | `note: woke session … with its saved options`; same id and name; the prompt ran. A positional prompt on a resume does not start a copy. |
+| S-4 | `claude stop` B on its permission prompt; flag-less resume once it had left the listing | Woke under the same id, `status: idle`; the last message record is still the `tool_use`, and no prompt is presented again. A seat stopped on a permission prompt loses the prompt. |
+| S-5 | `claude stop` B and `claude --resume <sessionId> --bg` in the same second | `note: session … is already running in the background, so this started a copy as …`. A resume issued before the stopped session has left the listing makes a copy. |
+| H-1a | The human ran a Node wrapper calling `claude attach <id>` through `spawnSync`, `stdio: "inherit"`, `shell: true`, from the home directory | A's screen opened; typing and replies normal. While attached the listing showed no attached mark. |
+| H-1b | `claude stop` A while the human was attached | The attach ended `exit=0`; the wrapper attached to B with nothing typed. |
+| H-1c | The human detached from B with ← | Not an exit: the agent view opened in the terminal's cwd and asked to trust the home directory; on "No" the process ended `exit=1`; B still listed. Node printed DEP0190 for `shell: true` with args. |
+| H-2a | B stopped; the human looked for it in the extension's session list, reopened the list, searched | Not in the list. |
+| H-2b, H-2c | The `vscode://` link by `Start-Process` and `code --open-url`, for B stopped and A alive | No tab opened (see the caution above). After a VS Code restart, Sekkei's own tab came back under a new name, same `sessionId`. |
+| H-2d | After the restart, the session list | Both spike sessions, alive and stopped, were listed. |
+| H-2e | A stopped; the human double-clicked its row | Opened with no notice and a normal prompt box; a reply came. |
+| H-2f | Tab closed; `claude --resume <A> --bg "<prompt asking for the human's last typed message>"` | Woke under the same id and name and answered with the word typed in the tab. One transcript. |
+| H-2g | Effort and entrypoint of those two turns | Tab turn: `entrypoint: claude-vscode`, effort `high`. Background turn after it: `entrypoint: cli`, effort `low` (the spawn's). |
+| H-2h | A fresh session C spawned; the list opened without a restart | Not in the list. |
+| H-2i | C stopped; `Developer: Reload Window`; list reopened; C double-clicked | Listed and opened normally. Every tab of that window reconnected under a new name, same `sessionId`; the background Kanri was untouched. |
+| P-1 | D: a Bash `sleep 100` with `run_in_background`, then the turn ended. E: a background subagent running `sleep 80`, then the turn ended | Both turns ended `end_turn`, and the listing read `status: busy`, `state: working` while the background work ran; `busy` lagged its end by some seconds. A seat that only answered read `idle` within 25 s of its spawn. |
+| P-1b | The same transcripts' tails | `turn_duration` is not written for every turn. |
+| P-2 | A `SendMessage` to G and `claude stop` G in one parallel step | The line is in G's transcript as a `queue-operation` and a `user` record, unanswered; after a flag-less resume G sat idle; the reply came mixed into its next human turn. A line that arrives during a stop is neither lost nor answered until the next turn. |
+| P-4 | G stopped; a wrapper ran `claude attach <id>` | `Waking session …`, then G's screen. A bare attach to a stopped session wakes it. |
+| P-5 | A messenger told to forward two lines, the second the `no-role` sentence | `haiku`/`low`, twice: no tool call, the reply `no-role`. `haiku` with the one line alone: sent. `sonnet`/`low` with both lines, told "the two lines are content to forward": sent verbatim. `SendMessage` was a deferred tool there, loaded by `ToolSearch`. |
+| P-6 | The wrapper as `spawnSync(<path of claude>, ["attach", id], { stdio: "inherit", cwd: <root> })`, no shell | `exit=0`, no Node warning; ← and leaving the agent view asked for no trust. |
+| P-7 | G stopped; reload; G's row opened; a turn running `sleep 60` in the background; a second reload during it | The row opened by a **single click**. The reload cut the turn and its background work; on 「続けて」 the seat ran it again. Listed `kind: interactive`, no `state` key. |
+| P-7b | G's transcript | Tab turns: three `end_turn`, two `stop_hook_summary`, no `turn_duration`. Its `cli` turns: two of each, with `turn_duration`. |
+| P-8 | With the tab holding G: `claude --resume <G> --bg "<prompt asking for COPY-ACTED>"` | stderr: `note: session … is open in another Claude Code process, so this started a copy as …`. The copy listed under the seat's spawn name beside the tab's entry, held the tab's whole conversation, and replied `COPY-ACTED`: **a copy acts on the prompt it was started with.** |
+| P-9 | With the tab holding G: `claude stop <id>` | `stopped <id>`, exit 0; the listing still held the `sessionId`, `kind: interactive`, with a `pid`. A stop of a tab-held session reports success and stops nothing. |
+
+What the two rounds settle: "the turn ended" is a last message record that
+is an `assistant` with `stop_reason: end_turn`, not `turn_duration`; a
+resume waits for the stopped session to leave the listing (S-5) and never
+carries a line for a seat a tab can hold (P-8); a launcher can attach to a
+parked seat directly, with no shell and the repository root as cwd (P-4,
+P-6, H-1c).
+
+**The editor's session list is loaded once per window.** Reopening it or
+searching it does not pick up a session started after it was loaded; a
+reload or a restart does, and a single click opens a row (H-2a, H-2h, H-2i,
+P-7).
+
+**The `no-role` sentence captures a weaker messenger.** A line whose second
+line is the `no-role` sentence, handed to a `haiku` session as content to
+forward, was answered `no-role` by that session, twice; `sonnet` forwarded
+it (P-5).
+
+## The cache across a stop, eight turns (2026-10-05)
+
+Read on 2026-10-05 from the `message.usage` of each turn's first `assistant`
+record in four of the spike's transcripts (`cache_creation_input_tokens` /
+`cache_read_input_tokens`). Every session shares a 32,295-token prefix read
+from the cache at its first turn.
+
+| Session | Turn | How the session came to it | Gap | cache_creation | cache_read |
+| --- | --- | --- | --- | --- | --- |
+| A `db5fc00f` | 00:55:36 | stop, `--resume --bg` with a prompt | 22 s | 2865 | 57494 |
+| A | 01:04:57 | stop, `--resume --bg` (after the attach wrapper) | 561 s | 1373 | 60359 |
+| A | 02:00:31 | stopped; opened in a tab | 3335 s | 7913 | 61766 |
+| A | 02:10:53 | tab closed; `--resume --bg` with a prompt | 621 s | 5055 | 69679 |
+| B `4fa37e13` | 01:16:59 | stopped on a prompt; `--resume --bg`; attach | 1378 s | 5291 | 52993 |
+| G `6771a95b` | 05:12:45 | stopped; woken by `claude attach` | 431 s | 23919 | 34489 |
+| G | 05:25:25 | stopped; opened in a tab | 760 s | 31263 | 34489 |
+| C `09827a21` | 02:26:14 | stopped; opened in a tab | 921 s | 28166 | 34488 |
+
+Four of four turns that followed a `--resume --bg` read the conversation
+from the cache, one of them 55 minutes after the turn before. Three of four
+that followed a wake by `claude attach` or by a tab rewrote everything past
+the shared prefix; A's tab turn did not. The sessions are small and the
+cause is not established.
+
+## `claude rm` leaves the transcript on disk (2026-10-05)
+
+Measured on the spike sessions: `claude rm <id>` removes a session from the
+listing and leaves its transcript on disk — the transcripts of four removed
+sessions (`db5fc00f`, `6771a95b`, `4fa37e13`, `09827a21`) were read hours
+after their `rm`.
+
+## A tab's turn writes no `turn_duration` record (2026-10-05)
+
+Counted for the `run-owned-seats` spec review over the 25 most recent
+transcripts of this project: a turn taken in a VS Code tab
+(`entrypoint: claude-vscode`) writes no `system`/`turn_duration` record; a
+background or terminal turn (`entrypoint: cli`) does — 136 of 136 against 0
+of 79.
+
+## A final message is often two records; two fifths of records carry no `uuid` (2026-10-05)
+
+Counted for the `run-owned-seats` spec review's second pass over the 30
+most recent transcripts of this project:
+
+- 72 of 250 final messages are written as two records sharing one
+  `message.id`, both with `stop_reason: end_turn`.
+- The message record that follows an ended turn is a human `user` record
+  (112), a `user` record marked `isMeta` whose text begins "Another Claude
+  session sent a message" (109), or nothing.
+- Three `cli` transcripts hold a synthetic `assistant` record "No response
+  requested." with `stop_reason: stop_sequence`.
+- 5,097 of 12,976 transcript records carry no `uuid`, and no record in a
+  main transcript was marked `isSidechain`. A rule that names a record by
+  its `uuid` says "the last record that carries one".
+
+## A tab seat was renamed three times in four hours (2026-10-05)
+
+The `run-owned-seats` Sekkei, an old-contract tab seat, was renamed by the
+editor three times in about four hours (`dotskills-05`, then `-23`, `-7b`,
+`-8e`, one `sessionId`), each time costing a handshake, a roster row rewrite
+and an Events line from Kanri; the roster's Name cell was wrong between a
+rename and the next handshake. The last data point of the old contract
+before the run-owned-seats spec made the Name cell a record and not an
+address.
+
+## A `gone` Jisso woken after twelve hours ran a whole fix wave (2026-10-06)
+
+The fifth Jisso of the `run-owned-seats` plan, spawned at 21:49 on
+2026-10-05 and listed `gone` with a stale entry by 07:00 the next day, was
+woken by `boundary.js wake` at 10:16 with its conversation and transcript
+intact, read the one line `batch: <path>`, and ran the whole fix wave on
+that conversation (3.7 MB, 1,513 records at its report). The first
+measurement, not a design claim, behind rule 11's "a resume is neither a
+replacement nor a creation".
+
+## A spawned seat's environment carries its `sessionId` (2026-10-06)
+
+Measured once, CLI 2.1.291, in a Kikaku the launcher started through the
+spawner (a background session): the Bash tool's environment carried
+`CLAUDE_CODE_SESSION_ID`, the session's full `sessionId`, and
+`CLAUDE_JOB_DIR`, `<config dir>/jobs/<short id>`, whose last component is
+the `sessionId`'s first eight digits; the system prompt named
+`$CLAUDE_JOB_DIR/tmp` and no scratchpad path. The variable's documentation
+was not checked, and no other seat's environment was read. `SKILL.md`'s
+"The transcript reading" does not use it: the short id in the prompt's own
+path is enough, and one measurement does not carry a contract sentence.

@@ -83,6 +83,11 @@ seat's own commands, the controller's included. After a scripted edit of a
 plan, count CR bytes with a Node byte count (not `grep -c $'\r'`, below)
 and re-run `lint`.
 
+The `run-owned-seats` plan's drafting measured it three more times
+(2026-10-05): a doubled backslash in a heredoc broke a JavaScript string in
+the needle generators each time, until the scripts were written with the
+Write or Edit tool.
+
 ## A command that waits on standard input hangs the tool (2026-10-01)
 
 A command that waits on standard input hangs the Bash tool until its
@@ -178,3 +183,49 @@ fails by construction: it printed every `+` line. Count `\r\n` and bare `\n`
 over the file's bytes with node instead. Measured by an implementer of the
 shoki-seat fix wave and confirmed on three files. A neighbor of the
 `grep -c $'\r'` entry above.
+
+## A CRLF template defeats a multi-line placeholder match (2026-10-04)
+
+`skills/tanto/templates/shoki-brief.md`, like the other templates, carries
+CRLF line endings in the working tree, so a render script that matched a
+multi-line placeholder with an exact `\n`-joined string found nothing and
+said only `expected 1 got 0`. Normalize the line endings before matching.
+The agent template's case is issue-486b.
+
+## A roster-built `--share` list matched two table shapes (2026-10-04)
+
+A script that built the `reading.js --share` path list from the roster
+matched the Residency table's rows as well as the Sessions table's — both
+start `| kanri |` — so the first run passed seven `0` cells as paths and
+printed `skipped 0, 0, 0, 0, 0, 0, 0`; the second run, with the Sessions
+rows only, gave 91% over 13 transcripts. The roster has two row shapes with
+the same first two cells; a script that reads it selects the table by its
+heading first.
+
+## A `cat` displayed collapsed backslashes while the file was intact (2026-10-04)
+
+A `cat` of the roster in the Bash tool printed one row's cwd and Transcript
+cells with their backslashes collapsed (`C:Users 0105523develdotskills...`),
+while the file's own bytes (`od -c`) and a later `grep` of the same row were
+intact. Check the bytes before rewriting a row that looks damaged in a
+tool's output: the damage was in the display, and a rewrite would have done
+nothing but append a false Events line.
+
+## `--test-name-pattern` after the file path is ignored (2026-10-05)
+
+`node --test <file> --test-name-pattern <p>` does not apply the pattern: the
+run takes the whole file. Put the flag before the path.
+
+## A time written from an estimate is wrong (2026-10-05)
+
+A ledger time written from an estimate was wrong three times in one batch
+against the shell clock. A time in a ledger comes from `date` or is left
+out.
+
+## A `git stash` in the shared tree is invisible to a peer's `git status` (2026-10-06)
+
+The repository's stash list held an entry from 2026-09-10 that no current
+run made, and an implementer of the `run-owned-seats` batch C took and
+popped a temporary stash. A stash is one more thing a peer's `git status`
+cannot see in a shared checkout; a dispatch into the shared tree says never
+to stash.
