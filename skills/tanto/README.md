@@ -15,8 +15,10 @@ one implementation plan.
   work is dialogue with the human — Sekkei, Keikaku, Kaiseki, and the two
   below — is parked between its turns, its process stopped and its
   conversation kept, and is woken when a line is due. The human enters any
-  seat with `tanto <role>` in the editor's own terminal, and a dialogue seat
-  also by a click on its row in the editor's session list.
+  seat with `tanto <role>` in the editor's own terminal — that command, and
+  the process it runs, is what every line of this skill calls the
+  **launcher** — and a dialogue seat also by a click on its row in the
+  editor's session list.
 - Adds two seats outside that lifecycle, started by the human with
   `tanto kikaku` and `tanto hosa`, ended by `/tanto taiseki` typed in them,
   and never requested by Kanri: **Kikaku** (企画) thinks with the human about

@@ -242,7 +242,7 @@ For a plan that carries passages, run
 `node "$TANTO/scripts/passage-check.js" diff --plan <path> --base <merge base>`
 at every batch boundary, before you report — except the fix wave's: a wave
 carries no passages and edits mostly files the plan created, so `diff` says
-nothing about it; run `verify` and `replay` only, and the wave's boundary is
+nothing about it; run `verify` once for each of the plan's tasks, and `replay`, only, and the wave's boundary is
 read by the runner's verdict and the review's findings list. `diff` prints the added lines of the
 merge-base diff that the plan does not literally quote, and the removed lines
 that fall outside any fenced block; both sets must be empty, or accounted for

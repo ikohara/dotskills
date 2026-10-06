@@ -374,10 +374,10 @@ Then, in this order.
    recommender reads those four sections of the spec by name, and Keikaku's
    shoroku proposal, named in the `coldread answered:` line, is form-checked
    and recorded the same way ("A seat's exit", step 2). A row whose section
-   the plan's own last task lands — its ADRs, its issue edits — is recorded
-   `yes`, with that task's commit subject in Written, at your passage-check
-   answer and before the recommender runs; the others stay `pending` for the
-   close.
+   the plan's own last task lands — its ADRs, its issue edits — has that
+   task's commit subject recorded in Written at the boundary verdict of the
+   batch that holds that task, its Adopted staying `pending` until the close;
+   the others stay `pending` with Written `no` for the close.
 4. Write batch A's prompt from `templates/batch-prompt.md` —
    `First batch, no previous verdict, no check: line.` in its
    previous-batch-verdict section, the first-Jisso line in its Setup on
@@ -1486,7 +1486,10 @@ lists in its File structure table. In the lane you edit the skill file
 directly, run lint on the changed paths by name — or on the whole repository
 where the lint script takes no path arguments — and the README drift review
 if `SKILL.md` changed, commit once by explicit path with the trailer, and
-record `R-n`. No issue is filed for the fix: the commit is the durable
+record `R-n`. A fix to a script a resident process runs — `spawner.js` — takes
+effect only when the human restarts that process, so the lane ends with a
+`for you:` item naming the restart (`tanto teishi`, then `tanto`). No issue is
+filed for the fix: the commit is the durable
 record, so its subject names the symptom, and its body names a report's
 source, when the fix answers one, as `inbox <YYYY-MM-DD>-<slug>` and nothing
 more; you then fill that copy's Triage — Outcome `fix`, Reference the commit

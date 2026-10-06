@@ -60,7 +60,12 @@ Kanri decides whether it is stray.
    and `Verify in the tree` among them, inside `## For Kanri`; Jisso's reading
    from the report's header; Kanri's reading with its ceiling, presence, and
    `ttl=` lines; and the `## commit-ready` section whole, which `check`
-   prints whenever `--ledger` named a ledger.
+   prints whenever `--ledger` named a ledger. A fence that fails for the
+   instrument's own reason — an exit 2 with a Node error such as `ENOBUFS`,
+   not a finding about the tree — is reported as that, under Failures with
+   the error text, and re-run once under a workaround that touches no
+   repository file (a preload, a wider buffer) with both results in the
+   verdict, so that Kanri rules on the tree and not on the instrument.
 3. Run each check the report's `Verify in the tree` names — a test command, a
    file to look at — and note its pass or fail. A failure goes under Failures as
    well as under Verify in the tree.

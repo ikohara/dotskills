@@ -635,8 +635,13 @@ directory is `$CLAUDE_CONFIG_DIR` when set and `~/.claude` otherwise. A
 session whose cwd is a worktree under the repository — shoki's — writes its
 transcript under the slug `<repo slug>--claude-worktrees-<name>`, the
 harness's encoding of that cwd, and the spawner's `findTranscript` searches
-every slug. Then, with `T` the transcript path and `$TANTO` the skill's own
-directory, **both set in the same tool call as the command**:
+every slug. A seat whose prompt names no scratchpad path but a job
+directory's `tmp`, `<config dir>/jobs/<short id>/tmp`, takes `<short id>` —
+the first eight digits of its `sessionId` — from that path: its transcript
+is the one file `<short id>-*.jsonl` under
+`<config dir>/projects/<project slug>/`. Then, with `T` the transcript path
+and `$TANTO` the skill's own directory, **both set in the same tool call as
+the command**:
 
 ```bash
 node "$TANTO/scripts/reading.js" "$T"
