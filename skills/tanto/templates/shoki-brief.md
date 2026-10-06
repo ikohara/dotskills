@@ -20,6 +20,13 @@ yours, the report's shape and your closing line included.
 - Direction — <.tanto/<topic>/shoroku-direction.md>
 - Inbox copies — <the untriaged copies the recommendation names, by absolute
   path, or "none">
+- Feedback — <.tanto/<topic>/shoroku-feedback.md, by absolute path in the
+  main checkout, or "none" at an inbox sweep, which has no topic and writes
+  no feedback file>; step 2's apply writes it
+- Usage record — <the absolute path of docs/notes/tanto-usage.jsonl in the
+  worktree, or "none">; set only in the repository that ships the skill,
+  and step 2 runs `collect` into it
+- Skill directory — <absolute path>; `<skill dir>` below stands for it
 - Kanri — <the roster's first data row, read from the main checkout at the
   moment you send>
 - Models — `shoroku.apply` on <family>, `shoroku.review` on <family>. Every
@@ -38,8 +45,9 @@ yours, the report's shape and your closing line included.
   merges, and deletes; your commits reach `main` by Kanri's fast-forward of
   your branch, on your report line.
 - You never write a tracked file outside the worktree. The main checkout is
-  readable and is not yours to change; the inbox copies you fill are
-  untracked.
+  readable and is not yours to change; the files you write there are
+  untracked — the inbox copies you fill, and the feedback file at the
+  Feedback path.
 - You never ask the human anything. Four things stop you, and only these: an
   irreversible or destructive operation; a security-sensitive action; a side
   effect outside this worktree that norms say you ask about first (a merge, a
@@ -52,22 +60,61 @@ yours, the report's shape and your closing line included.
 
 1. Read, at their absolute paths in the main checkout, the recommendation,
    the direction, and every inbox copy the recommendation names — every
-   `inbox <YYYY-MM-DD>-<slug>` token of its headings, whether the pointer
-   stands alone or follows a topic's `S-n` in one parenthesis. Read
-   `docs/AGENTS.md` in the worktree — the document-management system you
-   write by is the one on this branch.
+   `inbox <YYYY-MM-DD>-<slug>` token of its headings, with or without the
+   item number after it, `#<n>`, and whether the pointer stands alone or
+   follows a topic's `S-n` in one parenthesis. The copy is the one the
+   token names without the number, and you read it once however many
+   headings name it. Read `docs/AGENTS.md` in the worktree — the
+   document-management system you write by is the one on this branch.
 2. Dispatch `shoroku.apply`, `subagent_type: tanto-shoroku-apply`, with the
    recommendation, the direction, the commit subject
-   `docs: shoroku for <topic>`, and the inbox copies by path. It writes
+   `docs: shoroku for <topic>`, the inbox copies by path, and the Feedback
+   path unless it is `none`. It writes
    the accepted subset per `docs/AGENTS.md`, every issue opening with the
    `Source:` line its item's heading names, and fills the Triage section of
-   every swept inbox copy at its absolute path in the main checkout. Then run
-   the repository's lint on the changed paths — or on the whole repository
-   where the lint script takes no path arguments — and commit once by
-   explicit path, with the `Co-Authored-By:` trailer, on this worktree's own
-   branch.
+   every swept inbox copy at its absolute path in the main checkout: a bug
+   report's with the direction's outcome, its reference, and the date; a
+   feedback copy's — one whose first line begins `# Shoroku feedback` —
+   with Outcome `feedback`, one Items line per item of it,
+   `<n>: <outcome> — <reference>`, and the date, and with no Items line
+   when the copy's own Items is `none`.
+
+   Where the Feedback argument is a path, the same dispatch writes that
+   file, untracked, from `templates/shoroku-feedback.md` in the skill
+   directory, and fills two of its sections. Items: the `Feedback:` line of
+   every item whose feedback half the direction kept, copied from the
+   recommendation and never paraphrased again, or `none`; in the repository
+   that ships the skill no item has a feedback half, and Items is `none`.
+   Departures, read from the recommendation and the direction and from
+   nothing else, one line in the template's form for each: an override (a
+   recommended adopt directed to reject, or the reverse); a re-typing or a
+   re-destination; an unsure item and how the human resolved it; an item
+   rejected as recommended, its reason paraphrased — a type being one of
+   the six `docs/` type words, `fix`, or `feedback`, never a document's id,
+   title, or path — and `none` when there is no departure; Departures is
+   written all the same where Items is `none`. Nothing in either section
+   names this repository, its path, its topics, or its sessions, or quotes
+   the human, an item's source text, or the repository's documents. Usage,
+   Received, and Triage stay as the template has them; `usage.js close`
+   assembles the rest at the landing.
+
+   Where the Usage record argument is a path, run, after the apply,
+
+   ```bash
+   node "<skill dir>/scripts/usage.js" collect --into <the Usage record path> --inbox <main checkout>/.tanto/inbox
+   ```
+
+   which appends a row for every feedback copy in the inbox whose `source`
+   is not already in the file, creates the file when it is absent, and
+   prints `collected: <n> rows, <m> already present`; the file rides in
+   the same commit. Then run the repository's lint on the changed paths —
+   or on the whole repository where the lint script takes no path
+   arguments — and commit once by explicit path, with the
+   `Co-Authored-By:` trailer, on this worktree's own branch.
 3. Dispatch `shoroku.review`, `subagent_type: tanto-shoroku-review`, over
-   this worktree's diff against `main`, the direction, and `docs/AGENTS.md`;
+   this worktree's diff against `main`, the direction, and `docs/AGENTS.md`,
+   telling it that the Usage record, where the diff touches it, is
+   `collect`'s and is not reviewed;
    it writes `.tanto/<topic>/shoroku-review.md` in the main checkout. On findings,
    dispatch `shoroku.apply` once more with them and commit as
    `docs: shoroku for <topic>, review fixes`. Never a third time: a second
