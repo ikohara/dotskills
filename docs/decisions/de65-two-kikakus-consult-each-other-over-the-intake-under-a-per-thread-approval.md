@@ -17,7 +17,7 @@ human carried it: he copied the text from one Kikaku to the other and back.
 A Kikaku sent Kanri one line when something was decided and nothing else,
 and Kanri never addressed a Kikaku first, so no seat could carry a question
 between repositories. The tanto-feedback design (2026-10-06), sections 7.2
-and 8, takes the consult. Serves exp-c53d and the driver d4d7.
+and 8, takes the consult. Serves exp-c53d and the driver exp-d4d7.
 
 ## Options
 

@@ -22,8 +22,8 @@ this issue. No open issue names the close as the serialization point
 (issue-2065 is a prose pass).
 
 **2026-10-07, from inbox 2026-10-06-kanri-context-cost-and-close-gaps — what
-opening the next Sekkei mid-batch costs.** From one batch boundary
-(`context=207530`) to the next (233,610), a Kanri handled one decision file,
+opening the next Sekkei mid-batch costs.** From one batch boundary,
+`context=207530`, to the next, 233,610, a Kanri handled one decision file,
 a "can we start the next Sekkei?" answer, a Sekkei handshake with a ledger
 opened from the template, the roster and Residency rows, the ledger
 placeholders and the orders line: about 26,000 tokens. A spawned Kanri

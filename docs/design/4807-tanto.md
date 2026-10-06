@@ -1405,9 +1405,9 @@ this topic removes is the remaining two. The attribution matters because a later
 reader comparing the before and after figures would otherwise credit one topic
 with the whole of a gain that two produced.
 
-**A close no longer carries Residency rows into a tracked report** —
-decision-73cc's by-actor axis, decision-32e5's measurement. The skill had
-told a close to append the run's Residency rows to a tracked report, which is
+**A close no longer carries Residency rows into a tracked report**
+(exp-09c2) — decision-73cc's by-actor axis, decision-32e5's measurement. The
+skill had told a close to append the run's Residency rows to a tracked report, which is
 the class of record the axis rejects: no document cites a raw row, and the
 reader that acts on a run's cost is the skill's measurement, not the
 repository's `docs/`. The instruction predated the axis, and the

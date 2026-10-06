@@ -259,6 +259,9 @@ Measured on 2026-09-16 in this repository, on the hosa window
 `6883a717…` before the clear and `c360a34a…` after, under the config
 directory's `projects/` tree for this repository.
 
+Contradicted by one run on 2026-10-06, which kept the session id across a
+clear; re-measure (issue-c18a).
+
 Kept across the clear:
 
 - **The window's name and its `[ref]`.** The roster's three post-clear rows
