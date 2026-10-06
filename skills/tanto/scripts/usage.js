@@ -1021,11 +1021,22 @@ function sectionsOf(text) {
   return sections;
 }
 
-/** A section's body with its outer blank lines dropped, or `none` when empty. */
-function bodyOf(lines) {
+// The one line each section carries in templates/shoroku-feedback.md before a
+// hand fills it. A body that is exactly that line was never filled: it reads
+// as none, so that a copied template does not travel with its placeholders.
+const ITEMS_PLACEHOLDER = "<n>. <the line that travels> — Class: tanto-only | both";
+const DEPARTURES_PLACEHOLDER =
+  "<n>. <override | retyped | unsure-resolved | rejected-as-recommended> — recommended <type, and adopt or reject> — directed <type, and adopt or reject> — <the reason, paraphrased> — rule: <the rule it suggests, or none yet>";
+
+/**
+ * A section's body with its outer blank lines dropped, or `none` when empty
+ * or when it is the section's placeholder line alone.
+ */
+function bodyOf(lines, placeholder) {
   const body = [...lines];
   while (body.length && body[0].trim() === "") body.shift();
   while (body.length && body[body.length - 1].trim() === "") body.pop();
+  if (body.length === 1 && body[0].trim() === placeholder) return ["none"];
   return body.length ? body : ["none"];
 }
 
@@ -1082,6 +1093,8 @@ function needlesOf(ctx, topic, spawner) {
     const out = [p, slash, p.replace(/\//g, "\\")];
     const drive = slash.match(/^([A-Za-z]):\/(.*)$/);
     if (drive) out.push(`/${drive[1].toLowerCase()}/${drive[2]}`);
+    // The form `JSON.stringify` writes: each backslash doubled.
+    for (const form of out.filter((f) => f.includes("\\"))) out.push(form.replace(/\\/g, "\\\\"));
     return out;
   };
   for (const form of forms(ctx.root)) anywhere.add(form);
@@ -1230,8 +1243,8 @@ function cmdClose(ctx, values, positionals) {
   if (shokiText === null || !sections.has("Items") || !sections.has("Departures")) {
     console.log(`feedback: shoki's part absent — ${shokiFile}`);
   } else {
-    items = bodyOf(sections.get("Items"));
-    departures = bodyOf(sections.get("Departures"));
+    items = bodyOf(sections.get("Items"), ITEMS_PLACEHOLDER);
+    departures = bodyOf(sections.get("Departures"), DEPARTURES_PLACEHOLDER);
   }
 
   const repository = skillRepositoryOf(ctx);
@@ -1239,7 +1252,11 @@ function cmdClose(ctx, values, positionals) {
   const destination = path.join(ctx.root, ".tanto", own ? "inbox" : "sent");
 
   // A run after the first reuses the file it placed, so that a second run
-  // changes nothing but the measurement.
+  // changes nothing but the measurement -- except a sent file whose basename
+  // the receiving inbox already holds: the intake would copy a rewrite over
+  // a copy the receiving close may have triaged, so that run takes a new stem.
+  const inbox = repository === null ? null : path.join(repository.root, ".tanto", "inbox");
+  const delivered = (name) => !own && inbox !== null && exists(path.join(inbox, name));
   let target = null;
   let previous = null;
   try {
@@ -1247,7 +1264,7 @@ function cmdClose(ctx, values, positionals) {
   } catch {
     // first placement
   }
-  if (previous && path.dirname(previous) === destination) target = previous;
+  if (previous && path.dirname(previous) === destination && !delivered(path.basename(previous))) target = previous;
   let date = today;
   if (target) {
     date = path.basename(target).slice(0, 10);
@@ -1258,11 +1275,16 @@ function cmdClose(ctx, values, positionals) {
   }
   const text = assembleFeedback({ id, date, items, departures, usageBlock, own });
 
-  if (own) {
+  // Place the file and record where, for a later run to reuse.
+  const place = () => {
     fs.mkdirSync(destination, { recursive: true });
     fs.writeFileSync(target, text, "utf8");
     fs.mkdirSync(topicDir, { recursive: true });
     fs.writeFileSync(placedFile, `${target}\n`, "utf8");
+  };
+
+  if (own) {
+    place();
     console.log(`feedback: own repository — ${target}`);
     return 0;
   }
@@ -1279,10 +1301,7 @@ function cmdClose(ctx, values, positionals) {
     }
   }
 
-  fs.mkdirSync(destination, { recursive: true });
-  fs.writeFileSync(target, text, "utf8");
-  fs.mkdirSync(topicDir, { recursive: true });
-  fs.writeFileSync(placedFile, `${target}\n`, "utf8");
+  place();
   try {
     fs.rmSync(heldFile, { force: true });
   } catch {
@@ -1296,12 +1315,11 @@ function cmdClose(ctx, values, positionals) {
   }
   console.log(`feedback: ${target}`);
   console.log(`to: ${repository.root}`);
-  console.log(`send: shoroku-feedback: ${target}`);
-  const inbox = path.join(repository.root, ".tanto", "inbox");
+  if (!delivered(path.basename(target))) console.log(`send: shoroku-feedback: ${target}`);
   for (const name of listDir(destination)) {
     const file = path.join(destination, name);
     if (file === target || !name.endsWith(".md") || !isFeedbackFile(file)) continue;
-    if (!exists(path.join(inbox, name))) console.log(`send: shoroku-feedback: ${file}`);
+    if (!delivered(name)) console.log(`send: shoroku-feedback: ${file}`);
   }
   return 0;
 }
@@ -1862,18 +1880,24 @@ function main(argv) {
     process.stderr.write(`${USAGE}\n`);
     return 2;
   }
-  if (form === "measure") return cmdMeasure(ctx, values, rest);
-  if (form === "close") return cmdClose(ctx, values, rest);
-  if (form === "report") return cmdReport(ctx, values);
-  if (form === "between") return cmdBetween(ctx, positionals);
-  if (form === "collect") {
-    if (!values.into || !values.inbox) {
-      process.stderr.write(`collect needs --into and --inbox\n${USAGE}\n`);
-      return 2;
+  // An I/O failure is a usage-class error (2), never the hold's code (1).
+  try {
+    if (form === "measure") return cmdMeasure(ctx, values, rest);
+    if (form === "close") return cmdClose(ctx, values, rest);
+    if (form === "report") return cmdReport(ctx, values);
+    if (form === "between") return cmdBetween(ctx, positionals);
+    if (form === "collect") {
+      if (!values.into || !values.inbox) {
+        process.stderr.write(`collect needs --into and --inbox\n${USAGE}\n`);
+        return 2;
+      }
+      return cmdCollect(values);
     }
-    return cmdCollect(values);
+    return cmdId(ctx);
+  } catch (err) {
+    process.stderr.write(`usage.js: ${oneLine(err.message)}\n`);
+    return 2;
   }
-  return cmdId(ctx);
 }
 
 module.exports = {
@@ -1892,6 +1916,7 @@ module.exports = {
   workspaceIdOf,
   slugOf,
   heldLines,
+  needlesOf,
   costLine,
   main,
 };

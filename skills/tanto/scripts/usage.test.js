@@ -1212,6 +1212,24 @@ test("the two needle classes are searched over their own scopes", () => {
     usage.heldLines(text, needles).map((h) => h.line),
     [5, 15, 20],
   );
+
+  // The needles `needlesOf` builds: each line below carries exactly one hit,
+  // in the Received section where the body class does not reach, so that a
+  // form dropped from `forms()` or the slug dropped from the needles shows.
+  const root = "C:\\w\\quarry";
+  const built = usage.needlesOf({ root }, "alpha-topic", new Map());
+  const home = os.homedir();
+  const hits = [
+    ['an escaped path {"path":"C:\\\\w\\\\quarry"}', "the root as JSON.stringify writes it"],
+    ["a git-bash path /c/w/quarry/x", "the root's /c/ form"],
+    [`a home directory ${home}/notes`, "the home directory as given"],
+    [`a home directory ${home.replace(/\\/g, "/")}/notes`, "the home directory with forward slashes"],
+    [`a home directory ${home.replace(/\\/g, "\\\\")}\\\\notes`, "the home directory with doubled backslashes"],
+    [`a session dir ${usage.slugOf(root)}`, "the slug"],
+  ];
+  for (const [line, what] of hits) {
+    assert.equal(usage.heldLines(`## Received\n\n${line}`, built).length, 1, `held: ${what}`);
+  }
 });
 
 test("close --release places a held file as it stands", () => {
@@ -1266,6 +1284,47 @@ test("a second close changes nothing but the measurement", () => {
   assert.equal(withoutUsage(secondText), withoutUsage(firstText));
 });
 
+test("a close does not rewrite a file whose basename the receiving inbox already holds", () => {
+  const ws = workspace({ skill: "other" });
+  basicSeat(ws);
+  writeShokiPart(ws);
+  const sent = path.join(ws.root, ".tanto", "sent");
+  const placedFile = path.join(ws.root, ".tanto", "alpha-topic", "shoroku-feedback-placed.txt");
+  assert.equal(run(ws, ["close", "--topic", "alpha-topic"]).code, 0);
+  const first = path.join(sent, fs.readdirSync(sent)[0]);
+  const firstBytes = fs.readFileSync(first);
+  // The intake copied the file and the receiving close triaged the copy.
+  const copy = path.join(ws.skillRepo, ".tanto", "inbox", path.basename(first));
+  fs.writeFileSync(copy, "triaged copy\n", "utf8");
+  const second = run(ws, ["close", "--topic", "alpha-topic"]);
+  assert.equal(second.code, 0, second.err);
+  assert.deepEqual(fs.readFileSync(first), firstBytes);
+  assert.equal(fs.readFileSync(copy, "utf8"), "triaged copy\n");
+  const next = first.replace(/\.md$/, "-2.md");
+  assert.deepEqual(fs.readdirSync(sent).sort(), [path.basename(first), path.basename(next)].sort());
+  assert.equal(fs.readFileSync(placedFile, "utf8"), `${next}\n`);
+  const lines = second.out.split("\n");
+  assert.ok(lines.includes(`feedback: ${next}`));
+  assert.ok(lines.includes(`send: shoroku-feedback: ${next}`));
+  assert.ok(!lines.includes(`send: shoroku-feedback: ${first}`));
+  assert.equal(lines.filter((line) => line.startsWith("send: ")).length, 1);
+});
+
+test("close reads the template's own placeholder lines as none, in Items and in Departures", () => {
+  const ws = workspace({ skill: "other" });
+  basicSeat(ws);
+  const template = path.join(__dirname, "..", "templates", "shoroku-feedback.md");
+  const file = path.join(ws.root, ".tanto", "alpha-topic", "shoroku-feedback.md");
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.copyFileSync(template, file);
+  const result = run(ws, ["close", "--topic", "alpha-topic"]);
+  assert.equal(result.code, 0, result.out + result.err);
+  const sent = path.join(ws.root, ".tanto", "sent");
+  const text = fs.readFileSync(path.join(sent, fs.readdirSync(sent)[0]), "utf8");
+  assert.equal(section(text, "Items"), "none");
+  assert.equal(section(text, "Departures"), "none");
+});
+
 test("close assembles none into both sections when shoki's part is absent, and says so", () => {
   const ws = workspace({ skill: "other" });
   basicSeat(ws);
@@ -1307,6 +1366,17 @@ test("close --keep-usage measures nothing and takes the file's Usage block as it
   assert.equal(fs.existsSync(path.join(ws.root, ".tanto", "alpha-topic", "usage.json")), false);
   const sent = path.join(ws.root, ".tanto", "sent");
   assert.equal(usageBlockOf(fs.readFileSync(path.join(sent, fs.readdirSync(sent)[0]), "utf8")), block);
+});
+
+test("a thrown I/O error exits 2 with one stderr line, not the hold's code 1 with a stack", () => {
+  const ws = workspace({ skill: "other" });
+  writeShokiPart(ws);
+  // `.tanto/sent` is a file, so the placement cannot make its directory.
+  fs.writeFileSync(path.join(ws.root, ".tanto", "sent"), "not a directory\n", "utf8");
+  const result = run(ws, ["close", "--topic", "alpha-topic", "--keep-usage"]);
+  assert.equal(result.code, 2, result.err);
+  assert.match(result.err, /^usage\.js: [^\n]+\n$/);
+  assert.doesNotMatch(result.out, /^feedback:/m);
 });
 
 // ---------------------------------------------------------------------------
