@@ -571,7 +571,7 @@ by a reboot — is `parked` in the state file, never `gone`: its
 conversation is on disk and a wake brings it back when a line is due.
 One that leaves the listing with no transcript on disk has no
 conversation to park and never ran a turn: it is `gone` with the `no first
-turn` mark and notice (3.1), as a seat without the mark is.
+turn` mark and notice (1.1), as a seat without the mark is.
 `gone` stays for Kanri, Jisso, and shoki, and for a dialogue seat spawned
 without the mark — a Keikaku of a run that has not moved, which its Kanri
 resumes as its own text says (Finding 19). The spawner's census visits

@@ -245,12 +245,14 @@ name. What you do by the status `seat` prints:
 - `removed` — never. `no entry` — run the census; the row's status then
   decides.
 
-Any other error from `wake`, and a `SendMessage` that errors, is answered
-by running `seat` again and following what it prints, once. A second
-failure is the Events line `unsent: <sessionId> — <the line>` and one line
-to the human. A line whose answer does not come from a seat that `seat` now
-shows `parked` was caught by a stop: wake the seat and send the line again;
-the seat reads it twice and answers once. When the human asks you, from
+Any other error from `wake` that is not a `resume` result carrying an error
+(that one is a failed wake, and `SKILL.md`'s "Resuming" says a seat whose
+wake fails is lost), and a `SendMessage` that errors, is answered by running
+`seat` again and following what it prints, once. A second failure is the
+Events line `unsent: <sessionId> — <the line>` and one line to the human. A
+line whose answer does not come from a seat that `seat` now shows `parked`
+was caught by a stop: wake the seat and send the line again; the seat reads
+it twice and answers once. When the human asks you, from
 anywhere — Remote Control included — to talk to a parked seat, run
 `wake --hold` on it ("Create").
 
@@ -1742,7 +1744,7 @@ for a run with none.
 
 | Symptom | Action |
 | --- | --- |
-| the live Jisso is gone — the spawner's census marked it `gone`, or the spawner's guard stopped it (`strayed` in `seats.json`), the census does not list it, `wake` fails, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers). A seat the spawner's guard stopped is marked `stopped`, its conversation kept, with an Events line naming the guard and the worktree's branch, whose commits, if any, go to the human as a ruling, and is not resumed. Any other gone Jisso is **resumed first**: mark the row `dead` with an Events line naming what showed its process gone and saying its conversation is kept, `wake` it (`boundary.js wake <sessionId>`), and when the result lands send the resumed seat `resume batch X from task N`, the line `SKILL.md`'s Resuming gives a Jisso resumed after a restart, its row `live` again. Only when that wake fails — its result carries an error, or the seat's transcript is not on disk — is the seat lost: its Events line says its shoroku proposal was not written and what was lost. For a lost seat, and for a guard-stopped one, write a `spawn` request with the same `batch=` file, its resume line rewritten to `resume batch X from task N`, or, under a skill-editing plan's queue, send that line to the next `queued` seat and put the lost seat to the human as a ruling, since the queue cannot be refilled early |
+| the live Jisso is gone — the spawner's census marked it `gone`, or the spawner's guard stopped it (`strayed` in `seats.json`), the census does not list it, `wake` fails, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers). A seat the spawner's guard stopped is marked `stopped`, its conversation kept, with an Events line naming the guard and the worktree's branch, whose commits, if any, go to the human as a ruling, and is not resumed. Any other gone Jisso whose `wake` has not already failed is **resumed first**: mark the row `dead` with an Events line naming what showed its process gone and saying its conversation is kept, `wake` it (`boundary.js wake <sessionId>`), and when the result lands send the resumed seat `resume batch X from task N`, the line `SKILL.md`'s Resuming gives a Jisso resumed after a restart, its row `live` again. Only when that wake fails — its result carries an error, or the seat's transcript is not on disk — is the seat lost: its Events line says its shoroku proposal was not written and what was lost. For a lost seat, and for a guard-stopped one, write a `spawn` request with the same `batch=` file, its resume line rewritten to `resume batch X from task N`, or, under a skill-editing plan's queue, send that line to the next `queued` seat and put the lost seat to the human as a ruling, since the queue cannot be refilled early |
 | Sekkei's reading shows a compaction | at its next commit — a verified boundary, or, with no batch in flight, when its work is ready — run "A seat's exit", then a `spawn` request with the same keys; the dialogue, the drafts, and the reviews on disk are the recovery point, and the new Sekkei takes the spec inputs and `dialogue.md` as its own |
 | Keikaku's reading shows a compaction | at its next commit, as for Sekkei (decision-6dea): run "A seat's exit", then a `spawn` request with the same three keys; the spec, `dialogue.md`, and the plan draft on disk are the recovery point, and the new Keikaku takes them as its own |
 | a Hosa's reading shows a compaction | nothing: the count arrives in its next reading, and the Hosa has already confirmed its summary's human items in its own window before continuing |

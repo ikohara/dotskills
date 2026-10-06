@@ -110,7 +110,7 @@ seats are started by tanto <role> in a terminal, or by Kanri; a run started befo
 ```
 
 A `seat` that exits 1 because the listing failed prints no entry line, and
-that exit is no signal, as a failed listing is none for the census (2.7):
+that exit is no signal, as a failed listing is none for the census:
 the session runs `seat` once more, and on a second exit 1 goes on — the
 check guards against a tab opened by hand, and a listing that failed is no
 evidence of one — and says so, appending `seat: listing failed — <reason>`
@@ -586,12 +586,14 @@ prints:
 - `removed` — never. `no entry` — run the census; the row's status then
   decides.
 
-Any other error from `wake`, and a `SendMessage` that errors, is answered by
-running `seat` again and following what it prints, once. A second failure is
-the Events line `unsent: <sessionId> — <the line>` and one line to the
-human. A line whose answer does not come, from a seat that `seat` now shows
-`parked`, was caught by its stop: Kanri wakes the seat and sends the line
-again, and the seat reads it twice and answers once.
+Any other error from `wake` that is not a `resume` result carrying an error
+(that one is a failed wake, and "Resuming" says a seat whose wake fails is
+lost), and a `SendMessage` that errors, is answered by running `seat` again
+and following what it prints, once. A second failure is the Events line
+`unsent: <sessionId> — <the line>` and one line to the human. A line whose
+answer does not come, from a seat that `seat` now shows `parked`, was caught
+by its stop: Kanri wakes the seat and sends the line again, and the seat
+reads it twice and answers once.
 
 **The beat comes before every request.**
 `node "$TANTO/scripts/boundary.js" beat` prints the `spawner:` line, and
