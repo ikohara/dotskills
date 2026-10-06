@@ -1,7 +1,7 @@
 ---
 name: tanto
 description: Use when the user starts or joins a tanto multi-session orchestration run in Claude Code, invoked as `/tanto <role>`, `担当して <role>`, or `tantoして <role>`, where the role word is kanri (管理), sekkei (設計), keikaku (計画), jisso (実装), kaiseki (解析), kikaku (企画), or hosa (補佐) in hiragana, kanji, or romaji. Drives one implementation plan through separate sessions, background and interactive, that message each other, composing superpowers brainstorming, writing-plans, subagent-driven development, systematic-debugging, and the shoroku write-out. Claude Code only, because it needs ListAgents and SendMessage.
-argument-hint: kanri | sekkei | keikaku | jisso | kaiseki | kikaku | hosa | fukki
+argument-hint: kanri | sekkei | keikaku | jisso | kaiseki | kikaku | hosa | fukki | taiseki
 ---
 
 # tanto
@@ -108,6 +108,15 @@ writing nothing, and sending nothing:
 ```text
 seats are started by tanto <role> in a terminal, or by Kanri; a run started before this contract is moved first — README, "Moving a run"
 ```
+
+A `seat` that exits 1 because the listing failed prints no entry line, and
+that exit is no signal, as a failed listing is none for the census (2.7):
+the session runs `seat` once more, and on a second exit 1 goes on — the
+check guards against a tab opened by hand, and a listing that failed is no
+evidence of one — and says so, appending `seat: listing failed — <reason>`
+to its start line and to the first tanto line it sends, as a model mismatch
+is said. A tab that slipped through is a session under the root that no row
+holds, and Kanri's next census prints it under **Not held**.
 
 The check holds for every role, Kanri and a standalone Kaiseki included:
 `tanto` and `tanto kaiseki` are their ways in.
@@ -481,7 +490,7 @@ state file, `.tanto/spawner/seats.json`, beside the listing, and prints the
 headings, in this order:
 
 - **Listed** — a `live` or `queued` row whose session is listed, its line
-  ending `— renamed` when the spawner marked it so, and
+  ending `— renamed` when the listed name is not the row's Name cell, and
   `— blocked (<waitingFor>)` for a background seat on a prompt. A seat open
   in a tab is never `blocked`: its prompt is in front of the human already.
 - **Parked** — a `live` row whose seat the state file holds `parked`, with
@@ -734,8 +743,8 @@ the path does not. `unavailable` stands only where there is neither, and no
 | what happened | what the run does |
 | --- | --- |
 | an editor reload or restart, or a tab closed | nothing is asked of anyone: no fukki, no report. The background processes are unreached by it; a tab the human does not reopen is a parked seat, woken when a line is next due to it; a turn the reload cut is continued by a word in the tab ("The faces of a seat", C-5). A seat a tab held is listed again under a new name, which the next row covers |
-| a seat renamed | the spawner's census sees a known `sessionId` under a new name and marks `renamed` in `seats.json`; Kanri rewrites the row's Name cell, writes `resumed: <old name> → <new name>`, and clears the mark with an `ack` request. The seat itself does nothing and checks nothing |
-| a line due to a seat that is not running — parked, or gone | Kanri runs `seat` and follows "The address": a `parked` seat, or a `gone` one that is not a Kanri — a stale entry with no `pid` included — is woken by `wake`, a `resume` request run as `claude --resume <sessionId> --bg` with no prompt and no flag, which keeps the `sessionId` and the whole conversation, and the line goes to the name `wake` prints. A `queued` row goes `live` before its `batch:` line is sent, woken or not. A wake is never a spawn and never a replacement; it covers every line to a seat — a queued Jisso's `batch:` line, a rework prompt's, the `close:` line, a `coldread:` line, a `continue:` after a pause — and costs nothing for a seat that is alive, which `wake` answers `listed`. A seat whose wake fails twice, or whose transcript is not on disk, is lost: `roles/kanri.md`'s Replace table decides what follows |
+| a seat renamed | the census prints the seat's line ending `— renamed`, its listed name not being the row's Name cell; Kanri rewrites the row's Name cell and writes `resumed: <old name> → <new name>`, and that is all. The seat itself does nothing and checks nothing |
+| a line due to a seat that is not running — parked, or gone | Kanri runs `seat` and follows "The address": a `parked` seat, or a `gone` one that is not a Kanri — a stale entry with no `pid` included — is woken by `wake`, a `resume` request run as `claude --resume <sessionId> --bg` with no prompt and no flag, which keeps the `sessionId` and the whole conversation, and the line goes to the name `wake` prints. A `queued` row goes `live` before its `batch:` line is sent, woken or not. A wake is never a spawn and never a replacement; it covers every line to a seat — a queued Jisso's `batch:` line, a rework prompt's, the `close:` line, a `coldread:` line, a `continue:` after a pause — and costs nothing for a seat that is alive, which `wake` answers `listed`. A seat whose wake fails, or whose transcript is not on disk, is lost: `roles/kanri.md`'s Replace table decides what follows |
 | a reboot, a crash, or a spawner that died | `tanto`, or `tanto fukki`, reads the state file, starts the spawner when none beats, and writes a `resume` request for every seat it holds as `running` or `blocked` that is not a dialogue seat and that the listing does not hold, and for a Kanri it holds `gone`; never for a `parked`, `stopped`, or `removed` seat. A dialogue seat the reboot took is `parked` at the new spawner's first census pass, with `— mid-turn` when its turn was cut, and Kanri's Recovery wakes it. The roster's first row is settled first and separately, so a Kanri the listing has lost but the state file still holds — `gone` included, a Kanri the human `/stop`ped or one that crashed while the spawner ran — is **resumed and never spawned again**. A seat held as `stopped` or `removed` is not resumed, which is why `tanto teishi --seats` retires a run rather than pausing it |
 
 `tanto` and `tanto fukki` are idempotent: run twice, they start nothing
@@ -836,7 +845,8 @@ put back printed in the idle block. Kanri acts on a `fukki:` line only when
   step it is not needed for: the recommender's run, the human's check, the
   apply, and Kanri's verification are not waits of the seat's and are never
   listed. At its final boundary — its last report line sent, or `taiseki` —
-  the second fact is
+  (a seat with a tab, which shoki, spawned into a worktree and reading no
+  role file, is not) the second fact is
   `none — this seat has ended; close its tab if one is open`, and a seat
   that has written that line answers any later message with the same line
   and nothing else: an ended seat's row stays in the editor's list, opens
@@ -1218,7 +1228,7 @@ answer has not arrived. A seat whose transcript is on disk is not lost: a
 parked one keeps its row `live` and is woken when a line is next due to it,
 and one the census marks `dead` — with an Events line naming what showed
 its process gone and saying its conversation is kept — is woken the same
-way ("Resuming"). A seat whose wake failed twice, or that answered
+way ("Resuming"). A seat whose wake failed, or that answered
 `no-role` twice, is a forced exit: the roster's Events line says its
 shoroku proposal was not written and what was lost, as far as Kanri knows;
 the row goes `stopped` on the second `no-role` or stays `dead`; and Kanri
@@ -1383,11 +1393,11 @@ call. `scripts/tanto.js` is the human's one command,
 the seat of that role — Kanri when none is named — by attaching to it,
 follows a Kanri handover to the successor with nothing typed, and starts a
 Kanri, a Kikaku, a Hosa, or a standalone Kaiseki when none is held. Its
-three words are `fukki`, which puts back what a restart took and tells
+four words are `fukki`, which puts back what a restart took and tells
 Kanri ("Resuming"); `teishi [--seats]`, which stops the spawner that beats,
-and with `--seats` the run's seats, keeping every conversation; and
-`jokyo`, which prints the run's seats and what waits on the human,
-read-only.
+and with `--seats` the run's seats, keeping every conversation; `jokyo`,
+which prints the run's seats and what waits on the human, read-only; and
+`taiseki`, which it answers with one line naming `/tanto taiseki`.
 All five are Node with no dependencies, and all five have their tests
 beside them, run by `node --test`. Their paths are written skill-relative,
 like every other path in
