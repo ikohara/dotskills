@@ -26,8 +26,8 @@ This file is the shared contract. Every role reads it, then reads exactly one
 | Keikaku (計画) | 0 or 1 per topic | the plan, its dry run, and its review | Kanri; the human by grant |
 | Jisso (実装) | 1 live per topic, spawned per batch — a self-editing plan's all at its landing | one batch of the SDD run each, its batch report and its commits; the last one, the close's shoroku proposal | Kanri; the human by grant |
 | Kaiseki (解析) | 0 or 1, on demand | root-cause reports; never a fix; no commit | Kanri; the human by grant |
-| Kikaku (企画) | 0 or 1, started by the human with `tanto kikaku` | the consultation, and the decision files under `.tanto/kikaku/` | the human; Kanri, one `decision:` line |
-| Hosa (補佐) | 0 or 1, started by the human with `tanto hosa` | the human's small chores, the bug intake while it is listed, the hotfix lane's edits Kanri hands over in a slot Kanri gives, and the kessai relay | the human; Kanri |
+| Kikaku (企画) | 0 or 1, started by the human with `tanto kikaku` | the consultation, the decision files under `.tanto/kikaku/`, and its side of a consult thread with another repository's Kikaku | the human; Kanri, a `decision:` line per decision; on the human's word, another repository's intake or its listed Kikaku, a `consult:` or `consult-answer:` line |
+| Hosa (補佐) | 0 or 1, started by the human with `tanto hosa` | the human's small chores, a closed topic's feedback file among them; the bug intake while it is listed, which takes all four intake lines ("Messages"); the hotfix lane's edits Kanri hands over in a slot Kanri gives; and the kessai relay | the human; Kanri; on a chore, another repository's intake, a `bug-report:` or `shoroku-feedback:` line |
 
 ## Invocation
 
@@ -168,9 +168,10 @@ and says so. Whether a repository commits its own file is that repository's
 decision: the skill only reads it, requires it tracked no more than it ignores
 it, and ships no `.local` variant.
 
-Three maps and one scalar, each with its own mechanism. Every value of the
-first two maps is `{ "model": <family>, "effort": <level> }`, or a bare
-string, which sets `model` and leaves `effort` to the layers below.
+Three maps, one scalar, and the tables `rates` and `plans`, each with its own
+mechanism. Every value of the first two maps is
+`{ "model": <family>, "effort": <level> }`, or a bare string, which sets
+`model` and leaves `effort` to the layers below.
 
 - `sessions.<role>` is **advisory**. The checks above compare against it,
   read at the moment of each comparison — each
@@ -211,14 +212,15 @@ string, which sets `model` and leaves `effort` to the layers below.
   **informational only**: `reading.js --presence` still prints the verdict
   and the ledger still records it, and no rule acts on it, the handover
   having lost its presence gate — and
-  `ceiling.share_threshold` the context above which a wake-up's usage counts
-  toward the share Kanri reports at the plan close. A `ceiling.<role>` for any
+  `ceiling.share_threshold` the context above which a response's usage counts
+  toward a topic's share, which `scripts/usage.js` measures and no seat
+  reads. A `ceiling.<role>` for any
   role but those two is an unknown key: Kanri is the one seat the ceiling
   replaces, because it is the one that runs a whole plan of batches; Jisso's
   line is kept for the archive, its rotation being its replacement; and
   every other role measures and sends the five figures and is replaced on
   none of them.
-- `language`, the one top-level key that is not a map, is a BCP 47 tag —
+- `language`, the one top-level key that is a scalar, is a BCP 47 tag —
   `"ja"`, `"en"` — overlaid across the three layers like every other key,
   the last one winning; the built-in file sets none, the personal file is
   where the human sets it for every repository, and a project file may
@@ -249,6 +251,21 @@ string, which sets `model` and leaves `effort` to the layers below.
   start with the rest of this file, a spawned seat included — which is the
   point: a seat with no human first message to detect from still knows the
   language — and no script reads it.
+- `rates` and `plans` are read by `scripts/usage.js` and by no seat.
+  `rates` is the dated price table that turns a measured topic's tokens
+  into one amount, a view beside the tokens it prices: `as_of`, `source`,
+  `unit`, and `per_mtok`, which holds for each model id the rates of
+  `input`, `cache_write_5m`, `cache_write_1h`, `cache_read`, and `output`
+  per million tokens. A model id is matched exactly, else by the longest
+  key that is a prefix of it, and one that matches nothing is reported in
+  tokens and left out of every amount. A later layer replaces a model's row
+  whole and sets `as_of`, `source`, or `unit` when it carries them. `plans`
+  is the human's own list — each entry a `name`, a `window` of `5h` or
+  `7d`, a `budget` in `rates.unit`, and an `as_of` — which the built-in
+  file ships empty, the last layer that sets it replaces whole, and the
+  skill never writes; `usage.js report` turns each entry into an upper
+  bound of hours at a topic's pace. `usage.js` warns on `stderr`, in
+  `reading.js`'s form, on a field of either table it does not know.
 
 The ceilings and the threshold are the **human's operating choice**, not a
 documented quality limit. No Anthropic document names 150000 tokens as a point
@@ -285,9 +302,9 @@ where every key comes from the layers below it. The `ceiling` map overlays the
 same way and at the same granularity: a personal
 `{"ceiling": {"kanri": {"batches": 1}}}` sets Kanri's batch count to 1 and
 leaves every other value of all three maps alone; `language` overlays as
-one value. A key that is not `language` and names no role, no kind, and no
-ceiling field — an older file's, for instance — is reported in
-your start line as `unknown key <name> in <path>, ignored` —
+one value. A key other than `language`, `rates`, and `plans` that names no
+role, no kind, and no ceiling field — an older file's, for instance — is
+reported in your start line as `unknown key <name> in <path>, ignored` —
 `subagents.shoroku`, the kind's name before it was split into
 `shoroku.recommend` and `shoroku.apply`, is one such key, and a personal file
 that still carries it sets neither half, and a top-level key whose own name
@@ -623,7 +640,9 @@ events line, written through `record --event` and paired with
 Every session can measure its own context from its transcript, the file the
 harness appends to on disk as the session runs. The **reading** is five
 figures from that file, taken by the session itself, and it is the only cost
-signal the skill uses. The `tokens left` figure the harness prints is not one:
+signal a rule acts on: a topic's usage, which `scripts/usage.js` measures
+from the same files after the fact ("Artifacts"), is a view that nothing
+acts on. The `tokens left` figure the harness prints is not one:
 its unit is not documented as the context window (issue-40ed). The fifth
 figure below is a token count, and a documented one: it is the harness's own
 `usage` accounting for the turn it just billed.
@@ -658,10 +677,9 @@ Measurements per-boundary entry. Three more are
 printed only when asked for, and the sections that ask name the switch:
 `--role kanri|jisso` prints the ceiling line, `--presence` the human line, and
 `--backstop` the auto-compact line, which needs `--role` because its verdict is
-against the ceiling. A second form,
-`node "$TANTO/scripts/reading.js" --share <transcript> [<transcript>...]`,
-prints the share of usage spent at a large context across several transcripts,
-and Kanri runs it once, at the plan close. Four further switches — `--now`,
+against the ceiling. The share of a topic's usage spent at a large context
+is `scripts/usage.js`'s, measured at the close ("Artifacts"); this command
+reads one transcript. Four further switches — `--now`,
 `--config`, `--project-config`, `--settings` — fix the clock, the personal
 config, the project config and the settings file; they exist for the tests and
 for a Kanri verifying a peer's reading from another working directory, and no
