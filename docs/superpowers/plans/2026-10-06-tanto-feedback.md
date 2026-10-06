@@ -115,7 +115,10 @@ contain").** Task 6 runs `usage.js measure --topic run-owned-seats` after
 seat's `output` total against an independent de-duplicated count, and
 records the result in its batch's report. Its deliverable is recorded output,
 not a file, and no block of the plan hangs on its result. A mismatch is a stop:
-the Jisso reports both numbers and does not adjust the script.
+the Jisso reports both numbers and does not adjust the script. No fence backs
+the two numbers' agreement and the batch-B verifier has nothing to re-run for
+it, by design: its check scripts are written to the temporary directory, and
+Kanri reads the two numbers from the batch report.
 
 **The rates are read, never written from memory (spec 5.1).** Task 4's
 figures are the vendor's published list prices on the day it runs; no figure
@@ -124,6 +127,15 @@ cannot be read is a stop. Because those lines are not a passage,
 `passage-check.js diff` cannot account for them: fence 7 of How a batch is
 verified leaves that one path out, and fence 8 checks it structurally
 instead.
+
+**The report lists every task's Verify.** Every batch prompt of this plan asks
+its Jisso to list, under "Verify in the tree" in the batch report,
+`node skills/tanto/scripts/passage-check.js verify --plan
+docs/superpowers/plans/2026-10-06-tanto-feedback.md --task <N>` for every
+task of its batch, and each task's own other checks that a verifier can
+re-run from the tree. A task whose check cannot be re-run from the tree —
+Task 6's, whose scripts live in the temporary directory — says so in its
+report, and Kanri reads its result from the report.
 
 **Rule 11 — this plan edits the skill's own files.** While this plan is in
 flight, the authority for its sessions is these Global Constraints, Kanri's
@@ -154,12 +166,42 @@ read the skill as it stood before batch A.
    kessai, skips the `--share` step its text names, and runs
    `usage.js close --topic tanto-feedback` as the landing's last act, by this
    constraint; and it renders the shoki brief from the template on disk, as
-   it does every template. Until batch F's commit, `--share` still runs and
-   the old role text is correct.
+   it does every template. The old text cannot supply the other acts of the
+   new close, so this constraint names them too: before the recommend
+   dispatch it runs `usage.js id` and says in the dispatch that the skill
+   repository is this one, so that no item takes the `feedback` destination
+   here; it renders the shoki brief with the three new arguments set —
+   `Feedback —` the absolute path of `.tanto/tanto-feedback/shoroku-feedback.md`,
+   `Usage record —` the absolute path of `docs/notes/tanto-usage.jsonl` in
+   shoki's worktree (this repository ships the skill), and `Skill directory —`
+   the absolute path of `skills/tanto`; it words the kessai's answer line for
+   an item changed in part, and records in the direction, for any item with a
+   feedback half, whether the half was kept. `Feedback — none` and
+   `Usage record — none`, with `close` printing `feedback: shoki's part
+   absent`, are not an accepted first run: the first run exercises shoki's
+   Departures hand and `collect`. From batch F's boundary the new boundary
+   brief no longer carries the top-family dispatch argument or the
+   `dispatch:` example, so an old-text Kanri's dispatch prompt still sends
+   the argument, which the verifier ignores, and its step 4 expects no
+   `dispatch:` events and writes none; the one-shots row stays unfilled.
+   Until batch F's commit, `--share` still runs and the old role text is
+   correct.
 5. This plan's own close is the first run of the mechanism: its feedback file
    lands in this repository's inbox, and its row reaches
    `docs/notes/tanto-usage.jsonl` at the following close (spec 3.5, 11.5).
-   No task creates that file.
+   No task creates that file. At this close shoki's `collect` runs before the
+   landing has placed the feedback copy in the inbox, finds none, and creates
+   the file empty, as spec 3.5 has it create the file when it is absent, and
+   `docs: shoroku for tanto-feedback` commits it, a zero-byte `.jsonl` that
+   the pre-commit hooks accept; the first row arrives at the following close.
+6. This topic's ledger, `.tanto/tanto-feedback/kanri.md`, was copied from the
+   old `templates/kanri.md` and keeps its five old fixed Measurements rows.
+   At the landing the Kanri holding batch F's text adds the one row "usage —
+   the file, and the cost line" to that table and writes the `usage:` line
+   there; the three retired rows — the share row, "top-family one-shots per
+   plan", and "each role's last reading" — stay as they are and are not
+   filled, and the top-family peak row and the context row are filled as they
+   always were.
 
 **Files no task touches.** `skills/shoroku/`, `skills/kisou/`, the
 repository-root `scripts/`, `skills/tanto/scripts/passage-check.js` and its
@@ -233,11 +275,16 @@ exits 0. Each fence reads the state the batch left — which batch has landed
 is read from whether the branch has changed the one file only that batch
 changes: `usage.js` for A, `boundary.js` for B, `shoki-brief.md` for C,
 `SKILL.md` for D, `README.md` for E, and `reading.js` for F — so every one is
-meaningful at every boundary. The per-task checks are the tasks' own:
-`passage-check.js verify --task <N>` for every task the batch's row names,
-run by the boundary as it runs every task's Verify step. Task 4's own
-Verify step runs before its fill, because the fill rewrites three of its
-lines; fence 8 below checks that file in its place.
+meaningful at every boundary. The per-task checks are the tasks' own, and
+the boundary does not run them by itself: the verifier re-runs each check
+the batch report's "Verify in the tree" names (`templates/boundary-brief.md`).
+So every batch report lists, under that heading, `passage-check.js verify
+--plan <this plan> --task <N>` for every task the batch's row names — Tasks 4
+and 6 among them, whose entries print `no passages` — and the Batches
+table's "`passage-check.js verify` clean for Tasks N-M" is backed by that
+list together with fence 7's `diff`. Global Constraints makes the listing a
+rule for every batch prompt. Task 4 carries no block, so its `verify` is clean
+at every boundary; fence 8 below checks `tanto.json` itself.
 
 `git` opens every fence but the first: `replay` skips a fence whose first
 word is `git`, and each needs the checkout the scratch tree is not. The dry
@@ -2537,8 +2584,8 @@ lines `close` prints, and its `feedback: held`, `feedback: own repository`,
 are also `SKILL.md`'s "Artifacts" (Task 11); the first two are also
 `templates/shoki-brief.md` (Task 7); `shoroku-feedback-held.md` is also
 `roles/kanri.md` (Tasks 15-16). `shoroku-feedback-placed.txt` is named in
-this file alone, and Task 11's Artifacts table names it or leaves it to
-the `usage.json` row. The feedback file's title, its `- Workspace —` and
+this file, P10.20 ("Session exit"'s list of the close's files), and P11.16
+(the Artifacts row for `shoroku-feedback.md`). The feedback file's title, its `- Workspace —` and
 `- Closed —` lines, its six `## ` headings, and its three Triage lines are
 also `templates/shoroku-feedback.md` (Task 5); the first-line rule,
 `# Shoroku feedback` and `# Consult`, is also `templates/consult.md`
@@ -4962,7 +5009,7 @@ fence that is not a passage block; the executing Jisso then fills
 `rates.as_of`, `rates.source`, and one `per_mtok` row of five numbers
 (`input`, `cache_write_5m`, `cache_write_1h`, `cache_read`, `output`, in USD
 per million tokens) for each model id the built-in families resolve to,
-reading the figures off the vendor's pricing page in this session (Step 3).
+reading the figures off the vendor's pricing page in the session that runs Step 3.
 After this task the built-in file carries a dated table that `usage.js`
 (Tasks 1 and 2) prices tokens with, and an empty `plans` list for the
 human's own layer to replace; no session reads either key until
@@ -5005,7 +5052,7 @@ that has no row of its own and would price it silently at the older rate.
 
 **Interfaces:**
 
-- Consumes: nothing of the plan. The pricing page is read in this session.
+- Consumes: nothing of the plan. The pricing page is read by the session that runs Step 3.
 - Produces: `rates` — `as_of` (the day the page was read, `YYYY-MM-DD`),
   `source` (the page's URL, with its `#model-pricing` fragment), `unit`
   `"USD"`, and `per_mtok` with the four rows above, each of the five class
@@ -5093,7 +5140,9 @@ name the 2026-10-06 ids, and Keikaku re-rules them.
 
 - [ ] **Step 3: Read the vendor's list prices, and fill the table**
 
-Fetch the vendor's pricing page with WebFetch in this session —
+Fetch the vendor's pricing page with WebFetch — run by the Jisso itself or
+by its `task.implement` subagent, whichever holds this step, and in either
+case in the session that runs it —
 `https://platform.claude.com/docs/en/about-claude/pricing`, its "Model
 pricing" table — and read, for each of the four rows below, the five
 figures in USD per million tokens. The table's columns map to the five
@@ -5113,9 +5162,12 @@ number the table prints in the row's cell, footnote markers dropped.
 fails, the page has no such table, a row is missing, or a cell is not a
 figure per million tokens, write nothing into `per_mtok`, leave the
 skeleton as Step 1 left it, and report which row and which column could not be
-read. No figure is taken from memory, from the spec, from this plan, from
-a skill's reference text, or from a model's recollection — only from the
-page as fetched in this session.
+read. A WebFetch the session's permissions deny, or that a background seat
+cannot get approved, is the same stop as one that fails: write nothing, and
+report the row, the column, and the denial. No figure is taken from memory,
+from the spec, from this plan, from a skill's reference text, or from a
+model's recollection — only from the page as fetched by the session that
+ran this step.
 
 Then edit `skills/tanto/templates/tanto.json` with the Edit tool: set
 `as_of` to the day the page was read (`YYYY-MM-DD`); set `source` to
@@ -5737,7 +5789,11 @@ and 3 to 5 with its output as printed, then one line per check:
 `(a) seats — match` or `(a) seats — mismatch: <the line>`, and
 `(b) output, keikaku — usage.js <n>, independent <n> — match` or
 `… — mismatch`. The topic measured, and the fallback when it was used, is
-named in the same place.
+named in the same place. Say there, too, that this `usage.json` is not a
+landing-time figure: its window runs to the moment of measuring (4.2), so
+it charges every Kanri tenure's responses since the topic closed to the
+topic, and `usage.js report` reads that file untouched — a late-measured
+topic's amount is not comparable with one measured at its landing.
 
 ### Task 7: `templates/shoroku-brief.md`'s `Feedback:` clause and answer, and `templates/shoki-brief.md`'s three arguments, feedback file, token, Triage shape, and `collect`
 
@@ -9325,9 +9381,11 @@ the Written cells stay `no`: write one Events line and one line under the
 ledger's Open questions for the human, naming
 `.tanto/<topic>/shoroku-feedback-held.md`. The human either edits
 `.tanto/<topic>/shoroku-feedback.md`, or reads the held lines and says they
-may go; after either, run `close` again — the command is idempotent — and
-after the second with `--release`, which places the file as it stands and
-is run on the human's word alone.
+may go; after either remedy, run `close` again — the command is idempotent —
+and after the second remedy, the human's word that the lines may go, run it
+with `--release`, which places the file as it stands and is run on that
+word alone; after the first remedy, the edit, run it without `--release`, so
+that the mechanical check reads the edited text.
 ````
 
 **P16.25** `skills/tanto/roles/kanri.md` — replace exactly these 2 lines
