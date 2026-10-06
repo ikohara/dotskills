@@ -26,7 +26,7 @@ This file is the shared contract. Every role reads it, then reads exactly one
 | Keikaku (計画) | 0 or 1 per topic | the plan, its dry run, and its review | Kanri; the human by grant |
 | Jisso (実装) | 1 live per topic, spawned per batch — a self-editing plan's all at its landing | one batch of the SDD run each, its batch report and its commits; the last one, the close's shoroku proposal | Kanri; the human by grant |
 | Kaiseki (解析) | 0 or 1, on demand | root-cause reports; never a fix; no commit | Kanri; the human by grant |
-| Kikaku (企画) | 0 or 1, started by the human with `tanto kikaku` | the consultation, the decision files under `.tanto/kikaku/`, and its side of a consult thread with another repository's Kikaku | the human; Kanri, a `decision:` line per decision; on the human's word, another repository's intake or its listed Kikaku, a `consult:` or `consult-answer:` line |
+| Kikaku (企画) | 0 or 1, started by the human with `tanto kikaku` | the consultation, the decision files under `.tanto/kikaku/`, and its side of a consult thread with another repository's Kikaku | the human; Kanri, a `decision:` line per decision; under the human's approval of a thread, another repository's intake or its listed Kikaku, a `consult:` or `consult-answer:` line |
 | Hosa (補佐) | 0 or 1, started by the human with `tanto hosa` | the human's small chores, a closed topic's feedback file among them; the bug intake while it is listed, which takes all four intake lines ("Messages"); the hotfix lane's edits Kanri hands over in a slot Kanri gives; and the kessai relay | the human; Kanri; on a chore, another repository's intake, a `bug-report:` or `shoroku-feedback:` line |
 
 ## Invocation
@@ -801,7 +801,8 @@ put back printed in the idle block. Kanri acts on a `fukki:` line only when
   boss interleaves instructions. The one exception is the intake's
   `received:` line, `from` copied into `to`: a reply to a line the receiver
   sent, carrying no instruction, and the one line a Hosa sends to a role
-  other than Kanri.
+  of this run other than Kanri; an intake line a Hosa or a Kikaku sends
+  another repository is the sender's own ("Messages").
 - A message is one line plus a path. Report bodies, rulings, briefs, and plans
   live in files: a message dies with the session, a file survives compaction
   and a VS Code restart.
@@ -977,7 +978,8 @@ named to the human in the Kikaku's closing line.
 
 The intake answers every intake line with one act that reads nothing of
 the file: it copies the file to `.tanto/inbox/<basename>` under the
-sender's basename, appends one line under the copy's `## Received`
+sender's basename — a copy already there is left as it is, and the reply
+names it — appends one line under the copy's `## Received`
 heading, and answers with one line, `received: <inbox path>`, the
 envelope's `from` copied into `to` — a burst of lines from one sender in
 one message getting one such line per file, each paired with its intake
@@ -1010,7 +1012,8 @@ lane, opened by the human's word in Kanri's window, never by a report.
 
 **The tracked-write rule.** A tracked file or a commit message names the
 source of a bug report as `inbox <YYYY-MM-DD>-<slug>`, of a feedback item
-as `inbox <YYYY-MM-DD>-feedback-<workspace id> #<n>`, `<n>` the item's
+as `inbox <YYYY-MM-DD>-feedback-<workspace id>[-<m>] #<n>`, `-<m>` the
+same-day suffix when the basename carries one and `<n>` the item's
 number in the copy's Items, and of a consult turn as
 `inbox <YYYY-MM-DD>-consult-<thread>-<nn>`, and nothing more — no
 repository name or path, no session name, no topic name of the sender's,
@@ -1136,7 +1139,7 @@ other moment runs only the first:
    line alone travels. In the repository that ships the skill there is no
    `feedback` destination: such an item is an ordinary item with a `docs/`
    destination or a `fix`. Each line under a feedback copy's `## Items` is
-   one item, its pointer `(inbox <YYYY-MM-DD>-feedback-<workspace id> #<n>)`.
+   one item, its pointer `(inbox <YYYY-MM-DD>-feedback-<workspace id>[-<m>] #<n>)`.
    An inbox item's destination is one of `issue`,
    `fix — <file>`, `redirect — <where it belongs>`, `kaiseki — <one line>`,
    `relay — <topic>`, or `dismissed — <one line>`; a `fix` item carries the
@@ -1182,7 +1185,7 @@ other moment runs only the first:
    the Outcome `feedback` and one Items line per item — and for the close's
    feedback file, `.tanto/<topic>/shoroku-feedback.md` in the main
    checkout, untracked, from `templates/shoroku-feedback.md`: its Items, the
-   `Feedback:` line of every item whose feedback half the direction kept,
+   numbered line (`<n>. <the text after Feedback:> — Class: tanto-only | both`) of every item whose feedback half the direction kept,
    and its Departures, the human's departures from the recommendation. In
    the repository that ships the skill it then runs `usage.js collect`,
    which appends each feedback copy's usage row to
@@ -1435,7 +1438,7 @@ The faces come with five constraints, which the README states too:
 | `.tanto/<topic>/shoroku-brief.md` | the `shoroku.recommend` kind, in the same dispatch as the recommendation | Kanri, by `grep` for its form and by `sections` (its bare heading text) for the `Unsure` group; the human, verbatim | the check brief, from `templates/shoroku-brief.md`, in the human's language: one line per item, grouped as the recommendation groups them, each pointing at the item's `###` heading |
 | `.tanto/<topic>/shoroku-direction.md`, beside the recommendation | Kanri, from the human's answer — in its window, or a Kikaku decision file whose third section answers the recommendation | the `shoroku.apply` kind | what the human accepted, item by item; the apply never runs without it |
 | `.tanto/<topic>/usage.json` | `scripts/usage.js` — `measure`, which Kanri runs before the kessai, and `close`, at the landing | Kanri, for the cost line and the Measurements usage row; `usage.js report`; the human | the topic's measured usage, untracked: per seat and per dispatch, the token classes by the model id each transcript records, a response counted once, with wake-ups, context, the quality counters, the share, and the amounts `rates` prices; its `stage` is `kessai` or `final`, and a `measure` without `--final` never overwrites a final file; it names sessions, so it never travels |
-| `.tanto/<topic>/shoroku-feedback.md`, and `shoroku-feedback-held.md` and `shoroku-feedback-placed.txt` beside it | shoki's `shoroku.apply`, for Items and Departures, or a Hosa on a chore for a closed topic; `usage.js close`, for the held file | `usage.js close`, which assembles the feedback file from it and the usage extract; the human, for a held file | the close's part of its feedback file, from `templates/shoroku-feedback.md`, untracked: the `Feedback:` line of every item whose feedback half the direction kept, and the human's departures from the recommendation; the held file is the assembled text `close` keeps when a line names the workspace, until the human edits the part or says the lines may go, and the placed file is one line naming the path `close` placed, so that a second run finds the file it placed |
+| `.tanto/<topic>/shoroku-feedback.md`, and `shoroku-feedback-held.md` and `shoroku-feedback-placed.txt` beside it | shoki's `shoroku.apply`, for Items and Departures, or a Hosa on a chore for a closed topic; `usage.js close`, for the held file | `usage.js close`, which assembles the feedback file from it and the usage extract; the human, for a held file | the close's part of its feedback file, from `templates/shoroku-feedback.md`, untracked: one numbered line (`<n>. <the text after Feedback:> — Class: tanto-only \| both`) of every item whose feedback half the direction kept, and the human's departures from the recommendation; the held file is the assembled text `close` keeps when a line names the workspace, until the human edits the part or says the lines may go, and the placed file is one line naming the path `close` placed, so that a second run finds the file it placed |
 | `.tanto/<topic>/compaction-<role>-<n>.md` | the compacted session | Kanri | every item a compaction summary attributes to the human, one per line, rewritten with the human's answers |
 | `.tanto/kaiseki/kaiseki-<n>.md` | a standalone Kaiseki | the human | its report, outside any run |
 | `.superpowers/sdd/<plan-basename>/progress.md` | Jisso, through the SDD skill | Kanri | the SDD ledger; Kanri reads it and never writes it; the one artifact tanto reads under `.superpowers/` |
@@ -1443,7 +1446,7 @@ The faces come with five constraints, which the README states too:
 | `$CLAUDE_CONFIG_DIR/tanto.json` | the user | every role at start; the writer of a spawn request — Kanri, or the launcher through `scripts/reading.js`; `scripts/usage.js`, for `rates`, `plans`, and `ceiling.share_threshold` | the personal expected-model config, and where the human sets `language` for every repository |
 | `<cwd>/.claude/tanto.json` | the repository | every role at start; the writer of a spawn request — Kanri, or the launcher through `scripts/reading.js`; `scripts/usage.js`, for `rates`, `plans`, and `ceiling.share_threshold` | the project expected-model config, overlaid on the personal one; committed or ignored as the repository decides |
 | `<config dir>/tanto-salt`, `<config dir>` being `$CLAUDE_CONFIG_DIR` or `~/.claude` | `scripts/usage.js`, once, when it is absent | `scripts/usage.js`, for the workspace id | random bytes in hexadecimal, readable by the owner alone where the platform has file modes: a personal file beside the personal `tanto.json`, never committed to a repository that uses or ships the skill; the workspace id is the head of a SHA-256 over it and the repository's root commit, so a lost salt changes every id |
-| `docs/notes/tanto-usage.jsonl`, in the repository that ships the skill | `usage.js collect`, which that repository's shoki runs | `usage.js report`; the human, in the Kikaku | one line per close of any repository whose feedback file reached this inbox: the usage extract — no topic, session, or instant — with its `source`, the feedback file's basename; tracked, one append per row |
+| `docs/notes/tanto-usage.jsonl`, in the repository that ships the skill | `usage.js collect`, which that repository's shoki runs | `usage.js report`; the human, in the Kikaku | one line per close of any repository whose feedback file reached this inbox: the usage extract — no topic, session, or instant — with its `source`, the feedback file's basename; tracked, one append per row; the shipping repository's own close arrives one close late, since its shoki's `collect` runs before its own `close` places the file |
 | `~/.claude/agents/tanto-*.md`, or `$CLAUDE_CONFIG_DIR/agents/` when that variable is set | every role at its start, from the built-in and personal layers | the harness, at the next session start | one definition per kind, from `templates/agent.md`; a definition is dispatchable only from the sessions started after it was written |
 | `<cwd>/.claude/agents/tanto-*.md`, and `<cwd>/.claude/agents/.gitignore` beside them | every role at its start, for the kinds whose effort the project file changes | the harness, at the next session start; git | the project-scope definitions, from the same template with its `<scope>` clause rendered; the `.gitignore` holds `tanto-*.md` and `.gitignore`, is written once and never overwritten |
 | `.tanto/spawner/` — `pid`, `heartbeat`, `contract`, `log`, `seats.json`, `requests/<id>.json`, `results/<id>.json` | the spawner; a request file by Kanri, by the launcher, or by a seat through `boundary.js request` | the launcher, Kanri, `boundary.js`; `usage.js`, for a topic's seats | the spawner's own state: one seat entry per session it started — its status, its listed name and kind, and the contract mark of the request that spawned it; one request and one result per act, the ops being `spawn`, `stop`, `resume`, `rm`, `ack`, `attention`, `park`, `hold`, and `release`; the heartbeat — the epoch milliseconds of its last beat, which the launcher trusts over `pid`; and `contract`, holding `2`, which the spawner writes at its start and the launcher reads to know the spawner is of this contract. The roster is not here and the spawner never reads it |
@@ -1483,7 +1486,8 @@ reads a seat's family and effort from. `scripts/usage.js` measures a
 topic's usage after the fact from the transcripts on disk — every seat of
 the topic, every Kanri over the topic's window, and every dispatch, a
 response counted once and keyed by the model id the transcript records —
-and no seat reads its figures and no rule acts on them; it reads
+and no seat reads its file — Kanri relays the lines it prints — and no
+rule acts on them; it reads
 `tanto.json`'s `rates`, `plans`, and `ceiling.share_threshold`, and writes
 the salt once. Its forms are `measure --topic <topic>`, which Kanri runs
 before the kessai for the cost line; `close --topic <topic>`, the landing's

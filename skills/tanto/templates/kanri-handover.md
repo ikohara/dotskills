@@ -85,7 +85,7 @@ reading taken when this handover was written.>
 
 ## Next step
 
-<One line — the successor's first act after its cold read.>
+<One line — the successor's first act after its cold read, named as an act and not as a step order: the successor follows the role text it read, which may be newer than the one this file was written from.>
 
 ## Not reconstructed
 

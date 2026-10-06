@@ -121,7 +121,7 @@ failing command — say so in one line and go on.
 **Where a turn is sent.** Read the other workspace's `.tanto/roster.md`:
 
 - a `kikaku` row whose Status begins `live`, for whose `sessionId` — its
-  Transcript cell's basename —
+  Transcript cell's basename without `.jsonl` —
   `node "$TANTO/scripts/boundary.js" seat <sessionId> --root <that workspace>`
   prints a seat line whose first word is `running` and whose fourth is
   `kikaku`: send the line to the `<name>` in it, direct;
@@ -142,7 +142,7 @@ is the `## Read` heading, which the template ends with. List the unread
 copies with this command, which opens none of them for you to read:
 
 ```bash
-grep -l '^# Consult' .tanto/inbox/*.md 2>/dev/null | while read -r f; do [ "$(tr -d '\r' < "$f" | grep -v '^[[:space:]]*$' | tail -n 1)" = '## Read' ] && echo "$f"; done
+for f in .tanto/inbox/*.md; do head -n 1 "$f" 2>/dev/null | grep -q '^# Consult' || continue; [ "$(tr -d '\r' < "$f" | grep -v '^[[:space:]]*$' | tail -n 1)" = '## Read' ] && echo "$f"; :; done
 ```
 
 Name each in the first line of your reply; read it and append

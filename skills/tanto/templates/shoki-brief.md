@@ -71,7 +71,8 @@ yours, the report's shape and your closing line included.
    `docs: shoroku for <topic>`, the inbox copies by path, and the Feedback
    path unless it is `none`. It writes
    the accepted subset per `docs/AGENTS.md`, every issue opening with the
-   `Source:` line its item's heading names, and fills the Triage section of
+   `Source:` line its item's heading names — `Source: shoroku <topic> S-<n>`
+   or `Source: inbox <YYYY-MM-DD>-<slug>` — and fills the Triage section of
    every swept inbox copy at its absolute path in the main checkout: a bug
    report's with the direction's outcome, its reference, and the date; a
    feedback copy's — one whose first line begins `# Shoroku feedback` —

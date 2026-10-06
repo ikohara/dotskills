@@ -50,7 +50,7 @@ one implementation plan.
   started at its landing and wait, so that every one of them read the same
   skill.
 - Takes bug reports about the skills this repository ships: a report is a
-  file and one line to the run's Hosa while the listing shows one in a
+  file and one `bug-report:` line to the run's Hosa while the listing shows one in a
   turn, else to Kanri — in practice Kanri, since a Hosa is parked between
   its turns — which copies it and answers `received:`; every report is
   decided at the
@@ -68,7 +68,8 @@ one implementation plan.
   topic's usage extract, checks that nothing in the file names the
   workspace, and places it. A workspace is named only by its id, a salted
   hash of its root commit, the salt kept in `$CLAUDE_CONFIG_DIR/tanto-salt`
-  (or `~/.claude/tanto-salt`) and never in a repository. Kanri sends one
+  (or `~/.claude/tanto-salt`) and never in a repository — back it up with
+  that directory, since a lost salt changes every id. Kanri sends one
   `shoroku-feedback:` line to the skill repository's intake; its next close
   decides each item as it decides a bug report, and its shoki collects the
   usage into `docs/notes/tanto-usage.jsonl`, one tracked row per close.
@@ -139,7 +140,8 @@ one implementation plan.
   on it, committed or ignored as the repository decides. When both are absent,
   every key falls back to the built-in defaults in `templates/tanto.json`; a
   partial file is complete at either layer, because the overlay is field by
-  field, and a key written as a bare model name takes its effort from the
+  field — a model's `rates` row and the `plans` list replace whole — and a
+  key written as a bare model name takes its effort from the
   layers below. An effort the project file changes is carried by project-scope
   agent definitions the roles generate under `<repo>/.claude/agents/`, ignored
   by a `.gitignore` the roles write there. The same files carry `language`,
@@ -221,7 +223,8 @@ new name, nothing keys on it, and a seat whose tab is not reopened is
 parked. A Kanri, a Jisso, or a shoki is unaffected by the reload. The
 desktop notice tells the human when a seat waits on them — a dialogue
 seat's question at the end of a turn the run started, a permission prompt,
-a kessai — and an optional harness hook makes it immediate; nothing
+a kessai, a consult turn arrived at the intake — and an optional harness
+hook makes it immediate; nothing
 requires it.
 
 ## The faces of a seat

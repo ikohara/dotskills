@@ -28,8 +28,9 @@ The numbers are the recommendation's own, one run across the whole file, never
 restarted per group, and every `###` heading of the recommendation appears
 after exactly one `See:`. A group with no item keeps its heading and carries
 the single rendered line `none`, so that the five headings are always
-present. A `fix` line's second part is the text as it should read, so that
-the human sees the sentence that will be applied.
+present. A `fix` line's second part is the text as it should read, in the
+exact markup of the file it lands in, so that the human sees the sentence
+that will be applied.
 
 An item whose destination carries `feedback` — `feedback` alone, or the
 compound `<docs destination>; feedback` — carries one clause more,

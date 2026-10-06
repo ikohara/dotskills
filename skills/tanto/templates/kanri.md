@@ -111,7 +111,8 @@ compound value.
   when it is answered; a line or a request you owed while the spawner was
   stale, as `unsent: <sessionId or op> — <the line or the request>`, paired
   with `sent: <sessionId or op> — <the line or the request>` when `fukki`
-  sends it; all four written through `record --event`, which ends a
+  sends it; all four written through `record --event`, which stamps the
+  time itself — the text carries no date — and ends a
   line it writes at a boundary with `(batch <X>)` so that the same event in
   two batches is two lines and twice in one batch is one, and a pair is
   matched on the text after its prefix, without that suffix; a shoroku
@@ -146,7 +147,8 @@ session goes live. The second is filled at the topic's opening
 carried. The third is filled at the close's landing, by whichever Kanri
 lands it, from the `usage:` line `usage.js close` prints as that landing's
 last act: the path of `.tanto/<topic>/usage.json` and the final cost line,
-or `unavailable — <reason>` when the final measurement failed. The second
+`kept — the file's own Usage block` after a `--keep-usage` run, or
+`unavailable — <reason>` when no usage could be measured or kept. The second
 is the record behind a rule — the ceiling of `roles/kanri.md`'s trigger,
 which fires without asking whether anyone is present — the first is the
 one limit signal a run keeps, and the third names the file that holds the

@@ -32,7 +32,7 @@ names after `— If unanswered:` is what it selects, so that you see before
 answering what your silence will choose. A choose or decide point carrying no
 such clause is a defective brief: it stays open, and the author asks for it on
 its own line rather than reading a default into it.
-Example:
+Example (the numbers illustrate the form and are not points of this brief):
 
     all OK
     2.1 → (b)
@@ -49,9 +49,9 @@ stands in the document and not translated, never a line number; the pointer,
 like the labels and the tags, is not rendered into the human's language. A
 **decide** point whose answer approves an edit to the document names the
 proposed text, or points to where the document quotes it, rather than only
-describing the edit in prose. At most five points per section; what does not
+describing the edit in prose. At most five points per section, section 3's ADRs included; what does not
 fit goes to the last section, one line each. For a spec, section 5's body is
-the single rendered line `not applicable — a spec`.
+the single rendered line `not applicable — a spec`, rendered in the human's language like every other line.
 
 Every point tagged **choose** or **decide** ends with `— If unanswered: <what>`
 after the pointer. For a **decide** point it names the document's own answer

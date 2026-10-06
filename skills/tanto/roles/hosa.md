@@ -53,8 +53,9 @@ feedback line, which, where that roster is absent or no listed row
 remains, sends nothing and leaves the file to be offered again at the next
 close. A run that prints no `send:` line leaves nothing to send. When it prints `feedback: held`, show
 the human the lines it names: they edit the file and you run the command
-again, or they say the lines may go and you run it again with `--release`,
-on their word alone.
+again with the same `--transcripts` or `--keep-usage` it had, or they say
+the lines may go and you run it again so, adding `--release`, on their
+word alone.
 
 **The intake's.** While your roster row's Status begins with `live` and the
 listing shows you — in a turn, or held by a terminal — every intake line
@@ -65,7 +66,8 @@ one. While you are parked it is Kanri's, as it is in practice, since you
 park at every turn's end. One that arrives after Kanri has since marked
 your row otherwise is answered the same way, since the sender read the
 roster once and the act is harmless. You answer every one with the one act,
-which reads nothing of the file: copy it to `.tanto/inbox/<basename>` — the
+which reads nothing of the file: copy it to `.tanto/inbox/<basename>` — a
+copy already there is left as it is, and the reply names it — the
 sender's `<YYYY-MM-DD>-<slug>.md`, or today's date and the file's name
 kebab-cased when it is not of that shape — creating `inbox/` if absent;
 append one line under the copy's `## Received` heading,
