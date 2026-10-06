@@ -871,6 +871,19 @@ Sekkei's opening restatement (Q-1) of the Kikaku input had covered the
 mechanism and the behavior, not the why. A Sekkei's opening on a Kikaku input
 can carry the decision's own reason in two sentences beside the mechanism.
 
+## An opening restatement that names only the newest inputs misses the inherited mechanisms (2026-10-06)
+
+At `tanto-feedback`'s spec stage the human took the Sekkei's recommendation
+as put on nine questions, and changed the design twice of his own accord:
+the workspace id's consistency across closes, and where the usage record is
+kept. Both were points an earlier Kikaku sitting had left in one clause ("a
+hash of the project slug"; "wherever the skill's repository keeps the
+cross-repository usage record"), and the opening restatement had named
+neither. A restatement that lists the mechanisms inherited from the older
+input files, not only what the newest two decide, would have put both in
+front of him at the first turn. The third data point beside the two
+restatement entries above.
+
 ## tanto-issue-triage: costs by stage (2026-10-02, 2026-10-03)
 
 Figures from the task notifications' usage lines (subagent tokens, wall time)
@@ -1049,6 +1062,15 @@ What the series says:
   the fix wave's prompt to a `default` subagent, which ran each command once
   and returned a 20-line report (138,050 subagent tokens, none in the
   Kanri's context); it kept about 40,000 out of the Kanri.
+
+A later reading, from the `tanto-feedback` close (2026-10-07): a successor
+Kanri's context went from 98,190 at its first turn (the baseline) to 202,186
+at the point where the handover was accepted and the close's first line
+sent, in 3 wake-ups and 230 records — about 104,000 tokens, 1.6 batches of
+`ceiling.kanri.per_batch`, before the close's recommend, kessai and shusei
+began. The two largest parts were `roles/kanri.md` (1,983 lines, about
+45,000 tokens, read in three pages) and the ledger, handover file and roster
+reads.
 
 The retuning decision these feed is issue-306f.
 
@@ -1263,3 +1285,193 @@ whole-skill sweep 2.5 s, against 512 to 594 s for the whole suite. The
 controller's per-task `verify-all.sh` showed 1 passage superseded after F1
 and 33 after F6, so the prompt's "amend no other passage" was known false
 after the third task and not at the boundary.
+
+## Every share figure before tanto-feedback was summed per record (2026-10-06)
+
+`reading.js --share` summed usage per transcript record, while one API
+response is written as several records with identical `usage`
+(`docs/notes/claude-code-sessions-observed.md`, "One API response is several
+`assistant` records"). Every share figure recorded before the `tanto-feedback`
+plan — the 92% and 87% of "The share-of-usage target met its first two data
+points" above among them — therefore overweights responses of several
+blocks, and the 30% target was set on such figures. A share is read again
+under the once-per-response definition before the target means anything
+(issue-357f).
+
+## tanto-feedback: costs by stage (2026-10-06, 2026-10-07)
+
+The `tanto-feedback` topic's measured costs, from its spec stage to its
+close. Until `usage.js` runs over the topic, the completion notices were the
+only record: the figures are tokens / tool uses / seconds of each dispatch,
+from those notices, and the seats' own readings.
+
+### The spec stage
+
+- Two surveys on `default` (sonnet): 111,124 / 33 / 293 and 111,165 / 34 /
+  375. `spec.review` (fable): 125,132 / 13 / 379, with 19 findings (9
+  Important, 10 Minor) and 13 unnamed old values. `brief.write` (sonnet):
+  94,804 / 23 / 164, and its resume 95,040 / 2 / 4.6.
+- **A `spec.review` over a skill-editing spec cannot cover its three inputs
+  in one dispatch.** On a spec that touches `roles/kanri.md` (about 1,800
+  lines) and `SKILL.md` (about 1,400), the reviewer reported two of its
+  checks as not done — the "Issues this design closes" claims and the survey
+  figures. The third input, the touched files, is what it spent on, and it
+  was the most productive: the thirteen unnamed old values.
+- **The obligations map.** A map of five roles' sentences against the 64 KB
+  spec draft, requested by the Sekkei's `spec-check:` line, cost one
+  `default` subagent (sonnet) 139,769 / 24 / 402. It quoted every sentence
+  verbatim at its line (checked by script); its `unnamed` flags are the
+  subagent's judgment, not checked by Kanri. With no Hosa, Kikaku or Keikaku
+  live, it was the only check those roles' text got at the spec stage.
+
+### The plan stage
+
+- The plan (10,058 lines, 18 tasks) was drafted as seven `plan.draft` runs on
+  opus in parallel from one shared brief
+  (`docs/notes/authoring-a-passage-plan.md`, "A plan too large for one
+  drafter is cut by batch"): Part A (`usage.test.js` and `usage.js`,
+  developed green in a scratch directory and wrapped into `W` blocks by
+  script) 346k tokens, 104 tool uses, 33 minutes; B 315k, 130, 25 minutes;
+  C 220k, 56, 14; D 307k, 68, 19; E 231k, 54, 14; F 282k, 83, 20; the added
+  Task 18 94k, 24, 3.
+- By the plan's commit the plan seat's context was 412,370, with no
+  compaction, almost all of it the spec (1,607 lines), the model plans'
+  heads, and the drafters' hand-back reports; the assembled plan was never
+  read whole. A plan seat that reads the spec whole and delegates every other
+  read reaches this size on a topic of this scale. Beside issue-c44b.
+
+### Batch A
+
+The pre-flight scan, one `default` (sonnet) dispatch over the 10,058-line
+plan, 284,871 / 47 / 1,302. Task 1's implementer 51,146 / 8 / 53 (a copy by
+`sed`); Task 2's 56,141 / 11 / 107. The four opus reviews: Task 1 spec
+100,515 / 18 / 138, quality 95,924 / 10 / 159; Task 2 spec 118,778 / 16 /
+178, quality 100,640 / 9 / 183. The whole suite 518.7 s. A `W`-block copy
+task cost about a fifth of the scan's tokens and a twenty-fifth of its time.
+
+### Batch B
+
+- Task 3 implementer 69,442 / 25 / 147, spec review 63,447 / 6 / 34, quality
+  review 65,549 / 6 / 47; Task 4 78,524 / 14 / 124, 77,696 / 7 / 54, 61,457 /
+  9 / 51; Task 5 57,550 / 10 / 69, 56,042 / 5 / 37, 56,954 / 6 / 51; Task 6
+  58,224 / 9 / 55, 57,611 / 7 / 44, 63,923 / 9 / 101. The whole suite 525 s,
+  the plan's `boundary` run 554 s. A copied-block or small task cost a fifth
+  to a third of a drafting subagent's tokens; the eight opus reviews each
+  cost 56,000 to 78,000.
+- **A Jisso can run every fence in one command.**
+  `passage-check.js boundary --plan <plan>`, run by the Jisso in the
+  background, gave every fence of How a batch is verified, the suite
+  included, in 554 s; it needs neither Kanri's transcript nor the ledger,
+  which `boundary.js check`, the verifier's form, does. Batch A's Jisso had
+  run the fences one by one.
+- **Disjoint-file tasks overlap; a shared-file task waits.** A task whose
+  edit lands in a file a running whole-suite run reads
+  (`templates/tanto.json`, through `reading.js` and `reading.test.js`) waits
+  for the suite to end; tasks on disjoint files overlap their reviews with
+  the next task's implementer at no cost. Batch B's four tasks, two reviews
+  each and a nine-minute suite ran in about twenty-five minutes of wall time
+  from Task 3's dispatch to Task 6's last review, before the plan's own
+  boundary run.
+
+### Batch C
+
+The override that tells the `task.review-quality` reviewer to read, at HEAD,
+the sibling files the batch's earlier tasks landed paid off again: the
+batch's one Important — Task 7's Items form against
+`templates/shoroku-feedback.md` — was a mismatch between the diff's text and
+an earlier task's file, which a same-file-only review cannot see, and the
+same read confirmed the brief's other claims against `usage.js`.
+
+### Batch D
+
+- The three `task.implement` runs 65,866 / 19 / 101 (Task 9), 64,954 / 8 /
+  80 (Task 10), 64,142 / 8 / 69 (Task 11); the three spec reviews on opus
+  62,237 / 5 / 39, 71,578 / 4 / 41, 74,900 / 6 / 48; the three quality
+  reviews on opus 80,565 / 12 / 103, 103,480 / 22 / 163, 105,126 / 21 / 151;
+  the plan's boundary run about 8 minutes. A verbatim-passage Markdown task
+  cost about 65,000 implementer tokens whether it added 34 or 143 lines; the
+  quality review, which reads sibling files at HEAD, cost about a third more
+  than the spec review and grew with the number of mechanisms the task names.
+- **Three tasks on one file run as three serial rounds.** They cannot overlap
+  their reviews with the next implementer the way batch B's disjoint-file
+  tasks did, because the reviewers' needle counts read the working tree:
+  batch D took about half an hour of wall time for 226 added lines (from the
+  prompt at 23:45 to the boundary run's end at 00:12). A plan whose batch is
+  one file in three parts says so in its Batches section only if its author
+  counts it.
+
+### Batch E
+
+The three `task.implement` runs 60,201 / 11 / 62 (Task 12), 69,220 / 19 /
+101 (Task 13), 94,569 / 21 / 120 (Task 14); the three spec reviews on opus
+57,433 / 4 / 35, 65,494 / 6 / 50, 76,088 / 13 / 103; the three quality
+reviews on opus 87,484 / 19 / 143, 93,402 / 25 / 251, 86,663 / 16 / 162; the
+boundary run about nine minutes. The quality reviews told to read the
+sibling files at HEAD took more tool uses than the spec reviews that replayed
+the brief (19, 25 and 16 against 4, 6 and 13) and 1.1 to 1.5 times their
+tokens, and they are where the batch's cross-file findings came from — the
+command's exit status, the basename wording, the field-by-field rule — as at
+`bg-seat-fixes` batch B.
+
+### Batch F
+
+The four `task.implement` runs 59,170 / 8 / 58 (Task 15), 62,626 / 8 / 51
+(Task 16), 66,912 / 21 / 89 (Task 17, the red-then-green code task), 52,828
+/ 8 / 41 (Task 18); the four spec reviews on opus 60,259 / 7 / 52, 59,050 /
+9 / 63, 63,077 / 9 / 68, 53,348 / 4 / 38; the four quality reviews on opus
+85,989 / 17 / 118, 104,197 / 20 / 151, 81,501 / 9 / 79, 68,006 / 14 / 76;
+the whole suite 357 tests in about nine minutes and the boundary run 9.5
+minutes. The verbatim-passage tasks again cost 50,000 to 70,000 implementer
+tokens; the two quality reviews that cross-read the most files (Tasks 15 and
+16) are where the batch's two Important findings came from, as in batch E;
+Task 18's spec review, of a six-line template edit, was the cheapest at 4
+tool uses.
+
+### The final tree and the fix wave
+
+- On the final tree the whole suite is 357 tests in 514 s (Node v24.16.0),
+  0 failures. `passage-check.js replay` over the 18-task plan printed 12
+  MATCH and 11 DIFFERS, every DIFFERS environmental: a live census, a scratch
+  tree with no `.git` and no `usage.json`, and the two counts the plan says
+  differ. A data point for issue-647b.
+- The fix wave: F1's `task.implement` 110,768 / 53 / 318 (the code task,
+  with three reds and a reproduction per item), its spec review on opus
+  68,794 / 5 / 55, its quality review 90,403 / 20 / 143; F2's
+  `task.implement` 60,723 / 20 / 123 (four template edits and two test
+  lines), its spec review 59,121 / 5 / 23, its quality review 68,555 / 7 /
+  84; the whole suite 360 tests in 8.6 minutes, the boundary 9.4 minutes. A
+  code task with a reproduction per item cost about 1.8 times a template
+  task for its implementer, and the quality reviews that cross-read the
+  contract text (20 and 7 tool uses) are where the out-of-wave stale wording
+  was found.
+
+### Boundaries and seat contexts
+
+- **Every boundary took 10 to 20 minutes and two or three interim
+  wake-ups.** Almost all of the verifier's wall time was the nine-minute
+  whole suite; each verifier handed back two or three interim "waiting on
+  background work" notices before its final report, each a wake-up of
+  Kanri's session — about 18 interim wake-ups over batches A to F and the
+  fix wave. A data point for decision-e448's hand-back rule.
+- **A Kanri's context grew about 31,000 per boundary.** One Kanri went from
+  132,080 at its first turn to 313,671 at the fix wave's boundary over seven
+  boundaries, a whole-branch review and the fix wave's rendering (baseline
+  93,599; the ceiling, 288,599, crossed at that boundary). Beside issue-306f
+  and issue-db0c.
+- **The Jisso ceiling line read `over` in every batch report.** Batch E
+  294,953, batch F 355,720, the fix wave 320,548, against 223,468 (a baseline
+  of 93,468 plus two times 65,000). The line acts on nothing for a Jisso,
+  since one Jisso runs one batch, so either the per-batch figure or the line
+  itself carries no signal for batches of this size. The fix wave's queued
+  seat read 109,650 after its start sequence, so a two-task wave with six
+  subagent dispatches grew about 210,000 from its start to its draft. The
+  data issue-6620 waits for.
+
+### A narrow recommend dispatch
+
+A narrow `shoroku.recommend` dispatch that added `Carrier:` lines to the
+ledger's pending items ran on `fable`: 158,409 subagent tokens, 57 tool
+uses, 356 s, for 54 carrier lines and two new items, with only Destination
+lines and the two new items changed in a 150 KB file — checked by a
+line-set diff against a copy taken before the dispatch. A data point for the
+recommend kind's model choice.

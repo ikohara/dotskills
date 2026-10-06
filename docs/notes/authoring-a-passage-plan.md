@@ -102,6 +102,13 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   repair, typed through a tool, landed as two literal backspace bytes that
   failed the check on correct code (issue-b873). Type `\b` where no tool
   interprets escapes, and look at the bytes.
+- **Let a script decide what is findable.** The tanto-feedback spec's Old
+  values list, as first written from reading, had three needles of fourteen
+  that no fixed-string search could find, because the source wraps
+  mid-phrase. Rebuilt from a script of about twenty lines that searches each
+  needle line by line and fails on a miss, the list had 43 needles, all
+  found: the count tripled once the search, not the author, decided what was
+  findable. Kin issue-e13a.
 
 ## An entity-level sweep beside the phrase-level one
 
@@ -116,6 +123,17 @@ runs against the skill itself are in `docs/notes/tanto-consistency-checks.md`.
   offered — not only for the phrases the `O` block pins. The phrase sweep is
   mechanical and finds the closed enumerations; the entity pass is a reading
   and finds the sentences that restate the old model in new words.
+- A site list built by `git grep -F` of the changed sentence's own words
+  cannot find a sentence that states the same rule in other words. In the
+  tanto-feedback plan, "never address a Kikaku first" (the narrowed opening)
+  and "never send to Kikaku" (a later line of the same role file) share no
+  term, so the site list for the task that narrowed the rule could not find
+  the contradiction; the task's quality reviewer found it by reading the
+  whole role file at HEAD against the new text. A site list for a rule names
+  the sentences that state its scope or its negation, found by reading the
+  file, and every task that narrows a rule keeps the reviewer's cross-read
+  of the file at HEAD in its dispatch. A fix wave's quality review names the
+  old wording as a search term for the same reason.
 
 ## Counts
 
@@ -787,6 +805,13 @@ to the Jisso for that reason. A plan that names per-file runs in its
 implementer steps and leaves the whole suite to the boundary avoids the
 substitution. Kin issue-46d3.
 
+A step that cannot run inside a dispatch names its owner. The tanto-feedback
+plan's Task 2 Step 4a ran the nine-minute suite "in the background"; under
+tanto an implementer's commands are foreground and inside ten minutes, so the
+step fell to the Jisso after the commit instead of before Verify, as the plan
+ordered it. The plan says which seat runs such a step and where in the step
+order its result is read.
+
 ## A wave's untouched-file fence compares against the wave's own base
 
 A fence that compares against the merge base cannot say "this wave did not
@@ -842,3 +867,35 @@ says nothing of the subject. Both were caught only at review and fixed at a
 rework. `SKILL.md` points at its own headings and C-n/P-n ids, never at the
 spec's numbers; a text that moves from the spec into a contract file drops
 the number or names the heading.
+
+## A plan too large for one drafter is cut by batch, and after assembly the plan file is the source
+
+The tanto-feedback plan (about 10,000 lines, 18 tasks) was drafted by seven
+`plan.draft` runs in parallel, one per batch and one more for a file the
+first pass found, from one shared brief; the head, Batches, How a batch is
+verified and Self-Review were the author's, and an assembler script
+concatenated the parts and generated the boundary fence's needle rows from
+the `O` blocks. One drafter for the whole plan was rejected: two scripts of
+1,618 and 1,901 lines had to be run green before they were quoted, so the
+plan was past one turn's output, and a `W` block never run is the
+placeholder the form forbids. The cut by batch also made each part lintable
+and replayable alone. Part A's drafter developed its two scripts green in a
+scratch directory and wrapped them into `W` blocks by script.
+
+A drafter resumed to fix its part regenerates the part from its own source,
+so an edit the author made to the part file in the meantime is lost; one
+was, and was found only by the next lint. After the first assembly the plan
+file is the source: later edits go to it, or are asked of the drafter by
+message. Figures for the seven runs are in
+`docs/notes/tanto-measured-data-points.md`.
+
+## A fix wave's brief carries the finding's scenario beside its Fix line
+
+A review's Fix line is a proposal, not a patch. In the tanto-feedback fix
+wave, finding 1's literal condition — reuse the placed file unless the
+receiving inbox holds its basename — is false on every re-run of the skill
+repository's own close, since that file's destination is that inbox; and
+finding 4's new text nested a code span in a code span. Both were found by
+an implementer or a reviewer reading the code at HEAD, not by the review's
+text. A wave's brief carries each finding's scenario and intent next to its
+Fix line, and says which one wins.

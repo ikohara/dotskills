@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-04
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 Source: shoroku shoki-seat S-89
@@ -52,3 +52,18 @@ Resolved in the hotfix lane on `main` by the commit
 `fix: a request taken by two spawners on one root is handled twice`
 (shoki-seat R-15), the claim by rename in `takeRequests` with its test;
 recorded at the run-owned-seats close (S-7).
+
+**2026-10-07, from inbox 2026-10-06-spawner-roster-and-handover-contract — a
+double execution measured after the claim by rename.** In another run a
+spawner started on one day was still alive when a second started over a day
+later; the second logged `stale spawner pid <pid> ignored`, and both then
+processed the same spawn request and the same stop request (the log shows
+`spawn … ok` and `stop … ok` twice each), and a duplicate Kanri started
+about 100 ms after the recorded successor. Whether the older spawner predated
+the claim by rename is not known, so the cause is open: either the claim
+does not hold, or the older process ran code from before it — the case the
+repair above leaves to a stop. What would have refused the second start is a
+check on the live process itself, by command line (`spawner.js run --root
+<root>` among the host's processes), not only the pid file and heartbeat.
+Whether this reopens the issue is left to the next reader; the bundled
+report's other findings are issue-c18a.

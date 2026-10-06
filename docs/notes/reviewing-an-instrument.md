@@ -72,6 +72,15 @@ plan runs against the skill itself are in
   the feature is written and the plan's red step under-reports by one.
   Write the assertion so the pre-implementation state cannot satisfy it, and
   state the red step's count from an actual run.
+- A measurement task's figures are checked by an independent re-read, not by
+  reading its report or its scripts. In the tanto-feedback plan the Task 4
+  spec reviewer fetched the source page itself and compared twenty cells, and
+  the Task 6 quality reviewer ran two experiments in a temporary directory —
+  a synthetic transcript with a duplicated `message.id`, and a copy of
+  `usage.json` with one seat removed — which showed the checks can fail; a
+  probe with an unknown topic found that one check passed vacuously. A check
+  script for a measurement exits nonzero on an empty expectation, in the
+  script itself.
 
 ## Leaks and temporary directories
 
@@ -137,3 +146,27 @@ plan runs against the skill itself are in
   what it reads and when — or name it as unchecked. A comment that cites a
   safeguard is the cheapest place a reading review can notice that it is being
   asked to trust something it cannot see.
+
+## A reviewer's claim about a suite is settled by the Jisso's run
+
+- A reviewer's claim that a suite fails under some condition, or that a test
+  cannot fail, is cheap to settle by a run, and the reviewers a Jisso
+  dispatches are told not to run suites — so the Jisso's run is the check.
+  In the tanto-feedback plan's batch A, the committed test and the plan's
+  `W` block run together in a scratch directory outside the repository gave
+  46/46 in 15 seconds before Task 2 was dispatched: it refuted one Important
+  finding (a UTC+11 failure whose premise ignored a choice the plan had
+  fixed) and confirmed another by mutation.
+- A review's "Fix:" line is checked the same way before it is applied: the
+  quality reviewer's fix for a path-needle finding (put the path in the
+  file's `## Received`) would not have worked, since `close` writes that
+  section itself.
+
+## A parked finding carries its reproduction command
+
+- Three parked Important findings of the tanto-feedback plan's batch A were
+  each reproduced by the whole-branch review in under a minute from a
+  temporary directory. The ledger's rulings that parked them carried the
+  reading but not the command, so the review had to rebuild each. A ruling
+  that parks a finding carries its reproduction command, so a later review
+  re-runs it instead of re-reading.

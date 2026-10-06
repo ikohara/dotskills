@@ -2,7 +2,7 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 ## Purpose and shape
@@ -989,6 +989,25 @@ token. The template that replaced the ruling lists the five references
 literally. A ruling that expects to be read by a script later states the form
 it expects.
 
+**A new intake line is a sentence, not a route.** The intake had no rule for
+a line it did not know: every site keyed on the literal `bug-report:`, and
+nothing said what to do with anything else. The tanto-feedback design added
+three lines (decision-73cc, decision-de65) by naming each in one sentence of
+`SKILL.md` beside the first, with the same act — one copy, one `received:`,
+nothing read — rather than by a new route; a fifth line would be added the
+same way (exp-09c2).
+
+**A delivered feedback file is guarded at both ends** (exp-09c2). A re-run of
+`close` after its file was delivered — a Hosa's chore for a closed topic, or
+a successor running `close` again from the handover — must not overwrite the
+triaged copy in the receiving inbox. `usage.js close` allocates a new stem
+when the file it placed has reached the receiving inbox, and the intake
+leaves a copy that is already there as it is and names it in its reply. Each
+half alone was weighed and rejected: guarding at the intake alone leaves the
+sender's file mis-dated and its new Items undelivered; a new stem in `close`
+alone leaves a re-run after delivery free to clobber. The intake's half is
+the last line of defense.
+
 ## Human access
 
 Serves exp-26d5.
@@ -1385,6 +1404,14 @@ the in-plan handover case by `shoroku-at-close`, before this topic opened. What
 this topic removes is the remaining two. The attribution matters because a later
 reader comparing the before and after figures would otherwise credit one topic
 with the whole of a gain that two produced.
+
+**A close no longer carries Residency rows into a tracked report** —
+decision-73cc's by-actor axis, decision-32e5's measurement. The skill had
+told a close to append the run's Residency rows to a tracked report, which is
+the class of record the axis rejects: no document cites a raw row, and the
+reader that acts on a run's cost is the skill's measurement, not the
+repository's `docs/`. The instruction predated the axis, and the
+measurement from transcripts supersedes it in practice.
 
 ## Deviations from the composed skills
 
@@ -2029,6 +2056,17 @@ is checked:
   from "nothing" to two numbers, and the gate below still said "prints
   nothing" — the plan review's only blocker. An author who edits a command
   re-reads the gate.
+
+**A plan that edits the contract's own close carries an "old-text Kanri's
+close" checklist from its first draft** (exp-06b2). The tanto-feedback plan's
+cold read asked ten questions, all of one class: what a Kanri whose role text
+predates the plan's last batch does at that plan's own close — the acts of
+the new close its text cannot supply, an old-shape ledger meeting a new-text
+Kanri, the boundary of the batch that retires its own brief's lines, the
+first run's empty tracked file — and none was about a task's content. Such a
+plan answers those questions in its Global Constraints before the cold read
+asks them. issue-1298 is the different case of a consuming repository's
+migration, not the run's own Kanri.
 
 Three alternatives were weighed and rejected while these conventions were
 derived, and the reasons are worth keeping. A **bounded** handover wait was

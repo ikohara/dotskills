@@ -937,3 +937,49 @@ the `sessionId`'s first eight digits; the system prompt named
 was not checked, and no other seat's environment was read. `SKILL.md`'s
 "The transcript reading" does not use it: the short id in the prompt's own
 path is enough, and one measurement does not carry a contract sentence.
+
+## One API response is several `assistant` records with identical `usage` (2026-10-06)
+
+Measured for the tanto-feedback spec over one Jisso session's transcript:
+422 `assistant` records carried 173 distinct `message.id`; the records of
+one id carry byte-identical `usage` objects and successive `apiBlockIndex`
+values. Summed per record, `output_tokens` came to 766,517; counted once per
+`message.id`, 236,756 — the per-record sum is 3.2 times the true figure. A sum over records overweights every
+response of several blocks; a usage figure counts a response once, by its
+`message.id`. Beside "A final message is often two records" above.
+`message.usage` carries `input_tokens`, `cache_creation_input_tokens`,
+`cache_read_input_tokens`, `output_tokens`, and a `cache_creation` object
+splitting the creation count into `ephemeral_5m_input_tokens` and
+`ephemeral_1h_input_tokens`; `message.model` is on every `assistant` record,
+in a seat's transcript and in a subagent's.
+
+## A dispatch joins to its transcript by `toolUseId`, and its totals sit in two places (2026-10-06)
+
+Measured for the tanto-feedback spec over the same session and its
+`subagents/` directory:
+
+- **`user` records carry `origin.kind`** — `human` (1), `peer` (32),
+  `task-notification` (15) in that session — and tool results and local
+  prompts carry no `origin`. The same field as "`origin.kind` tells the
+  human's turns from a peer's" above.
+- **A subagent's `meta.json` carries a family alias, its transcript the model
+  id.** `<sessionId>/subagents/agent-<id>.meta.json` holds `agentType`,
+  `description`, `toolUseId`, `spawnDepth`, and `model` — a family alias such
+  as `sonnet`, not a model id; the model id is on the subagent transcript's
+  `assistant` records.
+- **`toolUseId` joins a dispatch to its transcript.** It matched the parent's
+  `Agent` `tool_use` block in 28 of 28. A resume of an agent appears in the
+  parent as a `toolUseResult` with `resumedAgentId`.
+- **A dispatch's totals are in two places.** A background dispatch's totals
+  are in the completion notice's text; a foreground one's in the parent's
+  `toolUseResult`.
+
+## A Jisso's batch report is written by a script, and its path is the boundary line (2026-10-06)
+
+Measured over the six Jissos of the tanto-feedback plan: none wrote its batch
+report with a `Write` `tool_use` ending `batch-<key>-report.md`; each wrote
+it through a generated script run by Bash, and all six sent the report's
+path to Kanri as their boundary line. A reader that keys a Jisso's batch on
+its report reads the key from either the `Write` call or the boundary line;
+the tanto-feedback design's reading from the `Write` alone would have found
+none.

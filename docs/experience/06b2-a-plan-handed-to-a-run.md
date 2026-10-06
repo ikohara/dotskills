@@ -2,7 +2,7 @@
 id: "06b2"
 title: a plan handed to a run
 created: 2026-10-01
-updated: 2026-10-06
+updated: 2026-10-07
 actors: [user, agent]
 tags: [autonomy, cost, resumability, bounds]
 ---
@@ -28,6 +28,8 @@ up from what is on disk, not from anyone's memory.
 - **bb08** [stated] SHOULD let him choose how much of a run moves at once, and with it how fast it goes and what it costs.
 - **c53d** [confirmed] SHOULD NOT make him the run's operator: the run starts, replaces, and clears away its own sessions, and learns what he did without his reporting it.
 - **af0c** [confirmed] SHOULD NOT let an ordinary act of his tools — an editor reload, a closed tab — ask anything of him or of the run.
+- **a0fb** [stated] SHOULD let him know, after a run, what each seat and each kind cost and what it bought, by model, without anyone copying a figure.
+- **5ad8** [stated] SHOULD keep usage, and what it bought, long enough — months — to be read as a trend.
 
 ## Open questions
 
@@ -40,3 +42,5 @@ up from what is on disk, not from anyone's memory.
 - [bb08] 「worktreeを作らない制約のもとで、複数のagentが並列に作業できる。userはその並列度を調整することで進捗やトークン消費量を増減できる」 (Kikaku, 2026-10-02)
 - [c53d] inferred from 26d5 and 「clear したことはkanriが気づきようがないから、わざわざ clear して、わざわざ kanri に報告する」, 「kanri が handover するたびに tanto.bat を実行するのがカッタるい」, 「可能な限り自走して欲しいこととかは、離れていようがいまいが変わらない」 (Kikaku, 2026-10-04); not stated directly. Confirmed 2026-10-04: 「ABCまさにそのとおりだね」
 - [af0c] inferred from 「VSCode側の都合（本体や拡張の更新）で reload 相当の処理が走ることは1,2日に1回はあると思っていい」 (the run-owned-seats spec dialogue, D-9, 2026-10-05); not stated directly. Confirmed 2026-10-06: 「A (confirmed)」 (Kikaku)
+- [a0fb] 「何はなくとも measure は必要なんじゃないかと思うわけ」 (Kikaku, 2026-10-06)
+- [5ad8] 「長期（といっても数ヶ月単位）の統計はコスト最適化の戦略策定で見たくなると思うんだよなあ」 (the tanto-feedback spec dialogue, Q-8, 2026-10-06)

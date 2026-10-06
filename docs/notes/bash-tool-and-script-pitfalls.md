@@ -229,3 +229,15 @@ run made, and an implementer of the `run-owned-seats` batch C took and
 popped a temporary stash. A stash is one more thing a peer's `git status`
 cannot see in a shared checkout; a dispatch into the shared tree says never
 to stash.
+
+## A shell `TZ` is not honored by Node, and Node 24's reporter colors redirected lines (2026-10-06)
+
+On this Windows host a `TZ` set in the shell with an IANA name is not
+honored by Node: `TZ=Australia/Sydney` gave the host's offset, -540. A
+`process.env.TZ = "Etc/GMT-11"` assigned at runtime is honored (-660), and a
+child inherits it when it preloads the assignment with
+`NODE_OPTIONS=--require`. A test of zone-dependence sets the zone that way.
+
+Node 24's default test reporter colors its `ℹ` summary lines even when the
+output is redirected, so a `grep '^# '` for a TAP summary needs the suite
+run with `--test-reporter=tap`.

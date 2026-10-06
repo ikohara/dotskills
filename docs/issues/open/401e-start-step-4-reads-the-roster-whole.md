@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-07
 ---
 
 Source: shoroku tanto-issue-triage S-34
@@ -27,3 +27,17 @@ finding that the roster's Events log is never pruned) and issue-2f88 (item
 step 4 itself: read only the table rows of live seats (a `grep` for
 `| live |`) and the last Events lines. That changes the Start sequence, so
 it is a decision.
+
+**2026-10-07, from inbox 2026-10-06-kanri-context-cost-and-close-gaps — the
+handover's reads, too.** One spawned Kanri began at `context=148581`
+(baseline 89,220, ceiling 219,220) after reading `SKILL.md` and
+`roles/kanri.md` once, and was at 203,988 after accepting the handover, four
+acks and the Measurements rows: about one act of room was left when the
+human's first answer arrived. The 82 KB ledger and the 33 KB roster were
+each read in part and still cost about 25 KB of context.
+`templates/kanri-handover.md` names the ledger section to read for open
+questions and rulings, but none for Progress, the Session events tail or
+Measurements, and says nothing about reading the roster by its table
+headings. The report's two levers, both in the handover template: name the
+sections to read (Progress, Open questions, the Session events tail,
+Measurements), and read the roster with `Grep` for its headings.

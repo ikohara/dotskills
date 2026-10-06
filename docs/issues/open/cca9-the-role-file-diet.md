@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-14
-updated: 2026-10-03
+updated: 2026-10-07
 ---
 
 Source: shoroku tanto-context-ceiling
@@ -51,5 +51,17 @@ the time, overwhelmingly cosmetic and mostly inherited from the plan's own
 literal passage text. They are recorded by file and line as issue-2065, whose
 one action item is a prose-polish pass over `skills/tanto/` — the natural
 companion to this diet, and the list this diet consumes if it runs.
+
+**2026-10-07, from inbox 2026-10-06-kanri-context-cost-and-close-gaps — each
+`/tanto fukki` re-injects the whole of `SKILL.md`.** `SKILL.md` was 112,712
+bytes. In one run two `/tanto fukki` arrived at a Sekkei seat in a tab, one
+of them interrupted, and each injected the whole skill into the seat's
+context before the seat could answer its one line; the seat's reading went
+from 100,172 at its start to 319,091 after the resume and 599,699 by the end
+of its spec review. `SKILL.md` says only that `fukki` "puts the run back" and
+that any other seat answers it with one line. The measurement this diet was
+missing for the resume path; the report's direction is to answer that line
+without loading the whole `SKILL.md`, or to say in `SKILL.md` what the
+injection costs.
 
 Serves exp-178d (tanto-issue-triage, 2026-10-03).
