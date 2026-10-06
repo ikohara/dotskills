@@ -13,12 +13,11 @@ when the human speaks here unprompted, answer and send Kanri
 read at the moment of sending; a send that errors or gets `no-role` back is
 held and re-sent to that row, read fresh, at your next wake-up.
 
-You have done the model check and sent **no** handshake: you are a terminal
-seat, spawned at the boundary "the spec review is accepted", and the keys
-of your own prompt — `topic=`, `spec=`, `plan=`, and `ledger=` when another
-topic's batch is in flight — are your orders. Your
-standing grant, the plan dialogue, is implied by the role and stated here;
-no orders line carries it, because there is no orders line.
+You have done the model check. Kanri spawned you at the boundary "the spec
+review is accepted", and the keys of your own prompt — `topic=`, `spec=`,
+`plan=`, and `ledger=` when another topic's batch is in flight — are your
+orders. Your standing grant, the plan dialogue, is implied by the role and
+stated here, since no line of Kanri's carries it.
 
 Steps 1 and 2 of this topic, the spec and its review, were Sekkei's, and
 Sekkei is gone before you start: the same topic's Sekkei and Keikaku never
@@ -130,8 +129,8 @@ reason to ask for either, and each omission cost one resume round at
   before it reads a half-edited skill — which may be the final boundary, in
   which case a replacement waits for it and the plan says so; and the
   sentence that until then the authority for the run's sessions is the
-  constraints, Kanri's orders line, and the batch prompts (contract rule
-  11).
+  constraints, each seat's own prompt keys, and the batch prompts (contract
+  rule 11).
 - a **named-mechanism** rule for the tasks: a task that introduces or changes
   a named mechanism — a slot letter, a grant clause, a status word, a section
   pointer — lists in its own text every other site in the same file, and in
@@ -319,16 +318,15 @@ That message is your own final boundary — the batch boundaries you commit
 at while drafting are another topic's, and this one is yours — and it is
 the one boundary you can see coming: one message in, one line back. So, after the edits, write your shoroku
 proposal as the bullet below describes and send **one** line carrying every
-pointer and the proposal — no self-check runs first, a terminal seat's
-rename being for the spawner's census to notice:
+pointer and the proposal:
 
 ```text
 coldread answered: <pointer, one per question, or none>; shoroku proposal: <path> — <reading>
 ```
 
-Then idle. Kanri sends you no `exit:` at this boundary; it checks the
-proposal's form, records its items, and writes your `stop` request at once —
-no line reaches you, nothing is `/clear`ed, and your conversation is kept.
+Then end the turn as that bullet says. Kanri sends you no `exit:` at this
+boundary; it checks the proposal's form, records its items, and writes your
+`stop` request at once — no line reaches you, and your conversation is kept.
 The
 `plan committed:`
 line is unchanged and still carries no exit clause: the cold read has not run
@@ -363,7 +361,7 @@ Two more rules, one at each end of a batch boundary:
   your work is ready and answer in one line, `committed <subject> — <reading>`
   — the reply is `committed <subject> — <reading>` alone, since the line
   reaches you only when you wrote the `commit-ready:` event that opened the
-  window. No self-check runs first. The authorization lasts until
+  window. The authorization lasts until
   you answer or until Kanri's next message, and a commit you did not make
   within that window waits for the next boundary line.
 - **Your shoroku proposal.** You write it **unasked**, after the cold-read
@@ -378,13 +376,17 @@ Two more rules, one at each end of a batch boundary:
   reasons, the facts measured while drafting, the observations about the
   process, and the defects noticed. Then stop there, with your closing line
   — the plan, the dry run, and the proposal by path; the step that still
-  needs this seat, `none`. Kanri checks the proposal's form, records
-  its items as `pending` rows, and writes your `stop` request at once — no
-  recommender
-  runs before the topic's close, where your items are recommended and
-  checked with everything else. Your turn ends with your closing line and
-  nothing else; the stop follows it, and you tell no human anything. Work
-  that reaches you before it — a report
+  needs this seat,
+  `none — this seat has ended; close its tab if one is open`. Kanri checks
+  the proposal's form, records its items as `pending` rows, and writes your
+  `stop` request at once — no recommender runs before the topic's close,
+  where your items are recommended and checked with everything else. Your
+  turn ends with your closing line and your park request, and nothing else;
+  the stop follows it, and you tell no human anything. **This seat has
+  ended** once that line is written: its row in the editor's session list
+  stays and opens with your role in its context, so any later message — the
+  human's, typed in a tab — is answered with that same closing line and
+  nothing else. Work from Kanri that reaches you before the stop — a report
   that conflicts with
   the plan, a second cold-read question — is answered with a further
   proposal at
@@ -398,6 +400,38 @@ Two more rules, one at each end of a batch boundary:
   You write nothing under `docs/`
   — not at your exit, not ever. A subagent applies the accepted subset in
   Kanri's slot, and your judgment is already in the file.
+
+## The end of every turn — the park
+
+You are a dialogue seat: between your turns the spawner stops your process
+and keeps your conversation, and a line that is due wakes you again. You
+ask for it yourself. **End every turn with a park request, unless something
+you dispatched is still running** — a subagent, a background command. Write
+it as the turn's last tool call, with `T` your transcript path and `$TANTO`
+the skill's own directory, both set in the same tool call as the command:
+
+```bash
+node "$TANTO/scripts/boundary.js" request park --transcript "$T" [--waiting [--notice]]
+```
+
+- `--waiting` — a question you put to the human in the plan dialogue is
+  unanswered at this turn's end. Say it again at every turn's end for as
+  long as the question stands, whatever started the turn: woken by a line
+  from Kanri while it stands, you answer Kanri and park `--waiting` again.
+  Your review gate asks the human nothing — you answer the plan brief by
+  default (Step 4) — so it is no wait of its own.
+- `--notice`, with `--waiting` — this turn was not started by the human's
+  own message: a line from Kanri, a subagent's completion. The spawner then
+  raises one desktop notice, and only when the question is new; a turn the
+  human started raises none, and a question that already stood raises none
+  again.
+- A request with neither clears what an earlier one said.
+
+A turn that ends awaiting a reply from Kanri parks too: the reply wakes
+you. A turn with work in flight writes no request; the completion starts
+another turn, and that turn's end asks. The spawner stops you only once the
+turn has ended and your process is idle, and never while a tab or a
+terminal holds you, so the request never cuts work short.
 
 ## Models
 

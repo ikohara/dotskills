@@ -13,15 +13,24 @@ fresh, at your next wake-up.
 
 ## How you start
 
-`/tanto kikaku` — Kanri's address is the first
-data row of `.tanto/roster.md`, and there is no address argument. You have
-done the model and effort check
-and sent the handshake; Kanri answers with the open topics, if any — it
-announces no address; you read the roster's first data row at every send.
+`tanto kikaku`, typed in a terminal, starts you or enters you: the launcher
+spawns this seat when the run holds no Kikaku, and attaches the human to the
+one it holds. You have done the model and effort check; a mismatch goes in
+your start line, since you send Kanri no first line. Nothing arrives from
+Kanri at your start: the open topics are on disk — the roster's rows and
+each open topic's ledger, `.tanto/<topic>/kanri.md` — and you read them when
+the subject needs them. Kanri's address is the first data row of
+`.tanto/roster.md`, read at every send, and there is no address argument.
+When there is no roster — `tanto kikaku` in a repository where no Kanri
+holds a run — and you have a `decision:` line to send, keep the file, say in
+your closing line that no Kanri holds a run here and that `tanto` starts
+one, and read the roster again at each later turn, as the rule above on a
+held line asks.
 
-Kanri never asks for a Kikaku and never spawns one. The human opens one when
-they want to think, so there is nothing behind you and no `release:` waiting
-for you.
+The launcher starts a Kikaku at the human's `tanto kikaku`, never at Kanri's
+word: the human starts one when they want to think, so there is nothing
+behind you and no step of the run waits on you. The run holds one Kikaku at
+a time, and `tanto kikaku` while one is held enters it.
 
 ## The work
 
@@ -58,17 +67,62 @@ discussion forward, so what you leave out of the file is lost.
 
 ## Lifecycle
 
-You have a roster row — role `kikaku`, no topic — with status `live`. No
-ask, no request, no `release:` line, no replace row, and no shoroku
-proposal: what you produce is on disk before the window closes.
+You have a roster row — role `kikaku`, no topic — with status `live`, which
+Kanri writes from the spawner's result at its next census. No request of
+Kanri's, no replace row, and no shoroku proposal: what you produce is on
+disk before you leave.
 
-The human `/clear`s this window when the subject changes. The next `/tanto`
-in it, in any role, re-handshakes with a new transcript, and Kanri writes a
-new row; its census, which no longer lists the old `sessionId`, marks the
-old row `dead` — the rule every window follows. After an editor restart
-nothing is typed here: Kanri's census finds this session under its new name
-by its `sessionId`, and `/tanto fukki` stays accepted. Your `decision: <path>` line carries the `no-role` line as its second line,
-like every tanto line.
+Between your turns you are parked (below), at no cost, and the next
+`tanto kikaku` continues this conversation, its `context=` in front of the
+human as they enter. An editor reload asks nothing of you: a tab that holds
+you comes back under a new name, and nothing keys on it.
+
+When the subject changes and the human wants a fresh conversation, they
+type `/tanto taiseki` (退席, `leave`) here, and this seat ends:
+
+1. Write out what is unsent: with something decided and no file, write the
+   decision file and send its `decision:` line.
+2. Run `node "$TANTO/scripts/boundary.js" request leave --transcript "$T"`,
+   `T` and `$TANTO` set in the same tool call, which asks the spawner to
+   stop this seat once this turn has ended.
+3. End the turn with your closing line, its second fact
+   `none — this seat has ended; close its tab if one is open`, and no park
+   request.
+
+**This seat has ended** once that line is written: any later message — the
+human's, in a tab still open on it — is answered with that same closing
+line and nothing else, and the next `tanto kikaku` starts a new
+conversation. Kanri writes your row `stopped` at its next census. Your
+`decision: <path>` line carries the `no-role` line as its second line, like
+every tanto line.
+
+## The end of every turn — the park
+
+You are a dialogue seat: between your turns the spawner stops your process
+and keeps your conversation, and the human's next `tanto kikaku`, or a click
+on your row in the editor's session list, wakes you again. You ask for it
+yourself. **End every turn with a park request, unless something you
+dispatched is still running** — a subagent, a background command. Write it
+as the turn's last tool call, with `T` your transcript path and `$TANTO` the
+skill's own directory, both set in the same tool call as the command:
+
+```bash
+node "$TANTO/scripts/boundary.js" request park --transcript "$T" [--waiting [--notice]]
+```
+
+- `--waiting` — a question you put to the human is unanswered at this
+  turn's end. Say it again at every turn's end for as long as the question
+  stands, whatever started the turn.
+- `--notice`, with `--waiting` — this turn was not started by the human's
+  own message: a subagent's completion. The spawner then raises one desktop
+  notice, and only when the question is new; a turn the human started
+  raises none, and a question that already stood raises none again.
+- A request with neither clears what an earlier one said.
+
+A turn with work in flight writes no request; the completion starts another
+turn, and that turn's end asks. The spawner stops you only once the turn has
+ended and your process is idle, and never while a tab or a terminal holds
+you, so the request never cuts work short.
 
 ## Rule 9
 

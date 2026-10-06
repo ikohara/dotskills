@@ -4,7 +4,7 @@ const assert = require("node:assert");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { spawnSync } = require("node:child_process");
+const { spawn, spawnSync } = require("node:child_process");
 
 const SCRIPT = path.join(__dirname, "boundary.js");
 const TANTO = path.dirname(__dirname);
@@ -242,11 +242,11 @@ test("check exits 2 when an argument is unnamed and when a path is absent", () =
   assert.match(gone.err, /--report .* is not on disk/);
 });
 
-test("an unknown subcommand exits 2 and names the three that exist", () => {
+test("an unknown subcommand exits 2 and names the seven that exist", () => {
   const f = fixture();
   const result = run(["verify"], f.dir);
   assert.strictEqual(result.code, 2);
-  assert.match(result.err, /check\|record\|census/);
+  assert.match(result.err, /check\|record\|census\|request\|seat\|wake\|beat/);
 });
 
 // The ledger and the roster the tests write to are copies of the templates
@@ -484,7 +484,7 @@ test("a peer reading and a status each name the row they write", () => {
   const fixture = ledgerAndRoster();
   const sessions = fs
     .readFileSync(fixture.roster, "utf8")
-    .replace("| kanri | — | <name> [<ref>] |", "| keikaku | tanto-diet | keikaku-a [ccdd11] |");
+    .replace("| kanri | — | <name> |", "| keikaku | tanto-diet | keikaku-a [ccdd11] |");
   fs.writeFileSync(fixture.roster, sessions, "utf8");
   const args = [
     "record",
@@ -710,7 +710,7 @@ const SEAT = {
   sessionId: "sess-one",
 };
 
-test("--seat writes a terminal seat's roster row, and a second call rewrites it", () => {
+test("--seat writes a seat's roster row from its result file, and a second call rewrites it", () => {
   const fixture = ledgerAndRoster();
   const seat = write(fixture.dir, "result.json", JSON.stringify(SEAT));
   const args = ["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--seat", seat];
@@ -959,7 +959,7 @@ function census(f, mode, args = ["--root", f.root, "--roster", f.roster]) {
 
 const KANRI_ROW = sessionRow("kanri", "—", "kanri-a [aaaaaa]", "live", "/home/u/.claude/projects/p/sess-kanri.jsonl");
 
-test("census prints the live and queued rows under its four headings, by its own path comparison", () => {
+test("census prints the spawner: line, then the live and queued rows under its six headings, by its own path comparison", () => {
   const f = censusFixture(
     [
       KANRI_ROW,
@@ -990,12 +990,21 @@ test("census prints the live and queued rows under its four headings, by its own
   assert.strictEqual(
     result.out,
     [
+      "spawner: stale",
       "",
       "## Listed",
       "",
       "kanri — kanri-a [aaaaaa] — sess-kanri — listed as kanri-a (background)",
       "sekkei t sekkei-b [bbbbbb] — sess-sekkei — listed as dotskills-4d (interactive) — renamed",
       "jisso t jisso-f — sess-queued — listed as jisso-f (background)",
+      "",
+      "## Parked",
+      "",
+      "none",
+      "",
+      "## Ended",
+      "",
+      "none",
       "",
       "## Not listed",
       "",
@@ -1023,7 +1032,7 @@ test("census prints none under a heading with no entry, and writes nothing", () 
   const before = fs.readFileSync(f.roster, "utf8");
   const result = census(f, "");
   assert.strictEqual(result.code, 0, result.err);
-  for (const heading of ["Not listed", "No session id", "Not held"]) {
+  for (const heading of ["Parked", "Ended", "Not listed", "No session id", "Not held"]) {
     assert.ok(result.out.includes(`## ${heading}\n\nnone\n`), result.out);
   }
   assert.strictEqual(fs.readFileSync(f.roster, "utf8"), before);
@@ -1087,8 +1096,26 @@ test("census reads seats.json beside the roster: a blocked seat's line and a mar
       sessionRow("shoki", "t", "shoki-i", "live", "/home/u/.claude/projects/p/sess-shoki.jsonl"),
     ],
     (root) => [
-      { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, pid: 1111, state: "blocked" },
-      { sessionId: "sess-jisso", name: "jisso-h", kind: "background", cwd: root, pid: 1112, state: "blocked" },
+      // A seat that answered and waits lists `state: "blocked"` beside
+      // `status: "idle"`, and is not blocked (spec 2.6, S-1).
+      {
+        sessionId: "sess-kanri",
+        name: "kanri-a",
+        kind: "background",
+        cwd: root,
+        pid: 1111,
+        state: "blocked",
+        status: "idle",
+      },
+      {
+        sessionId: "sess-jisso",
+        name: "jisso-h",
+        kind: "background",
+        cwd: root,
+        pid: 1112,
+        status: "waiting",
+        waitingFor: "permission prompt",
+      },
     ],
   );
   fs.mkdirSync(path.join(f.root, ".tanto", "spawner"), { recursive: true });
@@ -1103,8 +1130,8 @@ test("census reads seats.json beside the roster: a blocked seat's line and a mar
     result.out.includes(
       [
         "\n## Listed\n",
-        "kanri — kanri-a [aaaaaa] — sess-kanri — listed as kanri-a (background) — blocked",
-        "jisso t jisso-h — sess-jisso — listed as jisso-h (background) — blocked — no first turn since 2026-10-03 10:02",
+        "kanri — kanri-a [aaaaaa] — sess-kanri — listed as kanri-a (background)",
+        "jisso t jisso-h — sess-jisso — listed as jisso-h (background) — blocked (permission prompt) — no first turn since 2026-10-03 10:02",
         "",
       ].join("\n"),
     ),
@@ -1113,6 +1140,130 @@ test("census reads seats.json beside the roster: a blocked seat's line and a mar
   assert.ok(
     result.out.includes("\n## Not listed\n\nshoki t shoki-i — sess-shoki — no first turn since 2026-10-03 10:05\n"),
     result.out,
+  );
+});
+
+test("census prints Parked with its marks, Ended, a blocked background seat's cause, and a seat no row holds (spec 1.3, 2.6, 2.7)", () => {
+  const f = censusFixture(
+    [
+      KANRI_ROW,
+      sessionRow("sekkei", "t", "sekkei-b", "live", "/home/u/.claude/projects/p/sess-sekkei.jsonl"),
+      sessionRow("keikaku", "t", "keikaku-c", "live", "/home/u/.claude/projects/p/sess-keikaku.jsonl"),
+      sessionRow("hosa", "—", "hosa-d", "live", "/home/u/.claude/projects/p/sess-hosa.jsonl"),
+      sessionRow("jisso", "t", "jisso-e", "live", "/home/u/.claude/projects/p/sess-done.jsonl"),
+      sessionRow("jisso", "t", "jisso-f", "queued", "/home/u/.claude/projects/p/sess-gone.jsonl"),
+      sessionRow("kaiseki", "t", "kaiseki-g", "live", "/home/u/.claude/projects/p/sess-tab.jsonl"),
+      sessionRow("jisso", "u", "jisso-h", "live", "/home/u/.claude/projects/p/sess-prompt.jsonl"),
+    ],
+    (root) => [
+      { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, pid: 1111, status: "busy" },
+      // A prompt in a tab is never blocked; a background one is, with its cause.
+      {
+        sessionId: "sess-tab",
+        name: "dotskills-7b",
+        kind: "interactive",
+        cwd: root,
+        pid: 1112,
+        status: "waiting",
+        waitingFor: "permission prompt",
+      },
+      {
+        sessionId: "sess-prompt",
+        name: "jisso-h",
+        kind: "background",
+        cwd: root,
+        pid: 1113,
+        status: "waiting",
+        waitingFor: "permission prompt",
+      },
+      {
+        sessionId: "sess-hosa2",
+        name: "dotskills-hosa-3c4d",
+        kind: "background",
+        cwd: root,
+        pid: 1114,
+        status: "idle",
+      },
+    ],
+  );
+  const spawnerDir = path.join(f.root, ".tanto", "spawner");
+  fs.mkdirSync(spawnerDir, { recursive: true });
+  fs.writeFileSync(path.join(spawnerDir, "heartbeat"), `${Date.now()}\n`);
+  const seats = [
+    { sessionId: "sess-kanri", role: "kanri", status: "running" },
+    {
+      sessionId: "sess-sekkei",
+      role: "sekkei",
+      topic: "t",
+      status: "parked",
+      contract: 2,
+      midTurn: true,
+      waiting: true,
+    },
+    { sessionId: "sess-keikaku", role: "keikaku", topic: "t", status: "parked", contract: 2 },
+    { sessionId: "sess-hosa", role: "hosa", status: "stopped", endedBy: "taiseki" },
+    { sessionId: "sess-done", role: "jisso", topic: "t", status: "removed" },
+    { sessionId: "sess-gone", role: "jisso", topic: "t", status: "gone" },
+    {
+      sessionId: "sess-kikaku",
+      name: "dotskills-kikaku-1a2b",
+      role: "kikaku",
+      topic: "—",
+      status: "parked",
+      contract: 2,
+      requestId: "req-kikaku",
+    },
+    {
+      sessionId: "sess-hosa2",
+      name: "dotskills-hosa-3c4d",
+      role: "hosa",
+      topic: "—",
+      status: "running",
+      contract: 2,
+      requestId: "req-hosa",
+    },
+    // An earlier run's seats no row holds: collected, or ended.
+    { sessionId: "sess-old", name: "dotskills-kanri-9f9f", role: "kanri", status: "gone" },
+    { sessionId: "sess-left", name: "dotskills-kikaku-7c7c", role: "kikaku", status: "stopped", endedBy: "taiseki" },
+  ];
+  fs.writeFileSync(path.join(spawnerDir, "seats.json"), JSON.stringify({ seats }));
+  const result = census(f, "");
+  assert.strictEqual(result.code, 0, result.err);
+  assert.strictEqual(
+    result.out,
+    [
+      "spawner: beating",
+      "",
+      "## Listed",
+      "",
+      "kanri — kanri-a [aaaaaa] — sess-kanri — listed as kanri-a (background)",
+      "kaiseki t kaiseki-g — sess-tab — listed as dotskills-7b (interactive) — renamed",
+      "jisso u jisso-h — sess-prompt — listed as jisso-h (background) — blocked (permission prompt)",
+      "",
+      "## Parked",
+      "",
+      "sekkei t sekkei-b — sess-sekkei — mid-turn — waiting",
+      "keikaku t keikaku-c — sess-keikaku",
+      "",
+      "## Ended",
+      "",
+      "hosa — hosa-d — sess-hosa — stopped by taiseki",
+      "jisso t jisso-e — sess-done — removed",
+      "",
+      "## Not listed",
+      "",
+      "jisso t jisso-f — sess-gone",
+      "",
+      "## No session id",
+      "",
+      "none",
+      "",
+      "## Not held",
+      "",
+      "dotskills-hosa-3c4d (background) — sess-hosa2 — spawned as hosa —, result req-hosa",
+      "dotskills-kikaku-1a2b (not listed) — sess-kikaku — spawned as kikaku —, result req-kikaku",
+      "",
+    ].join("\n"),
   );
 });
 
@@ -1125,7 +1276,15 @@ test("census matches a row whose Transcript cell is the bare session id: a block
     ],
     (root) => [
       { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, pid: 1111 },
-      { sessionId: "sess-jisso", name: "jisso-h", kind: "background", cwd: root, pid: 1112, state: "blocked" },
+      {
+        sessionId: "sess-jisso",
+        name: "jisso-h",
+        kind: "background",
+        cwd: root,
+        pid: 1112,
+        status: "waiting",
+        waitingFor: "permission prompt",
+      },
       { sessionId: "sess-shoki", name: "shoki-i", kind: "background", cwd: root, state: "blocked" },
     ],
   );
@@ -1139,7 +1298,7 @@ test("census matches a row whose Transcript cell is the bare session id: a block
   assert.strictEqual(result.code, 0, result.err);
   assert.ok(
     result.out.includes(
-      "jisso t jisso-h — sess-jisso — listed as jisso-h (background) — blocked — no first turn since 2026-10-04 10:02\n",
+      "jisso t jisso-h — sess-jisso — listed as jisso-h (background) — blocked (permission prompt) — no first turn since 2026-10-04 10:02\n",
     ),
     result.out,
   );
@@ -1150,4 +1309,314 @@ test("census matches a row whose Transcript cell is the bare session id: a block
     result.out,
   );
   assert.ok(result.out.includes("\n## No session id\n\nnone\n"), result.out);
+});
+
+// `request`, `seat`, `wake`, and `beat`: a root with the spawner's directory,
+// its state file, and its heartbeat — fresh, or ten minutes old — and the
+// census's fake `claude` for the listing.
+function spawnerFixture(seatsOf, sessionsOf, beating = true) {
+  const f = censusFixture([KANRI_ROW], sessionsOf);
+  const dir = path.join(f.root, ".tanto", "spawner");
+  fs.mkdirSync(path.join(dir, "requests"), { recursive: true });
+  fs.mkdirSync(path.join(dir, "results"), { recursive: true });
+  fs.writeFileSync(path.join(dir, "seats.json"), JSON.stringify({ seats: seatsOf(f) }));
+  fs.writeFileSync(path.join(dir, "heartbeat"), `${Date.now() - (beating ? 0 : 600000)}\n`);
+  return { ...f, spawner: dir };
+}
+
+function fakeEnv(f) {
+  return { ...process.env, TANTO_CLAUDE_NODE: f.fake, FAKE_LISTING: f.listing, FAKE_ARGS: f.args, FAKE_MODE: "" };
+}
+
+function sub(f, args, env = {}) {
+  const result = spawnSync(process.execPath, [SCRIPT, ...args], {
+    encoding: "utf8",
+    cwd: f.root,
+    env: { ...fakeEnv(f), ...env },
+  });
+  return { code: result.status, out: (result.stdout || "").replace(/\r\n/g, "\n"), err: result.stderr || "" };
+}
+
+/** The request files `wake` or `request` wrote, in the order the spawner takes them. */
+function requestsOf(f) {
+  const dir = path.join(f.spawner, "requests");
+  return fs
+    .readdirSync(dir)
+    .filter((name) => name.endsWith(".json"))
+    .sort()
+    .map((name) => JSON.parse(fs.readFileSync(path.join(dir, name), "utf8")));
+}
+
+/**
+ * A transcript of one turn: ended — an `end_turn` message its Stop hook's
+ * record settles — or open on a tool call; with `tail`, records after it.
+ */
+function transcriptOf(dir, sessionId, ended, tail = []) {
+  const reply = ended
+    ? { id: "msg-1", model: "claude-test", stop_reason: "end_turn", content: [{ type: "text", text: "done" }] }
+    : { id: "msg-1", model: "claude-test", stop_reason: "tool_use", content: [{ type: "tool_use", id: "t-1" }] };
+  const records = [
+    { type: "user", uuid: "u-1", message: { role: "user", content: "go" } },
+    { type: "assistant", uuid: "a-1", message: reply },
+    ...(ended ? [{ type: "system", subtype: "stop_hook_summary", uuid: "s-1" }] : []),
+    ...tail,
+  ];
+  return write(dir, `${sessionId}.jsonl`, `${records.map((r) => JSON.stringify(r)).join("\n")}\n`);
+}
+
+test("request park and request leave write the seat's own request, after its transcript's last uuid (spec 2.2, 5.2)", () => {
+  const f = spawnerFixture(
+    () => [],
+    () => [],
+  );
+  // The last record carries no uuid; the one before it does.
+  const t = transcriptOf(f.dir, "sess-park", true, [{ type: "file-history-snapshot", messageId: "m-1" }]);
+  assert.strictEqual(sub(f, ["request", "park", "--transcript", t, "--waiting", "--notice"]).code, 0);
+  assert.deepStrictEqual(requestsOf(f), [
+    { op: "park", sessionId: "sess-park", waiting: true, notice: true, after: "s-1" },
+  ]);
+  for (const name of fs.readdirSync(path.join(f.spawner, "requests"))) {
+    fs.rmSync(path.join(f.spawner, "requests", name));
+  }
+  const parked = sub(f, ["request", "park", "--transcript", t]);
+  assert.strictEqual(parked.code, 0, parked.err);
+  assert.match(parked.out, /^park requested: \S+\n$/);
+  const leave = sub(f, ["request", "leave", "--transcript", t]);
+  assert.strictEqual(leave.code, 0, leave.err);
+  assert.deepStrictEqual(requestsOf(f), [
+    { op: "park", sessionId: "sess-park", waiting: false, notice: false, after: "s-1" },
+    { op: "stop", sessionId: "sess-park", self: true, after: "s-1" },
+  ]);
+});
+
+test("request refuses --notice without --waiting, a flag on leave, and a root with no spawner, writing nothing", () => {
+  const f = spawnerFixture(
+    () => [],
+    () => [],
+  );
+  const t = transcriptOf(f.dir, "sess-park", true);
+  const refusals = [
+    [["park", "--transcript", t, "--notice"], /--notice goes with --waiting/],
+    [["leave", "--transcript", t, "--waiting"], /takes no --waiting and no --notice/],
+    [["sleep", "--transcript", t], /needs park or leave/],
+    [["park", "--transcript", t, "--root", f.dir], /no spawner requests directory/],
+  ];
+  for (const [args, said] of refusals) {
+    const got = sub(f, ["request", ...args]);
+    assert.strictEqual(got.code, 2, got.err);
+    assert.match(got.err, said);
+  }
+  assert.deepStrictEqual(requestsOf(f), []);
+});
+
+test("seat prints its five words and the spawner: line, by sessionId or by name, and no entry with the listing's kind (spec 1.5, 2.5)", () => {
+  const f = spawnerFixture(
+    (fx) => [
+      {
+        sessionId: "sess-a",
+        name: "dotskills-sekkei-t-1a2b",
+        role: "sekkei",
+        status: "parked",
+        transcript: transcriptOf(fx.dir, "sess-a", true),
+      },
+      {
+        sessionId: "sess-b",
+        name: "dotskills-keikaku-t-3c4d",
+        role: "keikaku",
+        status: "running",
+        transcript: transcriptOf(fx.dir, "sess-b", false),
+      },
+      // Stopped while a tab holds it: still listed, under the editor's name.
+      { sessionId: "sess-c", name: "dotskills-kikaku-5e6f", role: "kikaku", status: "stopped" },
+      { sessionId: "sess-d", name: "dotskills-denrei-7a8b", role: "denrei", status: "removed" },
+    ],
+    (root) => [
+      { sessionId: "sess-b", name: "dotskills-keikaku-t-3c4d", kind: "background", cwd: root, pid: 1112 },
+      { sessionId: "sess-c", name: "dotskills-7b", kind: "interactive", cwd: root, pid: 1113 },
+      { sessionId: "sess-bg", name: "dotskills-kanri-9e9e", kind: "background", cwd: root, pid: 1114 },
+      { sessionId: "sess-tab", name: "dotskills-3f", kind: "interactive", cwd: root, pid: 1115 },
+    ],
+  );
+  const lines = (who) => sub(f, ["seat", who, "--root", f.root]).out;
+  assert.strictEqual(lines("sess-a"), "parked dotskills-sekkei-t-1a2b - sekkei ended\nspawner: beating\n");
+  assert.strictEqual(lines("sess-b"), "running dotskills-keikaku-t-3c4d background keikaku open\nspawner: beating\n");
+  assert.strictEqual(lines("sess-c"), "stopped dotskills-7b interactive kikaku -\nspawner: beating\n");
+  assert.strictEqual(lines("dotskills-denrei-7a8b"), "removed dotskills-denrei-7a8b - denrei -\nspawner: beating\n");
+  assert.strictEqual(lines("sess-bg"), "no entry background\nspawner: beating\n");
+  assert.strictEqual(lines("sess-tab"), "no entry interactive\nspawner: beating\n");
+  assert.strictEqual(lines("sess-none"), "no entry -\nspawner: beating\n");
+});
+
+test("seat exits 1 with `seat: the listing failed` and no entry line when the listing fails, for a held seat or not", () => {
+  const f = spawnerFixture(
+    () => [{ sessionId: "sess-a", name: "dotskills-sekkei-t-1a2b", role: "sekkei", status: "parked" }],
+    () => [],
+  );
+  for (const mode of ["fail", "garbage"]) {
+    for (const who of ["sess-a", "sess-none"]) {
+      const got = sub(f, ["seat", who, "--root", f.root], { FAKE_MODE: mode });
+      assert.strictEqual(got.code, 1, `${mode} ${who}: ${got.err}`);
+      assert.strictEqual(got.out, "", `${mode} ${who}`);
+    }
+  }
+  const failed = sub(f, ["seat", "sess-none", "--root", f.root], { FAKE_MODE: "fail" });
+  assert.strictEqual(failed.err, "boundary.js: seat: the listing failed — listing broke\n");
+  const garbage = sub(f, ["seat", "sess-none", "--root", f.root], { FAKE_MODE: "garbage" });
+  assert.strictEqual(garbage.err, "boundary.js: seat: the listing failed — claude agents --json printed no JSON\n");
+  // A listing that works still answers, so the exit 1 above is the listing's alone.
+  assert.deepStrictEqual(sub(f, ["seat", "sess-none", "--root", f.root]), {
+    code: 0,
+    out: "no entry -\nspawner: beating\n",
+    err: "",
+  });
+});
+
+test("beat prints the spawner: line and exits 1 when the heartbeat is stale or absent (spec 2.5)", () => {
+  const live = spawnerFixture(
+    () => [],
+    () => [],
+  );
+  assert.deepStrictEqual(sub(live, ["beat", "--root", live.root]), {
+    code: 0,
+    out: "spawner: beating\n",
+    err: "",
+  });
+  const stale = spawnerFixture(
+    () => [],
+    () => [],
+    false,
+  );
+  assert.strictEqual(sub(stale, ["beat", "--root", stale.root]).out, "spawner: stale\n");
+  assert.strictEqual(sub(stale, ["beat", "--root", stale.root]).code, 1);
+  fs.rmSync(path.join(stale.spawner, "heartbeat"));
+  assert.strictEqual(sub(stale, ["beat", "--root", stale.root]).out, "spawner: stale\n");
+});
+
+/**
+ * `wake`, run beside a fake spawner that answers each request it finds with
+ * `answer(request)` merged into it, as the spawner writes a result.
+ */
+async function wakeBeside(f, args, answer, env = {}) {
+  const child = spawn(process.execPath, [SCRIPT, "wake", "--root", f.root, ...args], {
+    cwd: f.root,
+    env: { ...fakeEnv(f), TANTO_WAKE_WAIT_MS: "10000", ...env },
+  });
+  let out = "";
+  child.stdout.on("data", (chunk) => {
+    out += chunk;
+  });
+  let code = null;
+  child.on("close", (status) => {
+    code = status;
+  });
+  const seen = [];
+  while (code === null) {
+    const dir = path.join(f.spawner, "requests");
+    const names = fs.readdirSync(dir).filter((n) => n.endsWith(".json"));
+    for (const name of names.sort()) {
+      const request = JSON.parse(fs.readFileSync(path.join(dir, name), "utf8"));
+      fs.rmSync(path.join(dir, name));
+      seen.push(request);
+      const result = path.join(f.spawner, "results", name);
+      fs.writeFileSync(`${result}.tmp`, JSON.stringify({ ...request, ...answer(request) }));
+      fs.renameSync(`${result}.tmp`, result);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  return { code, out: out.replace(/\r\n/g, "\n"), seen };
+}
+
+test("wake resumes several seats with no prompt in one call, and prints each seat's line or its error (spec 2.5)", async () => {
+  const f = spawnerFixture(
+    (fx) => [
+      {
+        sessionId: "sess-a",
+        name: "dotskills-sekkei-t-1a2b",
+        role: "sekkei",
+        status: "parked",
+        transcript: transcriptOf(fx.dir, "sess-a", true),
+      },
+      { sessionId: "sess-b", name: "dotskills-keikaku-t-3c4d", role: "keikaku", status: "parked" },
+    ],
+    (root) => [{ sessionId: "sess-a", name: "dotskills-sekkei-t-1a2b", kind: "background", cwd: root, pid: 1112 }],
+  );
+  const seatsFile = path.join(f.spawner, "seats.json");
+  const woken = await wakeBeside(f, ["sess-a", "sess-b"], (request) => {
+    if (request.sessionId === "sess-b") return { error: "listed", name: "dotskills-4d", kind: "interactive" };
+    const doc = JSON.parse(fs.readFileSync(seatsFile, "utf8"));
+    doc.seats[0].status = "running";
+    fs.writeFileSync(seatsFile, JSON.stringify(doc));
+    return { id: "1a2b", name: "dotskills-sekkei-t-1a2b" };
+  });
+  assert.deepStrictEqual(woken.seen, [
+    { op: "resume", sessionId: "sess-a" },
+    { op: "resume", sessionId: "sess-b" },
+  ]);
+  assert.strictEqual(
+    woken.out,
+    [
+      "spawner: beating",
+      "running dotskills-sekkei-t-1a2b background sekkei ended",
+      "error: listed — sess-b dotskills-4d",
+      "",
+    ].join("\n"),
+  );
+  assert.strictEqual(woken.code, 1);
+});
+
+test("wake --hold writes each seat's hold, with forMs and no pid, before its resume (spec 2.4)", async () => {
+  const f = spawnerFixture(
+    () => [{ sessionId: "sess-a", name: "dotskills-hosa-1a2b", role: "hosa", status: "parked" }],
+    () => [],
+  );
+  const woken = await wakeBeside(f, ["--hold", "sess-a"], () => ({}));
+  assert.deepStrictEqual(woken.seen, [
+    { op: "hold", sessionId: "sess-a", forMs: 3300000 },
+    { op: "resume", sessionId: "sess-a" },
+  ]);
+  assert.strictEqual(woken.out, "spawner: beating\nparked dotskills-hosa-1a2b - hosa -\n");
+  assert.strictEqual(woken.code, 0);
+});
+
+test("wake --hold exits 1 and says `hold:` on the seat's line when only its hold failed (spec 2.4, 2.5)", async () => {
+  const f = spawnerFixture(
+    () => [{ sessionId: "sess-a", name: "dotskills-hosa-1a2b", role: "hosa", status: "parked" }],
+    () => [],
+  );
+  const woken = await wakeBeside(f, ["--hold", "sess-a"], (request) =>
+    request.op === "hold" ? { error: "no such seat" } : {},
+  );
+  assert.strictEqual(woken.out, "spawner: beating\nparked dotskills-hosa-1a2b - hosa - — hold: no such seat\n");
+  assert.strictEqual(woken.code, 1);
+});
+
+test("wake prints `listing:` and exits 1 when the listing fails, after each seat's line", async () => {
+  const f = spawnerFixture(
+    () => [{ sessionId: "sess-a", name: "dotskills-hosa-1a2b", role: "hosa", status: "parked" }],
+    () => [],
+  );
+  const woken = await wakeBeside(f, ["sess-a"], () => ({}), { FAKE_MODE: "fail" });
+  assert.strictEqual(woken.out, "spawner: beating\nparked dotskills-hosa-1a2b - hosa -\nlisting: listing broke\n");
+  assert.strictEqual(woken.code, 1);
+});
+
+test("wake writes nothing on a stale spawner, and names a seat whose result never came", () => {
+  const stale = spawnerFixture(
+    () => [],
+    () => [],
+    false,
+  );
+  assert.deepStrictEqual(sub(stale, ["wake", "sess-a", "--root", stale.root]), {
+    code: 1,
+    out: "spawner: stale\n",
+    err: "",
+  });
+  assert.deepStrictEqual(requestsOf(stale), []);
+  const quiet = spawnerFixture(
+    () => [],
+    () => [],
+  );
+  const got = sub(quiet, ["wake", "sess-a", "--root", quiet.root], { TANTO_WAKE_WAIT_MS: "300" });
+  assert.strictEqual(got.out, "spawner: beating\nerror: no result — sess-a\n");
+  assert.strictEqual(got.code, 1);
 });

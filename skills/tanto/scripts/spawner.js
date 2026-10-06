@@ -26,10 +26,12 @@ const FIRST_TURN_WAIT_MS = 120000;
 const HEARTBEAT_STALE_MS = 60000;
 
 // The ops, in the order `templates/spawn-request.md` documents them.
-const OPS = ["spawn", "stop", "rm", "resume", "attention", "ack"];
+const OPS = ["spawn", "stop", "rm", "resume", "attention", "ack", "park", "hold", "release"];
 
-// The seat statuses `seats.json` carries. They are not the roster's words:
-// the roster gains `stopped` alone, and Kanri writes it.
+// The statuses a census pass checks against the listing's entry (spec 2.7):
+// a `parked` seat the listing shows again is `relist`ed into them first,
+// and a `gone` one `revive`d. They are not the roster's words: a `parked`
+// seat's row stays `live`, and Kanri writes `stopped`.
 const LIVE = ["running", "blocked"];
 
 // No caller in this file reads `positionals` — unlike `tanto.js`'s own copy
@@ -83,6 +85,31 @@ function writeJsonAtomic(file, value) {
   fs.renameSync(temp, file);
 }
 
+/**
+ * `seats.json` holds one array, `seats`. A seat carries what its spawn knew
+ * — `sessionId`, `id`, `name`, `role`, `topic`, `model`, `effort`, `mode`,
+ * `worktree`, `cwd`, `startedAt`, `startedAtMs`, `transcript` — the marks
+ * earlier rules set — `renamed`, `goneAt`, `noFirstTurn`, `strayed`,
+ * `undelivered` — and these (spec 2.8, section 6):
+ *
+ * - `status`, one of six: `running` (listed with a pid, in the background or
+ *   in a tab), `blocked` (listed in the background on a prompt), `parked` (a
+ *   contract-2 dialogue seat not listed), `gone` (any other seat not
+ *   listed), `stopped`, and `removed`.
+ * - `contract` — the `spawn` request's mark, `2` under this contract (spec
+ *   1.1): the park, the hold, and the census's `parked` touch a seat that
+ *   carries it. `requestId` — the request file that spawned it. `once` — a
+ *   seat stopped and removed once its turn has ended (spec 4.4).
+ * - `kind` — the listing's, `background` or `interactive`, at the last
+ *   census pass; `waitingFor` — a `blocked` seat's cause (spec 2.6).
+ * - `parkRequest`, `lastPark`, `waiting`, `midTurn` — the park (spec 2.3,
+ *   2.7); `held` — the hold (spec 2.4); `leaveRequest` — a `self` stop
+ *   waiting for its turn's end, and `endedBy: "taiseki"` once it is done
+ *   (spec 5.2).
+ * - `parkedAtMs`, `stoppedAtMs`, `listedAtMs` — epoch milliseconds, as
+ *   `startedAtMs` is, and never compared with the minute-resolution
+ *   `stamp()` strings the file also carries.
+ */
 function readSeats(root) {
   const doc = readJson(path.join(spawnerDir(root), "seats.json"));
   return Array.isArray(doc?.seats) ? doc.seats : [];
@@ -256,10 +283,98 @@ function transcriptOf(root, sessionId) {
   return null;
 }
 
-function noticeText(seat, message) {
-  if (message) return message;
-  const where = seat.id ? ` — claude attach ${seat.id}` : "";
-  return `blocked: ${seat.role} ${seat.topic} ${seat.name}${where}`;
+// A final message is settled once a closing `system` record follows it, or
+// once the transcript has not been written for this long (spec 2.8): a turn
+// taken in a tab writes no `turn_duration`, and a session with no Stop hook
+// writes no `stop_hook_summary` either.
+const TURN_SETTLED_MS = 10000;
+
+/** The `system` records the harness writes after a turn's final message (S-2, P-1b). */
+const CLOSING_SUBTYPES = ["turn_duration", "stop_hook_summary"];
+
+/**
+ * "The turn ended" (spec 2.8), read over messages and not records: the
+ * transcript's `user` and `assistant` records that are not `isSidechain` and
+ * come after the record whose `uuid` is `after` — all of them with no
+ * `after` — with consecutive `assistant` records of one `message.id` taken
+ * as one message, since a final message is often a thinking record and a
+ * text record that both carry `stop_reason: end_turn`. Returns null when
+ * the transcript cannot be read or does not hold `after`, which no caller
+ * takes for an end; otherwise:
+ *
+ * - `ended` — the last message is an `end_turn` assistant that is settled,
+ *   or the harness's own `<synthetic>` record, which closes a turn left
+ *   open when a session is woken;
+ * - `newTurn` — a message follows an ended one: a `user` record, or an
+ *   assistant message that is not synthetic;
+ * - `midTurn` — the last message is anything but an `end_turn` assistant: a
+ *   `tool_use`, a `user` record, the synthetic record, any other
+ *   `stop_reason`.
+ *
+ * The park, a `self` stop, a `once` seat, and `boundary.js seat` read
+ * `ended`; the park reads `newTurn`; the census's `parked` reads `midTurn`.
+ */
+function turnEnded(transcript, after) {
+  let text;
+  let writtenMs;
+  try {
+    text = fs.readFileSync(transcript, "utf8");
+    writtenMs = fs.statSync(transcript).mtimeMs;
+  } catch {
+    return null;
+  }
+  const records = [];
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    try {
+      records.push(JSON.parse(line));
+    } catch {
+      // A line the harness is still writing; the next pass reads it whole.
+    }
+  }
+  let start = 0;
+  if (after) {
+    const at = records.findIndex((record) => record?.uuid === after);
+    if (at === -1) return null;
+    start = at + 1;
+  }
+  const messages = [];
+  let closedAt = -1;
+  for (let i = start; i < records.length; i++) {
+    const record = records[i];
+    if (record?.type === "system" && CLOSING_SUBTYPES.includes(record.subtype)) closedAt = i;
+    if ((record?.type !== "user" && record?.type !== "assistant") || record.isSidechain) continue;
+    const id = record.message?.id;
+    const last = messages[messages.length - 1];
+    if (record.type === "assistant" && last?.type === "assistant" && id && last.id === id) {
+      last.stopReason = record.message?.stop_reason;
+      last.at = i;
+      continue;
+    }
+    messages.push({
+      type: record.type,
+      id,
+      stopReason: record.message?.stop_reason,
+      synthetic: record.type === "assistant" && record.message?.model === "<synthetic>",
+      at: i,
+    });
+  }
+  const isEnd = (m) => m.type === "assistant" && !m.synthetic && m.stopReason === "end_turn";
+  const closes = (m) => isEnd(m) || m.synthetic;
+  const newTurn = messages.some((m, i) => i > 0 && closes(messages[i - 1]) && !m.synthetic);
+  const last = messages[messages.length - 1];
+  if (!last) return { ended: false, newTurn, midTurn: false };
+  const settled = closedAt > last.at || nowMs() - writtenMs >= TURN_SETTLED_MS;
+  return { ended: (isEnd(last) && settled) || last.synthetic, newTurn, midTurn: !isEnd(last) };
+}
+
+/**
+ * The census's notice for a seat on a prompt (spec 2.6): its cause, as the
+ * listing gives it, and the launcher's way in, by role — a seat's id
+ * changes at every handover, and its role does not (I-11).
+ */
+function noticeText(seat) {
+  return `blocked: ${seat.role} ${seat.topic} ${seat.name} — ${seat.waitingFor} — ${enterCommand(seat)}`;
 }
 
 /**
@@ -329,7 +444,7 @@ function randomHex() {
 }
 
 /**
- * A terminal seat's name, `<repo>-<role>[-<topic>]-<hex>` (spec 1.1): the
+ * A seat's name, `<repo>-<role>[-<topic>]-<hex>` (spec 1.1): the
  * root's basename, the request's role, its topic unless absent or `—`, and
  * four hexadecimal digits, drawn again while a seat in `seats.json` carries
  * the whole name. The CLI registers it as the user's own, which no
@@ -471,7 +586,150 @@ function findResumed(root, sessionId) {
   return null;
 }
 
-function opSpawn(root, request, seats) {
+// Within this long of a park or a stop, a listed entry is the process still
+// leaving (spec 2.5, S-5), not a seat that is alive.
+const STOP_SETTLE_MS = 30000;
+
+/**
+ * Poll the listing once a second, up to thirty times, until `sessionId` has
+ * left it (spec 2.5): a resume issued while a stop is finishing starts a
+ * copy (S-5). Returns whether it left.
+ */
+function waitUnlisted(root, sessionId) {
+  for (let attempt = 0; attempt < SPAWN_POLL_TRIES; attempt++) {
+    const { entry, error } = listedEntry(root, sessionId);
+    if (!error && !entry) return true;
+    pause(root, SPAWN_POLL_MS);
+  }
+  return false;
+}
+
+/**
+ * The copy a resume started instead of waking the seat (spec 2.5, P-8), or
+ * null: the id after `started a copy as` on either stream — the CLI writes
+ * its note to stderr — or stdout's `backgrounded · <id>` when that id is
+ * neither the seat's short id nor the head of its `sessionId`.
+ */
+function copyOf(got, sessionId, seat) {
+  const noted = /started a copy as ([A-Za-z0-9][\w-]*)/.exec(`${got.err}\n${got.out}`);
+  if (noted) return noted[1];
+  const printed = shortIdOf(got.out);
+  if (!printed || printed === seat?.id || sessionId.startsWith(printed)) return null;
+  return printed;
+}
+
+/**
+ * `resume` (spec 2.5). A parked seat is woken, never handed a line: a
+ * prompt is taken for a Kanri alone (S-3), as the command's one positional
+ * and still no flag (decision-7c87). Before the command, on a fresh
+ * listing, a seat a tab holds or one alive in the background is `listed`,
+ * since a resume would start a copy that holds its whole conversation and
+ * acts on its prompt (M-6, P-8); a seat whose park or stop is under thirty
+ * seconds old is waited out. After it, a copy is stopped and removed — a
+ * copy that cannot be removed is an error that says so — and a prompt the
+ * CLI did not take is an error, the session it resumed stopped first. The CLI names the options it
+ * brought back on stderr, which a result does not carry, so the log keeps
+ * it.
+ */
+function opResume(root, request, seat) {
+  if (request.prompt && (seat?.role || request.role) !== "kanri") return { error: "no prompt for this role" };
+  if (seat?.status === "removed") return { error: "removed" };
+  const { entry, error } = listedEntry(root, request.sessionId);
+  if (error) return { error: `claude agents: ${error}` };
+  if (entry) {
+    const listed = { error: "listed", name: entry.name, kind: entry.kind };
+    if (entry.kind === "interactive") return listed;
+    const endedAtMs = Math.max(seat?.parkedAtMs || 0, seat?.stoppedAtMs || 0);
+    if (nowMs() - endedAtMs >= STOP_SETTLE_MS) return listed;
+    if (!waitUnlisted(root, request.sessionId)) return { error: "still listed" };
+  }
+  const got = runClaude(["--resume", request.sessionId, "--bg", ...(request.prompt ? [request.prompt] : [])]);
+  if (got.code !== 0) return { error: `claude --resume: ${failureText(got)}` };
+  const copy = copyOf(got, request.sessionId, seat);
+  if (copy) {
+    runClaude(["stop", copy]);
+    const removed = runClaude(["rm", copy]);
+    if (removed.code !== 0 && !alreadyExited(removed)) {
+      appendLog(root, `resume ${request.sessionId}: copy ${copy} not removed — ${failureText(removed)}`);
+      return { error: `copy ${copy} not removed: ${failureText(removed)}` };
+    }
+    appendLog(root, `resume ${request.sessionId}: copy ${copy} removed`);
+    return { error: `copy ${copy} removed` };
+  }
+  if (request.prompt && idleLine(got.out)) {
+    runWithEitherId("stop", seat, request.sessionId);
+    return { error: "prompt not delivered" };
+  }
+  if (got.err.trim()) appendLog(root, `resume ${request.sessionId}: ${got.err.trim()}`);
+  const session = findResumed(root, request.sessionId);
+  if (seat && session) {
+    seat.name = session.name;
+    seat.id = session.id || shortIdOf(got.out) || seat.id;
+    seat.status = "running";
+    delete seat.goneAt;
+    delete seat.parkedAtMs;
+    delete seat.midTurn;
+  }
+  return {
+    sessionId: request.sessionId,
+    name: session ? session.name : undefined,
+    id: seat ? seat.id : shortIdOf(got.out),
+  };
+}
+
+// The roles whose turns can end on a question to the human (spec, Words).
+const DIALOGUE_ROLES = ["sekkei", "keikaku", "kikaku", "hosa", "kaiseki"];
+
+// The roles a marked spawn gives one holder at a time (spec 1.2).
+const ONE_HOLDER_ROLES = ["kanri", "kikaku", "hosa"];
+
+/**
+ * Whether the state file holds a seat (spec, Words): `running`, `blocked`,
+ * or `parked` — or `gone`, for a seat that is not a dialogue seat, which a
+ * resume brings back.
+ */
+function holds(seat) {
+  if (["running", "blocked", "parked"].includes(seat.status)) return true;
+  return seat.status === "gone" && !DIALOGUE_ROLES.includes(seat.role);
+}
+
+// A `once` seat is stopped and removed this long after its spawn, whatever
+// its turn did (spec 4.4).
+const ONCE_WAIT_MS = 300000;
+
+/**
+ * The census's end of a `once` seat (spec 4.4) — a messenger, which
+ * forwards one line and has nothing more to do: stopped and removed when its
+ * turn has ended (spec 2.8), or five minutes after its spawn in any case. A
+ * removal that fails is logged and tried again at the next pass.
+ */
+function endOnceSeats(root, seats) {
+  for (const seat of seats) {
+    if (!seat.once || seat.status === "removed") continue;
+    const transcript = seat.transcript || findTranscript(seat.sessionId);
+    const ended = Boolean(transcript && turnEnded(transcript)?.ended);
+    const late = typeof seat.startedAtMs === "number" && nowMs() - seat.startedAtMs >= ONCE_WAIT_MS;
+    if (!ended && !late) continue;
+    runWithEitherId("stop", seat, seat.sessionId);
+    const got = runWithEitherId("rm", seat, seat.sessionId);
+    if (got.code !== 0 && !alreadyExited(got)) {
+      appendLog(root, `once: ${seat.sessionId} rm failed — ${failureText(got)}`);
+      continue;
+    }
+    seat.status = "removed";
+    appendLog(root, `once: ${seat.sessionId} removed — ${ended ? "its turn ended" : "five minutes after its spawn"}`);
+  }
+}
+
+function opSpawn(root, request, seats, requestId) {
+  // One holder per role (spec 1.2): a marked request for a role the state
+  // file holds a seat of is refused, unless it names that seat as the one it
+  // succeeds — a Kanri's handover. An unmarked request is never refused: a
+  // Kanri that read the old text hands over with no `succeeds`.
+  if (request.contract === 2 && ONE_HOLDER_ROLES.includes(request.role)) {
+    const holder = seats.find((s) => s.role === request.role && holds(s) && s.sessionId !== request.succeeds);
+    if (holder) return { error: `held: ${holder.sessionId}` };
+  }
   // A worktree seat runs with the directory Kanri cut as its cwd (spec 2.2),
   // never with `-w`: an ordinary session, so the harness's worktree isolation
   // does not apply to it. A directory that is not there is an error before
@@ -490,8 +748,7 @@ function opSpawn(root, request, seats) {
   const got = runClaude(spawnArgs(request, name), cwd);
   if (got.code !== 0) return { error: `claude --bg exited ${got.code}: ${failureText(got)}` };
   // The idle note on a spawn is a prompt that never reached the seat (spec
-  // 1.2). On a resume it is the CLI's normal line, and the resume op does not
-  // read it.
+  // 1.2); a resume reads it only when it carried a prompt (`opResume`).
   const undelivered = idleLine(got.out);
   const session = findNew(root, before);
   if (!session && undelivered) return { error: `prompt not delivered: ${undelivered}` };
@@ -527,8 +784,16 @@ function opSpawn(root, request, seats) {
     startedAtMs,
     status: stray ? "stopped" : "running",
     ...(stray ? { strayed: session.cwd } : {}),
+    // The request's mark (spec 1.1), the request file it came in, and a
+    // messenger's `once` (spec 4.4).
+    ...(request.contract !== undefined ? { contract: request.contract } : {}),
+    ...(requestId ? { requestId } : {}),
+    ...(request.once === true ? { once: true } : {}),
   };
   seats.push(seat);
+  // On disk at once, before the transcript poll below (spec 1.5): a seat
+  // whose first act is `boundary.js seat` finds its own entry.
+  writeSeats(root, seats);
   if (undelivered) return removeUndelivered(root, seat, undelivered);
   if (stray) {
     runClaude(["stop", id || session.sessionId]);
@@ -574,19 +839,140 @@ function runWithEitherId(verb, seat, sessionId) {
   return first;
 }
 
-function handleRequest(root, request, seats) {
+// A request a seat leaves standing — a `self` stop here, a park (spec 2.3)
+// — is dropped this long after it was written, or after its turn ended,
+// with a log line.
+const STANDING_WAIT_MS = 600000;
+
+/**
+ * Whether the human paces this seat (spec 5.2): a Kikaku, a Hosa, or a
+ * Kaiseki whose topic is `—`. Only such a seat ends by its own `taiseki`,
+ * whatever a role's text let through.
+ */
+function pacedByHuman(seat) {
+  if (seat?.role === "kikaku" || seat?.role === "hosa") return true;
+  return seat?.role === "kaiseki" && (!seat.topic || seat.topic === "—");
+}
+
+/** A seat ended (spec 2.8): `stopped`, the moment in epoch milliseconds, and who ended it. */
+function markStopped(seat, endedBy) {
+  seat.status = "stopped";
+  seat.stoppedAtMs = nowMs();
+  if (endedBy) seat.endedBy = endedBy;
+  delete seat.leaveRequest;
+}
+
+/**
+ * The listing's entry for `sessionId` when it carries a pid (decision-ebbd),
+ * from `sessions` when a listing was already taken, else from a fresh one.
+ * Returns { entry } — `entry` null when the session is not listed — or
+ * { error } when the listing cannot be read.
+ */
+function listedEntry(root, sessionId, sessions = null) {
+  let listed = sessions;
+  if (!listed) {
+    const listing = listAgents(root);
+    if (listing.error) return { error: listing.error };
+    listed = listing.sessions;
+  }
+  return { entry: listed.find((s) => s.sessionId === sessionId && s.pid) || null };
+}
+
+/**
+ * `stop` (spec 2.8's table, 5.1): `claude stop` for a seat a fresh listing
+ * shows in the background, and no command otherwise — the CLI reports a
+ * seat a tab holds stopped and does not stop it (P-9), and a seat not listed
+ * has no process. Both are recorded `stopped` with a note. A listing that
+ * cannot be read leaves the command to decide, as before this rule; a seat
+ * already ended is answered with nothing done.
+ */
+function opStop(root, request, seat) {
+  if (seat?.status === "removed") return { stopped: stamp() };
+  if (seat?.status === "stopped") return { stopped: stamp(), note: "already exited" };
+  const { entry, error } = listedEntry(root, request.sessionId);
+  if (!error && (!entry || entry.kind === "interactive")) {
+    if (seat) markStopped(seat);
+    return { stopped: stamp(), note: entry ? "in a tab" : "already exited" };
+  }
+  const got = runWithEitherId("stop", seat, request.sessionId);
+  const exited = alreadyExited(got);
+  if (got.code !== 0 && !exited) return { error: `claude stop: ${failureText(got)}` };
+  if (seat) markStopped(seat);
+  return { stopped: stamp(), ...(exited ? { note: "already exited" } : {}) };
+}
+
+/**
+ * A seat's end by its own word (spec 5.2), tried when the request comes and
+ * at every pass after: at once for a seat a tab holds or that is not listed,
+ * which is what makes the word work the same from a terminal, a tab, and
+ * Remote Control, and for a seat in the background once its turn has ended
+ * since `after` (spec 2.8), so that its closing line is written. Ten minutes
+ * on, an unmet request is dropped, logged, and said to the human, so that
+ * the word never fails in silence. Returns the result once the seat ended,
+ * else null.
+ */
+function tryLeave(root, seat, sessions = null) {
+  const leave = seat.leaveRequest;
+  if (nowMs() - leave.atMs >= STANDING_WAIT_MS) {
+    delete seat.leaveRequest;
+    appendLog(root, `leave: ${seat.sessionId} dropped — its turn did not end`);
+    raiseNotice(`taiseki not done: ${seat.role} — tanto ${seat.role}`);
+    return null;
+  }
+  const { entry, error } = listedEntry(root, seat.sessionId, sessions);
+  if (error) return null;
+  let note = entry ? "in a tab" : "already exited";
+  if (entry && entry.kind !== "interactive") {
+    const transcript = seat.transcript || findTranscript(seat.sessionId);
+    if (!transcript || !turnEnded(transcript, leave.after)?.ended) return null;
+    const got = runWithEitherId("stop", seat, seat.sessionId);
+    if (got.code !== 0 && !alreadyExited(got)) {
+      appendLog(root, `leave: ${seat.sessionId} stop failed — ${failureText(got)}`);
+      return null;
+    }
+    note = alreadyExited(got) ? "already exited" : null;
+  }
+  markStopped(seat, "taiseki");
+  appendLog(root, `leave: ${seat.sessionId} stopped`);
+  return { stopped: stamp(), ...(note ? { note } : {}) };
+}
+
+/** `stop` with `self` and `after` (spec 5.2): a seat the human paces, ending itself. */
+function opLeave(root, request, seat) {
+  if (!pacedByHuman(seat)) return { error: "not a seat the human paces" };
+  if (seat.status === "removed") return { stopped: stamp() };
+  if (seat.status === "stopped") return { stopped: stamp(), note: "already exited" };
+  const atMs = nowMs();
+  seat.leaveRequest = { after: request.after, atMs };
+  return tryLeave(root, seat) || { leaveRequested: atMs };
+}
+
+/**
+ * Every `self` stop still waiting for its turn's end, tried again (spec
+ * 5.2): at a request pass, which takes a listing only when one waits, and at
+ * a census pass, on the listing it already took.
+ */
+function leavePass(root, seats, sessions = null) {
+  const waiting = seats.filter((seat) => seat.leaveRequest && seat.status !== "stopped" && seat.status !== "removed");
+  if (waiting.length === 0) return;
+  let listed = sessions;
+  if (!listed) {
+    const listing = listAgents(root);
+    if (listing.error) return;
+    listed = listing.sessions;
+  }
+  for (const seat of waiting) tryLeave(root, seat, listed);
+  writeSeats(root, seats);
+}
+
+function handleRequest(root, request, seats, requestId) {
   if (!OPS.includes(request.op)) return { error: `unknown op ${request.op}` };
   const seat = request.sessionId ? seatOf(seats, request.sessionId) : null;
 
-  if (request.op === "spawn") return opSpawn(root, request, seats);
+  if (request.op === "spawn") return opSpawn(root, request, seats, requestId);
 
-  if (request.op === "stop") {
-    const got = runWithEitherId("stop", seat, request.sessionId);
-    const exited = alreadyExited(got);
-    if (got.code !== 0 && !exited) return { error: `claude stop: ${failureText(got)}` };
-    if (seat) seat.status = "stopped";
-    return { stopped: stamp(), ...(exited ? { note: "already exited" } : {}) };
-  }
+  // A seat's own `taiseki` carries `self` and `after` (spec 5.2).
+  if (request.op === "stop") return request.self ? opLeave(root, request, seat) : opStop(root, request, seat);
 
   if (request.op === "rm") {
     const got = runWithEitherId("rm", seat, request.sessionId);
@@ -604,36 +990,250 @@ function handleRequest(root, request, seats) {
     };
   }
 
-  if (request.op === "resume") {
-    // No flag: the CLI brings back the options the spawn passed and names
-    // them on stderr, which a result does not carry, so the log keeps it.
-    const got = runClaude(["--resume", request.sessionId, "--bg"]);
-    if (got.code !== 0) return { error: `claude --resume: ${failureText(got)}` };
-    if (got.err.trim()) appendLog(root, `resume ${request.sessionId}: ${got.err.trim()}`);
-    const session = findResumed(root, request.sessionId);
-    if (seat && session) {
-      seat.name = session.name;
-      seat.id = session.id || shortIdOf(got.out) || seat.id;
-      seat.status = "running";
-      delete seat.goneAt;
-    }
-    return {
-      sessionId: request.sessionId,
-      name: session ? session.name : undefined,
-      id: seat ? seat.id : shortIdOf(got.out),
-    };
-  }
+  if (request.op === "resume") return opResume(root, request, seat);
 
   if (request.op === "attention") {
-    const text = String(request.message || "").replace("<id>", seat?.id || "<id>");
+    // As written: a message names `tanto <role> [<topic>]`, never an id (spec 1.1).
+    const text = String(request.message || "");
     const channel = raiseNotice(text);
     appendLog(root, `attention ${text}`);
     return { notified: stamp(), channel };
   }
 
+  if (request.op === "park") return opPark(request, seat);
+  if (request.op === "hold") return opHold(root, request, seat);
+  if (request.op === "release") {
+    if (!seat) return { error: `unknown seat ${request.sessionId}` };
+    // The mark alone (spec 2.4): a park the seat asked for while it was held
+    // proceeds at the next pass, and a seat that asked for none is left to
+    // its own next turn's end.
+    delete seat.held;
+    return { released: stamp() };
+  }
+
   // ack
   if (seat) delete seat.renamed;
   return { acked: stamp() };
+}
+
+// A seat parked at its own request and listed again with no new turn is
+// stopped again once it has been listed this long (spec 2.3): long enough
+// for a wake's `SendMessage` to begin a turn.
+const RELISTED_PARK_MS = 120000;
+
+/** Whether a seat is a contract-2 dialogue seat (spec 1.1, Words), the one kind the park and its census rules touch. */
+function isContractDialogue(seat) {
+  return seat?.contract === 2 && DIALOGUE_ROLES.includes(seat.role);
+}
+
+/** The launcher's way into a seat (spec 1.1): `tanto <role>`, with its topic when it has one. */
+function enterCommand(seat) {
+  const topic = seat.topic && seat.topic !== "—" ? ` ${seat.topic}` : "";
+  return `tanto ${seat.role}${topic}`;
+}
+
+/** Whether a process answers signal 0 — a launcher holds a seat while it does (spec 2.4). */
+function pidAlive(pid) {
+  try {
+    process.kill(Number(pid), 0);
+    return true;
+  } catch (error) {
+    return error?.code === "EPERM";
+  }
+}
+
+/**
+ * `park` (spec 2.2, 2.3): the request is recorded on the seat, replacing any
+ * earlier one, and answered at once; `tryParks` carries it out at the passes
+ * that follow.
+ */
+function opPark(request, seat) {
+  if (!isContractDialogue(seat)) return { error: "not a dialogue seat" };
+  if (seat.status === "stopped" || seat.status === "removed") return { error: "ended" };
+  const atMs = nowMs();
+  seat.parkRequest = { after: request.after, waiting: request.waiting === true, notice: request.notice === true, atMs };
+  return { parkRequested: atMs };
+}
+
+/**
+ * `hold` (spec 2.4): a launcher's mark, `pid` its own, written before an
+ * attach, which the listing does not show (H-1a); or Kanri's for a face with
+ * no launcher, `forMs` long. It wakes nothing — the attach does (P-4). A
+ * seat whose park is under thirty seconds old and still listed is waited out
+ * first, so that the attach does not meet a process that is leaving (S-5); a
+ * process that never leaves is `still listed`. The pid that already holds the
+ * seat may hold it again.
+ */
+function opHold(root, request, seat) {
+  if (!seat) return { error: `unknown seat ${request.sessionId}` };
+  if (seat.contract !== 2) return { error: "old-contract seat" };
+  if (seat.status === "stopped" || seat.status === "removed") return { error: "ended" };
+  if (!request.pid && !request.forMs) return { error: "a hold names a pid or forMs" };
+  if (seat.held?.pid && pidAlive(seat.held.pid) && seat.held.pid !== Number(request.pid)) {
+    return { error: "held by another terminal" };
+  }
+  const { entry, error } = listedEntry(root, seat.sessionId);
+  if (error) return { error: `claude agents: ${error}` };
+  if (entry?.kind === "interactive") return { error: "in a tab" };
+  if (entry && typeof seat.parkedAtMs === "number" && nowMs() - seat.parkedAtMs < STOP_SETTLE_MS) {
+    if (!waitUnlisted(root, seat.sessionId)) return { error: "still listed" };
+  }
+  const atMs = nowMs();
+  seat.held = request.pid ? { atMs, pid: Number(request.pid) } : { atMs, forMs: Number(request.forMs) };
+  return { held: atMs };
+}
+
+/** A park done (spec 2.3): `parked` now, its request kept as `lastPark` until a new turn begins. */
+function markParked(seat, park) {
+  seat.status = "parked";
+  seat.parkedAtMs = nowMs();
+  seat.lastPark = { after: park.after, waiting: park.waiting };
+  delete seat.kind;
+  delete seat.listedAtMs;
+}
+
+/**
+ * The park's stop (spec 2.3): the state file is written with the seat
+ * `parked` before `claude stop` runs, so that a sender who reads it
+ * meanwhile wakes the seat rather than sending into a process that is
+ * stopping. A stop that fails puts the seat back to `running`, and its
+ * `lastPark` is tried again by the standing request.
+ */
+function stopToPark(root, seats, seat, park) {
+  markParked(seat, park);
+  writeSeats(root, seats);
+  const got = runWithEitherId("stop", seat, seat.sessionId);
+  if (got.code !== 0 && !alreadyExited(got)) {
+    seat.status = "running";
+    delete seat.parkedAtMs;
+    appendLog(root, `park: ${seat.sessionId} stop failed — ${failureText(got)}`);
+    return;
+  }
+  appendLog(root, `park: ${seat.sessionId} stopped`);
+}
+
+/**
+ * One park request, tried (spec 2.3): decided by the transcript and a fresh
+ * listing, never by the seat's recorded status, which may be a pass behind.
+ * A new turn since `after` voids it; until the turn has ended nothing is
+ * done, and ten minutes after the request it is dropped. Once the turn has
+ * ended the seat's `waiting` is set from the request, once, with the notice
+ * when it goes from unset to set at a turn the human did not start. Then a
+ * seat not listed is `parked`; one a tab holds stays `running`, its request
+ * kept as `lastPark` for the standing request; one in the
+ * background is stopped once it is `idle` and not held, and ten minutes
+ * after its turn ended with no hold the request is dropped and the seat left
+ * alive. A condition that cannot be read parks nothing.
+ */
+function tryPark(root, seats, seat, fresh) {
+  const park = seat.parkRequest;
+  const now = nowMs();
+  const transcript = seat.transcript || findTranscript(seat.sessionId);
+  const turn = transcript ? turnEnded(transcript, park.after) : null;
+  if (turn?.newTurn) {
+    delete seat.parkRequest;
+    appendLog(root, `park: ${seat.sessionId} void — a new turn began`);
+    return;
+  }
+  if (!turn?.ended) {
+    if (now - park.atMs >= STANDING_WAIT_MS) {
+      delete seat.parkRequest;
+      appendLog(root, `park: ${seat.sessionId} dropped — its turn did not end`);
+    }
+    return;
+  }
+  if (park.endedAtMs === undefined) {
+    park.endedAtMs = now;
+    if (park.waiting && park.notice && !seat.waiting) {
+      raiseNotice(`waiting: ${seat.role} ${seat.topic} — ${enterCommand(seat)}`);
+    }
+    if (park.waiting) seat.waiting = true;
+    else delete seat.waiting;
+  }
+  const sessions = fresh();
+  if (!sessions) return;
+  const entry = sessions.find((s) => s.sessionId === seat.sessionId && s.pid);
+  if (!entry) {
+    delete seat.parkRequest;
+    markParked(seat, park);
+    appendLog(root, `park: ${seat.sessionId} parked — not listed`);
+    return;
+  }
+  if (entry.kind === "interactive") {
+    delete seat.parkRequest;
+    seat.lastPark = { after: park.after, waiting: park.waiting };
+    appendLog(root, `park: ${seat.sessionId} left running — a tab holds it`);
+    return;
+  }
+  if (seat.held) return;
+  if (entry.status === "idle") {
+    delete seat.parkRequest;
+    stopToPark(root, seats, seat, park);
+    return;
+  }
+  if (now - park.endedAtMs >= STANDING_WAIT_MS) {
+    delete seat.parkRequest;
+    appendLog(
+      root,
+      `park: ${seat.sessionId} dropped — ${entry.status || "no status"} ten minutes after its turn ended`,
+    );
+  }
+}
+
+/**
+ * The standing request (spec 2.3): a seat parked at its own request and
+ * listed in the background again — woken by an attach or a wake — in which
+ * no new turn has begun since `lastPark.after` is stopped again, state
+ * first, once it has been listed two minutes, is `idle`, and is not held:
+ * its own last request carried out again, not a park on the spawner's
+ * reading. A new turn ends the standing request.
+ */
+function standingPark(root, seats, seat, fresh) {
+  const park = seat.lastPark;
+  const transcript = seat.transcript || findTranscript(seat.sessionId);
+  const turn = transcript ? turnEnded(transcript, park.after) : null;
+  if (!turn) return;
+  if (turn.newTurn) {
+    delete seat.lastPark;
+    delete seat.listedAtMs;
+    return;
+  }
+  const entry = fresh()?.find((s) => s.sessionId === seat.sessionId && s.pid);
+  if (!entry || entry.kind === "interactive") return;
+  if (typeof seat.listedAtMs !== "number") {
+    seat.listedAtMs = nowMs();
+    return;
+  }
+  if (nowMs() - seat.listedAtMs < RELISTED_PARK_MS || entry.status !== "idle" || seat.held) return;
+  appendLog(root, `park: ${seat.sessionId} listed again with no new turn`);
+  stopToPark(root, seats, seat, park);
+}
+
+/**
+ * Every park request, at every request pass and every census pass (spec
+ * 2.3), and the standing request of every seat parked at its own word, at a
+ * census pass. A listing is taken once, and only when a seat needs one;
+ * `sessions` is the census's own.
+ */
+function tryParks(root, seats, sessions = null, census = false) {
+  const due = seats.filter(
+    (seat) => seat.status !== "stopped" && seat.status !== "removed" && (seat.parkRequest || (census && seat.lastPark)),
+  );
+  if (due.length === 0) return;
+  let listed = sessions;
+  const fresh = () => {
+    if (!listed) {
+      const listing = listAgents(root);
+      if (listing.error) return null;
+      listed = listing.sessions;
+    }
+    return listed;
+  };
+  for (const seat of due) {
+    if (seat.parkRequest) tryPark(root, seats, seat, fresh);
+    else standingPark(root, seats, seat, fresh);
+  }
+  writeSeats(root, seats);
 }
 
 function takeRequests(root, seats) {
@@ -674,7 +1274,8 @@ function takeRequests(root, seats) {
     // is the longest stretch the spawner works without returning here.
     beat(root);
     try {
-      outcome = handleRequest(root, request, seats);
+      // The request's file name, less `.json`, is the id a spawned seat records (spec 1.5).
+      outcome = handleRequest(root, request, seats, path.basename(name, ".json"));
     } catch (error) {
       outcome = { error: String(error?.message) };
     }
@@ -686,19 +1287,77 @@ function takeRequests(root, seats) {
     const said = outcome.error ? `error: ${outcome.error}` : outcome.note ? `ok (${outcome.note})` : "ok";
     appendLog(root, `${request.op} ${name} ${said}`);
   }
+  tryParks(root, seats);
+  leavePass(root, seats);
 }
 
 /**
  * A seat `seats.json` holds as `gone` whose `sessionId` the listing holds
- * again — one the human `/stop`ped and reopened with `claude attach <id>`
- * (spec 1.3). It goes back to `running`, and the pass that follows sets
- * `blocked` when the listing says so, the notice with it. A seat the run's
- * own `stop` request stopped, or one removed, is never revived.
+ * again — one the human `/stop`ped and reopened (spec 1.3). It goes back to
+ * `running`, and the pass that follows sets `blocked` when the listing says
+ * so, the notice with it. A seat the run's own `stop` request stopped, or
+ * one removed, is never revived.
  */
 function revive(root, seat) {
   seat.status = "running";
   delete seat.goneAt;
   appendLog(root, `census: ${seat.sessionId} back`);
+}
+
+/**
+ * A `parked` seat the listing shows again (spec 2.7) — woken by an attach, a
+ * click on its row, or a wake — is `running`, and the pass that follows
+ * records its listed kind and name. Within thirty seconds of its park the
+ * entry is the stopped process leaving (S-5), not a return.
+ */
+function relist(root, seat) {
+  if (typeof seat.parkedAtMs === "number" && nowMs() - seat.parkedAtMs < STOP_SETTLE_MS) return;
+  seat.status = "running";
+  seat.listedAtMs = nowMs();
+  delete seat.parkedAtMs;
+  delete seat.midTurn;
+  appendLog(root, `census: ${seat.sessionId} listed again`);
+}
+
+/**
+ * A contract-2 dialogue seat the listing no longer shows (spec 2.7) — parked
+ * by a pass, its tab closed, collected after its idle hour, cut by a reboot
+ * — is `parked`, never `gone`: its conversation is on disk, and a wake
+ * brings it back. A seat with no transcript at all has no conversation to
+ * wake and goes `gone` with the no-first-turn mark (spec 3.1, R-7).
+ * `midTurn` marks a last turn that did not end by itself,
+ * read over the whole transcript (spec 2.8), for Kanri's Recovery and
+ * `tanto jokyo`.
+ */
+function parkByAbsence(root, seat) {
+  seat.status = "parked";
+  seat.parkedAtMs = nowMs();
+  delete seat.kind;
+  delete seat.listedAtMs;
+  delete seat.waitingFor;
+  if (lookForTranscript(root, seat) && turnEnded(seat.transcript)?.midTurn) seat.midTurn = true;
+  else delete seat.midTurn;
+  appendLog(root, `census: ${seat.sessionId} parked${seat.midTurn ? " — mid-turn" : ""}`);
+}
+
+/**
+ * The census's end of a hold (spec 2.4): a launcher's mark once its pid no
+ * longer answers signal 0 — a launcher that died released nothing — and a
+ * mark for a face with no launcher once the seat's transcript has gone
+ * unwritten for its `forMs`. A seat's standing request then parks it.
+ */
+function clearHold(root, seat) {
+  const mark = seat.held;
+  if (!mark) return;
+  if (mark.pid) {
+    if (pidAlive(mark.pid)) return;
+  } else if (mark.forMs) {
+    const transcript = seat.transcript || findTranscript(seat.sessionId);
+    const writtenMs = (transcript && fs.statSync(transcript, { throwIfNoEntry: false })?.mtimeMs) || 0;
+    if (nowMs() - Math.max(writtenMs, mark.atMs || 0) < mark.forMs) return;
+  }
+  delete seat.held;
+  appendLog(root, `census: ${seat.sessionId} hold cleared`);
 }
 
 /**
@@ -742,15 +1401,15 @@ function lookForTranscript(root, seat) {
  * A seat that has run no first turn (spec 3.1): marked once, with one toast
  * and one log line, and never stopped — the one cause the design knows is
  * closed at the spawn, and what reaches here is for the human to look at. The
- * attach hint rides only on a seat the listing still holds (a gone seat has no
- * pid to attach to). A seat with no `startedAtMs`, one from before this rule,
- * is never judged. A seat whose prompt was not delivered (spec 1.2) is never
- * marked: its cause is already in its result.
+ * way in, `tanto <role> [<topic>]`, rides only on a seat the listing still
+ * holds: a gone seat has no process to enter. A seat with no `startedAtMs`,
+ * one from before this rule, is never judged. A seat whose prompt was not
+ * delivered (spec 1.2) is never marked: its cause is already in its result.
  */
 function noFirstTurn(root, seat, line, listed = false) {
   if (seat.noFirstTurn || seat.undelivered || typeof seat.startedAtMs !== "number") return false;
   seat.noFirstTurn = stamp();
-  const where = listed && seat.id ? ` — claude attach ${seat.id}` : "";
+  const where = listed ? ` — ${enterCommand(seat)}` : "";
   raiseNotice(`no first turn: ${seat.role} ${seat.topic} ${seat.name}${where}`);
   appendLog(root, line);
   return true;
@@ -758,6 +1417,10 @@ function noFirstTurn(root, seat, line, listed = false) {
 
 /** One `running` or `blocked` seat against the listing's entry for it. */
 function censusSeat(root, seat, session) {
+  if (!session && isContractDialogue(seat) && lookForTranscript(root, seat)) {
+    parkByAbsence(root, seat);
+    return;
+  }
   if (!session) {
     seat.status = "gone";
     seat.goneAt = stamp();
@@ -779,12 +1442,22 @@ function censusSeat(root, seat, session) {
     appendLog(root, `census: ${seat.sessionId} renamed to ${session.name}`);
   }
   if (session.id) seat.id = session.id;
-  if (session.state === "blocked" && seat.status !== "blocked") {
-    seat.status = "blocked";
-    raiseNotice(noticeText(seat));
-    appendLog(root, `census: ${seat.sessionId} blocked`);
-  } else if (session.state !== "blocked" && seat.status === "blocked") {
-    seat.status = "running";
+  seat.kind = session.kind;
+  // A prompt in the background (spec 2.6, S-1): the listing's `status:
+  // "waiting"`, its cause in `waitingFor`. A seat that answered and waits is
+  // `idle` and not blocked, and a prompt in a tab is in front of the human
+  // already.
+  const onPrompt = session.kind === "background" && session.status === "waiting";
+  if (onPrompt) {
+    seat.waitingFor = session.waitingFor || "waiting";
+    if (seat.status !== "blocked") {
+      seat.status = "blocked";
+      raiseNotice(noticeText(seat));
+      appendLog(root, `census: ${seat.sessionId} blocked — ${seat.waitingFor}`);
+    }
+  } else {
+    if (seat.status === "blocked") seat.status = "running";
+    delete seat.waitingFor;
   }
   if (lookForTranscript(root, seat)) return;
   if (nowMs() - seat.startedAtMs >= FIRST_TURN_WAIT_MS) {
@@ -804,8 +1477,13 @@ function runCensus(root, seats) {
   for (const seat of seats) {
     const session = byId.get(seat.sessionId);
     if (seat.status === "gone" && session) revive(root, seat);
+    if (seat.status === "parked" && session) relist(root, seat);
     if (LIVE.includes(seat.status)) censusSeat(root, seat, session);
+    clearHold(root, seat);
   }
+  leavePass(root, seats, listing.sessions);
+  endOnceSeats(root, seats);
+  tryParks(root, seats, listing.sessions, true);
   writeSeats(root, seats);
   return seats;
 }
@@ -857,6 +1535,10 @@ function cmdRun(argv) {
   process.chdir(root);
   ensureDirs(root);
   fs.writeFileSync(path.join(spawnerDir(root), "pid"), `${process.pid}\n`);
+  // The contract this spawner keeps (spec 4.2): a launcher that finds a
+  // spawner beating and no such file is talking to code from before it.
+  // `tanto teishi` removes it with `pid` and `heartbeat`.
+  fs.writeFileSync(path.join(spawnerDir(root), "contract"), "2\n");
   const pass = guarded(root, () => {
     beat(root);
     const seats = readSeats(root);
@@ -898,6 +1580,21 @@ function cmdRun(argv) {
   return 0;
 }
 
+/**
+ * The seats of the run whose root is `cwd` or above it — a worktree seat's
+ * cwd lies under the root — or none when no state file is found.
+ */
+function seatsAbove(cwd) {
+  let dir = cwd ? path.resolve(cwd) : "";
+  while (dir) {
+    if (fs.existsSync(path.join(spawnerDir(dir), "seats.json"))) return readSeats(dir);
+    const parent = path.dirname(dir);
+    if (parent === dir) return [];
+    dir = parent;
+  }
+  return [];
+}
+
 function cmdNotify(argv) {
   const { values } = parseArgs(argv);
   if (typeof values.text === "string") {
@@ -917,7 +1614,10 @@ function cmdNotify(argv) {
   const what = payload.notification_type || "notification";
   const where = payload.cwd || "";
   const who = payload.session_id || "";
-  raiseNotice(`tanto: ${what} in ${where} — claude attach ${who}`);
+  // The way in by role for a seat the state file holds (spec 1.1); `claude
+  // attach` only for a session no run of this design started.
+  const seat = seatOf(seatsAbove(where), who);
+  raiseNotice(`tanto: ${what} in ${where} — ${seat ? enterCommand(seat) : `claude attach ${who}`}`);
   return 0;
 }
 
@@ -938,6 +1638,8 @@ module.exports = {
   spawnerDir,
   seatName,
   shortIdOf,
+  // For `boundary.js seat`'s fifth word (spec 2.5).
+  turnEnded,
   // For the launcher (`tanto.js`): the listing's key, the log, and the heartbeat.
   underRoot,
   appendLog,

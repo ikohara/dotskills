@@ -34,7 +34,7 @@ where they are, anything the previous batch parked that these tasks touch.>
 - Spec — <the spec's path>
 - SDD ledger — <.superpowers/sdd/<plan-basename>/progress.md>
 - Conductor ledger, read only — <.tanto/<topic>/kanri.md>
-- Kanri — <name> [<ref>]
+- Kanri — <name>
 - Branch — <branch>, base is the commit with subject <commit subject>
 - Jisso — <"the first of this plan: run Start steps 1 to 4, the pre-flight
   scan included", or "the <n>th of this plan: run Start steps 1 to 3, resume

@@ -33,17 +33,22 @@ no topic is open. The line after the blocks is written once.
 ## Live peers
 
 Every `live` peer of every open topic, with its Topic as the roster carries
-it; the successor answers the marked lines first and announces nothing. Then
-the `queued` Jissos, which exist only under a plan that edits the tanto
-skill, by name and place — the successor sends them nothing;
+it; the successor answers the marked lines first and announces nothing. A
+peer is its `sessionId`: the name beside it is the one the listing printed
+when this file was written, and the successor reads the name again by the
+`sessionId` at each send — `boundary.js seat` — waking a parked peer first.
+Then the `queued` Jissos, which exist only under a plan that edits the tanto
+skill, by `sessionId` and place — the successor sends them nothing;
 their batch prompt is a path they read at their own wake-up.
 
-- <role> — <topic> — <name> [<ref>] — <what that session is waiting for> —
+- <role> — <topic> — <sessionId> — <name, as last read> — <running, or
+  parked> — <what that session is waiting for> —
   <"answered", or the last line it sent that this session did not answer,
   which the successor answers first and which the ledger's Session events
   carry as an `unanswered:` line with no `answered:` pair>
-- <topic> — <name> [<ref>] — queued, <n>th of the plan's queue, one line per
-  queued Jisso, in queue order; the successor sends none of them anything
+- <topic> — <sessionId> — <name, as last read> — queued, <n>th of the plan's
+  queue, one line per queued Jisso, in queue order; the successor sends none
+  of them anything
 
 ## Open questions for the human
 
@@ -85,4 +90,5 @@ reading taken when this handover was written.>
 
 ## Commands for the human
 
-The successor is spawned; nothing is typed.
+The successor is spawned; nothing is typed. A human attached to this Kanri
+through `tanto` is taken to the successor by the launcher.

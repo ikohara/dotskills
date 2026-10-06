@@ -93,9 +93,10 @@ shoroku ready: worktree-shoki-<topic> at <sha> — fast-forward onto main clean 
 `<sha>` is `git rev-parse HEAD` in the worktree after the rebase, and
 `<reading>` is `node "<skill dir>/scripts/reading.js" "<your transcript>"`'s
 first line. The second line goes on every line the run sends, yours
-included: the address is a roster row, the window behind it may have been
-cleared, and the line is what lets a bare window say so. You never receive
-one and never act on one.
+included: a name read seconds before an editor reload may have passed to
+another window, and a sender reading another repository's roster reaches
+whatever answers to that name there; the line is what lets a session that
+holds no role say so. You never receive one and never act on one.
 
 When a condition fails, the first line is instead this, with the same second
 line under it:
