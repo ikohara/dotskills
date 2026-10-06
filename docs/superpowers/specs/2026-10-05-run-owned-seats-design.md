@@ -296,7 +296,18 @@ from habit, a tab of a run that has not moved — the session says, in the
 human's language, `seats are started by tanto <role> in a terminal, or by
 Kanri; a run started before this contract is moved first — README,
 "Moving a run"`, and stops; it reads no role file, writes nothing, and
-sends nothing. This holds for every role, a standalone Kaiseki and a
+sends nothing.
+
+A `seat` that exits 1 because the listing failed prints no entry line, and
+that exit is no signal, as a failed listing is none for the census (2.7):
+the session runs `seat` once more, and on a second exit 1 goes on — the
+check guards against a tab opened by hand, and a listing that failed is no
+evidence of one — and says so, appending `seat: listing failed — <reason>`
+to its start line and to the first tanto line it sends, as a model mismatch
+is said. A tab that slipped through is a session under the root that no row
+holds, and Kanri's next census prints it under **Not held**.
+
+This holds for every role, a standalone Kaiseki and a
 Kanri included: `tanto kaiseki` and `tanto` are their ways in.
 `/tanto fukki` typed in any seat but Kanri is answered as 4.1 answers any
 launcher word: one line naming `tanto fukki`, and nothing else is done.
@@ -558,6 +569,9 @@ A contract-2 dialogue seat that leaves the listing — parked by the
 spawner, held in a tab that was closed, collected after its idle hour, cut
 by a reboot — is `parked` in the state file, never `gone`: its
 conversation is on disk and a wake brings it back when a line is due.
+One that leaves the listing with no transcript on disk has no
+conversation to park and never ran a turn: it is `gone` with the `no first
+turn` mark and notice (3.1), as a seat without the mark is.
 `gone` stays for Kanri, Jisso, and shoki, and for a dialogue seat spawned
 without the mark — a Keikaku of a run that has not moved, which its Kanri
 resumes as its own text says (Finding 19). The spawner's census visits
@@ -809,13 +823,16 @@ and exits 1 (Finding 19, D-21).
    listing instead, and refuse a seat it shows `interactive` with the same
    first line.
 2. For a dialogue seat, print one line, `<role> <topic> — context=<n>`,
-   read from its transcript as `reading.js` reads it (D-19).
+   read from its transcript as `reading.js` reads it (D-19), and print it
+   again when the attach returns.
 3. Run `claude attach <id>` — `claude` resolved to a path once, no shell,
    the repository root as cwd, the terminal's stdio inherited (P-6). A
    parked seat is woken by the attach itself (P-4).
 4. When it exits, whatever its code, write `release` if step 1 wrote
    `hold`.
-5. **Follow.** Read the state file and the roster. When the seat just left
+5. **Follow.** Read the state file and the roster — read until the state
+   file records the stop, a few seconds at most, when the roster's first row
+   or a handover file says a handover is in progress. When the seat just left
    is a Kanri that is now `stopped` and a successor exists — the roster's
    first row names another `sessionId`, or `kanriSuccessor` finds a pending
    or finished handover spawn — go to step 1 with the successor, waiting
@@ -1772,7 +1789,7 @@ fukki — it starts a run when none is live and rejoins the live one.
 - The Old values list, measured at zero over the touched files at every
   boundary; its first nine needles grepped across `skills/tanto/`, a hit
   outside section 6 handled as that section's first paragraph says.
-- `node --test skills/tanto/scripts/` green at every task that touches a
+- `node --test skills/tanto/scripts/*.test.js` green at every task that touches a
   script; a task lands its code and its tests together, and the task that
   changes `blocked`'s key brings every fixture that sets `state:
   "blocked"` with it.
@@ -1781,7 +1798,7 @@ fukki — it starts a run when none is live and rejoins the live one.
 
 ## Verification
 
-- `node --test skills/tanto/scripts/` green at every boundary, with new
+- `node --test skills/tanto/scripts/*.test.js` green at every boundary, with new
   tests for:
   - `turnEnded` — a `cli` tail with `turn_duration`; a `cli` tail with
     `stop_hook_summary` alone; a tab's tail; a final message written as
@@ -1835,7 +1852,8 @@ fukki — it starts a run when none is live and rejoins the live one.
   Measurements for the dogfood report, the first of them made at step 4:
   1. At the handover, the launcher took the human to the successor with
      nothing typed.
-  2. `tanto kikaku` starts a Kikaku, prints its `context=`, and attaches.
+  2. `tanto kikaku` starts a Kikaku, prints its `context=`, and attaches,
+     and prints it again when the attach returns.
   3. A turn; then ← and leaving the agent view; the launcher prints the
      listing, and within a minute `tanto jokyo` reads `parked`.
   4. `Developer: Reload Window`; a click on the Kikaku's row opens it

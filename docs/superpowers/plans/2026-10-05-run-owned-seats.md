@@ -3514,7 +3514,7 @@ function censusSeat(root, seat, session) {
 ```js
 /** One `running` or `blocked` seat against the listing's entry for it. */
 function censusSeat(root, seat, session) {
-  if (!session && isContractDialogue(seat)) {
+  if (!session && isContractDialogue(seat) && lookForTranscript(root, seat)) {
     parkByAbsence(root, seat);
     return;
   }
