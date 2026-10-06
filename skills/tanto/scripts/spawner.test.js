@@ -129,7 +129,9 @@ if (sub === "--resume") {
   );
   // A prompt on the line is the session's turn, and the CLI prints no idle
   // note (S-3).
-  const idle = argv.length > 3 ? "" : " (idle — send a prompt to start)";
+  // state.idleOnResume: the CLI printed the idle note although a prompt was
+  // on the line -- the prompt was not taken (spec 4.4).
+  const idle = argv.length > 3 && !state.idleOnResume ? "" : " (idle — send a prompt to start)";
   process.stdout.write("backgrounded · " + found.id + " · " + found.name + idle + "\\n");
   process.exit(0);
 }
@@ -1144,6 +1146,55 @@ test("a copy a resume started is stopped and removed, found on stderr or on stdo
   }
 });
 
+test("a copy whose rm failed is reported as not removed, and one the CLI already dropped is not an error (spec 2.5, 5.1)", () => {
+  // A seat with no contract mark resumes the same way as a marked one.
+  for (const contract of [2, undefined]) {
+    const failed = workspace();
+    const parked = resumable(
+      failed,
+      "sess-s",
+      { hidden: true },
+      { status: "parked", parkedAtMs: STARTED_AT - 3600000, contract },
+    );
+    setState(failed, { sessions: [parked.entry], copy: { id: "cp01" }, fail: { rm: "rm refused" } });
+    putSeats(failed, [parked.seat]);
+    const refused = request(failed, { op: "resume", sessionId: "sess-s" });
+    run(failed, ["run", "--root", failed.root, "--once"]);
+    assert.equal(result(failed, refused.id).error, "copy cp01 not removed: rm refused");
+    assert.match(spawnerLog(failed), /resume sess-s: copy cp01 not removed — rm refused/);
+    assert.doesNotMatch(spawnerLog(failed), /copy cp01 removed/);
+
+    const dropped = workspace();
+    const again = resumable(
+      dropped,
+      "sess-s",
+      { hidden: true },
+      { status: "parked", parkedAtMs: STARTED_AT - 3600000, contract },
+    );
+    setState(dropped, { sessions: [again.entry], copy: { id: "cp01" }, fail: { rm: "No job matching cp01" } });
+    putSeats(dropped, [again.seat]);
+    const gone = request(dropped, { op: "resume", sessionId: "sess-s" });
+    run(dropped, ["run", "--root", dropped.root, "--once"]);
+    assert.equal(result(dropped, gone.id).error, "copy cp01 removed");
+    assert.match(spawnerLog(dropped), /resume sess-s: copy cp01 removed/);
+  }
+});
+
+test("a Kanri resume answered prompt not delivered stops the session it resumed (spec 4.4)", () => {
+  // A Kanri with no contract mark is resumed the same way as a marked one.
+  for (const contract of [2, undefined]) {
+    const ws = workspace();
+    const kanri = resumable(ws, "sess-k", { hidden: true }, { role: "kanri", topic: "—", status: "gone", contract });
+    setState(ws, { sessions: [kanri.entry], idleOnResume: true });
+    putSeats(ws, [kanri.seat]);
+    const { id } = request(ws, { op: "resume", sessionId: "sess-k", prompt: "/tanto fukki" });
+    run(ws, ["run", "--root", ws.root, "--once"]);
+    assert.equal(result(ws, id).error, "prompt not delivered");
+    assert.deepEqual(stopsOf(ws), ["sess-k"]);
+    assert.equal(JSON.parse(fs.readFileSync(ws.state, "utf8")).sessions[0].state, "stopped");
+  }
+});
+
 test("attention raises its message as written and names its channel (spec 1.1)", () => {
   const ws = workspace();
   request(ws, SPAWN);
@@ -1303,6 +1354,7 @@ test("a park parks an unlisted seat with no stop, leaves one a tab holds running
   assert.equal(seats(tab)[0].status, "running");
   assert.equal(seats(tab)[0].waiting, true);
   assert.equal(seats(tab)[0].parkRequest, undefined);
+  assert.deepEqual(seats(tab)[0].lastPark, { after: "u2", waiting: true });
   assert.deepEqual(notices(tab), ["waiting: sekkei t — tanto sekkei t"]);
   // A peer's line starts a turn while the question stands: no second notice.
   const second = [REC.human("u5", { isMeta: true }), REC.tool("u6", "m3"), REC.result("u7"), REC.end("u8", "m4")];
@@ -1334,6 +1386,44 @@ test("the standing request stops a seat listed again with no new turn two minute
   dialogueSeat(ws, { records: [...ENDED_TURN, REC.human("u5")], seat: { lastPark } });
   once(ws);
   assert.equal(seats(ws)[0].lastPark, undefined);
+});
+
+test("a park, a tab's new turn, the tab's own park, and the tab closed leave a standing request that stops the seat listed again (spec 2.3)", () => {
+  const ws = workspace();
+  dialogueSeat(ws);
+  const entry = JSON.parse(fs.readFileSync(ws.state, "utf8")).sessions[0];
+  request(ws, PARK);
+  once(ws);
+  assert.deepEqual(stopsOf(ws), ["sess-d"]);
+  assert.equal(seats(ws)[0].status, "parked");
+
+  // A tab holds the seat; the human's turn follows, and the seat's own park
+  // request ends it.
+  const turn = [REC.human("u5"), REC.tool("u6", "m3"), REC.result("u7"), REC.end("u8", "m4")];
+  writeRecords(ws, "sess-d", [...ENDED_TURN, ...turn, REC.close("stop_hook_summary")]);
+  // (A listed seat parked under thirty seconds ago is still leaving, S-5.)
+  setState(ws, { sessions: [{ ...entry, kind: "interactive", state: "running" }] });
+  once(ws, LATER(60000));
+  assert.equal(seats(ws)[0].status, "running");
+  request(ws, { ...PARK, after: "u6" });
+  once(ws, LATER(60000));
+  assert.equal(seats(ws)[0].parkRequest, undefined);
+  assert.deepEqual(seats(ws)[0].lastPark, { after: "u6", waiting: false });
+
+  // The tab closes: the seat is parked, and keeps the request it made.
+  setState(ws, { sessions: [] });
+  once(ws, LATER(60000));
+  assert.equal(seats(ws)[0].status, "parked");
+  assert.deepEqual(seats(ws)[0].lastPark, { after: "u6", waiting: false });
+
+  // Listed again in the background with no new turn: stopped after two minutes.
+  setState(ws, { sessions: [{ ...entry, kind: "background", state: "running" }] });
+  once(ws, LATER(120000));
+  assert.equal(seats(ws)[0].listedAtMs, STARTED_AT + 120000);
+  assert.deepEqual(stopsOf(ws), ["sess-d"]);
+  once(ws, LATER(240000));
+  assert.deepEqual(stopsOf(ws), ["sess-d", "sess-d"]);
+  assert.equal(seats(ws)[0].status, "parked");
 });
 
 test("hold marks a contract-2 seat, answers its errors, and release unmarks it and stops nothing (spec 2.4)", () => {
@@ -1370,6 +1460,32 @@ test("hold marks a contract-2 seat, answers its errors, and release unmarks it a
   assert.equal(errorOf({ seat: { contract: undefined } }, hold), "old-contract seat");
   assert.equal(errorOf({ seat: { contract: undefined } }, PARK), "not a dialogue seat");
   assert.equal(errorOf({ seat: { status: "removed" } }, PARK), "ended");
+});
+
+test("hold answers still listed when the park it waited for never leaves the listing, and marks nothing (spec 2.4, S-5)", () => {
+  const ws = workspace();
+  dialogueSeat(ws, { listing: { leaving: 1000 }, seat: { status: "parked", parkedAtMs: STARTED_AT - 5000 } });
+  const { id } = request(ws, { op: "hold", sessionId: "sess-d", pid: process.pid });
+  once(ws);
+  assert.equal(result(ws, id).error, "still listed");
+  assert.equal(seats(ws)[0].held, undefined);
+});
+
+test("hold from the pid that already holds the seat refreshes the mark; another live pid is refused (spec 2.4)", () => {
+  const ws = workspace();
+  dialogueSeat(ws);
+  const first = request(ws, { op: "hold", sessionId: "sess-d", pid: process.pid });
+  once(ws);
+  assert.equal(result(ws, first.id).held, STARTED_AT);
+  const again = request(ws, { op: "hold", sessionId: "sess-d", pid: process.pid });
+  once(ws, LATER(60000));
+  assert.equal(result(ws, again.id).error, undefined);
+  assert.equal(result(ws, again.id).held, STARTED_AT + 60000);
+  assert.deepEqual(seats(ws)[0].held, { atMs: STARTED_AT + 60000, pid: process.pid });
+  const other = request(ws, { op: "hold", sessionId: "sess-d", pid: process.pid + 1 });
+  once(ws, LATER(60000));
+  assert.equal(result(ws, other.id).error, "held by another terminal");
+  assert.deepEqual(seats(ws)[0].held, { atMs: STARTED_AT + 60000, pid: process.pid });
 });
 
 test("hold waits out a park under thirty seconds old that the listing still shows (spec 2.4, S-5)", () => {
@@ -1812,6 +1928,37 @@ test("a seat the listing drops with no transcript goes gone with the mark; one w
   assert.equal(seats(second)[0].noFirstTurn, undefined);
   assert.deepEqual(notices(second), []);
   assert.match(spawnerLog(second), /census: sess-new gone\n/);
+});
+
+test("a contract-2 dialogue seat the listing drops with no transcript goes gone with the mark and the notice, not parked (spec 2.7, 3.1)", () => {
+  const ws = workspace();
+  const seat = {
+    sessionId: "sess-d",
+    id: "bg05",
+    name: "dotskills-sekkei-t-0a0b",
+    role: "sekkei",
+    topic: "t",
+    contract: 2,
+    status: "running",
+    startedAtMs: STARTED_AT - 10000,
+  };
+  putSeats(ws, [seat]);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  const after = seats(ws)[0];
+  assert.equal(after.status, "gone");
+  assert.match(after.noFirstTurn, /\d/);
+  assert.equal(after.parkedAtMs, undefined);
+  assert.deepEqual(notices(ws), ["no first turn: sekkei t dotskills-sekkei-t-0a0b"]);
+  assert.match(spawnerLog(ws), /census: sess-d gone — no first turn/);
+
+  // The same seat with a transcript is still parked, never gone.
+  const written = workspace();
+  putSeats(written, [seat]);
+  writeTranscript(written, "sess-d");
+  run(written, ["run", "--root", written.root, "--once"]);
+  assert.equal(seats(written)[0].status, "parked");
+  assert.equal(seats(written)[0].noFirstTurn, undefined);
+  assert.deepEqual(notices(written), []);
 });
 
 test("the census marks blocked on a background entry's status waiting, with its cause, never on state blocked or in a tab (spec 2.6)", () => {

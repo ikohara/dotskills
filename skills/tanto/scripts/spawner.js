@@ -625,8 +625,9 @@ function copyOf(got, sessionId, seat) {
  * listing, a seat a tab holds or one alive in the background is `listed`,
  * since a resume would start a copy that holds its whole conversation and
  * acts on its prompt (M-6, P-8); a seat whose park or stop is under thirty
- * seconds old is waited out. After it, a copy is stopped and removed, and a
- * prompt the CLI did not take is an error. The CLI names the options it
+ * seconds old is waited out. After it, a copy is stopped and removed — a
+ * copy that cannot be removed is an error that says so — and a prompt the
+ * CLI did not take is an error, the session it resumed stopped first. The CLI names the options it
  * brought back on stderr, which a result does not carry, so the log keeps
  * it.
  */
@@ -647,11 +648,18 @@ function opResume(root, request, seat) {
   const copy = copyOf(got, request.sessionId, seat);
   if (copy) {
     runClaude(["stop", copy]);
-    runClaude(["rm", copy]);
+    const removed = runClaude(["rm", copy]);
+    if (removed.code !== 0 && !alreadyExited(removed)) {
+      appendLog(root, `resume ${request.sessionId}: copy ${copy} not removed — ${failureText(removed)}`);
+      return { error: `copy ${copy} not removed: ${failureText(removed)}` };
+    }
     appendLog(root, `resume ${request.sessionId}: copy ${copy} removed`);
     return { error: `copy ${copy} removed` };
   }
-  if (request.prompt && idleLine(got.out)) return { error: "prompt not delivered" };
+  if (request.prompt && idleLine(got.out)) {
+    runWithEitherId("stop", seat, request.sessionId);
+    return { error: "prompt not delivered" };
+  }
   if (got.err.trim()) appendLog(root, `resume ${request.sessionId}: ${got.err.trim()}`);
   const session = findResumed(root, request.sessionId);
   if (seat && session) {
@@ -1052,19 +1060,23 @@ function opPark(request, seat) {
  * attach, which the listing does not show (H-1a); or Kanri's for a face with
  * no launcher, `forMs` long. It wakes nothing — the attach does (P-4). A
  * seat whose park is under thirty seconds old and still listed is waited out
- * first, so that the attach does not meet a process that is leaving (S-5).
+ * first, so that the attach does not meet a process that is leaving (S-5); a
+ * process that never leaves is `still listed`. The pid that already holds the
+ * seat may hold it again.
  */
 function opHold(root, request, seat) {
   if (!seat) return { error: `unknown seat ${request.sessionId}` };
   if (seat.contract !== 2) return { error: "old-contract seat" };
   if (seat.status === "stopped" || seat.status === "removed") return { error: "ended" };
   if (!request.pid && !request.forMs) return { error: "a hold names a pid or forMs" };
-  if (seat.held?.pid && pidAlive(seat.held.pid)) return { error: "held by another terminal" };
+  if (seat.held?.pid && pidAlive(seat.held.pid) && seat.held.pid !== Number(request.pid)) {
+    return { error: "held by another terminal" };
+  }
   const { entry, error } = listedEntry(root, seat.sessionId);
   if (error) return { error: `claude agents: ${error}` };
   if (entry?.kind === "interactive") return { error: "in a tab" };
   if (entry && typeof seat.parkedAtMs === "number" && nowMs() - seat.parkedAtMs < STOP_SETTLE_MS) {
-    waitUnlisted(root, seat.sessionId);
+    if (!waitUnlisted(root, seat.sessionId)) return { error: "still listed" };
   }
   const atMs = nowMs();
   seat.held = request.pid ? { atMs, pid: Number(request.pid) } : { atMs, forMs: Number(request.forMs) };
@@ -1107,7 +1119,8 @@ function stopToPark(root, seats, seat, park) {
  * done, and ten minutes after the request it is dropped. Once the turn has
  * ended the seat's `waiting` is set from the request, once, with the notice
  * when it goes from unset to set at a turn the human did not start. Then a
- * seat not listed is `parked`; one a tab holds stays `running`; one in the
+ * seat not listed is `parked`; one a tab holds stays `running`, its request
+ * kept as `lastPark` for the standing request; one in the
  * background is stopped once it is `idle` and not held, and ten minutes
  * after its turn ended with no hold the request is dropped and the seat left
  * alive. A condition that cannot be read parks nothing.
@@ -1148,6 +1161,7 @@ function tryPark(root, seats, seat, fresh) {
   }
   if (entry.kind === "interactive") {
     delete seat.parkRequest;
+    seat.lastPark = { after: park.after, waiting: park.waiting };
     appendLog(root, `park: ${seat.sessionId} left running — a tab holds it`);
     return;
   }
@@ -1309,7 +1323,9 @@ function relist(root, seat) {
  * A contract-2 dialogue seat the listing no longer shows (spec 2.7) — parked
  * by a pass, its tab closed, collected after its idle hour, cut by a reboot
  * — is `parked`, never `gone`: its conversation is on disk, and a wake
- * brings it back. `midTurn` marks a last turn that did not end by itself,
+ * brings it back. A seat with no transcript at all has no conversation to
+ * wake and goes `gone` with the no-first-turn mark (spec 3.1, R-7).
+ * `midTurn` marks a last turn that did not end by itself,
  * read over the whole transcript (spec 2.8), for Kanri's Recovery and
  * `tanto jokyo`.
  */
@@ -1401,7 +1417,7 @@ function noFirstTurn(root, seat, line, listed = false) {
 
 /** One `running` or `blocked` seat against the listing's entry for it. */
 function censusSeat(root, seat, session) {
-  if (!session && isContractDialogue(seat)) {
+  if (!session && isContractDialogue(seat) && lookForTranscript(root, seat)) {
     parkByAbsence(root, seat);
     return;
   }
