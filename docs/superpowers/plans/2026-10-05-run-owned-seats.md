@@ -1534,7 +1534,9 @@ const { spawn, spawnSync } = require("node:child_process");
 ```js
   // A prompt on the line is the session's turn, and the CLI prints no idle
   // note (S-3).
-  const idle = argv.length > 3 ? "" : " (idle — send a prompt to start)";
+  // state.idleOnResume: the CLI printed the idle note although a prompt was
+  // on the line -- the prompt was not taken (spec 4.4).
+  const idle = argv.length > 3 && !state.idleOnResume ? "" : " (idle — send a prompt to start)";
   process.stdout.write("backgrounded · " + found.id + " · " + found.name + idle + "\\n");
 ```
 
@@ -1927,8 +1929,9 @@ function copyOf(got, sessionId, seat) {
  * listing, a seat a tab holds or one alive in the background is `listed`,
  * since a resume would start a copy that holds its whole conversation and
  * acts on its prompt (M-6, P-8); a seat whose park or stop is under thirty
- * seconds old is waited out. After it, a copy is stopped and removed, and a
- * prompt the CLI did not take is an error. The CLI names the options it
+ * seconds old is waited out. After it, a copy is stopped and removed — a
+ * copy that cannot be removed is an error that says so — and a prompt the
+ * CLI did not take is an error, the session it resumed stopped first. The CLI names the options it
  * brought back on stderr, which a result does not carry, so the log keeps
  * it.
  */
@@ -1949,11 +1952,18 @@ function opResume(root, request, seat) {
   const copy = copyOf(got, request.sessionId, seat);
   if (copy) {
     runClaude(["stop", copy]);
-    runClaude(["rm", copy]);
+    const removed = runClaude(["rm", copy]);
+    if (removed.code !== 0 && !alreadyExited(removed)) {
+      appendLog(root, `resume ${request.sessionId}: copy ${copy} not removed — ${failureText(removed)}`);
+      return { error: `copy ${copy} not removed: ${failureText(removed)}` };
+    }
     appendLog(root, `resume ${request.sessionId}: copy ${copy} removed`);
     return { error: `copy ${copy} removed` };
   }
-  if (request.prompt && idleLine(got.out)) return { error: "prompt not delivered" };
+  if (request.prompt && idleLine(got.out)) {
+    runWithEitherId("stop", seat, request.sessionId);
+    return { error: "prompt not delivered" };
+  }
   if (got.err.trim()) appendLog(root, `resume ${request.sessionId}: ${got.err.trim()}`);
   const session = findResumed(root, request.sessionId);
   if (seat && session) {
@@ -2422,6 +2432,7 @@ test("a park parks an unlisted seat with no stop, leaves one a tab holds running
   assert.equal(seats(tab)[0].status, "running");
   assert.equal(seats(tab)[0].waiting, true);
   assert.equal(seats(tab)[0].parkRequest, undefined);
+  assert.deepEqual(seats(tab)[0].lastPark, { after: "u2", waiting: true });
   assert.deepEqual(notices(tab), ["waiting: sekkei t — tanto sekkei t"]);
   // A peer's line starts a turn while the question stands: no second notice.
   const second = [REC.human("u5", { isMeta: true }), REC.tool("u6", "m3"), REC.result("u7"), REC.end("u8", "m4")];
@@ -2453,6 +2464,44 @@ test("the standing request stops a seat listed again with no new turn two minute
   dialogueSeat(ws, { records: [...ENDED_TURN, REC.human("u5")], seat: { lastPark } });
   once(ws);
   assert.equal(seats(ws)[0].lastPark, undefined);
+});
+
+test("a park, a tab's new turn, the tab's own park, and the tab closed leave a standing request that stops the seat listed again (spec 2.3)", () => {
+  const ws = workspace();
+  dialogueSeat(ws);
+  const entry = JSON.parse(fs.readFileSync(ws.state, "utf8")).sessions[0];
+  request(ws, PARK);
+  once(ws);
+  assert.deepEqual(stopsOf(ws), ["sess-d"]);
+  assert.equal(seats(ws)[0].status, "parked");
+
+  // A tab holds the seat; the human's turn follows, and the seat's own park
+  // request ends it.
+  const turn = [REC.human("u5"), REC.tool("u6", "m3"), REC.result("u7"), REC.end("u8", "m4")];
+  writeRecords(ws, "sess-d", [...ENDED_TURN, ...turn, REC.close("stop_hook_summary")]);
+  // (A listed seat parked under thirty seconds ago is still leaving, S-5.)
+  setState(ws, { sessions: [{ ...entry, kind: "interactive", state: "running" }] });
+  once(ws, LATER(60000));
+  assert.equal(seats(ws)[0].status, "running");
+  request(ws, { ...PARK, after: "u6" });
+  once(ws, LATER(60000));
+  assert.equal(seats(ws)[0].parkRequest, undefined);
+  assert.deepEqual(seats(ws)[0].lastPark, { after: "u6", waiting: false });
+
+  // The tab closes: the seat is parked, and keeps the request it made.
+  setState(ws, { sessions: [] });
+  once(ws, LATER(60000));
+  assert.equal(seats(ws)[0].status, "parked");
+  assert.deepEqual(seats(ws)[0].lastPark, { after: "u6", waiting: false });
+
+  // Listed again in the background with no new turn: stopped after two minutes.
+  setState(ws, { sessions: [{ ...entry, kind: "background", state: "running" }] });
+  once(ws, LATER(120000));
+  assert.equal(seats(ws)[0].listedAtMs, STARTED_AT + 120000);
+  assert.deepEqual(stopsOf(ws), ["sess-d"]);
+  once(ws, LATER(240000));
+  assert.deepEqual(stopsOf(ws), ["sess-d", "sess-d"]);
+  assert.equal(seats(ws)[0].status, "parked");
 });
 
 test("hold marks a contract-2 seat, answers its errors, and release unmarks it and stops nothing (spec 2.4)", () => {
@@ -2489,6 +2538,32 @@ test("hold marks a contract-2 seat, answers its errors, and release unmarks it a
   assert.equal(errorOf({ seat: { contract: undefined } }, hold), "old-contract seat");
   assert.equal(errorOf({ seat: { contract: undefined } }, PARK), "not a dialogue seat");
   assert.equal(errorOf({ seat: { status: "removed" } }, PARK), "ended");
+});
+
+test("hold answers still listed when the park it waited for never leaves the listing, and marks nothing (spec 2.4, S-5)", () => {
+  const ws = workspace();
+  dialogueSeat(ws, { listing: { leaving: 1000 }, seat: { status: "parked", parkedAtMs: STARTED_AT - 5000 } });
+  const { id } = request(ws, { op: "hold", sessionId: "sess-d", pid: process.pid });
+  once(ws);
+  assert.equal(result(ws, id).error, "still listed");
+  assert.equal(seats(ws)[0].held, undefined);
+});
+
+test("hold from the pid that already holds the seat refreshes the mark; another live pid is refused (spec 2.4)", () => {
+  const ws = workspace();
+  dialogueSeat(ws);
+  const first = request(ws, { op: "hold", sessionId: "sess-d", pid: process.pid });
+  once(ws);
+  assert.equal(result(ws, first.id).held, STARTED_AT);
+  const again = request(ws, { op: "hold", sessionId: "sess-d", pid: process.pid });
+  once(ws, LATER(60000));
+  assert.equal(result(ws, again.id).error, undefined);
+  assert.equal(result(ws, again.id).held, STARTED_AT + 60000);
+  assert.deepEqual(seats(ws)[0].held, { atMs: STARTED_AT + 60000, pid: process.pid });
+  const other = request(ws, { op: "hold", sessionId: "sess-d", pid: process.pid + 1 });
+  once(ws, LATER(60000));
+  assert.equal(result(ws, other.id).error, "held by another terminal");
+  assert.deepEqual(seats(ws)[0].held, { atMs: STARTED_AT + 60000, pid: process.pid });
 });
 
 test("hold waits out a park under thirty seconds old that the listing still shows (spec 2.4, S-5)", () => {
@@ -2605,19 +2680,23 @@ function opPark(request, seat) {
  * attach, which the listing does not show (H-1a); or Kanri's for a face with
  * no launcher, `forMs` long. It wakes nothing — the attach does (P-4). A
  * seat whose park is under thirty seconds old and still listed is waited out
- * first, so that the attach does not meet a process that is leaving (S-5).
+ * first, so that the attach does not meet a process that is leaving (S-5); a
+ * process that never leaves is `still listed`. The pid that already holds the
+ * seat may hold it again.
  */
 function opHold(root, request, seat) {
   if (!seat) return { error: `unknown seat ${request.sessionId}` };
   if (seat.contract !== 2) return { error: "old-contract seat" };
   if (seat.status === "stopped" || seat.status === "removed") return { error: "ended" };
   if (!request.pid && !request.forMs) return { error: "a hold names a pid or forMs" };
-  if (seat.held?.pid && pidAlive(seat.held.pid)) return { error: "held by another terminal" };
+  if (seat.held?.pid && pidAlive(seat.held.pid) && seat.held.pid !== Number(request.pid)) {
+    return { error: "held by another terminal" };
+  }
   const { entry, error } = listedEntry(root, seat.sessionId);
   if (error) return { error: `claude agents: ${error}` };
   if (entry?.kind === "interactive") return { error: "in a tab" };
   if (entry && typeof seat.parkedAtMs === "number" && nowMs() - seat.parkedAtMs < STOP_SETTLE_MS) {
-    waitUnlisted(root, seat.sessionId);
+    if (!waitUnlisted(root, seat.sessionId)) return { error: "still listed" };
   }
   const atMs = nowMs();
   seat.held = request.pid ? { atMs, pid: Number(request.pid) } : { atMs, forMs: Number(request.forMs) };
@@ -2660,7 +2739,8 @@ function stopToPark(root, seats, seat, park) {
  * done, and ten minutes after the request it is dropped. Once the turn has
  * ended the seat's `waiting` is set from the request, once, with the notice
  * when it goes from unset to set at a turn the human did not start. Then a
- * seat not listed is `parked`; one a tab holds stays `running`; one in the
+ * seat not listed is `parked`; one a tab holds stays `running`, its request
+ * kept as `lastPark` for the standing request; one in the
  * background is stopped once it is `idle` and not held, and ten minutes
  * after its turn ended with no hold the request is dropped and the seat left
  * alive. A condition that cannot be read parks nothing.
@@ -2701,6 +2781,7 @@ function tryPark(root, seats, seat, fresh) {
   }
   if (entry.kind === "interactive") {
     delete seat.parkRequest;
+    seat.lastPark = { after: park.after, waiting: park.waiting };
     appendLog(root, `park: ${seat.sessionId} left running — a tab holds it`);
     return;
   }
@@ -3201,6 +3282,37 @@ test("run writes the contract file, holding 2, at its start (spec 4.2)", () => {
   assert.match(spawnerLog(second), /census: sess-new gone\n/);
 });
 
+test("a contract-2 dialogue seat the listing drops with no transcript goes gone with the mark and the notice, not parked (spec 2.7, 3.1)", () => {
+  const ws = workspace();
+  const seat = {
+    sessionId: "sess-d",
+    id: "bg05",
+    name: "dotskills-sekkei-t-0a0b",
+    role: "sekkei",
+    topic: "t",
+    contract: 2,
+    status: "running",
+    startedAtMs: STARTED_AT - 10000,
+  };
+  putSeats(ws, [seat]);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  const after = seats(ws)[0];
+  assert.equal(after.status, "gone");
+  assert.match(after.noFirstTurn, /\d/);
+  assert.equal(after.parkedAtMs, undefined);
+  assert.deepEqual(notices(ws), ["no first turn: sekkei t dotskills-sekkei-t-0a0b"]);
+  assert.match(spawnerLog(ws), /census: sess-d gone — no first turn/);
+
+  // The same seat with a transcript is still parked, never gone.
+  const written = workspace();
+  putSeats(written, [seat]);
+  writeTranscript(written, "sess-d");
+  run(written, ["run", "--root", written.root, "--once"]);
+  assert.equal(seats(written)[0].status, "parked");
+  assert.equal(seats(written)[0].noFirstTurn, undefined);
+  assert.deepEqual(notices(written), []);
+});
+
 test("the census marks blocked on a background entry's status waiting, with its cause, never on state blocked or in a tab (spec 2.6)", () => {
   const ws = workspace();
   const ids = ["sess-prompt", "sess-idle", "sess-tab"];
@@ -3434,7 +3546,9 @@ function relist(root, seat) {
  * A contract-2 dialogue seat the listing no longer shows (spec 2.7) — parked
  * by a pass, its tab closed, collected after its idle hour, cut by a reboot
  * — is `parked`, never `gone`: its conversation is on disk, and a wake
- * brings it back. `midTurn` marks a last turn that did not end by itself,
+ * brings it back. A seat with no transcript at all has no conversation to
+ * wake and goes `gone` with the no-first-turn mark (spec 3.1, R-7).
+ * `midTurn` marks a last turn that did not end by itself,
  * read over the whole transcript (spec 2.8), for Kanri's Recovery and
  * `tanto jokyo`.
  */
@@ -4701,6 +4815,30 @@ test("seat prints its five words and the spawner: line, by sessionId or by name,
   assert.strictEqual(lines("sess-none"), "no entry -\nspawner: beating\n");
 });
 
+test("seat exits 1 with `seat: the listing failed` and no entry line when the listing fails, for a held seat or not", () => {
+  const f = spawnerFixture(
+    () => [{ sessionId: "sess-a", name: "dotskills-sekkei-t-1a2b", role: "sekkei", status: "parked" }],
+    () => [],
+  );
+  for (const mode of ["fail", "garbage"]) {
+    for (const who of ["sess-a", "sess-none"]) {
+      const got = sub(f, ["seat", who, "--root", f.root], { FAKE_MODE: mode });
+      assert.strictEqual(got.code, 1, `${mode} ${who}: ${got.err}`);
+      assert.strictEqual(got.out, "", `${mode} ${who}`);
+    }
+  }
+  const failed = sub(f, ["seat", "sess-none", "--root", f.root], { FAKE_MODE: "fail" });
+  assert.strictEqual(failed.err, "boundary.js: seat: the listing failed — listing broke\n");
+  const garbage = sub(f, ["seat", "sess-none", "--root", f.root], { FAKE_MODE: "garbage" });
+  assert.strictEqual(garbage.err, "boundary.js: seat: the listing failed — claude agents --json printed no JSON\n");
+  // A listing that works still answers, so the exit 1 above is the listing's alone.
+  assert.deepStrictEqual(sub(f, ["seat", "sess-none", "--root", f.root]), {
+    code: 0,
+    out: "no entry -\nspawner: beating\n",
+    err: "",
+  });
+});
+
 test("beat prints the spawner: line and exits 1 when the heartbeat is stale or absent (spec 2.5)", () => {
   const live = spawnerFixture(
     () => [],
@@ -4726,10 +4864,10 @@ test("beat prints the spawner: line and exits 1 when the heartbeat is stale or a
  * `wake`, run beside a fake spawner that answers each request it finds with
  * `answer(request)` merged into it, as the spawner writes a result.
  */
-async function wakeBeside(f, args, answer) {
+async function wakeBeside(f, args, answer, env = {}) {
   const child = spawn(process.execPath, [SCRIPT, "wake", "--root", f.root, ...args], {
     cwd: f.root,
-    env: { ...fakeEnv(f), TANTO_WAKE_WAIT_MS: "10000" },
+    env: { ...fakeEnv(f), TANTO_WAKE_WAIT_MS: "10000", ...env },
   });
   let out = "";
   child.stdout.on("data", (chunk) => {
@@ -4806,6 +4944,28 @@ test("wake --hold writes each seat's hold, with forMs and no pid, before its res
   ]);
   assert.strictEqual(woken.out, "spawner: beating\nparked dotskills-hosa-1a2b - hosa -\n");
   assert.strictEqual(woken.code, 0);
+});
+
+test("wake --hold exits 1 and says `hold:` on the seat's line when only its hold failed (spec 2.4, 2.5)", async () => {
+  const f = spawnerFixture(
+    () => [{ sessionId: "sess-a", name: "dotskills-hosa-1a2b", role: "hosa", status: "parked" }],
+    () => [],
+  );
+  const woken = await wakeBeside(f, ["--hold", "sess-a"], (request) =>
+    request.op === "hold" ? { error: "no such seat" } : {},
+  );
+  assert.strictEqual(woken.out, "spawner: beating\nparked dotskills-hosa-1a2b - hosa - — hold: no such seat\n");
+  assert.strictEqual(woken.code, 1);
+});
+
+test("wake prints `listing:` and exits 1 when the listing fails, after each seat's line", async () => {
+  const f = spawnerFixture(
+    () => [{ sessionId: "sess-a", name: "dotskills-hosa-1a2b", role: "hosa", status: "parked" }],
+    () => [],
+  );
+  const woken = await wakeBeside(f, ["sess-a"], () => ({}), { FAKE_MODE: "fail" });
+  assert.strictEqual(woken.out, "spawner: beating\nparked dotskills-hosa-1a2b - hosa -\nlisting: listing broke\n");
+  assert.strictEqual(woken.code, 1);
 });
 
 test("wake writes nothing on a stale spawner, and names a seat whose result never came", () => {
@@ -5038,7 +5198,9 @@ function seatLine(seat, listed) {
  * from the state file, then the `spawner:` line. A session the state file
  * does not hold prints `no entry <kind>`, the kind the listing's for it, `-`
  * when it is not listed — what a session that ran `/tanto <role>` by hand
- * reads to learn whether the run started it.
+ * reads to learn whether the run started it. A listing that failed prints no
+ * entry line: `seat: the listing failed — <error>` and exit 1, so a failed
+ * listing is never read as "not listed".
  */
 function cmdSeat(argv) {
   const { values, positionals } = parseLine(argv, []);
@@ -5046,7 +5208,9 @@ function cmdSeat(argv) {
   if (!who) return fail("seat needs a sessionId or a name", 2);
   const root = rootOf(values);
   if (!root) return fail("seat: --root needs a value", 2);
-  const listed = listing(root).listed || new Map();
+  const found = listing(root);
+  if (found.error) return fail(`seat: the listing failed — ${found.error}`, 1);
+  const listed = found.listed;
   const seat = findSeat(stateSeats(root), who);
   if (seat) {
     console.log(seatLine(seat, listed));
@@ -5092,7 +5256,9 @@ function waitForResults(root, ids, waitMs) {
  * 2.4) — one wait of up to sixty seconds for every result, and one line per
  * seat: `seat`'s line, or `error: <the result's error> — <sessionId>` with
  * the name the result carries. On a stale spawner it writes nothing: a
- * request no spawner takes is a line that waits unseen.
+ * request no spawner takes is a line that waits unseen. Exit 1 on an error
+ * line, on a hold that failed, or on a listing that failed (`listing:
+ * <error>`, after the seats' lines).
  */
 function cmdWake(argv) {
   const { values, positionals } = parseLine(argv, ["hold"]);
@@ -5121,7 +5287,8 @@ function cmdWake(argv) {
     return fail(`wake: no spawner requests directory under ${root}`, 2);
   }
   const results = waitForResults(root, written, wakeWaitMs());
-  const listed = listing(root).listed || new Map();
+  const found = listing(root);
+  const listed = found.listed || new Map();
   const seats = stateSeats(root);
   let failed = false;
   for (const entry of plan) {
@@ -5137,10 +5304,17 @@ function cmdWake(argv) {
     let held = "";
     if (entry.hold !== null) {
       const hold = results.get(written[entry.hold]);
-      if (!hold || hold.error) held = ` — hold: ${hold ? hold.error : "no result"}`;
+      if (!hold || hold.error) {
+        held = ` — hold: ${hold ? hold.error : "no result"}`;
+        failed = true;
+      }
     }
     const seat = seats.get(entry.sessionId);
     console.log(`${seat ? seatLine(seat, listed) : `no entry ${listed.get(entry.sessionId)?.kind || "-"}`}${held}`);
+  }
+  if (found.error) {
+    console.log(`listing: ${found.error}`);
+    failed = true;
   }
   return failed ? 1 : 0;
 }
@@ -5502,8 +5676,8 @@ the handshake's `effort=` carried.
 Topic is the topic the seat's spawn request named, as its result file
 carries it — for a Jisso, the topic whose queue it was spawned into: the
 plan whose batches are in flight, or, with none in flight, the plan whose
-landing requested the queue — or `—` for Kanri, Kikaku, Hosa, and a
-standalone Kaiseki. Effort is the spawn's, as the result file records it.
+landing requested the queue — or `—` for Kanri, Kikaku, and Hosa. Effort
+is the spawn's, as the result file records it.
 ```
 
 **P7.25** `skills/tanto/templates/roster.md` — replace exactly these 23 lines
@@ -5540,7 +5714,7 @@ duplicate and gets its own row.
 The status words are five: `queued`, `live`, `stopped`, `replaced`, and
 `dead`. A `live` cell may carry the suffix
 `(idle since <HH:MM>)`, which Kanri appends while a Kikaku, Hosa, or Kaiseki
-idles and the intake's address rule reads, or the suffix
+idles, or the suffix
 `(blocked since <HH:MM>)`, which Kanri appends when the census's Listed line
 for the seat carries `— blocked (<cause>)` and removes when a later
 census's does not. The blocked suffix records the last census that saw the
@@ -6108,6 +6282,12 @@ test("an older spawner: a listed Kanri is still entered, and any other act print
   const ws = workspace([LIVE_KANRI]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
   // A spawner that beats and wrote no `contract` file.
+  // A seat the listing has lost, which a launcher on the new contract would
+  // resume on this path: the older spawner is written nothing, resume included.
+  writeSeats(ws, [
+    { sessionId: "sess-live", id: "bg07", role: "kanri", topic: "—", status: "running" },
+    { sessionId: "sess-jisso", id: "bg08", role: "jisso", topic: "t", status: "running" },
+  ]);
   const child = strangerPid(ws, Date.now());
   const lost = workspace([{ ...LIVE_KANRI, hidden: true }]);
   writeRoster(lost, "live", "/tmp/sess-live.jsonl");
@@ -6954,16 +7134,33 @@ function lastAttach(ws) {
 
 // A fake of its own around the shared one: at the n-th attach it writes the
 // files of `attach-steps.json`'s n-th step, the way a handover changes them
-// while the human is attached, and then runs the shared fake.
+// while the human is attached, and then runs the shared fake. A step's
+// `@later` entry is `{ ms, files }`: a detached `node -e` child writes those
+// files `ms` after the attach has returned, the way the spawner writes the
+// state file a moment after the `stop` that ended the attach.
 const ATTACH_HOOK = `
 const fs = require("node:fs");
 const path = require("node:path");
+const { spawn } = require("node:child_process");
 if (process.argv[2] === "attach") {
   const file = path.join(__dirname, "attach-steps.json");
   const steps = JSON.parse(fs.readFileSync(file, "utf8"));
   const step = steps.shift() || {};
   fs.writeFileSync(file, JSON.stringify(steps));
-  for (const [name, body] of Object.entries(step)) fs.writeFileSync(path.join(__dirname, name), body);
+  for (const [name, body] of Object.entries(step)) {
+    if (name !== "@later") {
+      fs.writeFileSync(path.join(__dirname, name), body);
+      continue;
+    }
+    const script = "const fs = require('node:fs'); const [dir, ms, files] = process.argv.slice(1);" +
+      "setTimeout(() => { for (const [name, text] of Object.entries(JSON.parse(files))) {" +
+      "const target = require('node:path').join(dir, name); fs.writeFileSync(target + '.tmp', text);" +
+      "fs.renameSync(target + '.tmp', target); } }, Number(ms));";
+    spawn(process.execPath, ["-e", script, __dirname, String(body.ms), JSON.stringify(body.files)], {
+      detached: true,
+      stdio: "ignore",
+    }).unref();
+  }
 }
 require("./fake-claude.js");
 `;
@@ -7136,6 +7333,8 @@ test("the trust hint comes before the line on leaving when .claude.json does not
   const at = lines.indexOf(TRUST);
   assert.notEqual(at, -1, got.out);
   assert.equal(lines[at + 1], LEAVE);
+  // The attach takes the screen, so the hint is printed again when it returns.
+  assert.ok(lines.slice(at + 2).includes(TRUST), got.out);
 });
 
 test("a held Kikaku is entered under a hold, released when the attach ends, its context= said first (spec 4.3)", () => {
@@ -7162,6 +7361,33 @@ test("a held Kikaku is entered under a hold, released when the attach ends, its 
   assert.equal(typeof own[0].pid, "number");
   const lines = got.out.split(/\r?\n/);
   assert.equal(lines[lines.indexOf(LEAVE) - 1], "kikaku — context=96120");
+  // The attach takes the screen, so the context line is printed again when it returns.
+  assert.ok(lines.slice(lines.indexOf(LEAVE) + 1).includes("left kikaku — context=96120"), got.out);
+});
+
+test("a Kikaku spawned with no contract mark is entered with one attach: its hold answers old-contract seat, and no release follows (spec 4.3)", () => {
+  const ws = workspace([
+    {
+      sessionId: "sess-kikaku",
+      name: "x-kikaku-a1",
+      cwd: ROOT,
+      kind: "background",
+      status: "idle",
+      id: "bg21",
+      pid: 1121,
+    },
+  ]);
+  writeSeats(ws, [{ sessionId: "sess-kikaku", id: "bg21", role: "kikaku", topic: "—", status: "running" }]);
+  const got = launch(ws, ["kikaku", "--timeout", "20000"]);
+  assert.equal(got.code, 0, got.err);
+  assert.doesNotMatch(got.err, /the hold on kikaku failed/);
+  assert.deepEqual(attaches(ws), ["bg21"]);
+  const own = requests(ws).filter((r) => r.sessionId === "sess-kikaku");
+  assert.deepEqual(
+    own.map((r) => r.op),
+    ["hold"],
+  );
+  assert.equal(own[0].error, "old-contract seat");
 });
 
 test("a seat a VS Code tab holds is refused: a Kikaku at its hold, a Jisso at the listing (spec 4.3)", () => {
@@ -7214,9 +7440,71 @@ test("a Kanri that hands over while the human is attached is followed to its suc
   }
 });
 
+test("a Kanri that hands over is followed when the spawner records its stop a second after the attach returns (spec 4.3, step 5)", () => {
+  const ws = workspace([
+    LIVE_KANRI,
+    { sessionId: "sess-next", name: "seat-next", cwd: ROOT, kind: "background", id: "bg09", pid: 1112 },
+  ]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  const kanri = { sessionId: "sess-live", id: "bg07", role: "kanri", topic: "—", contract: 2 };
+  const next = { sessionId: "sess-next", id: "bg09", role: "kanri", topic: "—", status: "running", contract: 2 };
+  writeSeats(ws, [{ ...kanri, status: "running" }]);
+  // The successor's `stop` ends the attach, and the spawner writes the state
+  // file only after the command returns: the attach writes the roster's new
+  // first row, and a detached child writes `stopped` a second later.
+  const row = `| kanri | — | seat-next | ${ws.root} | sonnet | high | main | auto | 2026-10-05 09:00 | live | /tmp/sess-next.jsonl |`;
+  onAttach(ws, [
+    {
+      ".tanto/roster.md": `${[...ROSTER_HEAD, row].join("\n")}\n`,
+      "@later": {
+        ms: 1000,
+        files: { ".tanto/spawner/seats.json": JSON.stringify({ seats: [{ ...kanri, status: "stopped" }, next] }) },
+      },
+    },
+  ]);
+  const child = quietSpawner(ws);
+  try {
+    const got = launch(ws, ["kanri", "--timeout", "5000"]);
+    assert.equal(got.code, 0, got.err);
+    assert.deepEqual(attaches(ws), ["bg07", "bg09"]);
+    assert.deepEqual(requests(ws), []);
+  } finally {
+    child.kill();
+  }
+});
+
+test("a Kanri with no contract mark that hands over is followed to its successor, and no hold is written for it (spec 4.3)", () => {
+  const ws = workspace([
+    LIVE_KANRI,
+    { sessionId: "sess-next", name: "seat-next", cwd: ROOT, kind: "background", id: "bg09", pid: 1112 },
+  ]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  const kanri = { sessionId: "sess-live", id: "bg07", role: "kanri", topic: "—" };
+  const next = { sessionId: "sess-next", id: "bg09", role: "kanri", topic: "—", status: "running" };
+  writeSeats(ws, [{ ...kanri, status: "running" }]);
+  const row = `| kanri | — | seat-next | ${ws.root} | sonnet | high | main | auto | 2026-10-05 09:00 | live | /tmp/sess-next.jsonl |`;
+  onAttach(ws, [
+    {
+      ".tanto/spawner/seats.json": JSON.stringify({ seats: [{ ...kanri, status: "stopped" }, next] }),
+      ".tanto/roster.md": `${[...ROSTER_HEAD, row].join("\n")}\n`,
+    },
+  ]);
+  const child = quietSpawner(ws);
+  try {
+    const got = launch(ws, ["kanri", "--timeout", "5000"]);
+    assert.equal(got.code, 0, got.err);
+    assert.deepEqual(attaches(ws), ["bg07", "bg09"]);
+    assert.deepEqual(requests(ws), []);
+  } finally {
+    child.kill();
+  }
+});
+
 test("leaving the attach with no handover prints the run's seats once, and exits 0 (spec 4.3, 4.5)", () => {
   const ws = workspace([{ ...LIVE_KANRI, status: "busy" }]);
   writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  // The hint is printed again after the attach: the listing follows it.
+  writeTrust(ws, false);
   const transcript = writeTranscript(ws, "sess-sekkei", 212340);
   writeSeats(ws, [
     { sessionId: "sess-live", id: "bg07", role: "kanri", topic: "—", status: "running", contract: 2 },
@@ -7237,7 +7525,9 @@ test("leaving the attach with no handover prints the run's seats once, and exits
     assert.equal(got.code, 0, got.err);
     assert.deepEqual(attaches(ws), ["bg07"]);
     const lines = got.out.split(/\r?\n/);
-    const listing = lines.slice(lines.indexOf(LEAVE) + 1).filter((line) => line.length > 0);
+    const listing = lines
+      .slice(lines.indexOf(LEAVE) + 1)
+      .filter((line) => line.length > 0 && line !== TRUST && !line.startsWith("left "));
     assert.equal(listing.length, 2, got.out);
     assert.match(listing[0], /^kanri\s+—\s+working$/);
     assert.match(listing[1], /^sekkei\s+t\s+parked — waiting for you\s+context=212340\s+tanto sekkei$/);
@@ -7496,16 +7786,34 @@ function printSeats(root) {
   for (const line of seatLines(readSeats(root), listing.sessions || [])) process.stdout.write(`${line}\n`);
 }
 
+// How long the follow waits for the spawner to record the Kanri just left as
+// stopped: its `stop` ends the attach, and the state file is written a moment
+// after the command returns (spawner.js takeRequests), so a read at the
+// attach's exit can be a moment early (spec 4.3, step 5).
+const FOLLOW_SETTLE_MS = 5000;
+
 /**
  * The successor of the Kanri just left (spec 4.3, step 5): none unless the
- * state file now holds that Kanri `stopped`; then the roster's first row when
- * it names another session, or the handover spawn `kanriSuccessor` finds,
- * waited for up to `waitMs`. `{ id }`, `{ code }` with the line said, or null.
+ * state file now holds that Kanri `stopped`, read for up to
+ * `FOLLOW_SETTLE_MS` while the roster's first row or a handover file says a
+ * handover is in progress; then the roster's first row when it names another
+ * session, or the handover spawn `kanriSuccessor` finds, waited for up to
+ * `waitMs`. `{ id }`, `{ code }` with the line said, or null.
  */
 function successorOf(root, outgoing, sinceMs, waitMs) {
-  const seats = readSeats(root);
-  if (seats.find((s) => s.sessionId === outgoing)?.status !== "stopped") return null;
   const row = firstRosterRow(root);
+  // A handover in progress shows in the roster's first row or the handover
+  // file before the stop lands; with neither, a human leaving a live Kanri
+  // waits for nothing.
+  const handingOver =
+    (row && row.sessionId !== outgoing) || fs.existsSync(path.join(root, ".tanto", "kanri-handover.md"));
+  let seats = readSeats(root);
+  const stopped = () => seats.find((s) => s.sessionId === outgoing)?.status === "stopped";
+  for (const until = Date.now() + FOLLOW_SETTLE_MS; handingOver && !stopped() && Date.now() < until; ) {
+    sleepSync(POLL_MS);
+    seats = readSeats(root);
+  }
+  if (!stopped()) return null;
   if (row && row.sessionId !== outgoing) {
     return { id: seats.find((s) => s.sessionId === row.sessionId)?.id || row.sessionId };
   }
@@ -7560,14 +7868,19 @@ function enterSeat(root, firstId, role, waitMs) {
       return inTab(role);
     }
     const hint = trustHint(root);
-    if (hint) process.stdout.write(`${hint}\n`);
     const context = dialogue ? seatContext(seat.seat) : null;
     const named = topic === "—" ? role : `${role} ${topic}`;
-    if (context !== null) process.stdout.write(`${named} — context=${context}\n`);
-    process.stdout.write(`${LEAVE_LINE}\n`);
+    const contextLine = context !== null ? `${named} — context=${context}` : null;
+    // The attach takes the screen with no scrollback, so a line printed here
+    // flashes by (acceptance scene, step 2): each is printed again when the
+    // attach returns, where the human is looking.
+    const before = [hint, contextLine, LEAVE_LINE].filter(Boolean);
+    process.stdout.write(`${before.join("\n")}\n`);
     const attachedAtMs = Date.now();
     const command = claudeCommand(["attach", id]);
     spawnSync(command.file, command.args, { cwd: root, stdio: "inherit" });
+    const after = [hint, contextLine ? `left ${contextLine}` : null].filter(Boolean);
+    if (after.length > 0) process.stdout.write(`${after.join("\n")}\n`);
     if (held) writeRequest(root, { op: "release", role, topic, sessionId: seat.sessionId });
     const next = role === "kanri" ? successorOf(root, seat.sessionId, attachedAtMs, waitMs) : null;
     if (next?.code !== undefined) return next.code;
@@ -7998,7 +8311,7 @@ Apply P10.6 to P10.9.
 ```js
   // What a restart took is put back on the Kanri path alone — a bare `tanto`
   // and `tanto fukki` — and `fukki` then tells Kanri (spec 4.4).
-  if (role === "kanri") {
+  if (role === "kanri" && !older) {
     resumeLost(root, seats, byId, held);
     if (word === "fukki") tellKanri(root, sessions, attach, resumed > 0, runMoved(seats), waitMs);
   }
@@ -8236,6 +8549,27 @@ test("teishi --seats stops every seat the state file holds, parked and gone ones
     { sessionId: "sess-live", id: "bg07", role: "kanri", topic: "—", status: "running", contract: 2 },
     { sessionId: "sess-parked", id: "bg12", role: "sekkei", topic: "t", status: "parked", contract: 2 },
     { sessionId: "sess-gone", id: "bg13", role: "jisso", topic: "t", status: "gone", contract: 2 },
+    { sessionId: "sess-old", id: "bg05", role: "jisso", topic: "t", status: "stopped" },
+  ]);
+  const got = launch(ws, ["停止", "--seats", "--timeout", "20000"]);
+  assert.equal(got.code, 0, got.err);
+  assert.deepEqual(
+    requests(ws)
+      .filter((r) => r.op === "stop")
+      .map((r) => r.sessionId)
+      .sort(),
+    ["sess-gone", "sess-live", "sess-parked"],
+  );
+});
+
+test("teishi --seats stops a parked and a gone seat that carry no contract mark, as it stops a marked one (spec 4.6)", () => {
+  const ws = workspace([LIVE_KANRI]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  launch(ws, ["kanri", "--timeout", "20000"]);
+  writeSeats(ws, [
+    { sessionId: "sess-live", id: "bg07", role: "kanri", topic: "—", status: "running", contract: 2 },
+    { sessionId: "sess-parked", id: "bg12", role: "sekkei", topic: "t", status: "parked" },
+    { sessionId: "sess-gone", id: "bg13", role: "jisso", topic: "t", status: "gone" },
     { sessionId: "sess-old", id: "bg05", role: "jisso", topic: "t", status: "stopped" },
   ]);
   const got = launch(ws, ["停止", "--seats", "--timeout", "20000"]);
@@ -8810,6 +9144,15 @@ writing nothing, and sending nothing:
 seats are started by tanto <role> in a terminal, or by Kanri; a run started before this contract is moved first — README, "Moving a run"
 ```
 
+A `seat` that exits 1 because the listing failed prints no entry line, and
+that exit is no signal, as a failed listing is none for the census (2.7):
+the session runs `seat` once more, and on a second exit 1 goes on — the
+check guards against a tab opened by hand, and a listing that failed is no
+evidence of one — and says so, appending `seat: listing failed — <reason>`
+to its start line and to the first tanto line it sends, as a model mismatch
+is said. A tab that slipped through is a session under the root that no row
+holds, and Kanri's next census prints it under **Not held**.
+
 The check holds for every role, Kanri and a standalone Kaiseki included:
 `tanto` and `tanto kaiseki` are their ways in.
 
@@ -9231,7 +9574,7 @@ state file, `.tanto/spawner/seats.json`, beside the listing, and prints the
 headings, in this order:
 
 - **Listed** — a `live` or `queued` row whose session is listed, its line
-  ending `— renamed` when the spawner marked it so, and
+  ending `— renamed` when the listed name is not the row's Name cell, and
   `— blocked (<waitingFor>)` for a background seat on a prompt. A seat open
   in a tab is never `blocked`: its prompt is in front of the human already.
 - **Parked** — a `live` row whose seat the state file holds `parked`, with
@@ -9487,8 +9830,8 @@ the path does not. `unavailable` stands only where there is neither, and no
 | what happened | what the run does |
 | --- | --- |
 | an editor reload or restart, or a tab closed | nothing is asked of anyone: no fukki, no report. The background processes are unreached by it; a tab the human does not reopen is a parked seat, woken when a line is next due to it; a turn the reload cut is continued by a word in the tab ("The faces of a seat", C-5). A seat a tab held is listed again under a new name, which the next row covers |
-| a seat renamed | the spawner's census sees a known `sessionId` under a new name and marks `renamed` in `seats.json`; Kanri rewrites the row's Name cell, writes `resumed: <old name> → <new name>`, and clears the mark with an `ack` request. The seat itself does nothing and checks nothing |
-| a line due to a seat that is not running — parked, or gone | Kanri runs `seat` and follows "The address": a `parked` seat, or a `gone` one that is not a Kanri — a stale entry with no `pid` included — is woken by `wake`, a `resume` request run as `claude --resume <sessionId> --bg` with no prompt and no flag, which keeps the `sessionId` and the whole conversation, and the line goes to the name `wake` prints. A `queued` row goes `live` before its `batch:` line is sent, woken or not. A wake is never a spawn and never a replacement; it covers every line to a seat — a queued Jisso's `batch:` line, a rework prompt's, the `close:` line, a `coldread:` line, a `continue:` after a pause — and costs nothing for a seat that is alive, which `wake` answers `listed`. A seat whose wake fails twice, or whose transcript is not on disk, is lost: `roles/kanri.md`'s Replace table decides what follows |
+| a seat renamed | the census prints the seat's line ending `— renamed`, its listed name not being the row's Name cell; Kanri rewrites the row's Name cell and writes `resumed: <old name> → <new name>`, and that is all. The seat itself does nothing and checks nothing |
+| a line due to a seat that is not running — parked, or gone | Kanri runs `seat` and follows "The address": a `parked` seat, or a `gone` one that is not a Kanri — a stale entry with no `pid` included — is woken by `wake`, a `resume` request run as `claude --resume <sessionId> --bg` with no prompt and no flag, which keeps the `sessionId` and the whole conversation, and the line goes to the name `wake` prints. A `queued` row goes `live` before its `batch:` line is sent, woken or not. A wake is never a spawn and never a replacement; it covers every line to a seat — a queued Jisso's `batch:` line, a rework prompt's, the `close:` line, a `coldread:` line, a `continue:` after a pause — and costs nothing for a seat that is alive, which `wake` answers `listed`. A seat whose wake fails, or whose transcript is not on disk, is lost: `roles/kanri.md`'s Replace table decides what follows |
 | a reboot, a crash, or a spawner that died | `tanto`, or `tanto fukki`, reads the state file, starts the spawner when none beats, and writes a `resume` request for every seat it holds as `running` or `blocked` that is not a dialogue seat and that the listing does not hold, and for a Kanri it holds `gone`; never for a `parked`, `stopped`, or `removed` seat. A dialogue seat the reboot took is `parked` at the new spawner's first census pass, with `— mid-turn` when its turn was cut, and Kanri's Recovery wakes it. The roster's first row is settled first and separately, so a Kanri the listing has lost but the state file still holds — `gone` included, a Kanri the human `/stop`ped or one that crashed while the spawner ran — is **resumed and never spawned again**. A seat held as `stopped` or `removed` is not resumed, which is why `tanto teishi --seats` retires a run rather than pausing it |
 
 `tanto` and `tanto fukki` are idempotent: run twice, they start nothing
@@ -9788,7 +10131,8 @@ Apply P14.6 to P14.18.
   step it is not needed for: the recommender's run, the human's check, the
   apply, and Kanri's verification are not waits of the seat's and are never
   listed. At its final boundary — its last report line sent, or `taiseki` —
-  the second fact is
+  (a seat with a tab, which shoki, spawned into a worktree and reading no
+  role file, is not) the second fact is
   `none — this seat has ended; close its tab if one is open`, and a seat
   that has written that line answers any later message with the same line
   and nothing else: an ended seat's row stays in the editor's list, opens
@@ -10136,7 +10480,7 @@ answer has not arrived. A seat whose transcript is on disk is not lost: a
 parked one keeps its row `live` and is woken when a line is next due to it,
 and one the census marks `dead` — with an Events line naming what showed
 its process gone and saying its conversation is kept — is woken the same
-way ("Resuming"). A seat whose wake failed twice, or that answered
+way ("Resuming"). A seat whose wake failed, or that answered
 `no-role` twice, is a forced exit: the roster's Events line says its
 shoroku proposal was not written and what was lost, as far as Kanri knows;
 the row goes `stopped` on the second `no-role` or stays `dead`; and Kanri
@@ -10427,11 +10771,11 @@ call. `scripts/tanto.js` is the human's one command,
 the seat of that role — Kanri when none is named — by attaching to it,
 follows a Kanri handover to the successor with nothing typed, and starts a
 Kanri, a Kikaku, a Hosa, or a standalone Kaiseki when none is held. Its
-three words are `fukki`, which puts back what a restart took and tells
+four words are `fukki`, which puts back what a restart took and tells
 Kanri ("Resuming"); `teishi [--seats]`, which stops the spawner that beats,
-and with `--seats` the run's seats, keeping every conversation; and
-`jokyo`, which prints the run's seats and what waits on the human,
-read-only.
+and with `--seats` the run's seats, keeping every conversation; `jokyo`,
+which prints the run's seats and what waits on the human, read-only; and
+`taiseki`, which it answers with one line naming `/tanto taiseki`.
 ```
 
 **P15.10** `skills/tanto/SKILL.md` — replace exactly these 5 lines
@@ -11135,8 +11479,8 @@ name. What you do by the status `seat` prints:
   commit-window peers — are woken in one `wake` call and sent to afterwards,
   so that the wait is paid once.
 - `stopped` — nothing is sent, but to a seat whose row's Events line says
-  you stopped it to hold it on the human's word, which you wake once the
-  human has lifted the hold.
+  you stopped it to set it aside on the human's word, which you wake once the
+  human has said so.
 - `removed` — never. `no entry` — run the census; the row's status then
   decides.
 
@@ -12124,7 +12468,8 @@ the inbox is no reason for it, since a report pends nothing.
 
 ```markdown
 2. On a grant, tell the human as a numbered list: 1. `tanto <role> [<topic>]`
-   in a terminal; 2. do `<what>`; 3. ← and leave the agent view. Run `beat`,
+   in a terminal, or, for a dialogue seat, a click on its row in the editor's
+   list; 2. do `<what>`; 3. ← and leave the agent view, or close the tab. Run `beat`,
    then also write an `attention` request whose message is
    `human-needed: <role> <topic> — tanto <role> [<topic>]`, because a seat
    that idles on a grant is not `blocked` and the spawner's census would
@@ -12562,7 +12907,7 @@ prints decides:
   itself. Write the row `stopped`, with an Events line naming what ended
   it — `taiseki`, or your own request.
 - **Not listed** — a row the state file does not hold, or holds `running`,
-  `blocked`, or `gone`. An old-contract row (Start, step 4), `live` or
+  `blocked`, or `gone`, and the listing does not show. An old-contract row (Start, step 4), `live` or
   `queued`, is marked `dead` with the Events line
   `old-contract row retired: <name>`. Otherwise a `queued` row stays
   `queued`: a waiting seat's absence is expected, and the send of its
@@ -12576,9 +12921,8 @@ prints decides:
   written gets, with what was lost as far as you know. A row that was the
   live Jisso's is the Replace table's first row, the tree verified first.
 - **Listed**, marked `renamed` — rewrite the row's Name column with the
-  listed name, bare, and write `resumed: <old name> → <new name>`; then
-  `beat` and clear the spawner's `renamed` mark with an `ack` request. The
-  cell is a record: a line still goes to the name `seat` reads at the send.
+  listed name, bare, and write `resumed: <old name> → <new name>`; that is
+  all. The cell is a record: a line still goes to the name `seat` reads at the send.
 ```
 
 **P19.41** `skills/tanto/roles/kanri.md` — replace exactly these 3 lines
@@ -12716,7 +13060,7 @@ for a run with none.
 | a handover is due | one `spawn` for your successor, with `succeeds: <your own sessionId>` | `/tanto kanri` |
 | a seat retires, or the run goes down | one `stop` per seat | — |
 | the human asks, from anywhere — Remote Control included — for a parked seat to be woken | one `wake --hold` on its `sessionId`, which holds the seat awake until 55 minutes after its last turn, its own standing park request then parking it; a `release` request for it when the human says the talk is done sooner | — |
-| the human asks you for a live seat to be held for a while — a priority call, not a lifecycle signal | one `stop` for that seat, its row `stopped` with an Events line quoting the human's word, its conversation kept and no shoroku proposal asked, since nothing of the seat's is lost; when the human says so, one `wake` on the same `sessionId`, the woken seat sent the Resuming line for its role, its row `live` again | — |
+| the human asks you for a live seat to be set aside for a while — a priority call, not a lifecycle signal | one `stop` for that seat, its row `stopped` with an Events line quoting the human's word, its conversation kept and no shoroku proposal asked, since nothing of the seat's is lost; when the human says so, one `wake` on the same `sessionId`, the woken seat sent the Resuming line for its role, its row `live` again | — |
 ```
 
 **P19.46** `skills/tanto/roles/kanri.md` — replace exactly these 9 lines
@@ -13059,7 +13403,8 @@ topic's `.tanto/<topic>/kanri.md` — not a message,
 
 ```markdown
 stamp and a line that carries one reads with two,
-the ledger being the one your `ledger=` key names, else your own
+the ledger being the one your `ledger=` key names, or the one a later
+`ledger=<path>` line from Kanri names, else your own
 topic's `.tanto/<topic>/kanri.md` — not a message,
 ```
 
@@ -13117,7 +13462,8 @@ names, and go on with your work. Kanri opens the commit window at the next
 
 ```markdown
 `commit-ready: sekkei <topic> — <subject> — <YYYY-MM-DD HH:MM>` through
-`boundary.js record --event`, to the ledger your `ledger=` key names, and go
+`boundary.js record --event`, to the ledger your `ledger=` key, or a later
+`ledger=<path>` line from Kanri, names, and go
 on with your work. Kanri opens the commit window at the next
 ```
 
@@ -14120,7 +14466,7 @@ Keikaku, a Jisso, an attached Kaiseki, shoki, and its own successor — its
 `boundary.js wake`, a `resume` and a `hold`. The launcher writes the `spawn`
 of a Kanri when the run has none, of a Kikaku, a Hosa, a standalone
 Kaiseki, and the messenger of `tanto fukki`; the `hold` and the `release`
-around its attach to a dialogue seat; the `resume`s of `tanto fukki`; and
+around its attach to a dialogue seat; the `resume`s of `tanto` and `tanto fukki`; and
 the `stop`s of `tanto teishi --seats`. A dialogue seat writes its own
 `park`, and a Kikaku, a Hosa, or a standalone Kaiseki its own `stop` with
 `self`, through `boundary.js request`. Every seat of a run is spawned on a
@@ -14337,17 +14683,25 @@ What the ops of the run-owned seats add:
   seat that is not a contract-2 Sekkei, Keikaku, Kikaku, Hosa, or Kaiseki;
   `ended`, for a seat `stopped` or `removed`.
 - `hold` answers once the mark is set, waiting out a stop that is still
-  finishing. Its errors: `in a tab`, when the listing shows the seat
-  `interactive`; `ended`; `held by another terminal`, when a launcher whose
-  `pid` still answers holds it; `old-contract seat`, for a seat without
-  `contract`. `release` deletes the mark and does nothing else.
+  finishing. Its errors: `unknown seat <sessionId>`, for a `sessionId` the
+  state file does not hold; `old-contract seat`, for a seat without
+  `contract`; `ended`; `a hold names a pid or forMs`, when the request
+  carries neither; `held by another terminal`, when a launcher whose `pid`
+  still answers holds it; `claude agents: <error>`, when the listing could
+  not be read; `in a tab`, when the listing shows the seat `interactive`;
+  `still listed`, when a park that was finishing never let go. `release`
+  deletes the mark and does nothing else.
 - `resume` runs `claude --resume <sessionId> --bg` only when the listing
-  does not show the seat. Its errors: `no prompt for this role`; `listed`,
-  with the entry's `name` and `kind`, when a tab or a live process holds
-  it; `still listed`, when a stop that was finishing never let go;
-  `copy <id> removed`, when the CLI started a copy, which the spawner stops
-  and removes; `prompt not delivered`, when a Kanri's prompt did not reach
-  it. Otherwise the seat is `running`, and the result adds `id` and `name`.
+  does not show the seat. Its errors: `no prompt for this role`; `removed`,
+  for a seat the spawner has removed; `claude agents: <error>`, when the
+  listing could not be read; `listed`, with the entry's `name` and `kind`,
+  when a tab or a live process holds it; `still listed`, when a stop that
+  was finishing never let go; `copy <id> removed`, when the CLI started a
+  copy, which the spawner stops and removes; `copy <id> not removed: <cause>`,
+  when the copy could not be removed, the CLI's words following; `prompt
+  not delivered`, when a Kanri's prompt did not reach it, and the session
+  it resumed is stopped first. Otherwise the seat is `running`, and the
+  result adds `id` and `name`.
 - `stop` runs `claude stop` only for a seat the listing shows in the
   background. A seat a tab holds is recorded `stopped` with
   `note: "in a tab"`, and a seat not listed, a `parked` one included, with
@@ -14816,7 +15170,8 @@ the move, made once, at a batch boundary or a plan's close:
 `tanto teishi --seats`, then `tanto`, and close the windows of that run's
 old seats. The new Kanri takes the run from its roster and ledger as a
 Kanri does after any loss. Until then, `tanto` prints one line naming the
-roster's old-contract rows, and goes on; the line asks for nothing.
+roster's old-contract rows, and goes on; the line asks for nothing, and a `cleared` row,
+which Kanri leaves for the archive, keeps it printing until the plan's close.
 ````
 
 **P23.15** `skills/tanto/README.md` — replace exactly these 4 lines
