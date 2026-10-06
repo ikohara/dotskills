@@ -5618,8 +5618,8 @@ Apply P7.21 to P7.28 (`roster.md`), P7.29 and P7.30
 **P7.22 →**
 
 ```markdown
-  with an `ack` request. A seat open in a VS Code tab carries the editor's
-  name, and a new one after every window reload; Kanri's census finds its
+  suffix goes at the next census. A seat open in a VS Code tab carries the
+  editor's name, and a new one after every window reload; Kanri's census finds its
   `sessionId` under that name and rewrites the cell the same way, and
   nothing is typed in the tab.
 - A row whose session has gone gets status `dead`: a `live` row the census
