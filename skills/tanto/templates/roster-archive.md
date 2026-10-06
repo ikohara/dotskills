@@ -22,10 +22,12 @@ An archive row is the roster's status row for that session joined with its
 last Residency row; the Topic, cwd, Effort, Mode and Transcript columns are
 dropped, Started keeps the date and drops the time, Ended is the date the
 row's status changed. Transcript is dropped because the file it names is
-local to one machine and outlives nothing; the plan close therefore runs
-`reading.js --share` over those paths **before** this move, while they are
-still in the roster. Context keeps the reading's `context=<n>` figure, and it
-is the one column of this table a later design will be read from.
+local to one machine and outlives nothing, and the topic's measurement does
+not need it: `usage.js close`, the last act of the close's landing, finds
+each seat's transcript from the spawner's result files — by the path a
+result holds, else by its `sessionId` — so the move may come before it.
+Context keeps the reading's `context=<n>` figure, and it is the one column
+of this table a later design will be read from.
 
 ## Events
 
