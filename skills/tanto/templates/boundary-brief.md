@@ -12,16 +12,19 @@ Your dispatch names these arguments:
 ```text
 topic=<topic> batch=<key> plan=<plan path> report=<report path>
 ledger=<.tanto/<topic>/kanri.md> roster=<.tanto/roster.md> base=<merge base>
-kanri-transcript=<Kanri's transcript path, from the roster's first data row>
+kanri-transcript=<Kanri's own transcript path, from its scratchpad path (SKILL.md, "The transcript reading"); the roster row's Transcript cell may hold only <sessionId>.jsonl>
 tanto=<the skill's own directory>
 seat=<the spawner result file of the Jisso that ran this batch, or none>
+jisso=<that Jisso's sessionId, from its roster row, when seat=none>
 measurement=<the measurement report's path on a measurement batch, or none>
 peer readings since the last boundary, one per line, or none: <…>
 ```
 
 The last line is the one thing you cannot see for yourself: the readings
-peers' last lines carried since the previous boundary. It travels in the
-dispatch and goes through `record`.
+peers' last lines carried since the previous boundary, each as
+`<role> <sessionId> <reading>` — the `sessionId` Kanri resolved from the
+peer's bare name when the line arrived. It travels in the dispatch and goes
+through `record`.
 
 `<key>` is the batch's own key: its letter on a first pass, and
 `<X>-rework-<n>` at the boundary of a batch returned for rework — `<X>` the
@@ -73,17 +76,22 @@ Kanri decides whether it is stray.
    node "<tanto>/scripts/boundary.js" record --ledger <ledger> --roster <roster> \
      --batch <key> --tasks <N-M> --state reported --report <report> \
      --verdict "<the check: line>" \
-     --kanri "<name>" --kanri-reading "<Kanri's reading, with its ttl= line>" \
-     --jisso "<name>" --jisso-reading "<Jisso's reading>" \
+     --kanri <Kanri's sessionId> --kanri-reading "<Kanri's reading, with its ttl= line>" \
+     --jisso <the Jisso's sessionId> --jisso-reading "<Jisso's reading>" \
      --seat <the seat= results path, when the dispatch carried one> \
-     --peer-reading "<role> <name> <reading>" \
-     --s-item "<source> | <item>"
+     --peer-reading "<role> <sessionId> <reading>" \
+     --s-item "<source> | <destination> | <item>"
    ```
 
    `<N-M>` is the tasks the plan's Batches table gives the batch — at a
    rework's boundary, the tasks its prompt's title names, since the plan
-   has no row for a rework. One `--s-item` per item of the report's Shoroku
-   proposal section, one
+   has no row for a rework. Kanri's `sessionId` is the basename of the
+   `kanri-transcript=` path without `.jsonl`; the Jisso's is the
+   `sessionId` the `seat=` result carries, or the `jisso=` value when
+   `seat=none`. `record` finds every row by its `sessionId` and by nothing
+   else, so a name in either place is refused, and so is a reading for a
+   seat no row holds. One `--s-item` per item of the report's Shoroku
+   proposal section, its destination the one the item names or empty; one
    `--peer-reading` per line the dispatch carried. The state you write is
    `reported` and nothing
    else: acceptance is a ruling, and the resident's own single `record` call
@@ -101,8 +109,9 @@ Kanri decides whether it is stray.
    plan` with **no name** — the seat that reads the file is the one the
    resident's `spawn` request will create, and the Guard paragraph binds it
    by workspace and branch alone. Under a plan that edits the tanto skill,
-   the roster's `queued` rows in spawn order name the next seat and you say
-   which under Next prompt. Fill the Previous batch verdict section's first line from the
+   the roster's `queued` rows in spawn order name the next seat, and you
+   name it under Next prompt by its `sessionId` and its name both. Fill the
+   Previous batch verdict section's first line from the
    `check:` line and the report's For Kanri section, and leave the two slots
    that template names as `<Kanri fills>` — that section's ruling line and
    the Rulings section's first line. Then make your second
@@ -199,7 +208,8 @@ what `record` printed, as printed
 
 ## Next prompt
 
-the path of the rendered prompt, or `none — final batch`
+the path of the rendered prompt, and under a skill-editing plan's queue the
+next `queued` seat by its `sessionId` and its name; or `none — final batch`
 
 ## Measurement
 

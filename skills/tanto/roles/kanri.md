@@ -430,9 +430,10 @@ Per batch, in this order.
    Run the tanto boundary brief at <skill dir>/templates/boundary-brief.md with:
    topic=<topic> batch=<key> plan=<plan path> report=<report path>
    ledger=<.tanto/<topic>/kanri.md> roster=<.tanto/roster.md> base=<merge base>
-   kanri-transcript=<your transcript path, from the roster's first data row>
+   kanri-transcript=<your own transcript path, from your scratchpad path (SKILL.md, "The transcript reading"); the roster row's Transcript cell may hold only <sessionId>.jsonl>
    tanto=<skill dir>
    seat=<the spawner result file of the Jisso that ran this batch, or none>
+   jisso=<that Jisso's sessionId, from its roster row, when seat=none>
    measurement=<the measurement report's path on a measurement batch, or none>
    peer readings since the last boundary, one per line, or none: <…>
    Write .tanto/<topic>/batch-<key>-verdict.md in your own turn. Dispatch no agents.
@@ -446,9 +447,16 @@ Per batch, in this order.
    file" in `templates/boundary-brief.md`. The readings line is the one
    thing the subagent cannot see and you hold as text: the readings peers'
    last lines carried since the previous boundary, one
-   `<role> <name> <reading>` per line, the name bare. What a dispatch cost
-   is no line of yours: `usage.js` measures every dispatch from the
-   transcripts at the close.
+   `<role> <sessionId> <reading>` per line. A peer's line carries its bare
+   name and no `sessionId`, so you resolve the name the moment the line
+   arrives, while it is fresh: `boundary.js seat <name>` prints the
+   `sessionId` as its sixth field. When `seat` prints `no entry` for the
+   name, you write the reading as the ledger event
+   `unresolved reading: <role> <name> — <reading>` through `record --event`
+   instead, and that row is not written. `jisso=` carries the Jisso's
+   `sessionId` from its row when `seat=none` — a `queued` seat of a
+   skill-editing plan's queue. What a dispatch cost is no line of yours:
+   `usage.js` measures every dispatch from the transcripts at the close.
 
    Then wait for one line. You do not run `passage-check`, `reading.js`, or
    `sections` at this boundary; you do not open the report; you edit no table
@@ -644,19 +652,25 @@ Per batch, in this order.
    node "$TANTO/scripts/boundary.js" record --ledger <.tanto/<topic>/kanri.md> \
      --roster <.tanto/roster.md> --batch <key> --state accepted|rework \
      --verdict "<one line>" --progress "<one line>" \
-     --status "<name> stopped" --status "<name> live" \
-     --s-item "<source> | <item>" \
+     --status "<sessionId> stopped" --status "<sessionId> live" \
+     --kanri <your sessionId> --kanri-count batches \
+     --s-item "<source> | <destination> | <item>" \
      --event "commit-done: <role> <topic> — <subject>"
    ```
 
    It carries the Batches row's state and verdict your ruling gives, the
    Progress line, the Status changes this boundary decided — the retiring
    Jisso `stopped`, the Jisso you have just started `live`, any other seat
-   step 4 ended `stopped`, each by its bare name — one `--s-item` per item of a shoroku
-   proposal step 4 form-checked, and one `commit-done:` event per boundary
-   reply step 5 took; `<key>` is the key of the batch whose boundary this
-   is. At a boundary no table is edited by hand: that call, and for a
-   rework the second call below, are all of it.
+   step 4 ended `stopped`, each by the `sessionId` its row's Transcript
+   cell carries and never by a name, which `record` refuses — your Batches
+   count moved by one when the batch is accepted, by `--kanri` with your
+   own `sessionId`, your transcript's basename, and `--kanri-count batches`,
+   both left out on a rework; one `--s-item` per item of a shoroku proposal
+   step 4 form-checked, its destination the one the item names or empty;
+   and one `commit-done:` event per boundary reply step 5 took. `<key>` is
+   the key of the batch whose boundary this is. At a boundary no table is
+   edited by hand: that call, and for a rework the second call below, are
+   all of it.
 
    A batch returned for rework runs again under a key of its own,
    `<X>-rework-<n>`: `<X>` the batch's file letter — `fixwave` for the fix
