@@ -97,6 +97,14 @@ compound destination is written by its commit subject; an item two closes
 could claim is one row in the ledger of the topic that raised it, never a
 compound value.
 
+Every row is written by `boundary.js record`, one
+`--s-item "<source> | <destination> | <item>"` per item: an empty
+destination is written `—`, and a two-field value is read as source and
+item. A row with the same Source and Item is already there. The row is
+numbered from the highest `S-n` in the table, and a table in which a number
+occurs twice is refused before anything is written, so that a collision is
+repaired once and never grows.
+
 ## Session events
 
 - <YYYY-MM-DD HH:MM> — <a spawn, stop, rm, or resume request, or a `wake`,

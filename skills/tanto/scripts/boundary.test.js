@@ -251,13 +251,44 @@ test("an unknown subcommand exits 2 and names the seven that exist", () => {
 
 // The ledger and the roster the tests write to are copies of the templates
 // this skill ships, so a change to a fixed table's shape fails here first.
+// The seats table's two placeholder rows become Kanri's and a Jisso's, each
+// found by the `sessionId` its Transcript cell carries, so that a reading —
+// which appends no row — has a row to land in.
+const KANRI_ID = "0a0a0a0a-0000-4000-8000-00000000000a";
+const JISSO_ID = "0b0b0b0b-0000-4000-8000-00000000000b";
+const KEIKAKU_ID = "0c0c0c0c-0000-4000-8000-00000000000c";
+// The Name header cell of the shape before this one, spelled so that a sweep
+// for the retired string finds none.
+const OLD_NAME = ["Name", "[ref]"].join(" ");
+
+/** A seats-table row of twenty cells, no reading landed in it yet. */
+function seatRow(role, name, sessionId) {
+  const counts = role === "kanri" ? "0 | 0 | 0" : "— | — | —";
+  return `| ${role} | — | ${name} | /repo | sonnet | high | main | auto | 2026-09-19 09:00 | live | /home/u/${sessionId}.jsonl | — | — | — | — | — | — | ${counts} |`;
+}
+
 function ledgerAndRoster() {
   const dir = tmpDir();
   const ledger = path.join(dir, "kanri.md");
   const roster = path.join(dir, "roster.md");
   fs.copyFileSync(path.join(TANTO, "templates", "kanri.md"), ledger);
-  fs.copyFileSync(path.join(TANTO, "templates", "roster.md"), roster);
+  const seated = fs
+    .readFileSync(path.join(TANTO, "templates", "roster.md"), "utf8")
+    .split(/\r?\n/)
+    .map((line) => {
+      if (line.startsWith("| kanri | — | <name> |")) return seatRow("kanri", "kanri-z", KANRI_ID);
+      if (line.startsWith("| <role> |")) return seatRow("jisso", "jisso-z", JISSO_ID);
+      return line;
+    });
+  fs.writeFileSync(roster, seated.join("\n"), "utf8");
   return { dir, ledger, roster };
+}
+
+/** One more seat's row, after the Jisso's. */
+function addSeat(fixture, line) {
+  const jisso = seatRow("jisso", "jisso-z", JISSO_ID);
+  const text = fs.readFileSync(fixture.roster, "utf8").replace(jisso, `${jisso}\n${line}`);
+  fs.writeFileSync(fixture.roster, text, "utf8");
 }
 
 const KANRI_READING = "transcript: 1 B, 2 records, 3 wake-ups, 0 compactions, context=4 ttl=1h";
@@ -281,11 +312,11 @@ function recordArgs(fixture) {
     "--progress",
     "batch Z reported, ruling pending",
     "--kanri",
-    "kanri-z [aaaaaa]",
+    KANRI_ID,
     "--kanri-reading",
     KANRI_READING,
     "--jisso",
-    "jisso-z [bbbbbb]",
+    JISSO_ID,
     "--jisso-reading",
     JISSO_READING,
     "--s-item",
@@ -413,11 +444,11 @@ test("the Measurements entry replaces its own batch and leaves the others alone"
     "--batch",
     "Y",
     "--kanri",
-    "kanri-y [cccccc]",
+    KANRI_ID,
     "--kanri-reading",
     "transcript: 1 B, 1 records, 1 wake-ups, 0 compactions, context=11 ttl=1h",
     "--jisso",
-    "jisso-y [dddddd]",
+    JISSO_ID,
     "--jisso-reading",
     JISSO_READING,
     "--now",
@@ -434,11 +465,11 @@ test("the Measurements entry replaces its own batch and leaves the others alone"
     "--batch",
     "Z",
     "--kanri",
-    "kanri-z [aaaaaa]",
+    KANRI_ID,
     "--kanri-reading",
     "transcript: 9 B, 9 records, 9 wake-ups, 0 compactions, context=99 ttl=5m",
     "--jisso",
-    "jisso-z [bbbbbb]",
+    JISSO_ID,
     "--jisso-reading",
     JISSO_READING,
     "--now",
@@ -464,29 +495,25 @@ test("the Progress line is replaced whole and the Session events line is written
   assert.strictEqual(events, 1);
 });
 
-test("a Residency row is appended once and then rewritten in place", () => {
+test("a reading lands in its seat's row, found by sessionId, and a second one rewrites the same cells", () => {
   const fixture = ledgerAndRoster();
   run(recordArgs(fixture), fixture.dir);
   const roster = fs.readFileSync(fixture.roster, "utf8");
-  assert.ok(
-    roster.includes("| kanri | — | kanri-z [aaaaaa] | 2026-09-19 | batch Z | 1 | 2 | 3 | 0 | context=4 |"),
-    roster,
-  );
-  assert.ok(
-    roster.includes("| jisso | — | jisso-z [bbbbbb] | 2026-09-19 | batch Z | 5 | 6 | 7 | 0 | context=8 |"),
-    roster,
-  );
-  const rows = roster.split("kanri-z [aaaaaa]").length - 1;
-  assert.strictEqual(rows, 1);
+  assert.ok(roster.includes("| kanri | — | kanri-z | /repo |"), roster);
+  assert.ok(roster.includes(`${KANRI_ID}.jsonl | batch Z | 1 | 2 | 3 | 0 | context=4 | 0 | 0 | 0 |`), roster);
+  assert.ok(roster.includes(`${JISSO_ID}.jsonl | batch Z | 5 | 6 | 7 | 0 | context=8 | — | — | — |`), roster);
+  const later = "transcript: 9 B, 9 records, 9 wake-ups, 1 compactions, context=99 ttl=5m";
+  const again = recordArgs(fixture).map((arg) => (arg === KANRI_READING ? later : arg));
+  assert.strictEqual(run(again, fixture.dir).code, 0);
+  const after = fs.readFileSync(fixture.roster, "utf8");
+  assert.ok(after.includes(`${KANRI_ID}.jsonl | batch Z | 9 | 9 | 9 | 1 | context=99 | 0 | 0 | 0 |`), after);
+  assert.strictEqual(after.split(KANRI_ID).length - 1, 1);
 });
 
-test("a peer reading and a status each name the row they write", () => {
+test("a peer reading lands in its seat's row by sessionId, and one for a seat no row holds is refused", () => {
   const fixture = ledgerAndRoster();
-  const sessions = fs
-    .readFileSync(fixture.roster, "utf8")
-    .replace("| kanri | — | <name> |", "| keikaku | tanto-diet | keikaku-a [ccdd11] |");
-  fs.writeFileSync(fixture.roster, sessions, "utf8");
-  const args = [
+  addSeat(fixture, seatRow("keikaku", "keikaku-a", KEIKAKU_ID));
+  const peer = (sessionId) => [
     "record",
     "--ledger",
     fixture.ledger,
@@ -495,24 +522,24 @@ test("a peer reading and a status each name the row they write", () => {
     "--batch",
     "Z",
     "--peer-reading",
-    "keikaku keikaku-a [ccdd11] transcript: 7 B, 8 records, 9 wake-ups, 1 compactions, context=10",
-    "--status",
-    "keikaku-a [ccdd11] cleared",
+    `keikaku ${sessionId} transcript: 7 B, 8 records, 9 wake-ups, 1 compactions, context=10`,
     "--now",
     "2026-09-19 13:00",
   ];
-  const result = run(args, fixture.dir);
+  const result = run(peer(KEIKAKU_ID), fixture.dir);
   assert.strictEqual(result.code, 0, result.err);
   const roster = fs.readFileSync(fixture.roster, "utf8");
-  assert.ok(
-    roster.includes("| keikaku | — | keikaku-a [ccdd11] | 2026-09-19 | batch Z | 7 | 8 | 9 | 1 | context=10 |"),
-    roster,
-  );
-  assert.ok(roster.includes("| keikaku | tanto-diet | keikaku-a [ccdd11] |"), roster);
-  assert.ok(roster.includes("| cleared |"), roster);
+  assert.ok(roster.includes("| keikaku | — | keikaku-a | /repo |"), roster);
+  assert.ok(roster.includes(`${KEIKAKU_ID}.jsonl | batch Z | 7 | 8 | 9 | 1 | context=10 | — | — | — |`), roster);
+  // A reading appends no row: a row is created by `--seat` alone.
+  const unknown = "0d0d0d0d-0000-4000-8000-00000000000d";
+  const refused = run(peer(unknown), fixture.dir);
+  assert.strictEqual(refused.code, 1);
+  assert.ok(refused.err.includes(`did not find a roster row for ${unknown}`), refused.err);
+  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), roster);
 });
 
-test("an unavailable Jisso reading still writes the Batches row and the Kanri Residency row", () => {
+test("an unavailable Jisso reading still writes the Batches row and Kanri's reading", () => {
   const fixture = ledgerAndRoster();
   const args = recordArgs(fixture).map((arg) =>
     arg === JISSO_READING ? "transcript: unavailable — no transcript on this host" : arg,
@@ -526,17 +553,11 @@ test("an unavailable Jisso reading still writes the Batches row and the Kanri Re
   assert.ok(ledger.includes("| Z | 1-3 | reported |"), ledger);
   assert.ok(ledger.includes("| S-1 | batch-Z-report.md item 1 |"), ledger);
   assert.ok(ledger.includes("- 2026-09-19 10:00 — boundary Z verified"), ledger);
-  // The unavailable side's own Residency row is still written, `—` in the
-  // four figure columns and `context=unavailable` rather than a refusal.
-  assert.ok(
-    roster.includes("| jisso | — | jisso-z [bbbbbb] | 2026-09-19 | batch Z | — | — | — | — | context=unavailable |"),
-    roster,
-  );
-  // The available side's own Residency row reads normally, unaffected.
-  assert.ok(
-    roster.includes("| kanri | — | kanri-z [aaaaaa] | 2026-09-19 | batch Z | 1 | 2 | 3 | 0 | context=4 |"),
-    roster,
-  );
+  // The unavailable side's own reading is still written, `—` in the four
+  // figure columns and `context=unavailable` rather than a refusal.
+  assert.ok(roster.includes(`${JISSO_ID}.jsonl | batch Z | — | — | — | — | context=unavailable |`), roster);
+  // The available side's own reading lands normally, unaffected.
+  assert.ok(roster.includes(`${KANRI_ID}.jsonl | batch Z | 1 | 2 | 3 | 0 | context=4 |`), roster);
   // The joint Measurements entry needs both figures, so it is skipped, not
   // written with a garbage or partial entry, and the skip is reported under
   // "Rows written" rather than swallowed.
@@ -546,6 +567,7 @@ test("an unavailable Jisso reading still writes the Batches row and the Kanri Re
 
 test("both readings unavailable, and an unavailable peer reading, still write —/context=unavailable rows and report both skips", () => {
   const fixture = ledgerAndRoster();
+  addSeat(fixture, seatRow("keikaku", "keikaku-a", KEIKAKU_ID));
   const unavailable = "transcript: unavailable — no transcript on this host";
   const args = [
     "record",
@@ -556,15 +578,15 @@ test("both readings unavailable, and an unavailable peer reading, still write �
     "--batch",
     "Z",
     "--kanri",
-    "kanri-z [aaaaaa]",
+    KANRI_ID,
     "--kanri-reading",
     unavailable,
     "--jisso",
-    "jisso-z [bbbbbb]",
+    JISSO_ID,
     "--jisso-reading",
     unavailable,
     "--peer-reading",
-    `keikaku keikaku-a [ccdd11] ${unavailable}`,
+    `keikaku ${KEIKAKU_ID} ${unavailable}`,
     "--now",
     "2026-09-19 14:00",
   ];
@@ -576,34 +598,98 @@ test("both readings unavailable, and an unavailable peer reading, still write �
   const ledger = fs.readFileSync(fixture.ledger, "utf8");
   assert.ok(!ledger.includes("batch Z: kanri context="), ledger);
   const roster = fs.readFileSync(fixture.roster, "utf8");
-  // Kanri's and Jisso's own Residency rows both read unavailable...
-  assert.ok(
-    roster.includes("| kanri | — | kanri-z [aaaaaa] | 2026-09-19 | batch Z | — | — | — | — | context=unavailable |"),
-    roster,
-  );
-  assert.ok(
-    roster.includes("| jisso | — | jisso-z [bbbbbb] | 2026-09-19 | batch Z | — | — | — | — | context=unavailable |"),
-    roster,
-  );
+  // Kanri's and Jisso's own readings both land unavailable...
+  for (const id of [KANRI_ID, JISSO_ID]) {
+    assert.ok(roster.includes(`${id}.jsonl | batch Z | — | — | — | — | context=unavailable |`), roster);
+  }
   // ...and a `--peer-reading` that arrives unavailable survives the PEER
-  // regex's own parse first and still writes the same shape of row.
-  assert.ok(
-    roster.includes(
-      "| keikaku | — | keikaku-a [ccdd11] | 2026-09-19 | batch Z | — | — | — | — | context=unavailable |",
-    ),
-    roster,
-  );
+  // regex's own parse first and still writes the same cells.
+  assert.ok(roster.includes(`${KEIKAKU_ID}.jsonl | batch Z | — | — | — | — | context=unavailable |`), roster);
 });
 
-test("a heading record cannot find makes it write nothing and exit 1, naming the table", () => {
+test("a heading record cannot find makes it write nothing and exit 1, naming the table and migrate", () => {
   const fixture = ledgerAndRoster();
   const stripped = fs.readFileSync(fixture.ledger, "utf8").replace("## Batches", "## Batch list");
   fs.writeFileSync(fixture.ledger, stripped, "utf8");
   const before = fs.readFileSync(fixture.ledger, "utf8");
   const result = run(recordArgs(fixture), fixture.dir);
   assert.strictEqual(result.code, 1);
-  assert.match(result.err, /the ledger's Batches table/);
+  assert.ok(result.err.includes("the Batches table header is not the template's — expected "), result.err);
+  assert.ok(result.err.includes(", found no table — run boundary.js migrate"), result.err);
   assert.strictEqual(fs.readFileSync(fixture.ledger, "utf8"), before);
+});
+
+test("a table whose header is not the template's is refused, naming the file, both headers, and migrate (spec 2.1)", () => {
+  const fixture = ledgerAndRoster();
+  // Today's sessions table: the old Name cell and eleven cells.
+  const old = [
+    "# tanto roster",
+    "",
+    `| Role | Topic | ${OLD_NAME} | cwd | Model | Effort | Branch | Mode | Started | Status | Transcript |`,
+    "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+    `| kanri | — | kanri-z | /repo | sonnet | high | main | auto | 2026-09-19 09:00 | live | /home/u/${KANRI_ID}.jsonl |`,
+    "",
+  ].join("\n");
+  fs.writeFileSync(fixture.roster, old, "utf8");
+  const ledgerBefore = fs.readFileSync(fixture.ledger, "utf8");
+  const result = run(recordArgs(fixture), fixture.dir);
+  assert.strictEqual(result.code, 1);
+  const expected = `record wrote nothing — ${fixture.roster}: the seats table header is not the template's — expected | Role | Topic | Name | cwd |`;
+  assert.ok(result.err.includes(expected), result.err);
+  assert.ok(result.err.includes(`| Noticed |, found | Role | Topic | ${OLD_NAME} | cwd |`), result.err);
+  assert.ok(result.err.endsWith("| Transcript | — run boundary.js migrate\n"), result.err);
+  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), old);
+  assert.strictEqual(fs.readFileSync(fixture.ledger, "utf8"), ledgerBefore);
+  // A ledger table one column wider than the template's is refused the same way.
+  const wider = ledgerAndRoster();
+  const batches = "| Batch | Tasks | State | Prompt | Report | Verdict |";
+  const text = fs.readFileSync(wider.ledger, "utf8").replace(batches, `${batches} Note |`);
+  fs.writeFileSync(wider.ledger, text, "utf8");
+  const refused = run(["record", "--ledger", wider.ledger, "--batch", "Z", "--state", "sent"], wider.dir);
+  assert.strictEqual(refused.code, 1);
+  assert.ok(refused.err.includes("the Batches table header is not the template's"), refused.err);
+  assert.strictEqual(fs.readFileSync(wider.ledger, "utf8"), text);
+});
+
+test("a `|` inside a value is written `\\|` and read back whole by the next rewrite (spec 2.2)", () => {
+  const fixture = ledgerAndRoster();
+  const record = (...args) => run(["record", "--ledger", fixture.ledger, "--batch", "Z", ...args], fixture.dir);
+  assert.strictEqual(record("--state", "reported", "--verdict", "check: fail — a | b").code, 0);
+  assert.strictEqual(record("--state", "accepted").code, 0);
+  const ledger = fs.readFileSync(fixture.ledger, "utf8");
+  assert.ok(ledger.includes("| Z |  | accepted |  |  | check: fail — a \\| b |"), ledger);
+});
+
+test("a value with a newline is refused, and nothing is written (spec 2.2)", () => {
+  const fixture = ledgerAndRoster();
+  const before = fs.readFileSync(fixture.ledger, "utf8");
+  const args = ["record", "--ledger", fixture.ledger, "--batch", "Z", "--state", "reported", "--verdict", "one\ntwo"];
+  const result = run(args, fixture.dir);
+  assert.strictEqual(result.code, 1);
+  assert.ok(result.err.includes('did not find a cell with no newline (got "one\\ntwo")'), result.err);
+  assert.strictEqual(fs.readFileSync(fixture.ledger, "utf8"), before);
+});
+
+test("a reading with neither --batch nor --read-at is refused, and with --read-at its label is the Read at cell (spec 2.3)", () => {
+  const fixture = ledgerAndRoster();
+  const reading = (...extra) => [
+    "record",
+    "--ledger",
+    fixture.ledger,
+    "--roster",
+    fixture.roster,
+    "--kanri",
+    KANRI_ID,
+    "--kanri-reading",
+    KANRI_READING,
+    ...extra,
+  ];
+  const bare = run(reading(), fixture.dir);
+  assert.strictEqual(bare.code, 1);
+  assert.ok(bare.err.includes("did not find --batch or --read-at beside a reading"), bare.err);
+  assert.strictEqual(run(reading("--read-at", "start"), fixture.dir).code, 0);
+  const roster = fs.readFileSync(fixture.roster, "utf8");
+  assert.ok(roster.includes(`${KANRI_ID}.jsonl | start | 1 | 2 | 3 | 0 | context=4 | 0 | 0 | 0 |`), roster);
 });
 
 test("the same event in two batches is two lines; twice in one batch is one", () => {
@@ -706,43 +792,68 @@ const SEAT = {
   branch: "bg-seats",
   mode: "auto",
   startedAt: "2026-09-21 10:00",
-  transcript: "/tmp/seat-one.jsonl",
-  sessionId: "sess-one",
+  transcript: "/tmp/5e5e5e5e-0000-4000-8000-000000000001.jsonl",
+  sessionId: "5e5e5e5e-0000-4000-8000-000000000001",
 };
 
-test("--seat writes a seat's roster row from its result file, and a second call rewrites it", () => {
+test("--seat writes a seat's twenty-cell row, and a rewrite keeps its reading, its Name, and what the result lacks", () => {
   const fixture = ledgerAndRoster();
-  const seat = write(fixture.dir, "result.json", JSON.stringify(SEAT));
-  const args = ["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--seat", seat];
-  assert.strictEqual(run(args, fixture.dir).code, 0);
+  const seat = (body, name) => {
+    const file = write(fixture.dir, name, JSON.stringify(body));
+    return run(["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--seat", file], fixture.dir);
+  };
+  assert.strictEqual(seat(SEAT, "result.json").code, 0);
+  const head = `| jisso | bg-seats | seat-one [aaaaaa] | /repo | sonnet | xhigh | bg-seats | auto | 2026-09-21 10:00 | live | ${SEAT.transcript} |`;
   const first = fs.readFileSync(fixture.roster, "utf8");
-  assert.ok(first.includes("| jisso | bg-seats | seat-one [aaaaaa] | /repo |"), first);
-  assert.ok(first.includes("/tmp/seat-one.jsonl |"), first);
-  const moved = write(fixture.dir, "result2.json", JSON.stringify({ ...SEAT, branch: "next" }));
-  assert.strictEqual(
-    run(["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--seat", moved], fixture.dir).code,
-    0,
-  );
+  assert.ok(first.includes(`${head} — | — | — | — | — | — | — | — | — |`), first);
+  const reading = ["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--batch", "Z"];
+  const jisso = ["--jisso", SEAT.sessionId, "--jisso-reading", JISSO_READING];
+  assert.strictEqual(run([...reading, ...jisso], fixture.dir).code, 0);
+  // A rewrite from a result under another name, on another branch, with no model.
+  const moved = { ...SEAT, name: "seat-one-renamed", branch: "next", model: undefined };
+  assert.strictEqual(seat(moved, "result2.json").code, 0);
   const second = fs.readFileSync(fixture.roster, "utf8");
-  assert.strictEqual(second.split("seat-one [aaaaaa]").length - 1, 1);
-  assert.ok(second.includes("| next |"), second);
+  assert.strictEqual(second.split(SEAT.sessionId).length - 1, 1);
+  const kept = head.replace("| bg-seats | auto |", "| next | auto |");
+  assert.ok(second.includes(`${kept} batch Z | 5 | 6 | 7 | 0 | context=8 | — | — | — |`), second);
 });
 
-test("--seat writes the session id in the Transcript cell when the result found no transcript, and unavailable when it has neither", () => {
+test("a `|` in a seat's cwd is written `\\|`, and a reading after it still lands in its own columns (spec 2.2)", () => {
   const fixture = ledgerAndRoster();
-  const seatRows = (seat) => {
-    const file = write(fixture.dir, "result.json", JSON.stringify(seat));
-    const args = ["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--seat", file];
-    assert.strictEqual(run(args, fixture.dir).code, 0);
-    return fs.readFileSync(fixture.roster, "utf8");
+  const piped = write(fixture.dir, "result.json", JSON.stringify({ ...SEAT, cwd: "/repo/a|b" }));
+  const seat = ["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--seat", piped];
+  assert.strictEqual(run(seat, fixture.dir).code, 0);
+  const reading = ["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--batch", "Z"];
+  const jisso = ["--jisso", SEAT.sessionId, "--jisso-reading", JISSO_READING];
+  assert.strictEqual(run([...reading, ...jisso], fixture.dir).code, 0);
+  const roster = fs.readFileSync(fixture.roster, "utf8");
+  assert.ok(roster.includes("| seat-one [aaaaaa] | /repo/a\\|b | sonnet |"), roster);
+  assert.ok(roster.includes(`${SEAT.transcript} | batch Z | 5 | 6 | 7 | 0 | context=8 | — | — | — |`), roster);
+});
+
+test("--seat writes <sessionId>.jsonl when the result found no transcript, and refuses no sessionId, a Transcript cell of the wrong shape, and a cwd with a control character", () => {
+  const fixture = ledgerAndRoster();
+  const seat = (body) => {
+    const file = write(fixture.dir, "result.json", JSON.stringify(body));
+    return run(["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--seat", file], fixture.dir);
   };
-  const bare = seatRows({ ...SEAT, transcript: null });
-  assert.ok(bare.includes("| live | sess-one.jsonl |"), bare);
-  const neither = seatRows({ ...SEAT, name: "seat-two [bbbbbb]", transcript: null, sessionId: undefined });
-  assert.ok(neither.includes("| live | unavailable |"), neither);
-  const found = seatRows(SEAT);
-  assert.ok(found.includes("| live | /tmp/seat-one.jsonl |"), found);
-  assert.ok(!found.includes("| sess-one.jsonl |"), found);
+  assert.strictEqual(seat({ ...SEAT, transcript: null }).code, 0);
+  const before = fs.readFileSync(fixture.roster, "utf8");
+  assert.ok(before.includes(`| live | ${SEAT.sessionId}.jsonl |`), before);
+  // The f07a path: an inline script collapsed the separators, so the basename is the whole path.
+  const collapsed = `C:Users0000105523.claudeprojectsc--repo${SEAT.sessionId}.jsonl`;
+  const refusals = [
+    [{ ...SEAT, transcript: null, sessionId: undefined }, "did not find a sessionId in "],
+    [{ ...SEAT, transcript: collapsed }, `whose basename is <uuid>.jsonl (got ${collapsed})`],
+    [{ ...SEAT, transcript: "/tmp/sess-one.jsonl" }, "whose basename is <uuid>.jsonl (got /tmp/sess-one.jsonl)"],
+    [{ ...SEAT, cwd: "C:\u0000Users" }, 'did not find a cwd cell with no control character (got "C:\\u0000Users")'],
+  ];
+  for (const [body, said] of refusals) {
+    const got = seat(body);
+    assert.strictEqual(got.code, 1, got.err);
+    assert.ok(got.err.includes(said), got.err);
+  }
+  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), before);
 });
 
 test("--seat on a file that is not there exits 2 and writes nothing", () => {
@@ -891,21 +1002,22 @@ function itemsLedger(columns) {
   return { dir, ledger: write(dir, "kanri.md", body) };
 }
 
-test("an S-n row takes the columns its table's header names, six or seven", () => {
+test("an S-n row is written in the template's six columns, and a table with the retired seventh is refused, naming migrate", () => {
   const six = ["S-n", "Source", "Item", "Destination", "Adopted", "Written"];
   const seven = ["S-n", "Source", "Item", "Destination", "Adopted", RETIRED, "Written"];
-  const cases = [
-    [six, "| S-1 | report.md item 1 | an item |  | pending | no |"],
-    [seven, "| S-1 | report.md item 1 | an item |  | pending | t2 | no |"],
-  ];
-  for (const [columns, expected] of cases) {
-    const f = itemsLedger(columns);
-    const result = run(["record", "--ledger", f.ledger, "--s-item", "report.md item 1 | an item"], f.dir);
-    assert.strictEqual(result.code, 0, result.err);
-    const ledger = fs.readFileSync(f.ledger, "utf8");
-    assert.ok(ledger.includes(expected), ledger);
-    assert.ok(!ledger.includes("(no item yet)"), ledger);
-  }
+  const f = itemsLedger(six);
+  const result = run(["record", "--ledger", f.ledger, "--s-item", "report.md item 1 | an item"], f.dir);
+  assert.strictEqual(result.code, 0, result.err);
+  const ledger = fs.readFileSync(f.ledger, "utf8");
+  assert.ok(ledger.includes("| S-1 | report.md item 1 | an item |"), ledger);
+  assert.ok(!ledger.includes("(no item yet)"), ledger);
+  const old = itemsLedger(seven);
+  const before = fs.readFileSync(old.ledger, "utf8");
+  const refused = run(["record", "--ledger", old.ledger, "--s-item", "report.md item 1 | an item"], old.dir);
+  assert.strictEqual(refused.code, 1);
+  assert.ok(refused.err.includes("the Shoroku proposal items table header is not the template's"), refused.err);
+  assert.ok(refused.err.endsWith("— run boundary.js migrate\n"), refused.err);
+  assert.strictEqual(fs.readFileSync(old.ledger, "utf8"), before);
 });
 
 // `census`: a fake `claude` that prints a fixed listing, fails, or prints no
@@ -925,13 +1037,23 @@ const CENSUS_FAKE = [
 ].join("\n");
 
 const SESSIONS_HEAD = [
-  "| Role | Topic | Name [ref] | cwd | Model | Effort | Branch | Mode | Started | Status | Transcript |",
-  "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+  "| Role | Topic | Name | cwd | Model | Effort | Branch | Mode | Started | Status | Transcript | Read at | Bytes | Records | Wake-ups | Compactions | Context | Batches | Plans | Noticed |",
+  `|${" --- |".repeat(20)}`,
 ];
 
 function sessionRow(role, topic, name, status, transcript) {
-  return `| ${role} | ${topic} | ${name} | /repo | sonnet | high | main | auto | 2026-09-23 10:00 | ${status} | ${transcript} |`;
+  return `| ${role} | ${topic} | ${name} | /repo | sonnet | high | main | auto | 2026-09-23 10:00 | ${status} | ${transcript} |${" — |".repeat(9)}`;
 }
+
+test("census refuses a roster whose seats table is not the template's, naming migrate (spec 3)", () => {
+  const f = censusFixture([], () => []);
+  const old = fs.readFileSync(f.roster, "utf8").replace("| Name | cwd |", `| ${OLD_NAME} | cwd |`);
+  fs.writeFileSync(f.roster, old, "utf8");
+  const result = census(f, "");
+  assert.strictEqual(result.code, 1);
+  assert.strictEqual(result.out, "census: roster header is not the template's — run boundary.js migrate\n");
+  assert.strictEqual(fs.readFileSync(f.roster, "utf8"), old);
+});
 
 /** A root with a roster of `rows`, and a listing `sessionsOf(root, dir)` returns. */
 function censusFixture(rows, sessionsOf) {

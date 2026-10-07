@@ -4,14 +4,26 @@ Kept by Kanri at `.tanto/roster.md`. Kanri is the only writer.
 
 ## Keeping rule
 
-- One row per seat, Kanri's own row first. Every row is written from the
-  spawner's result file, by `boundary.js record --seat <results path>`:
-  Kanri writes it for a seat it requested when the result lands, and for a
-  seat the launcher started — a Kikaku, a Hosa — when its census prints
-  that seat under Not held with
-  `— spawned as <role> <topic>, result <id>`. A standalone Kaiseki and a
+- One row per seat, Kanri's own row first, found by its `sessionId` — its
+  Transcript cell's basename without `.jsonl` — and by nothing else. Every
+  row is written from the spawner's result file, by
+  `boundary.js record --seat <results path or sessionId>`: Kanri writes it
+  for a seat it requested when the result lands, and for a seat the
+  launcher started — a Kikaku, a Hosa — when its census prints that seat
+  under Not held with `— spawned as <role> <topic>, result <id>`. Kanri's
+  own row is written by `record --init` at its bootstrap and by
+  `record --succeeds <sessionId>` at a handover. A standalone Kaiseki and a
   messenger get no row. A row that does not exist yet while its seat is
   already working is not an error: nothing is sent to a seat by its row.
+- `boundary.js record` is this file's one writer, and no cell and no Events
+  line is edited by hand: a status by `--status "<sessionId> <word>"`, a
+  `live` cell's suffix by `--suffix`, a Name cell by `--rename`, an Events
+  line by `--roster-event`, and a reading by the reading flags with
+  `--batch` or `--read-at`. Every call compares the header of each table
+  it touches with this template's and writes nothing when they differ,
+  naming `boundary.js migrate`, which brings an older roster to this shape
+  once. `boundary.js roster show` prints what a Start reads, and
+  `boundary.js archive` moves the ended rows at a plan close.
 - One held seat per role and topic; Kanri, Kikaku, and Hosa one each. The
   spawner refuses a second Kanri, Kikaku, or Hosa while it holds one
   (`held: <sessionId>`), unless the request names the Kanri it succeeds,
@@ -20,12 +32,13 @@ Kept by Kanri at `.tanto/roster.md`. Kanri is the only writer.
   `queued`; every other plan has one Jisso at a time, spawned per batch.
 - A seat the census prints with the suffix `— renamed` — a known
   `sessionId` whose listed name is not the row's Name cell — is Kanri's to
-  reconcile: rewrite the row's Name column and write the Events line
-  `resumed: <old name> → <new name>`; nothing else is asked of it, and the
-  suffix goes at the next census. A seat open in a VS Code tab carries the
-  editor's name, and a new one after every window reload; Kanri's census finds its
-  `sessionId` under that name and rewrites the cell the same way, and
-  nothing is typed in the tab.
+  reconcile with `record --rename "<sessionId> <new name>"`, which rewrites
+  the Name cell and writes the Events line
+  `resumed: <old name> → <new name>` itself; nothing else is asked of it,
+  and the suffix goes at the next census. A seat open in a VS Code tab
+  carries the editor's name, and a new one after every window reload;
+  Kanri's census finds its `sessionId` under that name and rewrites the
+  cell the same way, and nothing is typed in the tab.
 - A row whose session has gone gets status `dead`: a `live` row the census
   prints under Not listed — a crash, a seat whose process was collected.
   A row the census prints under Parked stays `live`: its seat is the run's,
@@ -34,9 +47,9 @@ Kept by Kanri at `.tanto/roster.md`. Kanri is the only writer.
   ended it. A `queued` row the census does not list stays `queued`, since
   the send of its prompt resumes it, and a `dead` row whose transcript is on
   disk goes `live` again when a line due to it resumes it. A stopped, dead,
-  or replaced row stays, with its Residency row, until the plan closes, then
-  both move to `roster-archive.md` as one row, so the run stays readable
-  after a replacement and the roster stays short.
+  or replaced row stays until the plan closes, when `boundary.js archive`
+  moves it, whole, to `roster-archive.md`, so the run stays readable after
+  a replacement and the roster stays short.
 - This is the record of the run's seats, not an address book. A seat is its
   `sessionId` — its Transcript cell's basename — and Kanri reads the name it
   sends to from the spawner's state file at the moment of sending
@@ -49,16 +62,18 @@ Kept by Kanri at `.tanto/roster.md`. Kanri is the only writer.
   holds — a Kikaku's `decision:`, a Hosa's `slot-needed:` — is preceded by a
   census, which prints that seat under Not held for Kanri to record.
 
-| Role | Topic | Name [ref] | cwd | Model | Effort | Branch | Mode | Started | Status | Transcript |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| kanri | — | <name> | <absolute path> | <model id> | <level or unknown> | <branch> | <auto or unknown> | <YYYY-MM-DD HH:MM> | live | <absolute path, <sessionId>.jsonl, or unavailable> |
-| <role> | <topic> | <name> | <absolute path> | <model id> | <level or unknown> | <branch> | <auto or unknown> | <YYYY-MM-DD HH:MM> | live | <absolute path, <sessionId>.jsonl, or unavailable> |
+| Role | Topic | Name | cwd | Model | Effort | Branch | Mode | Started | Status | Transcript | Read at | Bytes | Records | Wake-ups | Compactions | Context | Batches | Plans | Noticed |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| kanri | — | <name> | <absolute path> | <family, as the spawn request named it> | <level or unknown> | <branch> | <auto or unknown> | <YYYY-MM-DD HH:MM> | live | <absolute path or <sessionId>.jsonl> | <batch <X>, start, handover, or plan close> | <n> | <n> | <n> | <n> | context=<n> | <n> | <m> | <k> |
+| <role> | <topic> | <name> | <absolute path> | <family, as the spawn request named it> | <level or unknown> | <branch> | <auto or unknown> | <YYYY-MM-DD HH:MM> | live | <absolute path or <sessionId>.jsonl> | <batch <X>> | <n> | <n> | <n> | <n> | context=<n> | — | — | — |
 
 Topic is the topic the seat's spawn request named, as its result file
 carries it — for a Jisso, the topic whose queue it was spawned into: the
 plan whose batches are in flight, or, with none in flight, the plan whose
-landing requested the queue — or `—` for Kanri, Kikaku, and Hosa. Effort
-is the spawn's, as the result file records it.
+landing requested the queue — or `—` for Kanri, Kikaku, and Hosa. Model is
+the family the spawn request named, as the result file carries it: the full
+model id is known to the seat alone. Effort is the spawn's, as the result
+file records it.
 
 The status words are five: `queued`, `live`, `stopped`, `replaced`, and
 `dead`. A `live` cell may carry the suffix
@@ -81,36 +96,31 @@ resume puts it back to `live`. `replaced` is the old row of a Kanri that
 handed over. A second Sekkei or Keikaku whose topic differs from the live
 one's is not a duplicate and gets its own row.
 
-## Residency
-
-| Role | Topic | Name [ref] | Since | Read at | Bytes | Records | Wake-ups | Compactions | Context | Batches | Plans | Noticed |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| kanri | — | <name> | <YYYY-MM-DD> | <boundary or plan close> | <n> | <n> | <n> | <n> | context=<n> | <n> | <m> | <k> |
-| <role> | <topic> | <name> | <YYYY-MM-DD> | <boundary> | <n> | <n> | <n> | <n> | context=<n> | — | — | — |
-
-One row per session of the current run, live or not, Kanri's first, rewritten
-in place by Kanri at every boundary and plan close from the readings the
-sessions send (`SKILL.md`, "The transcript reading"): a role's row from its
-latest boundary or exit line, Kanri's own from the reading it takes at the
-trigger check. Context holds the reading's fifth figure in the spelling the
-reading itself prints, `context=<n>`, so that a sweep for that spelling finds
-every place a reading lands. Kikaku sends no reading and its reading columns
-stay blank: it is the human's own seat, and its cost is the human's own
-pacing. A `queued` row's stay blank until its boundary, and one that never
-ran moves to the archive as `stopped`, with its blanks. The last three columns
-are Kanri's only — batches accepted,
-plans closed, and compactions noticed by the session itself, cumulative since
-its own start; a declined handover leaves Noticed incremented, so the count
-stays a record, and a handover resets Kanri's row to the successor with zero
-counts. A reading Kanri doubted and could not verify carries `(unverified)`
-after its Compactions figure; when the session sent `transcript: unavailable`,
-`—` stands in the four figure columns and `context=unavailable` in Context, so
-that a `context=` sweep still finds the row. At the plan close every row whose session is stopped,
-dead, or replaced moves to `roster-archive.md`, joined with its
-status row above, and the archive's Context column across runs is the data any
-later ceiling for the roles that only measure would be read from — Kanri's and
-Jisso's come from `tanto.json`'s `ceiling` map, and issue-40ed's two halves
-closed with decision-b6cb and with that map.
+Read at and the eight columns after it are the seat's reading, written into
+its own row by `record` from the readings the sessions send (`SKILL.md`,
+"The transcript reading"): a role's from its latest boundary or exit line,
+Kanri's own from the reading it takes at the trigger check. Read at is
+`batch <X>` for a boundary's reading and `start`, `handover`, `plan close`,
+or `turn <HH:MM>` for one Kanri takes outside a boundary. Context holds the
+reading's fifth figure in the spelling the reading itself prints,
+`context=<n>`, so that a sweep for that spelling finds every place a
+reading lands. The nine stay `—` until the seat's first reading lands.
+Kikaku sends no reading and its reading columns stay `—`: it is the
+human's own seat, and its cost is the human's own pacing. A `queued` row's
+stay `—` until its boundary, and one that never ran moves to the archive as
+`stopped`, with its blanks. Batches, Plans, and Noticed are Kanri's only —
+batches accepted, plans closed, and compactions noticed by the session
+itself, cumulative since its own start, `0` on the row `--init` or
+`--succeeds` writes and moved by `record --kanri-count`, and `—` on every
+other row; a declined handover leaves Noticed incremented, so the count
+stays a record. A reading Kanri doubted and could not verify carries
+`(unverified)` after its Compactions figure; when the session sent
+`transcript: unavailable`, `—` stands in the four figure columns and
+`context=unavailable` in Context, so that a `context=` sweep still finds
+the row. The archive's Context column across runs is the data any later
+ceiling for the roles that only measure would be read from — Kanri's and
+Jisso's come from `tanto.json`'s `ceiling` map, and issue-40ed's two
+halves closed with decision-b6cb and with that map.
 
 ## Shoroku proposal items
 

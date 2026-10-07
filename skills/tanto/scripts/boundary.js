@@ -216,9 +216,54 @@ const STATES = ["planned", "sent", "reported", "accepted", "rework"];
 const MEASUREMENT_ROW = "Kanri's context at the topic's opening";
 const DEFERRALS_ROW = "deferrals:";
 
-/** The roster's two `| Role | Topic | Name [ref] |` tables, told apart. */
-const SESSIONS_HEADER = "| Role | Topic | Name [ref] | cwd |";
-const RESIDENCY_HEADER = "| Role | Topic | Name [ref] | Since |";
+/**
+ * The skill's own templates: the schema `record` compares every table it is
+ * about to touch with before it writes (spec 2.1). In the repository that
+ * ships the skill the skill directory is a link into the tree, so these are
+ * the working tree's own.
+ */
+const TEMPLATES = path.join(__dirname, "..", "templates");
+
+/**
+ * A table's header line: the first table under `## <heading>`, or, with a
+ * null heading, the roster's seats table — the first table whose header
+ * begins `| Role |`, whatever else it says, so that a roster in an older
+ * shape is found and named rather than missed. Null when there is none.
+ */
+function headerAt(lines, heading) {
+  if (heading === null) {
+    const at = lines.findIndex((line) => line.startsWith("| Role |"));
+    return at === -1 ? null : at;
+  }
+  const span = sectionSpan(lines, heading);
+  const table = span ? tableSpan(lines, span) : null;
+  return table ? table.header : null;
+}
+
+/** A template's header line for a table, as `headerAt` finds it. */
+function templateHeader(template, heading) {
+  const lines = fs.readFileSync(path.join(TEMPLATES, template), "utf8").split(/\r?\n/);
+  return lines[headerAt(lines, heading)].trim();
+}
+
+/** The roster's seats table header, as `templates/roster.md` spells it. */
+const SESSIONS_HEADER = templateHeader("roster.md", null);
+
+/**
+ * The one line a table earns whose header is not its template's, cell for
+ * cell (spec 2.1), or null when the two agree. A file not on disk has no
+ * header to compare: its absence is its caller's to refuse.
+ */
+function headerMismatch(file, template, heading) {
+  if (file === null || !fs.existsSync(file)) return null;
+  const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
+  const expected = templateHeader(template, heading);
+  const at = headerAt(lines, heading);
+  if (at !== null && cells(lines[at]).join("|") === cells(expected).join("|")) return null;
+  const found = at === null ? "no table" : lines[at].trim();
+  const table = heading === null ? "seats table" : `${heading} table`;
+  return `record wrote nothing — ${file}: the ${table} header is not the template's — expected ${expected}, found ${found} — run boundary.js migrate`;
+}
 
 /** A reading's five figures, in the spelling `reading.js` prints them. */
 const READING = /transcript: (\d+) B, (\d+) records, (\d+) wake-ups, (\d+) compactions, context=(\d+)/;
@@ -242,15 +287,19 @@ function writeDoc(doc) {
   fs.writeFileSync(doc.file, doc.lines.join(doc.eol), "utf8");
 }
 
-/** The cells of a `| a | b |` row, trimmed. */
+/**
+ * The cells of a `| a | b |` row, trimmed, each `\|` read back as the `|`
+ * it stands for (spec 2.2). With `row`, the one place the escape lives:
+ * every reader of a cell goes through this function.
+ */
 function cells(line) {
-  const inner = line.replace(/^\s*\|/, "").replace(/\|\s*$/, "");
-  return inner.split("|").map((cell) => cell.trim());
+  const inner = line.replace(/^\s*\|/, "").replace(/(?<!\\)\|\s*$/, "");
+  return inner.split(/(?<!\\)\|/).map((cell) => cell.trim().replace(/\\\|/g, "|"));
 }
 
-/** The row a cell list writes back as. */
+/** The row a cell list writes back as, each `|` inside a value written `\|`. */
 function row(values) {
-  return `| ${values.join(" | ")} |`;
+  return `| ${values.map((value) => String(value).replace(/\|/g, "\\|")).join(" | ")} |`;
 }
 
 /** A `## <heading>` section's line span, end-exclusive. */
@@ -484,42 +533,40 @@ function writeProgress(doc, text, written) {
 }
 
 /**
- * A Residency row, rewritten in place from a reading, or appended. An
- * `unavailable` reading still writes the row — `—` in the four figure
- * columns and `context=unavailable` — rather than refusing the whole call
- * over the one side whose transcript could not be read.
+ * The line of the seats-table row whose Transcript cell's basename is
+ * `sessionId` (spec 1.1), or null. That cell is the key and nothing else
+ * is: the Name cell is a record, rewritten at every rename.
  */
-function writeResidency(doc, role, name, reading, batch, today, written) {
+function seatRowAt(doc, sessionId) {
+  const table = tableByHeader(doc.lines, SESSIONS_HEADER);
+  if (!table) return null;
+  for (let i = table.first; i < table.end; i++) {
+    if (sessionIdOf(cells(doc.lines[i])[10]) === sessionId) return i;
+  }
+  return null;
+}
+
+/**
+ * A reading, written into the reading columns of the row that holds its
+ * seat (spec 1.1, 2.3): Read at and the five figures, and no other cell. A
+ * reading appends no row — a row is created by `--seat` alone — and an
+ * `unavailable` reading still writes `—` in the four figure columns and
+ * `context=unavailable`, rather than refusing the whole call over the one
+ * side whose transcript could not be read.
+ */
+function writeReading(doc, sessionId, reading, readAt, written) {
   const unavailable = isUnavailableReading(reading);
   const figures = unavailable ? null : readingFigures(reading);
   if (!unavailable && !figures) return `a reading that parses (got ${reading})`;
-  const table = tableByHeader(doc.lines, RESIDENCY_HEADER);
-  if (!table) return "the roster's Residency table";
-  let at = -1;
-  for (let i = table.first; i < table.end; i++) {
-    if (cells(doc.lines[i])[2] === name) at = i;
-  }
-  const blank = [role, "—", name, today, "", "", "", "", "", "", "—", "—", "—"];
-  const current = at === -1 ? blank : cells(doc.lines[at]);
-  while (current.length < blank.length) current.push("—");
-  current[4] = `batch ${batch}`;
-  if (unavailable) {
-    current[5] = "—";
-    current[6] = "—";
-    current[7] = "—";
-    current[8] = "—";
-    current[9] = "context=unavailable";
-  } else {
-    current[5] = figures.bytes;
-    current[6] = figures.records;
-    current[7] = figures.wakeUps;
-    current[8] = figures.compactions;
-    current[9] = `context=${figures.context}`;
-  }
-  const line = row(current);
-  if (at === -1) doc.lines.splice(table.end, 0, line);
-  else doc.lines[at] = line;
-  written.push(line);
+  const at = seatRowAt(doc, sessionId);
+  if (at === null) return `a roster row for ${sessionId}`;
+  const current = cells(doc.lines[at]);
+  const read = unavailable
+    ? ["—", "—", "—", "—", "context=unavailable"]
+    : [figures.bytes, figures.records, figures.wakeUps, figures.compactions, `context=${figures.context}`];
+  current.splice(11, 6, readAt, ...read);
+  doc.lines[at] = row(current);
+  written.push(doc.lines[at]);
   return null;
 }
 
@@ -538,15 +585,55 @@ function writeStatus(doc, name, status, written) {
   return `a roster row for ${name}`;
 }
 
+/** A Transcript cell's basename as every writer writes it: `<uuid>.jsonl` (spec 2.2). */
+const TRANSCRIPT_BASENAME = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jsonl$/i;
+
 /**
- * A seat's roster row, written from the spawner's result file for every
- * seat, whoever asked for it: Kanri records a seat the launcher started once
- * the census prints it under Not held (spec 1.3). Idempotent: a second call
- * rewrites the row in place, matched by the Name column, and a name the
- * table does not hold is appended. The Status cell is always written as
- * `live`, on purpose (Minor 13, branch-review.md): `--seat` is only ever
- * called from a spawn or resume result, and a later `stopped` in that
- * column belongs to Kanri alone to write.
+ * The refusal a Transcript cell earns whose basename is not `<uuid>.jsonl`
+ * — a path whose separators an inline script collapsed among them — or
+ * null. It runs on the cell being written, never as a scan of the table.
+ */
+function transcriptProblem(cell) {
+  const basename = String(cell).split(/[\\/]/).pop();
+  return TRANSCRIPT_BASENAME.test(basename) ? null : `a Transcript cell whose basename is <uuid>.jsonl (got ${cell})`;
+}
+
+/** The refusal a cwd cell earns that carries a control character, or null. */
+function cwdProblem(cell) {
+  const control = [...String(cell || "")].some((ch) => ch.charCodeAt(0) < 32 || ch.charCodeAt(0) === 127);
+  return control ? `a cwd cell with no control character (got ${JSON.stringify(cell)})` : null;
+}
+
+/** The seat fields the first eleven cells of a row are written from, by column. */
+const SEAT_FIELDS = [
+  "role",
+  "topic",
+  "name",
+  "cwd",
+  "model",
+  "effort",
+  "branch",
+  "mode",
+  "startedAt",
+  null,
+  "transcript",
+];
+
+/**
+ * A seat's roster row, written from the seat a `--seat` value names, for
+ * every seat, whoever asked for it: Kanri records a seat the launcher
+ * started once the census prints it under Not held. The row is found by the
+ * seat's `sessionId` and appended when no row holds it, its reading columns
+ * `—` and its three counts `0` for Kanri and `—` for every other role; a
+ * second call rewrites it in place, keeping every cell the seat does not
+ * carry — the nine reading columns among them — and the Name cell whatever
+ * the seat carries, so that a rewrite never undoes a rename (spec 2.4). A
+ * bare `<sessionId>.jsonl` Transcript cell, written for a seat that carries
+ * no `transcript`, is kept while the seat still carries none and replaced
+ * by the path once it carries one; a path stays when a later seat carries
+ * `transcript: null`. The Status cell is written `live`: a later `stopped`
+ * belongs to Kanri alone to write. The Transcript and cwd cells are checked
+ * for shape on the way in (spec 2.2).
  */
 function writeSeatRow(doc, file, written) {
   let seat;
@@ -555,13 +642,19 @@ function writeSeatRow(doc, file, written) {
   } catch {
     return `a --seat file that parses (${file})`;
   }
-  if (!seat.name) return `a name in ${file}`;
+  if (!seat.sessionId) return `a sessionId in ${file}`;
+  // The path; a seat whose transcript is not on disk yet carries the bare
+  // `<sessionId>.jsonl`, which every writer and the census find by its
+  // `sessionId`.
+  const transcript = seat.transcript || `${seat.sessionId}.jsonl`;
+  const shape = transcriptProblem(transcript) || cwdProblem(seat.cwd);
+  if (shape) return shape;
   const table = tableByHeader(doc.lines, SESSIONS_HEADER);
-  if (!table) return "the roster's sessions table";
-  const columns = [
+  if (!table) return "the roster's seats table";
+  const fresh = [
     seat.role || "—",
     seat.topic || "—",
-    seat.name,
+    seat.name || "—",
     seat.cwd || "—",
     seat.model || "—",
     seat.effort || "unknown",
@@ -569,19 +662,33 @@ function writeSeatRow(doc, file, written) {
     seat.mode || "auto",
     seat.startedAt || "—",
     "live",
-    // The path; a seat whose transcript is not on disk yet carries the bare
-    // `<sessionId>.jsonl`, which the census matches by `sessionId`, and
-    // `unavailable` stands only where the result held neither.
-    seat.transcript || (seat.sessionId ? `${seat.sessionId}.jsonl` : "unavailable"),
+    transcript,
+    "—",
+    "—",
+    "—",
+    "—",
+    "—",
+    "—",
+    ...(seat.role === "kanri" ? ["0", "0", "0"] : ["—", "—", "—"]),
   ];
-  const line = row(columns);
-  let at = -1;
-  for (let i = table.first; i < table.end; i++) {
-    if (cells(doc.lines[i])[2] === seat.name) at = i;
+  const broken = fresh.find((cell) => /[\r\n]/.test(String(cell)));
+  if (broken !== undefined) return `a cell with no newline (got ${JSON.stringify(broken)})`;
+  const at = seatRowAt(doc, seat.sessionId);
+  if (at === null) {
+    const line = row(fresh);
+    doc.lines.splice(table.end, 0, line);
+    written.push(line);
+    return null;
   }
-  if (at === -1) doc.lines.splice(table.end, 0, line);
-  else doc.lines[at] = line;
-  written.push(line);
+  const current = cells(doc.lines[at]);
+  while (current.length < fresh.length) current.push("—");
+  const next = current.map((cell, i) => {
+    if (i === 9) return "live";
+    const field = SEAT_FIELDS[i];
+    return field && field !== "name" && seat[field] ? fresh[i] : cell;
+  });
+  doc.lines[at] = row(next);
+  written.push(doc.lines[at]);
   return null;
 }
 
@@ -617,12 +724,36 @@ function cmdRecord(argv) {
   }
 
   const now = given(values, "now") || stamp(new Date());
-  const today = now.slice(0, 10);
   const written = [];
   const problems = [];
   const note = (problem) => {
     if (problem) problems.push(problem);
   };
+  // A value with a newline would end its row early (spec 2.2): nothing
+  // this call names is written past one.
+  const broken = argv.find((arg) => /[\r\n]/.test(arg));
+  if (broken !== undefined) {
+    return fail(`record wrote nothing — it did not find a cell with no newline (got ${JSON.stringify(broken)})`, 1);
+  }
+  // Every table this call is about to touch is compared, cell for cell, with
+  // the same table in the skill's own template before anything is written
+  // (spec 2.1); one mismatch writes nothing, and its line names the command
+  // that repairs it.
+  const measures = (kanriReading !== null && jissoReading !== null) || given(values, "deferred") !== null;
+  const touches = [
+    [wantsBatchRow, ledgerPath, "kanri.md", "Batches"],
+    [measures, ledgerPath, "kanri.md", "Measurements"],
+    [values["s-item"].length > 0, ledgerPath, "kanri.md", "Shoroku proposal items"],
+    [needRoster, rosterPath, "roster.md", null],
+  ];
+  const mismatches = touches
+    .filter(([touched]) => touched)
+    .map(([, file, template, heading]) => headerMismatch(file, template, heading))
+    .filter((line) => line !== null);
+  if (mismatches.length > 0) {
+    for (const line of mismatches) fail(line, 1);
+    return 1;
+  }
 
   const ledger = readDoc(ledgerPath);
   if (wantsBatchRow) note(writeBatch(ledger, values, written));
@@ -632,8 +763,8 @@ function cmdRecord(argv) {
     if (kanriUnavailable || jissoUnavailable) {
       // One side's transcript could not be read: the joint context entry
       // needs both figures, so it is skipped rather than failing the whole
-      // call — the other side's own Residency row, and everything else this
-      // call names, are still written below.
+      // call — the other side's own reading, and everything else this call
+      // names, are still written below.
       const who =
         kanriUnavailable && jissoUnavailable
           ? "kanri and jisso readings"
@@ -664,18 +795,24 @@ function cmdRecord(argv) {
   if (progress !== null) note(writeProgress(ledger, progress, written));
 
   let roster = null;
-  const residencyRows = kanri !== null || jisso !== null || values["peer-reading"].length > 0;
-  if (residencyRows && !batch) note("--batch beside a Residency row");
-  if (needRoster && !(residencyRows && !batch)) {
+  // A reading lands in the reading columns of the row that holds its seat,
+  // found by the `sessionId` its flag names (spec 1.1, 2.3). Its Read at
+  // cell is `batch <X>` inside a boundary and the `--read-at` label outside
+  // one — `start`, `handover`, `plan close` — and a reading with neither is
+  // refused.
+  const readings = kanriReading !== null || jissoReading !== null || values["peer-reading"].length > 0;
+  const readAt = batch ? `batch ${batch}` : given(values, "read-at");
+  if (readings && !readAt) note("--batch or --read-at beside a reading");
+  if (needRoster && !(readings && !readAt)) {
     roster = readDoc(rosterPath);
     if (seatFile !== null) note(writeSeatRow(roster, seatFile, written));
     if (kanri !== null && kanriReading === null) note("--kanri-reading beside --kanri");
     if (kanri !== null && kanriReading !== null) {
-      note(writeResidency(roster, "kanri", kanri, kanriReading, batch, today, written));
+      note(writeReading(roster, kanri, kanriReading, readAt, written));
     }
     if (jisso !== null && jissoReading === null) note("--jisso-reading beside --jisso");
     if (jisso !== null && jissoReading !== null) {
-      note(writeResidency(roster, "jisso", jisso, jissoReading, batch, today, written));
+      note(writeReading(roster, jisso, jissoReading, readAt, written));
     }
     for (const line of values["peer-reading"]) {
       const found = PEER.exec(String(line));
@@ -683,7 +820,7 @@ function cmdRecord(argv) {
         note(`a --peer-reading that parses (got ${line})`);
         continue;
       }
-      note(writeResidency(roster, found[1], found[2], found[3], batch, today, written));
+      note(writeReading(roster, found[2], found[3], readAt, written));
     }
     for (const line of values.status) {
       const found = /^(.*)\s+(live|cleared|stopped|queued)$/.exec(String(line).trim());
@@ -837,8 +974,17 @@ function cmdCensus(argv) {
   } catch {
     return fail(`census: cannot read the roster at ${rosterPath}`, 2);
   }
+  // A roster whose seats table is not the template's is refused whole, and
+  // the line names the command that repairs it (spec 3).
+  if (headerMismatch(rosterPath, "roster.md", null) !== null) {
+    console.log("census: roster header is not the template's — run boundary.js migrate");
+    return 1;
+  }
   const table = tableByHeader(lines, SESSIONS_HEADER);
-  if (!table) return fail(`census: no sessions table in ${rosterPath}`, 2);
+  if (!table) {
+    console.log("census: roster header is not the template's — run boundary.js migrate");
+    return 1;
+  }
 
   const found = listing(root);
   if (found.error) {

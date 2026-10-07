@@ -604,6 +604,8 @@ test("a --bg child's cwd is the workspace root, not wherever the spawner was sta
 
 test("a spawn's startedAt reaches the roster's Started cell in the same shape", () => {
   const ws = workspace();
+  // `record --seat` writes a Transcript cell whose basename is a uuid alone.
+  setState(ws, { next: { sessionId: "6f6f6f6f-0000-4000-8000-000000000001" } });
   const { id } = request(ws, SPAWN);
   run(ws, ["run", "--root", ws.root, "--once"]);
   const got = result(ws, id);
