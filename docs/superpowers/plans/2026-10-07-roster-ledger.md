@@ -847,28 +847,30 @@ function addSeat(fixture, line) {
     JISSO_READING,
 ```
 
-**P1.24** `skills/tanto/scripts/boundary.test.js` — replace exactly this 1 line
+**P1.24** `skills/tanto/scripts/boundary.test.js` — replace exactly these 8 lines
 
 ```js
+    "--kanri",
     "kanri-y [cccccc]",
+    "--kanri-reading",
+    "transcript: 1 B, 1 records, 1 wake-ups, 0 compactions, context=11 ttl=1h",
+    "--jisso",
+    "jisso-y [dddddd]",
+    "--jisso-reading",
+    JISSO_READING,
 ```
 
 **P1.24 →**
 
 ```js
+    "--kanri",
     KANRI_ID,
-```
-
-**P1.25** `skills/tanto/scripts/boundary.test.js` — replace exactly this 1 line
-
-```js
-    "jisso-y [dddddd]",
-```
-
-**P1.25 →**
-
-```js
+    "--kanri-reading",
+    "transcript: 1 B, 1 records, 1 wake-ups, 0 compactions, context=11 ttl=1h",
+    "--jisso",
     JISSO_ID,
+    "--jisso-reading",
+    JISSO_READING,
 ```
 
 **P1.26** `skills/tanto/scripts/boundary.test.js` — replace exactly these 5 lines
@@ -7622,7 +7624,7 @@ Kanri's one act:
 | `live` | `parked` | not listed | Parked, with `— mid-turn`, `— waiting` | nothing; Recovery wakes a `— mid-turn` seat with a topic |
 | `live`, `queued` | `stopped`, `removed` | any | Ended, `by taiseki` when the seat ended itself | `--status "<id> stopped"` and a `--roster-event` naming what ended it |
 | `stopped`, `dead` | `running`, `blocked`, or listed while the state file has not ended it (`stopped`, `removed`) | listed or held | **Returned** — `<row status>; seat <state>` | for `dead`: `--status "<id> live"`, the seat is back and nobody wrote it (007e's fifth case); for `stopped`: a `stop` request unless `requests/` already holds one for that `sessionId`, the run ended it and the process stayed (cd46) |
-| `stopped`, `dead` | `parked` | not listed | Not held, `— row <status>` | nothing; a wake is its line's |
+| `stopped`, `dead` | `parked` | not listed | Not held, `— row <status>` (then `— spawned as …`) | nothing; a wake is its line's |
 | `live` | absent, `running`, `blocked`, `gone` | not listed | Not listed, `— listed without a pid (a stale entry)` for a pid-less entry | `--status "<id> dead"`, with a `--roster-event`; the row goes `live` again at the wake that sends it a line, as decision-39fb says |
 | `queued` | any, `gone` included | not listed | Not listed, `— queued; its batch line wakes it` | nothing (78b3) |
 | any | — | — | No session id — the Transcript cell has no `sessionId` | nothing — a row no key finds; `migrate` prints it `suspect:`, and the human repairs or retires it once |
@@ -9190,16 +9192,16 @@ Otherwise what it prints decides:
 
 ```markdown
 - **Not held** — nothing to the human. A session becomes the run's through
-  a result file, never by being listed. A line carrying
-  `— spawned as <role> <topic>, result <id>` is a seat the launcher started
-  that no row holds: write its row from the state file's entry with
+  a result file, never by being listed. A line with no `— row` mark that
+  carries `— spawned as <role> <topic>, result <id>` is a seat the launcher
+  started that no row holds: write its row from the state file's entry with
   `boundary.js record --roster .tanto/roster.md --seat <that sessionId>`, as
   you do for the seats you request. A standalone Kaiseki, whose topic is
-  `—`, and a messenger, `denrei`, get no row. A line ending
-  `— row <status>` is a row's own seat — a `stopped` or `dead` row whose
-  seat is parked, a `replaced` row whose seat is listed — and asks for
-  nothing: a wake is its line's, and the successor's `stop` request ends a
-  replaced Kanri.
+  `—`, and a messenger, `denrei`, get no row. A line carrying
+  `— row <status>`, whether or not `— spawned as …` follows it, is a row's
+  own seat — a `stopped` or `dead` row whose seat is parked, a `replaced`
+  row whose seat is listed — and asks for nothing: a wake is its line's, and
+  the successor's `stop` request ends a replaced Kanri.
 - **No session id** — a row no key finds, its Transcript cell carrying no
   `sessionId`: nothing is written to it. `migrate` prints it `suspect:`,
   and the human repairs or retires it once.
