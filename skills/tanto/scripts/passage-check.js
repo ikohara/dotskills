@@ -10,6 +10,10 @@ const path = require("node:path");
 const { execFileSync, spawnSync } = require("node:child_process");
 const { parseArgs } = require("node:util");
 
+// `execFileSync` fails with ENOBUFS once a child's output passes Node's 1 MiB
+// default `maxBuffer`, and a branch diff that carries a plan and a spec does.
+const GIT_MAX_BUFFER = 64 * 1024 * 1024;
+
 const USAGE =
   "Usage: passage-check.js <lint|replay|diff|verify|sections|frame|boundary> [--plan <path>] [--file <path>] [--base <ref>] [--task <N>] [--stage 1|2] [<heading>...]";
 
@@ -583,7 +587,10 @@ function replayPlan(parsed, base, options = {}) {
   }
   const writtenPaths = new Set(basePaths);
   for (const p of basePaths) {
-    const raw = execFileSync("git", ["-C", cwd, "show", `${base}:${p}`], { encoding: "utf8" });
+    const raw = execFileSync("git", ["-C", cwd, "show", `${base}:${p}`], {
+      encoding: "utf8",
+      maxBuffer: GIT_MAX_BUFFER,
+    });
     endings.set(p, detectEnding(raw));
     const dest = path.join(tree, p);
     fs.mkdirSync(path.dirname(dest), { recursive: true });
@@ -868,7 +875,7 @@ function diffPlan(parsed, base, options = {}) {
     throw new Error(`could not resolve --base '${base}'`);
   }
 
-  const raw = execFileSync("git", ["-C", cwd, "diff", base], { encoding: "utf8" });
+  const raw = execFileSync("git", ["-C", cwd, "diff", base], { encoding: "utf8", maxBuffer: GIT_MAX_BUFFER });
   // Strip CR before classifying: a CRLF working tree diffed against an LF
   // index carries CR bytes on the added lines, which no literal quote from
   // the plan will ever contain.
