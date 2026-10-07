@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-06
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 Source: shoroku run-owned-seats S-59
@@ -33,3 +33,5 @@ Carrier: the hotfix lane, taken on `main` right after the run-owned-seats
 close's merge and before the next topic opens, per R-9 and the human's ruling
 of 2026-10-06 (the three rulings, item 3); not a `fix` of that close, since
 the plan's fences forbade touching the file on the branch.
+
+Resolved by the hotfix lane on main, 2026-10-07: both `execFileSync` git reads in `passage-check.js` (the base-file show and the branch diff) pass one named `maxBuffer` constant of 64 MiB, so a branch diff past 1 MiB no longer exits 2 with ENOBUFS. Not done, and not needed for the symptom: `diff` still prints the Node error text rather than "output too large" once a diff passes 64 MiB.
