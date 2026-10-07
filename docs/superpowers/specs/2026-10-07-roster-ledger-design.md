@@ -234,28 +234,55 @@ checks are what the inline-script path of f07a would have hit.
 where they took a name:
 
 ```text
---kanri <sessionId> --kanri-reading "<reading>"
+--kanri <sessionId> --kanri-reading "<reading>" [--kanri-counts "<batches> <plans> <noticed>"]
 --jisso <sessionId> --jisso-reading "<reading>"
---peer-reading "<role> <sessionId> <reading>"
+--peer-reading "<role> <topic> <reading>"
 --status "<sessionId> <word>"
+--read-at "<label>"
 ```
 
 A row is found by `sessionIdOf(cells[10]) === sessionId`; none found is
 `a roster row for <sessionId>`, and nothing is appended by a reading or a
-status — a row is created by `--seat` alone. The reading writers fill the
-row's nine reading columns in place (Read at `batch <X>` or the value
-`--read-at` names at a close, the five figures, and for Kanri the three
-counts). `templates/boundary-brief.md`'s `record` call and the dispatch
-that renders it carry the two `sessionId`s — Kanri's own, the basename of
-its transcript path, and the Jisso's, from its row — in place of the two
-names; the dispatching text in `roles/kanri.md` says so.
+status — a row is created by `--seat` alone. `--peer-reading` is the one
+writer keyed otherwise: by role and topic, which name exactly one `live`
+or `queued` row under the keeping rule (one held seat per role and topic;
+`—` for Kanri, Kikaku, and Hosa), so that a peer's reading line, which
+carries the peer's name and no `sessionId`, needs no lookup — the brief
+rewrites `<role> <name> <reading>` as `<role> <topic> <reading>`, the
+topic being the dispatch's own. Two such rows is refused
+(`one live row for <role> <topic>`).
+
+The reading writers fill the row's nine reading columns in place: Read at
+is `batch <X>` when `--batch` is given and the value of `--read-at`
+otherwise — `start`, `handover`, `plan close` — and a reading with neither
+is refused; the five figures as today; and for Kanri the three counts from
+`--kanri-counts`, kept as they stand when the flag is absent and `0 0 0`
+when `--init` or `--succeeds` writes the row. A reading taken outside a
+boundary — Kanri's at its start, at a handover, at a close — is this call
+with `--read-at`, and "outside a boundary you write the row yourself" in
+`roles/kanri.md` reads "you run `record` yourself".
+
+`templates/boundary-brief.md`'s `record` call carries Kanri's
+`sessionId` — the basename of the `kanri-transcript=` path the dispatch
+already names, which the brief derives — and the Jisso's, from the
+`seat=` result when one is named and from a new `jisso=<sessionId>` key
+when `seat=none` (a `queued` seat under rule 11); its peer-reading lines
+carry the topic. Kanri's own `record` calls — loop step 6's `--status`
+lines, the handover's, the close's — carry `sessionId`s the same way, read
+from the roster rows; `roles/kanri.md`'s dispatch block, its readings
+line, and its step-6 call say so.
 
 ### 2.4 `--seat`, `--init`, and `--succeeds`
 
 `--seat <result>` is repeatable: each file writes one row, matched by the
 `sessionId` the result carries (`seat.sessionId`), appended when no row
 holds it, rewritten in place when one does — Status `live` as today, since
-`--seat` is called from a spawn or a resume result alone. The Model cell
+`--seat` is called from a spawn or a resume result alone — with the nine
+reading columns kept as they stand on a rewrite. The value may be a
+`sessionId` instead of a path: `record` then reads the state file's entry
+for it and opens `results/<requestId>.json`, which is how a Kanri the
+launcher spawned writes its own row at the bootstrap and at a handover
+without knowing its result's file name. The Model cell
 holds `seat.model` as the result carries it, the family the request named;
 `templates/roster.md` says `<family, as the spawn request named it>` in
 that cell, closing 20de's second half by the template and not by the
@@ -280,14 +307,37 @@ them; and the Events line
 is written under the roster's `## Events` heading, stamped as `record`
 stamps every event. A `--succeeds` whose `sessionId` no row holds is
 refused. `roles/kanri.md`'s Handover case names this call in place of
-"rewrite the roster"; the Residency reset it asked for is the successor's
-blank reading columns.
+"rewrite the roster", and its clause "or `dead` when the census does not
+list its `sessionId`" goes (1.3); the Residency reset it asked for is the
+successor's blank reading columns and `0 0 0` counts, its first reading
+landing by the `--read-at handover` call that follows.
+
+Two more roster writers, so that no Events line and no Name cell of the
+roster is edited by hand:
+
+- `--roster-event "<text>"` writes one line under the roster's `## Events`
+  heading, stamped and deduplicated as the ledger's `--event` is. Every
+  roster Events line `roles/kanri.md` asks for goes through it — `resumed:`,
+  `old-contract row retired:`, `no first turn:`, `handover written by`,
+  `decision: … received from`, a hotfix between plans, `unsent:` and
+  `sent:` — and the role text names the flag where it names the line.
+- `--rename "<sessionId> <new name>"` rewrites the Name cell of that row
+  and writes the roster Events line `resumed: <old name> → <new name>`
+  itself; it is the act the census's `— renamed` asks for and the "Yours"
+  case's rewrite.
+
+A call that names no ledger-keyed flag — `--seat`, `--status`, `--rename`,
+`--roster-event`, a reading with `--read-at` — needs no `--ledger`, since
+a bootstrap, a handover between plans, and a close's last census have
+none; `--ledger` stays required by the flags that write the ledger.
 
 ### 2.5 `S-n`
 
 `--s-item "<source> | <destination> | <item>"`: three fields split on the
 first two unescaped pipes; the destination may be empty and is then
-written `—`. The row is numbered from the highest `S-n` in the table, as
+written `—`, and a two-field value is read as source and item with the
+destination `—`, so that a brief rendered before batch A's text change
+still writes. The row is numbered from the highest `S-n` in the table, as
 today, and before any row is written `record` reads every `S-n` cell: a
 number that occurs twice in the table as found is refused —
 `an S-n table with no number used twice (S-28 twice)` — so that a table a
@@ -298,15 +348,25 @@ Source and Item stays.
 
 `--direction <path>` reads the direction file's `## Items` lines, matches
 each on `— (yes|no) — <topic> S-(\d+)$`, and writes `yes` or `no` into the
-Adopted cell of that `S-n` row of the ledger given by `--ledger`; a line
-it cannot match, or a number the table does not hold, is printed as
-`direction: unmatched — <line>` and the call goes on; the pass prints each
-row it wrote. `--written "<subject>"` writes the subject into the Written
-cell of every row whose Adopted is `yes` and whose Written is `no`; with
-`--written-feedback "<basename>"` the value is `feedback <basename>` for
-rows whose Destination is exactly `feedback`. Shoki's brief and the
-landing name these in place of the by-hand rewrite; d502's second carrier,
-a sentence in the Check step, is not needed.
+Adopted cell of that `S-n` row of the ledger given by `--ledger`. An Items
+line that carries no `S-n` — an inbox item's or a feedback copy's, whose
+pointer is `(inbox …)` — is expected and printed as
+`direction: no S-n — <line>`, exit 0; a line with an `S-n` the table does
+not hold is `direction: unmatched — <line>`, and the call goes on; the pass
+prints each row it wrote. The between-plans sweep has no ledger and no
+`S-n` rows, and runs neither flag.
+
+`--written "<subject>" [--only S-a,S-b,…]` writes the subject into the
+Written cell of every row whose Adopted is `yes` and whose Written is `no`,
+skipping a row whose Destination is exactly `feedback`; with `--only` it
+writes the rows named and no other, which is how shusei's commit subject
+reaches the `fix` rows and shoki's reaches the rest — the direction file's
+groups give Kanri the two lists. `--written-feedback "<basename>"` writes
+`feedback <basename>` into the feedback-only rows, run once `usage.js
+close` has placed the file and not while it holds it, so a held file's rows
+keep `no` as today. Shoki's brief and the landing name these in place of
+the by-hand rewrite; d502's second carrier, a sentence in the Check step,
+is not needed.
 
 ### 2.7 What stays
 
@@ -337,7 +397,17 @@ points at:
 | none, or `stopped`/`dead`/`replaced` | — | listed | Not held, `— row <status>` for a row that holds it | a `replaced` row's seat still listed waits for the successor's `stop` request; the two others are Returned's cases and print there instead |
 
 `dead` is marked on the Not listed signal alone, as today; a `replaced` row
-is never re-marked by the census. The census's `— renamed` suffix is
+is never re-marked by the census. The rules the role file carries beside
+the table stay there — the `— no first turn since <stamp>` suffix and its
+one request, the Parked seat woken in Recovery alone, the `(idle since)`
+suffix's precedence — and the role's sentences that count the headings
+("six"), that say the census prints `live` and `queued` rows alone, that
+say "No session id — nothing", and that say a `dead` row goes `live` "when
+a line is next due" (the Replace table's first row, "Sending to a seat",
+"Session lifecycle") are rewritten to the table; section 7 lists them. The
+census runs before `archive` at a close, and Returned's acts are done
+before the move, so that a `stopped` row whose seat still runs gets its
+`stop` request before its row leaves the roster. The census's `— renamed` suffix is
 derived, as today, from the listed name against the Name cell; the
 spawner's `renamed` mark and its `ack` op go (c330): `OPS` loses `ack`,
 the spawner's census stops setting `seat.renamed`, and `SKILL.md`'s
@@ -349,29 +419,37 @@ and `census: unavailable` Kanri marks nothing, as today.
 ### 4.1 `boundary.js roster show`
 
 ```bash
-node "$TANTO/scripts/boundary.js" roster show [--roster <path>] [--events <n>]
+node "$TANTO/scripts/boundary.js" roster show [--roster <path>] [--events <n>|all] [--items]
 ```
 
 Prints, and writes nothing: the first data row as
 `first: <name> — <sessionId> — <status>`; every `live` and `queued` row as
-`<role> <topic> <name> — <status> — <sessionId>`; the count of rows in
-the roster's Shoroku proposal items table as `items: <n>`; and the last
-`<n>` Events lines (ten by default) under `events:`. On a roster whose
+`<role> <topic> <name> — <status> — <sessionId>`, with `— no state entry`
+when the spawner's state file holds no entry for it (the old-contract row
+Start step 4 looks for); `cleared: <n> rows — run boundary.js migrate`
+when any `cleared` row remains; the count of rows in the roster's Shoroku
+proposal items table as `items: <n>`, or the rows themselves with
+`--items`, for the opening that moves them into a ledger; and the last
+`<n>` Events lines (ten by default, `all` for a reader that looks for an
+unpaired `unsent:` or a hotfix line) under `events:`. On a roster whose
 header is not the template's it prints the rows it can and ends with the
 `migrate` line of 2.1, exit 1, so that a successor on an old-shape roster
-learns it from its first command.
+learns it from its first command. Whether a topic's ledger exists is
+`ls .tanto/*/kanri.md`, not an Events read.
 
 ### 4.2 Where it is named
 
 `roles/kanri.md` Start step 4 reads "run `roster show` and the census" in
 place of "cold-read the roster"; the four cases read the first row's
-`sessionId` from `show`'s first line. `templates/kanri-handover.md`'s
+`sessionId` from `show`'s first line; step 3's bootstrap is
+`record --init --roster .tanto/roster.md --seat <own sessionId>` followed
+by the `--read-at start` reading. `templates/kanri-handover.md`'s
 `## Residency` section becomes `## Reading`, one line: the reading taken
 when the handover was written, with the roster read by `roster show`; and
-its Commands section names the ledger sections a successor reads —
-Progress, Open questions for the human, the Session events tail, and
-Measurements — through `passage-check.js sections`, which closes 401e's
-second half.
+its `## Next step` section, whose "after its cold read" goes, names the
+ledger sections a successor reads — Progress, Open questions for the
+human, the Session events tail, and Measurements — through
+`passage-check.js sections`, which closes 401e's second half.
 
 ## 5. `boundary.js archive`
 
@@ -387,7 +465,11 @@ first (2.1) and writes both or neither; prints each row moved. A `queued`
 row that never ran moves as `stopped` once Kanri has written it so, which
 the close's step already asks. `roles/kanri.md`'s close names the command in
 place of "the archive move", and the roster template's keeping rule says
-the move is this command's.
+the move is this command's. The Release row's list of movable statuses
+loses `refused` and `cleared` — the first is no word of the roster's, the
+second is `migrate`'s to move — and its sentence about bringing the items
+table to the template's shape goes, since `record` refuses a drifted table
+and `migrate` repairs it.
 
 ## 6. The launcher
 
@@ -441,8 +523,11 @@ Templates:
 - `templates/kanri.md` — unchanged in shape; its `S-n` prose names the
   three-field `--s-item` and the refusal.
 - `templates/kanri-handover.md` — `## Reading` for `## Residency`; the
-  sections to read.
-- `templates/boundary-brief.md` — the `record` call's two `sessionId`s.
+  sections to read, in `## Next step`; lands in batch C with the role text
+  that reads it.
+- `templates/boundary-brief.md` — the `record` call's two `sessionId`s
+  and the `jisso=` key; its peer-reading lines as `<role> <topic>
+  <reading>`; its `--s-item` lines with the destination field.
 
 Contract text, only where a mechanism it names changes:
 
@@ -451,10 +536,23 @@ Contract text, only where a mechanism it names changes:
   Artifacts rows for the roster, the archive, and the spawner directory,
   the Resuming table's renamed row (unchanged in rule; the `ack` reference
   goes), and the scripts paragraph's list of `boundary.js` subcommands.
-- `roles/kanri.md` — Start steps 3 and 4; the Handover case; the
-  Residency wording of "The residency line" and "The handover file";
-  the close's archive move and the Check step's write-back; "Session
-  lifecycle"'s census paragraph.
+- `roles/kanri.md` — Start steps 3 and 4 (`--init`, `roster show`, the
+  old-contract read from `show`'s lines); the Handover case
+  (`--succeeds`, the `or dead` clause gone, the counts); the "Yours" case
+  (`--rename`); the dispatch block, the readings line, and loop step 6's
+  `--status` call (`sessionId`s, `<role> <topic> <reading>`, the
+  three-field `--s-item`); the beat sentence's `ack`; "Sending to a
+  seat"'s and the Replace table's "goes `live` when a line is next due"
+  (Returned); the Residency wording of loop step 4, "The trigger", "The
+  residency line", "The handover file", "Readings", and the Release row;
+  "Readings"' "write the row yourself" (`--read-at`); the Release row's
+  statuses and the archive move (`archive`); the Check step's and step 4's
+  write-back (`--direction`, `--written`, `--only`, `--written-feedback`),
+  and the landing's `feedback <basename>` line; "Session lifecycle"'s
+  census paragraph (seven headings, the table pointer, No session id's
+  act, Not held's `— row <status>`); Recovery step 1's "six headings";
+  every roster Events line's writer (`--roster-event`); "after its cold
+  read" wherever it stands.
 - `README.md` — "Moving a run" names `migrate` for an old-shape roster.
 
 ## 8. Migration, rule 11, and this plan
@@ -470,9 +568,10 @@ and the batch prompts. Three batches:
   changes in this batch because `record`'s arguments do, and the run-time
   template lands with the code that keys on it.
 - **B — the census, the commands, the spawner, the launcher.** Section 3,
-  4.1, 5, and 6 with their tests; `kanri-handover.md`.
-- **C — the contract's text.** `SKILL.md`, `roles/kanri.md`, `README.md`;
-  the Old values list measured at zero.
+  4.1, 5, and 6 with their tests.
+- **C — the contract's text.** `SKILL.md`, `roles/kanri.md`,
+  `templates/kanri-handover.md`, `README.md`; the Old values list measured
+  at zero.
 
 Global Constraints the plan carries, in substance:
 
@@ -483,13 +582,22 @@ Global Constraints the plan carries, in substance:
    that names `migrate`, so a forgotten run is caught at the first write
    and costs one more dispatch. `migrate`'s `suspect:` and `unplaced:`
    lines are Kanri's to settle by hand before the dispatch, once.
-2. **The brief's `record` call carries `sessionId`s from A's boundary on.**
-   A's batch prompt's Kanri directive says so; Kanri's own `sessionId` is
-   its transcript basename, the Jisso's is its row's.
+2. **Every `record` call carries `sessionId`s from A's boundary on** —
+   the brief's and Kanri's own (loop step 6's `--status` lines among
+   them), with `<role> <topic> <reading>` peer lines and the three-field
+   `--s-item`. A's batch prompt's Kanri directive says so, since
+   `roles/kanri.md`'s text changes in C; Kanri's own `sessionId` is its
+   transcript basename, every other seat's is its row's, and `record`
+   refuses a name with a line that says so.
 3. **No role is started or replaced before C's landing**, except Kanri's
-   own handover when due — its successor takes this ruling from the
-   handover file and runs the Handover case with `--succeeds` once A has
-   landed, by hand before — and a Kaiseki, a Kanri ruling.
+   own handover when due — its successor takes this ruling and
+   Constraint 2 from the handover file, and runs the Handover case with
+   `--succeeds` once A has landed, by hand before; between B and C the
+   handover template's `## Reading` still says "Residency" and the
+   successor reads the roster by `roster show` all the same — and a
+   Kaiseki, a Kanri ruling. `migrate`'s `suspect:` and `unplaced:` lines
+   are the one hand edit of the plan, at A, and the role's "you edit no
+   table by hand" stands for every other moment.
 4. **The archive move at this plan's close is `boundary.js archive`**, and
    the close's direction write-back is `--direction` and `--written`:
    the plan's own close is the first run of both, and their output is the
@@ -538,7 +646,14 @@ across `skills/tanto/` as a whole.
   stopped|queued`), its test, `roles/kanri.md`.
 - `"ack"` and `seat.renamed` — `spawner.js`, `SKILL.md` Artifacts.
 - `rewrite the roster` — `roles/kanri.md` Handover case.
-- `cold-read the roster` — `roles/kanri.md` Start step 4.
+- `cold-read the roster`, `after its cold read` — `roles/kanri.md` Start
+  step 4 and its handover text, `templates/kanri-handover.md` Next step.
+- `<role> <name> <reading>`, `--kanri "<name>"`, `--jisso "<name>"`,
+  `--status "<name>` — `templates/boundary-brief.md`, `roles/kanri.md`'s
+  dispatch block, readings line, and loop step 6.
+- `refused` as a roster status — `roles/kanri.md` Release row.
+- `or `dead` when the census does not list` — `roles/kanri.md` Handover
+  case.
 - `Stag[e]`, `RETIRED_COLUMN`, `"t2"` — `boundary.js`.
 - `matched by the Name column` — `boundary.js`'s `writeSeatRow` comment.
 - `<name [ref]>` and `<kanri name>` in the `record` call —
@@ -694,8 +809,43 @@ below are prose bundles or issues of other mechanisms (28f2, 2a80, 7bd1,
 
 ## Answers to the spec inputs
 
-None reached this Sekkei: `.tanto/roster-ledger/spec-inputs.md` did not
-exist while the spec was written.
+No `spec-inputs.md` was written. One input reached this Sekkei by Kanri's
+answer to the `spec-check:` line, `.tanto/roster-ledger/spec-check-kanri.md`
+(I-1): 37 findings U1 to U37 on what the first draft did not name, and a
+list of every Residency and name-keyed place in the role file, the
+handover template, the brief, and the script. Each is answered in the
+text, in this order:
+
+- U1, U9 — `--ledger` optional for roster-only calls (2.4).
+- U2, U8 — `--kanri-counts`, `0 0 0` at `--init` and `--succeeds`, the
+  first reading by `--read-at` (2.3, 2.4).
+- U3, U9 — `--seat <sessionId>` reads the result through the state file
+  (2.4).
+- U4 — `show` prints `— no state entry` and the `cleared:` count (4.1).
+- U5 — `show --events all`, `--items`; the ledger's existence by `ls`
+  (4.1).
+- U6, U12, U37 — "after its cold read" in the Old values list; the
+  sections line in `## Next step` (4.2).
+- U7 — the `or dead` clause goes (2.4, Old values).
+- U10 — `--roster-event` (2.4).
+- U11 — `--rename`; `--seat` keeps the reading columns on a rewrite (2.4).
+- U13, U17 — `--peer-reading` by role and topic; the two-field `--s-item`
+  tolerated; the brief's lines named (2.3, 2.5, 7).
+- U14 — the `jisso=` key for `seat=none`; Kanri's `sessionId` from
+  `kanri-transcript=` (2.3).
+- U15, U36 — Constraint 2 covers Kanri's own calls (8).
+- U16 — `--read-at` defined (2.3).
+- U18, U28, U32, U34 — no change needed; noted.
+- U19 to U23, U25, U26 — the role file's places listed (3, 7).
+- U24 — the census and Returned's acts before `archive` (3).
+- U27 — `refused` and `cleared` out of the Release row; the items table
+  is `record`'s to refuse and `migrate`'s to repair (5).
+- U29 — `--only`, the feedback-only skip, `--written-feedback` after
+  placement (2.6).
+- U30, U31 — `direction: no S-n` for inbox lines; the sweep runs neither
+  flag (2.6).
+- U33 — the one hand edit, at A (8, Constraint 3).
+- U35 — `kanri-handover.md` moves to batch C (7, 8).
 
 ## Deferred items
 
