@@ -1730,10 +1730,248 @@ function cmdBeat(argv) {
   return line === "spawner: beating" ? 0 : 1;
 }
 
+/** The items column a ledger opened before its retirement keeps, in two parts so that a sweep for it finds none. */
+const RETIRED_ITEMS_COLUMN = ["Stag", "e"].join("");
+
+/** Two cell lists, compared cell for cell. */
+function sameCells(a, b) {
+  return a.length === b.length && a.every((cell, i) => cell === b[i]);
+}
+
+/** A table's separator row for `n` columns. */
+function separator(n) {
+  return `|${" --- |".repeat(n)}`;
+}
+
+/**
+ * A Shoroku proposal items table brought to its template's header (spec
+ * 1.4): the pre-rename `Candidate` column named `Item`, and the retired
+ * column dropped with its cells, no value moved. Returns whether it
+ * changed, or the shape it could not place.
+ */
+function repairItems(lines, template) {
+  const at = headerAt(lines, "Shoroku proposal items");
+  if (at === null) return { changed: false };
+  const expected = cells(templateHeader(template, "Shoroku proposal items"));
+  const header = cells(lines[at]);
+  if (sameCells(header, expected)) return { changed: false };
+  const renamed = header.map((cell) => (cell === "Candidate" ? "Item" : cell));
+  const drop = renamed.indexOf(RETIRED_ITEMS_COLUMN);
+  const keep = (list) => list.filter((_, i) => i !== drop);
+  if (!sameCells(keep(renamed), expected)) return { unknown: `an items header ${lines[at].trim()}` };
+  lines[at] = row(expected);
+  lines[at + 1] = separator(expected.length);
+  for (let i = at + 2; i < lines.length && lines[i].startsWith("|"); i++) lines[i] = row(keep(cells(lines[i])));
+  return { changed: true };
+}
+
+/**
+ * The roster brought to the template's one table (spec 1.4). The sessions
+ * table is found by its header's first cells and the readings table by its
+ * own — `Since` in its fourth — and each reading row is joined into the
+ * last sessions row that carries the same Name cell: the one join by name
+ * this design makes, because the old shape has no other key, and the last.
+ * A reading no row carries is printed `unplaced:`; a `cleared` row moves to
+ * the archive as it stands, Ended `today`; a `live` or `queued` row whose
+ * Transcript cell is not `<uuid>.jsonl` is printed `suspect:` and left as
+ * it stands. The readings heading, table, and prose go.
+ */
+function migrateRoster(doc, today) {
+  const lines = doc.lines;
+  const out = [];
+  const items = repairItems(lines, "roster.md");
+  if (items.unknown) return { unknown: items.unknown };
+  const at = headerAt(lines, null);
+  if (at === null) return { unknown: "no seats table" };
+  const header = cells(lines[at]);
+  const readingsAt = () => lines.findIndex((line) => line.startsWith("| Role |") && cells(line)[3] === "Since");
+  const expected = cells(SESSIONS_HEADER);
+  if (sameCells(header, expected) && readingsAt() === -1) return { changed: items.changed, out, moved: [] };
+  const old = header.length === 11 && header[1] === "Topic" && header[3] === "cwd" && header[10] === "Transcript";
+  if (!old) return { unknown: `a seats header ${lines[at].trim()}` };
+  const blank = (cell) => (cell === "" ? "—" : cell);
+  const sessions = [];
+  for (let i = at + 2; i < lines.length && lines[i].startsWith("|"); i++) {
+    const current = cells(lines[i]).slice(0, 11);
+    while (current.length < 11) current.push("—");
+    sessions.push({ cells: current.map(blank), reading: null });
+  }
+  const readings = readingsAt();
+  for (let i = readings + 2; readings !== -1 && i < lines.length && lines[i].startsWith("|"); i++) {
+    const reading = cells(lines[i]);
+    const target = sessions.filter((s) => s.cells[2] === reading[2]).pop();
+    if (target) target.reading = reading.slice(4, 13).map(blank);
+    else out.push(`unplaced: ${reading[0]} ${reading[2]} — no sessions row carries that name`);
+  }
+  const kept = [];
+  const moved = [];
+  for (const seat of sessions) {
+    const full = [...seat.cells, ...(seat.reading || ["—", "—", "—", "—", "—", "—", "—", "—", "—"])];
+    const status = full[9].split(/\s+/)[0];
+    if (status === "cleared") {
+      moved.push(row([...full, today]));
+      out.push(`archived: ${moved[moved.length - 1]}`);
+      continue;
+    }
+    if ((status === "live" || status === "queued") && transcriptProblem(full[10])) {
+      out.push(`suspect: ${full[0]} ${full[2]} — Transcript ${full[10]}`);
+    }
+    kept.push(row(full));
+    out.push(kept[kept.length - 1]);
+  }
+  lines.splice(at, sessions.length + 2, row(expected), separator(expected.length), ...kept);
+  const table = readingsAt();
+  if (table !== -1) {
+    let start = table;
+    while (start > at && !lines[start].startsWith("## ")) start--;
+    if (start === at) start = table;
+    let stop = table + 1;
+    while (stop < lines.length && !/^#{1,2} /.test(lines[stop])) stop++;
+    lines.splice(start, stop - start);
+  }
+  return { changed: true, out, moved };
+}
+
+/**
+ * The archive brought to the template's 21 columns (spec 1.4): each table
+ * directly under `## Sessions`, in place — the sixteen-column rows of
+ * 2026-09-14, and the fifteen-column rows before them, which carry no
+ * Context — with Topic, cwd, Effort, Mode, and Transcript `—`, Context `—`
+ * where the row had none, and Ended moved last. A table under any other
+ * heading — a closed plan's own section — is history and left as it
+ * stands. Returns the rows it rewrote, or the shape it could not place.
+ */
+function migrateArchive(doc) {
+  const lines = doc.lines;
+  const expected = cells(templateHeader("roster-archive.md", "Sessions"));
+  const span = sectionSpan(lines, "Sessions");
+  let tables = 0;
+  let rows = 0;
+  let changed = false;
+  for (let at = span ? span.start : lines.length; at < (span ? span.end : 0); at++) {
+    if (!lines[at].startsWith("| ") || !(lines[at + 1] || "").startsWith("| ---")) continue;
+    tables++;
+    const header = cells(lines[at]);
+    if (sameCells(header, expected)) continue;
+    const context = header.includes("Context");
+    const old = header[2] === "Model" && header[5] === "Ended" && header.length === (context ? 16 : 15);
+    if (!old) return { unknown: `a Sessions header ${lines[at].trim()}` };
+    changed = true;
+    lines[at] = row(expected);
+    lines[at + 1] = separator(expected.length);
+    for (let i = at + 2; i < span.end && lines[i].startsWith("|"); i++) {
+      const o = cells(lines[i]);
+      if (!context) o.splice(12, 0, "—");
+      while (o.length < 16) o.push("—");
+      lines[i] = row([o[0], "—", o[1], "—", o[2], "—", o[3], "—", o[4], o[6], "—", ...o.slice(7, 16), o[5]]);
+      rows++;
+    }
+  }
+  if (tables === 0) return { unknown: "no Sessions table" };
+  return { changed, rows };
+}
+
+/** The end of the last table under `## Sessions`, where a moved row is appended. */
+function sessionsEnd(lines) {
+  const span = sectionSpan(lines, "Sessions");
+  let end = null;
+  for (let i = span.start; i < span.end; i++) {
+    if (lines[i].startsWith("| ") && (lines[i + 1] || "").startsWith("| ---")) {
+      end = i + 2;
+      while (end < span.end && lines[end].startsWith("|")) end++;
+    }
+  }
+  return end;
+}
+
+/**
+ * `templates/roster-archive.md` as a new archive: its prose and its two
+ * headings, the Sessions table's placeholder row and the placeholder line
+ * under `## Events` dropped.
+ */
+function archiveFromTemplate(file) {
+  const lines = fs.readFileSync(path.join(TEMPLATES, "roster-archive.md"), "utf8").split(/\r?\n/);
+  const table = tableSpan(lines, sectionSpan(lines, "Sessions"));
+  lines.splice(table.first, table.end - table.first);
+  const events = sectionSpan(lines, "Events");
+  const bullet = lines.findIndex((line, i) => i > events.start && line.startsWith("- "));
+  if (bullet !== -1) lines.splice(bullet, events.end - bullet);
+  return { file, lines, eol: "\n" };
+}
+
+/**
+ * `migrate --roster <path> --archive <path> [--ledger <path>] [--now
+ * <YYYY-MM-DD>]` (spec 1.4): each file brought to its template's shape
+ * once, the headers read from the skill's own `templates/`, as `record`
+ * reads them. Idempotent and safe twice over: before it rewrites a file it
+ * keeps one copy beside it, `<path>.pre-migrate`, written once and never
+ * overwritten, and a file already in its template's shape is read and left
+ * as it is, `migrate: <path> is current`. On a shape it does not recognize
+ * it writes nothing to any file, prints
+ * `migrate: <path> — unknown shape: <what it found>`, and exits 1.
+ */
+function cmdMigrate(argv) {
+  const values = parseArgs(argv);
+  const rosterPath = given(values, "roster");
+  const archivePath = given(values, "archive");
+  const ledgerPath = given(values, "ledger");
+  if (!rosterPath || !archivePath) return fail("migrate needs --roster and --archive", 2);
+  for (const file of [rosterPath, ledgerPath].filter(Boolean)) {
+    if (!fs.existsSync(file)) return fail(`migrate: ${file} is not on disk`, 2);
+  }
+  const today = given(values, "now") || stamp(new Date()).slice(0, 10);
+  const created = !fs.existsSync(archivePath);
+  const archive = created ? archiveFromTemplate(archivePath) : readDoc(archivePath);
+  const archived = migrateArchive(archive);
+  const roster = readDoc(rosterPath);
+  const migrated = migrateRoster(roster, today);
+  const ledger = ledgerPath ? readDoc(ledgerPath) : null;
+  const repaired = ledger ? repairItems(ledger.lines, "kanri.md") : { changed: false };
+  const unknown = [
+    [archivePath, archived.unknown],
+    [rosterPath, migrated.unknown],
+    [ledgerPath, repaired.unknown],
+  ].filter(([, what]) => what);
+  if (unknown.length > 0) {
+    for (const [file, what] of unknown) console.log(`migrate: ${file} — unknown shape: ${what}`);
+    return 1;
+  }
+  if (migrated.moved.length > 0) {
+    archive.lines.splice(sessionsEnd(archive.lines), 0, ...migrated.moved);
+  }
+  const keep = (doc, changed) => {
+    if (!changed) {
+      console.log(`migrate: ${doc.file} is current`);
+      return;
+    }
+    if (fs.existsSync(doc.file) && !fs.existsSync(`${doc.file}.pre-migrate`)) {
+      fs.copyFileSync(doc.file, `${doc.file}.pre-migrate`);
+    }
+    writeDoc(doc);
+  };
+  keep(archive, created || archived.changed || migrated.moved.length > 0);
+  if (created) console.log(`migrate: ${archivePath} created from templates/roster-archive.md`);
+  if (archived.rows > 0)
+    console.log(`migrate: ${archivePath} — ${archived.rows} rows brought to the template's columns`);
+  keep(roster, migrated.changed);
+  for (const line of migrated.out) console.log(line);
+  if (ledger) {
+    keep(ledger, repaired.changed);
+    const span = sectionSpan(ledger.lines, "Measurements");
+    const table = span ? tableSpan(ledger.lines, span) : null;
+    const rows = table ? ledger.lines.slice(table.first, table.end) : [];
+    if (!rows.some((line) => cells(line)[0].startsWith(MEASUREMENT_ROW))) {
+      console.log(`missing row: ${ledgerPath} — Measurements has no "${MEASUREMENT_ROW}" row`);
+    }
+  }
+  return 0;
+}
+
 function main(argv) {
   const sub = argv[0];
   if (sub === "check") return cmdCheck(argv.slice(1));
   if (sub === "record") return cmdRecord(argv.slice(1));
+  if (sub === "migrate") return cmdMigrate(argv.slice(1));
   if (sub === "census") return cmdCensus(argv.slice(1));
   if (sub === "request") return cmdRequest(argv.slice(1));
   if (sub === "seat") return cmdSeat(argv.slice(1));

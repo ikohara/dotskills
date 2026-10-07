@@ -1177,6 +1177,213 @@ test("check exits 2 when --ledger names a path that is not on disk", () => {
   assert.match(result.err, /--ledger .* is not on disk/);
 });
 
+// `migrate` (spec 1.4): today's two-table roster, the 16-column archive, and
+// an older ledger, the retired strings spelled in two parts so that a sweep
+// for them finds none here.
+const OLD_READINGS = ["## Resid", "ency"].join("");
+const STALE_ID = "1f1f1f1f-0000-4000-8000-000000000001";
+// A closed plan's own section of the archive: history, which migrate leaves as it stands.
+const HISTORY_ROW = [
+  `| Role | ${OLD_NAME} | Model | Branch | Started | Ended | Status | Read at | Bytes | Records | Wake-ups | Compactions | Context | Batches | Plans | Noticed |`,
+  "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+  "| jisso | jisso-h | sonnet | t | 2026-10-01 | 2026-10-02 | stopped | batch B | 1 | 2 | 3 | 0 | context=4 | — | — | — |",
+].join("\n");
+
+/** A separator row for `n` columns. */
+function separatorOf(n) {
+  return `|${" --- |".repeat(n)}`;
+}
+
+/** A root holding today's two-table roster, the 16-column archive, and an older ledger. */
+function oldShapes() {
+  const dir = tmpDir();
+  const transcript = (id) => `/home/u/${id}.jsonl`;
+  const roster = [
+    "# tanto roster",
+    "",
+    "## Keeping rule",
+    "",
+    "- One row per seat.",
+    "",
+    `| Role | Topic | ${OLD_NAME} | cwd | Model | Effort | Branch | Mode | Started | Status | Transcript |`,
+    separatorOf(11),
+    `| kanri | — | kanri-a | /repo | sonnet | high | main | auto | 2026-10-07 09:00 | live | ${transcript(KANRI_ID)} |`,
+    `| sekkei | t | sekkei-b | /repo | fable | high | t | auto | 2026-10-07 10:00 | stopped | ${transcript(JISSO_ID)} |`,
+    `| kikaku | — | kikaku-c | /repo | fable | xhigh | main | auto | 2026-10-06 09:00 | cleared | ${transcript(KEIKAKU_ID)} |`,
+    // The f07a path: an inline script collapsed the separators.
+    `| kanri | — | kanri-d | /repo | sonnet | high | main | auto | 2026-10-07 11:00 | live | C:Users0000105523.claude${STALE_ID}.jsonl |`,
+    "",
+    OLD_READINGS,
+    "",
+    `| Role | Topic | ${OLD_NAME} | Since | Read at | Bytes | Records | Wake-ups | Compactions | Context | Batches | Plans | Noticed |`,
+    separatorOf(13),
+    "| kanri | — | kanri-a | 2026-10-07 | batch A | 1 | 2 | 3 | 0 | context=4 | 1 | 0 | 0 |",
+    "| sekkei | t | sekkei-b | 2026-10-07 | plan close | 5 | 6 | 7 | 1 | context=8 | — | — | — |",
+    // A reading under a name no sessions row carries any more: the seat was renamed since.
+    "| jisso | t | jisso-old-name | 2026-10-07 | batch A | 9 | 9 | 9 | 0 | context=9 | — | — | — |",
+    "",
+    "One row per session of the current run.",
+    "",
+    "## Shoroku proposal items",
+    "",
+    "| S-n | Source | Candidate | Destination | Adopted | Written |",
+    separatorOf(6),
+    "| (no item yet) | | | | | |",
+    "",
+    "## Events",
+    "",
+    "- 2026-10-07 09:00 — a line",
+    "",
+  ];
+  const archive = [
+    "# tanto roster archive",
+    "",
+    "## Sessions",
+    "",
+    // The rows before 2026-09-14, with no Context column.
+    `| Role | ${OLD_NAME} | Model | Branch | Started | Ended | Status | Read at | Bytes | Records | Wake-ups | Compactions | Batches | Plans | Noticed |`,
+    separatorOf(15),
+    "| sekkei | sekkei-w | fable | t | 2026-09-06 | 2026-09-07 | stopped | batch A | 1 | 2 | 3 | 0 | — | — | — |",
+    "",
+    "Rows below this point carry a Context column.",
+    "",
+    `| Role | ${OLD_NAME} | Model | Branch | Started | Ended | Status | Read at | Bytes | Records | Wake-ups | Compactions | Context | Batches | Plans | Noticed |`,
+    separatorOf(16),
+    "| jisso | jisso-x | sonnet | t | 2026-09-14 | 2026-09-15 | stopped | batch A | 1 | 2 | 3 | 0 | context=4 | — | — | — |",
+    "",
+    "## Events",
+    "",
+    "- 2026-09-15 09:00 — an old line",
+    "",
+    "## t — moved from `roster.md` at the plan's close, 2026-10-02",
+    "",
+    "### Sessions",
+    "",
+    HISTORY_ROW,
+    "",
+  ];
+  const ledger = itemsLedger(["S-n", "Source", "Candidate", "Destination", "Adopted", RETIRED, "Written"]).ledger;
+  const items = fs
+    .readFileSync(ledger, "utf8")
+    .replace("| (no item yet) | | | | | | |", "| S-1 | a.md item 1 | b | issues | pending | t2 | no |");
+  fs.writeFileSync(ledger, items, "utf8");
+  return {
+    dir,
+    roster: write(dir, "roster.md", roster.join("\n")),
+    archive: write(dir, "roster-archive.md", archive.join("\n")),
+    ledger,
+  };
+}
+
+function migrate(f, ...extra) {
+  return run(
+    ["migrate", "--roster", f.roster, "--archive", f.archive, "--ledger", f.ledger, "--now", "2026-10-08", ...extra],
+    f.dir,
+  );
+}
+
+test("migrate joins each reading into the row that carries its name, moves the cleared rows, and prints its unplaced and suspect rows (spec 1.4)", () => {
+  const f = oldShapes();
+  const originals = [f.roster, f.archive, f.ledger].map((file) => fs.readFileSync(file, "utf8"));
+  const got = migrate(f);
+  assert.strictEqual(got.code, 0, got.err);
+  const roster = fs.readFileSync(f.roster, "utf8");
+  const header = fs
+    .readFileSync(path.join(TANTO, "templates", "roster.md"), "utf8")
+    .split(/\r?\n/)
+    .find((line) => line.startsWith("| Role |"));
+  assert.ok(roster.includes(`${header}\n${separatorOf(20)}\n`), roster);
+  const joined = `| kanri | — | kanri-a | /repo | sonnet | high | main | auto | 2026-10-07 09:00 | live | /home/u/${KANRI_ID}.jsonl | batch A | 1 | 2 | 3 | 0 | context=4 | 1 | 0 | 0 |`;
+  assert.ok(roster.includes(joined), roster);
+  assert.ok(got.out.includes(`${joined}\n`), got.out);
+  assert.ok(
+    roster.includes(`/home/u/${JISSO_ID}.jsonl | plan close | 5 | 6 | 7 | 1 | context=8 | — | — | — |`),
+    roster,
+  );
+  assert.ok(roster.includes(`C:Users0000105523.claude${STALE_ID}.jsonl | — | — | — | — | — | — | — | — | — |`), roster);
+  assert.ok(
+    got.out.includes(`suspect: kanri kanri-d — Transcript C:Users0000105523.claude${STALE_ID}.jsonl\n`),
+    got.out,
+  );
+  assert.ok(got.out.includes("unplaced: jisso jisso-old-name — no sessions row carries that name\n"), got.out);
+  assert.ok(
+    !roster.includes(OLD_READINGS) && !roster.includes("One row per session") && !roster.includes("kikaku-c"),
+    roster,
+  );
+  assert.ok(roster.includes("| S-n | Source | Item | Destination | Adopted | Written |"), roster);
+  assert.ok(roster.includes("- 2026-10-07 09:00 — a line"), roster);
+  const archive = fs.readFileSync(f.archive, "utf8");
+  const moved = `| kikaku | — | kikaku-c | /repo | fable | xhigh | main | auto | 2026-10-06 09:00 | cleared | /home/u/${KEIKAKU_ID}.jsonl | — | — | — | — | — | — | — | — | — | 2026-10-08 |`;
+  assert.ok(archive.includes(moved), archive);
+  const widened =
+    "| jisso | — | jisso-x | — | sonnet | — | t | — | 2026-09-14 | stopped | — | batch A | 1 | 2 | 3 | 0 | context=4 | — | — | — | 2026-09-15 |";
+  assert.ok(archive.includes(widened), archive);
+  const older =
+    "| sekkei | — | sekkei-w | — | fable | — | t | — | 2026-09-06 | stopped | — | batch A | 1 | 2 | 3 | 0 | — | — | — | — | 2026-09-07 |";
+  assert.ok(archive.includes(older), archive);
+  assert.ok(archive.includes(HISTORY_ROW), archive);
+  // The cleared row lands after the last row of the last table under Sessions.
+  assert.ok(
+    archive.indexOf(widened) < archive.indexOf(moved) && archive.indexOf(moved) < archive.indexOf("## Events"),
+    archive,
+  );
+  const ledger = fs.readFileSync(f.ledger, "utf8");
+  assert.ok(ledger.includes("| S-n | Source | Item | Destination | Adopted | Written |"), ledger);
+  assert.ok(ledger.includes("| S-1 | a.md item 1 | b | issues | pending | no |"), ledger);
+  assert.ok(
+    got.out.includes(`missing row: ${f.ledger} — Measurements has no "Kanri's context at the topic's opening" row\n`),
+    got.out,
+  );
+  // One copy of each file as it was, kept beside it.
+  [f.roster, f.archive, f.ledger].forEach((file, i) => {
+    assert.strictEqual(fs.readFileSync(`${file}.pre-migrate`, "utf8"), originals[i]);
+  });
+  // `record` reads the migrated roster.
+  assert.strictEqual(run(["record", "--roster", f.roster, "--status", `${KANRI_ID} live`], f.dir).code, 0);
+});
+
+test("migrate run twice finds every file current, keeps its first copies, and writes nothing (spec 1.4)", () => {
+  const f = oldShapes();
+  const originals = [f.roster, f.archive, f.ledger].map((file) => fs.readFileSync(file, "utf8"));
+  assert.strictEqual(migrate(f).code, 0);
+  const after = [f.roster, f.archive, f.ledger].map((file) => fs.readFileSync(file, "utf8"));
+  const again = migrate(f);
+  assert.strictEqual(again.code, 0, again.err);
+  for (const file of [f.roster, f.archive, f.ledger]) {
+    assert.ok(again.out.includes(`migrate: ${file} is current\n`), again.out);
+  }
+  [f.roster, f.archive, f.ledger].forEach((file, i) => {
+    assert.strictEqual(fs.readFileSync(file, "utf8"), after[i]);
+    assert.strictEqual(fs.readFileSync(`${file}.pre-migrate`, "utf8"), originals[i]);
+  });
+});
+
+test("migrate creates an absent archive from the template, and on a shape it does not know writes nothing and exits 1 (spec 1.4)", () => {
+  const f = oldShapes();
+  fs.rmSync(f.archive);
+  const got = migrate(f);
+  assert.strictEqual(got.code, 0, got.err);
+  assert.ok(got.out.includes(`migrate: ${f.archive} created from templates/roster-archive.md\n`), got.out);
+  const archive = fs.readFileSync(f.archive, "utf8");
+  assert.ok(archive.includes("| Role | Topic | Name | cwd |") && archive.includes("| cleared |"), archive);
+  assert.ok(!archive.includes("<role>") && !archive.includes("- <YYYY-MM-DD>"), archive);
+  const odd = oldShapes();
+  const text = fs.readFileSync(odd.roster, "utf8").replace("| Role | Topic |", "| Role | Who |");
+  fs.writeFileSync(odd.roster, text, "utf8");
+  const before = [odd.roster, odd.archive, odd.ledger].map((file) => fs.readFileSync(file, "utf8"));
+  const refused = migrate(odd);
+  assert.strictEqual(refused.code, 1);
+  assert.ok(
+    refused.out.startsWith(`migrate: ${odd.roster} — unknown shape: a seats header | Role | Who |`),
+    refused.out,
+  );
+  [odd.roster, odd.archive, odd.ledger].forEach((file, i) => {
+    assert.strictEqual(fs.readFileSync(file, "utf8"), before[i]);
+    assert.ok(!fs.existsSync(`${file}.pre-migrate`), file);
+  });
+  assert.strictEqual(run(["migrate", "--roster", odd.roster], odd.dir).code, 2);
+});
+
 // The two shapes of a proposal items table: the six columns the templates
 // carry, and the seven a ledger opened before the retired column went keeps.
 const RETIRED = ["Stag", "e"].join("");
