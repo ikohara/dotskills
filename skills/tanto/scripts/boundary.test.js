@@ -856,20 +856,155 @@ test("--seat writes <sessionId>.jsonl when the result found no transcript, and r
   assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), before);
 });
 
-test("--seat on a file that is not there exits 2 and writes nothing", () => {
+const SUCCESSOR_ID = "0e0e0e0e-0000-4000-8000-00000000000e";
+
+/** A result file for a seat: SEAT with `fields` over it. */
+function resultFile(fixture, name, fields) {
+  return write(fixture.dir, name, JSON.stringify({ ...SEAT, ...fields }));
+}
+
+test("--seat repeats, each a result file or a sessionId the state file holds, needs no --ledger, and refuses a value that is neither (spec 2.4)", () => {
   const fixture = ledgerAndRoster();
-  const before = fs.readFileSync(fixture.roster, "utf8");
-  const args = [
-    "record",
-    "--ledger",
-    fixture.ledger,
-    "--roster",
-    fixture.roster,
-    "--seat",
-    path.join(fixture.dir, "gone.json"),
+  const root = path.join(fixture.dir, "root");
+  fs.mkdirSync(path.join(root, ".tanto", "spawner"), { recursive: true });
+  // A state entry: every cell a row needs, and no branch.
+  const entry = { ...SEAT, sessionId: KEIKAKU_ID, name: "keikaku-b", role: "keikaku", topic: "t", status: "running" };
+  delete entry.branch;
+  delete entry.transcript;
+  fs.writeFileSync(path.join(root, ".tanto", "spawner", "seats.json"), JSON.stringify({ seats: [entry] }));
+  const roster = ["record", "--roster", fixture.roster, "--root", root];
+  const got = run([...roster, "--seat", resultFile(fixture, "result.json", {}), "--seat", KEIKAKU_ID], fixture.dir);
+  assert.strictEqual(got.code, 0, got.err);
+  const text = fs.readFileSync(fixture.roster, "utf8");
+  assert.ok(text.includes("| jisso | bg-seats | seat-one [aaaaaa] | /repo |"), text);
+  const fromState = `| keikaku | t | keikaku-b | /repo | sonnet | xhigh | — | auto | 2026-09-21 10:00 | live | ${KEIKAKU_ID}.jsonl |`;
+  assert.ok(text.includes(fromState), text);
+  const gone = run([...roster, "--seat", path.join(fixture.dir, "gone.json")], fixture.dir);
+  assert.strictEqual(gone.code, 1);
+  assert.ok(gone.err.includes("did not find a --seat result file or a sessionId the state file holds"), gone.err);
+  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), text);
+});
+
+test("a --seat rewrite keeps a bare <sessionId>.jsonl Transcript cell until the entry carries a path, and the path after (spec 2.2, 2.4)", () => {
+  const fixture = ledgerAndRoster();
+  const root = path.join(fixture.dir, "root");
+  fs.mkdirSync(path.join(root, ".tanto", "spawner"), { recursive: true });
+  const entry = { ...SEAT, sessionId: KEIKAKU_ID, name: "keikaku-b", role: "keikaku", topic: "t", status: "running" };
+  delete entry.transcript;
+  // The state entry as the spawner holds it, then this Transcript cell after `--seat <sessionId>`.
+  const cellAfter = (fields) => {
+    const seats = JSON.stringify({ seats: [{ ...entry, ...fields }] });
+    fs.writeFileSync(path.join(root, ".tanto", "spawner", "seats.json"), seats);
+    const got = run(["record", "--roster", fixture.roster, "--root", root, "--seat", KEIKAKU_ID], fixture.dir);
+    assert.strictEqual(got.code, 0, got.err);
+    return rowCells(fixture, KEIKAKU_ID)[10];
+  };
+  assert.strictEqual(cellAfter({}), `${KEIKAKU_ID}.jsonl`);
+  const found = `/home/u/.claude/projects/p/${KEIKAKU_ID}.jsonl`;
+  assert.strictEqual(cellAfter({ transcript: found }), found);
+  assert.strictEqual(cellAfter({ transcript: null }), found);
+  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8").split(KEIKAKU_ID).length - 1, 1);
+});
+
+test("--init creates the roster from the template, its placeholders dropped, and writes its seats; a roster that exists is refused (spec 2.4)", () => {
+  const dir = tmpDir();
+  const roster = path.join(dir, ".tanto", "roster.md");
+  const kanri = { role: "kanri", topic: "—", name: "kanri-a", sessionId: KANRI_ID, transcript: null };
+  const seat = write(dir, "kanri.json", JSON.stringify({ ...SEAT, ...kanri }));
+  const got = run(["record", "--init", "--roster", roster, "--seat", seat], dir);
+  assert.strictEqual(got.code, 0, got.err);
+  const text = fs.readFileSync(roster, "utf8");
+  const lines = text.split("\n");
+  const head = lines.findIndex((line) => line.startsWith("| Role |"));
+  assert.ok(lines[head + 2].startsWith("| kanri | — | kanri-a | /repo |"), text);
+  assert.ok(lines[head + 2].endsWith(`| ${KANRI_ID}.jsonl | — | — | — | — | — | — | 0 | 0 | 0 |`), text);
+  assert.ok(!lines[head + 3].startsWith("|"), text);
+  assert.ok(text.includes("| (no item yet) |"), text);
+  assert.ok(!text.includes("- <YYYY-MM-DD HH:MM>"), text);
+  const again = run(["record", "--init", "--roster", roster, "--seat", seat], dir);
+  assert.strictEqual(again.code, 1);
+  assert.ok(again.err.includes(`--init on a roster that exists (${roster})`), again.err);
+  assert.strictEqual(fs.readFileSync(roster, "utf8"), text);
+  const extra = run(["record", "--init", "--roster", path.join(dir, "x.md"), "--seat", seat, "--event", "x"], dir);
+  assert.strictEqual(extra.code, 2);
+  // The first Events line lands under the emptied heading.
+  const event = run(["record", "--roster", roster, "--roster-event", "a first line", "--now", "2026-10-07 09:00"], dir);
+  assert.strictEqual(event.code, 0, event.err);
+  assert.ok(fs.readFileSync(roster, "utf8").endsWith("- 2026-10-07 09:00 — a first line\n"));
+});
+
+test("--succeeds writes the successor's row first and the predecessor's replaced, its other cells kept, with the Events line naming its Transcript (spec 2.4)", () => {
+  const fixture = ledgerAndRoster();
+  const record = (...args) => run(["record", "--roster", fixture.roster, ...args], fixture.dir);
+  assert.strictEqual(record("--kanri", KANRI_ID, "--kanri-reading", KANRI_READING, "--read-at", "start").code, 0);
+  const kanri = { role: "kanri", topic: "—", name: "kanri-y", sessionId: SUCCESSOR_ID, transcript: null };
+  const successor = resultFile(fixture, "kanri.json", kanri);
+  const handover = ["--seat", successor, "--succeeds", KANRI_ID, "--now", "2026-10-07 10:00"];
+  const got = record(...handover);
+  assert.strictEqual(got.code, 0, got.err);
+  const text = fs.readFileSync(fixture.roster, "utf8");
+  const lines = text.split("\n");
+  const head = lines.findIndex((line) => line.startsWith("| Role |"));
+  assert.ok(lines[head + 2].startsWith("| kanri | — | kanri-y |"), text);
+  assert.ok(lines[head + 2].endsWith(`| ${SUCCESSOR_ID}.jsonl | — | — | — | — | — | — | 0 | 0 | 0 |`), text);
+  const predecessor = `| replaced | /home/u/${KANRI_ID}.jsonl | start | 1 | 2 | 3 | 0 | context=4 | 0 | 0 | 0 |`;
+  assert.ok(lines[head + 3].startsWith("| kanri | — | kanri-z |") && lines[head + 3].endsWith(predecessor), text);
+  const said = `- 2026-10-07 10:00 — handover accepted by kanri-y from kanri-z — /home/u/${KANRI_ID}.jsonl`;
+  assert.strictEqual(text.split(said).length - 1, 1, text);
+  const twice = record(...handover);
+  assert.strictEqual(twice.code, 0, twice.err);
+  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), text);
+  assert.strictEqual(twice.out, got.out);
+  const refusals = [
+    [["--seat", successor, "--succeeds", "0f0f0f0f-0000-4000-8000-00000000000f"], 1, "a roster row for 0f0f0f0f"],
+    [["--seat", resultFile(fixture, "jisso.json", {}), "--succeeds", SUCCESSOR_ID], 1, "whose role is kanri"],
+    [["--seat", successor, "--seat", successor, "--succeeds", KANRI_ID], 2, "exactly one --seat"],
   ];
-  assert.strictEqual(run(args, fixture.dir).code, 2);
-  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), before);
+  for (const [args, code, said] of refusals) {
+    const refused = record(...args);
+    assert.strictEqual(refused.code, code, refused.err);
+    assert.ok(refused.err.includes(said), refused.err);
+  }
+  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), text);
+});
+
+test("--rename rewrites the Name cell and writes its resumed: line, --roster-event writes a stamped line once, and neither needs --ledger (spec 2.4)", () => {
+  const fixture = ledgerAndRoster();
+  const record = (...args) =>
+    run(["record", "--roster", fixture.roster, "--now", "2026-10-07 11:00", ...args], fixture.dir);
+  const rename = record("--rename", `${JISSO_ID} dotskills-jisso-roster-ledger-1a2b`);
+  assert.strictEqual(rename.code, 0, rename.err);
+  const text = fs.readFileSync(fixture.roster, "utf8");
+  assert.ok(text.includes("| jisso | — | dotskills-jisso-roster-ledger-1a2b | /repo |"), text);
+  assert.ok(text.includes("- 2026-10-07 11:00 — resumed: jisso-z → dotskills-jisso-roster-ledger-1a2b"), text);
+  const again = record("--rename", `${JISSO_ID} dotskills-jisso-roster-ledger-1a2b`);
+  assert.strictEqual(again.out, rename.out);
+  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), text);
+  for (let i = 0; i < 2; i++) assert.strictEqual(record("--roster-event", "sent: kanri — a line").code, 0);
+  const events = fs.readFileSync(fixture.roster, "utf8").split("— sent: kanri — a line").length - 1;
+  assert.strictEqual(events, 1);
+  const unknown = record("--rename", "0f0f0f0f-0000-4000-8000-00000000000f someone");
+  assert.strictEqual(unknown.code, 1);
+  assert.ok(unknown.err.includes("did not find a roster row for 0f0f0f0f-0000-4000-8000-00000000000f"), unknown.err);
+});
+
+test("--s-item given --roster and no --ledger writes the roster's items table under the same header check, and a ledger flag still needs --ledger (spec 2.4)", () => {
+  const fixture = ledgerAndRoster();
+  const item = ["--s-item", "exit-kanri-proposal.md item 1 | an item raised between plans"];
+  const got = run(["record", "--roster", fixture.roster, ...item], fixture.dir);
+  assert.strictEqual(got.code, 0, got.err);
+  const text = fs.readFileSync(fixture.roster, "utf8");
+  assert.ok(text.includes("| S-1 | exit-kanri-proposal.md item 1 | an item raised between plans |"), text);
+  assert.ok(!text.includes("(no item yet)"), text);
+  const old = text.replace("| S-n | Source | Item |", "| S-n | Source | Candidate |");
+  fs.writeFileSync(fixture.roster, old, "utf8");
+  const refused = run(["record", "--roster", fixture.roster, ...item], fixture.dir);
+  assert.strictEqual(refused.code, 1);
+  assert.ok(refused.err.includes("the Shoroku proposal items table header is not the template's"), refused.err);
+  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), old);
+  for (const args of [["--event", "x"], ["--batch", "Z", "--state", "sent"], ["--progress", "x"], item]) {
+    assert.strictEqual(run(["record", ...args], fixture.dir).code, 2, args.join(" "));
+  }
 });
 
 /** A `record` call against the fixture's ledger and roster. */

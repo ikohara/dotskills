@@ -204,7 +204,7 @@ function cmdCheck(argv) {
 }
 
 /** The flags `record` collects rather than overwrites. */
-const REPEATABLE = ["peer-reading", "s-item", "event", "status"];
+const REPEATABLE = ["peer-reading", "s-item", "event", "status", "seat", "roster-event"];
 
 /** The Batches table's six cells, in the ledger template's column order. */
 const BATCH_CELLS = ["batch", "tasks", "state", "prompt", "report", "verdict"];
@@ -505,11 +505,13 @@ function writeSItem(doc, item, written) {
  * of an event that recurs in a later batch: two `human-access: done — <what
  * the human did>` lines in two batches are two exchanges, and both stay in
  * the ledger, while two in one batch are one call made twice. A call with no
- * `--batch` — a between-plans record — keys on the text alone.
+ * `--batch` — a between-plans record — keys on the text alone. The roster's
+ * `## Events` lines are written the same way, by `--roster-event`, with the
+ * heading `Events` (spec 2.4).
  */
-function writeEvent(doc, text, batch, now, written) {
-  const span = sectionSpan(doc.lines, "Session events");
-  if (!span) return "the ledger's Session events section";
+function writeEvent(doc, text, batch, now, written, heading = "Session events") {
+  const span = sectionSpan(doc.lines, heading);
+  if (!span) return heading === "Events" ? "the roster's Events section" : "the ledger's Session events section";
   const body = batch === null ? text : `${text} (batch ${batch})`;
   const tail = ` — ${body}`;
   for (let i = span.start + 1; i < span.end; i++) {
@@ -713,13 +715,9 @@ const SEAT_FIELDS = [
  * belongs to Kanri alone to write. The Transcript and cwd cells are checked
  * for shape on the way in (spec 2.2).
  */
-function writeSeatRow(doc, file, written) {
-  let seat;
-  try {
-    seat = JSON.parse(fs.readFileSync(file, "utf8"));
-  } catch {
-    return `a --seat file that parses (${file})`;
-  }
+function writeSeatRow(doc, file, root, written) {
+  const { seat, problem } = seatOf(file, root);
+  if (problem) return problem;
   if (!seat.sessionId) return `a sessionId in ${file}`;
   // The path; a seat whose transcript is not on disk yet carries the bare
   // `<sessionId>.jsonl`, which every writer and the census find by its
@@ -770,12 +768,136 @@ function writeSeatRow(doc, file, written) {
   return null;
 }
 
+/**
+ * The seat a `--seat` value names (spec 2.4): a spawn result file's, or, for
+ * a value that names no file, the state file's entry for that `sessionId`,
+ * which carries every cell a row needs and stays when the close moves the
+ * topic's result files — how a Kanri the launcher spawned writes its own row
+ * at the bootstrap and at a handover. A resume result is no input: a resumed
+ * seat's row exists, and a wake writes no row.
+ */
+function seatOf(value, root) {
+  if (fs.existsSync(value)) {
+    try {
+      return { seat: JSON.parse(fs.readFileSync(value, "utf8")) };
+    } catch {
+      return { problem: `a --seat file that parses (${value})` };
+    }
+  }
+  const entry = stateSeats(root).get(value);
+  if (!entry) return { problem: `a --seat result file or a sessionId the state file holds (got ${value})` };
+  return { seat: entry };
+}
+
+/**
+ * The handover write (spec 2.4), after `--seat` has written the successor's
+ * row: that row moved first in the table; the predecessor's row, found by
+ * the `sessionId` given, `replaced` with every other cell kept, its reading
+ * columns among them; and the roster Events line
+ * `handover accepted by <successor name> from <predecessor name> — <predecessor Transcript cell>`.
+ */
+function writeSucceeds(doc, predecessor, value, root, now, written) {
+  const { seat } = seatOf(value, root);
+  if (seat.role !== "kanri") return `a --seat whose role is kanri beside --succeeds (got ${seat.role || "none"})`;
+  if (seat.sessionId === predecessor) return `a --succeeds that names another seat than the --seat (${predecessor})`;
+  if (seatRowAt(doc, predecessor) === null) return `a roster row for ${predecessor}`;
+  const table = tableByHeader(doc.lines, SESSIONS_HEADER);
+  const [moved] = doc.lines.splice(seatRowAt(doc, seat.sessionId), 1);
+  doc.lines.splice(table.first, 0, moved);
+  const at = seatRowAt(doc, predecessor);
+  const current = cells(doc.lines[at]);
+  current[9] = "replaced";
+  doc.lines[at] = row(current);
+  written.push(doc.lines[at]);
+  const line = `handover accepted by ${cells(moved)[2]} from ${current[2]} — ${current[10]}`;
+  return writeEvent(doc, line, null, now, written, "Events");
+}
+
+/**
+ * `--rename "<sessionId> <new name>"` (spec 2.4): the row's Name cell
+ * rewritten and the roster Events line `resumed: <old name> → <new name>`
+ * written with it — the census's `— renamed` act and the "Yours" case's
+ * rewrite. A row that carries the name already is left as it stands, its
+ * line printed again.
+ */
+function writeRename(doc, value, now, written) {
+  const found = /^(\S+)\s+(\S.*)$/.exec(String(value).trim());
+  if (!found) return `a --rename "<sessionId> <new name>" (got ${value})`;
+  const [, sessionId, name] = found;
+  const at = seatRowAt(doc, sessionId);
+  if (at === null) return `a roster row for ${sessionId}`;
+  const current = cells(doc.lines[at]);
+  const old = current[2];
+  if (old === name) {
+    written.push(doc.lines[at]);
+    const span = sectionSpan(doc.lines, "Events");
+    const lines = span ? doc.lines.slice(span.start, span.end) : [];
+    const said = lines.findLast((line) => line.includes(" — resumed: ") && line.endsWith(` → ${name}`));
+    if (said) written.push(said);
+    return null;
+  }
+  current[2] = name;
+  doc.lines[at] = row(current);
+  written.push(doc.lines[at]);
+  return writeEvent(doc, `resumed: ${old} → ${name}`, null, now, written, "Events");
+}
+
+/**
+ * `record --init --roster <path> --seat <value>...` (spec 2.4): the roster
+ * created from `templates/roster.md` — its prose and its tables, the seats
+ * table's two placeholder rows dropped, the items table's `(no item yet)`
+ * row kept for the items writer, and the placeholder bullet under
+ * `## Events` dropped so that `--roster-event` appends under an empty
+ * heading — then its seats, in the order given, Kanri's own first. A roster
+ * that exists is refused, and the call takes nothing else.
+ */
+function recordInit(values) {
+  const rosterPath = given(values, "roster");
+  const seatValues = values.seat.filter((value) => value !== true);
+  if (!rosterPath || seatValues.length === 0) return fail("record --init needs --roster and a --seat", 2);
+  const allowed = ["init", "roster", "seat", "root", "now"];
+  const named = (value) => !(Array.isArray(value) && value.length === 0);
+  const extra = Object.entries(values).filter(([name, value]) => !allowed.includes(name) && named(value));
+  if (extra.length > 0) return fail("record --init takes --roster and --seat alone", 2);
+  if (fs.existsSync(rosterPath)) {
+    return fail(`record wrote nothing — --init on a roster that exists (${rosterPath})`, 1);
+  }
+  const lines = fs.readFileSync(path.join(TEMPLATES, "roster.md"), "utf8").split(/\r?\n/);
+  const seats = tableByHeader(lines, SESSIONS_HEADER);
+  lines.splice(seats.first, seats.end - seats.first);
+  const events = sectionSpan(lines, "Events");
+  const bullet = lines.findIndex((line, i) => i > events.start && line.startsWith("- "));
+  if (bullet !== -1) lines.splice(bullet, events.end - bullet);
+  const doc = { file: rosterPath, lines, eol: "\n" };
+  const root = path.resolve(given(values, "root") || process.cwd());
+  const written = [];
+  const problems = seatValues.map((value) => writeSeatRow(doc, value, root, written)).filter(Boolean);
+  if (problems.length > 0) {
+    for (const problem of problems) fail(`record wrote nothing — it did not find ${problem}`, 1);
+    return 1;
+  }
+  fs.mkdirSync(path.dirname(rosterPath), { recursive: true });
+  writeDoc(doc);
+  for (const line of written) console.log(line);
+  return 0;
+}
+
 function cmdRecord(argv) {
   const values = parseArgs(argv, REPEATABLE);
   const ledgerPath = given(values, "ledger");
   const batch = given(values, "batch");
-  if (!ledgerPath) return fail("record needs --ledger", 2);
-  if (!fs.existsSync(ledgerPath)) return fail(`record: --ledger ${ledgerPath} is not on disk`, 2);
+  if (values.init === true) return recordInit(values);
+  // `--ledger` is needed by the flags that write the ledger and by no other
+  // (spec 2.4): a bootstrap, a handover between plans, and a close's last
+  // census have none. `--s-item` given `--roster` and no `--ledger` writes
+  // the roster's own items table.
+  const ledgerFlags = ["tasks", "state", "report", "verdict", "prompt", "progress", "deferred"];
+  const pair = given(values, "kanri-reading") !== null && given(values, "jisso-reading") !== null;
+  const itemsNeedLedger = values["s-item"].length > 0 && given(values, "roster") === null;
+  const needLedger =
+    ledgerFlags.some((name) => given(values, name) !== null) || values.event.length > 0 || pair || itemsNeedLedger;
+  if (!ledgerPath && needLedger) return fail("record needs --ledger", 2);
+  if (ledgerPath && !fs.existsSync(ledgerPath)) return fail(`record: --ledger ${ledgerPath} is not on disk`, 2);
 
   // `--batch` is required only by what is keyed on a batch. An events-only or
   // status-only call — a between-plans record, a peer line answered outside a
@@ -788,18 +910,23 @@ function cmdRecord(argv) {
   const jisso = given(values, "jisso");
   const kanriReading = given(values, "kanri-reading");
   const jissoReading = given(values, "jisso-reading");
-  const seatFile = given(values, "seat");
-  if (seatFile !== null && !fs.existsSync(seatFile)) {
-    return fail(`record: --seat ${seatFile} is not on disk`, 2);
-  }
-  const seatRows = seatFile === null ? 0 : 1;
+  // Each `--seat` is a spawn result file or a `sessionId` the state file
+  // holds (spec 2.4), and `--succeeds` takes exactly one, a Kanri's.
+  const root = path.resolve(given(values, "root") || process.cwd());
+  const seatValues = values.seat.filter((value) => value !== true);
+  const succeeds = given(values, "succeeds");
+  if (succeeds !== null && seatValues.length !== 1) return fail("record --succeeds needs exactly one --seat", 2);
+  const seatRows = seatValues.length;
   const kanriCount = given(values, "kanri-count");
   const kanriCounts = given(values, "kanri-counts");
   const counted = kanriCount !== null || kanriCounts !== null;
   if (counted && kanri === null) return fail("record needs --kanri beside --kanri-count or --kanri-counts", 2);
   const suffix = given(values, "suffix");
   const rosterRows = values["peer-reading"].length + values.status.length + seatRows + (suffix === null ? 0 : 1);
-  const needRoster = kanri !== null || jisso !== null || rosterRows > 0;
+  const rename = given(values, "rename");
+  const itemsToRoster = ledgerPath === null && values["s-item"].length > 0;
+  const rosterWrites = rename !== null || values["roster-event"].length > 0 || itemsToRoster;
+  const needRoster = kanri !== null || jisso !== null || rosterRows > 0 || rosterWrites;
   const rosterPath = given(values, "roster");
   if (needRoster && !rosterPath) return fail("record needs --roster for a roster row", 2);
   if (needRoster && !fs.existsSync(rosterPath)) {
@@ -838,7 +965,7 @@ function cmdRecord(argv) {
     return 1;
   }
 
-  const ledger = readDoc(ledgerPath);
+  const ledger = ledgerPath === null ? null : readDoc(ledgerPath);
   if (wantsBatchRow) note(writeBatch(ledger, values, written));
   if (kanriReading !== null && jissoReading !== null) {
     const kanriUnavailable = isUnavailableReading(kanriReading);
@@ -872,7 +999,9 @@ function cmdRecord(argv) {
   if (deferred !== null && batch) {
     note(writeCellEntry(ledger, DEFERRALS_ROW, batch, deferred, written));
   }
-  for (const item of values["s-item"]) note(writeSItem(ledger, item, written));
+  if (ledger !== null) {
+    for (const item of values["s-item"]) note(writeSItem(ledger, item, written));
+  }
   for (const event of values.event) note(writeEvent(ledger, event, batch, now, written));
   const progress = given(values, "progress");
   if (progress !== null) note(writeProgress(ledger, progress, written));
@@ -888,7 +1017,17 @@ function cmdRecord(argv) {
   if (readings && !readAt) note("--batch or --read-at beside a reading");
   if (needRoster && !(readings && !readAt)) {
     roster = readDoc(rosterPath);
-    if (seatFile !== null) note(writeSeatRow(roster, seatFile, written));
+    for (const value of seatValues) note(writeSeatRow(roster, value, root, written));
+    if (succeeds !== null && problems.length === 0) {
+      note(writeSucceeds(roster, succeeds, seatValues[0], root, now, written));
+    }
+    if (rename !== null) note(writeRename(roster, rename, now, written));
+    for (const text of values["roster-event"]) note(writeEvent(roster, text, null, now, written, "Events"));
+    if (itemsToRoster) {
+      const mismatch = headerMismatch(rosterPath, "roster.md", "Shoroku proposal items");
+      if (mismatch) return fail(mismatch, 1);
+      for (const item of values["s-item"]) note(writeSItem(roster, item, written));
+    }
     if (kanri !== null && kanriReading === null && !counted) {
       note("--kanri-reading, --kanri-count, or --kanri-counts beside --kanri");
     }
@@ -917,7 +1056,7 @@ function cmdRecord(argv) {
     return 1;
   }
 
-  writeDoc(ledger);
+  if (ledger !== null) writeDoc(ledger);
   if (roster) writeDoc(roster);
   for (const line of written) console.log(line);
   return 0;
