@@ -440,58 +440,60 @@ function writeCellEntry(doc, rowPrefix, batch, body, written) {
 }
 
 /**
- * The seventh column of an `S-n` table, which a ledger or a roster opened
- * before it was retired keeps (spec 3.5). Spelled with one bracketed
- * character, as the consistency note's check 7 spells every retired string.
+ * An `--s-item` value's three fields, split on its first two unescaped
+ * pipes (spec 2.5): the source, the destination, and the item, a `\|` in
+ * any of them read back as `|`. A two-field value — from a brief rendered
+ * before the destination field — is the source and the item; an empty or
+ * absent destination is written `—`.
  */
-const RETIRED_COLUMN = /^Stag[e]$/;
-
-/** An `S-n` row's cells, one per column the table's own header names. */
-function sItemCells(header, number, source, text) {
-  const byColumn = {
-    "S-n": `S-${number}`,
-    Source: source,
-    Item: text,
-    Destination: "",
-    Adopted: "pending",
-    Written: "no",
-  };
-  return header.map((column) => {
-    if (Object.hasOwn(byColumn, column)) return byColumn[column];
-    return RETIRED_COLUMN.test(column) ? "t2" : "";
-  });
+function sItemFields(value) {
+  const parts = String(value).split(/(?<!\\)\|/);
+  if (parts.length < 2) return null;
+  const field = (part) => part.trim().replace(/\\\|/g, "|");
+  const [source, ...rest] = parts;
+  if (rest.length === 1) return { source: field(source), destination: "—", item: field(rest[0]) };
+  return { source: field(source), destination: field(rest[0]) || "—", item: field(rest.slice(1).join("|")) };
 }
 
 /**
- * One `S-n` row, numbered from the table's highest existing `S-n`, so that a
- * `pending` row a Kanri exit wrote there since the last boundary is counted
- * and not overwritten, and written by the header it finds: six cells, or
- * seven with `t2` in the retired column, nothing migrated. A row with the
- * same Source and Item is already there.
+ * One `S-n` row, in the template's six columns — the header `record`
+ * compared before it wrote — numbered from the table's highest `S-n`, so
+ * that a `pending` row a Kanri exit wrote there since the last boundary is
+ * counted and not overwritten (spec 2.5). Before any row is written every
+ * `S-n` cell is read, and a number the table holds twice is refused, so
+ * that a table a hand edit collided is repaired once and never grows. A row
+ * with the same Source and Item is already there. The ledger's table and,
+ * between plans, the roster's are written alike.
  */
-function writeSItem(doc, item, written) {
+function writeSItem(doc, value, written) {
   const span = sectionSpan(doc.lines, "Shoroku proposal items");
-  if (!span) return "the ledger's Shoroku proposal items table";
-  const table = tableSpan(doc.lines, span);
-  if (!table) return "the ledger's Shoroku proposal items table";
-  const parts = String(item).split("|");
-  const source = parts[0].trim();
-  const text = parts.slice(1).join("|").trim();
+  const table = span ? tableSpan(doc.lines, span) : null;
+  if (!table) return "the Shoroku proposal items table";
+  const fields = sItemFields(value);
+  if (!fields) return `an --s-item "<source> | <destination> | <item>" (got ${value})`;
+  const numbers = new Set();
   let highest = 0;
+  let same = null;
   const placeholders = [];
   for (let i = table.first; i < table.end; i++) {
     const current = cells(doc.lines[i]);
-    if (current[1] === source && current[2] === text) {
-      // Already recorded. Print the row as it stands, so that a re-run
-      // with the same arguments prints the same rows as the first run.
-      written.push(doc.lines[i]);
-      return null;
-    }
     const found = /^S-(\d+)$/.exec(current[0]);
-    if (found) highest = Math.max(highest, Number(found[1]));
+    if (found) {
+      const number = Number(found[1]);
+      if (numbers.has(number)) return `an S-n table with no number used twice (S-${number} twice)`;
+      numbers.add(number);
+      highest = Math.max(highest, number);
+    }
     if (current[0] === "(no item yet)") placeholders.push(i);
+    if (current[1] === fields.source && current[2] === fields.item) same = i;
   }
-  const line = row(sItemCells(cells(doc.lines[table.header]), highest + 1, source, text));
+  if (same !== null) {
+    // Already recorded. Print the row as it stands, so that a re-run with
+    // the same arguments prints the same rows as the first run.
+    written.push(doc.lines[same]);
+    return null;
+  }
+  const line = row([`S-${highest + 1}`, fields.source, fields.item, fields.destination, "pending", "no"]);
   doc.lines.splice(table.end, 0, line);
   for (const i of placeholders.reverse()) doc.lines.splice(i, 1);
   written.push(line);
@@ -526,6 +528,110 @@ function writeEvent(doc, text, batch, now, written, heading = "Session events") 
   doc.lines.splice(at, 0, line);
   written.push(line);
   return null;
+}
+
+/** The ledger's items table, or null. */
+function itemsTable(doc) {
+  const span = sectionSpan(doc.lines, "Shoroku proposal items");
+  return span ? tableSpan(doc.lines, span) : null;
+}
+
+/** The line of the items row whose S-n cell is `label`, or -1. */
+function sRowAt(doc, table, label) {
+  for (let i = table.first; i < table.end; i++) {
+    if (cells(doc.lines[i])[0] === label) return i;
+  }
+  return -1;
+}
+
+/**
+ * `--direction <path>` (spec 2.6): the direction file's `## Items` lines,
+ * each matched on `— yes|no — <topic> S-<n>` at its end, written into the
+ * Adopted cell of that `S-n` row of this ledger, whose title names the
+ * topic. A line whose pointer is `(inbox …)` is expected and printed
+ * `direction: no S-n — <line>`; a line whose `S-n` the table does not hold,
+ * or another topic's, is printed `direction: unmatched — <line>`, and the
+ * pass goes on. A file whose Items match no `S-n` line at all earns
+ * `direction: nothing matched — <path>`, which the caller refuses with.
+ */
+function writeDirection(doc, file, written) {
+  let lines;
+  try {
+    lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
+  } catch {
+    return `a direction file at ${file}`;
+  }
+  const items = sectionSpan(lines, "Items");
+  const table = itemsTable(doc);
+  if (!items || !table) return `the Items section of ${file} and the ledger's Shoroku proposal items table`;
+  const title = /^# Conductor ledger — (\S+)$/.exec((doc.lines[0] || "").trim());
+  const topic = title && !title[1].startsWith("<") ? title[1] : null;
+  let matched = 0;
+  for (let i = items.start + 1; i < items.end; i++) {
+    const line = lines[i].trim();
+    if (!line.startsWith("- ")) continue;
+    const found = /— (yes|no) — (\S+) S-(\d+)$/.exec(line);
+    if (!found) {
+      written.push(`direction: ${line.includes("(inbox ") ? "no S-n" : "unmatched"} — ${line}`);
+      continue;
+    }
+    const at = topic !== null && found[2] !== topic ? -1 : sRowAt(doc, table, `S-${found[3]}`);
+    if (at === -1) {
+      written.push(`direction: unmatched — ${line}`);
+      continue;
+    }
+    matched++;
+    const current = cells(doc.lines[at]);
+    current[4] = found[1];
+    doc.lines[at] = row(current);
+    written.push(doc.lines[at]);
+  }
+  return matched === 0 ? `direction: nothing matched — ${file}` : null;
+}
+
+/**
+ * `value` into the Written cell of each adopted row `wanted` picks whose
+ * Written is `no` — or is `value` already, printed again, so that a second
+ * call changes nothing and prints the same.
+ */
+function fillWritten(doc, table, wanted, value, written) {
+  for (let i = table.first; i < table.end; i++) {
+    const current = cells(doc.lines[i]);
+    if (!/^S-\d+$/.test(current[0]) || current[4] !== "yes" || !wanted(current)) continue;
+    if (current[5] !== "no" && current[5] !== value) continue;
+    current[5] = value;
+    doc.lines[i] = row(current);
+    written.push(doc.lines[i]);
+  }
+  return null;
+}
+
+/**
+ * `--written "<subject>" [--only S-a,S-b,…]` (spec 2.6): the commit subject
+ * into the adopted rows whose Written is `no`, a row whose Destination is
+ * exactly `feedback` skipped; with `--only`, the rows named and no other —
+ * how shusei's subject reaches the `fix` rows and shoki's the rest.
+ */
+function writeWritten(doc, subject, only, written) {
+  const table = itemsTable(doc);
+  if (!table) return "the ledger's Shoroku proposal items table";
+  const named = only === null ? null : only.split(",").map((part) => part.trim());
+  for (const label of named || []) {
+    if (sRowAt(doc, table, label) === -1) return `an S-n row for ${label}`;
+  }
+  const wanted = (current) => current[3] !== "feedback" && (named === null || named.includes(current[0]));
+  return fillWritten(doc, table, wanted, subject, written);
+}
+
+/**
+ * `--written-feedback "<basename>"` (spec 2.6): `feedback <basename>` into
+ * the adopted rows whose only destination is `feedback`, once `usage.js
+ * close` has placed the file, never while it holds it.
+ */
+function writeWrittenFeedback(doc, basename, written) {
+  const table = itemsTable(doc);
+  if (!table) return "the ledger's Shoroku proposal items table";
+  return fillWritten(doc, table, (current) => current[3] === "feedback", `feedback ${basename}`, written);
 }
 
 /** The Progress section's body, replaced whole by the one line. */
@@ -1005,6 +1111,23 @@ function cmdRecord(argv) {
   for (const event of values.event) note(writeEvent(ledger, event, batch, now, written));
   const progress = given(values, "progress");
   if (progress !== null) note(writeProgress(ledger, progress, written));
+  // The close's write-back (spec 2.6): the direction file's answers into
+  // Adopted, and the commit subjects and the feedback file into Written.
+  const direction = given(values, "direction");
+  const subject = given(values, "written");
+  const feedback = given(values, "written-feedback");
+  if (direction !== null || subject !== null || feedback !== null) {
+    if (ledger === null) return fail("record needs --ledger for --direction, --written, or --written-feedback", 2);
+    const mismatch = headerMismatch(ledgerPath, "kanri.md", "Shoroku proposal items");
+    if (mismatch) return fail(mismatch, 1);
+    if (direction !== null) {
+      const refusal = writeDirection(ledger, direction, written);
+      if (refusal?.startsWith("direction: ")) return fail(refusal, 1);
+      note(refusal);
+    }
+    if (subject !== null) note(writeWritten(ledger, subject, given(values, "only"), written));
+    if (feedback !== null) note(writeWrittenFeedback(ledger, feedback, written));
+  }
 
   let roster = null;
   // A reading lands in the reading columns of the row that holds its seat,

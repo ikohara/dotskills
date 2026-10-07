@@ -1198,6 +1198,133 @@ function itemsLedger(columns) {
   return { dir, ledger: write(dir, "kanri.md", body) };
 }
 
+/** The six columns of the template's Shoroku proposal items table. */
+const ITEM_COLUMNS = ["S-n", "Source", "Item", "Destination", "Adopted", "Written"];
+
+/** The cells of the items row whose S-n cell is `label`. */
+function itemCells(ledger, label) {
+  const line = fs
+    .readFileSync(ledger, "utf8")
+    .split(/\r?\n/)
+    .find((l) => l.startsWith(`| ${label} |`));
+  return line ? line.slice(2, -2).split(" | ") : null;
+}
+
+test("--s-item takes three fields, writes `—` for an empty destination, reads two fields as source and item, and keeps its dedup (spec 2.5)", () => {
+  const f = itemsLedger(ITEM_COLUMNS);
+  const item = (value) => run(["record", "--ledger", f.ledger, "--s-item", value], f.dir);
+  for (const value of [
+    "report.md item 1 | issues | an item",
+    "report.md item 2 |  | another item",
+    "report.md item 3 | an item from a brief rendered before the destination field",
+  ]) {
+    const got = item(value);
+    assert.strictEqual(got.code, 0, got.err);
+  }
+  const again = item("report.md item 1 | issues | an item");
+  assert.strictEqual(again.out, "| S-1 | report.md item 1 | an item | issues | pending | no |\n");
+  assert.deepStrictEqual(itemCells(f.ledger, "S-2"), ["S-2", "report.md item 2", "another item", "—", "pending", "no"]);
+  const old = [
+    "S-3",
+    "report.md item 3",
+    "an item from a brief rendered before the destination field",
+    "—",
+    "pending",
+    "no",
+  ];
+  assert.deepStrictEqual(itemCells(f.ledger, "S-3"), old);
+  assert.strictEqual(itemCells(f.ledger, "S-4"), null);
+});
+
+test("an S-n table that holds a number twice is refused before any row is written (spec 2.5)", () => {
+  const f = itemsLedger(ITEM_COLUMNS);
+  const collided = "| S-28 | a.md item 1 | one | — | pending | no |\n| S-28 | b.md item 1 | two | — | pending | no |";
+  const text = fs.readFileSync(f.ledger, "utf8").replace("| (no item yet) | | | | | |", collided);
+  fs.writeFileSync(f.ledger, text, "utf8");
+  const refused = run(["record", "--ledger", f.ledger, "--s-item", "c.md item 1 |  | three"], f.dir);
+  assert.strictEqual(refused.code, 1);
+  assert.ok(refused.err.includes("did not find an S-n table with no number used twice (S-28 twice)"), refused.err);
+  assert.strictEqual(fs.readFileSync(f.ledger, "utf8"), text);
+});
+
+/** A ledger whose items table holds S-1 to S-4, with the destinations given. */
+function directedLedger(destinations) {
+  const f = itemsLedger(ITEM_COLUMNS);
+  destinations.forEach((destination, i) => {
+    const value = `report.md item ${i + 1} | ${destination} | item ${i + 1}`;
+    assert.strictEqual(run(["record", "--ledger", f.ledger, "--s-item", value], f.dir).code, 0);
+  });
+  return f;
+}
+
+/** A direction file built from the template, its two placeholder lines replaced by `items`. */
+function directionFile(f, items) {
+  const lines = fs.readFileSync(path.join(TANTO, "templates", "shoroku-direction.md"), "utf8").split(/\r?\n/);
+  const at = lines.findIndex((line) => line.startsWith("- <n> "));
+  lines.splice(at, 2, ...items);
+  return write(f.dir, "shoroku-direction.md", lines.join("\n"));
+}
+
+test("--direction writes Adopted from a direction file, printing its inbox and unmatched lines, and refuses a file that matches no S-n (spec 2.6)", () => {
+  const f = directedLedger(["issues", "notes", "issues"]);
+  const items = [
+    "- 1 — adopt — yes — t S-1",
+    "- 2 — reject — no — t S-2",
+    "- 3 — fix — yes — t S-3",
+    "- 4 — adopt — yes — (inbox 2026-10-07-bug.md #2)",
+    "- 5 — adopt — yes — t S-9",
+    "- 6 — adopt — yes — other S-1",
+  ];
+  const file = directionFile(f, items);
+  const got = run(["record", "--ledger", f.ledger, "--direction", file], f.dir);
+  assert.strictEqual(got.code, 0, got.err);
+  assert.deepStrictEqual(
+    [1, 2, 3].map((n) => itemCells(f.ledger, `S-${n}`)[4]),
+    ["yes", "no", "yes"],
+  );
+  assert.ok(got.out.includes(`direction: no S-n — ${items[3]}\n`), got.out);
+  assert.ok(got.out.includes(`direction: unmatched — ${items[4]}\n`), got.out);
+  assert.ok(got.out.includes(`direction: unmatched — ${items[5]}\n`), got.out);
+  const after = fs.readFileSync(f.ledger, "utf8");
+  assert.strictEqual(run(["record", "--ledger", f.ledger, "--direction", file], f.dir).out, got.out);
+  assert.strictEqual(fs.readFileSync(f.ledger, "utf8"), after);
+  const inboxOnly = directionFile(f, [items[3]]);
+  const refused = run(["record", "--ledger", f.ledger, "--direction", inboxOnly], f.dir);
+  assert.strictEqual(refused.code, 1);
+  assert.ok(refused.err.includes(`direction: nothing matched — ${inboxOnly}`), refused.err);
+  assert.strictEqual(fs.readFileSync(f.ledger, "utf8"), after);
+});
+
+test("--written fills Written for the adopted rows still `no`, skipping a feedback-only row; --only narrows it; --written-feedback fills that row (spec 2.6)", () => {
+  const f = directedLedger(["issues", "feedback", "notes; feedback", "issues"]);
+  const items = [
+    "- 1 — adopt — yes — t S-1",
+    "- 2 — adopt — yes — t S-2",
+    "- 3 — fix — yes — t S-3",
+    "- 4 — reject — no — t S-4",
+  ];
+  assert.strictEqual(run(["record", "--ledger", f.ledger, "--direction", directionFile(f, items)], f.dir).code, 0);
+  const record = (...args) => run(["record", "--ledger", f.ledger, ...args], f.dir);
+  const writtenCells = () => [1, 2, 3, 4].map((n) => itemCells(f.ledger, `S-${n}`)[5]);
+  assert.strictEqual(record("--written", "fix: the shusei commit", "--only", "S-3").code, 0);
+  assert.deepStrictEqual(writtenCells(), ["no", "no", "fix: the shusei commit", "no"]);
+  const shoki = record("--written", "docs: the shoki commit");
+  assert.strictEqual(shoki.code, 0, shoki.err);
+  assert.deepStrictEqual(writtenCells(), ["docs: the shoki commit", "no", "fix: the shusei commit", "no"]);
+  assert.strictEqual(record("--written", "docs: the shoki commit").out, shoki.out);
+  assert.strictEqual(record("--written-feedback", "2026-10-07-t.md").code, 0);
+  assert.deepStrictEqual(writtenCells(), [
+    "docs: the shoki commit",
+    "feedback 2026-10-07-t.md",
+    "fix: the shusei commit",
+    "no",
+  ]);
+  const unknown = record("--written", "x", "--only", "S-9");
+  assert.strictEqual(unknown.code, 1);
+  assert.ok(unknown.err.includes("did not find an S-n row for S-9"), unknown.err);
+  assert.strictEqual(run(["record", "--written", "x"], f.dir).code, 2);
+});
+
 test("an S-n row is written in the template's six columns, and a table with the retired seventh is refused, naming migrate", () => {
   const six = ["S-n", "Source", "Item", "Destination", "Adopted", "Written"];
   const seven = ["S-n", "Source", "Item", "Destination", "Adopted", RETIRED, "Written"];
