@@ -268,8 +268,11 @@ function headerMismatch(file, template, heading) {
 /** A reading's five figures, in the spelling `reading.js` prints them. */
 const READING = /transcript: (\d+) B, (\d+) records, (\d+) wake-ups, (\d+) compactions, context=(\d+)/;
 
-/** A `--peer-reading` value: the role, the address, and the reading. */
-const PEER = /^(\S+)\s+(\S+(?:\s+\[[^\]]+\])?)\s+(transcript:.*)$/;
+/**
+ * A `--peer-reading` value: the role, the seat's `sessionId`, which Kanri
+ * resolved from the peer's bare name at receipt, and the reading (spec 2.3).
+ */
+const PEER = /^(\S+)\s+(\S+)\s+(transcript:.*)$/;
 
 /** A document read for editing, with the line ending it already uses. */
 function readDoc(file) {
@@ -570,19 +573,94 @@ function writeReading(doc, sessionId, reading, readAt, written) {
   return null;
 }
 
-/** A session row's Status cell. */
-function writeStatus(doc, name, status, written) {
-  const table = tableByHeader(doc.lines, SESSIONS_HEADER);
-  if (!table) return "the roster's sessions table";
-  for (let i = table.first; i < table.end; i++) {
-    const current = cells(doc.lines[i]);
-    if (current[2] !== name) continue;
-    current[9] = status;
-    doc.lines[i] = row(current);
-    written.push(doc.lines[i]);
-    return null;
+/** The five words a row's Status cell holds (spec 1.3); `cleared` is none of them. */
+const STATUS_WORDS = ["queued", "live", "stopped", "replaced", "dead"];
+
+/** Kanri's three count columns, by the word `--kanri-count` names them with. */
+const COUNT_COLUMNS = { batches: 17, plans: 18, noticed: 19 };
+
+/** One row's cells, rewritten by `change` in place, found by `sessionId`. */
+function rewriteRow(doc, sessionId, change, written) {
+  const at = seatRowAt(doc, sessionId);
+  if (at === null) return `a roster row for ${sessionId}`;
+  const current = cells(doc.lines[at]);
+  const problem = change(current);
+  if (problem) return problem;
+  doc.lines[at] = row(current);
+  written.push(doc.lines[at]);
+  return null;
+}
+
+/**
+ * A `--status "<sessionId> <word>"` value, written into the Status cell
+ * whole — a `live` cell's suffix goes with its word — or the refusal a word
+ * that is not one of the five, or a name in place of a `sessionId`, earns.
+ */
+function writeStatus(doc, value, written) {
+  const found = /^(\S+)\s+(\S+)$/.exec(String(value).trim());
+  if (!found || !STATUS_WORDS.includes(found[2])) {
+    return `a --status "<sessionId> <word>", the word one of ${STATUS_WORDS.join(", ")} (got ${value})`;
   }
-  return `a roster row for ${name}`;
+  return rewriteRow(
+    doc,
+    found[1],
+    (current) => {
+      current[9] = found[2];
+      return null;
+    },
+    written,
+  );
+}
+
+/**
+ * A `--suffix "<sessionId> blocked <HH:MM>|idle <HH:MM>|none"` value (spec
+ * 2.3): `(blocked since <HH:MM>)` or `(idle since <HH:MM>)` after a `live`
+ * cell's word, or neither with `none`. A row whose word is not `live` is
+ * refused.
+ */
+function writeSuffix(doc, value, written) {
+  const found = /^(\S+)\s+(?:(blocked|idle)\s+(\d{2}:\d{2})|none)$/.exec(String(value).trim());
+  if (!found) return `a --suffix "<sessionId> blocked <HH:MM>|idle <HH:MM>|none" (got ${value})`;
+  return rewriteRow(
+    doc,
+    found[1],
+    (current) => {
+      const word = current[9].split(/\s+/)[0];
+      if (word !== "live") return `a live row for --suffix (got ${word})`;
+      current[9] = found[2] ? `live (${found[2]} since ${found[3]})` : "live";
+      return null;
+    },
+    written,
+  );
+}
+
+/**
+ * Kanri's counts (spec 2.3): `--kanri-count <column>` adds one to that cell
+ * and touches nothing else, the moments a count moves being moments Kanri
+ * reads no row; `--kanri-counts "<batches> <plans> <noticed>"` sets the
+ * three, for a repair. The one write a second identical call is not a no-op
+ * for, since an increment is what it is.
+ */
+function writeCounts(doc, sessionId, count, counts, written) {
+  return rewriteRow(
+    doc,
+    sessionId,
+    (current) => {
+      if (count !== null) {
+        if (!Object.hasOwn(COUNT_COLUMNS, count)) return `a --kanri-count of batches, plans, or noticed (got ${count})`;
+        const column = COUNT_COLUMNS[count];
+        const n = Number(current[column]);
+        current[column] = String((Number.isInteger(n) ? n : 0) + 1);
+      }
+      if (counts !== null) {
+        const found = /^(\d+) (\d+) (\d+)$/.exec(counts.trim());
+        if (!found) return `a --kanri-counts "<batches> <plans> <noticed>" (got ${counts})`;
+        current.splice(17, 3, found[1], found[2], found[3]);
+      }
+      return null;
+    },
+    written,
+  );
 }
 
 /** A Transcript cell's basename as every writer writes it: `<uuid>.jsonl` (spec 2.2). */
@@ -715,7 +793,12 @@ function cmdRecord(argv) {
     return fail(`record: --seat ${seatFile} is not on disk`, 2);
   }
   const seatRows = seatFile === null ? 0 : 1;
-  const rosterRows = values["peer-reading"].length + values.status.length + seatRows;
+  const kanriCount = given(values, "kanri-count");
+  const kanriCounts = given(values, "kanri-counts");
+  const counted = kanriCount !== null || kanriCounts !== null;
+  if (counted && kanri === null) return fail("record needs --kanri beside --kanri-count or --kanri-counts", 2);
+  const suffix = given(values, "suffix");
+  const rosterRows = values["peer-reading"].length + values.status.length + seatRows + (suffix === null ? 0 : 1);
   const needRoster = kanri !== null || jisso !== null || rosterRows > 0;
   const rosterPath = given(values, "roster");
   if (needRoster && !rosterPath) return fail("record needs --roster for a roster row", 2);
@@ -806,7 +889,10 @@ function cmdRecord(argv) {
   if (needRoster && !(readings && !readAt)) {
     roster = readDoc(rosterPath);
     if (seatFile !== null) note(writeSeatRow(roster, seatFile, written));
-    if (kanri !== null && kanriReading === null) note("--kanri-reading beside --kanri");
+    if (kanri !== null && kanriReading === null && !counted) {
+      note("--kanri-reading, --kanri-count, or --kanri-counts beside --kanri");
+    }
+    if (kanri !== null && counted) note(writeCounts(roster, kanri, kanriCount, kanriCounts, written));
     if (kanri !== null && kanriReading !== null) {
       note(writeReading(roster, kanri, kanriReading, readAt, written));
     }
@@ -822,14 +908,8 @@ function cmdRecord(argv) {
       }
       note(writeReading(roster, found[2], found[3], readAt, written));
     }
-    for (const line of values.status) {
-      const found = /^(.*)\s+(live|cleared|stopped|queued)$/.exec(String(line).trim());
-      if (!found) {
-        note(`a --status ending in live, cleared, stopped, or queued (got ${line})`);
-        continue;
-      }
-      note(writeStatus(roster, found[1].trim(), found[2], written));
-    }
+    for (const line of values.status) note(writeStatus(roster, line, written));
+    if (suffix !== null) note(writeSuffix(roster, suffix, written));
   }
 
   if (problems.length > 0) {
@@ -1233,7 +1313,9 @@ function findSeat(seats, who) {
 }
 
 /**
- * `seat`'s line, `<status> <name> <kind> <role> <turn>` (spec 2.5). The name
+ * `seat`'s line, `<status> <name> <kind> <role> <turn> <sessionId>` (spec
+ * 2.5), which `wake` prints too: the sixth field is what Kanri reads to
+ * resolve a peer's bare name at receipt (roster-ledger 2.3). The name
  * and the kind are the listing's now, else the state file's name and `-`: a
  * seat a tab holds stays listed after its `stop` (spec 5.1), which no census
  * pass of the spawner records. `<turn>` is `ended` or `open` by the
@@ -1247,7 +1329,7 @@ function seatLine(seat, listed) {
   if (seat.transcript && fs.existsSync(seat.transcript)) {
     turn = spawner.turnEnded(seat.transcript)?.ended ? "ended" : "open";
   }
-  return `${seat.status || "-"} ${name} ${kind} ${seat.role || "-"} ${turn}`;
+  return `${seat.status || "-"} ${name} ${kind} ${seat.role || "-"} ${turn} ${seat.sessionId}`;
 }
 
 /**

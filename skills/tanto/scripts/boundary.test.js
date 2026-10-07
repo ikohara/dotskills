@@ -872,28 +872,89 @@ test("--seat on a file that is not there exits 2 and writes nothing", () => {
   assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), before);
 });
 
-test("--status accepts stopped and still refuses a word the table does not name", () => {
+/** A `record` call against the fixture's ledger and roster. */
+function recordWith(fixture) {
+  return (...args) => run(["record", "--ledger", fixture.ledger, "--roster", fixture.roster, ...args], fixture.dir);
+}
+
+/** The cells of the roster row whose Transcript cell carries `sessionId`. */
+function rowCells(fixture, sessionId) {
+  const line = fs
+    .readFileSync(fixture.roster, "utf8")
+    .split(/\r?\n/)
+    .find((l) => l.includes(`${sessionId}.jsonl`));
+  return line.slice(2, -2).split(" | ");
+}
+
+test("--status writes one of the five words into the row its sessionId finds, and refuses cleared, another word, and a name (spec 1.3, 2.3)", () => {
   const fixture = ledgerAndRoster();
   const seat = write(fixture.dir, "result.json", JSON.stringify(SEAT));
-  assert.strictEqual(
-    run(["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--seat", seat], fixture.dir).code,
-    0,
-  );
-  const stop = [
-    "record",
-    "--ledger",
-    fixture.ledger,
-    "--roster",
-    fixture.roster,
-    "--status",
-    "seat-one [aaaaaa] stopped",
+  const record = recordWith(fixture);
+  assert.strictEqual(record("--seat", seat).code, 0);
+  for (const word of ["stopped", "dead", "live", "replaced", "queued"]) {
+    assert.strictEqual(record("--status", `${SEAT.sessionId} ${word}`).code, 0);
+    assert.ok(fs.readFileSync(fixture.roster, "utf8").includes(`| ${word} | ${SEAT.transcript} |`), word);
+  }
+  const before = fs.readFileSync(fixture.roster, "utf8");
+  const words = "one of queued, live, stopped, replaced, dead";
+  const refusals = [
+    [`${SEAT.sessionId} cleared`, words],
+    [`${SEAT.sessionId} gone`, words],
+    ["seat-one [aaaaaa] stopped", words],
+    ["dotskills-jisso-1a2b stopped", "did not find a roster row for dotskills-jisso-1a2b"],
   ];
-  assert.strictEqual(run(stop, fixture.dir).code, 0);
-  assert.ok(fs.readFileSync(fixture.roster, "utf8").includes("| stopped |"));
-  const bad = ["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--status", "seat-one [aaaaaa] gone"];
-  const refused = run(bad, fixture.dir);
+  for (const [value, said] of refusals) {
+    const refused = record("--status", value);
+    assert.strictEqual(refused.code, 1, value);
+    assert.ok(refused.err.includes(said), refused.err);
+  }
+  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), before);
+});
+
+test("--suffix appends and removes a live cell's suffix, and refuses a row whose word is not live (spec 2.3)", () => {
+  const fixture = ledgerAndRoster();
+  const record = recordWith(fixture);
+  const status = () => rowCells(fixture, JISSO_ID)[9];
+  assert.strictEqual(record("--suffix", `${JISSO_ID} blocked 10:12`).code, 0);
+  assert.strictEqual(status(), "live (blocked since 10:12)");
+  assert.strictEqual(record("--suffix", `${JISSO_ID} idle 10:30`).code, 0);
+  assert.strictEqual(status(), "live (idle since 10:30)");
+  assert.strictEqual(record("--suffix", `${JISSO_ID} none`).code, 0);
+  assert.strictEqual(status(), "live");
+  assert.strictEqual(record("--status", `${JISSO_ID} stopped`).code, 0);
+  const refused = record("--suffix", `${JISSO_ID} idle 11:00`);
   assert.strictEqual(refused.code, 1);
-  assert.match(refused.err, /live, cleared, stopped, or queued/);
+  assert.ok(refused.err.includes("did not find a live row for --suffix (got stopped)"), refused.err);
+  const garbled = record("--suffix", `${JISSO_ID} asleep`);
+  assert.strictEqual(garbled.code, 1);
+  assert.ok(garbled.err.includes('a --suffix "<sessionId> blocked <HH:MM>|idle <HH:MM>|none"'), garbled.err);
+});
+
+test("--kanri-count adds one to its column alone, --kanri-counts sets the three, and neither needs a reading (spec 2.3)", () => {
+  const fixture = ledgerAndRoster();
+  const record = recordWith(fixture);
+  const counts = () => rowCells(fixture, KANRI_ID).slice(11).join(" ");
+  assert.strictEqual(record("--kanri", KANRI_ID, "--kanri-count", "batches").code, 0);
+  assert.strictEqual(record("--kanri", KANRI_ID, "--kanri-count", "batches").code, 0);
+  assert.strictEqual(record("--kanri", KANRI_ID, "--kanri-count", "plans").code, 0);
+  assert.strictEqual(counts(), "— — — — — — 2 1 0");
+  assert.strictEqual(record("--kanri", KANRI_ID, "--kanri-counts", "5 6 7").code, 0);
+  assert.strictEqual(counts(), "— — — — — — 5 6 7");
+  const wrong = record("--kanri", KANRI_ID, "--kanri-count", "wake-ups");
+  assert.strictEqual(wrong.code, 1);
+  assert.ok(wrong.err.includes("a --kanri-count of batches, plans, or noticed (got wake-ups)"), wrong.err);
+  assert.strictEqual(record("--kanri-count", "batches").code, 2);
+  assert.strictEqual(counts(), "— — — — — — 5 6 7");
+});
+
+test("a peer line that carries a name in place of a sessionId does not parse (spec 2.3)", () => {
+  const fixture = ledgerAndRoster();
+  const before = fs.readFileSync(fixture.roster, "utf8");
+  const line = "keikaku keikaku-a [ccdd11] transcript: 7 B, 8 records, 9 wake-ups, 1 compactions, context=10";
+  const refused = recordWith(fixture)("--batch", "Z", "--peer-reading", line);
+  assert.strictEqual(refused.code, 1);
+  assert.ok(refused.err.includes(`did not find a --peer-reading that parses (got ${line})`), refused.err);
+  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), before);
 });
 
 test("check pairs a commit-ready with its commit-done even when only one side carries a --batch suffix, and still reports a genuinely unpaired commit-ready", () => {
@@ -1531,7 +1592,7 @@ test("request refuses --notice without --waiting, a flag on leave, and a root wi
   assert.deepStrictEqual(requestsOf(f), []);
 });
 
-test("seat prints its five words and the spawner: line, by sessionId or by name, and no entry with the listing's kind (spec 1.5, 2.5)", () => {
+test("seat prints its five words and its sessionId, then the spawner: line, by sessionId or by name, and no entry with the listing's kind (spec 1.5, 2.5)", () => {
   const f = spawnerFixture(
     (fx) => [
       {
@@ -1560,10 +1621,17 @@ test("seat prints its five words and the spawner: line, by sessionId or by name,
     ],
   );
   const lines = (who) => sub(f, ["seat", who, "--root", f.root]).out;
-  assert.strictEqual(lines("sess-a"), "parked dotskills-sekkei-t-1a2b - sekkei ended\nspawner: beating\n");
-  assert.strictEqual(lines("sess-b"), "running dotskills-keikaku-t-3c4d background keikaku open\nspawner: beating\n");
-  assert.strictEqual(lines("sess-c"), "stopped dotskills-7b interactive kikaku -\nspawner: beating\n");
-  assert.strictEqual(lines("dotskills-denrei-7a8b"), "removed dotskills-denrei-7a8b - denrei -\nspawner: beating\n");
+  assert.strictEqual(lines("sess-a"), "parked dotskills-sekkei-t-1a2b - sekkei ended sess-a\nspawner: beating\n");
+  assert.strictEqual(
+    lines("sess-b"),
+    "running dotskills-keikaku-t-3c4d background keikaku open sess-b\nspawner: beating\n",
+  );
+  assert.strictEqual(lines("sess-c"), "stopped dotskills-7b interactive kikaku - sess-c\nspawner: beating\n");
+  // A name resolves to its sessionId, the sixth field Kanri reads at receipt (roster-ledger 2.3).
+  assert.strictEqual(
+    lines("dotskills-denrei-7a8b"),
+    "removed dotskills-denrei-7a8b - denrei - sess-d\nspawner: beating\n",
+  );
   assert.strictEqual(lines("sess-bg"), "no entry background\nspawner: beating\n");
   assert.strictEqual(lines("sess-tab"), "no entry interactive\nspawner: beating\n");
   assert.strictEqual(lines("sess-none"), "no entry -\nspawner: beating\n");
@@ -1678,7 +1746,7 @@ test("wake resumes several seats with no prompt in one call, and prints each sea
     woken.out,
     [
       "spawner: beating",
-      "running dotskills-sekkei-t-1a2b background sekkei ended",
+      "running dotskills-sekkei-t-1a2b background sekkei ended sess-a",
       "error: listed — sess-b dotskills-4d",
       "",
     ].join("\n"),
@@ -1696,7 +1764,7 @@ test("wake --hold writes each seat's hold, with forMs and no pid, before its res
     { op: "hold", sessionId: "sess-a", forMs: 3300000 },
     { op: "resume", sessionId: "sess-a" },
   ]);
-  assert.strictEqual(woken.out, "spawner: beating\nparked dotskills-hosa-1a2b - hosa -\n");
+  assert.strictEqual(woken.out, "spawner: beating\nparked dotskills-hosa-1a2b - hosa - sess-a\n");
   assert.strictEqual(woken.code, 0);
 });
 
@@ -1708,7 +1776,7 @@ test("wake --hold exits 1 and says `hold:` on the seat's line when only its hold
   const woken = await wakeBeside(f, ["--hold", "sess-a"], (request) =>
     request.op === "hold" ? { error: "no such seat" } : {},
   );
-  assert.strictEqual(woken.out, "spawner: beating\nparked dotskills-hosa-1a2b - hosa - — hold: no such seat\n");
+  assert.strictEqual(woken.out, "spawner: beating\nparked dotskills-hosa-1a2b - hosa - sess-a — hold: no such seat\n");
   assert.strictEqual(woken.code, 1);
 });
 
@@ -1718,7 +1786,10 @@ test("wake prints `listing:` and exits 1 when the listing fails, after each seat
     () => [],
   );
   const woken = await wakeBeside(f, ["sess-a"], () => ({}), { FAKE_MODE: "fail" });
-  assert.strictEqual(woken.out, "spawner: beating\nparked dotskills-hosa-1a2b - hosa -\nlisting: listing broke\n");
+  assert.strictEqual(
+    woken.out,
+    "spawner: beating\nparked dotskills-hosa-1a2b - hosa - sess-a\nlisting: listing broke\n",
+  );
   assert.strictEqual(woken.code, 1);
 });
 
