@@ -180,7 +180,47 @@ constraints, each seat's own prompt keys, and the batch prompts.
    it**, and `node --test skills/tanto/scripts/*.test.js` is green at every
    task that touches a script.
 
-**Files no task touches.** `skills/tanto/scripts/passage-check.js`,
+**The four Jissos' rows come first.** At the plan's landing Kanri spawns
+the four Jissos (batches A, B, C, and the fix wave) with `queue=roster-ledger`
+and writes each one's roster row with the old shape's `record --seat`,
+all four before it sends batch A's `batch:` line. After Task 1's commit
+`record` refuses the old-shape roster until `migrate` runs at A's report,
+and Constraint 1 forbids Kanri's writes inside A, so a row written later
+cannot be written at all. Batch A's boundary brief then reads
+`jisso=<that Jisso's sessionId, from its roster row>` (Task 6), and
+`migrate` carries every row, the four `queued` Jissos' among them. Batch
+A's prompt names this order in its Kanri directive.
+
+**What a handover written during this plan carries.** Kanri's handover is
+likely due inside this plan, and the role text a successor reads lags the
+code until batch C lands (rule 11). The outgoing Kanri copies the paragraph
+for its window into the handover file's Next step, whichever text its
+successor will read:
+
+- *Inside batch A, before its report lands* — Constraints 1 to 3 and the
+  order of the four Jissos' rows above; that Kanri runs no census and writes
+  no row until A's report, then runs `boundary.js migrate` once over the
+  roster, the archive, and the open ledger; the batch-A dispatch keys of
+  Task 6 (`jisso=`, `kanri-transcript=` from its own scratchpad path, the
+  `<role> <sessionId> <reading>` peer lines resolved at receipt, the
+  three-field `--s-item`); and that the successor's Start still reads the
+  old step 3 ("the bootstrap: create it") and step 4 ("cold-read the
+  roster"), which this window's authority overrides.
+- *Between A and B* — the roster is migrated; `record --init`, `--seat`,
+  `--succeeds`, `--roster-event`, `--rename`, and `--status` by
+  `sessionId` exist and are used for every row and every roster Events
+  line, and the Handover case's `--succeeds`; `roster show` and
+  `archive` do not exist yet, so the successor reads the roster by a read
+  of the one file; the census prints six headings until B, with the
+  header line of Task 1.
+- *Between B and C* — every command of the spec exists; the successor reads
+  the roster by `boundary.js roster show`, runs the seven-heading census
+  and acts on Returned, and uses `--succeeds` and `--init`; the role file
+  it reads still says "cold-read the roster", "the bootstrap: create it", a
+  by-hand Handover case, and the six headings, and the handover template
+  still says "Residency" — the commands above are the authority until C.
+
+ `skills/tanto/scripts/passage-check.js`,
 `reading.js`, `usage.js`, and their three test files; `skills/tanto/roles/`
 `sekkei.md`, `keikaku.md`, `jisso.md`, `kikaku.md`, and `hosa.md`; and the
 templates other than `roster.md`, `roster-archive.md`, `kanri.md`,
@@ -218,7 +258,7 @@ replay-skip: ./scripts/lint.sh skills/ — the scratch tree carries no `.git`, `
 | Batch | Tasks | Delivers | Stop conditions at this boundary |
 | --- | --- | --- | --- |
 | A | 1-6 | `boundary.js` and its tests, and the run-time template: the roster and archive templates (twenty and 21 columns, the Residency table gone), the new `shoroku-direction.md`, the template-derived header check, the `\|` escape and the Transcript, cwd, and newline checks, the one-row-per-seat model with the readings, `--status`, `--suffix`, Kanri's counts, and `--read-at` keyed by `sessionId`, and `seat`'s and `wake`'s sixth field (Tasks 1-2); `--seat` repeatable or by `sessionId`, `--init`, `--succeeds`, `--roster-event`, `--rename`, and `--ledger` required by the ledger's flags alone (Task 3); the three-field `--s-item`, the duplicate-number refusal, `--direction`, `--written`, and `--written-feedback` (Task 4); `boundary.js migrate` (Task 5); `templates/boundary-brief.md` and the three `roles/kanri.md` paragraphs that key on its `record` call (Task 6) | `node --version` is 22 or later; the whole suite `skills/tanto/scripts/*.test.js` green; `passage-check.js verify` clean for Tasks 1-6; `./scripts/lint.sh` clean on every changed path; every O-needle of Tasks 1-6 at 0 over its stated files; `passage-check.js diff` clean outside `docs/superpowers/`; none of the files no task touches changed — every one a fence of How a batch is verified; and Kanri's own act at this boundary, before any census or `record`: `boundary.js migrate` over the live roster, archive, and ledger (Constraint 1), whose printed rows and `suspect:` and `unplaced:` lines are read and settled |
-| B | 7-11 | the census's seven headings, **Returned** with its two cases, and the `queued; its batch line wakes it` line (Task 7); `boundary.js roster show` (Task 8); `boundary.js archive` and the ten-subcommand usage line (Task 9); `spawner.js` without the `ack` op and the `renamed` mark, the seat's `branch` persisted, and the `ack` op out of `templates/spawn-request.md` (Task 10); `tanto.js` on the shared cell grammar, the `held:` entry, and the state-file fallback, with `boundary.js` exporting `cells` (Task 11) | everything batch A's row names, again; `passage-check.js verify` clean for Tasks 7-11; every O-needle of Tasks 1-11 at 0 over its stated files; `boundary.js census` prints seven headings and `roster show` prints the first row and the live rows against the live roster |
+| B | 7-11 | the census's seven headings, **Returned** with its two cases, and the `queued; its batch line wakes it` line (Task 7); `boundary.js roster show` (Task 8); `boundary.js archive` and the ten-subcommand usage line (Task 9); `spawner.js` without the `ack` op and the `renamed` mark, the seat's `branch` persisted, and the `ack` op out of `templates/spawn-request.md` (Task 10); `tanto.js` on the shared cell grammar, the `held:` entry, and the state-file fallback, with `boundary.js` exporting `cells` (Task 11) | everything batch A's row names, again; `passage-check.js verify` clean for Tasks 7-11; every O-needle of Tasks 1-11 at 0 over its stated files; fence 8 of How a batch is verified — the census prints its seven headings and `roster show` its first row and the live rows in under a second, against the live roster (the verifier runs it; its line is in the verdict) |
 | C — the safe boundary, the plan's last batch | 12-18 | the contract's text: `SKILL.md` in two parts by heading (Tasks 12-13, with the two one-line roster-read sites of `roles/kaiseki.md` and `templates/bug-report.md` in Task 13); `roles/kanri.md` in three parts by heading (Tasks 14-16); `templates/kanri-handover.md` (Task 17); `README.md` and the plan-wide sweep (Task 18) | everything batches A and B name, again; `passage-check.js verify` clean for Tasks 12-18; **every O-needle of the whole plan at 0 over its stated files**; the whole-skill sweep of fence 5 at zero, over the scripts and their tests too; at the close, `boundary.js archive`, `record --direction`, and `record --written` are the first run of the new commands and their output is the close's acceptance check (Constraint 4) |
 
 A stop condition worded as a property of the whole tree — "the suite is
@@ -365,6 +405,7 @@ A@@<source> | <item>"@@skills/tanto/roles/kanri.md skills/tanto/templates/bounda
 A@@each by its bare name@@skills/tanto/roles/kanri.md
 A@@per line, the name bare@@skills/tanto/roles/kanri.md
 A@@which under Next prompt@@skills/tanto/templates/boundary-brief.md
+A@@from the roster's first data row>@@skills/tanto/roles/kanri.md skills/tanto/templates/boundary-brief.md
 B@@CENSUS_HEADINGS = ["Listed", "Parked", "Ended", "Not listed"@@skills/tanto/scripts/boundary.js
 B@@The six headings@@skills/tanto/scripts/boundary.js
 B@@under six headings@@skills/tanto/scripts/boundary.js
@@ -453,6 +494,16 @@ C@@write its row from that result file with@@skills/tanto/roles/kanri.md
 C@@- **No session id** — nothing.@@skills/tanto/roles/kanri.md
 C@@cold-read as if fresh@@skills/tanto/roles/kanri.md
 C@@act on its six headings@@skills/tanto/roles/kanri.md
+C@@with an Events line per row@@skills/tanto/roles/kanri.md
+C@@Write the Events line@@skills/tanto/roles/kanri.md
+C@@ with an Events line naming what showed its process gone@@skills/tanto/roles/kanri.md
+C@@not final: its Events line names what@@skills/tanto/roles/kanri.md
+C@@wake fails gets the Events line a seat@@skills/tanto/roles/kanri.md
+C@@ with an Events line quoting the human@@skills/tanto/roles/kanri.md
+C@@with an Events line naming the guard@@skills/tanto/roles/kanri.md
+C@@is the seat lost: its Events line says@@skills/tanto/roles/kanri.md
+C@@otherwise record in the roster's Events that@@skills/tanto/roles/kanri.md
+C@@gets no answer and an Events@@skills/tanto/roles/kanri.md
 C@@## Residency@@skills/tanto/templates/kanri-handover.md
 C@@Kanri's Residency row in@@skills/tanto/templates/kanri-handover.md
 C@@after its cold read@@skills/tanto/templates/kanri-handover.md
@@ -508,6 +559,37 @@ echo "diff: clean outside docs/superpowers/"
 
 Expected: `diff: clean outside docs/superpowers/`.
 
+**8. The census and `roster show` against the live roster, from batch B.**
+The verifier runs this fence with the rest of `boundary --plan`; its pass or
+fail line is in the verdict. Before batch B has landed (`spawner.js` is
+unchanged) it prints that it waits and exits 0. After, `boundary.js census`
+must print the spawner line and the seven `## <heading>` lines, and
+`boundary.js roster show` must exit 0 in under a second (spec,
+"Verification" for batch B). A census that prints `census: unavailable` or a
+roster whose header is not the template's fails the fence, which is the stop
+a boundary needs.
+
+```bash
+git rev-parse --show-toplevel >/dev/null || exit 1
+git diff --quiet "$(git merge-base main HEAD)" -- skills/tanto/scripts/spawner.js && { echo "census and roster show: wait for batch B"; exit 0; }
+out="$(node skills/tanto/scripts/boundary.js census)" || { printf '%s\n' "$out"; exit 1; }
+printf '%s\n' "$out" | head -n 1
+for h in "Listed" "Parked" "Ended" "Returned" "Not listed" "No session id" "Not held"; do
+  printf '%s\n' "$out" | grep -q -x "## $h" || { echo "missing heading: $h"; exit 1; }
+done
+start="$(date +%s%N)"
+show="$(node skills/tanto/scripts/boundary.js roster show)" || { printf '%s\n' "$show"; exit 1; }
+end="$(date +%s%N)"
+printf '%s\n' "$show" | head -n 1
+ms=$(( (end - start) / 1000000 ))
+echo "roster show: $ms ms"
+[ "$ms" -lt 1000 ] || exit 1
+```
+
+Expected: `census and roster show: wait for batch B` before B; after, the
+spawner line, the `first:` line of `roster show`, and `roster show: <n> ms`
+with `n` under 1000, exit 0.
+
 ## Tasks
 
 ### Task 1: One table per roster, the schema from the template
@@ -531,7 +613,11 @@ character are refused; `writeResidency` and `RESIDENCY_HEADER` are gone and
 a reading lands in the nine reading columns of the row its `sessionId`
 finds, its Read at `batch <X>` or the `--read-at` label; `--seat` writes
 the twenty-cell row by `sessionId` and a rewrite keeps the reading, the
-Name cell, and every cell the result lacks; and the census on a roster
+Name cell, and every cell the result lacks — so a bare `<sessionId>.jsonl`
+Transcript cell, legitimate for a seat whose result or state entry carries
+no `transcript` (spec 2.2), stays while the seat carries none and is
+replaced by the path once one carries it, and a path once written stays
+when a later result carries `transcript: null`; and the census on a roster
 whose header is not the template's prints
 `census: roster header is not the template's — run boundary.js migrate`
 and exits 1. Every old test that asserted the two-table shape is rewritten
@@ -1657,6 +1743,7 @@ nothing after the pointer.
 - [ ] **Step 4: Read the schema from the template, escape the cell, and write the twenty-cell row by `sessionId`**
 
 Apply P1.1 to P1.13.
+
 **P1.1** `skills/tanto/scripts/boundary.js` — replace exactly these 3 lines
 
 ```js
@@ -1898,10 +1985,13 @@ const SEAT_FIELDS = [
  * `—` and its three counts `0` for Kanri and `—` for every other role; a
  * second call rewrites it in place, keeping every cell the seat does not
  * carry — the nine reading columns among them — and the Name cell whatever
- * the seat carries, so that a rewrite never undoes a rename (spec 2.4). The
- * Status cell is written `live`: a later `stopped` belongs to Kanri alone
- * to write. The Transcript and cwd cells are checked for shape on the way
- * in (spec 2.2).
+ * the seat carries, so that a rewrite never undoes a rename (spec 2.4). A
+ * bare `<sessionId>.jsonl` Transcript cell, written for a seat that carries
+ * no `transcript`, is kept while the seat still carries none and replaced
+ * by the path once it carries one; a path stays when a later seat carries
+ * `transcript: null`. The Status cell is written `live`: a later `stopped`
+ * belongs to Kanri alone to write. The Transcript and cwd cells are checked
+ * for shape on the way in (spec 2.2).
  */
 ```
 
@@ -2277,6 +2367,7 @@ the seat writers' is keyed by `sessionId`.
 Apply P2.1 to P2.3 and P2.11 to P2.14. P2.1 replaces the `--status` test
 with the status, suffix, counts, and peer-line tests; P2.2, P2.3, and
 P2.11 to P2.14 give the `seat` and `wake` lines their sixth field.
+
 **P2.1** `skills/tanto/scripts/boundary.test.js` — replace exactly these 23 lines
 
 ```js
@@ -2496,6 +2587,7 @@ sixth field; the `wake` tests fail on the same field. The other tests pass.
 - [ ] **Step 3: Key the status, the suffix, and the counts by `sessionId`, and print it on `seat`'s line**
 
 Apply P2.4 to P2.10.
+
 **P2.4** `skills/tanto/scripts/boundary.js` — replace exactly these 2 lines
 
 ```js
@@ -2783,7 +2875,7 @@ line is written by hand.
   its ledger read, its `--s-item` loop, its seat write, and its ledger
   write.
 - Test: `skills/tanto/scripts/boundary.test.js` — the missing-file `--seat`
-  test replaced by five tests.
+  test replaced by six tests.
 
 **Interfaces:**
 
@@ -2835,8 +2927,10 @@ line is written by hand.
 - [ ] **Step 1: Write the failing tests**
 
 Apply P3.1: the missing-file `--seat` test becomes the repeated and
-state-entry `--seat` test, and the `--init`, `--succeeds`, `--rename` with
-`--roster-event`, and roster `--s-item` tests follow it.
+state-entry `--seat` test, and the bare-Transcript rewrite, `--init`,
+`--succeeds`, `--rename` with `--roster-event`, and roster `--s-item`
+tests follow it.
+
 **P3.1** `skills/tanto/scripts/boundary.test.js` — replace exactly these 15 lines
 
 ```js
@@ -2887,6 +2981,27 @@ test("--seat repeats, each a result file or a sessionId the state file holds, ne
   assert.strictEqual(gone.code, 1);
   assert.ok(gone.err.includes("did not find a --seat result file or a sessionId the state file holds"), gone.err);
   assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), text);
+});
+
+test("a --seat rewrite keeps a bare <sessionId>.jsonl Transcript cell until the entry carries a path, and the path after (spec 2.2, 2.4)", () => {
+  const fixture = ledgerAndRoster();
+  const root = path.join(fixture.dir, "root");
+  fs.mkdirSync(path.join(root, ".tanto", "spawner"), { recursive: true });
+  const entry = { ...SEAT, sessionId: KEIKAKU_ID, name: "keikaku-b", role: "keikaku", topic: "t", status: "running" };
+  delete entry.transcript;
+  // The state entry as the spawner holds it, then this Transcript cell after `--seat <sessionId>`.
+  const cellAfter = (fields) => {
+    const seats = JSON.stringify({ seats: [{ ...entry, ...fields }] });
+    fs.writeFileSync(path.join(root, ".tanto", "spawner", "seats.json"), seats);
+    const got = run(["record", "--roster", fixture.roster, "--root", root, "--seat", KEIKAKU_ID], fixture.dir);
+    assert.strictEqual(got.code, 0, got.err);
+    return rowCells(fixture, KEIKAKU_ID)[10];
+  };
+  assert.strictEqual(cellAfter({}), `${KEIKAKU_ID}.jsonl`);
+  const found = `/home/u/.claude/projects/p/${KEIKAKU_ID}.jsonl`;
+  assert.strictEqual(cellAfter({ transcript: found }), found);
+  assert.strictEqual(cellAfter({ transcript: null }), found);
+  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8").split(KEIKAKU_ID).length - 1, 1);
 });
 
 test("--init creates the roster from the template, its placeholders dropped, and writes its seats; a roster that exists is refused (spec 2.4)", () => {
@@ -2998,13 +3113,14 @@ test("--s-item given --roster and no --ledger writes the roster's items table un
 node --test skills/tanto/scripts/boundary.test.js
 ```
 
-Expected: FAIL — the five new tests: today's `record` takes one `--seat`
+Expected: FAIL — the six new tests: today's `record` takes one `--seat`
 file, refuses every call without `--ledger`, and knows neither `--init`,
 `--succeeds`, `--rename`, nor `--roster-event`. The other tests pass.
 
 - [ ] **Step 3: Write the seat writers and make `--ledger` the ledger's alone**
 
 Apply P3.2 to P3.12.
+
 **P3.2** `skills/tanto/scripts/boundary.js` — replace exactly these 2 lines
 
 ```js
@@ -3434,6 +3550,7 @@ three commands and no hand edit.
 Apply P4.1: the three-field and duplicate-number tests, and the
 `--direction` and `--written` tests over a direction file built from the
 template, after `itemsLedger`.
+
 **P4.1** `skills/tanto/scripts/boundary.test.js` — insert after these 2 lines
 
 ```js
@@ -3588,6 +3705,7 @@ other tests pass.
 - [ ] **Step 3: Split the item on three fields, refuse a used number, and write the direction back**
 
 Apply P4.2 to P4.4.
+
 **P4.2** `skills/tanto/scripts/boundary.js` — replace exactly these 58 lines
 
 ```js
@@ -3996,6 +4114,7 @@ under a stale name, a `cleared` row, and a Transcript cell missing its
 separators; an archive with the fifteen- and sixteen-column tables under
 `## Sessions` and a closed plan's section after them; and a ledger with
 the `Candidate` and retired columns — and the three `migrate` tests.
+
 **P5.1** `skills/tanto/scripts/boundary.test.js` — insert before these 2 lines
 
 ```js
@@ -4228,6 +4347,7 @@ Expected: FAIL — the three `migrate` tests, on `boundary.js: usage:`
 - [ ] **Step 3: Write `migrate`**
 
 Apply P5.2 and P5.3.
+
 **P5.2** `skills/tanto/scripts/boundary.js` — insert after these 3 lines
 
 ```js
@@ -4545,7 +4665,12 @@ Kanri's `sessionId` — the basename of the `kanri-transcript=` path — and
 `--peer-reading "<role> <sessionId> <reading>"`, and
 `--s-item "<source> | <destination> | <item>"`; and its Next prompt
 names the next `queued` seat by `sessionId` and name both. In
-`roles/kanri.md`, the dispatch block gains the `jisso=` line; the
+`roles/kanri.md`, the dispatch block gains the `jisso=` line. In both,
+`kanri-transcript=` names Kanri's own transcript path, read from its
+scratchpad path (`SKILL.md`, "The transcript reading") and never from the
+roster's first data row, whose Transcript cell may hold only
+`<sessionId>.jsonl` (spec 2.2): a seat row written from a state entry
+with no `transcript` carries the bare cell. The
 readings line says the peer's bare name is resolved at receipt by
 `boundary.js seat <name>`'s sixth field, with the `unresolved reading:`
 event for a name `seat` does not hold; and loop step 6's call carries
@@ -4563,8 +4688,8 @@ every `record` call the run-time text writes carries `sessionId`s.
   paragraph; step 5's Next prompt sentence; the verdict file's
   `## Next prompt`.
 - Modify: `skills/tanto/roles/kanri.md` — "The batch loop" step 2's
-  dispatch block and its readings sentence, and step 6's `record` call and
-  the paragraph after it.
+  dispatch block (its `kanri-transcript=` line and a `jisso=` line) and its
+  readings sentence, and step 6's `record` call and the paragraph after it.
 
 **Interfaces:**
 
@@ -4610,11 +4735,14 @@ every `record` call the run-time text writes carries `sessionId`s.
 
 **O6.17** `which under Next prompt` — the next queued seat named without its `sessionId` (spec 2.3); before: 1 in `skills/tanto/templates/boundary-brief.md`, after: 0.
 
+**O6.20** `from the roster's first data row>` — Kanri's transcript path read from a row whose Transcript cell may be a bare `<sessionId>.jsonl` (spec 2.2); before: 1 in `skills/tanto/templates/boundary-brief.md` and 1 in `skills/tanto/roles/kanri.md`, after: 0 in both. The role file's other "first data row" sentences — the four cases' `sessionId`, the intake's read — key on the `sessionId` alone and stay (Tasks 14 and 16).
+
 **A6.18** `skills/tanto/roles/kanri.md` — `grep -c "jisso=<that Jisso's sessionId" skills/tanto/roles/kanri.md` — before: 0, after: 1
 
 - [ ] **Step 1: Key the brief's `record` call by `sessionId`**
 
 Apply P6.1 to P6.4.
+
 **P6.1** `skills/tanto/templates/boundary-brief.md` — replace exactly these 13 lines
 
 ````markdown
@@ -4639,7 +4767,7 @@ dispatch and goes through `record`.
 ```text
 topic=<topic> batch=<key> plan=<plan path> report=<report path>
 ledger=<.tanto/<topic>/kanri.md> roster=<.tanto/roster.md> base=<merge base>
-kanri-transcript=<Kanri's transcript path, from the roster's first data row>
+kanri-transcript=<Kanri's own transcript path, from its scratchpad path (SKILL.md, "The transcript reading"); the roster row's Transcript cell may hold only <sessionId>.jsonl>
 tanto=<the skill's own directory>
 seat=<the spawner result file of the Jisso that ran this batch, or none>
 jisso=<that Jisso's sessionId, from its roster row, when seat=none>
@@ -4746,7 +4874,8 @@ next `queued` seat by its `sessionId` and its name; or `none — final batch`
 
 - [ ] **Step 2: Bring the three role paragraphs to the brief**
 
-Apply P6.5 to P6.7.
+Apply P6.5 to P6.7 and P6.19.
+
 **P6.5** `skills/tanto/roles/kanri.md` — insert after these 2 lines
 
 ````markdown
@@ -4837,6 +4966,18 @@ Apply P6.5 to P6.7.
    the key of the batch whose boundary this is. At a boundary no table is
    edited by hand: that call, and for a rework the second call below, are
    all of it.
+````
+
+**P6.19** `skills/tanto/roles/kanri.md` — replace exactly this 1 line
+
+````markdown
+   kanri-transcript=<your transcript path, from the roster's first data row>
+````
+
+**P6.19 →**
+
+````markdown
+   kanri-transcript=<your own transcript path, from your scratchpad path (SKILL.md, "The transcript reading"); the roster row's Transcript cell may hold only <sessionId>.jsonl>
 ````
 
 - [ ] **Step 3: Verify the passages**
@@ -7646,7 +7787,7 @@ README's Layout (Task 18). The twentieth template is also
 Task 12, under "The roster" alone; this task's passages lie under
 "Messages", "Artifacts", and "Rules".
 
-**O13.1** `Name [ref]` — the intake route's read of another workspace's roster by a header no roster carries after Task 1 (spec section 7, "Messages"; Old values "`Name [ref]`"); raw count across `skills/tanto/`: `SKILL.md` 1, `roles/kaiseki.md` 1, `templates/bug-report.md` 1 — this task's three, after: 0 in each — and `roles/kanri.md` 1 (Task 16's, O16.9), `templates/roster.md` 2 and `templates/roster-archive.md` 1 (Task 1's), `scripts/boundary.js` 3 and `scripts/boundary.test.js` 1 (Tasks 1 and 5's), `scripts/tanto.test.js` 1 (Task 11's). The two script files may keep the old header where `migrate` recognizes it; Task 18's sweep lists those hits.
+**O13.1** `Name [ref]` — the intake route's read of another workspace's roster by a header no roster carries after Task 1 (spec section 7, "Messages"; Old values "`Name [ref]`"); raw count across `skills/tanto/`: `SKILL.md` 1, `roles/kaiseki.md` 1, `templates/bug-report.md` 1 — this task's three, after: 0 in each — and `roles/kanri.md` 1 (Task 16's, O16.9), `templates/roster.md` 2 and `templates/roster-archive.md` 1 (Task 1's), `scripts/boundary.js` 3 and `scripts/boundary.test.js` 1 (Task 1's, O1.40, after: 0 in both), `scripts/tanto.test.js` 1 (Task 11's). A hit that any Task 18 sweep finds in any file is a finding to stop and report.
 
 **O13.2** `one row per seat, written from the spawner` — the roster's Artifacts row (spec 1.1, 2.4); raw count: 1 in `skills/tanto/SKILL.md`; after: 0.
 
@@ -7955,7 +8096,10 @@ bullets' `--roster-event`). `roster show` is also `boundary.js` (Task 8),
 `SKILL.md`'s scripts paragraph (Task 13), and `templates/kanri-handover.md`
 (Task 17). The `seat` line's sixth field is also `boundary.js seat` and `wake`
 (Task 2), `SKILL.md`'s "The address" (Task 12), and the boundary dispatch's
-readings line, which resolves a peer's name at receipt (Task 6).
+readings line, which resolves a peer's name at receipt (Task 6). Kanri's
+own transcript path, taken from its scratchpad path and never from the
+roster's Transcript cell (spec 2.2), is also Task 6's dispatch block,
+`kanri-transcript=`, in the same words.
 `--read-at` is also `boundary.js` (Task 2) and "The trigger" and
 "Readings" (Task 15). `migrate` is also `boundary.js` (Task 5), `SKILL.md`
 (Tasks 12, 13), and the README (Task 18). The `ack` op is also `SKILL.md`'s
@@ -7985,7 +8129,7 @@ paragraph and bullets, the paragraph after the Release table, Recovery step
 
 **O14.6** `when the census does not list` — the Handover case's `or dead` clause (spec, Old values; 1.3); raw count: 1 in `skills/tanto/roles/kanri.md`; after: 0.
 
-**O14.7** `Residency row` — the bootstrap's and the Handover case's Residency rows (spec 1.1, Old values "`Residency`"; narrowed from the bare word so that `migrate`'s own new text, which names the old table, cannot match it); raw count: 7 lines in `skills/tanto/roles/kanri.md` — 2 in this task's sections, 5 in Task 15's (O15.1) — and across `skills/tanto/` also `templates/kanri-handover.md` 1 (Task 17), `templates/roster.md` 1 and `templates/roster-archive.md` 1 (Task 1), `scripts/boundary.js` 3 and `scripts/boundary.test.js` 5 (Tasks 1, 5). The bare word, 9 lines in `roles/kanri.md` (the spec's "10 times" re-run reads 9) and 8 lines in `scripts/boundary.js` (12 occurrences), is A14.11's and Task 18's sweep's; after: 0 in this task's sections.
+**O14.7** `Residency row` — the bootstrap's and the Handover case's Residency rows (spec 1.1, Old values "`Residency`"; narrowed from the bare word, which A14.11 counts); raw count: 7 lines in `skills/tanto/roles/kanri.md` — 2 in this task's sections, 5 in Task 15's (O15.1) — and across `skills/tanto/` also `templates/kanri-handover.md` 1 (Task 17), `templates/roster.md` 1 and `templates/roster-archive.md` 1 (Task 1), `scripts/boundary.js` 3 and `scripts/boundary.test.js` 5 (Tasks 1, 5). The bare word, 9 lines in `roles/kanri.md` (the spec's "10 times" re-run reads 9) and 8 lines in `scripts/boundary.js` (12 occurrences), is A14.11's and Task 18's sweep's; after: 0 in this task's sections.
 
 **O14.8** `rewrite it in place with your name` — the "Yours" case's by-hand Name rewrite (spec 2.4, `--rename`); raw count: 1 in `skills/tanto/roles/kanri.md`; after: 0.
 
@@ -8039,7 +8183,10 @@ Apply P14.12 to P14.15, and P14.17.
 ````markdown
 3. If `.tanto/roster.md` is absent, this is the bootstrap: one call, from
    the repository root, creates it with your row first, `<own>` being your
-   `sessionId`, the basename of your transcript path:
+   `sessionId`, the basename of your own transcript path — the path your
+   scratchpad path gives (`SKILL.md`, "The transcript reading"), never the
+   roster's Transcript cell, which holds the bare `<sessionId>.jsonl` when
+   the state entry had no path yet:
 
    ```bash
    node "$TANTO/scripts/boundary.js" record --init --roster .tanto/roster.md --seat <own>
@@ -8048,7 +8195,8 @@ Apply P14.12 to P14.15, and P14.17.
    `record` writes the roster from `templates/roster.md` and your row from
    your entry in the spawner's state file — its Topic `—`, because a topic
    is a peer's; its Model and Effort the spawn request's, which step 1
-   checked; its Transcript your own transcript path; its counts `0 0 0`.
+   checked; its Transcript the entry's path, or `<own>.jsonl` while the
+   entry has none; its counts `0 0 0`.
    Then take your own reading into that row,
    `record --roster .tanto/roster.md --kanri <own> --kanri-reading "<reading>" --read-at start`,
    and go to step 5. No row of the roster is written by hand.
@@ -8056,7 +8204,8 @@ Apply P14.12 to P14.15, and P14.17.
    `node "$TANTO/scripts/boundary.js" roster show` and then the census
    (`node "$TANTO/scripts/boundary.js" census`; "Session lifecycle" says
    what it prints), and compare your own `sessionId`, the basename of your
-   transcript path, with the one `show`'s first line prints,
+   own transcript path from your scratchpad path, with the one `show`'s
+   first line prints,
    `first: <name> — <sessionId> — <status> — counts <batches> <plans> <noticed>`;
    then take exactly one case from "The four cases" below. A `show` that
    ends with the line naming `boundary.js migrate` — a roster of an older
@@ -8110,8 +8259,9 @@ handover and the ledger it names, and `progress.md` if a plan is in flight;
 note whether the census lists the outgoing Kanri's `sessionId`, the one
 `show`'s first line printed — a census that lists two Kanris during a
 handover is this case, the outgoing one alive until your `stop` request
-below; write the handover with one call, `<own>` your `sessionId` and
-`<old>` the outgoing Kanri's:
+below; write the handover with one call, `<own>` your `sessionId` — the
+basename of your own transcript path, from your scratchpad path and never
+from the roster — and `<old>` the outgoing Kanri's:
 
 ```bash
 node "$TANTO/scripts/boundary.js" record --roster .tanto/roster.md --seat <own> --succeeds <old>
@@ -8584,7 +8734,16 @@ points at `SKILL.md`'s table.
   (the census paragraph, the **Ended**, **Not listed**, **Listed** `—
   renamed`, `— no first turn`, **Not held**, and **No session id** bullets,
   and a new **Returned** bullet); "Release" (the paragraph after the
-  table); "Recovery" (step 1).
+  table); "Recovery" (step 1). And every other roster Events line the role
+  names, each naming `--roster-event` where it names the line: "The four
+  cases" (the **Recovery** case's per-row line), "Sending to a seat" (the
+  second `no-role`'s line), "A seat's exit" (the gone Jisso's or shoki's
+  line), "Session lifecycle"'s **Not listed** bullet (its two other
+  lines), "Create" (the set-aside row), "Replace" (the gone Jisso's row
+  and the Sekkei, Keikaku, and Kaiseki rows), and "Recovery" (the `fukki:`
+  line from another sender, and step 2's `sent:` pair); and the `unsent:`
+  line named in "Sending to a seat"'s send-error paragraph and in "Session
+  lifecycle"'s closing paragraph.
 
 **Interfaces:**
 
@@ -8603,11 +8762,15 @@ points at `SKILL.md`'s table.
 direction template (Task 1). `--roster-event` is also `boundary.js`
 (Task 3), `SKILL.md`'s beat paragraph and census table (Task 12), and this
 file's beat paragraph, Handover case, and "Yours" case (Task 14); a roster
-Events line inside Task 14's or Task 15's ranges is written there, and this
-task's census paragraph carries the one rule for all the others — the
-Recovery case's per-row line under "The four cases", the `no-role` and
-Replace-table lines, the Create table's set-aside line, and "Recovery"'s
-`fukki:` line among them, none of which is quoted here. `--rename` is also
+Events line inside Task 14's ranges is written there, Task 15's ranges name
+none, and every other one — the Recovery case's per-row line under "The
+four cases", the second `no-role`'s line, "A seat's exit"'s lines, the Not
+listed bullet's three, the Create table's set-aside line, the Replace
+table's four rows, "Recovery"'s `fukki:` line and `sent:` pair, and the
+`unsent:` line of the send-error paragraph and the census's closing
+paragraph — names the flag in this
+task's own passages, the census paragraph stating the rule once beside
+them. `--rename` is also
 `boundary.js` (Task 3), `SKILL.md`'s "The roster" (Task 12), and the
 "Yours" case (Task 14). The intake's roster read is also `SKILL.md`'s
 "Messages", `roles/kaiseki.md`, and `templates/bug-report.md` (Task 13),
@@ -8650,7 +8813,7 @@ task writes.
 
 **O16.13** `Start step 1's read of your own name` — the census's place in a Start that read the roster itself (spec 4.2); raw count: 1 in `skills/tanto/roles/kanri.md`; after: 0.
 
-**O16.14** `, with an Events line naming what ended` — **Ended**'s by-hand row and Events line (spec 3, `--status`, `--roster-event`); raw count: 1 in `skills/tanto/roles/kanri.md`, and 1 in `skills/tanto/scripts/boundary.js` (the census's code comment, Task 7's to keep or reword); after: 0 here.
+**O16.14** `, with an Events line naming what ended` — **Ended**'s by-hand row and Events line (spec 3, `--status`, `--roster-event`); raw count: 1 in `skills/tanto/roles/kanri.md`, and 1 in `skills/tanto/scripts/boundary.js` (the census's code comment, Task 7's); after: 0 here.
 
 **O16.15** `prompt wakes it. Any other row is marked` — **Not listed** without the `queued` line and its writer (spec 3, 78b3); raw count: 1 in `skills/tanto/roles/kanri.md`; after: 0.
 
@@ -8668,6 +8831,32 @@ task writes.
 
 **A16.22** `skills/tanto/roles/kanri.md` — `node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/tanto/scripts/passage-check.js" sections --file skills/tanto/roles/kanri.md "Sending to a seat" "Handover" "Shoroku" "Bug intake" "Session lifecycle" | grep -c -F -e "in the roster's Events either way. You" -e 'your bare name, as a roster Events line. ' -e 'rows in the ledger: Adopted from the answer.' -e 'the docs subject for an adopted row' -e ' rows written — a row whose' -e "; and fill the ledger's Measurements" -e 'line of the roster. A sweep' -e 'gets a roster Events line saying' -e 'Name [ref]' -e "repository root, prints the roster's" -e 'then six headings' -e 'Listed, Parked, Ended, Not listed' -e "Start step 1's read of your own name" -e ', with an Events line naming what ended' -e 'prompt wakes it. Any other row is marked' -e "rewrite the row's Name column with the" -e 'you write with the request,' -e 'write its row from that result file with' -e '- **No session id** — nothing.' -e 'cold-read as if fresh' -e 'act on its six headings'` — before: 21, after: 0
 
+**O16.40** `with an Events line per row` — the **Recovery** case's per-row line, named without its writer (spec 2.4, "the role text names the flag where it names the line"); raw count: 1 in `skills/tanto/roles/kanri.md`; after: 0.
+
+**O16.41** `Write the Events line` — the second `no-role`'s line written by Kanri itself (spec 2.4); raw count: 1 in `skills/tanto/roles/kanri.md`; after: 0.
+
+**O16.42** ` with an Events line naming what showed its process gone` — a gone Jisso's or shoki's `dead` line, in "A seat's exit" and in the Replace table's first row (spec 2.4); raw count: 2 lines in `skills/tanto/roles/kanri.md`; after: 0.
+
+**O16.43** `not final: its Events line names what` — the Not listed bullet's `dead` line (spec 2.4); raw count: 1 in `skills/tanto/roles/kanri.md`; after: 0.
+
+**O16.44** `wake fails gets the Events line a seat` — the Not listed bullet's failed-wake line (spec 2.4); raw count: 1 in `skills/tanto/roles/kanri.md`; after: 0.
+
+**O16.45** ` with an Events line quoting the human` — the Create table's set-aside line (spec 2.4); raw count: 1 in `skills/tanto/roles/kanri.md`; after: 0.
+
+**O16.46** `with an Events line naming the guard` — the Replace table's guard-stopped line (spec 2.4); raw count: 1 in `skills/tanto/roles/kanri.md`; after: 0.
+
+**O16.47** `is the seat lost: its Events line says` — the Replace table's lost-seat line (spec 2.4); raw count: 1 in `skills/tanto/roles/kanri.md`; after: 0.
+
+**O16.48** `otherwise record in the roster's Events that` — the Sekkei, Keikaku, and Kaiseki rows of the Replace table, which record the line themselves (spec 2.4); raw count: 3 lines in `skills/tanto/roles/kanri.md`; after: 0.
+
+**O16.49** `gets no answer and an Events` — "Recovery"'s line for a `fukki:` from another sender (spec 2.4); raw count: 1 in `skills/tanto/roles/kanri.md`; after: 0.
+
+**A16.50** `skills/tanto/roles/kanri.md` — `node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/tanto/scripts/passage-check.js" sections --file skills/tanto/roles/kanri.md "Start" "Sending to a seat" "Shoroku" "Session lifecycle" | grep -c -F -e 'with an Events line per row' -e 'Write the Events line' -e ' with an Events line naming what showed its process gone' -e 'not final: its Events line names what' -e 'wake fails gets the Events line a seat' -e ' with an Events line quoting the human' -e 'with an Events line naming the guard' -e 'is the seat lost: its Events line says' -e "otherwise record in the roster's Events that" -e 'gets no answer and an Events'` — before: 11, after: 0
+
+**A16.51** `skills/tanto/roles/kanri.md` — `node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/tanto/scripts/passage-check.js" sections --file skills/tanto/roles/kanri.md "Start" "Sending to a seat" "Shoroku" "Session lifecycle" | grep -c -F -e '--roster-event'` — before: 1, after: 23
+
+A16.51's values are task-local, read at this task's own boundary on a file other tasks change: `before: 1` is the count with Tasks 1 to 15 applied in order and none of this task's blocks (Step 1 runs before Step 2 applies any) — the one line is Task 14's beat paragraph (P14.15); `after: 23` is the count once this task's blocks land, no later task touching these sections. At `main` the same command reads 0, since the flag does not exist in the base file.
+
 - [ ] **Step 1: Count the old values in this task's sections (red)**
 
 ```bash
@@ -8676,9 +8865,21 @@ node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/tanto/scripts/passage-check.js"
 
 Expected: `21` — A16.22's before value, one line per needle. A `no section` line on stderr means a heading was renamed: stop and report.
 
+```bash
+node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/tanto/scripts/passage-check.js" sections --file skills/tanto/roles/kanri.md "Start" "Sending to a seat" "Shoroku" "Session lifecycle" | grep -c -F -e 'with an Events line per row' -e 'Write the Events line' -e ' with an Events line naming what showed its process gone' -e 'not final: its Events line names what' -e 'wake fails gets the Events line a seat' -e ' with an Events line quoting the human' -e 'with an Events line naming the guard' -e 'is the seat lost: its Events line says' -e "otherwise record in the roster's Events that" -e 'gets no answer and an Events'
+```
+
+Expected: `11` — A16.50's before value; eleven lines, the Replace table's first row carrying three needles.
+
+```bash
+node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/tanto/scripts/passage-check.js" sections --file skills/tanto/roles/kanri.md "Start" "Sending to a seat" "Shoroku" "Session lifecycle" | grep -c -F -e '--roster-event'
+```
+
+Expected: `1` — A16.51's before value, the `--roster-event` lines Tasks 14 and 16's earlier passages do not yet add here.
+
 - [ ] **Step 2: Apply the passages**
 
-Apply P16.23 to P16.39.
+Apply P16.23 to P16.39 and P16.52 to P16.65.
 
 **P16.23** `skills/tanto/roles/kanri.md` — replace exactly these 2 lines
 
@@ -8932,7 +9133,7 @@ Otherwise what it prints decides:
 ```markdown
   `blocked`, or `gone`, and the listing does not show. An old-contract row (Start, step 4), `live` or
   `queued`, is marked `dead` — `--status "<sessionId> dead"` — with the
-  Events line `old-contract row retired: <name>`. Otherwise a `queued` row
+  `--roster-event` line `old-contract row retired: <name>`. Otherwise a `queued` row
   stays `queued`, its line ending `— queued; its batch line wakes it`,
   whatever the state file holds, `gone` included: a waiting seat's absence
   is expected, and the send of its prompt wakes it. Any other row is
@@ -9029,6 +9230,195 @@ at any start —
 1. Run the census and act on its seven headings. Wake, in one `wake` call,
 ```
 
+**P16.52** `skills/tanto/roles/kanri.md` — replace exactly these 3 lines
+
+```markdown
+census marks `dead` at once every `live` row it prints under **Not
+listed**, with an Events line per row saying whether its shoroku proposal
+was written and what was lost — no tab holds state the run needs, so there
+```
+
+**P16.52 →**
+
+```markdown
+census marks `dead` at once every `live` row it prints under **Not
+listed**, with one `record --roster-event` line per row saying whether its
+shoroku proposal was written and what was lost — no tab holds state the
+run needs, so there
+```
+
+**P16.53** `skills/tanto/roles/kanri.md` — replace exactly these 3 lines
+
+```markdown
+the human cleared is a bare window under a known row. Write the Events line
+a shoroku proposal not written gets — what was lost, as far as you know —
+and the row `stopped`; when the row was the live Jisso's, verify the tree
+```
+
+**P16.53 →**
+
+```markdown
+the human cleared is a bare window under a known row. With
+`record --roster-event`, write the roster Events line a shoroku proposal
+not written gets — what was lost, as far as you know — and, with
+`--status`, the row `stopped`; when the row was the live Jisso's, verify the tree
+```
+
+**P16.54** `skills/tanto/roles/kanri.md` — replace exactly this 1 line
+
+```markdown
+is marked `dead` with an Events line naming what showed its process gone —
+```
+
+**P16.54 →**
+
+```markdown
+is marked `dead`, with a `--roster-event` line naming what showed its process gone —
+```
+
+**P16.55** `skills/tanto/roles/kanri.md` — replace exactly this 1 line
+
+```markdown
+  transcript is on disk, `dead` is not final: its Events line names what
+```
+
+**P16.55 →**
+
+```markdown
+  transcript is on disk, `dead` is not final: that `--roster-event` line names what
+```
+
+**P16.56** `skills/tanto/roles/kanri.md` — replace exactly this 1 line
+
+```markdown
+  wake fails gets the Events line a seat whose shoroku proposal was not
+```
+
+**P16.56 →**
+
+```markdown
+  wake fails gets, by `--roster-event`, the Events line a seat whose
+  shoroku proposal was not
+```
+
+**P16.57** `skills/tanto/roles/kanri.md` — replace exactly this 1 line
+
+```markdown
+| the human asks you for a live seat to be set aside for a while — a priority call, not a lifecycle signal | one `stop` for that seat, its row `stopped` with an Events line quoting the human's word, its conversation kept and no shoroku proposal asked, since nothing of the seat's is lost; when the human says so, one `wake` on the same `sessionId`, the woken seat sent the Resuming line for its role, its row `live` again | — |
+```
+
+**P16.57 →**
+
+```markdown
+| the human asks you for a live seat to be set aside for a while — a priority call, not a lifecycle signal | one `stop` for that seat, its row `stopped` by `--status` and a `--roster-event` line quoting the human's word, its conversation kept and no shoroku proposal asked, since nothing of the seat's is lost; when the human says so, one `wake` on the same `sessionId`, the woken seat sent the Resuming line for its role, its row `live` again by `--status` | — |
+```
+
+**P16.58** `skills/tanto/roles/kanri.md` — replace exactly this 1 line
+
+```markdown
+| the live Jisso is gone — the spawner's census marked it `gone`, or the spawner's guard stopped it (`strayed` in `seats.json`), the census does not list it, `wake` fails, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers). A seat the spawner's guard stopped is marked `stopped`, its conversation kept, with an Events line naming the guard and the worktree's branch, whose commits, if any, go to the human as a ruling, and is not resumed. Any other gone Jisso whose `wake` has not already failed is **resumed first**: mark the row `dead` with an Events line naming what showed its process gone and saying its conversation is kept, `wake` it (`boundary.js wake <sessionId>`), and when the result lands send the resumed seat `resume batch X from task N`, the line `SKILL.md`'s Resuming gives a Jisso resumed after a restart, its row `live` again. Only when that wake fails — its result carries an error, or the seat's transcript is not on disk — is the seat lost: its Events line says its shoroku proposal was not written and what was lost. For a lost seat, and for a guard-stopped one, write a `spawn` request with the same `batch=` file, its resume line rewritten to `resume batch X from task N`, or, under a skill-editing plan's queue, send that line to the next `queued` seat and put the lost seat to the human as a ruling, since the queue cannot be refilled early |
+```
+
+**P16.58 →**
+
+```markdown
+| the live Jisso is gone — the spawner's census marked it `gone`, or the spawner's guard stopped it (`strayed` in `seats.json`), the census does not list it, `wake` fails, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers). A seat the spawner's guard stopped is marked `stopped` by `--status`, its conversation kept, with a `--roster-event` line naming the guard and the worktree's branch, whose commits, if any, go to the human as a ruling, and is not resumed. Any other gone Jisso whose `wake` has not already failed is **resumed first**: mark the row `dead` by `--status`, with a `--roster-event` line naming what showed its process gone and saying its conversation is kept, `wake` it (`boundary.js wake <sessionId>`), and when the result lands send the resumed seat `resume batch X from task N`, the line `SKILL.md`'s Resuming gives a Jisso resumed after a restart, its row `live` again by `--status`. Only when that wake fails — its result carries an error, or the seat's transcript is not on disk — is the seat lost: its `--roster-event` line says its shoroku proposal was not written and what was lost. For a lost seat, and for a guard-stopped one, write a `spawn` request with the same `batch=` file, its resume line rewritten to `resume batch X from task N`, or, under a skill-editing plan's queue, send that line to the next `queued` seat and put the lost seat to the human as a ruling, since the queue cannot be refilled early |
+```
+
+**P16.59** `skills/tanto/roles/kanri.md` — replace exactly this 1 line
+
+```markdown
+| Sekkei is gone before the spec review is accepted | a `spawn` request with the same keys; the spec or its draft, the spec inputs, and `dialogue.md` on disk are the recovery point; run "A seat's exit" first if the session is alive and coherent, otherwise record in the roster's Events that its shoroku proposal was not written and what was lost |
+```
+
+**P16.59 →**
+
+```markdown
+| Sekkei is gone before the spec review is accepted | a `spawn` request with the same keys; the spec or its draft, the spec inputs, and `dialogue.md` on disk are the recovery point; run "A seat's exit" first if the session is alive and coherent, otherwise write, by `record --roster-event`, the roster Events line saying its shoroku proposal was not written and what was lost |
+```
+
+**P16.60** `skills/tanto/roles/kanri.md` — replace exactly this 1 line
+
+```markdown
+| Keikaku is gone before the plan is committed | a `spawn` request with the same three keys; the spec on the branch and the plan draft on disk are the recovery point; run "A seat's exit" first if the session is alive and coherent, otherwise record in the roster's Events that its shoroku proposal was not written and what was lost |
+```
+
+**P16.60 →**
+
+```markdown
+| Keikaku is gone before the plan is committed | a `spawn` request with the same three keys; the spec on the branch and the plan draft on disk are the recovery point; run "A seat's exit" first if the session is alive and coherent, otherwise write, by `record --roster-event`, the roster Events line saying its shoroku proposal was not written and what was lost |
+```
+
+**P16.61** `skills/tanto/roles/kanri.md` — replace exactly this 1 line
+
+```markdown
+| Kaiseki is gone before its report | verify `git status` is clean, and revert stray instrumentation if it is not; a `spawn` request with the same brief; the brief and the WIP commit are the recovery point; run "A seat's exit" first if the session is alive and coherent, otherwise record in the roster's Events that its shoroku proposal was not written and what was lost |
+```
+
+**P16.61 →**
+
+```markdown
+| Kaiseki is gone before its report | verify `git status` is clean, and revert stray instrumentation if it is not; a `spawn` request with the same brief; the brief and the WIP commit are the recovery point; run "A seat's exit" first if the session is alive and coherent, otherwise write, by `record --roster-event`, the roster Events line saying its shoroku proposal was not written and what was lost |
+```
+
+**P16.62** `skills/tanto/roles/kanri.md` — replace exactly these 2 lines
+
+```markdown
+name too; from any other sender the line gets no answer and an Events
+line. There is nothing to wait for: no tab holds state the run needs, so
+```
+
+**P16.62 →**
+
+```markdown
+name too; from any other sender the line gets no answer and a
+`record --roster-event` line. There is nothing to wait for: no tab holds
+state the run needs, so
+```
+
+**P16.63** `skills/tanto/roles/kanri.md` — replace exactly these 2 lines
+
+```markdown
+`seat` again and following what it prints, once. A second failure is the
+Events line `unsent: <sessionId> — <the line>` and one line to the human. A
+```
+
+**P16.63 →**
+
+```markdown
+`seat` again and following what it prints, once. A second failure is the
+Events line `unsent: <sessionId> — <the line>` — through `record --event`
+in the open ledger, and through `record --roster-event` in the roster's
+Events when none is open — and one line to the human. A
+```
+
+**P16.64** `skills/tanto/roles/kanri.md` — replace exactly this 1 line
+
+```markdown
+the Events line `unsent:` — and not by a census of its own. `ListAgents`
+```
+
+**P16.64 →**
+
+```markdown
+the Events line `unsent:`, by `record --event` or `record --roster-event`
+as that section says — and not by a census of its own. `ListAgents`
+```
+
+**P16.65** `skills/tanto/roles/kanri.md` — replace exactly this 1 line
+
+```markdown
+   Send every `unsent:` line that has no `sent:` pair, writing the pair;
+```
+
+**P16.65 →**
+
+```markdown
+   Send every `unsent:` line that has no `sent:` pair, writing the pair
+   where its `unsent:` line stands — `record --event` in the open ledger,
+   `record --roster-event` in the roster's Events;
+```
+
 - [ ] **Step 3: Count the old values again**
 
 ```bash
@@ -9036,6 +9426,18 @@ node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/tanto/scripts/passage-check.js"
 ```
 
 Expected: `0` — A16.22's after value.
+
+```bash
+node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/tanto/scripts/passage-check.js" sections --file skills/tanto/roles/kanri.md "Start" "Sending to a seat" "Shoroku" "Session lifecycle" | grep -c -F -e 'with an Events line per row' -e 'Write the Events line' -e ' with an Events line naming what showed its process gone' -e 'not final: its Events line names what' -e 'wake fails gets the Events line a seat' -e ' with an Events line quoting the human' -e 'with an Events line naming the guard' -e 'is the seat lost: its Events line says' -e "otherwise record in the roster's Events that" -e 'gets no answer and an Events'
+```
+
+Expected: `0` — A16.50's after value.
+
+```bash
+node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/tanto/scripts/passage-check.js" sections --file skills/tanto/roles/kanri.md "Start" "Sending to a seat" "Shoroku" "Session lifecycle" | grep -c -F -e '--roster-event'
+```
+
+Expected: `23` — A16.51's after value: every roster Events line in these sections names its flag.
 
 - [ ] **Step 4: Verify the passages**
 
@@ -9388,7 +9790,7 @@ Expected: one commit, one file changed.
 
 **Spec coverage.** Spec section 1 is carried by Task 1 (the templates, the one-row model, 1.1-1.3) and Task 5 (`migrate`, 1.4); section 2 by Tasks 1-4 (2.1 and 2.2 and the readings of 2.3 in Task 1, the status, suffix, counts, and peer line in Task 2, 2.4 in Task 3 — with the `--seat` rewrite that keeps what the result lacks in Task 1 — 2.5 and 2.6 in Task 4) and Task 6 (the brief and the three `roles/kanri.md` paragraphs, 2.3's last paragraph); section 3 by Task 7 (the census) with the contract's table in Task 12 and the role's census paragraph in Task 16; section 4 by Task 8 (`roster show`), Task 14 (Start), and Task 17 (the handover template); section 5 by Task 9 (`archive`) with Task 15's Release row; section 6 and 2.2's `tanto.js` readers by Task 11; section 7's file list by the tasks above, file by file (the table under the Batches heading and each task's Files); section 8's three batches and five constraints by the Batches table and Global Constraints; section 9's six-workspace paragraph by the Global Constraints' "A batch reaches every workspace" and Task 18's README sentence; "Old values this plan contradicts" by every task's O blocks and fences 4 and 5; "What the plan must contain" by the fixtures of Tasks 1, 4, 5, and 11 and the sweep of Task 18. The spec's two ADRs, its Requirements, and its Deferred items are the close's, not a task's.
 
-**Sizes.** The largest task is Task 1 at 1685 lines and nine steps; three more pass 600 lines — Tasks 3 (604), 5 (629), and 11 (604) — and Task 1 is the one the drafter was asked to cut only if it could say why: the roster and archive templates, the schema check, the cell grammar, and the one-row model had to land together because the tests copy the templates and the old two-table tests had to be rewritten in the same commit for the suite to be green. Every script task has seven to nine steps (tests red, passages, Verify, the test file green, lint, commit). Task 18 is partly a **sweep-and-check** shape — its Step 5 records output beside its README passages; no other task is. No threshold is set: the sizes are recorded until one can be chosen (issue-7281).
+**Sizes.** The largest task is Task 1 at 1697 lines and nine steps; Task 16 follows at 755, and five more pass 550 lines — Tasks 2 (554), 3 (628), 4 (551), 5 (631), and 11 (604). Task 1 is the one the drafter was asked to cut only if it could say why: the roster and archive templates, the schema check, the cell grammar, and the one-row model had to land together because the tests copy the templates and the old two-table tests had to be rewritten in the same commit for the suite to be green; Task 16 stays one task although the cold read added fourteen passages to it, since they are one mechanism (`--roster-event`) in one file and a Task 16b would split its sites across two reviews. Every script task has seven to nine steps (tests red, passages, Verify, the test file green, lint, commit). Task 18 is partly a **sweep-and-check** shape — its Step 5 records output beside its README passages; no other task is. No threshold is set: the sizes are recorded until one can be chosen (issue-7281).
 
 **Interfaces between the tasks**, fixed here because three drafters wrote them at once from the spec and then reconciled:
 
@@ -9413,6 +9815,8 @@ Expected: one commit, one file changed.
 - Start step 4 runs `migrate` when `show` prints the migrate or `cleared:` line, "Session lifecycle" gains a **Returned** bullet, and the between-plans reading uses `--read-at "turn <HH:MM>"`.
 - The anchor on the new `shoroku-direction.md` is dropped: replay runs `git show main:` on every anchor's path and the file does not exist on `main`.
 
+**The cold read, and what it changed** (`.tanto/roster-ledger/coldread.md`, six questions, D-9 to D-14 in the dialogue): a stop condition of batch B that no fence backed is now fence 8 of How a batch is verified, which the verifier runs (the census's seven `## <heading>` lines and `roster show` under a second, against the live roster, gated on `spawner.js` having changed); Global Constraints say what a handover written inside this plan carries for each of its three windows and that the four Jissos' rows are written by the old `record --seat` before batch A's line is sent; Kanri takes its own transcript path from its scratchpad path and never from a roster row whose Transcript cell may be the bare `<sessionId>.jsonl` (Tasks 1, 3, 6, 14, with a test that pins the rewrite); O13.1's stale "may keep the old header" is gone, so O1.40 and fence 5 are the one binding rule; and Task 16 names `--roster-event` at every roster Events line of the role file (P16.52 to P16.65) — four Events lines whose target may be a ledger line are left to the census paragraph's general rule.
+
 **Needle counts are measured, not copied.** Every O block's `before:` count is a `git grep -F` count at `2fe109a` by its drafter — occurrences where a line holds the needle twice (O3.14, O6.11), which `git grep -c` shows as lines; nothing consumes the figure, since fence 4 tests for 0 afterwards — and the spec's own counts were not used for any number a command consumes — the spec's "Residency occurs … 10 times" in `roles/kanri.md` reads 9, and `boundary.js` 8 where it says 12. Fence 4's needle list is written from the O blocks by script at assembly, each needle over the files where it was found at the base and gated per file on the batch that rewrites it.
 
-**What is not checked here.** No test was run against the plan's passages as a whole: each drafter simulated its tasks over a scratch assembly (boundary.test.js green at each of Tasks 1-9 as far as that goes, 80 tests at Task 11; spawner.test.js 83 of 83 at Task 10; tanto.test.js 68 of 68 at Task 11; the whole suite 380 of 380 on batch A's final stage), and `replay` applies every passage and every anchor. Its ten DIFFERS lines are all artifacts of running a plan's commands on the fully applied scratch tree: seven are a step's before-count (the tree already holds the after text; each re-run on the base printed its stated value) and three are `! grep` sweeps that print nothing and exit 0. The `rm … && git checkout` restore of the created `shoroku-direction.md` is named by a `replay-skip:` declaration. `./scripts/lint.sh` and the `node --test` fences are skipped by `replay` and first run at batch A's boundary, as is `boundary --plan` itself. The run-time behavior of the new commands against the real roster is Kanri's act at batch A's boundary (`migrate`) and the plan's close (`archive`, `--direction`, `--written`).
+**What is not checked here.** No test was run against the plan's passages as a whole: each drafter simulated its tasks over a scratch assembly (boundary.test.js green at each of Tasks 1-9 as far as that goes, 80 tests at Task 11; spawner.test.js 83 of 83 at Task 10; tanto.test.js 68 of 68 at Task 11; the whole suite 380 of 380 on batch A's final stage), and `replay` applies every passage and every anchor. Its eleven DIFFERS lines are all artifacts of running a plan's commands on the fully applied scratch tree: eight are a step's before-count (the tree already holds the after text; each re-run on the base printed its stated value, or, for A16.51, the task-local value its block says) and three are `! grep` sweeps that print nothing and exit 0. The `rm … && git checkout` restore of the created `shoroku-direction.md` is named by a `replay-skip:` declaration. `./scripts/lint.sh` and the `node --test` fences are skipped by `replay` and first run at batch A's boundary, as is `boundary --plan` itself. The run-time behavior of the new commands against the real roster is Kanri's act at batch A's boundary (`migrate`) and the plan's close (`archive`, `--direction`, `--written`).
