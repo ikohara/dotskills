@@ -708,6 +708,7 @@ function enterHeldKanri(root, sessionId, byId, older, waitMs) {
     `tanto: the roster's first row does not name the Kanri the spawner holds, ${sessionId}; entering it — run boundary.js roster show\n`,
   );
   const listed = byId.get(sessionId);
+  if (listed?.kind === "interactive") return { code: inTab("kanri") };
   if (listed) return { attach: listed.id || sessionId, resumed: false };
   if (older) return { code: say(OLDER_SPAWNER, 1) };
   const request = { op: "resume", role: "kanri", topic: "—", sessionId, prompt: "/tanto fukki" };
@@ -921,7 +922,7 @@ function cmdUp(values, role, topic, word) {
   // What a restart took is put back on the Kanri path alone — a bare `tanto`
   // and `tanto fukki` — and `fukki` then tells Kanri (spec 4.4).
   if (role === "kanri" && !older) {
-    resumeLost(root, seats, byId, entered || held);
+    resumeLost(root, seats, byId, [entered, held]);
     if (word === "fukki") tellKanri(root, sessions, attach, resumed > 0, runMoved(seats), waitMs);
   }
 
@@ -993,16 +994,18 @@ function cmdTeishi(values) {
  * `parked`, `stopped`, or `removed` seat, and never a contract-2 dialogue
  * seat, which the spawner's first census pass marks `parked` instead, so
  * that this read and that pass cannot race over one seat; one spawned
- * without the mark is resumed as before. `kanri` is the Kanri `cmdUp`
- * resumed itself, keyed on its state-file seat rather than the roster's
- * row, so a Kanri with no row is still skipped (Important 7).
+ * without the mark is resumed as before. `kanris` are the Kanri seats `cmdUp`
+ * has dealt with itself — the one a `held:` answer entered and the
+ * state-file Kanri found by role, either of which may be null — keyed on
+ * their state-file seats rather than the roster's row, so a Kanri with no row
+ * is still skipped (Important 7) and none is resumed a second time.
  */
-function resumeLost(root, seats, byId, kanri) {
+function resumeLost(root, seats, byId, kanris) {
   for (const seat of seats) {
     if (seat.status !== "running" && seat.status !== "blocked") continue;
     if (byId.has(seat.sessionId)) continue;
     if (seat.contract === 2 && DIALOGUE_ROLES.includes(seat.role)) continue;
-    if (kanri && seat.sessionId === kanri.sessionId) continue;
+    if (kanris.some((kanri) => kanri && seat.sessionId === kanri.sessionId)) continue;
     writeRequest(root, { op: "resume", role: seat.role, topic: seat.topic, sessionId: seat.sessionId });
   }
 }

@@ -531,9 +531,11 @@ test("a peer reading lands in its seat's row by sessionId, and one for a seat no
   const roster = fs.readFileSync(fixture.roster, "utf8");
   assert.ok(roster.includes("| keikaku | — | keikaku-a | /repo |"), roster);
   assert.ok(roster.includes(`${KEIKAKU_ID}.jsonl | batch Z | 7 | 8 | 9 | 1 | context=10 | — | — | — |`), roster);
-  // A reading appends no row: a row is created by `--seat` alone.
+  // A reading appends no row: a row is created by `--seat` alone. With no
+  // ledger to carry the `unresolved reading:` event, the call is refused.
   const unknown = "0d0d0d0d-0000-4000-8000-00000000000d";
-  const refused = run(peer(unknown), fixture.dir);
+  const rosterOnly = peer(unknown).filter((arg, i, all) => arg !== "--ledger" && all[i - 1] !== "--ledger");
+  const refused = run(rosterOnly, fixture.dir);
   assert.strictEqual(refused.code, 1);
   assert.ok(refused.err.includes(`did not find a roster row for ${unknown}`), refused.err);
   assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), roster);
@@ -2660,4 +2662,250 @@ test("request attention refuses a --transcript, a park flag, and a missing --mes
     assert.match(got.err, said);
   }
   assert.deepStrictEqual(requestsOf(f), []);
+});
+
+// The fix wave of roster-ledger (task F1): findings that earlier batches
+// parked, each with the test that fails before its fix.
+
+/** The roster's text, as it stands. */
+function readRoster(fixture) {
+  return fs.readFileSync(fixture.roster, "utf8");
+}
+
+test("a seats header that differs from the template's by whitespace alone is found by the writers that its check passed (R-6 item 6 (1))", () => {
+  const fixture = ledgerAndRoster();
+  const spaced = readRoster(fixture).replace("| Role | Topic |", "| Role |  Topic  |");
+  fs.writeFileSync(fixture.roster, spaced, "utf8");
+  const got = recordWith(fixture)("--status", `${JISSO_ID} stopped`);
+  assert.strictEqual(got.code, 0, got.err);
+  assert.strictEqual(rowCells(fixture, JISSO_ID)[9], "stopped");
+});
+
+test("--roster-event and --event write an event whose text equals the tail after a ` — ` of an older line (R-6 item 6 (2) (i))", () => {
+  const fixture = ledgerAndRoster();
+  const record = recordWith(fixture);
+  const now = ["--now", "2026-10-07 11:00"];
+  assert.strictEqual(record("--roster-event", "sent: kanri — done", ...now).code, 0);
+  const roster = record("--roster-event", "done", ...now);
+  assert.strictEqual(roster.code, 0, roster.err);
+  assert.strictEqual(roster.out, "- 2026-10-07 11:00 — done\n");
+  assert.ok(readRoster(fixture).includes("\n- 2026-10-07 11:00 — done\n"), readRoster(fixture));
+  assert.strictEqual(record("--event", "sent: kanri — done", ...now).code, 0);
+  const ledger = record("--event", "done", ...now);
+  assert.strictEqual(ledger.out, "- 2026-10-07 11:00 — done\n");
+  // The same text twice is still one line.
+  assert.strictEqual(record("--roster-event", "done", ...now).out, roster.out);
+  assert.strictEqual(readRoster(fixture).split("\n- 2026-10-07 11:00 — done\n").length - 1, 1);
+});
+
+test("--succeeds refuses a predecessor whose row is not Kanri's, and writes nothing (R-6 item 6 (2) (ii))", () => {
+  const fixture = ledgerAndRoster();
+  const before = readRoster(fixture);
+  const kanri = { role: "kanri", topic: "—", name: "kanri-y", sessionId: SUCCESSOR_ID, transcript: null };
+  const successor = resultFile(fixture, "kanri.json", kanri);
+  const got = run(
+    ["record", "--roster", fixture.roster, "--seat", successor, "--succeeds", JISSO_ID, "--now", "2026-10-07 10:00"],
+    fixture.dir,
+  );
+  assert.strictEqual(got.code, 1, got.out);
+  assert.ok(got.err.includes("a --succeeds whose roster row is kanri's (got jisso)"), got.err);
+  assert.strictEqual(readRoster(fixture), before);
+});
+
+test("a bare --seat is refused, naming the switch, and writes nothing (R-6 item 6 (2) (iii))", () => {
+  const fixture = ledgerAndRoster();
+  const before = readRoster(fixture);
+  for (const args of [["--seat"], ["--seat", "--now", "2026-10-07 10:00"]]) {
+    const got = run(["record", "--roster", fixture.roster, ...args], fixture.dir);
+    assert.strictEqual(got.code, 2, got.out);
+    assert.ok(got.err.includes("--seat needs a value"), got.err);
+  }
+  assert.strictEqual(readRoster(fixture), before);
+});
+
+test("a bare --roster-event is refused, naming the switch, and writes no `— true` line (R-6 item 6 (2) (iii))", () => {
+  const fixture = ledgerAndRoster();
+  const before = readRoster(fixture);
+  const got = run(["record", "--roster", fixture.roster, "--roster-event"], fixture.dir);
+  assert.strictEqual(got.code, 2, got.out);
+  assert.ok(got.err.includes("--roster-event needs a value"), got.err);
+  assert.strictEqual(readRoster(fixture), before);
+});
+
+test("a bare --only is refused and widens --written to no row (R-6 item 6 (2), Task 4's bare --only)", () => {
+  const f = directedLedger(["issues", "notes"]);
+  const items = ["- 1 — adopt — yes — t S-1", "- 2 — adopt — yes — t S-2"];
+  assert.strictEqual(run(["record", "--ledger", f.ledger, "--direction", directionFile(f, items)], f.dir).code, 0);
+  const before = fs.readFileSync(f.ledger, "utf8");
+  const got = run(["record", "--ledger", f.ledger, "--written", "fix: shusei", "--only"], f.dir);
+  assert.strictEqual(got.code, 2, got.out);
+  assert.ok(got.err.includes("--only needs a value"), got.err);
+  assert.strictEqual(fs.readFileSync(f.ledger, "utf8"), before);
+});
+
+test("record with no argument, and with arguments that name no write, is refused (R-6 item 6 (2) (iii))", () => {
+  const fixture = ledgerAndRoster();
+  const ledger = fs.readFileSync(fixture.ledger, "utf8");
+  const bare = run(["record"], fixture.dir);
+  assert.strictEqual(bare.code, 2, bare.out);
+  assert.ok(bare.err.includes("record names no write"), bare.err);
+  const keyed = run(["record", "--ledger", fixture.ledger, "--roster", fixture.roster, "--batch", "Z"], fixture.dir);
+  assert.strictEqual(keyed.code, 2, keyed.out);
+  assert.ok(keyed.err.includes("record names no write"), keyed.err);
+  assert.strictEqual(fs.readFileSync(fixture.ledger, "utf8"), ledger);
+});
+
+test("a peer reading whose sessionId no roster row holds becomes an unresolved reading: event, and the rest of the call stands (R-6 item 6 (4))", () => {
+  const fixture = ledgerAndRoster();
+  const before = readRoster(fixture);
+  const unknown = "0d0d0d0d-0000-4000-8000-00000000000d";
+  const reading = "transcript: 7 B, 8 records, 9 wake-ups, 1 compactions, context=10";
+  const got = recordWith(fixture)(
+    "--batch",
+    "Z",
+    "--state",
+    "sent",
+    "--peer-reading",
+    `keikaku ${unknown} ${reading}`,
+    "--now",
+    "2026-09-19 13:00",
+  );
+  assert.strictEqual(got.code, 0, got.err);
+  const ledger = fs.readFileSync(fixture.ledger, "utf8");
+  assert.ok(ledger.includes("| Z |"), ledger);
+  assert.ok(
+    ledger.includes(`- 2026-09-19 13:00 — unresolved reading: keikaku ${unknown} — ${reading} (batch Z)`),
+    ledger,
+  );
+  assert.strictEqual(readRoster(fixture), before);
+});
+
+test("migrate refuses a readings table whose header is not the thirteen cells, writing nothing (R-6 item 6 (3))", () => {
+  const f = oldShapes();
+  const text = fs.readFileSync(f.roster, "utf8").replace("Compactions | Context | Batches", "Compactions | Batches");
+  fs.writeFileSync(f.roster, text, "utf8");
+  const before = [f.roster, f.archive, f.ledger].map((file) => fs.readFileSync(file, "utf8"));
+  const got = migrate(f);
+  assert.strictEqual(got.code, 1, got.out);
+  assert.ok(got.out.includes(`migrate: ${f.roster} — unknown shape: a readings header | Role |`), got.out);
+  [f.roster, f.archive, f.ledger].forEach((file, i) => {
+    assert.strictEqual(fs.readFileSync(file, "utf8"), before[i]);
+    assert.ok(!fs.existsSync(`${file}.pre-migrate`), file);
+  });
+});
+
+test("migrate refuses a sessions row with more cells than its header, a raw | in a Name cell, writing nothing (R-6 item 6 (3))", () => {
+  const f = oldShapes();
+  const text = fs
+    .readFileSync(f.roster, "utf8")
+    .replace("| kanri | — | kanri-a | /repo |", "| kanri | — | kanri|a | /repo |");
+  fs.writeFileSync(f.roster, text, "utf8");
+  const before = [f.roster, f.archive, f.ledger].map((file) => fs.readFileSync(file, "utf8"));
+  const got = migrate(f);
+  assert.strictEqual(got.code, 1, got.out);
+  assert.ok(got.out.includes(`migrate: ${f.roster} — unknown shape: a seats row | kanri | — | kanri|a |`), got.out);
+  [f.roster, f.archive, f.ledger].forEach((file, i) => {
+    assert.strictEqual(fs.readFileSync(file, "utf8"), before[i]);
+    assert.ok(!fs.existsSync(`${file}.pre-migrate`), file);
+  });
+});
+
+test("migrate keeps the first of two readings that share a Name and prints the second as duplicate: (R-6 item 6 (3))", () => {
+  const f = oldShapes();
+  const first = "| kanri | — | kanri-a | 2026-10-07 | batch A | 1 | 2 | 3 | 0 | context=4 | 1 | 0 | 0 |";
+  const second = "| kanri | — | kanri-a | 2026-10-08 | batch B | 9 | 9 | 9 | 0 | context=9 | 2 | 0 | 0 |";
+  const text = fs.readFileSync(f.roster, "utf8").replace(first, `${first}\n${second}`);
+  fs.writeFileSync(f.roster, text, "utf8");
+  const got = migrate(f);
+  assert.strictEqual(got.code, 0, got.err);
+  const roster = fs.readFileSync(f.roster, "utf8");
+  assert.ok(roster.includes("| batch A | 1 | 2 | 3 | 0 | context=4 | 1 | 0 | 0 |"), roster);
+  assert.ok(!roster.includes("batch B"), roster);
+  assert.ok(got.out.includes("duplicate: kanri kanri-a — a reading already joined that name\n"), got.out);
+});
+
+test("tableEnd is the one end of a table: the first line after its rows, within a limit (R-8 item 1 (a))", () => {
+  const { tableEnd } = require("./boundary.js");
+  const lines = ["| a |", "| --- |", "| 1 |", "| 2 |", "", "| 3 |"];
+  assert.strictEqual(tableEnd(lines, 2), 4);
+  assert.strictEqual(tableEnd(lines, 2, 3), 3);
+  assert.strictEqual(tableEnd(lines, 5), 6);
+  assert.strictEqual(tableEnd(lines, 4), 4);
+});
+
+/** Whether the row `needle` names sits in exactly one of the roster and the archive. */
+function movedOnce(roster, archive, needle) {
+  return roster.includes(needle) !== archive.includes(needle);
+}
+
+test("a failed roster write during archive leaves the roster and the archive agreeing (R-8 item 1 (b))", () => {
+  const stopped = showRow("jisso", "t", "jisso-b", "stopped", "sess-done");
+  const f = rosterFixture([showRow("kanri", "—", "kanri-a", "live", "sess-kanri"), stopped], {
+    events: ["- 2026-10-07 10:00 — jisso-b stopped"],
+  });
+  const head = templateLine("roster-archive.md");
+  const body = [
+    "# tanto roster archive",
+    "",
+    "## Sessions",
+    "",
+    head,
+    separatorFor(head),
+    "",
+    "## Events",
+    "",
+    "- 2026-10-01 09:00 — earlier",
+    "",
+  ].join("\n");
+  fs.writeFileSync(f.archive, body);
+  const rosterBefore = readRoster(f);
+  fs.chmodSync(f.roster, 0o444);
+  try {
+    const got = run(["archive", "--root", f.root, "--now", "2026-10-08"], f.dir);
+    const archive = fs.readFileSync(f.archive, "utf8");
+    assert.ok(movedOnce(readRoster(f), archive, "sess-done"), `${got.err}\n${archive}`);
+    if (got.code !== 0) {
+      assert.strictEqual(archive, body);
+      assert.strictEqual(readRoster(f), rosterBefore);
+    }
+  } finally {
+    fs.chmodSync(f.roster, 0o644);
+  }
+});
+
+test("migrate whose roster write fails leaves the roster and the archive agreeing (R-8 item 1 (b))", () => {
+  const f = oldShapes();
+  const rosterBefore = fs.readFileSync(f.roster, "utf8");
+  const archiveBefore = fs.readFileSync(f.archive, "utf8");
+  fs.chmodSync(f.roster, 0o444);
+  try {
+    const got = migrate(f);
+    const archive = fs.readFileSync(f.archive, "utf8");
+    assert.ok(movedOnce(fs.readFileSync(f.roster, "utf8"), archive, "kikaku-c"), `${got.err}\n${archive}`);
+    if (got.code !== 0) {
+      assert.strictEqual(archive, archiveBefore);
+      assert.strictEqual(fs.readFileSync(f.roster, "utf8"), rosterBefore);
+    }
+  } finally {
+    fs.chmodSync(f.roster, 0o644);
+  }
+});
+
+test("an archive with no Events section is pointed at its heading to add, not at migrate, and writes nothing (R-8 item 1 (c))", () => {
+  const f = rosterFixture([showRow("jisso", "t", "jisso-b", "stopped", "sess-done")], {
+    events: ["- 2026-10-07 10:00 — jisso-b stopped"],
+  });
+  const head = templateLine("roster-archive.md");
+  const body = ["# tanto roster archive", "", "## Sessions", "", head, separatorFor(head), ""].join("\n");
+  fs.writeFileSync(f.archive, body);
+  const rosterBefore = readRoster(f);
+  const got = run(["archive", "--root", f.root, "--now", "2026-10-08"], f.dir);
+  assert.strictEqual(got.code, 1, got.out);
+  assert.match(
+    got.err,
+    /archive wrote nothing — .+roster-archive\.md: no Events section — add a ## Events heading to it/,
+  );
+  assert.ok(!got.err.includes("run boundary.js migrate"), got.err);
+  assert.strictEqual(fs.readFileSync(f.archive, "utf8"), body);
+  assert.strictEqual(readRoster(f), rosterBefore);
 });

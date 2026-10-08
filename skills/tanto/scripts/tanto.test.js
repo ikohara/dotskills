@@ -1635,3 +1635,41 @@ test("teishi with a live pid and no heartbeat file names the pid to end by hand 
     child.kill();
   }
 });
+
+// The fix wave of roster-ledger (task F1).
+
+test("a held: answer naming a Kanri a tab holds is refused as in a tab at once, before a seat a restart took is resumed (R-8 item 1 (d))", () => {
+  const ws = workspace([{ ...LIVE_KANRI, kind: "interactive", id: "tab1" }]);
+  writeRoster(ws, "replaced", "/tmp/sess-before.jsonl");
+  writeSeats(ws, [
+    { sessionId: "sess-before", id: "bg03", name: "seat-before", role: "kanri", status: "stopped" },
+    { sessionId: "sess-live", id: "bg07", name: "seat-live [ffffff]", role: "kanri", status: "running", contract: 2 },
+    { sessionId: "sess-lost", id: "bg09", name: "seat-lost [dddddd]", role: "jisso", topic: "t", status: "running" },
+  ]);
+  const got = launch(ws, ["--timeout", "20000"]);
+  assert.equal(got.code, 1, got.err);
+  assert.match(got.out, /^kanri is open in a VS Code tab; close the tab and run this again$/m);
+  assert.deepEqual(attaches(ws), []);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn").length, 1);
+  assert.equal(requests(ws).filter((r) => r.op === "resume").length, 0);
+});
+
+test("a held: answer naming a hidden running holder resumes the roster-named Kanri once and the holder once, not the roster's again (R-8 item 1 (d))", () => {
+  const ws = workspace([{ ...LIVE_KANRI, hidden: true }]);
+  // The roster names sess-first, which the state file holds as running and the
+  // listing has lost, and whose resume fails: the fake CLI knows no such session.
+  writeRoster(ws, "live", "/tmp/sess-first.jsonl");
+  writeSeats(ws, [
+    { sessionId: "sess-first", id: "bg03", name: "seat-first [eeeeee]", role: "kanri", status: "running" },
+    { sessionId: "sess-live", id: "bg07", name: "seat-live [ffffff]", role: "kanri", status: "running", contract: 2 },
+  ]);
+  const got = launch(ws, ["--timeout", "20000"]);
+  assert.equal(got.code, 0, got.err);
+  assert.ok(got.out.split(/\r?\n/).includes(heldLine("sess-live")), got.out);
+  const resumed = requests(ws)
+    .filter((r) => r.op === "resume")
+    .map((r) => r.sessionId)
+    .sort();
+  assert.deepEqual(resumed, ["sess-first", "sess-live"]);
+  assert.deepEqual(attaches(ws), ["bg07"]);
+});

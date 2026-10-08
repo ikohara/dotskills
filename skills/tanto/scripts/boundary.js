@@ -210,6 +210,47 @@ function cmdCheck(argv) {
 /** The flags `record` collects rather than overwrites. */
 const REPEATABLE = ["peer-reading", "s-item", "event", "status", "seat", "roster-event"];
 
+/** Every `record` switch that takes a value: given bare, it is refused, never dropped or written as `true`. */
+const RECORD_VALUES = [
+  "ledger",
+  "roster",
+  "root",
+  "batch",
+  "now",
+  "read-at",
+  "only",
+  "succeeds",
+  "tasks",
+  "state",
+  "prompt",
+  "report",
+  "verdict",
+  "progress",
+  "deferred",
+  "event",
+  "s-item",
+  "kanri",
+  "jisso",
+  "kanri-reading",
+  "jisso-reading",
+  "kanri-count",
+  "kanri-counts",
+  "peer-reading",
+  "status",
+  "suffix",
+  "seat",
+  "rename",
+  "roster-event",
+  "direction",
+  "written",
+  "written-feedback",
+];
+
+/** The switches among them that write something: a call that names none writes nothing. */
+const RECORD_WRITES = RECORD_VALUES.filter(
+  (name) => !["ledger", "roster", "root", "batch", "now", "read-at", "only", "succeeds"].includes(name),
+);
+
 /** The Batches table's six cells, in the ledger template's column order. */
 const BATCH_CELLS = ["batch", "tasks", "state", "prompt", "report", "verdict"];
 
@@ -254,6 +295,14 @@ function templateHeader(template, heading) {
 const SESSIONS_HEADER = templateHeader("roster.md", null);
 
 /**
+ * A header line as the one string the check and the lookup both compare:
+ * its trimmed cells, so that whitespace alone makes no difference to either.
+ */
+function headerKey(line) {
+  return JSON.stringify(cells(line));
+}
+
+/**
  * The one line a table earns whose header is not its template's, cell for
  * cell (spec 2.1), or null when the two agree. A file not on disk has no
  * header to compare: its absence is its caller's to refuse.
@@ -263,7 +312,7 @@ function headerMismatch(file, template, heading) {
   const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
   const expected = templateHeader(template, heading);
   const at = headerAt(lines, heading);
-  if (at !== null && cells(lines[at]).join("|") === cells(expected).join("|")) return null;
+  if (at !== null && headerKey(lines[at]) === headerKey(expected)) return null;
   const found = at === null ? "no table" : lines[at].trim();
   const table = heading === null ? "seats table" : `${heading} table`;
   return `record wrote nothing — ${file}: the ${table} header is not the template's — expected ${expected}, found ${found} — run boundary.js migrate`;
@@ -295,6 +344,30 @@ function writeDoc(doc) {
 }
 
 /**
+ * Several documents written in order, together or not at all: when one write
+ * fails, each file already written goes back to the bytes it had (or is
+ * removed, if the write made it), so that a roster and an archive never
+ * disagree about where a row is. Null on success, else the failure's text.
+ */
+function writeTogether(docs) {
+  const done = [];
+  try {
+    for (const doc of docs) {
+      const bytes = fs.existsSync(doc.file) ? fs.readFileSync(doc.file) : null;
+      writeDoc(doc);
+      done.push({ file: doc.file, bytes });
+    }
+    return null;
+  } catch (error) {
+    for (const { file, bytes } of done.reverse()) {
+      if (bytes === null) fs.rmSync(file, { force: true });
+      else fs.writeFileSync(file, bytes);
+    }
+    return error.message;
+  }
+}
+
+/**
  * The cells of a `| a | b |` row, trimmed, each `\|` read back as the `|`
  * it stands for (spec 2.2). With `row`, the one place the escape lives:
  * every reader of a cell goes through this function.
@@ -318,26 +391,33 @@ function sectionSpan(lines, heading) {
   return { start, end };
 }
 
+/** The end of a table whose rows begin at `first`: the first line that is no row, or `limit`. */
+function tableEnd(lines, first, limit = lines.length) {
+  let end = first;
+  while (end < limit && lines[end].startsWith("|")) end++;
+  return end;
+}
+
 /** The first table inside a span: its header row, its first data row, its end. */
 function tableSpan(lines, span) {
   for (let i = span.start; i < span.end; i++) {
     const next = lines[i + 1] || "";
     if (lines[i].startsWith("| ") && next.startsWith("| ---")) {
-      let end = i + 2;
-      while (end < span.end && lines[end].startsWith("|")) end++;
-      return { header: i, first: i + 2, end };
+      return { header: i, first: i + 2, end: tableEnd(lines, i + 2, span.end) };
     }
   }
   return null;
 }
 
-/** A table located by its header row rather than by a heading. */
+/**
+ * A table located by its header row rather than by a heading: the first line
+ * whose cells are the header's, the comparison `headerMismatch` makes.
+ */
 function tableByHeader(lines, header) {
-  const at = lines.findIndex((line) => line.startsWith(header));
+  const want = headerKey(header);
+  const at = lines.findIndex((line) => line.startsWith("|") && headerKey(line) === want);
   if (at === -1) return null;
-  let end = at + 2;
-  while (end < lines.length && lines[end].startsWith("|")) end++;
-  return { header: at, first: at + 2, end };
+  return { header: at, first: at + 2, end: tableEnd(lines, at + 2) };
 }
 
 /** The five figures of a reading string, or null when it does not parse. */
@@ -520,9 +600,13 @@ function writeEvent(doc, text, batch, now, written, heading = "Session events") 
   if (!span) return heading === "Events" ? "the roster's Events section" : "the ledger's Session events section";
   const body = batch === null ? text : `${text} (batch ${batch})`;
   const tail = ` — ${body}`;
+  // The same event is a line whose whole text after its stamp is this one:
+  // the stamp holds no ` — `, so a line whose front does is an older event
+  // that merely ends in these words.
   for (let i = span.start + 1; i < span.end; i++) {
-    if (doc.lines[i].endsWith(tail)) {
-      written.push(doc.lines[i]);
+    const line = doc.lines[i];
+    if (line.endsWith(tail) && !line.slice(0, line.length - tail.length).includes(" — ")) {
+      written.push(line);
       return null;
     }
   }
@@ -910,7 +994,10 @@ function writeSucceeds(doc, predecessor, value, root, now, written) {
   const { seat } = seatOf(value, root);
   if (seat.role !== "kanri") return `a --seat whose role is kanri beside --succeeds (got ${seat.role || "none"})`;
   if (seat.sessionId === predecessor) return `a --succeeds that names another seat than the --seat (${predecessor})`;
-  if (seatRowAt(doc, predecessor) === null) return `a roster row for ${predecessor}`;
+  const before = seatRowAt(doc, predecessor);
+  if (before === null) return `a roster row for ${predecessor}`;
+  const role = cells(doc.lines[before])[0];
+  if (role !== "kanri") return `a --succeeds whose roster row is kanri's (got ${role})`;
   const table = tableByHeader(doc.lines, SESSIONS_HEADER);
   const [moved] = doc.lines.splice(seatRowAt(doc, seat.sessionId), 1);
   doc.lines.splice(table.first, 0, moved);
@@ -996,7 +1083,13 @@ function cmdRecord(argv) {
   const values = parseArgs(argv, REPEATABLE);
   const ledgerPath = given(values, "ledger");
   const batch = given(values, "batch");
+  const bare = RECORD_VALUES.find((name) => [values[name]].flat().includes(true));
+  if (bare) return fail(`record: --${bare} needs a value`, 2);
   if (values.init === true) return recordInit(values);
+  const names = (name) => [values[name]].flat().some((value) => value !== undefined);
+  if (!RECORD_WRITES.some(names)) {
+    return fail("record names no write: give it a flag that writes a row, a cell, or an event", 2);
+  }
   // `--ledger` is needed by the flags that write the ledger and by no other
   // (spec 2.4): a bootstrap, a handover between plans, and a close's last
   // census have none. `--s-item` given `--roster` and no `--ledger` writes
@@ -1170,6 +1263,15 @@ function cmdRecord(argv) {
       const found = PEER.exec(String(line));
       if (!found) {
         note(`a --peer-reading that parses (got ${line})`);
+        continue;
+      }
+      // A seat no row holds (a launcher-started seat before the census wrote
+      // its row) is Kanri's `unresolved reading:` event, as a name `seat`
+      // found no entry for is: the boundary's other writes are not refused
+      // over it. Without a ledger there is nowhere to write the event.
+      if (ledger !== null && seatRowAt(roster, found[2]) === null) {
+        const unresolved = `unresolved reading: ${found[1]} ${found[2]} — ${found[3]}`;
+        note(writeEvent(ledger, unresolved, batch, now, written));
         continue;
       }
       note(writeReading(roster, found[2], found[3], readAt, written));
@@ -1468,9 +1570,7 @@ function cmdCensus(argv) {
  * or an older shape's, as cell lists.
  */
 function tableRows(lines, at) {
-  let end = at + 2;
-  while (end < lines.length && lines[end].startsWith("|")) end++;
-  return lines.slice(at + 2, end).map((line) => cells(line));
+  return lines.slice(at + 2, tableEnd(lines, at + 2)).map((line) => cells(line));
 }
 
 /**
@@ -1927,19 +2027,21 @@ function cmdArchive(argv) {
   const refused = [
     headerMismatch(rosterPath, "roster.md", null),
     headerMismatch(archivePath, "roster-archive.md", "Sessions"),
-  ].filter(Boolean);
+  ]
+    .filter(Boolean)
+    .map((line) => refusalFor("archive wrote nothing", line));
+  // `migrate` does not add the section, so the line points at the heading.
   if (!sectionSpan(archive.lines, "Events")) {
-    refused.push(`record wrote nothing — ${archivePath}: no Events section — run boundary.js migrate`);
+    refused.push(`archive wrote nothing — ${archivePath}: no Events section — add a ## Events heading to it`);
   }
   if (refused.length > 0) {
-    for (const line of refused) fail(refusalFor("archive wrote nothing", line), 1);
+    for (const line of refused) fail(line, 1);
     return 1;
   }
 
   const at = headerAt(roster.lines, null);
   const width = cells(roster.lines[at]).length;
-  let end = at + 2;
-  while (end < roster.lines.length && roster.lines[end].startsWith("|")) end++;
+  const end = tableEnd(roster.lines, at + 2);
   const moved = [];
   for (let i = end - 1; i >= at + 2; i--) {
     const current = cells(roster.lines[i]);
@@ -1960,8 +2062,8 @@ function cmdArchive(argv) {
     const gap = /^(- |\s)/.test(archive.lines[at - 1]) ? [] : [""];
     archive.lines.splice(at, 0, ...gap, ...moving);
   }
-  writeDoc(archive);
-  writeDoc(roster);
+  const failed = writeTogether([archive, roster]);
+  if (failed) return fail(`archive wrote nothing — ${failed}`, 1);
   for (const line of moved) console.log(line);
   const entries = moving.filter((line) => line.startsWith("- ")).length;
   console.log(`archive: ${moved.length} rows and ${entries} Events lines moved to ${archivePath}`);
@@ -2027,19 +2129,40 @@ function migrateRoster(doc, today) {
   if (sameCells(header, expected) && readingsAt() === -1) return { changed: items.changed, out, moved: [] };
   const old = header.length === 11 && header[1] === "Topic" && header[3] === "cwd" && header[10] === "Transcript";
   if (!old) return { unknown: `a seats header ${lines[at].trim()}` };
+  // The readings table is copied by position, so its header is the old
+  // thirteen cells or nothing (Name is the one cell the retired shapes spell
+  // differently), and a row that holds more cells than its header, a raw `|`
+  // in a cell, would shift every cell after it.
+  const readings = readingsAt();
+  if (readings !== -1) {
+    const readingsHeader = cells(lines[readings]);
+    const thirteen =
+      readingsHeader.length === 13 &&
+      readingsHeader[1] === "Topic" &&
+      readingsHeader[4] === "Read at" &&
+      readingsHeader[9] === "Context" &&
+      readingsHeader[12] === "Noticed";
+    if (!thirteen) return { unknown: `a readings header ${lines[readings].trim()}` };
+  }
   const blank = (cell) => (cell === "" ? "—" : cell);
   const sessions = [];
   for (let i = at + 2; i < lines.length && lines[i].startsWith("|"); i++) {
-    const current = cells(lines[i]).slice(0, 11);
+    const current = cells(lines[i]);
+    if (current.length > 11) return { unknown: `a seats row ${lines[i].trim()}` };
     while (current.length < 11) current.push("—");
     sessions.push({ cells: current.map(blank), reading: null });
   }
-  const readings = readingsAt();
   for (let i = readings + 2; readings !== -1 && i < lines.length && lines[i].startsWith("|"); i++) {
     const reading = cells(lines[i]);
+    if (reading.length !== 13) return { unknown: `a readings row ${lines[i].trim()}` };
     const target = sessions.filter((s) => s.cells[2] === reading[2]).pop();
-    if (target) target.reading = reading.slice(4, 13).map(blank);
-    else out.push(`unplaced: ${reading[0]} ${reading[2]} — no sessions row carries that name`);
+    if (target?.reading) {
+      out.push(`duplicate: ${reading[0]} ${reading[2]} — a reading already joined that name`);
+    } else if (target) {
+      target.reading = reading.slice(4, 13).map(blank);
+    } else {
+      out.push(`unplaced: ${reading[0]} ${reading[2]} — no sessions row carries that name`);
+    }
   }
   const kept = [];
   const moved = [];
@@ -2177,31 +2300,39 @@ function cmdMigrate(argv) {
   if (migrated.moved.length > 0) {
     archive.lines.splice(sessionsEnd(archive.lines), 0, ...migrated.moved);
   }
+  // The files are written together after the last decision, and the lines
+  // printed after the write: a failed write restores the files it had
+  // written, and says so instead of the lines of a migration that did not
+  // happen.
+  const said = [];
+  const pending = [];
   const keep = (doc, changed) => {
     if (!changed) {
-      console.log(`migrate: ${doc.file} is current`);
+      said.push(`migrate: ${doc.file} is current`);
       return;
     }
     if (fs.existsSync(doc.file) && !fs.existsSync(`${doc.file}.pre-migrate`)) {
       fs.copyFileSync(doc.file, `${doc.file}.pre-migrate`);
     }
-    writeDoc(doc);
+    pending.push(doc);
   };
   keep(archive, created || archived.changed || migrated.moved.length > 0);
-  if (created) console.log(`migrate: ${archivePath} created from templates/roster-archive.md`);
-  if (archived.rows > 0)
-    console.log(`migrate: ${archivePath} — ${archived.rows} rows brought to the template's columns`);
+  if (created) said.push(`migrate: ${archivePath} created from templates/roster-archive.md`);
+  if (archived.rows > 0) said.push(`migrate: ${archivePath} — ${archived.rows} rows brought to the template's columns`);
   keep(roster, migrated.changed);
-  for (const line of migrated.out) console.log(line);
+  said.push(...migrated.out);
   if (ledger) {
     keep(ledger, repaired.changed);
     const span = sectionSpan(ledger.lines, "Measurements");
     const table = span ? tableSpan(ledger.lines, span) : null;
     const rows = table ? ledger.lines.slice(table.first, table.end) : [];
     if (!rows.some((line) => cells(line)[0].startsWith(MEASUREMENT_ROW))) {
-      console.log(`missing row: ${ledgerPath} — Measurements has no "${MEASUREMENT_ROW}" row`);
+      said.push(`missing row: ${ledgerPath} — Measurements has no "${MEASUREMENT_ROW}" row`);
     }
   }
+  const failed = writeTogether(pending);
+  if (failed) return fail(`migrate wrote nothing — ${failed}`, 1);
+  for (const line of said) console.log(line);
   return 0;
 }
 
@@ -2223,5 +2354,5 @@ function main(argv) {
 // `tanto.js` reads the roster's cells through this file's own grammar
 // (roster-ledger 2.2), so the subcommands run only when the file is the
 // command itself.
-module.exports = { cells };
+module.exports = { cells, tableEnd };
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
