@@ -22,12 +22,13 @@ more from the branch review (S-75) as the 28th.
 naming, wrap, and documentation drift that change no action.
 
 - **(a)** `tanto.js` 707-711 prints "entering it" and then refuses, a
-  user-visible wrong line that the wave's own fix (d) introduced. **Sent to
-  the hotfix lane** on `main`, after this topic's merge and before the next
-  topic opens.
+  user-visible wrong line that the wave's own fix (d) introduced. **Done:**
+  the hotfix lane landed it on `main` after this topic's merge, in the commit
+  whose subject opens `fix: the launcher stops saying it enters a Kanri a tab
+  holds`.
 - **(d)** `--succeeds` can leave a non-`live` successor row against
-  `roles/kanri.md` 191 (S-83, whose one record is here). **Sent to the hotfix
-  lane** with (a).
+  `roles/kanri.md` 191 (S-83, whose one record is here). **Done:** the same
+  hotfix commit as (a).
 - **(b)** `writeTogether` neither restores the file whose own write failed
   nor survives a failing restore, so the guarantee finding (b) asked for is
   narrower than its name. Heads the rest.
@@ -83,7 +84,7 @@ The 27, as the SDD ledger lists them (markers added in brackets):
 - Task F1: minor (deferred): `enterHeldKanri` prints "…; entering it" and
   then returns `inTab("kanri")`, so the user reads "entering it" followed by
   "kanri is open in a VS Code tab" (tanto.js 707-711); check the `heldLine`
-  assertions in `tanto.test.js` before moving the return. [(a), sent to the
+  assertions in `tanto.test.js` before moving the return. [(a), done by the
   hotfix lane]
 - Task F1: minor (deferred): the duplicate-Name reading keeps the first
   reading, and with two seats rows sharing a Name `.pop()` hands the first
@@ -105,7 +106,7 @@ The 27, as the SDD ledger lists them (markers added in brackets):
   first in the table, `live`"; narrow and self-healing (the census's Returned
   act writes `--status live` for a `dead` row that runs); the brief mandated
   keeping the cell (boundary.js 959, 996-1013) — to Kanri's Rulings needed.
-  [(d), sent to the hotfix lane]
+  [(d), done by the hotfix lane]
 - Task F2: minor (deferred): the `fresh` skip in `writeEvent` is a
   loop-bound trick (`for (let i = fresh ? span.end : …)`), the function has
   seven positional parameters, and `fresh` collides with the cell array's
@@ -158,5 +159,5 @@ key-grammar class issue-f07a came from.
 
 Line numbers are as of the fix wave's landing, 2026-10-08.
 
-Carrier: Kept — (a) and (d) to the hotfix lane, the rest to a later plan that
+Carrier: Kept — (a) and (d) done by the hotfix lane, the rest to a later plan that
 touches `boundary.js` and `tanto.js`.
