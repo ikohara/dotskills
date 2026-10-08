@@ -741,6 +741,22 @@ function kanriRequest(root, sessions, outgoing) {
 }
 
 /**
+ * Whether a `resume` answer says the Kanri is alive, or out of this
+ * terminal's reach, rather than lost (issue-13d2): `listed` and `still
+ * listed` are the spawner's listing holding it, and `config dir mismatch`
+ * a seat under another registry (issue-8a8f). A spawn after such an answer
+ * would be a second Kanri, let through as the failed one's successor.
+ */
+function kanriUnreachable(error) {
+  return error === "listed" || error === "still listed" || String(error).startsWith("config dir mismatch");
+}
+
+/** The one line for a `resume` answer `kanriUnreachable` reads (issue-13d2). */
+function unreachableLine(sessionId, error) {
+  return `tanto: the spawner lists the Kanri ${sessionId} and this terminal's listing does not (${error}) — a terminal with another CLAUDE_CONFIG_DIR is the usual cause; run tanto from the terminal that started the run`;
+}
+
+/**
  * The Kanri the spawner holds, entered when the roster's first row does not
  * name it (roster-ledger 6): the line first; then an attach when the listing
  * shows it, and otherwise the one `resume` with the fukki word, since the
@@ -763,7 +779,11 @@ function enterHeldKanri(root, sessionId, byId, older, waitMs) {
     return { code: 1 };
   }
   if (result.error) {
-    fail(`tanto: the Kanri resume failed — ${result.error}`);
+    fail(
+      kanriUnreachable(result.error)
+        ? unreachableLine(sessionId, result.error)
+        : `tanto: the Kanri resume failed — ${result.error}`,
+    );
     return { code: 1 };
   }
   return { attach: result.id || result.sessionId, resumed: true };
@@ -939,6 +959,12 @@ function cmdUp(values, role, topic, word) {
         : kanriRequest(root, sessions, held);
     let result = waitForResult(root, writeRequest(root, request), waitMs);
     if (result?.error && request.op === "resume") {
+      // A Kanri that is alive, or out of this terminal's reach, is never
+      // replaced (issue-13d2): the spawn below would succeed it while it runs.
+      if (kanriUnreachable(result.error)) {
+        fail(unreachableLine(request.sessionId, result.error));
+        return 1;
+      }
       fail(`tanto: the Kanri resume failed — ${result.error}; spawning a new Kanri`);
       request = kanriRequest(root, sessions, held);
       result = waitForResult(root, writeRequest(root, request), waitMs);

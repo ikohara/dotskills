@@ -1258,8 +1258,70 @@ test("a Kanri resume that fails says so in one line and spawns a new Kanri", () 
   const got = launch(ws, ["--timeout", "20000"]);
   assert.equal(got.code, 0, got.err);
   assert.match(got.err, /^tanto: the Kanri resume failed — .*unknown session sess-live.*; spawning a new Kanri$/m);
-  assert.equal(requests(ws).filter((r) => r.op === "spawn" && r.role === "kanri").length, 1);
+  const spawns = requests(ws).filter((r) => r.op === "spawn" && r.role === "kanri");
+  assert.equal(spawns.length, 1);
+  // The replacement of a Kanri that is truly lost names it as the holder it
+  // succeeds (spec 1.2; issue-13d2 keeps this branch).
+  assert.equal(spawns[0].succeeds, "sess-live");
   assert.equal(lastAttach(ws), "bg01", got.err);
+});
+
+/**
+ * A spawner that beats, runs this design's code, and answers every request
+ * from `answers`, keyed by op, merged over the request: the launcher's
+ * listing and the spawner's can then disagree, which one fake CLI shared by
+ * both cannot arrange (issue-13d2).
+ */
+function answeringSpawner(ws, answers) {
+  const dir = path.join(ws.root, ".tanto", "spawner");
+  fs.mkdirSync(path.join(dir, "requests"), { recursive: true });
+  fs.mkdirSync(path.join(dir, "results"), { recursive: true });
+  const script =
+    "const fs = require('node:fs'); const path = require('node:path');" +
+    "const [dir, answers] = [process.argv[1], JSON.parse(process.argv[2])]; const done = new Set();" +
+    "setInterval(() => { for (const name of fs.readdirSync(path.join(dir, 'requests'))) {" +
+    "if (!name.endsWith('.json') || done.has(name)) continue; done.add(name);" +
+    "const body = JSON.parse(fs.readFileSync(path.join(dir, 'requests', name), 'utf8'));" +
+    "const file = path.join(dir, 'results', name);" +
+    "fs.writeFileSync(file + '.tmp', JSON.stringify({ ...body, ...(answers[body.op] || {}) }));" +
+    "fs.renameSync(file + '.tmp', file); } }, 100); setTimeout(() => process.exit(0), 120000);";
+  const child = spawn(process.execPath, ["-e", script, dir, JSON.stringify(answers)], {
+    stdio: "ignore",
+    windowsHide: true,
+  });
+  fs.writeFileSync(path.join(dir, "pid"), `${child.pid}\n`);
+  fs.writeFileSync(path.join(dir, "heartbeat"), `${Date.now()}\n`);
+  fs.writeFileSync(path.join(dir, "contract"), "2\n");
+  return child;
+}
+
+test("a Kanri resume the spawner answers listed exits 1 with one line and writes no spawn (issue-13d2)", () => {
+  // The spawner's listing holds the Kanri; this terminal's does not.
+  const ws = workspace();
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  writeSeats(ws, [
+    { sessionId: "sess-live", id: "bg07", name: "seat-live [ffffff]", role: "kanri", status: "running", contract: 2 },
+  ]);
+  const child = answeringSpawner(ws, {
+    resume: { error: "listed", name: "seat-live [ffffff]", kind: "background" },
+    spawn: { id: "bg09", sessionId: "sess-stray" },
+  });
+  try {
+    const got = launch(ws, ["--timeout", "20000"]);
+    assert.equal(got.code, 1, got.err);
+    assert.equal(
+      got.err,
+      "tanto: the spawner lists the Kanri sess-live and this terminal's listing does not (listed) — a terminal with another CLAUDE_CONFIG_DIR is the usual cause; run tanto from the terminal that started the run\n",
+    );
+    assert.deepEqual(
+      requests(ws).map((r) => r.op),
+      ["resume"],
+    );
+    assert.deepEqual(attaches(ws), []);
+  } finally {
+    child.kill();
+    for (const name of ["pid", "heartbeat"]) fs.rmSync(path.join(ws.root, ".tanto", "spawner", name), { force: true });
+  }
 });
 
 test("a held: answer to the launcher's Kanri spawn enters the listed Kanri the spawner holds, the line first, and writes no second spawn (roster-ledger 6, f07a)", () => {
