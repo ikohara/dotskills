@@ -125,7 +125,9 @@ reason to ask for either, and each omission cost one resume round at
   fence needs three properties: it opens at column 0; it exits non-zero when
   it fails (a `for` loop's status is its last iteration's and a `printf`
   loop's is always 0, so neither can fail without `|| exit 1`); and it is not
-  matched by a `replay-skip` pattern, which `boundary` honors too;
+  matched by a `replay-skip` pattern, which `boundary` honors too. A fence
+  never pins text a standing human-approval item may still change: the pin
+  is a test the rework edits, and the fence runs the test;
 - when the plan edits this skill's own files, the **boundary from which a
   role may be started or replaced** — where one is *permitted* — stated in
   Global Constraints and in the Batches section: the first boundary at which every
@@ -137,10 +139,14 @@ reason to ask for either, and each omission cost one resume round at
   rule 11).
 - a **named-mechanism** rule for the tasks: a task that introduces or changes
   a named mechanism — a slot letter, a grant clause, a status word, a section
-  pointer — lists in its own text every other site in the same file, and in
+  pointer, a function's exception or return type, whose sites are its callers
+  in source and tests and every test that asserts the old exception — lists
+  in its own text every other site in the same file, and in
   the files the plan touches, that names the same mechanism, so that its
   reviewer checks them together (issue-7ba4 and issue-c30e are what this
-  catches);
+  catches); the task's steps run that sites grep before the first edit and
+  after the commit, both into the report, since the grep finds the caller a
+  list omitted at the cost of one line per dispatch;
 - a **line-ending** rule for the tasks: a task that creates a Markdown file
   and later checks its line endings writes the restore —
   `rm <path> && git checkout -- <path>` after the commit, or the
@@ -151,7 +157,11 @@ reason to ask for either, and each omission cost one resume round at
 
 A count the spec states — a site total, an occurrence count — is re-run by
 the plan, never copied: at `bg-seat-fixes` the spec's own "10 files" was a
-miscount of the list it itself gave, and the plan's fresh grep read 9. Name
+miscount of the list it itself gave, and the plan's fresh grep read 9. A
+correction carried into a later task that shifts a count names which counts
+it shifts — suite-level, never per-file — and states the running total per
+task: a fix that adds tests moves every later expected count cumulatively,
+while the fences' floors stay as written. Name
 those sections exactly as they are named here, and the Self-Review with
 them: `frame --stage 1` finds them by their headings, and a plan's frame is
 what Kanri reads in place of the plan — so no task cites content under any

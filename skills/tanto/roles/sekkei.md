@@ -37,14 +37,23 @@ since no line of Kanri's carries it.
 ## Step 1 — the spec
 
 Run superpowers brainstorming with the human. The dialogue is theirs; the
-write-up is yours. When the input is a Kikaku decision file, open the
+write-up is yours. Put one ask in each AskUserQuestion entry: a second ask
+folded into an entry's text reads as part of the first and is answered by
+its approval, where two entries in one panel get one answer each. When the
+input is a Kikaku decision file, open the
 dialogue by restating, in your own words, the mechanism the decision
 presupposes and the user-visible behavior it changes, before the first
 design question, so that a mismatch is corrected at once and not two
-question batches later. Take the architectural path — this is a design document, not
+question batches later. For a check whose job is to stop information, ask
+what must not happen and to whom before the first design question: a
+dialogue designed around a threat model the human does not hold costs a
+rework and a re-issued brief. Take the architectural path — this is a design document, not
 a one-liner. A figure a Kikaku file lets you cite without re-measuring holds
 only while the spec uses the measurement's own definition: a figure the spec
-builds a rule on is re-measured under that rule's definition.
+builds a rule on is re-measured under that rule's definition. When a design
+premise is another local tool's behavior and that tool's source is on the
+machine, read the source before you defer the question to a live check, so
+that the check confirms rather than discovers.
 
 Keep `.tanto/<topic>/dialogue.md` as you go: each question you put
 and the human's answer, verbatim, in order. Kanri may read it at any time, the

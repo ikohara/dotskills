@@ -58,7 +58,10 @@ Each of the four words is taken in one place:
 
 - `fukki` — at the launcher, `tanto fukki`, and in Kanri, `/tanto fukki`:
   it puts the run back after a restart, a stale spawner, or a quota's
-  return. In Kanri it skips the start sequence and runs "Resuming" below.
+  return. In Kanri it skips the start sequence and runs "Resuming" below,
+  and each typing loads this whole skill text into Kanri's context: a human
+  asking only whether anything has changed types `tanto jokyo` at the
+  launcher, and `tanto fukki` there when the run needs putting back.
   In any other seat `/tanto fukki` is answered with one line naming
   `tanto fukki`, and nothing else is done.
 - `taiseki` — typed by the human as `/tanto taiseki` in a Kikaku, a Hosa,
@@ -97,7 +100,11 @@ Two steps, in this order, before any role work, and one check before them.
 
 **The seat check** is your first act. Run
 `node "$TANTO/scripts/boundary.js" seat <your sessionId>`, the `sessionId`
-being your transcript's basename ("The transcript reading"). Go on when it
+being your transcript's basename ("The transcript reading"), from the
+repository root — your own working directory, never the skill directory:
+`boundary.js` takes the workspace from its cwd, and a `cd` into the skill
+directory to set `$TANTO` reads that directory's empty `.tanto/`, which
+prints `no entry -` and `spawner: stale` for a seat the run holds. Go on when it
 prints an entry, and when it prints `no entry background`: that listing
 entry is a background session's, which nobody typed into, and the spawner
 records a new seat a moment after it starts. On `no entry interactive` or
@@ -445,6 +452,10 @@ reads as progress. The dispatcher verifies the file, not the reply.
   `paused:` line still unanswered, the dispatch being the one that line
   named, and the role re-dispatches identically from where it stopped; a
   probe that fails sends nothing and tells the human the reset time again.
+  A probe that answers shows that the family answers a one-word call — a
+  necessary condition, not a promise that a long dispatch is served — so a
+  role whose continued dispatch pauses again sends a second `paused:` line,
+  as the first.
   A human who says it in a role's own window is answered, reported as
   `human-contact:`, and pointed to `fukki`; the role continues nothing on
   its own.
@@ -799,7 +810,7 @@ the path does not. `unavailable` stands only where there is neither, and no
 
 | what happened | what the run does |
 | --- | --- |
-| an editor reload or restart, or a tab closed | nothing is asked of anyone: no fukki, no report. The background processes are unreached by it; a tab the human does not reopen is a parked seat, woken when a line is next due to it; a turn the reload cut is continued by a word in the tab ("The faces of a seat", C-5). A seat a tab held is listed again under a new name, which the next row covers |
+| an editor reload or restart, or a tab closed | nothing is asked of anyone: no fukki, no report. The background processes are unreached by it; a tab the human does not reopen is a parked seat, woken when a line is next due to it; a turn the reload cut is continued by a word in the tab ("The faces of a seat", C-5). A seat a tab held is listed again under a new name, which the next row covers; an AskUserQuestion pending across the reload is answered as a plain user message quoting the question, and a tab seat's effort reading may differ after it (issue-42fc) |
 | a seat renamed | the census prints the seat's line ending `— renamed`, its listed name not being the row's Name cell; Kanri rewrites the row's Name cell and writes `resumed: <old name> → <new name>`, and that is all. The seat itself does nothing and checks nothing |
 | a line due to a seat that is not running — parked, or gone | Kanri runs `seat` and follows "The address": a `parked` seat, or a `gone` one that is not a Kanri — a stale entry with no `pid` included — is woken by `wake`, a `resume` request run as `claude --resume <sessionId> --bg` with no prompt and no flag, which keeps the `sessionId` and the whole conversation, and the line goes to the name `wake` prints. A `queued` row goes `live` before its `batch:` line is sent, woken or not. A wake is never a spawn and never a replacement; it covers every line to a seat — a queued Jisso's `batch:` line, a rework prompt's, the `close:` line, a `coldread:` line, a `continue:` after a pause — and costs nothing for a seat that is alive, which `wake` answers `listed`. A seat whose wake fails, or whose transcript is not on disk, is lost: `roles/kanri.md`'s Replace table decides what follows |
 | a reboot, a crash, or a spawner that died | `tanto`, or `tanto fukki`, reads the state file, starts the spawner when none beats, and writes a `resume` request for every seat it holds as `running` or `blocked` that is not a dialogue seat and that the listing does not hold, and for a Kanri it holds `gone`; never for a `parked`, `stopped`, or `removed` seat. A dialogue seat the reboot took is `parked` at the new spawner's first census pass, with `— mid-turn` when its turn was cut, and Kanri's Recovery wakes it. The roster's first row is settled first and separately, so a Kanri the listing has lost but the state file still holds — `gone` included, a Kanri the human `/stop`ped or one that crashed while the spawner ran — is **resumed and never spawned again**. A seat held as `stopped` or `removed` is not resumed, which is why `tanto teishi --seats` retires a run rather than pausing it |

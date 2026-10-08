@@ -51,7 +51,10 @@ On the prompt, in order:
    you — Kanri is its only writer.
 4. **The first Jisso only:** run SDD's pre-flight conflict scan, write its
    table to the SDD ledger, rule on everything it surfaces, and report the
-   result in your first batch report. Every later Jisso resumes from the
+   result in your first batch report. The scan needs a row per task where
+   your prompt has you read a task whole only when you start it: delegate
+   the scan of the tasks outside your batch to a `default` subagent and take
+   its rows into the table. Every later Jisso resumes from the
    task the prompt's resume line names and runs no scan.
 
 ## The run
@@ -106,7 +109,11 @@ batch is the next Jisso's. At the boundary:
    closing line, and the stop follows it.
 
 Everything you would otherwise say to a human goes in the report. A message is
-one line plus a path.
+one line plus a path. Every "every", "each", "all", "after each", and "at
+most" in the report, or in an as-built check, is re-derived from the records
+or read against the code before the commit, not only checked that each
+quoted string exists: a statement true only up to a bound slips past a
+string check, and an overstated line costs an amend.
 
 ## What stops you
 
@@ -333,15 +340,24 @@ text, these win.
 | The skill says | You do | Why |
 | --- | --- | --- |
 | SDD Setup — work in an isolated worktree | work in this tree on the shared branch | Kanri verifies in place and the human watches; every batch prompt restates it |
+| SDD implementer prompt — the task's brief and the rules file it points at are the implementer's instructions | put a carried ruling that changes a brief's text into the dispatch prompt's own body, not only into the rules file the prompt points at | an implementer applies the brief's words over the rules file; left there alone, one ruling cost a fix round and a re-review |
 | SDD — continuous execution, stopping only for the four classes | stop at each batch boundary and idle | the boundary is Kanri's ruling and lifecycle checkpoint; every batch prompt restates it |
 | SDD Finish — delete the workspace once the final review is clean | never delete it | it holds the SDD ledger; nobody deletes it at the close, and `.tanto/<topic>/`, which holds the conductor ledger, the reports, and the close's sources, stays on the same terms (issue-12d3) |
+| SDD's dispatch prompts — the test command as the plan states it | for a batch whose tests carry non-ASCII literals, say the interpreter's UTF-8 mode flag (`PYTHONUTF8=1` for Python) before the test command in every dispatch | on a host whose code page is not UTF-8 a RED assertion diff is otherwise unreadable in the report |
 | SDD Finish — collect "Rulings I made" into the final message, then run finishing-a-development-branch | put every ruling in each batch report's Rulings section, and never run finishing-a-development-branch | you talk to Kanri only, reports are read from files, and the merge decision is the human's, put by Kanri |
+| SDD implementer prompt — a fix's brief carries the review's findings and their reasons as given | tell the fix's `task.review-quality` dispatch to name each claim the findings' reasons make and check it against the code | a factual slip in a review's reasons is otherwise taken as fact by the implementer and caught by nobody |
 | SDD Model Selection — scale the tier per dispatch, final review on the most capable model | dispatch the `tanto.json` kinds of Models above, each by `subagent_type` and `model` | the personal file sets the families and the definitions the efforts, and the whole-branch review is Kanri's dispatch |
+| SDD implementer prompt — edits by whatever tool the implementer picks | tell an implementer that edits a file holding non-ASCII prose to write a script file through the Write tool and have it open the target as UTF-8, keeping the file's own line endings | on a Windows host a Bash heredoc piped into an interpreter decodes the prose as the ANSI code page, and a bare open rewrites the file's line endings |
 | SDD fix loop — five rounds, then the breaker | unchanged, plus the Kaiseki trigger at round 2 with an unknown cause, and again whenever an implementer returns blocked with an unknown cause at any round | root cause before more fixing |
+| SDD implementer prompt — TDD is the implementer's own discipline | say "RED before any production change" in every `task.implement` and `task.escalate` dispatch | where the sentence was absent, one assertion was never seen failing |
 | `shoroku` — propose in chat, wait for the human's `Direction?`, never start without their explicit confirmation | write the proposal to a file — the report's section at a boundary, `shoroku-proposal-jisso-<short id>.md` at the close — and stop there; a dispatched recommender reads it at the close and the human checks the recommendation by exception | you do not talk to the human unless Kanri grants it, and every item reaches the human that way |
+| SDD task reviewer prompt — the constraints block carries the plan's constraints | add the spec's accepted and deferred limits to that block in both task reviews | a reviewer without them re-raises a limit the spec already accepted and deferred |
 | SDD task reviewer prompt — "Do not re-run the suite to confirm their report" | for a verification-only task, tell the reviewer to re-run the checks | the recorded output is the deliverable, so a reviewer that trusts the report verifies nothing |
+| SDD task reviewer prompt — "Cannot verify" lists what the diff does not show | tell both task reviewers that an implementer's reported test and lint runs are yours to spot-check, not theirs to flag | each such line costs you a check or a dismissal |
 | SDD task reviewer prompt — the reviewer reads the task's own diff | for a batch whose tasks build one cross-file mechanism in sequence, tell the `task.review-quality` reviewer to read, at HEAD, the sibling files the batch's earlier tasks landed | a same-file-only review misses the drift between them: at `bg-seat-fixes` batch B that read caught the batch's two most substantive findings |
+| SDD task reviewer prompt — the reviewer reads the task's spec and its diff | tell the `task.review-quality` reviewer to read the brief's own prose against the diff: a guarantee the plan states in prose needs a test that breaks it | a spec-only pass sees the diff and not the promise |
 | SDD implementer — clean up anything unexpected in the tree before starting | tell each `task.implement` dispatch to report an unrecognized modification it did not make, one line to you, instead of discarding it | a modification in the shared tree that a session or its subagent did not make is not its to discard (Rule 5); only Kanri decides whether it is stray |
+| SDD implementer prompt — the task's line numbers as the plan states them | say "locate by text, and stop on zero or many matches" in every implementer dispatch | line numbers inside one batch go stale as earlier tasks land |
 | SDD `scripts/task-brief` — a task's text runs from its `Task N` heading to the next | for the last task of the plan — or of a batch prompt given as the PLAN_FILE with an explicit OUTFILE, when a wave's tasks live only in the prompt under `### Task N:` headings — cut the brief at the next `##` heading yourself before dispatching on it | the script stops only at another `Task N` heading, so the last task's brief sweeps in every section after it (323 lines for 87 at `bg-seat-fixes` Task 11; a prompt's `## Execute` and `## Report`) |
 | SDD's dispatch prompts — the implementer's, the task reviewers', and the escalation's — used as they are | add four sentences to every dispatch you send — `task.implement`, `task.escalate`, and the two task reviews: run every command in the foreground with an explicit timeout, the Bash tool's `timeout`, ten minutes at most, never as a background job, and a command that cannot finish inside that ceiling is not started but named in the hand-back for you to rule on; never `cd` — absolute paths, `git -C`, or a subshell — since a `cd` in a compound command moves the shell's working directory for every later call, a rule you keep in your own calls too; never end a turn while a command of your own is still running, or while "waiting" on anything; end every turn with a hand-back — an implementer's one of the four implementer statuses, a reviewer's verdict | a dispatch that ends its turn with work of its own running leaves you idle on a promise with no bound, since you hold no clock; the sentences are best effort, and "The four implementer statuses" is the bound behind them |
 

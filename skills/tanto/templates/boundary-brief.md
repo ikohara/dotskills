@@ -43,7 +43,10 @@ Kanri decides whether it is stray.
 ## The procedure
 
 1. Run `check` **once**, from the repository root — the cwd every dispatch
-   inherits, and the one `passage-check boundary` runs the plan's checks in:
+   inherits, and the one `passage-check boundary` runs the plan's checks in —
+   with `TANTO=<tanto>` exported in the same tool call, since the plan's
+   fences call the skill's scripts through `$TANTO` and the dispatch's shell
+   does not set it:
 
    ```bash
    node "<tanto>/scripts/boundary.js" check --plan <plan> --report <report> \

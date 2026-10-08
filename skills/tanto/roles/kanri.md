@@ -527,7 +527,9 @@ Per batch, in this order.
 
    For each item under "Rulings needed": a **known cause** you
    rule on yourself, recorded as `R-n` in the ledger with what it costs if
-   wrong and which later tasks inherit it; an **unknown cause** opens the
+   wrong and which later tasks inherit it — a ruling that states a cause
+   cites the log line or the dated reading it rests on, or says it is an
+   inference; an **unknown cause** opens the
    Kaiseki branch below; a **scope or spec change** goes to the human; a
    `fail` is a rework, or an acceptance you rule over it. The report's
    Shoroku proposal section is already `S-n` rows, Adopted `pending`,
@@ -2128,7 +2130,11 @@ the census marks at once.
    paused role `continue: <dispatch> — same model`. A probe that fails
    sends nothing, leaves the row, and tells the human the reset time again:
    `fukki` is typed after a spawner's death as well as after a quota's
-   return. This is the one place the probe is written ("Limits").
+   return. This is the one place the probe is written ("Limits"). A probe
+   that answers shows that the family answers a one-word call — a necessary
+   condition, not a promise that a long dispatch is served — so a second
+   `paused:` line from the continued role is expected, and handled as the
+   first.
 4. Print, in the idle block, what was put back.
 
 You re-run no definitions write-out, send no broadcast, and ask the human
