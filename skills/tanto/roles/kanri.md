@@ -81,26 +81,46 @@ taking over mid-plan must not create a second ledger.
    with the rest, and an entry the human has once said to keep is listed
    under the ledger's Rulings and not reported again. Make the same listing
    at every plan close, in the close's own line.
-3. If `.tanto/roster.md` is absent, this is the bootstrap: create it
-   from `templates/roster.md` with your row first — its Topic column `—`,
-   because a topic is a peer's; its Model and Effort columns the two values
-   step 1 checked; its Transcript column your own transcript path — and a
-   Residency row carrying today's date, your own reading, and zero counts,
-   then go to step 5.
-4. Otherwise cold-read the roster, run the census
-   (`node "$TANTO/scripts/boundary.js" census`, from the repository root;
-   "Session lifecycle" says what it prints), and compare your own
-   `sessionId`, the basename of your transcript path, with the first data
-   row's, the basename of its Transcript column; then take exactly one case
-   from "The four cases" below. In the same read, find the old-contract
-   rows: a row whose Status is `cleared`, and a `live` or `queued` row whose
-   `sessionId` has no entry in the state file, `.tanto/spawner/seats.json`
-   — a window of a run started before this contract, which is no seat of
-   the run. Say in your start line
+3. If `.tanto/roster.md` is absent, this is the bootstrap: one call, from
+   the repository root, creates it with your row first, `<own>` being your
+   `sessionId`, the basename of your own transcript path — the path your
+   scratchpad path gives (`SKILL.md`, "The transcript reading"), never the
+   roster's Transcript cell, which holds the bare `<sessionId>.jsonl` when
+   the state entry had no path yet:
+
+   ```bash
+   node "$TANTO/scripts/boundary.js" record --init --roster .tanto/roster.md --seat <own>
+   ```
+
+   `record` writes the roster from `templates/roster.md` and your row from
+   your entry in the spawner's state file — its Topic `—`, because a topic
+   is a peer's; its Model and Effort the spawn request's, which step 1
+   checked; its Transcript the entry's path, or `<own>.jsonl` while the
+   entry has none; its counts `0 0 0`.
+   Then take your own reading into that row,
+   `record --roster .tanto/roster.md --kanri <own> --kanri-reading "<reading>" --read-at start`,
+   and go to step 5. No row of the roster is written by hand.
+4. Otherwise run, from the repository root,
+   `node "$TANTO/scripts/boundary.js" roster show` and then the census
+   (`node "$TANTO/scripts/boundary.js" census`; "Session lifecycle" says
+   what it prints), and compare your own `sessionId`, the basename of your
+   own transcript path from your scratchpad path, with the one `show`'s
+   first line prints,
+   `first: <name> — <sessionId> — <status> — counts <batches> <plans> <noticed>`;
+   then take exactly one case from "The four cases" below. A `show` that
+   ends with the line naming `boundary.js migrate` — a roster of an older
+   shape — or prints `cleared: <n> rows — run boundary.js migrate` is
+   answered first, before the census, by one
+   `node "$TANTO/scripts/boundary.js" migrate --roster .tanto/roster.md --archive .tanto/roster-archive.md`
+   (with `--ledger <the open ledger>` added when a topic is open),
+   whose `suspect:` and `unplaced:` lines are the human's to settle once.
+   In the same read, find the old-contract rows: a `live` or `queued` line
+   of `show`'s that ends `— no state entry` — a window of a run started
+   before this contract, which is no seat of the run. Say in your start
+   line
    `old-contract rows in .tanto/roster.md (<roles>): those windows are no longer seats of this run — see the README, "Moving a run"`,
-   send those rows nothing, and at the census mark the `live` and `queued`
-   ones `dead` ("Session lifecycle"); a `cleared` row is left as it is, for
-   the archive.
+   send those rows nothing, and at the census mark them `dead` ("Session
+   lifecycle").
 5. Open a topic when every open topic has passed its spec stage — its spec
    review accepted — which the bootstrap, a kept Kanri between plans, and a
    recovery whose last ledger says closed all satisfy. A second topic may
@@ -157,27 +177,35 @@ taking over mid-plan must not create a second ledger.
 
 **Handover** — `.tanto/kanri-handover.md` exists. In order: read the
 handover and the ledger it names, and `progress.md` if a plan is in flight;
-note whether the census lists the outgoing Kanri's `sessionId`, the
-basename of the first data row's Transcript column — a census that lists
-two Kanris during a handover is this case, the outgoing one alive until
-your `stop` request below; rewrite the roster —
-your own row first with status `live`, your own name, your own transcript
-path in its Transcript column, and today, your model, and your effort in
-its Started, Model, and Effort columns — the old Kanri's row `replaced` (or
-`dead` when the census does not list its `sessionId`), the Residency row
-reset to your name and today with zero counts and your own reading, and
-one Events line "handover accepted by `<you>` from `<old>`"; read the
-ledger's Session events for `unanswered:` lines that have no `answered:`
-pair, and the handover file's Live peers for its marks, and answer those
-lines first — you announce nothing, and a peer whose send to the outgoing
-Kanri errors once it has stopped re-sends to the roster's first row on its
-own next wake-up; delete the handover file, because the Events line
-is the record and a stale file must not start a false handover at the next
-Kanri start; write a `stop` request for the predecessor's `sessionId`, which
-is the whole of its retirement — its conversation is kept, and a human
-attached to it through `tanto` is taken to you by the launcher when the
-stop lands, with nothing typed; continue at the handover's Next step, which
-decides whether a plan is in flight.
+note whether the census lists the outgoing Kanri's `sessionId`, the one
+`show`'s first line printed — a census that lists two Kanris during a
+handover is this case, the outgoing one alive until your `stop` request
+below; write the handover with one call, `<own>` your `sessionId` — the
+basename of your own transcript path, from your scratchpad path and never
+from the roster — and `<old>` the outgoing Kanri's:
+
+```bash
+node "$TANTO/scripts/boundary.js" record --roster .tanto/roster.md --seat <own> --succeeds <old>
+```
+
+It writes your row first in the table, `live`, from your entry in the
+spawner's state file, its counts `0 0 0` and its reading columns blank; the
+old Kanri's row `replaced`, whatever its process is doing, every other cell
+kept; and the Events line
+`handover accepted by <your name> from <its name> — <its Transcript cell>`.
+Then take your own reading into your row,
+`record --roster .tanto/roster.md --kanri <own> --kanri-reading "<reading>" --read-at handover`;
+read the ledger's Session events for `unanswered:` lines that have no
+`answered:` pair, and the handover file's Live peers for its marks, and
+answer those lines first — you announce nothing, and a peer whose send to
+the outgoing Kanri errors once it has stopped re-sends to the roster's
+first row on its own next wake-up; delete the handover file, because the
+Events line is the record and a stale file must not start a false handover
+at the next Kanri start; write a `stop` request for the predecessor's
+`sessionId`, which is the whole of its retirement — its conversation is
+kept, and a human attached to it through `tanto` is taken to you by the
+launcher when the stop lands, with nothing typed; continue at the
+handover's Next step, which decides whether a plan is in flight.
 
 **Yours** — no handover file, and the first data row's `sessionId` is your
 own. This is a `/tanto kanri` the human typed in your own session, reached
@@ -185,9 +213,11 @@ through `tanto`; a resume of your conversation carries `/tanto fukki`
 instead and runs "Recovery" below. Continue where the current ledger's
 Progress line says, or, if none is open, wait for the human to say what the
 next work is and open the topic as step 5 says. When the row's Name is not
-your name, rewrite it in place with your name, status `live`, and write the
-Events line `resumed: <old name> → <new name>` under the roster's `## Events`
-heading, after its last line. No row is marked `dead` on
+your name, run
+`record --roster .tanto/roster.md --rename "<own> <your name>"`, `<own>`
+your `sessionId`, which rewrites the Name cell and writes the Events line
+`resumed: <old name> → <new name>` itself; add `--status "<own> live"` to
+the call when the row's Status is not `live`. No row is marked `dead` on
 this case alone, and there is no tree recovery beyond `git status`.
 
 **Second Kanri** — no handover file, the first data row's `sessionId` is
@@ -222,10 +252,13 @@ node "$TANTO/scripts/boundary.js" seat <sessionId or name>
 node "$TANTO/scripts/boundary.js" wake [--hold] <sessionId> [<sessionId> ...]
 ```
 
-`seat` prints one line, `<status> <name> <kind> <role> <turn>` — `<kind>`
-is `background`, `interactive`, or `-` when the listing does not show the
-seat; `<turn>` is `ended` or `open`, or `-` when no transcript is found —
-and `spawner: beating` or `spawner: stale` under it. `wake` checks the beat,
+`seat` prints one line of six fields,
+`<status> <name> <kind> <role> <turn> <sessionId>` — `<kind>` is
+`background`, `interactive`, or `-` when the listing does not show the
+seat; `<turn>` is `ended` or `open`, or `-` when no transcript is found;
+the sixth field is the seat's `sessionId`, the key every `record` call
+takes — and `spawner: beating` or `spawner: stale` under it. `wake`
+checks the beat,
 writes a `resume` request with no prompt for each `sessionId` at once,
 waits for the results up to sixty seconds in all, and prints for each seat
 what `seat` would print then, or `error: <the result's error>` with its
@@ -261,11 +294,12 @@ anywhere — Remote Control included — to talk to a parked seat, run
 
 **The beat comes before every request.** Run
 `node "$TANTO/scripts/boundary.js" beat`, which prints the `spawner:` line,
-before you write a `spawn`, a `stop`, an `attention`, or an `ack`; `wake`
+before every `spawn`, `stop`, and `attention` request you write; `wake`
 runs it itself. On `spawner: stale` write no request: record what you owe
 as the Events line `unsent: <sessionId or op> — <the line or the request>`
-— through `record --event` in the open ledger, in the roster's Events when
-none is open — and tell the human in one line to run `tanto fukki`, saying
+— through `record --event` in the open ledger, and through
+`record --roster-event` in the roster's Events when none is open — and
+tell the human in one line to run `tanto fukki`, saying
 that a stale spawner raises no notice of its own. "Recovery" sends every
 `unsent:` that has no `sent:` pair and writes the pair. A pair is matched
 on the text after the prefix, without the batch suffix, `(batch <X>)`,
