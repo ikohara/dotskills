@@ -1611,7 +1611,7 @@ function census(f, mode, args = ["--root", f.root, "--roster", f.roster]) {
 
 const KANRI_ROW = sessionRow("kanri", "—", "kanri-a [aaaaaa]", "live", "/home/u/.claude/projects/p/sess-kanri.jsonl");
 
-test("census prints the spawner: line, then the live and queued rows under its six headings, by its own path comparison", () => {
+test("census prints the spawner: line, then the roster's rows under its seven headings, a listed stopped row under Returned, by its own path comparison", () => {
   const f = censusFixture(
     [
       KANRI_ROW,
@@ -1658,6 +1658,10 @@ test("census prints the spawner: line, then the live and queued rows under its s
       "",
       "none",
       "",
+      "## Returned",
+      "",
+      "jisso t jisso-e — sess-old — stopped; seat listed",
+      "",
       "## Not listed",
       "",
       "hosa — hosa-c [cccccc] — sess-hosa",
@@ -1668,7 +1672,6 @@ test("census prints the spawner: line, then the live and queued rows under its s
       "",
       "## Not held",
       "",
-      "old-seat (background) — sess-old — row stopped",
       "human-own (interactive) — sess-human",
       "",
     ].join("\n"),
@@ -1684,7 +1687,7 @@ test("census prints none under a heading with no entry, and writes nothing", () 
   const before = fs.readFileSync(f.roster, "utf8");
   const result = census(f, "");
   assert.strictEqual(result.code, 0, result.err);
-  for (const heading of ["Parked", "Ended", "Not listed", "No session id", "Not held"]) {
+  for (const heading of ["Parked", "Ended", "Returned", "Not listed", "No session id", "Not held"]) {
     assert.ok(result.out.includes(`## ${heading}\n\nnone\n`), result.out);
   }
   assert.strictEqual(fs.readFileSync(f.roster, "utf8"), before);
@@ -1902,9 +1905,13 @@ test("census prints Parked with its marks, Ended, a blocked background seat's ca
       "hosa — hosa-d — sess-hosa — stopped by taiseki",
       "jisso t jisso-e — sess-done — removed",
       "",
+      "## Returned",
+      "",
+      "none",
+      "",
       "## Not listed",
       "",
-      "jisso t jisso-f — sess-gone",
+      "jisso t jisso-f — sess-gone — queued; its batch line wakes it",
       "",
       "## No session id",
       "",
@@ -1961,6 +1968,95 @@ test("census matches a row whose Transcript cell is the bare session id: a block
     result.out,
   );
   assert.ok(result.out.includes("\n## No session id\n\nnone\n"), result.out);
+});
+
+test("census prints Returned for an ended row whose seat runs again, a queued row the listing lost as waiting for its batch line, and a row with no sessionId under No session id (roster-ledger 3)", () => {
+  const f = censusFixture(
+    [
+      sessionRow("kanri", "—", "kanri-a", "live", "/home/u/.claude/projects/p/sess-kanri.jsonl"),
+      sessionRow("jisso", "t", "jisso-b", "dead", "/home/u/.claude/projects/p/sess-dead.jsonl"),
+      sessionRow("jisso", "t", "jisso-c", "stopped", "/home/u/.claude/projects/p/sess-stayed.jsonl"),
+      sessionRow("sekkei", "t", "sekkei-d", "stopped", "/home/u/.claude/projects/p/sess-tab.jsonl"),
+      sessionRow("keikaku", "t", "keikaku-e", "stopped", "/home/u/.claude/projects/p/sess-parked.jsonl"),
+      sessionRow("kanri", "—", "kanri-f", "replaced", "/home/u/.claude/projects/p/sess-before.jsonl"),
+      sessionRow("jisso", "u", "jisso-g", "queued", "/home/u/.claude/projects/p/sess-later.jsonl"),
+      // f07a's cell: the separators lost, the drive's colon and the path's
+      // dots run into the basename.
+      sessionRow("hosa", "—", "hosa-h", "live", "C:Usersu.claudeprojectspsess-lost.jsonl"),
+      sessionRow("jisso", "u", "jisso-i", "stopped", "unavailable"),
+    ],
+    (root) => [
+      { sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, pid: 1111 },
+      { sessionId: "sess-stayed", name: "jisso-c", kind: "background", cwd: root, pid: 1112 },
+      { sessionId: "sess-tab", name: "dotskills-7b", kind: "interactive", cwd: root, pid: 1113 },
+      { sessionId: "sess-before", name: "kanri-f", kind: "background", cwd: root, pid: 1114 },
+    ],
+  );
+  const spawnerDir = path.join(f.root, ".tanto", "spawner");
+  fs.mkdirSync(spawnerDir, { recursive: true });
+  const seats = [
+    { sessionId: "sess-kanri", role: "kanri", status: "running" },
+    // Back, and nobody wrote it (007e's fifth case): held running, not listed.
+    { sessionId: "sess-dead", role: "jisso", topic: "t", status: "running" },
+    // A tab the state file holds stopped stays listed after its stop: no return.
+    { sessionId: "sess-tab", role: "sekkei", topic: "t", status: "stopped" },
+    {
+      sessionId: "sess-parked",
+      name: "dotskills-keikaku-5e5e",
+      role: "keikaku",
+      topic: "t",
+      status: "parked",
+      contract: 2,
+      requestId: "req-keikaku",
+    },
+    // A queued seat's entry gone is no absence to mark (78b3).
+    { sessionId: "sess-later", role: "jisso", topic: "u", status: "gone" },
+  ];
+  fs.writeFileSync(path.join(spawnerDir, "seats.json"), JSON.stringify({ seats }));
+  const before = fs.readFileSync(f.roster, "utf8");
+  const result = census(f, "");
+  assert.strictEqual(result.code, 0, result.err);
+  assert.strictEqual(
+    result.out,
+    [
+      "spawner: stale",
+      "",
+      "## Listed",
+      "",
+      "kanri — kanri-a — sess-kanri — listed as kanri-a (background)",
+      "",
+      "## Parked",
+      "",
+      "none",
+      "",
+      "## Ended",
+      "",
+      "none",
+      "",
+      "## Returned",
+      "",
+      "jisso t jisso-b — sess-dead — dead; seat running",
+      // Ended by the run and its process stayed (cd46): listed, no state entry.
+      "jisso t jisso-c — sess-stayed — stopped; seat listed",
+      "",
+      "## Not listed",
+      "",
+      "jisso u jisso-g — sess-later — queued; its batch line wakes it",
+      "",
+      "## No session id",
+      "",
+      "hosa — hosa-h",
+      "jisso u jisso-i — row stopped",
+      "",
+      "## Not held",
+      "",
+      "dotskills-7b (interactive) — sess-tab — row stopped",
+      "kanri-f (background) — sess-before — row replaced",
+      "dotskills-keikaku-5e5e (not listed) — sess-parked — row stopped — spawned as keikaku t, result req-keikaku",
+      "",
+    ].join("\n"),
+  );
+  assert.strictEqual(fs.readFileSync(f.roster, "utf8"), before);
 });
 
 // `request`, `seat`, `wake`, and `beat`: a root with the spawner's directory,

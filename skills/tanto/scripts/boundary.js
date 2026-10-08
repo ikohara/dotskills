@@ -1294,14 +1294,31 @@ function spawnedAs(seat) {
   return ` — spawned as ${seat.role || "—"} ${seat.topic || "—"}, result ${seat.requestId || "unknown"}`;
 }
 
-/** The six headings `census` prints after its `spawner:` line, in order (spec 2.7). */
-const CENSUS_HEADINGS = ["Listed", "Parked", "Ended", "Not listed", "No session id", "Not held"];
+/**
+ * A Transcript cell's `sessionId` as a key finds it, or null: `sessionIdOf`'s
+ * basename, held to letters, digits, and dashes. A cell whose separators were
+ * lost — f07a's path written through an inline script, the drive's colon and
+ * the path's dots run into one word — has no `sessionId` and prints under No
+ * session id (roster-ledger 2.2, 3). The `<uuid>.jsonl` shape is the writer's
+ * check on the cell it writes, never this reader's.
+ */
+function rowSessionId(transcript) {
+  const id = sessionIdOf(transcript);
+  return id && /^[0-9A-Za-z-]+$/.test(id) ? id : null;
+}
+
+/** The seven headings `census` prints after its `spawner:` line, in order (roster-ledger 3). */
+const CENSUS_HEADINGS = ["Listed", "Parked", "Ended", "Returned", "Not listed", "No session id", "Not held"];
 
 /**
- * `census [--root <dir>] [--roster <path>]` (spec 2.2, 2.7): the `spawner:`
- * line, then the roster's `live` and `queued` rows against the state file and
- * `claude agents --json`'s sessions under the root, under six headings.
- * Read-only — Kanri, the roster's one writer, acts on what it prints.
+ * `census [--root <dir>] [--roster <path>]` (spec 2.2, 2.7; roster-ledger
+ * 3): the `spawner:` line, then the roster's rows against the state file and
+ * `claude agents --json`'s sessions under the root, under seven headings: a
+ * `live` or `queued` row by where its seat is, a `stopped` or `dead` row
+ * whose seat runs again under Returned, and a row of any status whose
+ * Transcript cell has no `sessionId` under No session id. Read-only — Kanri,
+ * the roster's one writer, acts on each line by the `sessionId` it carries,
+ * one act per row of roster-ledger section 3's table.
  */
 function cmdCensus(argv) {
   const values = parseArgs(argv);
@@ -1350,18 +1367,38 @@ function cmdCensus(argv) {
     if (row.length < 11) continue;
     const [role, topic, name] = row;
     const status = row[9].split(/\s+/)[0];
-    const sessionId = sessionIdOf(row[10]);
-    if (status !== "live" && status !== "queued") {
-      if (sessionId) others.set(sessionId, status);
+    const sessionId = rowSessionId(row[10]);
+    if (!sessionId) {
+      // A row no key finds, whatever its status (roster-ledger 3): nothing
+      // to mark; `migrate` prints a `live` or `queued` one `suspect:`, and
+      // the human repairs or retires it once.
+      const other = status === "live" || status === "queued" ? "" : ` — row ${status}`;
+      out["No session id"].push(`${role} ${topic} ${name}${other}`);
       continue;
     }
-    if (!sessionId) {
-      out["No session id"].push(`${role} ${topic} ${name}`);
+    const seat = seats.get(sessionId);
+    const where = `${role} ${topic} ${name} — ${sessionId}`;
+    if (status === "stopped" || status === "dead") {
+      // Returned (roster-ledger 3): the seat of an ended row runs again —
+      // held `running` or `blocked`, or listed while the state file has not
+      // ended it, since a tab the state file holds `stopped` stays listed
+      // and is no return. For `dead` Kanri writes the row `live`, as nobody
+      // did (007e's fifth case); for `stopped` it writes a `stop` request
+      // unless one is waiting, as the run ended it and the process stayed
+      // (cd46).
+      const running = seat?.status === "running" || seat?.status === "blocked";
+      const ended = seat?.status === "stopped" || seat?.status === "removed";
+      if (running || (listed.has(sessionId) && !ended)) {
+        held.add(sessionId);
+        out.Returned.push(`${where} — ${status}; seat ${running ? seat.status : "listed"}`);
+        continue;
+      }
+    }
+    if (status !== "live" && status !== "queued") {
+      others.set(sessionId, status);
       continue;
     }
     held.add(sessionId);
-    const seat = seats.get(sessionId);
-    const where = `${role} ${topic} ${name} — ${sessionId}`;
     // Ended by the state file, whatever the listing shows: a seat a tab still
     // holds is recorded `stopped` with no command run (spec 5.1). Kanri writes
     // the row `stopped`, with an Events line naming what ended it.
@@ -1370,6 +1407,13 @@ function cmdCensus(argv) {
       continue;
     }
     const session = listed.get(sessionId);
+    if (!session && status === "queued") {
+      // A `queued` seat reads nothing until its batch line, which wakes it,
+      // whatever the state file holds, `gone` included: marked by nobody
+      // (roster-ledger 3, 78b3).
+      out["Not listed"].push(`${where} — queued; its batch line wakes it${firstTurn(sessionId)}`);
+      continue;
+    }
     if (!session && seat?.status === "parked") {
       // The run's seat, its conversation on disk: nothing to mark. A cut turn
       // is Recovery's to continue, never a boundary's (spec 2.7).
