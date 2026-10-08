@@ -2059,6 +2059,157 @@ test("census prints Returned for an ended row whose seat runs again, a queued ro
   assert.strictEqual(fs.readFileSync(f.roster, "utf8"), before);
 });
 
+// `roster show` and `archive`: a roster and an archive on their templates'
+// own header rows, so that a fixture's shape is the template's whatever the
+// template holds, and a state file beside them.
+function templateLine(name) {
+  return fs
+    .readFileSync(path.join(TANTO, "templates", name), "utf8")
+    .split(/\r?\n/)
+    .find((line) => line.startsWith("| Role |"));
+}
+
+/** A table's separator row, through `separatorOf`, one `---` per cell of `header`. */
+function separatorFor(header) {
+  return separatorOf(header.match(/\|/g).length - 1);
+}
+
+/** A row's nine reading cells, Read at to Noticed. */
+const SHOW_READINGS = "start | 1 | 2 | 3 | 0 | context=4 | 0 | 0 | 0";
+
+/** A roster row of the template's twenty cells: the seat's eleven, then the nine reading cells. */
+function showRow(role, topic, name, status, sessionId, readings = SHOW_READINGS) {
+  const transcript = `/home/u/.claude/projects/p/${sessionId}.jsonl`;
+  return `| ${role} | ${topic} | ${name} | /repo | sonnet | high | main | auto | 2026-10-07 10:00 | ${status} | ${transcript} | ${readings} |`;
+}
+
+/** A root holding a roster of `rows` with its `items` and `events`, and a state file of `seats`. */
+function rosterFixture(rows, { items = [], events = [], seats = [], header = templateLine("roster.md") } = {}) {
+  const dir = tmpDir();
+  const root = path.join(dir, "repo");
+  fs.mkdirSync(path.join(root, ".tanto", "spawner"), { recursive: true });
+  fs.writeFileSync(path.join(root, ".tanto", "spawner", "seats.json"), JSON.stringify({ seats }));
+  const itemHead = "| S-n | Source | Item | Destination | Adopted | Written |";
+  const body = [
+    "# tanto roster",
+    "",
+    header,
+    separatorFor(header),
+    ...rows,
+    "",
+    "## Shoroku proposal items",
+    "",
+    itemHead,
+    separatorFor(itemHead),
+    ...(items.length > 0 ? items : ["| (no item yet) | | | | | |"]),
+    "",
+    "## Events",
+    "",
+    ...events,
+    "",
+  ];
+  const roster = write(path.join(root, ".tanto"), "roster.md", body.join("\n"));
+  return { dir, root, roster, archive: path.join(root, ".tanto", "roster-archive.md") };
+}
+
+test("roster show prints the first row with Kanri's counts, every live and queued row, the items count, and the last ten Events entries, and writes nothing (roster-ledger 4.1)", () => {
+  const events = Array.from({ length: 12 }, (_, i) => `- 2026-10-07 10:${String(i).padStart(2, "0")} — event ${i}`);
+  const f = rosterFixture(
+    [
+      showRow("kanri", "—", "kanri-a", "live", "sess-kanri", "start | 1 | 2 | 3 | 0 | context=4 | 5 | 1 | 2"),
+      showRow("kanri", "—", "kanri-z", "replaced", "sess-before"),
+      showRow("sekkei", "t", "sekkei-b", "live (idle since 10:00)", "sess-sekkei"),
+      showRow("jisso", "t", "jisso-c", "queued", "sess-queued"),
+      showRow("jisso", "t", "jisso-d", "stopped", "sess-done"),
+    ],
+    {
+      items: ["| S-1 | kikaku file | an item | issues | pending | no |"],
+      events,
+      seats: [
+        { sessionId: "sess-kanri", status: "running" },
+        { sessionId: "sess-queued", status: "parked" },
+      ],
+    },
+  );
+  const before = fs.readFileSync(f.roster, "utf8");
+  const got = run(["roster", "show", "--root", f.root], f.dir);
+  assert.strictEqual(got.code, 0, got.err);
+  assert.strictEqual(
+    got.out.replace(/\r\n/g, "\n"),
+    [
+      "first: kanri-a — sess-kanri — live — counts 5 1 2",
+      "kanri — kanri-a — live — sess-kanri",
+      // A seat the state file does not hold: the old-contract row Start step 4 looks for.
+      "sekkei t sekkei-b — live (idle since 10:00) — sess-sekkei — no state entry",
+      "jisso t jisso-c — queued — sess-queued",
+      "items: 1",
+      "events:",
+      ...events.slice(-10),
+      "",
+    ].join("\n"),
+  );
+  assert.strictEqual(fs.readFileSync(f.roster, "utf8"), before);
+});
+
+test("roster show --events all and --items print every Events entry and the items rows, --events <n> the last n, and a cleared row is counted for migrate (roster-ledger 4.1)", () => {
+  const f = rosterFixture(
+    [
+      showRow("kanri", "—", "kanri-a", "live", "sess-kanri", "start | 1 | 2 | 3 | 0 | context=4 | 0 | 0 | 0"),
+      showRow("kikaku", "—", "kikaku-b", "cleared", "sess-tab"),
+    ],
+    {
+      items: ["| S-1 | a | one | issues | pending | no |", "| S-2 | b | two | notes | pending | no |"],
+      events: [
+        "- 2026-10-07 10:00 — unsent: kanri — a line",
+        "  that wraps",
+        "- 2026-10-07 10:05 — sent: kanri — a line",
+      ],
+      seats: [{ sessionId: "sess-kanri", status: "running" }],
+    },
+  );
+  const got = run(["roster", "show", "--root", f.root, "--events", "all", "--items"], f.dir);
+  assert.strictEqual(got.code, 0, got.err);
+  assert.strictEqual(
+    got.out.replace(/\r\n/g, "\n"),
+    [
+      "first: kanri-a — sess-kanri — live — counts 0 0 0",
+      "kanri — kanri-a — live — sess-kanri",
+      "cleared: 1 rows — run boundary.js migrate",
+      "items: 2",
+      "| S-1 | a | one | issues | pending | no |",
+      "| S-2 | b | two | notes | pending | no |",
+      "events:",
+      "- 2026-10-07 10:00 — unsent: kanri — a line",
+      "  that wraps",
+      "- 2026-10-07 10:05 — sent: kanri — a line",
+      "",
+    ].join("\n"),
+  );
+  const last = run(["roster", "show", "--root", f.root, "--events", "1"], f.dir);
+  assert.strictEqual(last.code, 0, last.err);
+  assert.ok(last.out.replace(/\r\n/g, "\n").endsWith("events:\n- 2026-10-07 10:05 — sent: kanri — a line\n"), last.out);
+});
+
+test("roster show on a roster whose header is not the template's prints the rows it can and ends with the line that names migrate, exit 1; a usage error exits 2 (roster-ledger 4.1)", () => {
+  // The old header's Name cell, as Task 1's tests spell it (`OLD_NAME`), so
+  // that the plan's sweep for the old header finds no fixture.
+  const header = templateLine("roster.md").replace("| Name |", `| ${OLD_NAME} |`);
+  const f = rosterFixture([showRow("kanri", "—", "kanri-a", "live", "sess-kanri")], {
+    header,
+    seats: [{ sessionId: "sess-kanri", status: "running" }],
+  });
+  const got = run(["roster", "show", "--root", f.root], f.dir);
+  assert.strictEqual(got.code, 1, got.err);
+  const lines = got.out.replace(/\r\n/g, "\n").trimEnd().split("\n");
+  assert.strictEqual(lines[0], "first: kanri-a — sess-kanri — live — counts 0 0 0");
+  assert.match(
+    lines.at(-1),
+    /^roster show — .+roster\.md: the seats table header is not the template's — expected \| Role \| Topic \| Name \| .+, found \| Role \| Topic \| Name \[ref\] \| .+ — run boundary\.js migrate$/,
+  );
+  const usage = [["roster"], ["roster", "list"], ["roster", "show", "--roster", path.join(f.dir, "absent.md")]];
+  for (const args of usage) assert.strictEqual(run(args, f.dir).code, 2, args.join(" "));
+});
+
 // `request`, `seat`, `wake`, and `beat`: a root with the spawner's directory,
 // its state file, and its heartbeat — fresh, or ten minutes old — and the
 // census's fake `claude` for the listing.

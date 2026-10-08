@@ -1460,6 +1460,108 @@ function cmdCensus(argv) {
 }
 
 /**
+ * The data rows of the seats table `headerAt` finds at `at`, the template's
+ * or an older shape's, as cell lists.
+ */
+function tableRows(lines, at) {
+  let end = at + 2;
+  while (end < lines.length && lines[end].startsWith("|")) end++;
+  return lines.slice(at + 2, end).map((line) => cells(line));
+}
+
+/**
+ * `record`'s refusal line of roster-ledger 2.1, `headerMismatch`'s, named for
+ * the subcommand that prints it, so that one text names the drift and the
+ * command that repairs it whoever reads the file.
+ */
+function refusalFor(subcommand, line) {
+  return line.replace(/^record wrote nothing/, subcommand);
+}
+
+/** The entries under a document's `## Events`: each `- ` line with the indented lines that continue it. */
+function eventEntries(lines) {
+  const span = sectionSpan(lines, "Events");
+  if (!span) return [];
+  const entries = [];
+  for (let i = span.start + 1; i < span.end; i++) {
+    if (lines[i].startsWith("- ")) entries.push(lines[i]);
+    else if (entries.length > 0 && /^\s+\S/.test(lines[i])) entries[entries.length - 1] += `\n${lines[i]}`;
+  }
+  return entries;
+}
+
+/**
+ * `roster show [--root <dir>] [--roster <path>] [--events <n>|all] [--items]`
+ * (roster-ledger 4.1): what a Start and a handover read in place of a cold
+ * read, and nothing written. The first data row with Kanri's three counts;
+ * every `live` and `queued` row, with ` — no state entry` for a seat the
+ * spawner's state file does not hold (the old-contract row); the `cleared`
+ * rows `migrate` moves; the items table's count, or its rows with
+ * `--items`; and the last ten Events entries, the last `<n>`, or every one.
+ * On a roster whose header is not the template's it prints what it can read
+ * and ends with the line that names `migrate`, exit 1.
+ */
+function cmdRoster(argv) {
+  const { values, positionals } = parseLine(argv, ["items"]);
+  if (positionals[0] !== "show" || positionals.length > 1) return fail("roster needs show", 2);
+  for (const name of ["root", "roster", "events"]) {
+    if (values[name] === true) return fail(`roster show: --${name} needs a value`, 2);
+  }
+  const root = rootOf(values);
+  const rosterPath = given(values, "roster") || path.join(root, ".tanto", "roster.md");
+  const events = given(values, "events") || "10";
+  if (events !== "all" && !/^\d+$/.test(events)) return fail("roster show: --events takes a number or all", 2);
+  let lines;
+  try {
+    lines = fs.readFileSync(rosterPath, "utf8").split(/\r?\n/);
+  } catch {
+    return fail(`roster show: cannot read the roster at ${rosterPath}`, 2);
+  }
+  // The seats table as `headerAt` finds it, the template's or an older
+  // shape's, so that an old roster's rows still print (roster-ledger 4.1).
+  const at = headerAt(lines, null);
+  if (at === null) {
+    console.log(refusalFor("roster show", headerMismatch(rosterPath, "roster.md", null)));
+    return 1;
+  }
+  const seats = stateSeats(root);
+  const rows = tableRows(lines, at);
+  const word = (each) => String(each[9] || "").split(/\s+/)[0];
+  const first = rows[0];
+  if (first) {
+    const counts = [17, 18, 19].map((i) => first[i] || "—").join(" ");
+    console.log(`first: ${first[2]} — ${rowSessionId(first[10]) || "—"} — ${first[9]} — counts ${counts}`);
+  } else {
+    console.log("first: none");
+  }
+  for (const each of rows) {
+    if (word(each) !== "live" && word(each) !== "queued") continue;
+    const sessionId = rowSessionId(each[10]);
+    const entry = sessionId && seats.has(sessionId) ? "" : " — no state entry";
+    console.log(`${each[0]} ${each[1]} ${each[2]} — ${each[9]} — ${sessionId || "—"}${entry}`);
+  }
+  const cleared = rows.filter((each) => word(each) === "cleared").length;
+  if (cleared > 0) console.log(`cleared: ${cleared} rows — run boundary.js migrate`);
+  const span = sectionSpan(lines, "Shoroku proposal items");
+  const items = span ? tableSpan(lines, span) : null;
+  const itemRows = items
+    ? lines.slice(items.first, items.end).filter((line) => cells(line)[0] !== "(no item yet)")
+    : [];
+  console.log(`items: ${itemRows.length}`);
+  if (values.items) for (const line of itemRows) console.log(line);
+  const entries = eventEntries(lines);
+  const count = events === "all" ? entries.length : Math.min(Number(events), entries.length);
+  console.log("events:");
+  for (const entry of entries.slice(entries.length - count)) console.log(entry);
+  const problem = headerMismatch(rosterPath, "roster.md", null);
+  if (problem) {
+    console.log(refusalFor("roster show", problem));
+    return 1;
+  }
+  return 0;
+}
+
+/**
  * The four subcommands' arguments after `census`: a flag named in `switches`
  * is bare, every other `--flag` takes the next argument, and the rest are
  * positionals, in order — `wake --hold <sessionId>` must not read the id as
@@ -2017,6 +2119,7 @@ function main(argv) {
   if (sub === "record") return cmdRecord(argv.slice(1));
   if (sub === "migrate") return cmdMigrate(argv.slice(1));
   if (sub === "census") return cmdCensus(argv.slice(1));
+  if (sub === "roster") return cmdRoster(argv.slice(1));
   if (sub === "request") return cmdRequest(argv.slice(1));
   if (sub === "seat") return cmdSeat(argv.slice(1));
   if (sub === "wake") return cmdWake(argv.slice(1));
