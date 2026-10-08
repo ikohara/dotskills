@@ -545,11 +545,11 @@ Per batch, in this order.
    a `compactions:` figure
    above the count you have noticed is signal 3. Jisso's verdict is recorded
    and acts on nothing: the rotation retires every Jisso at its boundary, and
-   the figure is what the archive keeps. The readings themselves, the
-   Residency rows, the Measurements per-boundary entry, and the next batch's
-   `planned` row with its Prompt cell are the brief's,
-   written by `record` from the dispatch you sent at step 2 — at a boundary you
-   take no reading and rewrite no row.
+   the figure is what the archive keeps. The readings themselves, written
+   into the reading columns of each seat's own row, the Measurements
+   per-boundary entry, and the next batch's `planned` row with its Prompt
+   cell are the brief's, written by `record` from the dispatch you sent at
+   step 2 — at a boundary you take no reading and rewrite no row.
    If a Sekkei's or a Kaiseki's `spawn` request is due ("Create"), write it,
    unless a handover trigger has fired, in which case the
    successor writes it from the handover's Next step. Then the exits that
@@ -611,8 +611,10 @@ Per batch, in this order.
    item is a pointer to the request already made, not a restatement of it.
    Draw the block from files, never from memory: the roster's Status column
    — append `(idle since <HH:MM>)` to a `live` cell the moment a Kikaku,
-   Hosa, or Kaiseki reports to you and goes idle, so that the reminder is
-   not forgotten across a wake-up — and each open ledger's `## Open questions for the human`,
+   Hosa, or Kaiseki reports to you and goes idle, with
+   `record --roster .tanto/roster.md --suffix "<sessionId> idle <HH:MM>"`,
+   so that the reminder is not forgotten across a wake-up — and each open
+   ledger's `## Open questions for the human`,
    which holds every open act asked of the human, one line each, added
    when the request is made and removed when it is done. A successor Kanri
    prints the same block from the same files.
@@ -936,19 +938,21 @@ harness prints in its reminders, whose unit is not documented as the context
 window and whose presence is not guaranteed: the instrument is the reading's
 own `context=`, the harness's `usage` accounting for the turn it billed, which
 is the token figure issue-40ed asked for. At every check outside a boundary
-take your own reading (`SKILL.md`, "The transcript
-reading") and rewrite your Residency row with it — at a boundary you take
-none: that row is `record`'s, written from the reading the dispatch
-carried. A compactions figure of `1`
-where you noticed none is signal 3, seen in a file, and counts as noticed.
-After a compaction your context drops below your own baseline for a turn or
-two and the ceiling verdict reads `under`, which is right: signal 3 is the
-compaction and signal 4 is the growth before it, and one handover answers both
-when it runs. The
-Residency rows, and the archive's Context column across runs, are the data any
-ceiling for the roles that only measure would be chosen from; yours and
-Jisso's are `tanto.json`'s, and issue-40ed's halves closed with decision-b6cb
-and with that map.
+take your own reading (`SKILL.md`, "The transcript reading") and write it
+into your own row's reading columns with one call,
+`record --roster .tanto/roster.md --kanri <your sessionId> --kanri-reading "<reading>" --read-at "<the moment>"`,
+the moment being `start`, `handover`, `plan close`, or `turn <HH:MM>` for
+the start of a turn between plans — at a boundary you take none: your row
+is `record`'s, written from the reading the dispatch carried. A
+compactions figure of `1` where you noticed none is signal 3, seen in a
+file, and counts as noticed. After a compaction your context drops below
+your own baseline for a turn or two and the ceiling verdict reads `under`,
+which is right: signal 3 is the compaction and signal 4 is the growth
+before it, and one handover answers both when it runs. The roster's
+Context column, and the archive's across runs, are the data any ceiling
+for the roles that only measure would be chosen from; yours and Jisso's
+are `tanto.json`'s, and issue-40ed's halves closed with decision-b6cb and
+with that map.
 
 Which procedure follows is decided by whether a ledger is open. A plan close
 has one open until you close it, so it takes the in-plan procedure with the two
@@ -1009,20 +1013,26 @@ Kanri hands over — <name> — <n> batches, <m> plans since <YYYY-MM-DD>, <k> c
 
 The second form is followed by nothing: the successor is spawned, and the
 handover file's Commands section says so in one line.
-The same counts go into the roster's Residency table, in your own row, which
-you rewrite at every boundary and plan close: `<n>` increments when you accept
-a batch, `<m>` when a plan closes, `<k>` when you notice a compaction, all
-three cumulative since your own start. A declined handover leaves `<k>`
-incremented, so the count stays a record. The reading's compactions figure is a
-separate column, and a `1` there that you had not noticed increments `<k>` when
-you read it.
+The same counts are your own row's Batches, Plans, and Noticed cells, which
+`roster show`'s first line prints as `counts <n> <m> <k>`: read them there,
+never off the table. Each moves by one call that adds one to that cell
+alone and reads nothing,
+`record --roster .tanto/roster.md --kanri <your sessionId> --kanri-count batches|plans|noticed`:
+`batches` in loop step 6's call when you accept a batch, `plans` at the
+Release row when a plan closes, `noticed` when you notice a compaction —
+all three cumulative since your own start, `0 0 0` as `--init` or
+`--succeeds` wrote them. A declined handover leaves `<k>` incremented, so
+the count stays a record. The reading's compactions figure is a separate
+column, and a `1` there that you had not noticed increments `<k>` when you
+read it. `--kanri-counts "<n> <m> <k>"` sets the three at once, for a
+repair alone.
 
 ### The handover file
 
 `.tanto/kanri-handover.md`, next to the roster, untracked under
 `.tanto/.gitignore`, copied from `templates/kanri-handover.md`. Its
 sections are Why, In flight, Live peers, Open questions for the human, Rulings
-the next batch inherits, Residency, Next step, Not reconstructed, and Commands
+the next batch inherits, Reading, Next step, Not reconstructed, and Commands
 for the human. Everything else is a pointer to the roster and the ledgers,
 never a copy.
 
@@ -1867,12 +1877,15 @@ prints decides:
   listed name, bare, and write `resumed: <old name> → <new name>`; that is
   all. The cell is a record: a line still goes to the name `seat` reads at the send.
 - **Listed**, carrying `— blocked` — append `(blocked since <HH:MM>)`, this
-  census's time, to the row's `live` cell only where the cell carries no
-  suffix — a cell already carrying `(blocked since …)` or `(idle since <HH:MM>)`
-  keeps it, since a `live` cell carries one suffix (`SKILL.md`) and the idle
-  one is written on the seat's own report, the more specific fact — and remove `(blocked since …)`
-  at a later census whose Listed line for that seat does not carry
-  `— blocked`. The suffix records the last census that saw the seat
+  census's time, with
+  `record --roster .tanto/roster.md --suffix "<sessionId> blocked <HH:MM>"`,
+  to the row's `live` cell only where the cell carries no suffix — a cell
+  already carrying `(blocked since …)` or `(idle since <HH:MM>)` keeps it,
+  since a `live` cell carries one suffix (`SKILL.md`) and the idle one is
+  written on the seat's own report, the more specific fact — and remove
+  `(blocked since …)`, with `--suffix "<sessionId> none"`, at a later census
+  whose Listed line for that seat does not carry `— blocked`. The suffix
+  records the last census that saw the seat
   blocked, not its state now: you run the census at the moments above, so
   the cell can lag the seat by a batch, where `idle since` is written on the
   seat's own report and does not. The cell names no cause; the census line
@@ -1949,8 +1962,9 @@ is not replaced by you: its end is the human's word in it, `/tanto taiseki`.
 
 A Jisso's ceiling verdict and a compaction in its reading are no longer
 symptoms: one Jisso runs one batch, and the rotation retires it at the
-boundary. The figures are recorded in its Residency row and kept by the
-archive. Never replace mid-batch on suspicion. Wait for the boundary, or
+boundary. The figures are recorded in its row's reading columns and kept
+by the archive, which copies the row whole. Never replace mid-batch on
+suspicion. Wait for the boundary, or
 confirm the session is gone first — uncommitted work may be in the tree.
 
 ### Release
@@ -1962,7 +1976,7 @@ confirm the session is gone first — uncommitted work may be in the tree.
 | the `coldread answered:` line named the shoroku proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; record its proposal's items as `pending` rows and write its `stop` request as soon as the proposal passes the form check — nothing is said to it, its conversation kept; a Keikaku is never reused across topics (decision-f496) |
 | Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; record its proposal's items as `pending` rows and write its `stop` request as soon as the proposal passes the form check, or keep it if more of the same bug is expected |
 | the final batch is accepted, the close's shoroku proposal is written and passes the form check, and leftovers are clean | the last Jisso is done; write its `stop` request at once, the close being its exit — nothing is said to it, its conversation kept — the recommendation and the kessai run with it gone, and a merge declined with fixes wanted is a new batch on a new Jisso either way; a `queued` Jisso that never ran gets a `stop` request the same way, its row `stopped` |
-| the kessai is answered, shusei's batch is verified, the merge is done, and the ledger's Progress line says closed | this plan is closed. Run the census, write `stopped` every row it prints under **Ended**, and mark `dead` every row it prints under "Not listed"; bring the roster's Shoroku proposal items table to the template's shape if it still has its pre-rename heading or the retired seventh column, its rows kept; move the stopped, dead, replaced, refused, and cleared rows — the last two an old contract's, kept until the archive takes them — with their last readings and this plan's Events lines to `roster-archive.md` — from `templates/roster-archive.md` when the file does not exist yet — move the topic's result files to `.tanto/<topic>/spawner-results/`, fill the ledger's Measurements row of the top-family peak — its usage row is the landing's, filled from `usage.js close` ("Shusei, shoki, and the landing") — and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb), the landing still ahead, its `usage.js close` with it, named in the handover file's In flight |
+| the kessai is answered, shusei's batch is verified, the merge is done, and the ledger's Progress line says closed | this plan is closed. Run the census and do, before the move, every act its table gives ("Session lifecycle") — `stopped` for each row under **Ended**, `dead` for each `live` row under "Not listed", and **Returned**'s `--status` or `stop` request — a `queued` Jisso that never ran already written `stopped`; then move the rows with one `node "$TANTO/scripts/boundary.js" archive`, which copies every `stopped`, `dead`, and `replaced` row to `roster-archive.md` whole, its last reading with it, and every line under the roster's `## Events` after them, and creates the archive from `templates/roster-archive.md` when the file does not exist yet; read the rows it prints. Add the closed plan to your own counts, `record --roster .tanto/roster.md --kanri <your sessionId> --kanri-count plans`, move the topic's result files to `.tanto/<topic>/spawner-results/`, fill the ledger's Measurements row of the top-family peak — its usage row is the landing's, filled from `usage.js close` ("Shusei, shoki, and the landing") — and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb), the landing still ahead, its `usage.js close` with it, named in the handover file's In flight |
 
 The role is resident; the session that carries it is not. A plan's end is a
 boundary like any other for the run, and the next topic starts with a new topic
@@ -1980,9 +1994,12 @@ local to one machine, and useful only for a later re-read (issue-12d3).
 
 Every role sends its reading with its boundary and exit lines, and Jisso's
 and Kaiseki's reports carry it; pass each as a `--peer-reading` of the
-boundary's dispatch and `record` writes that role's Residency row, with the
-boundary it was read at and the `context=` figure in the Context column;
-outside a boundary you write the row yourself. A reading you doubt — a
+boundary's dispatch, keyed by the `sessionId` you resolved at receipt ("The
+batch loop", step 2), and `record` writes the reading columns of that
+seat's row, with the boundary it was read at in Read at and the `context=`
+figure in the Context column; outside a boundary you run `record`
+yourself, with `--read-at "<the moment>"` in place of `--batch` ("The
+trigger"). A reading you doubt — a
 session whose report lost a ruling with `0 compactions`, your own whose
 ceiling line decides a handover, or one that sent
 `unavailable` — you may verify by running `node "$TANTO/scripts/reading.js"`
