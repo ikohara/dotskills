@@ -1024,7 +1024,7 @@ function sectionsOf(text) {
 // The one line each section carries in templates/shoroku-feedback.md before a
 // hand fills it. A body that is exactly that line was never filled: it reads
 // as none, so that a copied template does not travel with its placeholders.
-const ITEMS_PLACEHOLDER = "<n>. <the line that travels> — Class: tanto-only | both";
+const ITEMS_PLACEHOLDER = "<n>. <the text after Feedback:> — Class: tanto-only | both";
 const DEPARTURES_PLACEHOLDER =
   "<n>. <override | retyped | unsure-resolved | rejected-as-recommended> — recommended <type, and adopt or reject> — directed <type, and adopt or reject> — <the reason, paraphrased> — rule: <the rule it suggests, or none yet>";
 

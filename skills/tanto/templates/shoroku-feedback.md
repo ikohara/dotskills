@@ -30,7 +30,7 @@ would name the workspace before it places it, and holds a file that does.
 
 ## Items
 
-<n>. <the line that travels> — Class: tanto-only | both
+<n>. <the text after Feedback:> — Class: tanto-only | both
 
 ## Departures
 

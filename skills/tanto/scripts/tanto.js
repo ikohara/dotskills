@@ -11,6 +11,9 @@ const path = require("node:path");
 const { spawnSync, spawn } = require("node:child_process");
 const { loadSessions, readTranscript } = require("./reading.js");
 const { readSeats, spawnerDir, underRoot, appendLog, heartbeatPath, HEARTBEAT_STALE_MS } = require("./spawner.js");
+// The roster's cells, read by `boundary.js`'s own grammar, the one place a
+// `\|` inside a cell is read back (roster-ledger 2.2).
+const { cells } = require("./boundary.js");
 
 const USAGE = [
   "Usage: tanto [<role>] [<topic>] [--attach | --no-attach] [--root <path>] [--timeout <ms>]",
@@ -371,7 +374,11 @@ function waitForResult(root, id, waitMs) {
   return null;
 }
 
-/** The roster's first data row, as its eleven cells, or null. */
+/**
+ * The roster's first data row, or null: its cells read through
+ * `boundary.js`'s `cells()`, so that a `\|` inside a cell moves no column
+ * (roster-ledger 2.2).
+ */
 function firstRosterRow(root) {
   let lines;
   try {
@@ -383,12 +390,9 @@ function firstRosterRow(root) {
   if (head === -1) return null;
   const row = lines[head + 2];
   if (!row?.startsWith("|")) return null;
-  const cells = row
-    .split("|")
-    .slice(1, -1)
-    .map((cell) => cell.trim());
-  if (cells.length < 11) return null;
-  return { name: cells[2], status: cells[9], sessionId: path.basename(cells[10], ".jsonl") };
+  const found = cells(row);
+  if (found.length < 11) return null;
+  return { name: found[2], status: found[9], sessionId: path.basename(found[10], ".jsonl") };
 }
 
 /** Every data row of the roster as `{ role, status, sessionId }`, or `[]` (spec 4.7). */
@@ -404,27 +408,23 @@ function rosterRows(root) {
   const rows = [];
   for (const line of lines.slice(head + 2)) {
     if (!line.startsWith("|")) break;
-    const cells = line
-      .split("|")
-      .slice(1, -1)
-      .map((cell) => cell.trim());
-    if (cells.length >= 11)
-      rows.push({ role: cells[0], status: cells[9], sessionId: path.basename(cells[10], ".jsonl") });
+    const found = cells(line);
+    if (found.length < 11) continue;
+    rows.push({ role: found[0], status: found[9], sessionId: path.basename(found[10], ".jsonl") });
   }
   return rows;
 }
 
 /**
  * The one line an old-shape roster earns (spec 4.7), read once at a start: a
- * row whose status is cleared, or a live or queued row whose session the
- * state file has no seat for, belongs to the old contract. The line informs
- * and asks for no act.
+ * live or queued row whose session the state file has no seat for belongs to
+ * the old contract. A `cleared` row is no word of the roster's, and
+ * `migrate`'s to move to the archive (roster-ledger 1.3, 2.2). The line
+ * informs and asks for no act.
  */
 function oldShapeLine(root, seats) {
   const known = new Set(seats.map((s) => s.sessionId));
-  const old = rosterRows(root).filter(
-    (row) => row.status.startsWith("cleared") || (/^(live|queued)/.test(row.status) && !known.has(row.sessionId)),
-  );
+  const old = rosterRows(root).filter((row) => /^(live|queued)/.test(row.status) && !known.has(row.sessionId));
   if (old.length === 0) return;
   const roles = [...new Set(old.map((row) => row.role))].join(", ");
   process.stdout.write(
@@ -697,6 +697,34 @@ function kanriRequest(root, sessions, outgoing) {
 }
 
 /**
+ * The Kanri the spawner holds, entered when the roster's first row does not
+ * name it (roster-ledger 6): the line first; then an attach when the listing
+ * shows it, and otherwise the one `resume` with the fukki word, since the
+ * one-holder rule counts a `gone` Kanri, which has nothing to attach to.
+ * Never a spawn. `{ attach, resumed }`, or `{ code }` with the line said.
+ */
+function enterHeldKanri(root, sessionId, byId, older, waitMs) {
+  process.stdout.write(
+    `tanto: the roster's first row does not name the Kanri the spawner holds, ${sessionId}; entering it — run boundary.js roster show\n`,
+  );
+  const listed = byId.get(sessionId);
+  if (listed?.kind === "interactive") return { code: inTab("kanri") };
+  if (listed) return { attach: listed.id || sessionId, resumed: false };
+  if (older) return { code: say(OLDER_SPAWNER, 1) };
+  const request = { op: "resume", role: "kanri", topic: "—", sessionId, prompt: "/tanto fukki" };
+  const result = waitForResult(root, writeRequest(root, request), waitMs);
+  if (!result) {
+    fail("tanto: the spawner wrote no result for the Kanri request; see .tanto/spawner/log");
+    return { code: 1 };
+  }
+  if (result.error) {
+    fail(`tanto: the Kanri resume failed — ${result.error}`);
+    return { code: 1 };
+  }
+  return { attach: result.id || result.sessionId, resumed: true };
+}
+
+/**
  * Whether the state file holds `seat` (spec, Words): `running`, `blocked`,
  * or `parked` — or `gone`, for a seat that is not a dialogue seat.
  */
@@ -791,10 +819,16 @@ function cmdUp(values, role, topic, word) {
   // A `gone` Kanri is one the human `/stop`ped, or one that crashed while the
   // spawner ran, and it is resumed like a `running` one (spec 4.4); a
   // `stopped` one — after `tanto teishi --seats`, or a handover — is not.
-  const held = row
+  // A first row whose sessionId neither the listing nor the state file holds
+  // — a cell whose separators were lost, a row of a run the state file no
+  // longer holds — names no Kanri: the state file's is found by role, as with
+  // no row at all, and entered with the held line (roster-ledger 6).
+  const named = Boolean(row && (byId.has(row.sessionId) || seats.some((s) => s.sessionId === row.sessionId)));
+  const held = named
     ? seats.find((s) => s.sessionId === row.sessionId)
     : seats.find((s) => s.role === "kanri" && KANRI_RESUMABLE.includes(s.status));
   const kanriHeld = Boolean(held && KANRI_RESUMABLE.includes(held.status));
+  const unnamed = row && !named && kanriHeld ? held : null;
   // A handover in progress: look for the successor before writing a second
   // spawn request for one that already exists (R-12, Important 2).
   const handoverMtimeMs = handover ? statMtimeMs(handoverFile) : null;
@@ -805,6 +839,9 @@ function cmdUp(values, role, topic, word) {
 
   let attach = null;
   let resumed = 0;
+  // The Kanri a `held:` answer entered, which the resume loop below leaves to
+  // that entry (roster-ledger 6).
+  let entered = null;
   if (role !== "kanri") {
     const entry = enterRole(root, sessions, role, topic, seats, older, waitMs);
     if (entry.code !== undefined) return entry.code;
@@ -826,6 +863,14 @@ function cmdUp(values, role, topic, word) {
       return 1;
     }
     attach = result.id || result.sessionId;
+  } else if (!handover && unnamed) {
+    // The first row names no Kanri the run holds (roster-ledger 6, a14f's
+    // second occurrence): the state file's Kanri is entered, and no new one
+    // is spawned.
+    const entry = enterHeldKanri(root, unnamed.sessionId, byId, older, waitMs);
+    if (entry.code !== undefined) return entry.code;
+    attach = entry.attach;
+    if (entry.resumed) resumed += 1;
   } else {
     // A Kanri the listing does not hold needs a resume or a spawn, neither of
     // which an older spawner is asked for (spec 4.2).
@@ -849,22 +894,35 @@ function cmdUp(values, role, topic, word) {
       request = kanriRequest(root, sessions, held);
       result = waitForResult(root, writeRequest(root, request), waitMs);
     }
-    if (!result) {
-      fail("tanto: the spawner wrote no result for the Kanri request; see .tanto/spawner/log");
-      return 1;
+    // The spawner holds a Kanri the first row does not name (roster-ledger 6,
+    // f07a): that Kanri is entered and no second spawn request is written.
+    // During a handover the spawn is the successor's, and the holder it
+    // names is a second Kanri, which stays refused.
+    const holder = !handover && request.op === "spawn" ? /^held: (\S+)/.exec(result?.error || "") : null;
+    if (holder) {
+      const entry = enterHeldKanri(root, holder[1], byId, false, waitMs);
+      if (entry.code !== undefined) return entry.code;
+      attach = entry.attach;
+      entered = { sessionId: holder[1] };
+      if (entry.resumed) resumed += 1;
+    } else {
+      if (!result) {
+        fail("tanto: the spawner wrote no result for the Kanri request; see .tanto/spawner/log");
+        return 1;
+      }
+      if (result.error) {
+        fail(`tanto: the Kanri ${request.op} failed — ${result.error}`);
+        return 1;
+      }
+      attach = result.id || result.sessionId;
+      if (request.op === "resume") resumed += 1;
     }
-    if (result.error) {
-      fail(`tanto: the Kanri ${request.op} failed — ${result.error}`);
-      return 1;
-    }
-    attach = result.id || result.sessionId;
-    if (request.op === "resume") resumed += 1;
   }
 
   // What a restart took is put back on the Kanri path alone — a bare `tanto`
   // and `tanto fukki` — and `fukki` then tells Kanri (spec 4.4).
   if (role === "kanri" && !older) {
-    resumeLost(root, seats, byId, held);
+    resumeLost(root, seats, byId, [entered, held]);
     if (word === "fukki") tellKanri(root, sessions, attach, resumed > 0, runMoved(seats), waitMs);
   }
 
@@ -936,16 +994,18 @@ function cmdTeishi(values) {
  * `parked`, `stopped`, or `removed` seat, and never a contract-2 dialogue
  * seat, which the spawner's first census pass marks `parked` instead, so
  * that this read and that pass cannot race over one seat; one spawned
- * without the mark is resumed as before. `kanri` is the Kanri `cmdUp`
- * resumed itself, keyed on its state-file seat rather than the roster's
- * row, so a Kanri with no row is still skipped (Important 7).
+ * without the mark is resumed as before. `kanris` are the Kanri seats `cmdUp`
+ * has dealt with itself — the one a `held:` answer entered and the
+ * state-file Kanri found by role, either of which may be null — keyed on
+ * their state-file seats rather than the roster's row, so a Kanri with no row
+ * is still skipped (Important 7) and none is resumed a second time.
  */
-function resumeLost(root, seats, byId, kanri) {
+function resumeLost(root, seats, byId, kanris) {
   for (const seat of seats) {
     if (seat.status !== "running" && seat.status !== "blocked") continue;
     if (byId.has(seat.sessionId)) continue;
     if (seat.contract === 2 && DIALOGUE_ROLES.includes(seat.role)) continue;
-    if (kanri && seat.sessionId === kanri.sessionId) continue;
+    if (kanris.some((kanri) => kanri && seat.sessionId === kanri.sessionId)) continue;
     writeRequest(root, { op: "resume", role: seat.role, topic: seat.topic, sessionId: seat.sessionId });
   }
 }

@@ -3,7 +3,7 @@
 Written at `.tanto/spawner/requests/<id>.json` by three writers, and by no
 other. Kanri writes the `spawn` of every seat it starts — a Sekkei, a
 Keikaku, a Jisso, an attached Kaiseki, shoki, and its own successor — its
-`stop`, `rm`, `attention`, `ack`, and `release`, and, through
+`stop`, `rm`, `attention`, and `release`, and, through
 `boundary.js wake`, a `resume` and a `hold`. The launcher writes the `spawn`
 of a Kanri when the run has none, of a Kikaku, a Hosa, a standalone
 Kaiseki, and the messenger of `tanto fukki`; the `hold` and the `release`
@@ -57,7 +57,14 @@ field explained beside it.
 }
 ```
 
-- `op` — one of `spawn`, `stop`, `rm`, `resume`, `attention`, `ack`,
+The smallest body is a `stop`'s — `op`, `role`, `topic`, and `sessionId`,
+nothing else:
+
+```json
+{ "op": "stop", "role": "jisso", "topic": "<topic>", "sessionId": "<sessionId>" }
+```
+
+- `op` — one of the eight, `spawn`, `stop`, `rm`, `resume`, `attention`,
   `park`, `hold`, and `release`. `rm` is written for shoki alone; the
   conversation of every other stopped seat is kept.
 - `role` — `kanri`, `sekkei`, `keikaku`, `jisso`, `kaiseki`, `kikaku`,
@@ -68,7 +75,8 @@ field explained beside it.
   merged `tanto.json`, named on the request as every dispatch names a model.
 - `branch` — the branch the shared tree is on when the request is written.
   Informational: `spawnArgs` never reads it; it is carried into the result
-  and then into `record --seat`'s Branch column.
+  and into the seat's entry in `seats.json`, from either of which
+  `record --seat` writes the Branch column.
 - `mode` — passed to the spawned session as `--permission-mode`; `auto` is
   the default when absent, and is what Kanri and the launcher set for every
   seat they spawn. `manual` appears in a measurement and nowhere else.
@@ -141,7 +149,7 @@ field explained beside it.
   bg-seat-ergonomics plan's own measurement task could not check: a
   workspace-trust gate refused the spawn — a fresh clone's folder trust
   unset in `.claude.json` — before the resume step was reached.
-- `sessionId` — the seat's identity, for `stop`, `rm`, `resume`, `ack`,
+- `sessionId` — the seat's identity, for `stop`, `rm`, `resume`,
   `attention`, `park`, `hold`, and `release`.
   Never a short id: the spawner maps one to the other from `seats.json`.
 - `message` — `attention`'s one line, sent as written. A way in that it
@@ -154,8 +162,8 @@ sighting carries it — `cwd`, `transcript`, and `startedAt`; `stop` adds
 `stopped`; `rm` adds `removed` and, when `claude rm` printed one, the
 worktree it removed — never for shoki, whose worktree is Kanri's; `resume`
 adds the `id` and the `name` under the same `sessionId`, the name the one
-the spawn gave; `attention` adds `notified` and `channel`; `ack` adds
-`acked`. A `stop` or `rm` whose session the CLI had already dropped —
+the spawn gave; and `attention` adds `notified` and `channel`. A `stop` or
+`rm` whose session the CLI had already dropped —
 `No job matching` — is not a failure: it adds `stopped` or `removed` and
 `note: "already exited"`. An op that failed adds `error`, which carries the
 command's stderr, or its stdout when the stderr is empty, and nothing

@@ -452,40 +452,65 @@ reads as progress. The dispatcher verifies the file, not the reply.
 
 ## The roster
 
-The roster lives at `.tanto/roster.md`, is written only by Kanri from
-`templates/roster.md`, and has Kanri's row first. Columns are Role, Topic,
-Name `[ref]`, cwd, Model, Effort, Branch, Mode, Started, Status, and
-Transcript. A row is written from the spawner's result file, by
-`boundary.js record --seat`: for a seat Kanri requested, when the result
-lands; for a seat the launcher started — a Kikaku, a Hosa — at the census
-whose **Not held** first prints it, Kanri not being woken for it. A
-standalone Kaiseki and the messenger get no row, and a row that does not
-exist yet while its seat works is not an error. The Name cell holds the bare
-name the listing printed when the row was written — a record, not an
-address ("The address") — and no seat writes a `[ref]` about itself. Topic
-is the topic word the seat's own prompt keys gave it — for a Jisso, the
-topic whose queue it was spawned into: the plan whose batches are in
-flight, or, with none in flight, the plan whose landing requested the
-queue, since the shared checkout carries one topic's batches at a time and
-the next plan's queue opens at its predecessor's close — or `—` for Kanri,
-Kikaku, Hosa, and a standalone Kaiseki.
+The roster lives at `.tanto/roster.md`, from `templates/roster.md`, is
+written only by Kanri and only through `boundary.js` — `record`, and
+`archive` and `migrate` for the moves they make — never by hand — and has Kanri's row first. It is one table, one row per seat, of
+twenty columns: Role, Topic, Name, cwd, Model, Effort, Branch, Mode,
+Started, Status, and Transcript, then the nine reading columns — Read at,
+Bytes, Records, Wake-ups, Compactions, Context, Batches, Plans, and
+Noticed — which hold `—` until the seat's first reading lands, and on
+Kikaku's row for good. A row is keyed by its `sessionId`, the basename of
+its Transcript cell without `.jsonl`, and every writer finds a row by that
+key and by nothing else. `record` compares the header of every table it
+writes with its template's and, on a mismatch, writes nothing and prints
+one line naming `boundary.js migrate`, which brings a roster, an archive,
+or a ledger of an older shape to the template's once. A row is written
+from the spawner's result file, or from the state file's entry for its
+`sessionId`, by `boundary.js record --seat`: for a seat Kanri requested,
+when the result lands; for a seat the launcher started — a Kikaku, a
+Hosa — at the census whose **Not held** first prints it, Kanri not being
+woken for it. A standalone Kaiseki and the messenger get no row, and a row
+that does not exist yet while its seat works is not an error. The Name
+cell holds the bare name the listing printed, rewritten by
+`record --rename` at every `— renamed` the census prints — a record, never
+a key and not an address ("The address") — and no seat writes a `[ref]`
+about itself. The Model cell holds the family the spawn request named, as
+the result carries it. Topic is the topic word the seat's own prompt keys
+gave it — for a Jisso, the topic whose queue it was spawned into: the plan
+whose batches are in flight, or, with none in flight, the plan whose
+landing requested the queue, since the shared checkout carries one topic's
+batches at a time and the next plan's queue opens at its predecessor's
+close — or `—` for Kanri, Kikaku, Hosa, and a standalone Kaiseki.
 
-The Status column carries one of five words: `queued` a Jisso of a
-skill-editing plan waiting for its batch prompt; `live`, which may carry one
-suffix: `(idle since <HH:MM>)`, or `(blocked since <HH:MM>)`, which Kanri
-appends when the census's Listed line for the seat carries `— blocked` and
-removes when a later census's does not — the last census that saw the seat
+The Status column carries one of five words, and `record --status` writes
+no other: `queued` a Jisso of a skill-editing plan waiting for its batch
+prompt; `live`, which may carry one suffix, written by `record --suffix`:
+`(idle since <HH:MM>)`, or `(blocked since <HH:MM>)`, which Kanri appends
+when the census's Listed line for the seat carries `— blocked` and removes
+when a later census's does not — the last census that saw the seat
 blocked, not its state now; the cause, `— blocked (<waitingFor>)`, is in the
 census line and the notice and not in the cell, and every reader tests the
 cell's first word; `stopped` a seat the run ended — by Kanri's `stop`
 request, by `taiseki`, by `tanto teishi --seats`, by the spawner's guard, or
 on a second `no-role` ("Messages") — its conversation kept and nothing sent
-to it again; `replaced` a Kanri that handed over; `dead` a seat whose
-process is gone and that is not parked — its conversation on disk and not
-final, since a wake puts the row back to `live` when a line is next due to
-it ("Resuming") — or a row of the old contract that Kanri retired at its
-census (`roles/kanri.md`). A dialogue seat that is parked keeps its row
-`live`: a park is its ordinary state between turns ("The faces of a seat").
+to it again; `replaced` every Kanri that handed over, whatever its process
+is doing, and never marked again by the census; `dead` the census's word
+for a seat whose process is gone and that was not replaced — its
+conversation on disk and not final, since a wake puts the row back to
+`live` when a line is next due to it ("Resuming") — or a row of the old
+contract that Kanri retired at its census (`roles/kanri.md`). One status
+per fact. A dialogue seat that is parked keeps its row `live`: a park is
+its ordinary state between turns ("The faces of a seat"). `cleared` is no
+word of this roster's — an old contract's row that carries it is moved to
+the archive by `migrate`, its status as it stands.
+
+The archive, `.tanto/roster-archive.md`, keeps one `## Sessions` table of
+the roster's twenty columns and one more, Ended, last, and an `## Events`
+section. At a plan close `boundary.js archive` moves every `stopped`,
+`dead`, and `replaced` row there whole, Ended the day of the move — nothing
+dropped and nothing joined, since the row already carries its last
+reading — and moves every line under the roster's `## Events` to the
+archive's, verbatim and in order; it writes both files or neither.
 
 The keeping rule is one held seat per role and topic, and one Kanri, one
 Kikaku, and one Hosa per repository; the spawner refuses a request for a
@@ -503,42 +528,46 @@ seat and at every window reload, one file has two paths under a changed
 config directory, and a transcript moves when its session enters a
 worktree. `node "$TANTO/scripts/boundary.js" census` reads the spawner's
 state file, `.tanto/spawner/seats.json`, beside the listing, and prints the
-`spawner:` line — `spawner: beating`, or `spawner: stale` — and then six
-headings, in this order:
+`spawner:` line — `spawner: beating`, or `spawner: stale` — and then seven
+headings, in this order: **Listed**, **Parked**, **Ended**, **Returned**,
+**Not listed**, **No session id**, **Not held**. It writes nothing. Each
+rule is one row of this table — the row's status, what the state file
+holds, what the listing shows, the heading the row is printed under, and
+Kanri's one act:
 
-- **Listed** — a `live` or `queued` row whose session is listed, its line
-  ending `— renamed` when the listed name is not the row's Name cell, and
-  `— blocked (<waitingFor>)` for a background seat on a prompt. A seat open
-  in a tab is never `blocked`: its prompt is in front of the human already.
-- **Parked** — a `live` row whose seat the state file holds `parked`, with
-  `— mid-turn` when its last turn did not end by itself and `— waiting`
-  when a question of its to the human stands. Nothing is marked, and the row
-  stays `live`; a seat with a topic marked `— mid-turn` is woken in Kanri's
-  Recovery alone, never at a boundary's census ("Resuming").
-- **Ended** — a `live` or `queued` row whose seat the state file holds
-  `stopped` or `removed`; the line ends in `by taiseki` when the seat ended
-  itself. Kanri writes the row `stopped`, with an Events line naming what
-  ended it — `taiseki`, or its own request.
-- **Not listed** — a row whose seat the state file does not hold, or holds
-  `running`, `blocked`, or `gone`, and the listing does not show. Kanri marks
-  a `live` row `dead` on that signal alone — no timeout, no inference, no
-  name; a `queued` row stays `queued`, since a waiting Jisso's absence is
-  expected and the send of its prompt wakes it. An entry with no `pid` is
-  not listed, whatever its `state` says: its process is gone, and its line
-  ends `— listed without a pid (a stale entry)`.
-- **No session id** — a row whose Transcript cell carries no `sessionId`.
-- **Not held** — a session under the root that no row holds; and, for every
-  seat the state file holds that no row holds, listed or not, the line
-  `— spawned as <role> <topic>, result <id>`, from whose result Kanri writes
-  the row.
+| Row status | State file | Listing | Heading | Kanri's act |
+| --- | --- | --- | --- | --- |
+| `live`, `queued` | any but `stopped`, `removed` | listed | Listed, with `— renamed` when the listed name is not the Name cell, `— blocked (<cause>)` for a background seat on a prompt | rewrite the Name cell on `— renamed`; append or remove the `(blocked since)` suffix |
+| `live` | `parked` | not listed | Parked, with `— mid-turn`, `— waiting` | nothing; Recovery wakes a `— mid-turn` seat with a topic |
+| `live`, `queued` | `stopped`, `removed` | any | Ended, `by taiseki` when the seat ended itself | `--status "<id> stopped"` and a `--roster-event` naming what ended it |
+| `stopped`, `dead` | `running`, `blocked`, or listed while the state file has not ended it (`stopped`, `removed`) | listed or held | **Returned** — `<row status>; seat <state>` | for `dead`: `--status "<id> live"`, the seat is back and nobody wrote it (007e's fifth case); for `stopped`: a `stop` request unless `requests/` already holds one for that `sessionId`, the run ended it and the process stayed (cd46) |
+| `stopped`, `dead` | `parked` | not listed | Not held, `— row <status>` (then `— spawned as …`) | nothing; a wake is its line's |
+| `live` | absent, `running`, `blocked`, `gone` | not listed | Not listed, `— listed without a pid (a stale entry)` for a pid-less entry | `--status "<id> dead"`, with a `--roster-event`; the row goes `live` again at the wake that sends it a line, as decision-39fb says |
+| `queued` | any, `gone` included | not listed | Not listed, `— queued; its batch line wakes it` | nothing (78b3) |
+| any | — | — | No session id — the Transcript cell has no `sessionId` | nothing — a row no key finds; the census prints it under No session id, and the human repairs or retires it once (`migrate` prints `suspect:` only for a `live` or `queued` row while it brings an older roster to the template) |
+| none | held `running`, `blocked`, `parked` | any | Not held, `— spawned as <role> <topic>, result <id>` | `record --seat <that sessionId>` |
+| `replaced` | — | listed | Not held, `— row replaced` | nothing; the successor's `stop` request ends it |
 
-On `spawner: stale` the state file has stopped moving and Kanri marks
-nothing, as on `census: unavailable`; a listing that fails is no signal
-either. Kanri runs the census at its start; at every boundary, in loop step
-6, before the next request; at every wake-up whose line comes from a name no
-row holds — a Hosa's `slot-needed:` or `kessai answer:`, a Kikaku's
-`decision:` — before it handles the line; and when `seat` prints `no entry`
-("The address").
+A seat open in a tab is never `blocked`: its prompt is in front of the
+human already. A seat with a topic marked `— mid-turn` is woken in Kanri's
+Recovery alone, never at a boundary's census ("Resuming"). An entry with no
+`pid` is not listed, whatever its `state` says: its process is gone. `dead`
+is marked on the Not listed signal alone — no timeout, no inference, no
+name — and a `replaced` row is never marked again; a `dead` row goes `live`
+at the wake that sends it a line, and **Returned** catches the case where
+nobody wrote it. The Name cell's `— renamed` is derived from the listed
+name against the cell, and from nothing the spawner marks.
+
+On a roster whose header is not the template's the census prints
+`census: roster header is not the template's — run boundary.js migrate`
+and exits 1. On `spawner: stale` the state file has stopped moving and
+Kanri marks nothing, as on `census: unavailable`; a listing that fails is
+no signal either. Kanri runs the census at its start; at every boundary, in
+loop step 6, before the next request; at a plan close, before
+`boundary.js archive`, so that **Returned**'s acts are done before the
+move; at every wake-up whose line comes from a name no row holds — a
+Hosa's `slot-needed:` or `kessai answer:`, a Kikaku's `decision:` — before
+it handles the line; and when `seat` prints `no entry` ("The address").
 
 ### The address
 
@@ -576,11 +605,13 @@ node "$TANTO/scripts/boundary.js" seat <sessionId or name>
 node "$TANTO/scripts/boundary.js" wake [--hold] <sessionId> [<sessionId> ...]
 ```
 
-`seat` prints one line from the state file,
-`<status> <name> <kind> <role> <turn>` — the kind `background`,
+`seat` prints one line of six fields from the state file,
+`<status> <name> <kind> <role> <turn> <sessionId>` — the kind `background`,
 `interactive`, or `-` when the seat is not listed; the turn `ended` or
 `open` by the spawner's own test over the seat's transcript, or `-` when
-none is found — and `spawner: beating` or `spawner: stale` under it. For a
+none is found; the sixth field the seat's `sessionId`, the key every
+`record` call takes — and `spawner: beating` or `spawner: stale` under it.
+For a
 `sessionId` the state file does not hold it prints `no entry <kind>`, the
 kind being the listing's. `wake` checks the beat, writes a `resume` request
 with no prompt for each `sessionId` at once, waits up to sixty seconds in
@@ -614,13 +645,14 @@ reads it twice and answers once.
 
 **The beat comes before every request.**
 `node "$TANTO/scripts/boundary.js" beat` prints the `spawner:` line, and
-Kanri runs it before a `spawn`, a `stop`, an `attention`, or an `ack`;
+Kanri runs it before every `spawn`, `stop`, and `attention` request;
 `wake` runs it itself. On `spawner: stale` Kanri writes no request, records
 what it owes as the Events line
 `unsent: <sessionId or op> — <the line or the request>` — through
-`record --event` in the open ledger, in the roster's Events when none is
-open — and tells the human in one line to run `tanto fukki`, saying that a
-stale spawner raises no notice of its own. Kanri's Recovery sends every
+`record --event` in the open ledger, and through `record --roster-event`
+in the roster's Events when none is open — and tells the human in one line
+to run `tanto fukki`, saying that a stale spawner raises no notice of its
+own. Kanri's Recovery sends every
 `unsent:` line with no `sent:` pair and writes the pair. A pair is matched
 on the text after the prefix, without the `(batch <X>)` that
 `record --event` appends at a boundary, and two different lines to one seat
@@ -953,8 +985,10 @@ sessions that may send it:
 
 **The route is one rule for the four, and the intake is the target
 repository's Hosa while one is listed, else its Kanri**: the sender reads
-`<workspace>/.tanto/roster.md`, takes the bare `<name>` before the bracket
-of the `Name [ref]` column of the row whose Role is `hosa` and whose Status
+`<workspace>/.tanto/roster.md`, takes the bare `<name>` in the third
+column, before any bracket, whichever header that roster carries — the
+target may not have migrated yet — of the row whose Role is `hosa` and
+whose Status
 begins with `live` — Kanri appends one of the two suffixes the Status column
 names to that cell — and checks it against `ListAgents`. A Hosa is parked
 between its turns and its name is then not listed, so when it is not, or
@@ -1414,11 +1448,11 @@ The faces come with five constraints, which the README states too:
 | the spec, at the path Sekkei's `spec=` key names — by default `docs/superpowers/specs/<date>-<topic>-design.md` | Sekkei | Kanri, Keikaku, Jisso | the spec; committed by Sekkei, or by the Keikaku created after the merge when it was a draft |
 | `.tanto/<topic>/spec-draft.md` | Sekkei | the spec reviewer, Kanri, Keikaku | the spec while another topic's batch is in flight; nothing is committed and no branch is cut until Keikaku commits it at its final path |
 | the plan, at the path Keikaku's `plan=` key names — by default `docs/superpowers/plans/<date>-<topic>.md` | Keikaku | Kanri, Jisso | the plan; committed; carries Global Constraints, a Batches section, and how a batch is verified |
-| `.tanto/roster.md` | Kanri | all roles; another repository's intake-line sender, its listed Hosa row or its first data row, and a Kikaku sending a consult line, its `kikaku` row | one row per seat, written from the spawner's result file; a standalone Kaiseki and the messenger get none |
-| `.tanto/roster-archive.md` | Kanri | Kanri | from `templates/roster-archive.md`; the roster's stopped, dead, and replaced rows with their last readings, and the closed plans' Events lines, appended at each plan close |
+| `.tanto/roster.md` | Kanri, through `boundary.js record`, and `archive` and `migrate` for the moves they make | all roles, through `boundary.js roster show`; another repository's intake-line sender, its listed Hosa row or its first data row, and a Kikaku sending a consult line, its `kikaku` row | one table of twenty columns, one row per seat keyed by its `sessionId`, each written from the spawner's result file or the state file's entry; a standalone Kaiseki and the messenger get none |
+| `.tanto/roster-archive.md` | Kanri, through `boundary.js archive`, and `migrate` when it creates the file | Kanri | from `templates/roster-archive.md`; the roster's twenty columns and Ended: its `stopped`, `dead`, and `replaced` rows, each copied whole with its last reading, and the closed plans' Events lines, moved at each plan close |
 | `.tanto/kanri-handover.md` | the outgoing Kanri | the successor Kanri | the handover; deleted by the successor once accepted. In flight, Live peers, and Not reconstructed in full; the rest pointers |
-| `.tanto/inbox/<date>-<slug>.md`, `<date>-feedback-<workspace id>[-<n>].md`, `<date>-consult-<thread>-<nn>.md` | the intake — a Hosa while it is listed, else Kanri; a Kikaku, for a consult turn it receives direct; `usage.js close`, for this repository's own feedback file | the close's recommender, by path, for a bug report and a feedback copy; the apply, for the Triage section; `usage.js collect`, for a feedback copy's Usage block; the repository's Kikaku, for a consult turn, and for the Departures when the human distills rules | a file received under the sender's basename, with its Received line; its first line says what it is — `# Consult`, a consult turn; `# Shoroku feedback`, a feedback file; anything else, a bug report ("Messages"); a bug report's and a feedback copy's Triage section is filled by the close's apply and marks the copy triaged, a feedback copy's with the Outcome `feedback`; a consult copy's Read section is filled by the Kikaku that reads it; never deleted |
-| `.tanto/sent/<date>-<slug>.md`, `<date>-feedback-<workspace id>[-<n>].md`, `<date>-consult-<thread>-<nn>.md` | a bug report: the session that noticed the defect — any role, or Hosa from the human's words; a feedback file: `usage.js close`; a consult turn: the Kikaku that writes it | the intake of the target workspace, or for a consult turn its listed Kikaku, by the path the intake line carries; `usage.js close`, which offers again every feedback file the target's inbox does not hold | a bug report from `templates/bug-report.md`, a feedback file assembled by `usage.js close`, or a consult turn from `templates/consult.md`; kept, never deleted by a rule |
+| `.tanto/inbox/<date>-<slug>.md`, `<date>-feedback-<workspace id>[-<m>].md`, `<date>-consult-<thread>-<nn>.md` | the intake — a Hosa while it is listed, else Kanri; a Kikaku, for a consult turn it receives direct; `usage.js close`, for this repository's own feedback file | the close's recommender, by path, for a bug report and a feedback copy; the apply, for the Triage section; `usage.js collect`, for a feedback copy's Usage block; the repository's Kikaku, for a consult turn, and for the Departures when the human distills rules | a file received under the sender's basename, with its Received line; its first line says what it is — `# Consult`, a consult turn; `# Shoroku feedback`, a feedback file; anything else, a bug report ("Messages"); a bug report's and a feedback copy's Triage section is filled by the close's apply and marks the copy triaged, a feedback copy's with the Outcome `feedback`; a consult copy's Read section is filled by the Kikaku that reads it; never deleted |
+| `.tanto/sent/<date>-<slug>.md`, `<date>-feedback-<workspace id>[-<m>].md`, `<date>-consult-<thread>-<nn>.md` | a bug report: the session that noticed the defect — any role, or Hosa from the human's words; a feedback file: `usage.js close`; a consult turn: the Kikaku that writes it | the intake of the target workspace, or for a consult turn its listed Kikaku, by the path the intake line carries; `usage.js close`, which offers again every feedback file the target's inbox does not hold | a bug report from `templates/bug-report.md`, a feedback file assembled by `usage.js close`, or a consult turn from `templates/consult.md`; kept, never deleted by a rule |
 | `.tanto/inbox-<date>-recommendation.md`, `-brief.md`, `-direction.md` | the between-plans inbox sweep's recommender, and Kanri or Hosa for the direction | Kanri, the human, the apply | the sweep's three files when no topic is open, beside the roster |
 | `.tanto/kikaku/<YYYY-MM-DD>-<slug>.md` | Kikaku | Kanri | one decision from the human's consultation, from `templates/kikaku-decision.md`; named to Kanri as `decision: <path>`, and from there the next topic's input document, an `I-n`, an `S-n` source, or a stage's Check answer |
 | `.tanto/<topic>/kanri.md` | Kanri, or the `boundary.verify` subagent it dispatches, through `boundary.js record` | Sekkei, Keikaku, Jisso, Kaiseki, Kikaku, Hosa | the conductor ledger; it never moves |
@@ -1449,23 +1483,26 @@ The faces come with five constraints, which the README states too:
 | `docs/notes/tanto-usage.jsonl`, in the repository that ships the skill | `usage.js collect`, which that repository's shoki runs | `usage.js report`; the human, in the Kikaku | one line per close of any repository whose feedback file reached this inbox: the usage extract — no topic, session, or instant — with its `source`, the feedback file's basename; tracked, one append per row; the shipping repository's own close arrives one close late, since its shoki's `collect` runs before its own `close` places the file |
 | `~/.claude/agents/tanto-*.md`, or `$CLAUDE_CONFIG_DIR/agents/` when that variable is set | every role at its start, from the built-in and personal layers | the harness, at the next session start | one definition per kind, from `templates/agent.md`; a definition is dispatchable only from the sessions started after it was written |
 | `<cwd>/.claude/agents/tanto-*.md`, and `<cwd>/.claude/agents/.gitignore` beside them | every role at its start, for the kinds whose effort the project file changes | the harness, at the next session start; git | the project-scope definitions, from the same template with its `<scope>` clause rendered; the `.gitignore` holds `tanto-*.md` and `.gitignore`, is written once and never overwritten |
-| `.tanto/spawner/` — `pid`, `heartbeat`, `contract`, `log`, `seats.json`, `requests/<id>.json`, `results/<id>.json` | the spawner; a request file by Kanri, by the launcher, or by a seat through `boundary.js request` | the launcher, Kanri, `boundary.js`; `usage.js`, for a topic's seats | the spawner's own state: one seat entry per session it started — its status, its listed name and kind, and the contract mark of the request that spawned it; one request and one result per act, the ops being `spawn`, `stop`, `resume`, `rm`, `ack`, `attention`, `park`, `hold`, and `release`; the heartbeat — the epoch milliseconds of its last beat, which the launcher trusts over `pid`; and `contract`, holding `2`, which the spawner writes at its start and the launcher reads to know the spawner is of this contract. The roster is not here and the spawner never reads it |
+| `.tanto/spawner/` — `pid`, `heartbeat`, `contract`, `log`, `seats.json`, `requests/<id>.json`, `results/<id>.json` | the spawner; a request file by Kanri, by the launcher, or by a seat through `boundary.js request` | the launcher, Kanri, `boundary.js`; `usage.js`, for a topic's seats | the spawner's own state: one seat entry per session it started — its status, its listed name and kind, its branch, and the contract mark of the request that spawned it; one request and one result per act, the eight ops being `spawn`, `stop`, `resume`, `rm`, `attention`, `park`, `hold`, and `release`; the heartbeat — the epoch milliseconds of its last beat, which the launcher trusts over `pid`; and `contract`, holding `2`, which the spawner writes at its start and the launcher reads to know the spawner is of this contract. The roster is not here and the spawner never reads it |
 | `.tanto/<topic>/spawner-results/` | Kanri, at the plan close | Kanri; `usage.js`, for the topic's seats | the topic's result files, moved with the archive move |
 | `.tanto/<topic>/shoki-brief.md` | Kanri, from `templates/shoki-brief.md` | shoki, as its whole prompt | the scribe's contract: the arguments, what it never does, the five steps, the report line |
 | `.tanto/<topic>/shoroku-review.md` | the `shoroku.review` kind shoki dispatches | shoki, then Kanri | the review of shoki's own diff against `main`, before it reports |
 | `.tanto/<topic>/batch-shusei-prompt.md` | Kanri, from `templates/batch-prompt.md` | the shusei Jisso | the one-task fix batch of the close |
 | `<root>/.claude/worktrees/shoki-<topic>` | Kanri, by `git worktree add` in the merge act | shoki | shoki's worktree and its cwd, on the branch `worktree-shoki-<topic>` cut from `main`'s tip; the spawner runs the seat in it and passes no `-w`; removed by Kanri (`git worktree remove --force --force`) along with its branch, after the `rm` request, which leaves both |
 
-Templates are copied and filled, never restated in prose. Nineteen of them:
+Templates are copied and filled, never restated in prose. Twenty of them:
 `templates/roster.md`, `templates/roster-archive.md`, `templates/kanri.md`,
 `templates/kanri-handover.md`, `templates/bug-report.md`,
 `templates/batch-prompt.md`, `templates/batch-report.md`,
 `templates/boundary-brief.md`, `templates/kaiseki-brief.md`,
 `templates/kaiseki-report.md`, `templates/review-brief.md`,
-`templates/shoroku-brief.md`, `templates/shoki-brief.md`,
-`templates/shoroku-feedback.md`, `templates/consult.md`,
-`templates/spawn-request.md`, `templates/tanto.json`,
-`templates/kikaku-decision.md`, and `templates/agent.md`.
+`templates/shoroku-brief.md`, `templates/shoroku-direction.md`,
+`templates/shoki-brief.md`, `templates/shoroku-feedback.md`,
+`templates/consult.md`, `templates/spawn-request.md`,
+`templates/tanto.json`, `templates/kikaku-decision.md`, and
+`templates/agent.md`. The roster's and the ledger's are
+also the schema `boundary.js record` checks every write against, and the
+archive's the schema `boundary.js archive` checks.
 
 The skill also ships six Node scripts and two wrappers.
 `scripts/passage-check.js` is the
@@ -1505,19 +1542,28 @@ skill's repository. `scripts/boundary.js` is the
 boundary's own instrument, run by
 the `boundary.verify` subagent Kanri dispatches — and, under the shape 2 the
 tanto-diet design leaves as a seam, by a headless session running the same
-brief; its seven subcommands are `check`, which runs the boundary's
+brief; its ten subcommands are `check`, which runs the boundary's
 read-only commands and prints their output under fixed headings; `record`,
-which writes the ledger's and the roster's rows idempotently; `census`,
-which Kanri runs itself: read-only, it reads the spawner's state file and
-prints the `spawner:` line and the roster's `live` and `queued` rows against
-the sessions `claude agents --json` lists under the root, under six
-headings — Listed, Parked, Ended, Not listed, No session id, and Not held
-("The roster"); `request`, whose `park` and `leave` a seat runs for
-itself, the first at the end of a dialogue seat's turn and the second for
-`taiseki`, and whose `attention --message` the intake runs on a consult
-line, writing an `attention` request that names no seat ("Messages");
-`seat`, which prints one seat's line from the state file; `wake`,
-which resumes parked seats with no prompt; and `beat`, which prints the
+the one writer of the ledger's and the roster's rows, idempotent, which
+finds a roster row by its `sessionId` and writes nothing when a table's
+header is not its template's; `census`, which Kanri runs itself:
+read-only, it reads the spawner's state file and prints the `spawner:`
+line and every roster row it places against the sessions
+`claude agents --json` lists under the root, under seven headings —
+Listed, Parked, Ended, Returned, Not listed, No session id, and Not held
+("The roster"); `roster show`, read-only, which prints the roster's first
+row with Kanri's counts, its `live` and `queued` rows, its items count,
+and its Events tail — what a Start and a handover read in place of the
+file; `archive`, which moves the ended rows and the Events lines to the
+archive at a plan close; `migrate`, run once per file, which brings a
+roster, an archive, or a ledger of an older shape to the templates', keeps
+a `.pre-migrate` copy, and refuses a shape it does not know; `request`,
+whose `park` and `leave` a seat runs for itself, the first at the end of a
+dialogue seat's turn and the second for `taiseki`, and whose
+`attention --message` the intake runs on a consult line, writing an
+`attention` request that names no seat ("Messages"); `seat`, which prints
+one seat's line from the state file, its `sessionId` last; `wake`, which
+resumes parked seats with no prompt; and `beat`, which prints the
 `spawner:` line ("The address").
 `scripts/spawner.js` is the one process in a run that issues `claude --bg`,
 `claude stop`, `claude rm`, and `claude --resume`: a resident started by the
@@ -1661,9 +1707,15 @@ its path.
     `templates/boundary-brief.md` and renders `templates/batch-prompt.md`
     from disk at **every** boundary, the plan's own included. A plan that
     edits either, or `templates/kanri-handover.md`, therefore lands it in
-    the same batch as the role files that key on it; the templates a session
-    reads once — `roster.md`, `roster-archive.md`, `kanri.md`,
-    `shoki-brief.md`, `spawn-request.md` — may land earlier.
+    the same batch as the role files that key on it. `templates/roster.md`
+    and `templates/kanri.md` are read at every `boundary.js record` call, and
+    `templates/roster-archive.md` at every `boundary.js archive` call, each
+    comparing a table's header with theirs: a plan that changes a header in
+    any of them makes every write of that command refuse, in every workspace that loads the skill, until
+    `boundary.js migrate` has run there, and its Global Constraints say
+    when that is.
+    The templates a session reads once, `shoki-brief.md` and
+    `spawn-request.md`, may land earlier.
 
     The roles that start the plan — Jisso at the plan's landing,
     Keikaku before it, Sekkei before that — read the skill as it stands then,

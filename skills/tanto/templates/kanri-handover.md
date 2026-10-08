@@ -78,14 +78,19 @@ their batch prompt is a path they read at their own wake-up.
   `subagent_type: tanto-task-review-quality`); fix rounds 4-5 on
   `task.escalate` (opus, `subagent_type: tanto-task-escalate`).
 
-## Residency
+## Reading
 
-<One line: Kanri's Residency row in `.tanto/roster.md`, by heading, and the
-reading taken when this handover was written.>
+<One line: the reading taken when this handover was written. The successor
+reads the roster by `boundary.js roster show`, never the file itself.>
 
 ## Next step
 
-<One line — the successor's first act after its cold read, named as an act and not as a step order: the successor follows the role text it read, which may be newer than the one this file was written from.>
+<One line — the successor's first act after `roster show` and the census, named as an act and not as a step order: the successor follows the role text it read, which may be newer than the one this file was written from.>
+
+Of each ledger that In flight names, the successor reads four sections and no
+more, with one call per ledger:
+`node "$TANTO/scripts/passage-check.js" sections --file <ledger> Progress "Open questions for the human" "Session events" Measurements`
+— the Session events by their tail.
 
 ## Not reconstructed
 

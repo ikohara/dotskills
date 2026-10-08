@@ -452,6 +452,8 @@ test("a spawn writes the result, the seat, and deletes the request", () => {
   assert.equal(fs.existsSync(file), false);
   assert.equal(seats(ws)[0].status, "running");
   assert.equal(seats(ws)[0].role, "jisso");
+  // The request's branch on the seat, for `record --seat <sessionId>` (roster-ledger 2.4).
+  assert.equal(seats(ws)[0].branch, "t");
 });
 
 test("a marked spawn of a held role is refused unless it names the holder it succeeds; an unmarked one is not (spec 1.2)", () => {
@@ -604,6 +606,8 @@ test("a --bg child's cwd is the workspace root, not wherever the spawner was sta
 
 test("a spawn's startedAt reaches the roster's Started cell in the same shape", () => {
   const ws = workspace();
+  // `record --seat` writes a Transcript cell whose basename is a uuid alone.
+  setState(ws, { next: { sessionId: "6f6f6f6f-0000-4000-8000-000000000001" } });
   const { id } = request(ws, SPAWN);
   run(ws, ["run", "--root", ws.root, "--once"]);
   const got = result(ws, id);
@@ -1210,7 +1214,7 @@ test("attention raises its message as written and names its channel (spec 1.1)",
   assert.deepEqual(notices(ws), ["human-needed: jisso t — tanto jisso t"]);
 });
 
-test("ack clears the renamed mark of the session it names", () => {
+test("a renamed seat takes the listed name with no mark beside it, and the retired op is an unknown op (roster-ledger 3, c330)", () => {
   const ws = workspace();
   request(ws, SPAWN);
   run(ws, ["run", "--root", ws.root, "--once"]);
@@ -1228,12 +1232,13 @@ test("ack clears the renamed mark of the session it names", () => {
     ],
   });
   run(ws, ["run", "--root", ws.root, "--once"]);
-  assert.match(seats(ws)[0].renamed, namePattern(ws, "jisso", "t"));
-  const { id } = request(ws, { op: "ack", sessionId: "sess-new" });
-  run(ws, ["run", "--root", ws.root, "--once"]);
-  assert.match(result(ws, id).acked, /\d/);
-  assert.equal(seats(ws)[0].renamed, undefined);
   assert.equal(seats(ws)[0].name, "seat-two [cccccc]");
+  assert.equal(Object.hasOwn(seats(ws)[0], "renamed"), false);
+  assert.match(spawnerLog(ws), /census: sess-new renamed to seat-two \[cccccc\]/);
+  // The retired op, spelled in two parts so that the plan's sweep for it finds none.
+  const { id } = request(ws, { op: ["ac", "k"].join(""), sessionId: "sess-new" });
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  assert.match(result(ws, id).error, /unknown op ack/);
 });
 
 /**

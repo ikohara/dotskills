@@ -343,7 +343,7 @@ text, these win.
 | SDD task reviewer prompt — the reviewer reads the task's own diff | for a batch whose tasks build one cross-file mechanism in sequence, tell the `task.review-quality` reviewer to read, at HEAD, the sibling files the batch's earlier tasks landed | a same-file-only review misses the drift between them: at `bg-seat-fixes` batch B that read caught the batch's two most substantive findings |
 | SDD implementer — clean up anything unexpected in the tree before starting | tell each `task.implement` dispatch to report an unrecognized modification it did not make, one line to you, instead of discarding it | a modification in the shared tree that a session or its subagent did not make is not its to discard (Rule 5); only Kanri decides whether it is stray |
 | SDD `scripts/task-brief` — a task's text runs from its `Task N` heading to the next | for the last task of the plan — or of a batch prompt given as the PLAN_FILE with an explicit OUTFILE, when a wave's tasks live only in the prompt under `### Task N:` headings — cut the brief at the next `##` heading yourself before dispatching on it | the script stops only at another `Task N` heading, so the last task's brief sweeps in every section after it (323 lines for 87 at `bg-seat-fixes` Task 11; a prompt's `## Execute` and `## Report`) |
-| SDD's dispatch prompts — the implementer's, the task reviewers', and the escalation's — used as they are | add three sentences to every dispatch you send — `task.implement`, `task.escalate`, and the two task reviews: run every command in the foreground with an explicit timeout, the Bash tool's `timeout`, ten minutes at most, never as a background job, and a command that cannot finish inside that ceiling is not started but named in the hand-back for you to rule on; never end a turn while a command of your own is still running, or while "waiting" on anything; end every turn with a hand-back — an implementer's one of the four implementer statuses, a reviewer's verdict | a dispatch that ends its turn with work of its own running leaves you idle on a promise with no bound, since you hold no clock; the sentences are best effort, and "The four implementer statuses" is the bound behind them |
+| SDD's dispatch prompts — the implementer's, the task reviewers', and the escalation's — used as they are | add four sentences to every dispatch you send — `task.implement`, `task.escalate`, and the two task reviews: run every command in the foreground with an explicit timeout, the Bash tool's `timeout`, ten minutes at most, never as a background job, and a command that cannot finish inside that ceiling is not started but named in the hand-back for you to rule on; never `cd` — absolute paths, `git -C`, or a subshell — since a `cd` in a compound command moves the shell's working directory for every later call, a rule you keep in your own calls too; never end a turn while a command of your own is still running, or while "waiting" on anything; end every turn with a hand-back — an implementer's one of the four implementer statuses, a reviewer's verdict | a dispatch that ends its turn with work of its own running leaves you idle on a promise with no bound, since you hold no clock; the sentences are best effort, and "The four implementer statuses" is the bound behind them |
 
 ## The final batch
 
@@ -354,7 +354,10 @@ findings arrive diagnosed, so step 1's whole plan and spec is not re-read
 for a fix wave — and steps 2 and 3 run as written:
 
 1. Dispatch **one** fix subagent with the complete findings list — never one
-   fixer per finding. Before the Deviations are written, run `verify` once
+   fixer per finding — whose prompt says to run `verify` for every task of
+   the plan after its last edit, not for the tasks it expects to touch, and
+   to report what it printed, since the spec reviewer re-runs it and a
+   report's tree claim is settled by the run. Before the Deviations are written, run `verify` once
    for each of the plan's tasks: a fix that supersedes one task's passage can
    supersede another task's that quotes the same line, and the prompt names
    only the one it knew.
