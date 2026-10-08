@@ -269,9 +269,21 @@ the move, made once, at a batch boundary or a plan's close:
 `tanto teishi --seats`, then `tanto`, and close the windows of that run's
 old seats. The new Kanri takes the run from its roster and ledger as a
 Kanri does after any loss. Until then, `tanto` prints one line naming the
-roster's old-contract rows, and goes on; the line asks for nothing, and a roster row
-of the old contract that Kanri leaves for the archive keeps it printing until the
-plan's close.
+roster's old-contract rows, and goes on; the line asks for nothing, and counts only a
+`live` or `queued` row the state file does not hold; an old-contract row left
+`cleared` is `boundary.js migrate`'s to move to the archive, not the launcher's.
+
+A roster of an older shape — two tables, with a reading table under its
+own heading, or an archive of sixteen columns — is brought to the current
+one by one command, run once from the repository root:
+`node <skill directory>/scripts/boundary.js migrate --roster .tanto/roster.md --archive .tanto/roster-archive.md`,
+with `--ledger <path>` for a ledger still open. It keeps one copy of each
+file it rewrites beside it, `<path>.pre-migrate`, refuses a shape it does
+not know, and prints the rows it could not place, which are the human's to
+keep or drop. Every workspace that uses tanto reads this one skill
+directory, so after the plan that made the roster one table merges, the
+first `record` or census in each other workspace refuses once, with a line
+naming `boundary.js migrate`: run it there then, and the run goes on.
 
 ## Layout
 
@@ -285,8 +297,10 @@ plan's close.
   boundary's subagent follows), `shoki-brief.md` (the scribe's whole
   contract), `spawn-request.md` (the request schema), `kaiseki-brief.md`,
   `kaiseki-report.md`, `review-brief.md`, `shoroku-brief.md` (the shoroku
-  check brief), `shoroku-feedback.md` (the file a close sends the skill's
-  repository), `consult.md` (one turn of a consult thread), `tanto.json`
+  check brief), `shoroku-direction.md` (the human's answer to it, item by
+  item, which `record --direction` reads), `shoroku-feedback.md` (the file
+  a close sends the skill's repository), `consult.md` (one turn of a
+  consult thread), `tanto.json`
   (the built-in model and effort defaults, the `rates` table, and `plans`),
   `kikaku-decision.md`, and `agent.md`, the subagent definition every role
   generates from.
@@ -300,10 +314,15 @@ plan's close.
 - `scripts/boundary.js` — the boundary's own instrument, run by the subagent
   Kanri dispatches there: `check`, which runs the boundary's read-only
   commands and prints their output under fixed headings, and `record`, which
-  writes the conductor ledger's and the roster's rows idempotently;
+  writes the conductor ledger's and the roster's rows idempotently, keyed
+  by `sessionId`, and refuses a table whose header is not its template's;
   `census`, which Kanri runs itself, read-only, to place the roster's rows
-  against the spawner's `seats.json` and the sessions `claude agents --json`
-  lists under the repository; `request`, the park or leave request a seat
+  under seven headings against the spawner's `seats.json` and the sessions
+  `claude agents --json` lists under the repository; `roster show`, which
+  prints what a Start reads of the roster; `archive`, which moves the ended
+  rows and the Events lines to the archive at a plan close; `migrate`,
+  which brings an older roster, archive, or ledger to the templates' shape
+  once; `request`, the park or leave request a seat
   writes for itself, and `request attention`, the desktop notice the intake
   raises on a consult's arrival; and `seat`, `wake`, and `beat`, which Kanri
   runs before it sends a seat a line or writes a request.
