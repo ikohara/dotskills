@@ -2222,6 +2222,7 @@ function migrateArchive(doc) {
     lines[at + 1] = separator(expected.length);
     for (let i = at + 2; i < span.end && lines[i].startsWith("|"); i++) {
       const o = cells(lines[i]);
+      if (o.length > header.length) return { unknown: `an archive row ${lines[i].trim()}` };
       if (!context) o.splice(12, 0, "—");
       while (o.length < 16) o.push("—");
       lines[i] = row([o[0], "—", o[1], "—", o[2], "—", o[3], "—", o[4], o[6], "—", ...o.slice(7, 16), o[5]]);

@@ -2909,3 +2909,23 @@ test("an archive with no Events section is pointed at its heading to add, not at
   assert.strictEqual(fs.readFileSync(f.archive, "utf8"), body);
   assert.strictEqual(readRoster(f), rosterBefore);
 });
+
+test("migrate refuses an old archive row with more cells than its header, a raw | in a cell, with or without Context, writing nothing (R-6 item 6 (3))", () => {
+  for (const [name, raw] of [
+    ["sekkei-w", "sekkei|w"],
+    ["jisso-x", "jisso|x"],
+  ]) {
+    const f = oldShapes();
+    const text = fs.readFileSync(f.archive, "utf8").replace(`| ${name} |`, `| ${raw} |`);
+    fs.writeFileSync(f.archive, text, "utf8");
+    const before = [f.roster, f.archive, f.ledger].map((file) => fs.readFileSync(file, "utf8"));
+    const got = migrate(f);
+    assert.strictEqual(got.code, 1, got.out);
+    assert.ok(got.out.includes(`migrate: ${f.archive} — unknown shape: an archive row | `), got.out);
+    assert.ok(got.out.includes(raw), got.out);
+    [f.roster, f.archive, f.ledger].forEach((file, i) => {
+      assert.strictEqual(fs.readFileSync(file, "utf8"), before[i]);
+      assert.ok(!fs.existsSync(`${file}.pre-migrate`), file);
+    });
+  }
+});
