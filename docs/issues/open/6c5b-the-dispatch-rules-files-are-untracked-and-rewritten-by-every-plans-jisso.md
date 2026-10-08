@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-04
-updated: 2026-10-04
+updated: 2026-10-08
 ---
 
 Source: shoroku shoki-seat S-88
@@ -25,3 +25,12 @@ writes them again.
 Whether the two files become templates of the skill is the decision.
 
 Carrier: Kept.
+
+**2026-10-08, inbox sweep — nine rows a dispatch prompt carries landed in
+`roles/jisso.md`** (inbox 2026-10-08-feedback-ec9eae4 #15, #16, #17, #21, #24, #26 and
+inbox 2026-10-08-feedback-454d742 #33, #34, #45). Nine rows were
+added to `roles/jisso.md`'s "What tanto overrides" table by `fix: text
+corrections from the inbox sweep 2026-10-08`, taking it from 9 rows to 18.
+They are sentences a dispatch prompt carries, not overrides of an SDD step,
+and they are candidate contents of the rules-file templates this issue
+decides; moving them out of `roles/jisso.md` is part of this decision.

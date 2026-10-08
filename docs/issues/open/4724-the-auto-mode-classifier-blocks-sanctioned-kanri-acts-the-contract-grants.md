@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-24
-updated: 2026-10-03
+updated: 2026-10-08
 ---
 
 Source: shoroku bg-seat-fixes S-25
@@ -66,3 +66,28 @@ block, not the isolated trigger. The same write shape fixes the spawner's
 parse race (`templates/spawn-request.md`, corrected at the same close).
 
 Serves exp-26d5 (tanto-issue-triage, 2026-10-03).
+
+**2026-10-08, inbox sweep — a wrong trailer on an unpublished commit has no
+route in auto mode** (inbox 2026-10-08-feedback-ec9eae4 #6). When a wrong
+trailer is found on an unpublished commit in auto mode, neither an amend by
+Kanri nor one by the peer passes the classifier, and a message describing the
+amend is refused too. The route to decide: the spawn prompt carries the
+trailer rule, so the wrong trailer is not written, and the role files name
+the amend's route — the human's word, and the exact line handed over for the
+human to run.
+
+**2026-10-08, inbox sweep — the boundary brief cannot re-render a next prompt
+the conductor hand-edited** (inbox 2026-10-08-feedback-ec9eae4 #28). The
+classifier refuses the overwrite of a next prompt the conductor has already
+hand-edited, so the boundary brief cannot re-render it. With a held last
+batch this recurs at every boundary in between; the run's workaround was to
+re-render by a script file.
+
+**2026-10-08, inbox sweep — a human-authorized history rewrite is refused,
+and read-only git commands after it** (inbox 2026-10-08-feedback-ec9eae4 #29).
+The classifier refuses a human-authorized history rewrite and then, for
+a few calls, read-only git commands too. The route the run used, worth
+deciding as the standing one: the exact line handed to the human to run in
+their own shell; the conductor afterwards verifying tree equalities, counts
+and the grep listing; and the conductor writing the old-to-new map, which is
+what `roster-ledger`'s close repaired dead hash citations from.

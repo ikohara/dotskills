@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-06
-updated: 2026-10-06
+updated: 2026-10-08
 ---
 
 Source: shoroku run-owned-seats S-93
@@ -26,3 +26,11 @@ printing `stale`.
 
 Carrier: Kept — `boundary.js`'s root finding for its spawner-facing commands,
 not its roster or ledger writers.
+
+**2026-10-08, inbox sweep — the worst consequence seen: a seat stops
+itself** (inbox 2026-10-08-seat-check-wrong-cwd-misreads-as-stale). A
+spawner-started Hosa whose start-sequence seat check ran from the skill
+directory read `no entry -` and `spawner: stale`, printed the stray-tab
+refusal, and stopped itself, writing and sending nothing; the seat check's
+prose now names the repository root as its cwd (`fix: text corrections from
+the inbox sweep 2026-10-08`), and the script half stays here.
