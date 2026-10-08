@@ -233,8 +233,9 @@ by a `stop` request the live one writes on the human's word. Write nothing.
 **Recovery** — no handover file, the first data row's `sessionId` is
 another's, and the census does not list it. Run "Recovery" below; its
 census marks `dead` at once every `live` row it prints under **Not
-listed**, with an Events line per row saying whether its shoroku proposal
-was written and what was lost — no tab holds state the run needs, so there
+listed**, with one `record --roster-event` line per row saying whether its
+shoroku proposal was written and what was lost — no tab holds state the
+run needs, so there
 is no word to wait for.
 
 ## Sending to a seat
@@ -285,7 +286,9 @@ Any other error from `wake` that is not a `resume` result carrying an error
 (that one is a failed wake, and `SKILL.md`'s "Resuming" says a seat whose
 wake fails is lost), and a `SendMessage` that errors, is answered by running
 `seat` again and following what it prints, once. A second failure is the
-Events line `unsent: <sessionId> — <the line>` and one line to the human. A
+Events line `unsent: <sessionId> — <the line>` — through `record --event`
+in the open ledger, and through `record --roster-event` in the roster's
+Events when none is open — and one line to the human. A
 line whose answer does not come from a seat that `seat` now shows `parked`
 was caught by a stop: wake the seat and send the line again; the seat reads
 it twice and answers once. When the human asks you, from
@@ -310,9 +313,10 @@ one seat are two events.
 a name read seconds before a window reload gave it to another window. Run
 `seat` again and send once more, marking no row. A second `no-role` from
 one `sessionId` is the end of that seat: a seat held in a tab whose chat
-the human cleared is a bare window under a known row. Write the Events line
-a shoroku proposal not written gets — what was lost, as far as you know —
-and the row `stopped`; when the row was the live Jisso's, verify the tree
+the human cleared is a bare window under a known row. With
+`record --roster-event`, write the roster Events line a shoroku proposal
+not written gets — what was lost, as far as you know — and, with
+`--status`, the row `stopped`; when the row was the live Jisso's, verify the tree
 first as the Replace table's first row says; then take the Replace table's
 row for its role.
 
@@ -335,8 +339,9 @@ technical claim — what a commit changed, which flags a command line
 takes, a file's state — is checked against the tree with `git log`, `git
 show --stat`, or a read of a path your session may read before a ruling
 or a line to a seat relays it, as you check a report's claims; one you
-cannot check is relayed marked `(unverified)`. Note `decision: <path>
-received from <name>` in the roster's Events either way. You
+cannot check is relayed marked `(unverified)`. Write the roster Events
+line `decision: <path> received from <name>` either way, with
+`record --roster .tanto/roster.md --roster-event`. You
 never address Kikaku first: it is the human's seat, not yours.
 
 ## When the plan lands
@@ -1081,8 +1086,9 @@ request had not yet been written.
 3. **At a batch boundary**, and in a topic's spec or plan stage, set the
    ledger's Progress line to "handover
    written". **At a plan close** that line already says "closed", which the
-   Release table's row keys on, so leave it and record "handover written by
-   `<name>`", your bare name, as a roster Events line. **Between plans** there is no
+   Release table's row keys on, so leave it and write "handover written by
+   `<name>`", your bare name, as a roster Events line, with
+   `record --roster .tanto/roster.md --roster-event`. **Between plans** there is no
    ledger, and that Events line is the only record.
 4. Write the `spawn` request for `/tanto kanri` on `sessions.kanri`, with
    `contract: 2` and `succeeds: <your own sessionId>` — the spawner refuses
@@ -1245,8 +1251,15 @@ and the close reads them once.
    close is the relay `kessai answer: <topic> — <the human's words
    verbatim>`. That one answer is the direction **and** the merge approval,
    and the merge is no longer a second question. Write `shoroku-direction.md`
-   beside the recommendation,
-   item by item, with the `S-n` rows in the ledger: Adopted from the answer.
+   beside the recommendation from `templates/shoroku-direction.md`, item by
+   item — one `## Items` line per item, `- <n> — <group> — yes|no — <topic> S-<n>`
+   for a ledger row and `- <n> — <group> — yes|no — (inbox <basename>[ #<m>])`
+   for an inbox or feedback item — and then write the Adopted cells of the
+   ledger's `S-n` rows from it with one call,
+   `node "$TANTO/scripts/boundary.js" record --ledger .tanto/<topic>/kanri.md --direction .tanto/<topic>/shoroku-direction.md`,
+   which prints each row it wrote, a `direction: no S-n` line for each inbox
+   item, and a `direction: unmatched` line for each pointer the table does
+   not hold; settle an `unmatched` line before shoki's request.
    For every item whose destination carries `feedback`, the direction says
    whether its feedback half was kept; shoki's apply writes the text after
    the `Feedback:` label of each kept one into the feedback file as one
@@ -1299,11 +1312,17 @@ and the close reads them once.
    names and, in the skill's own repository, `docs/notes/tanto-usage.jsonl`,
    which `collect` appends beside them, lint on them (again,
    whole-repository if that is what the script does) — and fill the Written
-   column: the docs subject for an adopted row, a row with a compound
-   destination included, and shusei's commit subject for a `fix` row, taken
-   from the boundary's verdict; a row whose only destination is `feedback`
-   is filled at the landing's last act instead ("Shusei, shoki, and the
-   landing"). An inbox item has no
+   column by `record`, never by hand. At shusei's boundary its commit
+   subject, taken from the verdict, goes into the `fix` rows alone, the
+   rows the direction file's `fix` group names:
+   `record --ledger <ledger> --written "<shusei's subject>" --only S-a,S-b,…`.
+   At shoki's landing the docs subject goes into every other row whose
+   Adopted is `yes` and whose Written is `no`, a row with a compound
+   destination included:
+   `record --ledger <ledger> --written "<the docs subject>"`, which skips a
+   row whose Destination is exactly `feedback`; that row is filled at the
+   landing's last act instead ("Shusei, shoki, and the landing"). An inbox
+   item has no
    row; its Triage is its record. A `relay` outcome is yours to finish:
    append the copy's Symptom as the next `I-n` of that topic's
    `spec-inputs.md` with your note, send its Sekkei one line, and rewrite the
@@ -1419,9 +1438,10 @@ first costs nothing where it does survive. Then remove the worktree you
 cut, which `claude rm` leaves — `git worktree remove --force --force
 <root>/.claude/worktrees/shoki-<topic>` — and delete the branch
 `worktree-shoki-<topic>` you cut, move shoki's result file to
-`.tanto/<topic>/spawner-results/`, mark the `S-n` rows written — a row whose
-only destination is `feedback` waits for the last act below — and write
-the Events line. A landing check that fails is a follow-up `docs:` commit
+`.tanto/<topic>/spawner-results/`, write the docs subject into the `S-n`
+rows with `record --written`, as "The four steps" step 4 says — a row
+whose only destination is `feedback` waits for the last act below — and
+write the Events line. A landing check that fails is a follow-up `docs:` commit
 through the hotfix lane, never a re-run of shoki. A `shoroku blocked:` line
 is a ruling: read the conflict's paths and either resolve it by hand in the
 worktree — a hotfix-lane act, since the tree is yours — or hand the human
@@ -1455,7 +1475,9 @@ Send each `send:` line — one more is printed for every earlier file the
 target's inbox does not hold — to the intake of the workspace the `to:`
 line names, as "Reporting from the other side" says, with the `no-role`
 line second; write `feedback <basename>` into the Written cell of each row
-whose only destination is `feedback`; and fill the ledger's Measurements
+whose only destination is `feedback` with one
+`record --ledger <ledger> --written-feedback "<basename>"`, `<basename>`
+the placed file's, once `close` has placed it, and fill the ledger's Measurements
 usage row from the `usage:` line. `feedback: own repository — <inbox path>`
 or `feedback: kept — <reason> — <path>` in place of the `to:` and `send:`
 lines means nothing is sent. `feedback: shoki's part absent — <path>` and
@@ -1490,8 +1512,10 @@ direction is written — a shoki `spawn` whose brief names those three files
 and the subject, landed as "Shusei, shoki, and the landing" says. A sweep's
 `fix` items are a shusei batch on `main`, verified against no plan. No
 `S-n` rows are written, since
-an inbox item's record is its copy's Triage. Write the sweep as one Events
-line of the roster. A sweep has no topic, so it measures nothing and
+an inbox item's record is its copy's Triage, and `record --direction` and
+`--written` do not run. Write the sweep as one Events line of the roster,
+with `record --roster .tanto/roster.md --roster-event`. A sweep has no
+topic, so it measures nothing and
 writes no feedback file: `usage.js measure` and `close` are not run, its
 kessai carries no `cost:` line, and its shoki brief's Feedback argument is
 `none`. It reads the inbox's feedback copies as step 2 says, and in the
@@ -1565,12 +1589,13 @@ learn that a seat is gone the way you learn of a missing batch report: a
 send errors and `seat` then shows it gone, the census's "Not listed" names
 it, a second `no-role` comes back, or your session wakes for another reason
 and the answer has not arrived. A Jisso or a shoki the census does not list
-is marked `dead` with an Events line naming what showed its process gone —
+is marked `dead`, with a `--roster-event` line naming what showed its process gone —
 the stale entry, the send error — and saying its conversation is kept, and
 is woken when a line is next due to it ("Sending to a seat"); only when
 that wake fails is its exit forced ("Replace", its first row). A forced
-exit — a failed wake, a second `no-role` — gets a roster Events line saying
-its shoroku proposal was not written and what was lost as far as you know,
+exit — a failed wake, a second `no-role` — gets a roster Events line,
+written by `record --roster-event`, saying its shoroku proposal was not
+written and what was lost as far as you know,
 the row `dead` on the census's "Not listed" or `stopped` on the second
 `no-role`, and you continue.
 
@@ -1718,8 +1743,9 @@ You are also a reporter: a Kanri in another repository is where a defect in
 this repository's skills is often noticed. On the human's request, write the
 report from `templates/bug-report.md` at
 `.tanto/sent/<YYYY-MM-DD>-<slug>.md` under your own `.tanto/`; read the
-intake's bare name — the `<name>` before the bracket of the `Name [ref]`
-column — from `<target workspace>/.tanto/roster.md`, the row whose Role is
+intake's bare name — the `<name>` in the third column, before any bracket,
+whichever header that roster carries — from
+`<target workspace>/.tanto/roster.md`, the row whose Role is
 `hosa` and whose Status begins with `live`, or the first data row when there
 is none,
 asking the human for the workspace's path if you do not know it, and
@@ -1827,23 +1853,31 @@ their own times — "ended now; a fresh Keikaku is requested at `<topic>`'s
 merge" — never one clause for both.
 
 **The census.** `node "$TANTO/scripts/boundary.js" census`, from the
-repository root, prints the roster's `live` and `queued` rows against the
-state file and the sessions `claude agents --json` lists under the root:
-the `spawner:` line first, `beating` or `stale`, then six headings —
-Listed, Parked, Ended, Not listed, No session id, and Not held — and writes
-nothing: you, the roster's one writer, act on what it prints. A session is
-its `sessionId`, a row's being the basename of its Transcript column, and
-every match of a session to a row compares `sessionId`s, never a name, a
-`[ref]`, or a full path. Run the census at your start, before taking a case
-(Start step 1's read of your own name stays, and the census follows it); at
-every boundary, in loop step 6 before the next request; at every wake-up
-whose line comes from a name no roster row holds — a Hosa's
-`slot-needed:` or `kessai answer:`, a Kikaku's `decision:` — before you
-handle the line; when `seat` prints `no entry`; in "Recovery"; at the plan
-close, before the archive move; and before you say anything about a listed
-session your roster does not hold. On `spawner: stale` mark nothing, as on
-`census: unavailable`: the state file has stopped moving. Otherwise what it
-prints decides:
+repository root, prints every roster row it places against the state file
+and the sessions `claude agents --json` lists under the root: the
+`spawner:` line first, `beating` or `stale`, then seven headings — Listed,
+Parked, Ended, Returned, Not listed, No session id, and Not held — and
+writes nothing: you, the roster's one writer, act on what it prints,
+through `record`. Which row goes under which heading, and your one act for
+it, is the table of `SKILL.md`'s "The census"; the bullets below carry the
+rules the table does not. A session is its `sessionId`, a row's being the
+basename of its Transcript column, and every match of a session to a row
+compares `sessionId`s, never a name, a `[ref]`, or a full path. Every
+roster Events line this file asks for is written by
+`record --roster .tanto/roster.md --roster-event "<text>"`, and none by
+hand. Run the census at your start, after `roster show` and before taking
+a case (Start step 4); at every boundary, in loop step 6 before the next
+request; at every wake-up whose line comes from a name no roster row
+holds — a Hosa's `slot-needed:` or `kessai answer:`, a Kikaku's
+`decision:` — before you handle the line; when `seat` prints `no entry`;
+in "Recovery"; at the plan close, before `boundary.js archive`, with
+**Returned**'s acts done before the move; and before you say anything
+about a listed session your roster does not hold. On a roster whose header
+is not the template's it prints
+`census: roster header is not the template's — run boundary.js migrate`
+and exits 1: run `migrate` as Start step 4 says. On `spawner: stale` mark
+nothing, as on `census: unavailable`: the state file has stopped moving.
+Otherwise what it prints decides:
 
 - **Parked** — a `live` row whose seat the state file holds `parked`,
   carrying `— mid-turn` when its last turn did not end by itself and
@@ -1857,25 +1891,37 @@ prints decides:
   continue, with a word in the seat.
 - **Ended** — a `live` or `queued` row whose seat the state file holds
   `stopped` or `removed`; the line ends in `by taiseki` when the seat ended
-  itself. Write the row `stopped`, with an Events line naming what ended
-  it — `taiseki`, or your own request.
+  itself. Write the row `stopped`, `--status "<sessionId> stopped"`, and a
+  `--roster-event` naming what ended it — `taiseki`, or your own request.
+- **Returned** — a `stopped` or `dead` row whose seat the state file holds
+  `running` or `blocked`, or the listing shows while the state file has not
+  ended it (`stopped`, `removed`), its line ending
+  `— <row status>; seat <state>`. For `dead`, the seat is back and nobody
+  wrote it: `--status "<sessionId> live"`. For `stopped`, the run ended it
+  and its process stayed: run `beat`, then write a `stop` request for its
+  `sessionId` unless `.tanto/spawner/requests/` already holds one for it.
 - **Not listed** — a row the state file does not hold, or holds `running`,
   `blocked`, or `gone`, and the listing does not show. An old-contract row (Start, step 4), `live` or
-  `queued`, is marked `dead` with the Events line
-  `old-contract row retired: <name>`. Otherwise a `queued` row stays
-  `queued`: a waiting seat's absence is expected, and the send of its
-  prompt wakes it. Any other row is marked `dead`. For a seat whose
-  transcript is on disk, `dead` is not final: its Events line names what
+  `queued`, is marked `dead` — `--status "<sessionId> dead"` — with the
+  `--roster-event` line `old-contract row retired: <name>`. Otherwise a `queued` row
+  stays `queued`, its line ending `— queued; its batch line wakes it`,
+  whatever the state file holds, `gone` included: a waiting seat's absence
+  is expected, and the send of its prompt wakes it. Any other row is
+  marked `dead` with `--status` and a `--roster-event`. For a seat whose
+  transcript is on disk, `dead` is not final: that `--roster-event` line names what
   showed the process gone — the stale entry, its census line ending
   `— listed without a pid (a stale entry)`, or the send error — and says
   the conversation is kept, and when a line is next due to that seat you
   wake it ("Sending to a seat") and its row goes `live` again. A seat whose
-  wake fails gets the Events line a seat whose shoroku proposal was not
+  wake fails gets, by `--roster-event`, the Events line a seat whose
+  shoroku proposal was not
   written gets, with what was lost as far as you know. A row that was the
   live Jisso's is the Replace table's first row, the tree verified first.
-- **Listed**, marked `renamed` — rewrite the row's Name column with the
-  listed name, bare, and write `resumed: <old name> → <new name>`; that is
-  all. The cell is a record: a line still goes to the name `seat` reads at the send.
+- **Listed**, marked `renamed` — run
+  `record --roster .tanto/roster.md --rename "<sessionId> <listed name>"`,
+  the name bare, which rewrites the row's Name cell and writes
+  `resumed: <old name> → <new name>` itself; that is all. The cell is a
+  record: a line still goes to the name `seat` reads at the send.
 - **Listed**, carrying `— blocked` — append `(blocked since <HH:MM>)`, this
   census's time, with
   `record --roster .tanto/roster.md --suffix "<sessionId> blocked <HH:MM>"`,
@@ -1899,22 +1945,30 @@ prints decides:
   is marked `dead` by the bullet above, with no transcript to wake it from,
   so there is nothing to enter. Once per seat, since you
   see no toast and the human may have missed the spawner's: the record is
-  the roster Events line `no first turn: <name>` you write with the request,
-  and a later census that prints the suffix for a seat that line names writes
+  the roster Events line `no first turn: <name>`, which `--roster-event`
+  writes with the request, and a later census that prints the suffix for a
+  seat that line names writes
   no second request. The seat is not stopped.
 - **Not held** — nothing to the human. A session becomes the run's through
-  a result file, never by being listed. A line carrying
-  `— spawned as <role> <topic>, result <id>` is a seat the launcher started
-  that no row holds: write its row from that result file with
-  `boundary.js record --seat`, as you do for the seats you request. A
-  standalone Kaiseki, whose topic is `—`, and a messenger, `denrei`, get no
-  row.
-- **No session id** — nothing.
+  a result file, never by being listed. A line with no `— row` mark that
+  carries `— spawned as <role> <topic>, result <id>` is a seat the launcher
+  started that no row holds: write its row from the state file's entry with
+  `boundary.js record --roster .tanto/roster.md --seat <that sessionId>`, as
+  you do for the seats you request. A standalone Kaiseki, whose topic is
+  `—`, and a messenger, `denrei`, get no row. A line carrying
+  `— row <status>`, whether or not `— spawned as …` follows it, is a row's
+  own seat — a `stopped` or `dead` row whose seat is parked, a `replaced`
+  row whose seat is listed — and asks for nothing: a wake is its line's, and
+  the successor's `stop` request ends a replaced Kanri.
+- **No session id** — a row no key finds, its Transcript cell carrying no
+  `sessionId`: nothing is written to it. `migrate` prints it `suspect:`,
+  and the human repairs or retires it once.
 - `census: unavailable — <reason>` — nothing is marked; the next census
   decides.
 
 A send error is answered by "Sending to a seat" — `seat` again, once, then
-the Events line `unsent:` — and not by a census of its own. `ListAgents`
+the Events line `unsent:`, by `record --event` or `record --roster-event`
+as that section says — and not by a census of its own. `ListAgents`
 lists every session on the machine and shows no cwd, so say nothing about
 a listed session your roster does not hold: the census lists only the
 sessions under this repository, so a session it does not list is another
@@ -1940,21 +1994,21 @@ for a run with none.
 | a handover is due | one `spawn` for your successor, with `succeeds: <your own sessionId>` | `/tanto kanri` |
 | a seat retires, or the run goes down | one `stop` per seat | — |
 | the human asks, from anywhere — Remote Control included — for a parked seat to be woken | one `wake --hold` on its `sessionId`, which holds the seat awake until 55 minutes after its last turn, its own standing park request then parking it; a `release` request for it when the human says the talk is done sooner | — |
-| the human asks you for a live seat to be set aside for a while — a priority call, not a lifecycle signal | one `stop` for that seat, its row `stopped` with an Events line quoting the human's word, its conversation kept and no shoroku proposal asked, since nothing of the seat's is lost; when the human says so, one `wake` on the same `sessionId`, the woken seat sent the Resuming line for its role, its row `live` again | — |
+| the human asks you for a live seat to be set aside for a while — a priority call, not a lifecycle signal | one `stop` for that seat, its row `stopped` by `--status` and a `--roster-event` line quoting the human's word, its conversation kept and no shoroku proposal asked, since nothing of the seat's is lost; when the human says so, one `wake` on the same `sessionId`, the woken seat sent the Resuming line for its role, its row `live` again by `--status` | — |
 
 ### Replace
 
 | Symptom | Action |
 | --- | --- |
-| the live Jisso is gone — the spawner's census marked it `gone`, or the spawner's guard stopped it (`strayed` in `seats.json`), the census does not list it, `wake` fails, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers). A seat the spawner's guard stopped is marked `stopped`, its conversation kept, with an Events line naming the guard and the worktree's branch, whose commits, if any, go to the human as a ruling, and is not resumed. Any other gone Jisso whose `wake` has not already failed is **resumed first**: mark the row `dead` with an Events line naming what showed its process gone and saying its conversation is kept, `wake` it (`boundary.js wake <sessionId>`), and when the result lands send the resumed seat `resume batch X from task N`, the line `SKILL.md`'s Resuming gives a Jisso resumed after a restart, its row `live` again. Only when that wake fails — its result carries an error, or the seat's transcript is not on disk — is the seat lost: its Events line says its shoroku proposal was not written and what was lost. For a lost seat, and for a guard-stopped one, write a `spawn` request with the same `batch=` file, its resume line rewritten to `resume batch X from task N`, or, under a skill-editing plan's queue, send that line to the next `queued` seat and put the lost seat to the human as a ruling, since the queue cannot be refilled early |
+| the live Jisso is gone — the spawner's census marked it `gone`, or the spawner's guard stopped it (`strayed` in `seats.json`), the census does not list it, `wake` fails, or a subscription made when the report was overdue expired with no report | verify the tree (`git status`, the last commit against the SDD ledger, leftovers). A seat the spawner's guard stopped is marked `stopped` by `--status`, its conversation kept, with a `--roster-event` line naming the guard and the worktree's branch, whose commits, if any, go to the human as a ruling, and is not resumed. Any other gone Jisso whose `wake` has not already failed is **resumed first**: mark the row `dead` by `--status`, with a `--roster-event` line naming what showed its process gone and saying its conversation is kept, `wake` it (`boundary.js wake <sessionId>`), and when the result lands send the resumed seat `resume batch X from task N`, the line `SKILL.md`'s Resuming gives a Jisso resumed after a restart, its row `live` again by `--status`. Only when that wake fails — its result carries an error, or the seat's transcript is not on disk — is the seat lost: its `--roster-event` line says its shoroku proposal was not written and what was lost. For a lost seat, and for a guard-stopped one, write a `spawn` request with the same `batch=` file, its resume line rewritten to `resume batch X from task N`, or, under a skill-editing plan's queue, send that line to the next `queued` seat and put the lost seat to the human as a ruling, since the queue cannot be refilled early |
 | Sekkei's reading shows a compaction | at its next commit — a verified boundary, or, with no batch in flight, when its work is ready — run "A seat's exit", then a `spawn` request with the same keys; the dialogue, the drafts, and the reviews on disk are the recovery point, and the new Sekkei takes the spec inputs and `dialogue.md` as its own |
 | Keikaku's reading shows a compaction | at its next commit, as for Sekkei (decision-6dea): run "A seat's exit", then a `spawn` request with the same three keys; the spec, `dialogue.md`, and the plan draft on disk are the recovery point, and the new Keikaku takes them as its own |
 | a Hosa's reading shows a compaction | nothing: the count arrives in its next reading, and the Hosa has already confirmed its summary's human items in its own window before continuing |
 | Kaiseki's reading shows a compaction | at its report: the report as it stands is the recovery point; run "A seat's exit", then, if the case is open, a `spawn` request with the same brief |
 | A handover trigger fired at a boundary | run the Handover section; your successor is spawned and needs nothing of the human's |
-| Sekkei is gone before the spec review is accepted | a `spawn` request with the same keys; the spec or its draft, the spec inputs, and `dialogue.md` on disk are the recovery point; run "A seat's exit" first if the session is alive and coherent, otherwise record in the roster's Events that its shoroku proposal was not written and what was lost |
-| Keikaku is gone before the plan is committed | a `spawn` request with the same three keys; the spec on the branch and the plan draft on disk are the recovery point; run "A seat's exit" first if the session is alive and coherent, otherwise record in the roster's Events that its shoroku proposal was not written and what was lost |
-| Kaiseki is gone before its report | verify `git status` is clean, and revert stray instrumentation if it is not; a `spawn` request with the same brief; the brief and the WIP commit are the recovery point; run "A seat's exit" first if the session is alive and coherent, otherwise record in the roster's Events that its shoroku proposal was not written and what was lost |
+| Sekkei is gone before the spec review is accepted | a `spawn` request with the same keys; the spec or its draft, the spec inputs, and `dialogue.md` on disk are the recovery point; run "A seat's exit" first if the session is alive and coherent, otherwise write, by `record --roster-event`, the roster Events line saying its shoroku proposal was not written and what was lost |
+| Keikaku is gone before the plan is committed | a `spawn` request with the same three keys; the spec on the branch and the plan draft on disk are the recovery point; run "A seat's exit" first if the session is alive and coherent, otherwise write, by `record --roster-event`, the roster Events line saying its shoroku proposal was not written and what was lost |
+| Kaiseki is gone before its report | verify `git status` is clean, and revert stray instrumentation if it is not; a `spawn` request with the same brief; the brief and the WIP commit are the recovery point; run "A seat's exit" first if the session is alive and coherent, otherwise write, by `record --roster-event`, the roster Events line saying its shoroku proposal was not written and what was lost |
 
 A `spawn` this table writes for a Sekkei, a Keikaku, or a Kaiseki waits
 while `seat` prints the old seat `interactive` ("A seat's exit"). A Kikaku
@@ -1980,7 +2034,8 @@ confirm the session is gone first — uncommitted work may be in the tree.
 
 The role is resident; the session that carries it is not. A plan's end is a
 boundary like any other for the run, and the next topic starts with a new topic
-directory and a new ledger under the same roster, cold-read as if fresh —
+directory and a new ledger under the same roster, read by `roster show` as
+at any start —
 normally by your successor, because the close hands the role over
 (decision-b6cb), and by you when the human declines that handover. Your only
 exit is the Handover section above.
@@ -2028,11 +2083,12 @@ none beats, resumes the seats a restart took, and tells you, by that prompt
 or, while you are alive, by a messenger. Act on a `fukki:` line only when
 `node "$TANTO/scripts/boundary.js" seat <the envelope's from-name>` prints
 a seat whose role is `denrei` — the command finds a `removed` seat by its
-name too; from any other sender the line gets no answer and an Events
-line. There is nothing to wait for: no tab holds state the run needs, so
+name too; from any other sender the line gets no answer and a
+`record --roster-event` line. There is nothing to wait for: no tab holds
+state the run needs, so
 the census marks at once.
 
-1. Run the census and act on its six headings. Wake, in one `wake` call,
+1. Run the census and act on its seven headings. Wake, in one `wake` call,
    every seat with a topic under **Parked** carrying `— mid-turn`, and send
    each
    `resume: your turn was cut — continue from where it stopped, and dispatch again anything you had running`
@@ -2040,7 +2096,9 @@ the census marks at once.
    idles at its last message, `resume batch X from task N`; verify the tree
    if a batch was in flight, and continue where the Progress line says.
 2. Reconcile the `renamed` marks as the census's **Listed** bullet says.
-   Send every `unsent:` line that has no `sent:` pair, writing the pair;
+   Send every `unsent:` line that has no `sent:` pair, writing the pair
+   where its `unsent:` line stands — `record --event` in the open ledger,
+   `record --roster-event` in the roster's Events;
    answer every `unanswered:` line that has no `answered:` pair.
 3. For every `paused:` row the ledger's Measurements holds unanswered,
    probe the family once with a trivial `default` subagent and send the
