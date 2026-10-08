@@ -30,7 +30,7 @@ Carrier: Kept.
 `roles/jisso.md`** (inbox 2026-10-08-feedback-ec9eae4 #15, #16, #17, #21, #24, #26 and
 inbox 2026-10-08-feedback-454d742 #33, #34, #45). Nine rows were
 added to `roles/jisso.md`'s "What tanto overrides" table by `fix: text
-corrections from the inbox sweep 2026-10-08`, taking it from 9 rows to 18.
+corrections from the inbox sweep 2026-10-08`, taking it from 12 rows to 21.
 They are sentences a dispatch prompt carries, not overrides of an SDD step,
 and they are candidate contents of the rules-file templates this issue
 decides; moving them out of `roles/jisso.md` is part of this decision.

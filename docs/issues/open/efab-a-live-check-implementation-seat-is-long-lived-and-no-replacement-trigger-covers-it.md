@@ -23,4 +23,4 @@ rather than by batch — is a decision beside issue-6620 (whether
 `ceiling.jisso` earns its keep) and issue-c44b (a ceiling for the measuring
 roles), neither of which names a live-check seat.
 
-Related: issue-6620, issue-c44b, issue-9f67.
+Related: issue-6620, issue-c44b.

@@ -24,4 +24,4 @@ editing `roster-ledger` took out of the roster and left in the requests
 directory.
 
 Related: issue-37ec (ten spawner, record and shell-transport gaps),
-issue-1a27 (no record path for a ruling), issue-4724.
+issue-1a27 (no record path for a ruling).
