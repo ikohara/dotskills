@@ -72,7 +72,8 @@ for them, and no list of departures is kept.
 
 When something is decided, write `.tanto/kikaku/<YYYY-MM-DD>-<slug>.md`
 from `templates/kikaku-decision.md` and send Kanri one line,
-`decision: <path>`. A decision that names an issue or a CLI behavior checks each issue's directory under `docs/issues/`
+`decision: <path>`. A decision that names an issue, a decision, or a CLI behavior checks each issue's directory under `docs/issues/`,
+each named decision's `status:` under `docs/decisions/` (one grep — a superseded ADR names its successor there),
 and each CLI claim against the report it would cite before the file is sent,
 so that the Sekkei it reaches does not start by correcting its premises.
 

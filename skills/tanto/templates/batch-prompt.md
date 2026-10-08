@@ -70,7 +70,9 @@ the first line below.
 ## Execute
 
 Execute tasks <N> to <M>, then stop. Do not start task <M plus 1>. At the
-boundary, write the report and go idle.
+boundary, write the report and go idle. For the fix wave, whose tasks live
+only in this prompt, each task follows here under its own `### Task <key>:`
+heading, so that `scripts/task-brief` cuts it as it cuts a plan's task.
 
 ## Report
 

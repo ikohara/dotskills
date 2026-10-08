@@ -107,7 +107,11 @@ taking over mid-plan must not create a second ledger.
    own transcript path from your scratchpad path, with the one `show`'s
    first line prints,
    `first: <name> — <sessionId> — <status> — counts <batches> <plans> <noticed>`;
-   then take exactly one case from "The four cases" below. A `show` that
+   then take exactly one case from "The four cases" below. A first line that
+   ends `not a kanri row` — `first: <role> <name> — <sessionId> — <status> — not a kanri row` —
+   names a roster whose first row is not Kanri's, a hand edit or an `--init`
+   whose first `--seat` was not Kanri's, which no case below takes: tell the
+   human in one line and stop. A `show` that
    ends with the line naming `boundary.js migrate` — a roster of an older
    shape — or prints `cleared: <n> rows — run boundary.js migrate` is
    answered first, before the census, by one
@@ -492,7 +496,10 @@ Per batch, in this order.
    `sessionId` as its sixth field. When `seat` prints `no entry` for the
    name, you write the reading as the ledger event
    `unresolved reading: <role> <name> — <reading>` through `record --event`
-   instead, and that row is not written. `jisso=` carries the Jisso's
+   instead, and that row is not written. A `sessionId` that `seat` printed
+   but that no roster row holds yet is written the same way by `record`
+   itself when the call carries `--ledger`, so the reading is kept and the
+   rest of the call is not refused. `jisso=` carries the Jisso's
    `sessionId` from its row when `seat=none` — a `queued` seat of a
    skill-editing plan's queue. What a dispatch cost is no line of yours:
    `usage.js` measures every dispatch from the transcripts at the close.
@@ -662,7 +669,9 @@ Per batch, in this order.
    step 6 — and the loop stops here; the next prompt is the successor's.
 6. **Record and send.** Fill the rendered prompt's two `<Kanri fills>`
    slots — the Previous batch verdict's ruling line
-   and the Rulings section's first line — and save it. When the prompt, or
+   and the Rulings section's first line — rewrite its Branch line's base
+   subject when a plan amendment you committed at this boundary moved the
+   base past the commit the brief named, and save it. When the prompt, or
    your own word to the human, promises a notice for an event inside the
    batch, arm one background watcher per promised event in the same act as
    the spawn and write each down there: you hold no clock between a spawn
@@ -706,9 +715,13 @@ Per batch, in this order.
    cell carries and never by a name, which `record` refuses — your Batches
    count moved by one when the batch is accepted, by `--kanri` with your
    own `sessionId`, your transcript's basename, and `--kanri-count batches`,
-   both left out on a rework; one `--s-item` per item of a shoroku proposal
+   both left out on a rework, and `--kanri-count` left out again when this
+   call is run a second time, since it is an increment where every other
+   write is idempotent (a count already off is set by `--kanri-counts`); one `--s-item` per item of a shoroku proposal
    step 4 form-checked, its destination the one the item names or empty;
-   and one `commit-done:` event per boundary reply step 5 took. `<key>` is
+   and one `commit-done:` event per boundary reply step 5 took — `--event`
+   stamps its line itself, so the text you give it carries no date or time
+   of its own. `<key>` is
    the key of the batch whose boundary this is. At a boundary no table is
    edited by hand: that call, and for a rework the second call below, are
    all of it.
@@ -783,8 +796,11 @@ After the last implementation batch is accepted:
    human-facing questions, which no script judges. Name in the same prompt what the replay skips
    — the test suites, the census, `verify` — so that the reviewer runs those in
    the working tree itself instead of deriving the list.
-2. Turn its findings into one more batch prompt — the final batch — and send
-   it to the next queued Jisso, as any batch. In that same turn write the
+2. Turn its findings into one more batch prompt — the final batch — rendered
+   by you from `templates/batch-prompt.md`, since no boundary brief renders
+   the fix wave's prompt (the brief renders a next batch from the plan's
+   rows, and the wave has none), and send it to the next queued Jisso, as
+   any batch. In that same turn write the
    `stop` request of the Jisso that ran the last implementation batch — its
    wait ended with this review's verdict. Two Jissos are the exception
    to loop step 4's stop at the boundary, not one: the Jisso that ran
@@ -812,7 +828,10 @@ After the last implementation batch is accepted:
    `<short id>` your own, from the ledger and the roster, as "A seat's exit"
    says for your own exit, and record its items as `pending` rows of this
    ledger — at every plan close, whether or not you will decline the close's
-   handover, so that the close is every seat's write-out, yours included. Then the one
+   handover, so that the close is every seat's write-out, yours included; a
+   predecessor's proposal already on disk stands as that tenure's, read by
+   the recommender beside yours, and yours covers your own tenure alone,
+   however short. Then the one
    recommendation over Jisso's proposal and every source the `pending` rows
    name, and the **kessai**: one message in your own window carrying the
    recommendation, the merge decision, and the merge's default form,
@@ -944,7 +963,9 @@ window and whose presence is not guaranteed: the instrument is the reading's
 own `context=`, the harness's `usage` accounting for the turn it billed, which
 is the token figure issue-40ed asked for. At every check outside a boundary
 take your own reading (`SKILL.md`, "The transcript reading") and write it
-into your own row's reading columns with one call,
+into your own row's reading columns with one call — `<reading>` being the
+first line `reading.js` printed, verbatim, since `record` parses that line
+alone and refuses an edited one —
 `record --roster .tanto/roster.md --kanri <your sessionId> --kanri-reading "<reading>" --read-at "<the moment>"`,
 the moment being `start`, `handover`, `plan close`, or `turn <HH:MM>` for
 the start of a turn between plans — at a boundary you take none: your row
@@ -1167,9 +1188,10 @@ and the close reads them once.
    one sentence, or a few adjacent ones in one file under `skills/`, and
    needs no decision is recommended `fix`, with the file, the text as it
    reads, and the text as it should read written out in the item, in the
-   exact markup of the file it lands in (a code span stays a code span),
-   and checked against the skill's current text before it is routed — a
-   repair the text already carries is marked so. An item
+   exact markup of the file it lands in (a code span stays a code span, and
+   a pipe in a table cell is escaped), and checked against the skill's
+   current text and against the linter, over a scratch copy of the file,
+   before it is routed — a repair the text already carries is marked so. An item
    whose citing document would be a tanto role file, a tanto template,
    `SKILL.md`, a tanto script, or `templates/tanto.json` has the destination
    `feedback`; one this repository's own documents will also cite — it can

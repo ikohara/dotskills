@@ -276,7 +276,7 @@ roster's old-contract rows, and goes on; the line asks for nothing, and names on
 A roster of an older shape — two tables, with a reading table under its
 own heading, or an archive of fifteen or sixteen columns — is brought to the current
 one by one command, run once from the repository root:
-`node <skill directory>/scripts/boundary.js migrate --roster .tanto/roster.md --archive .tanto/roster-archive.md`,
+`node <skill>/scripts/boundary.js migrate --roster .tanto/roster.md --archive .tanto/roster-archive.md`,
 with `--ledger <path>` for a ledger still open. It keeps one copy of each
 file it rewrites beside it, `<path>.pre-migrate`, refuses a shape it does
 not know, and prints the rows it could not place, which are the human's to

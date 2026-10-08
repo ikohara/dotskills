@@ -57,6 +57,13 @@ field explained beside it.
 }
 ```
 
+The smallest body is a `stop`'s — `op`, `role`, `topic`, and `sessionId`,
+nothing else:
+
+```json
+{ "op": "stop", "role": "jisso", "topic": "<topic>", "sessionId": "<sessionId>" }
+```
+
 - `op` — one of the eight, `spawn`, `stop`, `rm`, `resume`, `attention`,
   `park`, `hold`, and `release`. `rm` is written for shoki alone; the
   conversation of every other stopped seat is kept.
