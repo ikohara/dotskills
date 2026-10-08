@@ -109,6 +109,11 @@ function writeJsonAtomic(file, value) {
  * - `parkedAtMs`, `stoppedAtMs`, `listedAtMs` — epoch milliseconds, as
  *   `startedAtMs` is, and never compared with the minute-resolution
  *   `stamp()` strings the file also carries.
+ * - `configDir` — the config directory of the spawner that spawned or last
+ *   resumed the seat (issue-8a8f). The listing, `claude stop`, and every
+ *   other registry read are per config directory, so a seat under another
+ *   one is never resumed here and never judged by this listing. A seat with
+ *   no `configDir`, one from before this field, is the spawner's own.
  */
 function readSeats(root) {
   const doc = readJson(path.join(spawnerDir(root), "seats.json"));
@@ -156,6 +161,11 @@ function nowMs() {
 
 function heartbeatPath(root) {
   return path.join(spawnerDir(root), "heartbeat");
+}
+
+/** `.tanto/spawner/config-dir`: one line, the config directory the running spawner was started under (issue-8a8f). */
+function configDirPath(root) {
+  return path.join(spawnerDir(root), "config-dir");
 }
 
 /**
@@ -241,6 +251,20 @@ function listAgents(root) {
 
 function configDir() {
   return process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
+}
+
+/** This process's config directory as a seat's `configDir` and the `config-dir` file record it: resolved. */
+function recordedConfigDir() {
+  return path.resolve(configDir());
+}
+
+/**
+ * The config directory a seat lives under when it is not this spawner's,
+ * or null (issue-8a8f). A seat with no `configDir` is the spawner's own.
+ */
+function otherConfigDir(seat) {
+  if (!seat?.configDir) return null;
+  return comparablePath(path.resolve(seat.configDir)) === comparablePath(recordedConfigDir()) ? null : seat.configDir;
 }
 
 /**
@@ -631,10 +655,16 @@ function copyOf(got, sessionId, seat) {
  * CLI did not take is an error, the session it resumed stopped first. The CLI names the options it
  * brought back on stderr, which a result does not carry, so the log keeps
  * it.
+ *
+ * A seat under another config directory is refused before the listing is
+ * read (issue-8a8f): this listing cannot see its process, and a resume
+ * here would start a second process on its session id.
  */
 function opResume(root, request, seat) {
   if (request.prompt && (seat?.role || request.role) !== "kanri") return { error: "no prompt for this role" };
   if (seat?.status === "removed") return { error: "removed" };
+  const other = otherConfigDir(seat);
+  if (other) return { error: `config dir mismatch — seat under ${other}, spawner under ${recordedConfigDir()}` };
   const { entry, error } = listedEntry(root, request.sessionId);
   if (error) return { error: `claude agents: ${error}` };
   if (entry) {
@@ -667,6 +697,7 @@ function opResume(root, request, seat) {
     seat.name = session.name;
     seat.id = session.id || shortIdOf(got.out) || seat.id;
     seat.status = "running";
+    seat.configDir = recordedConfigDir();
     delete seat.goneAt;
     delete seat.parkedAtMs;
     delete seat.midTurn;
@@ -784,6 +815,8 @@ function opSpawn(root, request, seats, requestId) {
     cwd: session.cwd,
     startedAt,
     startedAtMs,
+    // The registry the seat's process is listed in (issue-8a8f).
+    configDir: recordedConfigDir(),
     status: stray ? "stopped" : "running",
     ...(stray ? { strayed: session.cwd } : {}),
     // The request's mark (spec 1.1), the request file it came in, and a
@@ -1413,8 +1446,23 @@ function noFirstTurn(root, seat, line, listed = false) {
   return true;
 }
 
-/** One `running` or `blocked` seat against the listing's entry for it. */
+// The seats under another config directory this process has logged, so that
+// the census's line is written once per spawner and not at every pass.
+const unseenLogged = new Set();
+
+/**
+ * One `running` or `blocked` seat against the listing's entry for it. A seat
+ * under another config directory is left as it is (issue-8a8f): this
+ * listing never shows it, and its absence here says nothing about it.
+ */
 function censusSeat(root, seat, session) {
+  if (otherConfigDir(seat)) {
+    if (!unseenLogged.has(seat.sessionId)) {
+      unseenLogged.add(seat.sessionId);
+      appendLog(root, `census: ${seat.sessionId} unseen — other config dir`);
+    }
+    return;
+  }
   if (!session && isContractDialogue(seat) && lookForTranscript(root, seat)) {
     parkByAbsence(root, seat);
     return;
@@ -1539,6 +1587,9 @@ function cmdRun(argv) {
   // spawner beating and no such file is talking to code from before it.
   // `tanto teishi` removes it with `pid` and `heartbeat`.
   fs.writeFileSync(path.join(spawnerDir(root), "contract"), "2\n");
+  // The config directory whose registry this spawner lists and spawns into
+  // (issue-8a8f): a launcher in a terminal with another one stops there.
+  fs.writeFileSync(configDirPath(root), `${recordedConfigDir()}\n`);
   const pass = guarded(root, () => {
     beat(root);
     const seats = readSeats(root);
@@ -1640,11 +1691,14 @@ module.exports = {
   shortIdOf,
   // For `boundary.js seat`'s fifth word (spec 2.5).
   turnEnded,
-  // For the launcher (`tanto.js`): the listing's key, the log, and the heartbeat.
+  // For the launcher (`tanto.js`): the listing's key, the log, the heartbeat,
+  // and the run's config directory (issue-8a8f).
   underRoot,
   appendLog,
   heartbeatPath,
   HEARTBEAT_STALE_MS,
+  configDirPath,
+  recordedConfigDir,
 };
 
 if (require.main === module) {

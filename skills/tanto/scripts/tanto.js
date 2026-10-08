@@ -10,7 +10,16 @@ const os = require("node:os");
 const path = require("node:path");
 const { spawnSync, spawn } = require("node:child_process");
 const { loadSessions, readTranscript } = require("./reading.js");
-const { readSeats, spawnerDir, underRoot, appendLog, heartbeatPath, HEARTBEAT_STALE_MS } = require("./spawner.js");
+const {
+  readSeats,
+  spawnerDir,
+  underRoot,
+  appendLog,
+  heartbeatPath,
+  HEARTBEAT_STALE_MS,
+  configDirPath,
+  recordedConfigDir,
+} = require("./spawner.js");
 // The roster's cells, read by `boundary.js`'s own grammar, the one place a
 // `\|` inside a cell is read back (roster-ledger 2.2).
 const { cells } = require("./boundary.js");
@@ -311,6 +320,41 @@ function liveSpawner(root) {
   if (!pid || !pidAlive(pid)) return null;
   const beat = heartbeatMs(root);
   return beat !== null && Math.abs(Date.now() - beat) <= HEARTBEAT_STALE_MS ? pid : null;
+}
+
+/**
+ * The config directory this run's seats live under, or null when nothing
+ * records one (issue-8a8f): a beating spawner's `config-dir` file, or with
+ * none beating the `configDir` of a seat the state file holds as `running`,
+ * `blocked`, or `parked`. The harness's registry — the listing, `attach`,
+ * `stop` — is per config directory, so a launcher under another one would
+ * resume those seats as second processes on their session ids.
+ */
+function runConfigDir(root, seats) {
+  if (liveSpawner(root)) {
+    try {
+      return fs.readFileSync(configDirPath(root), "utf8").trim() || null;
+    } catch {
+      return null;
+    }
+  }
+  const seat = seats.find((s) => ["running", "blocked", "parked"].includes(s.status) && s.configDir);
+  return seat ? seat.configDir : null;
+}
+
+/**
+ * The line and exit 1 when the run's config directory is not this
+ * terminal's (issue-8a8f), or null when they are the same or nothing is
+ * recorded.
+ */
+function otherConfigDirCode(root, seats) {
+  const recorded = runConfigDir(root, seats);
+  const here = recordedConfigDir();
+  if (!recorded || sameDir(recorded, here)) return null;
+  fail(
+    `tanto: this run's seats live under CLAUDE_CONFIG_DIR=${recorded}; this terminal has ${here} — open a terminal with the same value, or tanto teishi --seats there first`,
+  );
+  return 1;
 }
 
 function removeSpawnerFiles(root) {
@@ -788,6 +832,10 @@ function cmdUp(values, role, topic, word) {
   // "missing from the listing" signal by marking a seat gone, which would
   // race this decision if seats.json were read after startSpawner below.
   const seats = readSeats(root);
+  // A run is bound to the config directory it started under (issue-8a8f):
+  // checked before the spawner starts and before any request is written.
+  const elsewhere = otherConfigDirCode(root, seats);
+  if (elsewhere !== null) return elsewhere;
   ensureWorkspace(root);
   // A spawner that was beating already and wrote no `contract` runs code
   // from before this design (spec 4.2): it is asked for no request of this
@@ -935,6 +983,10 @@ function cmdTeishi(values) {
   const root = rootOf(values);
   if (!root) return 2;
   const waitMs = values.timeout ? Number(values.timeout) : WAIT_MS;
+  // As `cmdUp`'s (issue-8a8f): a stop from another config directory reaches
+  // no process of this run's.
+  const elsewhere = otherConfigDirCode(root, readSeats(root));
+  if (elsewhere !== null) return elsewhere;
 
   // A failed or timed-out stop used to be indistinguishable from success —
   // waitForResult was called for its side effect only, so the pidfile was

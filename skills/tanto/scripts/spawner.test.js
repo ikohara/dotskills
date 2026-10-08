@@ -990,6 +990,31 @@ test("resume passes --resume <sessionId> --bg and no other flag", () => {
   assert.match(log, /resume sess-new: note: woke session bg01 with its saved options/);
 });
 
+test("a seat carries the config directory it was spawned under, and a spawner under another refuses its resume and leaves its status alone (issue-8a8f)", () => {
+  const ws = workspace();
+  request(ws, SPAWN);
+  run(ws, ["run", "--root", ws.root, "--once"]);
+  const configFile = path.join(ws.root, ".tanto", "spawner", "config-dir");
+  assert.equal(seats(ws)[0].configDir, ws.config);
+  assert.equal(fs.readFileSync(configFile, "utf8"), `${ws.config}\n`);
+  // The second directory's registry lists none of the first's sessions,
+  // though --resume still finds the transcript by its id.
+  const listed = JSON.parse(fs.readFileSync(ws.state, "utf8")).sessions;
+  setState(ws, { sessions: listed.map((s) => ({ ...s, hidden: true })) });
+  const other = path.join(ws.root, "claude-config-b");
+  const { id } = request(ws, { op: "resume", sessionId: "sess-new" });
+  run(ws, ["run", "--root", ws.root, "--once"], { env: { CLAUDE_CONFIG_DIR: other } });
+  assert.equal(result(ws, id).error, `config dir mismatch — seat under ${ws.config}, spawner under ${other}`);
+  assert.equal(
+    calls(ws).some((argv) => argv[0] === "--resume"),
+    false,
+  );
+  assert.equal(seats(ws)[0].status, "running");
+  assert.equal(seats(ws)[0].goneAt, undefined);
+  assert.match(spawnerLog(ws), /census: sess-new unseen — other config dir/);
+  assert.equal(fs.readFileSync(configFile, "utf8"), `${other}\n`);
+});
+
 test("resume polls the listing until the resumed session reappears (Important 8)", () => {
   const ws = workspace();
   request(ws, SPAWN);

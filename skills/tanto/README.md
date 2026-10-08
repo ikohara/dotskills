@@ -285,6 +285,15 @@ directory, so after the plan that made the roster one table merges, the
 first `record` or census in each other workspace refuses once, with a line
 naming `boundary.js migrate`: run it there then, and the run goes on.
 
+A run is bound to the config directory of the terminal that started it. The
+harness lists, attaches to, and stops sessions per config directory, not
+per machine, so a terminal whose `$CLAUDE_CONFIG_DIR` differs sees none of
+the run's seats, and a resume from there would start a second process on a
+seat's session id. `tanto` and `tanto teishi` from such a terminal stop with
+one line naming both directories. To move a run to a second config
+directory, run `tanto teishi --seats` from a terminal with the run's own
+value, then `tanto` from one with the new value.
+
 ## Layout
 
 - `SKILL.md` — the shared contract every role reads.

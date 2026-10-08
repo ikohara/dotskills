@@ -64,7 +64,7 @@ function workspace(sessions = []) {
   return ws;
 }
 
-function launch(ws, argv) {
+function launch(ws, argv, env = {}) {
   const result = spawnSync(process.execPath, [LAUNCHER, ...argv], {
     encoding: "utf8",
     cwd: ws.root,
@@ -75,6 +75,7 @@ function launch(ws, argv) {
       CLAUDE_CONFIG_DIR: ws.root,
       FAKE_STATE: ws.state,
       FAKE_LOG: ws.log,
+      ...env,
     },
   });
   return { code: result.status, out: result.stdout || "", err: result.stderr || "" };
@@ -468,6 +469,51 @@ test("a rebooted Kanri the listing lost is resumed, never spawned again", () => 
   );
   assert.equal(lastAttach(ws), "bg07", got.err);
   assert.doesNotMatch(got.out, /tanto fukki/);
+});
+
+test("a run whose seats live under another config directory is refused with no spawner, pid file, or request, and resumed from its own (issue-8a8f)", () => {
+  const ws = workspace([
+    {
+      sessionId: "sess-live",
+      name: "seat-live [ffffff]",
+      cwd: ROOT,
+      kind: "background",
+      state: "running",
+      id: "bg07",
+      hidden: true,
+    },
+  ]);
+  writeRoster(ws, "live", "/tmp/sess-live.jsonl");
+  writeSeats(ws, [
+    {
+      sessionId: "sess-live",
+      id: "bg07",
+      name: "seat-live [ffffff]",
+      role: "kanri",
+      status: "running",
+      contract: 2,
+      configDir: ws.root,
+    },
+  ]);
+  const other = path.join(ws.root, "claude-config-b");
+  const line = `tanto: this run's seats live under CLAUDE_CONFIG_DIR=${ws.root}; this terminal has ${other} — open a terminal with the same value, or tanto teishi --seats there first\n`;
+  const pidfile = path.join(ws.root, ".tanto", "spawner", "pid");
+  const got = launch(ws, ["--timeout", "20000"], { CLAUDE_CONFIG_DIR: other });
+  assert.equal(got.code, 1);
+  assert.equal(got.err, line);
+  assert.equal(fs.existsSync(pidfile), false);
+  assert.deepEqual(requests(ws), []);
+  const stop = launch(ws, ["teishi", "--seats", "--timeout", "20000"], { CLAUDE_CONFIG_DIR: other });
+  assert.equal(stop.code, 1);
+  assert.equal(stop.err, line);
+  assert.deepEqual(requests(ws), []);
+  const same = launch(ws, ["--timeout", "20000"]);
+  assert.equal(same.code, 0, same.err);
+  assert.deepEqual(
+    requests(ws).map((r) => [r.op, r.sessionId]),
+    [["resume", "sess-live"]],
+  );
+  assert.equal(lastAttach(ws), "bg07", same.err);
 });
 
 test("a Kanri seat with no roster row is resumed once, never spawned or double-resumed (Important 7)", () => {

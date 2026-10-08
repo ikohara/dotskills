@@ -527,9 +527,15 @@ The keeping rule is one held seat per role and topic, and one Kanri, one
 Kikaku, and one Hosa per repository; the spawner refuses a request for a
 second Kanri, Kikaku, or Hosa while it holds one, a handover's successor
 excepted (rule 4). `ListAgents` shows name, `[ref]`, kind, and start time
-for every session on the machine — not the cwd, the model, or the role; the
-spawn request and its result carry those, and the census places a session
-under this repository by its cwd.
+for every session of its own config directory — `$CLAUDE_CONFIG_DIR`, else
+`~/.claude` — and none under a second config directory on the same machine;
+it shows not the cwd, the model, or the role; the spawn request and its
+result carry those, and the census places a session under this repository
+by its cwd. A run is bound to the config directory of the terminal that
+started it: the spawner records it in every seat it spawns and in
+`.tanto/spawner/config-dir`, never resumes or judges a seat under another
+one, and `tanto` from a terminal with another `$CLAUDE_CONFIG_DIR` stops
+with one line and starts nothing.
 
 **The census.** A seat is its `sessionId`, and a roster row's is the
 basename of its Transcript column without `.jsonl`. Every match of a session
