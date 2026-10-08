@@ -242,11 +242,11 @@ test("check exits 2 when an argument is unnamed and when a path is absent", () =
   assert.match(gone.err, /--report .* is not on disk/);
 });
 
-test("an unknown subcommand exits 2 and names the seven that exist", () => {
+test("an unknown subcommand exits 2 and names the ten that exist", () => {
   const f = fixture();
   const result = run(["verify"], f.dir);
   assert.strictEqual(result.code, 2);
-  assert.match(result.err, /check\|record\|census\|request\|seat\|wake\|beat/);
+  assert.match(result.err, /check\|record\|census\|roster\|archive\|migrate\|request\|seat\|wake\|beat/);
 });
 
 // The ledger and the roster the tests write to are copies of the templates
@@ -2528,6 +2528,87 @@ test("wake writes nothing on a stale spawner, and names a seat whose result neve
   const got = sub(quiet, ["wake", "sess-a", "--root", quiet.root], { TANTO_WAKE_WAIT_MS: "300" });
   assert.strictEqual(got.out, "spawner: beating\nerror: no result — sess-a\n");
   assert.strictEqual(got.code, 1);
+});
+
+test("archive moves the stopped, dead, and replaced rows whole with Ended and the Events entries verbatim, creating the archive from its template, and a second call moves nothing (roster-ledger 5)", () => {
+  const live = showRow("kanri", "—", "kanri-a", "live", "sess-kanri");
+  const handover = "handover | 9 | 9 | 9 | 1 | context=9 | 4 | 1 | 1";
+  const replaced = showRow("kanri", "—", "kanri-z", "replaced", "sess-before", handover);
+  const stopped = showRow("jisso", "t", "jisso-b", "stopped", "sess-done");
+  const queued = showRow("jisso", "t", "jisso-c", "queued", "sess-queued");
+  const dead = showRow("sekkei", "t", "sekkei-d", "dead", "sess-dead");
+  const events = [
+    "- 2026-10-07 10:00 — handover accepted by kanri-a from kanri-z — /home/u/.claude/projects/p/sess-before.jsonl",
+    "- 2026-10-07 11:00 — t closed",
+  ];
+  const f = rosterFixture([live, replaced, stopped, queued, dead], { events });
+  const got = run(["archive", "--root", f.root, "--now", "2026-10-08"], f.dir);
+  assert.strictEqual(got.code, 0, got.err);
+  // An archive row is the roster row whole, and Ended last.
+  const archived = (line) => `${line} 2026-10-08 |`;
+  const out = got.out.replace(/\r\n/g, "\n").trimEnd().split("\n");
+  assert.deepStrictEqual(out.slice(0, 3), [archived(replaced), archived(stopped), archived(dead)]);
+  assert.match(out[3], /^archive: 3 rows and 2 Events lines moved to .+roster-archive\.md$/);
+  const archive = fs.readFileSync(f.archive, "utf8").replace(/\r\n/g, "\n");
+  assert.ok(archive.includes(`${templateLine("roster-archive.md")}\n`), archive);
+  assert.ok(archive.includes(`\n${archived(replaced)}\n${archived(stopped)}\n${archived(dead)}\n`), archive);
+  assert.ok(archive.indexOf("## Events") < archive.indexOf(events[0]), archive);
+  assert.ok(archive.endsWith(`\n\n${events.join("\n")}\n`), archive);
+  const roster = fs.readFileSync(f.roster, "utf8");
+  assert.ok(roster.includes(`\n${live}\n${queued}\n\n`), roster);
+  assert.ok(!roster.includes("sess-before") && !roster.includes("t closed"), roster);
+  const again = run(["archive", "--root", f.root, "--now", "2026-10-09"], f.dir);
+  assert.strictEqual(again.code, 0, again.err);
+  assert.match(again.out, /^archive: 0 rows and 0 Events lines moved to /);
+  assert.strictEqual(fs.readFileSync(f.archive, "utf8").replace(/\r\n/g, "\n"), archive);
+});
+
+test("archive writes neither file when the roster's or the archive's header is not the template's, and appends to an archive that is (roster-ledger 2.1, 5)", () => {
+  const stopped = showRow("jisso", "t", "jisso-b", "stopped", "sess-done");
+  const f = rosterFixture([showRow("kanri", "—", "kanri-a", "live", "sess-kanri"), stopped], {
+    events: ["- 2026-10-07 10:00 — jisso-b stopped"],
+  });
+  const head = templateLine("roster-archive.md");
+  const prior = `${showRow("jisso", "t", "jisso-old", "stopped", "sess-old")} 2026-10-01 |`;
+  const body = (header) =>
+    [
+      "# tanto roster archive",
+      "",
+      "## Sessions",
+      "",
+      header,
+      separatorFor(header),
+      prior,
+      "",
+      "## Events",
+      "",
+      "- 2026-10-01 09:00 — earlier",
+      "",
+    ].join("\n");
+  const drifted = head.replace("| Ended |", "| Gone |");
+  fs.writeFileSync(f.archive, body(drifted));
+  const rosterBefore = fs.readFileSync(f.roster, "utf8");
+  const refused = run(["archive", "--root", f.root], f.dir);
+  assert.strictEqual(refused.code, 1);
+  assert.match(
+    refused.err,
+    /archive wrote nothing — .+roster-archive\.md: the Sessions table header is not the template's — expected .+\| Ended \|, found .+\| Gone \| — run boundary\.js migrate/,
+  );
+  assert.strictEqual(fs.readFileSync(f.roster, "utf8"), rosterBefore);
+  assert.strictEqual(fs.readFileSync(f.archive, "utf8"), body(drifted));
+  // The old header's Name cell, as Task 1's tests spell it.
+  const header = templateLine("roster.md").replace("| Name |", `| ${OLD_NAME} |`);
+  const old = rosterFixture([stopped], { header });
+  const oldRefused = run(["archive", "--root", old.root], old.dir);
+  assert.strictEqual(oldRefused.code, 1);
+  assert.match(oldRefused.err, /archive wrote nothing — .+roster\.md: the seats table header is not the template's/);
+  assert.strictEqual(fs.existsSync(old.archive), false);
+  fs.writeFileSync(f.archive, body(head));
+  const got = run(["archive", "--root", f.root, "--now", "2026-10-08"], f.dir);
+  assert.strictEqual(got.code, 0, got.err);
+  const archive = fs.readFileSync(f.archive, "utf8");
+  assert.ok(archive.includes(`${prior}\n${stopped} 2026-10-08 |\n\n## Events`), archive);
+  assert.ok(archive.endsWith("- 2026-10-01 09:00 — earlier\n- 2026-10-07 10:00 — jisso-b stopped\n"), archive);
 });
 
 test("request attention writes the intake's notice on a beating spawner, naming no seat, beside a seat's park request (tanto-feedback 7.2)", () => {

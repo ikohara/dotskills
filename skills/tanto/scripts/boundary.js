@@ -1,18 +1,22 @@
 // tanto's boundary instrument, beside `passage-check.js` and `reading.js`.
-// Seven subcommands. `check` runs the boundary's read-only commands and
+// Ten subcommands. `check` runs the boundary's read-only commands and
 // prints their output under fixed headings, and `record` writes the ledger's
 // and the roster's rows — both run by the `boundary.verify` kind from
 // `templates/boundary-brief.md`, and, under the design's shape 2, by a
-// headless session running the same brief. Kanri runs the next four itself:
-// `census`, the roster's `live` and `queued` rows against the spawner's state
-// file and the CLI's listing of the sessions under the root, read-only;
+// headless session running the same brief. Kanri runs the next seven itself:
+// `census`, the roster's rows against the spawner's state file and the CLI's
+// listing of the sessions under the root, read-only; `roster show`, the
+// roster's first row, its live and queued rows, its items count, and its
+// Events tail, read-only; `archive`, a plan close's move of the ended rows
+// and the Events lines to the archive; `migrate`, the one rewrite of a
+// roster, an archive, or a ledger of an older shape into its template's;
 // `seat`, a seat's status and its name at the moment of sending; `wake`, a
 // `resume` for each parked seat it names; and `beat`, the spawner's
 // heartbeat, read before every request. `request` is a seat's own, its
 // `park` or its `leave`, written as its turn's last tool call, or the
 // intake's `attention`, the notice that a consult has arrived, which names
-// no seat. Only `record` writes a document, and only `wake` and `request`
-// write request files. It judges nothing.
+// no seat. Only `record`, `archive`, and `migrate` write a document, and
+// only `wake` and `request` write request files. It judges nothing.
 //
 // Node, no dependencies, no shebang: always
 // `node "$TANTO/scripts/boundary.js" <subcommand>`.
@@ -1876,6 +1880,94 @@ function cmdBeat(argv) {
   return line === "spawner: beating" ? 0 : 1;
 }
 
+/**
+ * The lines of a document's `## Events` from its first entry to its last
+ * non-blank line, end-exclusive — the section's own prose before the first
+ * entry left out — or null when there is no such section.
+ */
+function eventSpan(lines) {
+  const span = sectionSpan(lines, "Events");
+  if (!span) return null;
+  let start = span.start + 1;
+  while (start < span.end && !lines[start].startsWith("- ")) start++;
+  let end = span.end;
+  while (end > start && lines[end - 1].trim() === "") end--;
+  return { start, end };
+}
+
+/**
+ * `archive [--root <dir>] [--roster <path>] [--archive <path>] [--now
+ * <YYYY-MM-DD>]` (roster-ledger 5): a plan close's move. Every row whose
+ * Status is `stopped`, `dead`, or `replaced` leaves the roster for the
+ * archive's Sessions table, copied whole with Ended, `--now` or today; then
+ * every Events entry of the roster moves to the archive's `## Events`,
+ * verbatim and in order. A `queued` row that never ran moves once Kanri has
+ * written it `stopped`, and a `cleared` row is `migrate`'s. The archive is
+ * created from its template when absent; both headers are checked against
+ * their templates first (roster-ledger 2.1), and both files are written or
+ * neither. Prints each row moved and one count line; a second call moves
+ * nothing.
+ */
+function cmdArchive(argv) {
+  const { values } = parseLine(argv, []);
+  for (const name of ["root", "roster", "archive", "now"]) {
+    if (values[name] === true) return fail(`archive: --${name} needs a value`, 2);
+  }
+  const root = rootOf(values);
+  const rosterPath = given(values, "roster") || path.join(root, ".tanto", "roster.md");
+  const archivePath = given(values, "archive") || path.join(root, ".tanto", "roster-archive.md");
+  if (!fs.existsSync(rosterPath)) return fail(`archive: --roster ${rosterPath} is not on disk`, 2);
+  const ended = (given(values, "now") || stamp(new Date())).slice(0, 10);
+  const roster = readDoc(rosterPath);
+  const archive = fs.existsSync(archivePath) ? readDoc(archivePath) : archiveFromTemplate(archivePath);
+
+  // Both headers against their templates first (roster-ledger 2.1); an
+  // archive not on disk yet is the template's own. `record`'s line, named
+  // for this command.
+  const refused = [
+    headerMismatch(rosterPath, "roster.md", null),
+    headerMismatch(archivePath, "roster-archive.md", "Sessions"),
+  ].filter(Boolean);
+  if (!sectionSpan(archive.lines, "Events")) {
+    refused.push(`record wrote nothing — ${archivePath}: no Events section — run boundary.js migrate`);
+  }
+  if (refused.length > 0) {
+    for (const line of refused) fail(refusalFor("archive wrote nothing", line), 1);
+    return 1;
+  }
+
+  const at = headerAt(roster.lines, null);
+  const width = cells(roster.lines[at]).length;
+  let end = at + 2;
+  while (end < roster.lines.length && roster.lines[end].startsWith("|")) end++;
+  const moved = [];
+  for (let i = end - 1; i >= at + 2; i--) {
+    const current = cells(roster.lines[i]);
+    if (!["stopped", "dead", "replaced"].includes(String(current[9] || "").split(/\s+/)[0])) continue;
+    while (current.length < width) current.push("—");
+    moved.unshift(row([...current.slice(0, width), ended]));
+    roster.lines.splice(i, 1);
+  }
+  archive.lines.splice(sessionsEnd(archive.lines), 0, ...moved);
+
+  const from = eventSpan(roster.lines);
+  const moving = from ? roster.lines.splice(from.start, from.end - from.start) : [];
+  if (moving.length > 0) {
+    const to = sectionSpan(archive.lines, "Events");
+    let at = to.end;
+    while (at > to.start + 1 && archive.lines[at - 1].trim() === "") at--;
+    // A blank line between the heading, or the section's prose, and the first entry.
+    const gap = /^(- |\s)/.test(archive.lines[at - 1]) ? [] : [""];
+    archive.lines.splice(at, 0, ...gap, ...moving);
+  }
+  writeDoc(archive);
+  writeDoc(roster);
+  for (const line of moved) console.log(line);
+  const entries = moving.filter((line) => line.startsWith("- ")).length;
+  console.log(`archive: ${moved.length} rows and ${entries} Events lines moved to ${archivePath}`);
+  return 0;
+}
+
 /** The items column a ledger opened before its retirement keeps, in two parts so that a sweep for it finds none. */
 const RETIRED_ITEMS_COLUMN = ["Stag", "e"].join("");
 
@@ -2117,6 +2209,7 @@ function main(argv) {
   const sub = argv[0];
   if (sub === "check") return cmdCheck(argv.slice(1));
   if (sub === "record") return cmdRecord(argv.slice(1));
+  if (sub === "archive") return cmdArchive(argv.slice(1));
   if (sub === "migrate") return cmdMigrate(argv.slice(1));
   if (sub === "census") return cmdCensus(argv.slice(1));
   if (sub === "roster") return cmdRoster(argv.slice(1));
@@ -2124,7 +2217,7 @@ function main(argv) {
   if (sub === "seat") return cmdSeat(argv.slice(1));
   if (sub === "wake") return cmdWake(argv.slice(1));
   if (sub === "beat") return cmdBeat(argv.slice(1));
-  return fail("usage: boundary.js check|record|census|request|seat|wake|beat <options>", 2);
+  return fail("usage: boundary.js check|record|census|roster|archive|migrate|request|seat|wake|beat <options>", 2);
 }
 
 process.exitCode = main(process.argv.slice(2));
