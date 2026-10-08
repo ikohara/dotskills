@@ -7,7 +7,8 @@ reporter's own repository (whose `.tanto/.gitignore` holds `*` and whose
 both if absent; `<slug>` is kebab-case from the symptom, one to six words),
 and sent to the intake as one line, `bug-report: <absolute path>`. The intake
 is the target workspace's `live` Hosa, else its Kanri: the bare name — the
-`<name>` before the bracket of the `Name [ref]` column — of the roster row
+`<name>` in the third column, before any bracket, whichever header that
+roster carries — of the roster row
 whose Role is `hosa` and whose Status begins with `live`, or of the first
 data row when there is none, checked against `ListAgents`, or given by the human when that
 roster is absent or the name is not listed. The intake copies the file to

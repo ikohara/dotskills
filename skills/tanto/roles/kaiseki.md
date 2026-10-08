@@ -43,8 +43,8 @@ nothing else, and the next `tanto kaiseki` starts a new session. And when
 the human asks for a defect to be
 reported to another repository, write the report from
 `templates/bug-report.md` at `.tanto/sent/<YYYY-MM-DD>-<slug>.md`, read the
-intake's bare name — the `<name>` before
-the bracket of the `Name [ref]` column — from that
+intake's bare name — the `<name>` in the third column, before any
+bracket, whichever header that roster carries — from that
 repository's `.tanto/roster.md`, the row whose Role is
 `hosa` and whose Status begins with `live`, or the first data row when there
 is none, the
