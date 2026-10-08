@@ -269,12 +269,12 @@ the move, made once, at a batch boundary or a plan's close:
 `tanto teishi --seats`, then `tanto`, and close the windows of that run's
 old seats. The new Kanri takes the run from its roster and ledger as a
 Kanri does after any loss. Until then, `tanto` prints one line naming the
-roster's old-contract rows, and goes on; the line asks for nothing, and counts only a
+roster's old-contract rows, and goes on; the line asks for nothing, and names only a
 `live` or `queued` row the state file does not hold; an old-contract row left
 `cleared` is `boundary.js migrate`'s to move to the archive, not the launcher's.
 
 A roster of an older shape — two tables, with a reading table under its
-own heading, or an archive of sixteen columns — is brought to the current
+own heading, or an archive of fifteen or sixteen columns — is brought to the current
 one by one command, run once from the repository root:
 `node <skill directory>/scripts/boundary.js migrate --roster .tanto/roster.md --archive .tanto/roster-archive.md`,
 with `--ledger <path>` for a ledger still open. It keeps one copy of each

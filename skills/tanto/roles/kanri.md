@@ -400,7 +400,7 @@ Then, in this order.
 2. Record in the ledger's Plan section the plan's path and the SDD ledger's,
    `.superpowers/sdd/<plan-basename>/progress.md`, which Jisso's
    `sdd-workspace` run will create, and note the landing in the roster's
-   Events list. Take your own reading again and add its `context=` figure to
+   Events list, with `record --roster .tanto/roster.md --roster-event`. Take your own reading again and add its `context=` figure to
    the Measurements per-boundary row as that topic's landing entry, beside the
    opening one, with the delta between them. Nothing moves: the ledger stays
    at `.tanto/<topic>/kanri.md`.
@@ -1961,8 +1961,9 @@ Otherwise what it prints decides:
   row whose seat is listed — and asks for nothing: a wake is its line's, and
   the successor's `stop` request ends a replaced Kanri.
 - **No session id** — a row no key finds, its Transcript cell carrying no
-  `sessionId`: nothing is written to it. `migrate` prints it `suspect:`,
-  and the human repairs or retires it once.
+  `sessionId`: nothing is written to it. The census prints it here, and the
+  human repairs or retires it once; `migrate` prints `suspect:` for a `live`
+  or `queued` row only while it brings an older roster to the template.
 - `census: unavailable — <reason>` — nothing is marked; the next census
   decides.
 
@@ -2030,7 +2031,7 @@ confirm the session is gone first — uncommitted work may be in the tree.
 | the `coldread answered:` line named the shoroku proposal, or the human does not want the plan now and the `exit:` line was answered | Keikaku is done; record its proposal's items as `pending` rows and write its `stop` request as soon as the proposal passes the form check — nothing is said to it, its conversation kept; a Keikaku is never reused across topics (decision-f496) |
 | Jisso's fix from the Kaiseki report passed review and tests, and no `blocks this task: yes` item is open | Kaiseki is done; record its proposal's items as `pending` rows and write its `stop` request as soon as the proposal passes the form check, or keep it if more of the same bug is expected |
 | the final batch is accepted, the close's shoroku proposal is written and passes the form check, and leftovers are clean | the last Jisso is done; write its `stop` request at once, the close being its exit — nothing is said to it, its conversation kept — the recommendation and the kessai run with it gone, and a merge declined with fixes wanted is a new batch on a new Jisso either way; a `queued` Jisso that never ran gets a `stop` request the same way, its row `stopped` |
-| the kessai is answered, shusei's batch is verified, the merge is done, and the ledger's Progress line says closed | this plan is closed. Run the census and do, before the move, every act its table gives ("Session lifecycle") — `stopped` for each row under **Ended**, `dead` for each `live` row under "Not listed", and **Returned**'s `--status` or `stop` request — a `queued` Jisso that never ran already written `stopped`; then move the rows with one `node "$TANTO/scripts/boundary.js" archive`, which copies every `stopped`, `dead`, and `replaced` row to `roster-archive.md` whole, its last reading with it, and every line under the roster's `## Events` after them, and creates the archive from `templates/roster-archive.md` when the file does not exist yet; read the rows it prints. Add the closed plan to your own counts, `record --roster .tanto/roster.md --kanri <your sessionId> --kanri-count plans`, move the topic's result files to `.tanto/<topic>/spawner-results/`, fill the ledger's Measurements row of the top-family peak — its usage row is the landing's, filled from `usage.js close` ("Shusei, shoki, and the landing") — and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb), the landing still ahead, its `usage.js close` with it, named in the handover file's In flight |
+| the kessai is answered, shusei's batch is verified, the merge is done, and the ledger's Progress line says closed | this plan is closed. Run the census and do, before the move, every act its table gives ("Session lifecycle") — `stopped` for each row under **Ended**, `dead` for each `live` row under "Not listed", and **Returned**'s `--status` or `stop` request — a `queued` Jisso that never ran already written `stopped`; then move the rows with one `node "$TANTO/scripts/boundary.js" archive`, which moves every `stopped`, `dead`, and `replaced` row to `roster-archive.md` whole, its last reading with it, and every entry under the roster's `## Events` after them, and creates the archive from `templates/roster-archive.md` when the file does not exist yet; read the rows it prints. Add the closed plan to your own counts, `record --roster .tanto/roster.md --kanri <your sessionId> --kanri-count plans`, move the topic's result files to `.tanto/<topic>/spawner-results/`, fill the ledger's Measurements row of the top-family peak — its usage row is the landing's, filled from `usage.js close` ("Shusei, shoki, and the landing") — and then hand over: the close is a handover trigger, so run the Handover section rather than wait for the next topic (decision-b6cb), the landing still ahead, its `usage.js close` with it, named in the handover file's In flight |
 
 The role is resident; the session that carries it is not. A plan's end is a
 boundary like any other for the run, and the next topic starts with a new topic
