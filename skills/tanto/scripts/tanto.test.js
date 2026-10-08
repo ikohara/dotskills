@@ -164,16 +164,19 @@ function writeTranscript(ws, sessionId, context) {
   return file;
 }
 
+// The roster template's twenty columns (roster-ledger 1.1): the seat's
+// eleven, then the nine reading columns, blank until a reading lands.
 const ROSTER_HEAD = [
   "# tanto roster",
   "",
-  "| Role | Topic | Name [ref] | cwd | Model | Effort | Branch | Mode | Started | Status | Transcript |",
-  "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+  "| Role | Topic | Name | cwd | Model | Effort | Branch | Mode | Started | Status | Transcript | Read at | Bytes | Records | Wake-ups | Compactions | Context | Batches | Plans | Noticed |",
+  "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
 ];
+const READINGS = "— | — | — | — | — | — | 0 | 0 | 0";
 
 function writeRoster(ws, status, transcript) {
   fs.mkdirSync(path.join(ws.root, ".tanto"), { recursive: true });
-  const row = `| kanri | — | seat-live [ffffff] | ${ws.root} | sonnet | high | main | auto | 2026-09-21 09:00 | ${status} | ${transcript} |`;
+  const row = `| kanri | — | seat-live [ffffff] | ${ws.root} | sonnet | high | main | auto | 2026-09-21 09:00 | ${status} | ${transcript} | ${READINGS} |`;
   fs.writeFileSync(path.join(ws.root, ".tanto", "roster.md"), `${[...ROSTER_HEAD, row].join("\n")}\n`);
 }
 
@@ -200,6 +203,11 @@ const LEAVE =
   "← or /exit leaves for the agent view, and leaving the agent view comes back here; open no seat from the agent view — tanto <role> is the way in. Leaving ends no seat, and a Kanri you /stop comes back with tanto";
 const TRUST =
   "this folder's trust is not recorded: run claude here once and answer \"Yes, I trust this folder\" — the agent view's own trust question after ← or /exit takes no input";
+
+// The line the launcher prints before it enters the Kanri the spawner holds
+// and the roster's first row does not name (roster-ledger 6).
+const heldLine = (sessionId) =>
+  `tanto: the roster's first row does not name the Kanri the spawner holds, ${sessionId}; entering it — run boundary.js roster show`;
 
 /** `.claude.json` in the fake config directory, keyed as the CLI keys the root. */
 function writeTrust(ws, accepted) {
@@ -1103,7 +1111,7 @@ test("teishi removes the contract file with pid and heartbeat (spec 4.2, 4.6)", 
   for (const name of ["pid", "heartbeat", "contract"]) assert.equal(fs.existsSync(path.join(dir, name)), false, name);
 });
 
-test("an old-shape roster earns one line naming its roles, and the launcher goes on (spec 4.7)", () => {
+test("an old-shape roster earns one line naming its roles, a cleared row no longer among them, and the launcher goes on (spec 4.7; roster-ledger 2.2)", () => {
   const ws = workspace([LIVE_KANRI]);
   const row = (role, topic, status, sessionId) =>
     `| ${role} | ${topic} | x-${role} | ${ws.root} | sonnet | high | main | auto | 2026-10-05 09:00 | ${status} | /tmp/${sessionId}.jsonl |`;
@@ -1120,7 +1128,7 @@ test("an old-shape roster earns one line naming its roles, and the launcher goes
   const old = launch(ws, ["kanri", "--timeout", "20000"]);
   assert.equal(old.code, 0, old.err);
   const line =
-    'old-contract rows in .tanto/roster.md (kikaku, sekkei): those windows are no longer seats of this run — see the README, "Moving a run"';
+    'old-contract rows in .tanto/roster.md (sekkei): those windows are no longer seats of this run — see the README, "Moving a run"';
   assert.equal(old.out.split(/\r?\n/).filter((l) => l === line).length, 1, old.out);
   assert.deepEqual(attaches(ws), ["bg07"]);
   fs.writeFileSync(
@@ -1206,6 +1214,88 @@ test("a Kanri resume that fails says so in one line and spawns a new Kanri", () 
   assert.match(got.err, /^tanto: the Kanri resume failed — .*unknown session sess-live.*; spawning a new Kanri$/m);
   assert.equal(requests(ws).filter((r) => r.op === "spawn" && r.role === "kanri").length, 1);
   assert.equal(lastAttach(ws), "bg01", got.err);
+});
+
+test("a held: answer to the launcher's Kanri spawn enters the listed Kanri the spawner holds, the line first, and writes no second spawn (roster-ledger 6, f07a)", () => {
+  const ws = workspace([LIVE_KANRI]);
+  writeRoster(ws, "replaced", "/tmp/sess-before.jsonl");
+  writeSeats(ws, [
+    { sessionId: "sess-before", id: "bg03", name: "seat-before", role: "kanri", status: "stopped" },
+    { sessionId: "sess-live", id: "bg07", name: "seat-live [ffffff]", role: "kanri", status: "running", contract: 2 },
+  ]);
+  const got = launch(ws, ["--timeout", "20000"]);
+  assert.equal(got.code, 0, got.err);
+  assert.ok(got.out.split(/\r?\n/).includes(heldLine("sess-live")), got.out);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn").length, 1);
+  assert.equal(requests(ws).filter((r) => r.op === "resume").length, 0);
+  assert.deepEqual(attaches(ws), ["bg07"]);
+});
+
+test("a held: answer naming a gone Kanri enters it by the one resume with the fukki word, and writes no second spawn (roster-ledger 6)", () => {
+  const ws = workspace([{ ...LIVE_KANRI, hidden: true }]);
+  writeRoster(ws, "replaced", "/tmp/sess-before.jsonl");
+  writeSeats(ws, [
+    { sessionId: "sess-before", id: "bg03", name: "seat-before", role: "kanri", status: "stopped" },
+    {
+      sessionId: "sess-live",
+      id: "bg07",
+      name: "seat-live [ffffff]",
+      role: "kanri",
+      status: "gone",
+      goneAt: "x",
+      contract: 2,
+    },
+  ]);
+  const got = launch(ws, ["--timeout", "20000"]);
+  assert.equal(got.code, 0, got.err);
+  assert.ok(got.out.split(/\r?\n/).includes(heldLine("sess-live")), got.out);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn").length, 1);
+  assert.deepEqual(
+    requests(ws)
+      .filter((r) => r.op === "resume")
+      .map((r) => [r.sessionId, r.prompt]),
+    [["sess-live", "/tanto fukki"]],
+  );
+  assert.deepEqual(attaches(ws), ["bg07"]);
+});
+
+test("a first row whose sessionId neither the listing nor the state file holds enters the state file's Kanri by role, the line first, and spawns none (roster-ledger 6, a14f)", () => {
+  const ws = workspace([{ ...LIVE_KANRI, hidden: true }]);
+  // f07a's cell: the separators lost, so the basename names no seat of the run.
+  writeRoster(ws, "live", "C:Usersu.claudeprojectspsess-live.jsonl");
+  writeSeats(ws, [
+    {
+      sessionId: "sess-live",
+      id: "bg07",
+      name: "seat-live [ffffff]",
+      role: "kanri",
+      status: "gone",
+      goneAt: "x",
+      contract: 2,
+    },
+  ]);
+  const got = launch(ws, ["--timeout", "20000"]);
+  assert.equal(got.code, 0, got.err);
+  assert.ok(got.out.split(/\r?\n/).includes(heldLine("sess-live")), got.out);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn").length, 0);
+  assert.deepEqual(
+    requests(ws)
+      .filter((r) => r.op === "resume")
+      .map((r) => [r.sessionId, r.prompt]),
+    [["sess-live", "/tanto fukki"]],
+  );
+  assert.deepEqual(attaches(ws), ["bg07"]);
+});
+
+test("the roster's first row is read through boundary.js's cells(): a \\| inside a cell moves no column (roster-ledger 2.2)", () => {
+  const ws = workspace([LIVE_KANRI]);
+  fs.mkdirSync(path.join(ws.root, ".tanto"), { recursive: true });
+  const row = `| kanri | — | seat-live [ffffff] | ${ws.root} \\| a copy | sonnet | high | main | auto | 2026-09-21 09:00 | live | /tmp/sess-live.jsonl | ${READINGS} |`;
+  fs.writeFileSync(path.join(ws.root, ".tanto", "roster.md"), `${[...ROSTER_HEAD, row].join("\n")}\n`);
+  const got = launch(ws, ["--timeout", "20000"]);
+  assert.equal(got.code, 0, got.err);
+  assert.deepEqual(attaches(ws), ["bg07"]);
+  assert.equal(requests(ws).filter((r) => r.op === "spawn" || r.op === "resume").length, 0);
 });
 
 test("the trust hint comes before the line on leaving when .claude.json does not record the folder's trust", () => {

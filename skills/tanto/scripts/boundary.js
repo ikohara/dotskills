@@ -2220,4 +2220,8 @@ function main(argv) {
   return fail("usage: boundary.js check|record|census|roster|archive|migrate|request|seat|wake|beat <options>", 2);
 }
 
-process.exitCode = main(process.argv.slice(2));
+// `tanto.js` reads the roster's cells through this file's own grammar
+// (roster-ledger 2.2), so the subcommands run only when the file is the
+// command itself.
+module.exports = { cells };
+if (require.main === module) process.exitCode = main(process.argv.slice(2));
