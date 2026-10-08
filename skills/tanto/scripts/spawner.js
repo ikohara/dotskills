@@ -26,7 +26,7 @@ const FIRST_TURN_WAIT_MS = 120000;
 const HEARTBEAT_STALE_MS = 60000;
 
 // The ops, in the order `templates/spawn-request.md` documents them.
-const OPS = ["spawn", "stop", "rm", "resume", "attention", "ack", "park", "hold", "release"];
+const OPS = ["spawn", "stop", "rm", "resume", "attention", "park", "hold", "release"];
 
 // The statuses a census pass checks against the listing's entry (spec 2.7):
 // a `parked` seat the listing shows again is `relist`ed into them first,
@@ -87,9 +87,9 @@ function writeJsonAtomic(file, value) {
 
 /**
  * `seats.json` holds one array, `seats`. A seat carries what its spawn knew
- * — `sessionId`, `id`, `name`, `role`, `topic`, `model`, `effort`, `mode`,
- * `worktree`, `cwd`, `startedAt`, `startedAtMs`, `transcript` — the marks
- * earlier rules set — `renamed`, `goneAt`, `noFirstTurn`, `strayed`,
+ * — `sessionId`, `id`, `name`, `role`, `topic`, `model`, `effort`, `branch`,
+ * `mode`, `worktree`, `cwd`, `startedAt`, `startedAtMs`, `transcript` — the
+ * marks earlier rules set — `goneAt`, `noFirstTurn`, `strayed`,
  * `undelivered` — and these (spec 2.8, section 6):
  *
  * - `status`, one of six: `running` (listed with a pid, in the background or
@@ -497,10 +497,11 @@ const NO_BG_ISOLATION = JSON.stringify({ worktree: { bgIsolation: "none" } });
  * the worktree Kanri cut as its cwd (`opSpawn`, spec 2.2). A resume passes
  * none of them — any flag on `--resume … --bg` starts a copy under a new id —
  * and the CLI brings back the options the spawn passed. `request.branch` is
- * not read here — it is informational, carried through into the result and
- * then into `record --seat`'s Branch column (`boundary.js`); a worktree
- * seat's real branch is Kanri's `worktree-shoki-<topic>`, cut in the merge
- * act (Important 4, task 26; Minor 5, branch-review.md).
+ * not read here — it is informational, carried into the result and into the
+ * seat's state entry, from either of which `record --seat` writes the
+ * Branch column (`boundary.js`; roster-ledger 2.4); a worktree seat's real
+ * branch is Kanri's `worktree-shoki-<topic>`, cut in the merge act
+ * (Important 4, task 26; Minor 5, branch-review.md).
  */
 function spawnArgs(request, name) {
   const args = ["--bg", "--name", name, "--settings", NO_BG_ISOLATION];
@@ -777,6 +778,7 @@ function opSpawn(root, request, seats, requestId) {
     topic: request.topic,
     model: request.model,
     effort: request.effort,
+    branch: request.branch,
     mode: request.mode || "auto",
     worktree: request.worktree,
     cwd: session.cwd,
@@ -1002,18 +1004,14 @@ function handleRequest(root, request, seats, requestId) {
 
   if (request.op === "park") return opPark(request, seat);
   if (request.op === "hold") return opHold(root, request, seat);
-  if (request.op === "release") {
-    if (!seat) return { error: `unknown seat ${request.sessionId}` };
-    // The mark alone (spec 2.4): a park the seat asked for while it was held
-    // proceeds at the next pass, and a seat that asked for none is left to
-    // its own next turn's end.
-    delete seat.held;
-    return { released: stamp() };
-  }
-
-  // ack
-  if (seat) delete seat.renamed;
-  return { acked: stamp() };
+  // release, the last of the eight ops: the op that cleared the census's
+  // rename mark is gone with the mark (roster-ledger 3, c330).
+  if (!seat) return { error: `unknown seat ${request.sessionId}` };
+  // The mark alone (spec 2.4): a park the seat asked for while it was held
+  // proceeds at the next pass, and a seat that asked for none is left to
+  // its own next turn's end.
+  delete seat.held;
+  return { released: stamp() };
 }
 
 // A seat parked at its own request and listed again with no new turn is
@@ -1436,8 +1434,10 @@ function censusSeat(root, seat, session) {
     strand(root, seat, session.cwd);
     return;
   }
+  // The name the listing shows now, and no mark beside it: the census's
+  // `— renamed` reads the listed name against the row's Name cell, and the
+  // mark had no reader (roster-ledger 3, c330).
   if (session.name && session.name !== seat.name) {
-    seat.renamed = seat.name;
     seat.name = session.name;
     appendLog(root, `census: ${seat.sessionId} renamed to ${session.name}`);
   }
