@@ -1023,61 +1023,6 @@ function rowCells(fixture, sessionId) {
   return line.slice(2, -2).split(" | ");
 }
 
-test("--rename back and forth between two names writes each change's resumed: line, so the Events tail agrees with the Name cell, and the same call twice writes nothing (spec 2.4)", () => {
-  const fixture = ledgerAndRoster();
-  const at = (minute) => ["--roster", fixture.roster, "--now", `2026-10-07 11:${minute}`];
-  const rename = (minute, name) => run(["record", ...at(minute), "--rename", `${JISSO_ID} ${name}`], fixture.dir);
-  const resumed = () =>
-    fs
-      .readFileSync(fixture.roster, "utf8")
-      .split(/\r?\n/)
-      .filter((line) => line.includes(" — resumed: "));
-  assert.strictEqual(rename("00", "tab-b").code, 0);
-  assert.strictEqual(rename("10", "jisso-z").code, 0);
-  const last = rename("20", "tab-b");
-  assert.strictEqual(last.code, 0, last.err);
-  assert.deepStrictEqual(resumed(), [
-    "- 2026-10-07 11:00 — resumed: jisso-z → tab-b",
-    "- 2026-10-07 11:10 — resumed: tab-b → jisso-z",
-    "- 2026-10-07 11:20 — resumed: jisso-z → tab-b",
-  ]);
-  assert.strictEqual(rowCells(fixture, JISSO_ID)[2], "tab-b");
-  const text = fs.readFileSync(fixture.roster, "utf8");
-  const again = rename("30", "tab-b");
-  assert.strictEqual(again.code, 0, again.err);
-  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), text);
-});
-
-test("a --seat rewrite keeps the row's Status cell and its suffix, an append writes live, and --seat <old> after --succeeds leaves the predecessor replaced (spec 2.4)", () => {
-  const fixture = ledgerAndRoster();
-  const record = (...args) => run(["record", "--roster", fixture.roster, ...args], fixture.dir);
-  const rewrite = resultFile(fixture, "jisso.json", { sessionId: JISSO_ID, transcript: null });
-  for (const word of ["queued", "stopped", "dead", "replaced"]) {
-    assert.strictEqual(record("--status", `${JISSO_ID} ${word}`).code, 0);
-    const got = record("--seat", rewrite);
-    assert.strictEqual(got.code, 0, got.err);
-    assert.strictEqual(rowCells(fixture, JISSO_ID)[9], word);
-  }
-  assert.strictEqual(record("--status", `${JISSO_ID} live`).code, 0);
-  assert.strictEqual(record("--suffix", `${JISSO_ID} blocked 10:12`).code, 0);
-  assert.strictEqual(record("--seat", rewrite).code, 0);
-  assert.strictEqual(rowCells(fixture, JISSO_ID)[9], "live (blocked since 10:12)");
-  // An append of a row no sessionId finds writes live.
-  assert.strictEqual(
-    record("--seat", resultFile(fixture, "new.json", { sessionId: SUCCESSOR_ID, transcript: null })).code,
-    0,
-  );
-  assert.strictEqual(rowCells(fixture, SUCCESSOR_ID)[9], "live");
-  // The handover: the predecessor stays replaced when its own result is written again.
-  const kanri = { role: "kanri", topic: "—", name: "kanri-y", sessionId: SUCCESSOR_ID, transcript: null };
-  const handover = ["--seat", resultFile(fixture, "kanri.json", kanri), "--succeeds", KANRI_ID];
-  assert.strictEqual(record(...handover).code, 0);
-  assert.strictEqual(rowCells(fixture, KANRI_ID)[9], "replaced");
-  const old = resultFile(fixture, "old.json", { role: "kanri", topic: "—", sessionId: KANRI_ID, transcript: null });
-  assert.strictEqual(record("--seat", old).code, 0);
-  assert.strictEqual(rowCells(fixture, KANRI_ID)[9], "replaced");
-});
-
 test("--status writes one of the five words into the row its sessionId finds, and refuses cleared, another word, and a name (spec 1.3, 2.3)", () => {
   const fixture = ledgerAndRoster();
   const seat = write(fixture.dir, "result.json", JSON.stringify(SEAT));
@@ -1147,6 +1092,61 @@ test("a peer line that carries a name in place of a sessionId does not parse (sp
   assert.strictEqual(refused.code, 1);
   assert.ok(refused.err.includes(`did not find a --peer-reading that parses (got ${line})`), refused.err);
   assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), before);
+});
+
+test("--rename back and forth between two names writes each change's resumed: line, so the Events tail agrees with the Name cell, and the same call twice writes nothing (spec 2.4)", () => {
+  const fixture = ledgerAndRoster();
+  const at = (minute) => ["--roster", fixture.roster, "--now", `2026-10-07 11:${minute}`];
+  const rename = (minute, name) => run(["record", ...at(minute), "--rename", `${JISSO_ID} ${name}`], fixture.dir);
+  const resumed = () =>
+    fs
+      .readFileSync(fixture.roster, "utf8")
+      .split(/\r?\n/)
+      .filter((line) => line.includes(" — resumed: "));
+  assert.strictEqual(rename("00", "tab-b").code, 0);
+  assert.strictEqual(rename("10", "jisso-z").code, 0);
+  const last = rename("20", "tab-b");
+  assert.strictEqual(last.code, 0, last.err);
+  assert.deepStrictEqual(resumed(), [
+    "- 2026-10-07 11:00 — resumed: jisso-z → tab-b",
+    "- 2026-10-07 11:10 — resumed: tab-b → jisso-z",
+    "- 2026-10-07 11:20 — resumed: jisso-z → tab-b",
+  ]);
+  assert.strictEqual(rowCells(fixture, JISSO_ID)[2], "tab-b");
+  const text = fs.readFileSync(fixture.roster, "utf8");
+  const again = rename("30", "tab-b");
+  assert.strictEqual(again.code, 0, again.err);
+  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), text);
+});
+
+test("a --seat rewrite keeps the row's Status cell and its suffix, an append writes live, and --seat <old> after --succeeds leaves the predecessor replaced (spec 2.4)", () => {
+  const fixture = ledgerAndRoster();
+  const record = (...args) => run(["record", "--roster", fixture.roster, ...args], fixture.dir);
+  const rewrite = resultFile(fixture, "jisso.json", { sessionId: JISSO_ID, transcript: null });
+  for (const word of ["queued", "stopped", "dead", "replaced"]) {
+    assert.strictEqual(record("--status", `${JISSO_ID} ${word}`).code, 0);
+    const got = record("--seat", rewrite);
+    assert.strictEqual(got.code, 0, got.err);
+    assert.strictEqual(rowCells(fixture, JISSO_ID)[9], word);
+  }
+  assert.strictEqual(record("--status", `${JISSO_ID} live`).code, 0);
+  assert.strictEqual(record("--suffix", `${JISSO_ID} blocked 10:12`).code, 0);
+  assert.strictEqual(record("--seat", rewrite).code, 0);
+  assert.strictEqual(rowCells(fixture, JISSO_ID)[9], "live (blocked since 10:12)");
+  // An append of a row no sessionId finds writes live.
+  assert.strictEqual(
+    record("--seat", resultFile(fixture, "new.json", { sessionId: SUCCESSOR_ID, transcript: null })).code,
+    0,
+  );
+  assert.strictEqual(rowCells(fixture, SUCCESSOR_ID)[9], "live");
+  // The handover: the predecessor stays replaced when its own result is written again.
+  const kanri = { role: "kanri", topic: "—", name: "kanri-y", sessionId: SUCCESSOR_ID, transcript: null };
+  const handover = ["--seat", resultFile(fixture, "kanri.json", kanri), "--succeeds", KANRI_ID];
+  assert.strictEqual(record(...handover).code, 0);
+  assert.strictEqual(rowCells(fixture, KANRI_ID)[9], "replaced");
+  const old = resultFile(fixture, "old.json", { role: "kanri", topic: "—", sessionId: KANRI_ID, transcript: null });
+  assert.strictEqual(record("--seat", old).code, 0);
+  assert.strictEqual(rowCells(fixture, KANRI_ID)[9], "replaced");
 });
 
 test("check pairs a commit-ready with its commit-done even when only one side carries a --batch suffix, and still reports a genuinely unpaired commit-ready", () => {
