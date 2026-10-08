@@ -1649,6 +1649,7 @@ test("a held: answer naming a Kanri a tab holds is refused as in a tab at once, 
   const got = launch(ws, ["--timeout", "20000"]);
   assert.equal(got.code, 1, got.err);
   assert.match(got.out, /^kanri is open in a VS Code tab; close the tab and run this again$/m);
+  assert.equal(got.out.includes("entering it"), false, got.out);
   assert.deepEqual(attaches(ws), []);
   assert.equal(requests(ws).filter((r) => r.op === "spawn").length, 1);
   assert.equal(requests(ws).filter((r) => r.op === "resume").length, 0);

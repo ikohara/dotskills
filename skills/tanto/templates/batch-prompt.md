@@ -72,8 +72,8 @@ the first line below.
 Execute tasks <N> to <M>, then stop. Do not start task <M plus 1>. At the
 boundary, write the report and go idle. For the fix wave, whose tasks live
 only in this prompt, each task follows here under its own `### Task <key>:`
-heading, and the Jisso cuts its brief by hand at the next `##` heading, as
-`roles/jisso.md` prescribes, since `scripts/task-brief` matches only a digit.
+heading, and the Jisso cuts its brief by hand, from that heading to the next
+`### Task` or `##` heading, since `scripts/task-brief` matches only a digit.
 
 ## Report
 

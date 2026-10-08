@@ -1002,7 +1002,11 @@ function writeSucceeds(doc, predecessor, value, root, now, written) {
   const role = cells(doc.lines[before])[0];
   if (role !== "kanri") return `a --succeeds whose roster row is kanri's (got ${role})`;
   const table = tableByHeader(doc.lines, SESSIONS_HEADER);
-  const [moved] = doc.lines.splice(seatRowAt(doc, seat.sessionId), 1);
+  const [stale] = doc.lines.splice(seatRowAt(doc, seat.sessionId), 1);
+  // The successor's row is `live`, whatever word a row it already held carried.
+  const live = cells(stale);
+  live[9] = "live";
+  const moved = row(live);
   doc.lines.splice(table.first, 0, moved);
   const at = seatRowAt(doc, predecessor);
   const current = cells(doc.lines[at]);

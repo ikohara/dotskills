@@ -704,11 +704,12 @@ function kanriRequest(root, sessions, outgoing) {
  * Never a spawn. `{ attach, resumed }`, or `{ code }` with the line said.
  */
 function enterHeldKanri(root, sessionId, byId, older, waitMs) {
+  const listed = byId.get(sessionId);
+  // A tab holds it: the refusal alone, since the line below promises an entry.
+  if (listed?.kind === "interactive") return { code: inTab("kanri") };
   process.stdout.write(
     `tanto: the roster's first row does not name the Kanri the spawner holds, ${sessionId}; entering it — run boundary.js roster show\n`,
   );
-  const listed = byId.get(sessionId);
-  if (listed?.kind === "interactive") return { code: inTab("kanri") };
   if (listed) return { attach: listed.id || sessionId, resumed: false };
   if (older) return { code: say(OLDER_SPAWNER, 1) };
   const request = { op: "resume", role: "kanri", topic: "—", sessionId, prompt: "/tanto fukki" };

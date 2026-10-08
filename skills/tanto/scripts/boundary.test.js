@@ -1149,6 +1149,20 @@ test("a --seat rewrite keeps the row's Status cell and its suffix, an append wri
   assert.strictEqual(rowCells(fixture, KANRI_ID)[9], "replaced");
 });
 
+test("--succeeds writes the successor's row live when it already held a row marked dead (roster-ledger hotfix, spec 2.4)", () => {
+  const fixture = ledgerAndRoster();
+  const record = (...args) => run(["record", "--roster", fixture.roster, ...args], fixture.dir);
+  const kanri = { role: "kanri", topic: "—", name: "kanri-y", sessionId: SUCCESSOR_ID, transcript: null };
+  const seat = resultFile(fixture, "kanri.json", kanri);
+  assert.strictEqual(record("--seat", seat).code, 0);
+  assert.strictEqual(record("--status", `${SUCCESSOR_ID} dead`).code, 0);
+  assert.strictEqual(rowCells(fixture, SUCCESSOR_ID)[9], "dead");
+  const got = record("--seat", seat, "--succeeds", KANRI_ID);
+  assert.strictEqual(got.code, 0, got.err);
+  assert.strictEqual(rowCells(fixture, SUCCESSOR_ID)[9], "live");
+  assert.strictEqual(rowCells(fixture, KANRI_ID)[9], "replaced");
+});
+
 test("check pairs a commit-ready with its commit-done even when only one side carries a --batch suffix, and still reports a genuinely unpaired commit-ready", () => {
   const fixture = ledgerAndRoster();
   const plan = write(fixture.dir, "plan.md", PLAN);
