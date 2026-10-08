@@ -87,7 +87,7 @@ R-12, and the shusei batch's, where `boundary.verify` read `pass` with
 `check: fail`). A plan-level list of accepted departures (file and line
 range) that `diff` subtracts before it exits would let `fail` mean something
 again at a fix wave's boundary. The open issue on `diff` having no path scope
-is a path filter, not a departures list; the shusei half of the same reading
+(issue-909c) is a path filter, not a departures list; the shusei half of the same reading
 is issue-32f9 (a shusei batch has no Verify block). decision-ca6d is why such
 waves exist.
 

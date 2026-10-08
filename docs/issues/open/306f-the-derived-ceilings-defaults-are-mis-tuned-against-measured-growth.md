@@ -58,7 +58,7 @@ Jisso's ceiling").
   with four skill loads and one 105 KB frame spends its ceiling before the
   plan lands. Not isolated by a measurement; the ledger's Measurements row has
   both figures, and a `/tanto fukki` after a lost service is the likely
-  driver. The cause is the open role-file diet issue (`roles/kanri.md` and
+  driver. The cause is the open role-file diet issue, issue-cca9 (`roles/kanri.md` and
   `SKILL.md` are 15 to 27k of every seat's baseline).
 - **Kanri reading the check brief at the kessai** (S-3): reading the 51 KB
   check brief (116 lines) and printing it verbatim took the Kanri from

@@ -44,4 +44,6 @@ Two remedies, both for the plan review's brief: apply the plan review's or
 the dry run's rubric to the passages for quality, not only against the spec,
 which would catch the code class before batch A; and, for a passage plan that
 documents commands it also writes, a plan-review pass that greps each such
-behavioral sentence against the script at the batch before.
+behavioral sentence against the script at the batch before. The quality
+rubric is new; the second is this issue's original remedy, now with a second
+data set.

@@ -32,6 +32,15 @@ fix wave and its first Critical stayed on the branch through five batches.
   Rejected: each fix changes lines a passage writes, so `verify --task N`
   fails by design and `passage-check diff` gains unaccounted lines at every
   boundary, and a fix round per task would have cost about 200k tokens each.
+- **Keep design-4807's conditional rule: fix in the batch a finding that is
+  mechanically verifiable and confined to prose or test assertions, and park
+  only production-code findings that carry an architectural trade-off.**
+  Rejected: a prose-only fix to a passage's bytes still fails `verify --task N`
+  and still adds unaccounted lines to `passage-check diff`, exactly as a code
+  fix does, and this run's fix wave took nine text Importants of that class.
+  The exception bought nothing the fix wave does not do once for the whole
+  branch. (Added 2026-10-08, before merge, at the shoroku review: the
+  original record left this existing rule out of its options.)
 - **Gather them for the fix wave, which runs `verify` for every task and
   accounts for supersession** (chosen).
 

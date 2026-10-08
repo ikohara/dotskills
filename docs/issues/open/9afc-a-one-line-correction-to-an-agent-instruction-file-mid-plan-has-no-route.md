@@ -23,7 +23,8 @@ prompt" cannot be followed without a human answer. Met once on
 
 To decide: which seat may carry a passage-less correction to an instruction
 file mid-plan, and on whose word. The open issue on a Jisso's authority over
-wording Kanri wrote into a batch prompt for an agent instruction file is the
+wording Kanri wrote into a batch prompt for an agent instruction file
+(issue-8df8) is the
 Jisso's half; this is the route itself.
 
 Carrier: Kept.

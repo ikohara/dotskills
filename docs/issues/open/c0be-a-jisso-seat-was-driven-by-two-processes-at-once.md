@@ -20,7 +20,7 @@ noticed and stood down. The census listed the seat once, as background;
 nothing in the run named the second process.
 
 Distinct from the open issue on `claudeProcessWrapper` being unmeasured as a
-way past the tab's open-elsewhere check: that is the check's bypass, and
+way past the tab's open-elsewhere check (issue-4a66): that is the check's bypass, and
 this is a second process on a background seat that no instrument sees.
 
 Carrier topic: `park-in-flight`.

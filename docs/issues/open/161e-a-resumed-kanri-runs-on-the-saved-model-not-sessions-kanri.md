@@ -22,7 +22,7 @@ new sessions.
 The start sequence's model check (decision-08bc) runs only in the start
 turn, so a resume's drift is seen by nobody unless the Kanri notices its own
 system prompt; a limit is never a model change (decision-1708), yet a resume
-changes the family silently. The open issue on Kanri's ask for a Sekkei
-naming no model family is the spawn path; this is the resume path.
+changes the family silently. issue-127d (resolved at this close: the spawn
+request now carries the family) was the spawn path; this is the resume path.
 
 Carrier topic: `park-in-flight`.

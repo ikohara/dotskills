@@ -722,8 +722,8 @@ half: `scripts/boundary.js check`, then `scripts/boundary.js record`, then the
 next batch prompt rendered from its template, then a verdict file. Kanri reads
 the verdict by `sections` — a line, not a transcript — and rules on it. At a
 boundary Kanri takes **no reading of its own** and edits **no table by hand**:
-the reading the dispatch carried is what `record` writes into the Residency
-row, and the ledger's Batches, Measurements, `S-n` and Session events rows are
+the reading the dispatch carried is what `record` writes into the seat's
+roster row (its reading columns), and the ledger's Batches, Measurements, `S-n` and Session events rows are
 `record`'s too, written idempotently, which is what makes a rework one re-run
 of the same command instead of another Edit. The resident's own single
 `record` call is the exception the handover case needs, when the loop stops
@@ -827,7 +827,7 @@ declines it, `declined` is terminal for that plan and the crossing is not put
 to them again. The token figure the harness prints is
 deliberately not used — its unit is not documented as the context window. A
 count threshold for **replacing a peer** is deferred as issue-40ed's other half
-— its handover half closed with decision-b6cb — and the Residency counters
+— its handover half closed with decision-b6cb — and Kanri's row's counters
 exist so one can be chosen later. Kanri now sees its
 own compaction two ways: as it always did, and as a `1` in the Compactions
 figure of the reading it takes at every trigger check — a figure it had not
@@ -1152,14 +1152,15 @@ line on what comes next. Kanri reads four of those sections first, and the batch
 prompt names which four. The questions section is the only one written in the
 human's chat language.
 
-**When a plan-mandated finding is fixed now, and when it is parked.** Fix it
-in the batch only when the change is both mechanically verifiable against
-downstream code the executor has already read and confined to prose or test
-assertions rather than to runtime behavior; a finding in production code that
-carries an architectural trade-off — an event-loop serialization assumption,
-an error-handling contract — is parked for the fix wave, which judges it once
-against the whole branch instead of rippling a mid-batch patch into the
-measurements the later batches take (exp-06b2).
+**When a plan-mandated finding is fixed now, and when it is parked.** It is
+always parked — decision-ca6d. A plan-mandated finding sits in the bytes a
+plan's passage writes, so any fix inside the batch, prose or code, fails
+`verify --task N` and adds unaccounted lines to `passage-check diff`. The Jisso
+reports it, Kanri rules it onto the fix wave's list at the boundary, and the
+fix wave, which runs `verify` for every task and accounts for every passage it
+supersedes, judges it once against the whole branch instead of rippling a
+mid-batch patch into the measurements the later batches take (exp-06b2). The
+earlier exception for a fix confined to prose or test assertions is gone.
 
 ## The Kaiseki branch and standalone mode
 
