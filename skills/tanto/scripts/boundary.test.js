@@ -1023,6 +1023,61 @@ function rowCells(fixture, sessionId) {
   return line.slice(2, -2).split(" | ");
 }
 
+test("--rename back and forth between two names writes each change's resumed: line, so the Events tail agrees with the Name cell, and the same call twice writes nothing (spec 2.4)", () => {
+  const fixture = ledgerAndRoster();
+  const at = (minute) => ["--roster", fixture.roster, "--now", `2026-10-07 11:${minute}`];
+  const rename = (minute, name) => run(["record", ...at(minute), "--rename", `${JISSO_ID} ${name}`], fixture.dir);
+  const resumed = () =>
+    fs
+      .readFileSync(fixture.roster, "utf8")
+      .split(/\r?\n/)
+      .filter((line) => line.includes(" — resumed: "));
+  assert.strictEqual(rename("00", "tab-b").code, 0);
+  assert.strictEqual(rename("10", "jisso-z").code, 0);
+  const last = rename("20", "tab-b");
+  assert.strictEqual(last.code, 0, last.err);
+  assert.deepStrictEqual(resumed(), [
+    "- 2026-10-07 11:00 — resumed: jisso-z → tab-b",
+    "- 2026-10-07 11:10 — resumed: tab-b → jisso-z",
+    "- 2026-10-07 11:20 — resumed: jisso-z → tab-b",
+  ]);
+  assert.strictEqual(rowCells(fixture, JISSO_ID)[2], "tab-b");
+  const text = fs.readFileSync(fixture.roster, "utf8");
+  const again = rename("30", "tab-b");
+  assert.strictEqual(again.code, 0, again.err);
+  assert.strictEqual(fs.readFileSync(fixture.roster, "utf8"), text);
+});
+
+test("a --seat rewrite keeps the row's Status cell and its suffix, an append writes live, and --seat <old> after --succeeds leaves the predecessor replaced (spec 2.4)", () => {
+  const fixture = ledgerAndRoster();
+  const record = (...args) => run(["record", "--roster", fixture.roster, ...args], fixture.dir);
+  const rewrite = resultFile(fixture, "jisso.json", { sessionId: JISSO_ID, transcript: null });
+  for (const word of ["queued", "stopped", "dead", "replaced"]) {
+    assert.strictEqual(record("--status", `${JISSO_ID} ${word}`).code, 0);
+    const got = record("--seat", rewrite);
+    assert.strictEqual(got.code, 0, got.err);
+    assert.strictEqual(rowCells(fixture, JISSO_ID)[9], word);
+  }
+  assert.strictEqual(record("--status", `${JISSO_ID} live`).code, 0);
+  assert.strictEqual(record("--suffix", `${JISSO_ID} blocked 10:12`).code, 0);
+  assert.strictEqual(record("--seat", rewrite).code, 0);
+  assert.strictEqual(rowCells(fixture, JISSO_ID)[9], "live (blocked since 10:12)");
+  // An append of a row no sessionId finds writes live.
+  assert.strictEqual(
+    record("--seat", resultFile(fixture, "new.json", { sessionId: SUCCESSOR_ID, transcript: null })).code,
+    0,
+  );
+  assert.strictEqual(rowCells(fixture, SUCCESSOR_ID)[9], "live");
+  // The handover: the predecessor stays replaced when its own result is written again.
+  const kanri = { role: "kanri", topic: "—", name: "kanri-y", sessionId: SUCCESSOR_ID, transcript: null };
+  const handover = ["--seat", resultFile(fixture, "kanri.json", kanri), "--succeeds", KANRI_ID];
+  assert.strictEqual(record(...handover).code, 0);
+  assert.strictEqual(rowCells(fixture, KANRI_ID)[9], "replaced");
+  const old = resultFile(fixture, "old.json", { role: "kanri", topic: "—", sessionId: KANRI_ID, transcript: null });
+  assert.strictEqual(record("--seat", old).code, 0);
+  assert.strictEqual(rowCells(fixture, KANRI_ID)[9], "replaced");
+});
+
 test("--status writes one of the five words into the row its sessionId finds, and refuses cleared, another word, and a name (spec 1.3, 2.3)", () => {
   const fixture = ledgerAndRoster();
   const seat = write(fixture.dir, "result.json", JSON.stringify(SEAT));
@@ -1972,6 +2027,21 @@ test("census matches a row whose Transcript cell is the bare session id: a block
   assert.ok(result.out.includes("\n## No session id\n\nnone\n"), result.out);
 });
 
+test("census lists a row of fewer than eleven cells under No session id, as roster show prints it", () => {
+  const f = censusFixture(
+    [
+      KANRI_ROW,
+      // A hand-damaged row: ten cells, no Transcript cell.
+      `| hosa | — | hosa-x | /repo | sonnet | high | main | auto | 2026-09-23 10:00 | live |`,
+      "| jisso | t | jisso-y |",
+    ],
+    (root) => [{ sessionId: "sess-kanri", name: "kanri-a", kind: "background", cwd: root, pid: 1111 }],
+  );
+  const result = census(f, "");
+  assert.strictEqual(result.code, 0, result.err);
+  assert.ok(result.out.includes("\n## No session id\n\nhosa — hosa-x\njisso t jisso-y\n\n"), result.out);
+});
+
 test("census prints Returned for an ended row whose seat runs again, a queued row the listing lost as waiting for its batch line, and a row with no sessionId under No session id (roster-ledger 3)", () => {
   const f = censusFixture(
     [
@@ -2530,6 +2600,16 @@ test("wake writes nothing on a stale spawner, and names a seat whose result neve
   const got = sub(quiet, ["wake", "sess-a", "--root", quiet.root], { TANTO_WAKE_WAIT_MS: "300" });
   assert.strictEqual(got.out, "spawner: beating\nerror: no result — sess-a\n");
   assert.strictEqual(got.code, 1);
+});
+
+test("roster show names the role on its first: line when the first row is not Kanri's, and prints no counts for it (roster-ledger 4.1)", () => {
+  const f = rosterFixture(
+    [showRow("hosa", "—", "hosa-x", "live", "sess-hosa"), showRow("kanri", "—", "kanri-a", "live", "sess-kanri")],
+    { seats: [{ sessionId: "sess-hosa", status: "running" }] },
+  );
+  const got = run(["roster", "show", "--root", f.root], f.dir);
+  assert.strictEqual(got.code, 0, got.err);
+  assert.strictEqual(got.out.split(/\r?\n/)[0], "first: hosa hosa-x — sess-hosa — live — not a kanri row");
 });
 
 test("archive moves the stopped, dead, and replaced rows whole with Ended and the Events entries verbatim, creating the archive from its template, and a second call moves nothing (roster-ledger 5)", () => {

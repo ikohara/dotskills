@@ -593,9 +593,11 @@ function writeSItem(doc, value, written) {
  * the ledger, while two in one batch are one call made twice. A call with no
  * `--batch` — a between-plans record — keys on the text alone. The roster's
  * `## Events` lines are written the same way, by `--roster-event`, with the
- * heading `Events` (spec 2.4).
+ * heading `Events` (spec 2.4). A `fresh` line skips the dedup: the caller has
+ * already seen that the thing it reports changed, as `--rename` has, and an
+ * older line of the same words (`A → B` after `B → A`) is no record of this one.
  */
-function writeEvent(doc, text, batch, now, written, heading = "Session events") {
+function writeEvent(doc, text, batch, now, written, heading = "Session events", fresh = false) {
   const span = sectionSpan(doc.lines, heading);
   if (!span) return heading === "Events" ? "the roster's Events section" : "the ledger's Session events section";
   const body = batch === null ? text : `${text} (batch ${batch})`;
@@ -603,7 +605,7 @@ function writeEvent(doc, text, batch, now, written, heading = "Session events") 
   // The same event is a line whose whole text after its stamp is this one:
   // the stamp holds no ` — `, so a line whose front does is an older event
   // that merely ends in these words.
-  for (let i = span.start + 1; i < span.end; i++) {
+  for (let i = fresh ? span.end : span.start + 1; i < span.end; i++) {
     const line = doc.lines[i];
     if (line.endsWith(tail) && !line.slice(0, line.length - tail.length).includes(" — ")) {
       written.push(line);
@@ -905,9 +907,10 @@ const SEAT_FIELDS = [
  * bare `<sessionId>.jsonl` Transcript cell, written for a seat that carries
  * no `transcript`, is kept while the seat still carries none and replaced
  * by the path once it carries one; a path stays when a later seat carries
- * `transcript: null`. The Status cell is written `live`: a later `stopped`
- * belongs to Kanri alone to write. The Transcript and cwd cells are checked
- * for shape on the way in (spec 2.2).
+ * `transcript: null`. The Status cell is written `live` on an append only: a
+ * rewrite keeps the word and its suffix, since the result carries no status,
+ * and a later `stopped` belongs to Kanri alone to write. The Transcript and
+ * cwd cells are checked for shape on the way in (spec 2.2).
  */
 function writeSeatRow(doc, file, root, written) {
   const { seat, problem } = seatOf(file, root);
@@ -953,7 +956,7 @@ function writeSeatRow(doc, file, root, written) {
   const current = cells(doc.lines[at]);
   while (current.length < fresh.length) current.push("—");
   const next = current.map((cell, i) => {
-    if (i === 9) return "live";
+    if (i === 9) return cell;
     const field = SEAT_FIELDS[i];
     return field && field !== "name" && seat[field] ? fresh[i] : cell;
   });
@@ -1036,7 +1039,7 @@ function writeRename(doc, value, now, written) {
   current[2] = name;
   doc.lines[at] = row(current);
   written.push(doc.lines[at]);
-  return writeEvent(doc, `resumed: ${old} → ${name}`, null, now, written, "Events");
+  return writeEvent(doc, `resumed: ${old} → ${name}`, null, now, written, "Events", true);
 }
 
 /**
@@ -1470,15 +1473,16 @@ function cmdCensus(argv) {
   const others = new Map();
   for (let i = table.first; i < table.end; i++) {
     const row = cells(lines[i]);
-    if (row.length < 11) continue;
-    const [role, topic, name] = row;
-    const status = row[9].split(/\s+/)[0];
+    // A row cut short is no exception: its missing cells read as none, and a
+    // row with no Transcript cell is one with no session id.
+    const [role = "—", topic = "—", name = "—"] = row;
+    const status = String(row[9] || "").split(/\s+/)[0];
     const sessionId = rowSessionId(row[10]);
     if (!sessionId) {
       // A row no key finds, whatever its status (roster-ledger 3): nothing
       // to mark; `migrate` prints a `live` or `queued` one `suspect:`, and
       // the human repairs or retires it once.
-      const other = status === "live" || status === "queued" ? "" : ` — row ${status}`;
+      const other = status === "live" || status === "queued" || status === "" ? "" : ` — row ${status}`;
       out["No session id"].push(`${role} ${topic} ${name}${other}`);
       continue;
     }
@@ -1632,7 +1636,10 @@ function cmdRoster(argv) {
   const rows = tableRows(lines, at);
   const word = (each) => String(each[9] || "").split(/\s+/)[0];
   const first = rows[0];
-  if (first) {
+  if (first && first[0] !== "kanri") {
+    // Another seat's row is no Kanri's: its role is named and no counts are shown.
+    console.log(`first: ${first[0]} ${first[2]} — ${rowSessionId(first[10]) || "—"} — ${first[9]} — not a kanri row`);
+  } else if (first) {
     const counts = [17, 18, 19].map((i) => first[i] || "—").join(" ");
     console.log(`first: ${first[2]} — ${rowSessionId(first[10]) || "—"} — ${first[9]} — counts ${counts}`);
   } else {
