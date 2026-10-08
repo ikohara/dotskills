@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-10-02
+updated: 2026-10-08
 ---
 
 Source: shoroku tanto-sweep
@@ -72,3 +72,5 @@ runs now, the same two forms, the same result.
 --test skills/kisou/scripts/` failed on this host (Node v24.16.0, "test
 failed" at the directory) while `node --test 'skills/kisou/scripts/*.test.js'`
 passed 57 of 57. The kisou-refresh spec of 2026-09-11 had the glob form.
+
+Resolved 2026-10-08 at roster-ledger's close: the rule is in `docs/notes/bash-tool-and-script-pitfalls.md` and `docs/notes/authoring-a-passage-plan.md`; the fourteen occurrences are in frozen documents.

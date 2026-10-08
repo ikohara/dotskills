@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-04
-updated: 2026-10-04
+updated: 2026-10-08
 ---
 
 Source: shoroku shoki-seat S-19
@@ -20,3 +20,5 @@ config at that moment, so the human opens the window on the family the check
 expects.
 
 Carrier: Kept.
+
+Resolved 2026-10-08 at roster-ledger's close: superseded — every seat is spawned by the run (decision-7a19), and the spawn request carries the family from `sessions.sekkei`.

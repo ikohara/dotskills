@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-22
-updated: 2026-09-22
+updated: 2026-10-08
 ---
 
 Source: shoroku tanto-bg-seats S-62
@@ -32,3 +32,5 @@ longer matches the plan's?
 Related: issue-96f2 (a fix wave has no instrument aimed at it), issue-7c28 (the
 instrument cannot record a ruled deviation — the reason a repaired block fails
 `verify` afterward).
+
+Resolved 2026-10-08 at roster-ledger's close: answered by decision-ca6d — a plan-mandated defect goes to the fix wave.

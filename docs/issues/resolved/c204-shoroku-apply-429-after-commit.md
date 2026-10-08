@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-10-03
+updated: 2026-10-08
 ---
 
 Source: inbox 2026-09-17-shoroku-apply-429-after-commit
@@ -92,3 +92,5 @@ halves: a checkpoint trail tells a dispatcher exactly how far the run got,
 whichever side of the commit the cutoff fell on.
 
 Serves exp-1b75 (tanto-issue-triage, 2026-10-03).
+
+Resolved 2026-10-08 at roster-ledger's close: covered — the dispatcher verifies the file, not the reply, and the apply now runs in shoki's seat with Kanri's landing checks reading the tree.

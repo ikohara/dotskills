@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-22
-updated: 2026-10-03
+updated: 2026-10-08
 ---
 
 Source: shoroku tanto-bg-seats S-65
@@ -32,3 +32,5 @@ spawned), decision-1c07 (the spawner is the notifier), issue-7202 (the
 launcher-side successor check's own deferred residues).
 
 Serves exp-1b75 (tanto-issue-triage, 2026-10-03).
+
+Resolved 2026-10-08 at roster-ledger's close: superseded — `tanto` follows a Kanri handover to the successor with nothing typed, and the spawner refuses a second Kanri.

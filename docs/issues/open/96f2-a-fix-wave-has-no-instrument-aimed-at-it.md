@@ -1,13 +1,13 @@
 ---
 id: "96f2"
 title: every instrument a passage plan builds is aimed at the plan, and none at the fix wave that edits the same files
-severity: low
+severity: medium
 depends_on: ["7481"]
 blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-10
-updated: 2026-10-01
+updated: 2026-10-08
 ---
 
 Source: session 2026-09-10
@@ -75,3 +75,20 @@ paragraph of prose specified verbatim is an unreviewed edit wearing a
 specification's clothes.
 
 Related: `docs/notes/tanto-consistency-checks.md` section 12.
+
+**2026-10-08, `roster-ledger` — a second case: the boundary's `diff` fence
+fails by design at a wave that departs from the passages** (shoroku
+roster-ledger S-94). Fence 7 of that plan's boundary (`diff`) failed at batch
+C and failed at the fix wave, each time by design: a wave that knowingly
+departs from the plan's passages cannot have a green boundary, and
+`boundary --plan` then reports `fail 8` on a run that is correct. Three
+boundaries of the plan were accepted over that `fail` by a ruling (R-10,
+R-12, and the shusei batch's, where `boundary.verify` read `pass` with
+`check: fail`). A plan-level list of accepted departures (file and line
+range) that `diff` subtracts before it exits would let `fail` mean something
+again at a fix wave's boundary. The open issue on `diff` having no path scope
+is a path filter, not a departures list; the shusei half of the same reading
+is issue-32f9 (a shusei batch has no Verify block). decision-ca6d is why such
+waves exist.
+
+Carrier topic: `passage-check-hardening`.

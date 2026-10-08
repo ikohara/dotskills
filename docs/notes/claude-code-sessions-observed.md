@@ -599,6 +599,18 @@ complaint. `roles/kanri.md`'s Handover case lists the three acts in one
 sentence; writing the predecessor's `stop` request in its own call, after the
 roster rewrite, keeps a refusal from costing the rewrite.
 
+## The auto-mode classifier denied a read-only pre-merge command as a merge (2026-10-08)
+
+Observed by the `roster-ledger` Kanri at its close. The auto-mode classifier
+denied a read-only pre-merge command (status, worktree list, merge-base, the
+skill's `usage.js id`) as "Merge Without Review" before any merge ran;
+reading the human's approval in the Kikaku decision file's section on the
+merge, then re-running the same read-only command citing it, cleared it, and
+the merge itself then ran without a prompt. A Kanri's close should read the
+approval's source in its own turn before the first merge-adjacent command.
+Beside the bundled-call refusal above: there the call was refused whole for
+its acts, here a read was refused for what it preceded.
+
 ## An editor resume renames a tab seat and can move its config directory; the census sees it before fukki does (2026-10-02)
 
 Observed on the `tanto-issue-triage` Sekkei, a tab seat the editor resumed
@@ -613,6 +625,13 @@ mid-review. Three facts at once:
   a second config directory, with both paths resolving to one transcript file.
 - The seat's effort read `high` after the resume where it had read `xhigh`
   before — a further data point for issue-42fc.
+
+A second trigger for the config-directory move, observed on `roster-ledger`'s
+Sekkei (2026-10-07): a `/login`. The session's config directory read a second
+config directory at its start and `~/.claude` after the `/login`; the skill,
+the agent definitions, and a later Kikaku seat's transcript were under
+`~/.claude`, so a roster Transcript column carries paths under both for one
+run. Harmless to the roster, whose key is the `sessionId`.
 
 ## `SendMessage` delivers to a multi-word bare name (2026-10-02)
 

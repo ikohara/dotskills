@@ -2,7 +2,7 @@
 id: "4807"
 title: tanto — multi-session orchestration as built
 created: 2026-09-06
-updated: 2026-10-07
+updated: 2026-10-08
 ---
 
 ## Purpose and shape
@@ -152,7 +152,11 @@ uncommitted edit — not at the merge. Rule 11 says so for sessions, which load
 the text once at their start; the launcher (`scripts/tanto.js`) and
 `scripts/boundary.js` are executed fresh at every call, so every repository
 that types `tanto` or runs a boundary command runs whatever the tree holds at
-that second.
+that second. The resident spawner is the exception: `scripts/spawner.js` runs
+the code it loaded, so a plan that edits it takes effect at the spawner's next
+restart, and until then the process the launcher started answers with the old
+code — measured on 2026-10-08, when a task removed the `ack` op and the
+running spawner kept answering `ack` until it restarted.
 
 The boundary that ADR defines — "the first boundary at which every file the
 plan touches agrees with every other" — is read as **every file a session
@@ -279,6 +283,16 @@ screen with no scrollback, so any line the launcher writes before
 instance — the `context=` line — and the fix wave moved it; the class binds
 every line the launcher adds later. A figure the human must read goes after
 the attach returns, or into `tanto jokyo`.
+
+**The launcher enters the Kanri the spawner holds** (exp-c53d). When the
+spawner refuses a Kanri spawn request with `error: held: <sessionId>`, or the
+roster's first row names a `sessionId` that neither the listing nor the state
+file holds, the launcher looks up the held Kanri (`running`, `blocked`, or
+`gone`) and enters it — attached when the listing shows it, and otherwise by
+the one `resume` request with its `/tanto fukki` prompt, since the spawner
+counts a `gone` Kanri as the holder and a `gone` seat has nothing to attach
+to. It writes no second spawn request, so a corrupted or stale first row no
+longer locks the human out of Kanri.
 
 ## Addressing, and why by born name
 
@@ -443,41 +457,69 @@ move in before it is trusted.
 
 Serves exp-173f, exp-19c1.
 
-The roster is kept by Kanri at a fixed path, its own row first, one row per role
-with the eight fields the handshake carries. It is the **address book**: the
-name-and-ref column is the address the row's session answers to, used as the
-bare name, and it stays correct because nothing renames a session.
+The roster is kept at a fixed path, `.tanto/roster.md`, Kanri's row first,
+**one row per seat** in one table of twenty columns: the seat's role, topic,
+name, cwd, model family, effort, branch, mode, start, status, and transcript,
+then its latest reading — the boundary or moment it was read at, the five
+figures — and, for Kanri's row only, the cross-plan counters the skill keeps
+(batches accepted, plans closed, compactions noticed since this Kanri's own
+start), because the roster is the only file that outlives a plan
+(decision-357d). A row is **keyed by its Transcript cell's `sessionId`**
+(decision-cdc4) and found by nothing else; the Name cell is the address the
+seat answers to as a bare name, a record rewritten at every rename the census
+prints, never a key. The separate Residency table, joined to the sessions
+table by the name string, is gone: that join was the source of every recorded
+roster defect, from duplicated rows on a rename to a corrupted handover row.
 
-The roster also carries a **Residency** table, one row per session of the
-current run with Kanri's first: the four figures of that session's latest
-reading, the boundary it was read at, and — for Kanri's row only — the
-cross-plan counters the skill keeps, batches accepted, plans closed and
-compactions noticed since this Kanri's own start, because the roster is the only
-file that outlives a plan. A handover resets Kanri's row to the successor with
-zero counts. A reading Kanri doubted and could not verify carries `(unverified)`
-after its Compactions figure. At a boundary none of these rows is hand-written:
-`scripts/boundary.js record` writes the Residency rows, the Measurements
-table's per-boundary entry with its `ttl=` cache regime, the `S-n` rows and
-the Session events, all idempotently, from the readings its dispatch carried
-(decision-a8cc). At a plan close every row whose session is dead,
-replaced or refused moves, with its last reading and the closed plan's Events
-lines, to `roster-archive.md` — one of the fifteen templates, and the file a threshold
-will one day be read from. The archive is untracked and dies with the workspace,
-so each plan's T2 direction carries the run's Residency rows into the dogfood
-report, which is where the readings survive.
+**`boundary.js record` is the roster's only writer, with `archive` and
+`migrate` for the moves they make, and it refuses what the template does
+not name.** Before any write it compares the header of every
+table it touches, cell for cell, with the same table in the skill's
+`templates/` — the roster, the ledger, the archive — and on a mismatch writes
+nothing and names `boundary.js migrate`, which rewrites an old-shape file
+once, keeping a `.pre-migrate` copy. A pipe in a value is escaped by the one
+cell grammar every reader in `boundary.js` and `tanto.js` shares, and a
+Transcript cell that is not `<uuid>.jsonl`, or a cell with a newline or a
+control character, is refused. Rows are created by `--seat` (from a spawn
+result or the state file's entry), by `--init` (Kanri's bootstrap, which
+creates the roster from the template), and by `--succeeds` (the handover:
+the successor's row first, the predecessor's `replaced`, one Events line).
+The readings, Kanri's counts, a status, a `live` suffix, a rename, and every
+roster Events line are `record` flags too, so no cell and no Events line is
+hand-written. At a boundary `record` also writes the Measurements table's
+per-boundary entry with its `ttl=` cache regime, the `S-n` rows and the
+Session events, all idempotently, from the readings its dispatch carried
+(decision-a8cc). A peer's reading names the peer by `sessionId`, which Kanri
+resolves from the bare name at receipt with `boundary.js seat`; a name `seat`
+cannot resolve becomes an `unresolved reading:` ledger event, not a row.
+`boundary.js roster show` prints the first row, the live and queued rows, and
+the Events tail, so that a Start or a handover reads the roster by one
+command.
 
-**The clear rule is every role's, and `dead` is left for the unlisted** —
-decision-ded8. `cleared` entered the roster for Kikaku and Hosa, the two seats
-the human `/clear`s rather than deletes; with every window reused it now covers
-a release in any role. `replaced` is kept for a Kanri's superseded row alone —
-a retired Jisso's released window is `cleared` like any other release, because
-one status per fact is what keeps the archive rule readable. `dead` survives for
-a window that is gone without ever having been on the roster. Three small
-drifts this vocabulary left on the roster template are tracked as issue-7f28.
+At a plan close `boundary.js archive` moves every `stopped`, `dead`, or
+`replaced` row, copied whole with an `Ended` date, and the roster's Events
+lines verbatim, to `roster-archive.md`, writing both files or neither. Nothing
+is joined and nothing is dropped, since the row already carries its last
+reading. The archive is untracked and dies with the workspace, so each
+plan's T2 direction carries the run's readings into the dogfood report,
+which is where they survive.
+
+**Five status words, one per fact.** `queued`, `live`, `stopped`,
+`replaced`, `dead`. `cleared` is no word of the roster's since decision-7a19,
+and `record --status` refuses it; a `cleared` row of the old contract is
+moved to the archive by `migrate` as it stands. `replaced` is every Kanri that
+handed over, whatever its process is doing; `dead` is the census's word for a
+seat whose process is gone and that was not replaced. The census prints seven
+headings, each one row of a table that names Kanri's one act
+(decision-158b); its **Returned** heading catches a `stopped` or `dead` row
+whose seat runs, and a `queued` seat the listing does not show is marked by
+nobody. decision-39fb stands whole: a `dead` row goes `live` at the wake that
+sends it a line.
 
 **A `live` cell carries one suffix, and the idle one wins** (exp-3a9e). No
 status word was added for a seat the census sees `blocked`; Kanri appends
-`(blocked since <HH:MM>)` to its `live` cell, the convention
+`(blocked since <HH:MM>)` to its `live` cell through `record --suffix`, the
+convention
 `(idle since <HH:MM>)` already used, and removes it at a later census that
 does not see the seat blocked. The suffix is the last census that saw the seat blocked,
 not its state now, and names no cause: a permission prompt, a usage-limit
@@ -490,12 +532,12 @@ more specific fact. The shoki-seat design left that precedence open, and the
 fix wave's clause in `roles/kanri.md`'s census bullets decided it. Every
 reader still tests the cell's first word.
 
-The address book gained a **Transcript** column with the same change. It holds
-the path each role's handshake carried, and it is the identity that survives a
-resume, so a handshake whose `transcript=` matches a row is that row's session
-resumed and rewrites the row in place. Kanri sends no handshake, so Kanri writes
-its own cell — at the bootstrap and again in the Handover case; that gap is what
-the whole-branch review found and the fix wave closed. That identity was
+The **Transcript** column holds each seat's transcript path, and it is the
+identity that survives a resume, which is why it became the row's key: a
+seat whose `sessionId` matches a row is that row's session resumed, and its
+row is rewritten in place. Kanri's own row is written by `record --init` at
+the bootstrap and by `record --succeeds` at a handover, from the state file's
+entry for its `sessionId`. That identity was
 exercised whole on 2026-09-14, when a profile switch — an editor-wide restart
 that moved the personal Claude Code configuration directory — landed mid-topic.
 Within about an hour every peer of the topic in flight was back: four roster
@@ -509,7 +551,8 @@ related findings and reached this repository's intake within the same hour.
 
 Between plans there is no
 ledger, so the roster also carries a Shoroku proposal items table with the
-ledger's columns, and Kanri moves the unwritten rows into the new ledger when a
+ledger's columns, written by `record --s-item` given `--roster` and no
+`--ledger`, and Kanri moves the unwritten rows into the new ledger when a
 topic opens.
 
 The conductor ledger is Kanri's, and Sekkei, Jisso and Kaiseki read it without

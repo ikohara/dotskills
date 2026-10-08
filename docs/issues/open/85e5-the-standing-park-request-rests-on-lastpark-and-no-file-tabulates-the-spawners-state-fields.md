@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-06
-updated: 2026-10-06
+updated: 2026-10-08
 ---
 
 Source: shoroku run-owned-seats S-85
@@ -28,3 +28,6 @@ have made the gap a lint; no file holds one.
 
 Carrier: Kept — a field-level table for the spawner's state file, which no
 topic in the order owns.
+
+Carrier topic: `park-in-flight`, in place of Kept (roster-ledger's close,
+2026-10-08).

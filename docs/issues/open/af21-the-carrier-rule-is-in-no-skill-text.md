@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-10-06
-updated: 2026-10-06
+updated: 2026-10-08
 ---
 
 Source: shoroku run-owned-seats S-108
@@ -34,3 +34,8 @@ decision, so the text has to point at the order's holder and cannot list the
 topics. Kin: issue-de42 and issue-13a1.
 
 Carrier topic: `tanto-feedback`.
+
+2026-10-08, `roster-ledger`'s close (shoroku roster-ledger S-12): read from
+`docs/issues/` on `main` on 2026-10-07, 54 of the 138 issues created since the
+triage (2026-10-02 or later) carry no carrier line at all — the rule's absence
+from the skill text, measured.

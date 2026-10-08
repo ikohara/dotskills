@@ -364,6 +364,16 @@ with `--fix` before the commit. A block the linter rewrites can never match.
   silently, so the literal changes (the `shoki-seat` fix wave, Task 14). Text
   an agent is to copy puts the space in words or outside the span.
 
+## A fence that carries its data after a heredoc fails open on a non-ASCII byte
+
+Measured on `roster-ledger`'s plan (2026-10-07): a non-ASCII byte (an em
+dash) in a bash fence of How a batch is verified cut the command short under
+`boundary --plan` on this Windows host; the heredoc then ended at end of
+input and fence 4 reported no residual, which reads as a pass. A fence that
+carries its data after a heredoc fails open. The shape that holds: keep the
+needle list in a `text` block and read it with `sed`, and build any
+non-ASCII needle by `printf`, so no fence's own bytes leave ASCII.
+
 ## The instrument's domains
 
 - When a plan changes a form an ADR describes, the plan's `O` sweep (its
@@ -812,6 +822,12 @@ step fell to the Jisso after the commit instead of before Verify, as the plan
 ordered it. The plan says which seat runs such a step and where in the step
 order its result is read.
 
+The contradiction recurred on `roster-ledger` (2026-10-07): the plan's Step
+5/6 said "run the whole suite in the background" while the role's rule for
+dispatched subagents says "never a background job". The per-file foreground
+run satisfies both, and it is the shape a plan that serializes a nine-minute
+suite writes in its Step 5/6.
+
 ## A wave's untouched-file fence compares against the wave's own base
 
 A fence that compares against the merge base cannot say "this wave did not
@@ -820,6 +836,38 @@ touch a file" when an earlier batch of the same plan did: in the
 Task 7's edit from batch B. A fence that asserts what one wave left untouched
 compares against the wave's own base commit, the one its prompt names. Kin
 issue-f94f.
+
+The same holds for `passage-check verify`, which a fix wave on a passage
+plan turns into the instrument that finds the wave's own side effects.
+Measured on `roster-ledger`'s fix wave (2026-10-08): capturing a clean
+`verify` baseline for every task before the first dispatch (one loop,
+eighteen one-line files) made the final comparison mechanical, and the
+wave's 26 changed passages and anchors matched the union of the three task
+reports' lists exactly. The fix-wave recipe for passage plans.
+
+What the same wave's prompt and briefs taught:
+
+- **A fix-wave prompt lists each finding in one line.** "Task 3's three
+  silent inputs" in the batch prompt named a finding group by its remedy's
+  parenthetical, which listed only one of the three; the diagnosis was one
+  hop away in a verdict file, and the Jisso needed a reading ruling. One line
+  per finding saves it.
+- **A brief is the prompt's closed list, copied verbatim.** The three briefs
+  were the batch prompt's closed list copied verbatim, the line ranges of the
+  diagnosis files (the SDD ledger, the verdicts, the branch review) and a
+  Done-when checklist, so that no implementer read the plan or the spec
+  whole. F1, eight items in two scripts and their tests (about 500 changed
+  lines), was one sonnet dispatch with one fix round; the brief's suggestion
+  to split it into two commits was not taken because the finding groups
+  share interleaved hunks, and a commit by explicit path cannot split a
+  file. A closed, diagnosed list of this size is one task.
+- **A second reading of dispatch size** (issue-b4e7): in the
+  `residency-retention` run of another repository, a whole-branch-review fix
+  wave of eleven findings over nineteen files in two areas went as one
+  `task.implement`, completed in a single pass (two commits, about 250k
+  subagent tokens, no blocked items), and its one scoped re-review caught
+  every substantive issue there was to catch. Two waves, one dispatch each,
+  of eight and eleven findings.
 
 ## A plan drafted in parallel is applied and run whole before its review
 
@@ -834,6 +882,35 @@ plan's cumulative `replay` and a harness that applied every `P` block to a
 copy of `skills/tanto/` and ran the suites found them. A plan drafted in
 parallel needs that cumulative apply-and-run before the review, and the
 review brief names the applied tree.
+
+## What a parallel-drafting brief pins
+
+Measured on `roster-ledger`'s plan (2026-10-07), three drafters in parallel:
+
+- **The shell preamble of a Verify step.** The three drafters' parts spelled
+  `$TANTO` three ways in Verify steps (bare, `$HOME/.claude`,
+  `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`); the brief fixed the task shape and
+  the passage grammar but not the shell preamble of a Verify step, and the
+  plan reviewer, not the assembly, caught it. The brief gives the one
+  preamble every Verify step opens with.
+- **One owner per file range and per helper name.** Drafting by parallel
+  batches needed three reconciliation rounds the brief could have saved —
+  shared helper names (Task 1's `headerAt` and friends, which Tasks 5, 8, 9
+  call), a template two drafters both took (`spawn-request.md`), and a
+  changed `seat` line that two role sites quote. A brief that lists, per
+  mechanism, the one task that owns each file range and each helper name
+  removes the rounds.
+
+## A run that edits its own contract: a text defect is always the plan's
+
+A run that edits the contract its own sessions read has a pattern worth a
+name. Measured on `roster-ledger` (2026-10-08): the reviewers checked the
+new text against the code, so a text defect was always the plan's, and the
+Jisso could not fix it under rule 11 and the "covers exactly this plan's
+passages" approval — nine such Importants (Tasks 12, 13, 16, 18) went to the
+fix wave. A plan that carries the fix wave's wording ahead of time for known
+plan-mandated findings would cost one round less. Where such findings go is
+recorded in decision-ca6d.
 
 ## A check a plan asks a Jisso to run asserts; it does not print
 

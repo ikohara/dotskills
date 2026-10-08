@@ -49,6 +49,13 @@ plan runs against the skill itself are in
   before opening the report caught a claim (`ls templates/` → 11) whose
   distinctness from the diff base would have voided the boundary had the
   claim failed.
+- For a plan that ships literal Markdown passages, the spec reviewer's
+  strongest check reduces to one rebuild script: rebuild the file from BASE
+  by replacing each "replace exactly these N lines" block with its "→"
+  block, assert each old block occurs once with its line count, and compare
+  the result to HEAD byte for byte. All seven spec reviews of one
+  `roster-ledger` batch (2026-10-08) did it in 35 to 60 seconds and left
+  nothing to judge by prose — the SDD review recipe for passage plans.
 
 ## `verify` and reconstruction answer different questions
 

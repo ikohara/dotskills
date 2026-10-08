@@ -132,6 +132,15 @@ and the inbox bundle filed as issue-37ec records it twice more, a Kanri's
 only from the harness's environment-update line. Look elsewhere with a
 subshell, `( cd <dir> && … )`, or with `git -C <dir>`.
 
+It recurred on `roster-ledger`'s batch C (2026-10-08): the dispatch frame's
+"never `cd`" was broken four times in one batch with nothing moved in the
+tree, and once by the controller, whose primary working directory the
+harness then reported as changed — five breaks in one batch. The harness's
+"Environment update" line was again the only signal. A rule a dispatch frame
+states is best effort against what a shell's persisted directory does; the
+Jisso role text now carries the sentence for its dispatches and its own
+calls.
+
 ## Anchor a table edit on a whole line (2026-10-02)
 
 An Edit whose `old_string` was only the start of a ledger table row
@@ -241,3 +250,19 @@ child inherits it when it preloads the assignment with
 Node 24's default test reporter colors its `ℹ` summary lines even when the
 output is redirected, so a `grep '^# '` for a TAP summary needs the suite
 run with `--test-reporter=tap`.
+
+## A heredoc collapsed `\n` inside `printf`, and the fence still passed `bash -n` (2026-10-07)
+
+Writing a bash fence through a heredoc in the shell tool collapsed `\n`
+inside `printf '%s\n'` to a real newline twice while `roster-ledger`'s plan
+was assembled; the corrupted fence passed `bash -n`. A syntax check is blind
+to a changed format string. Fences written by script need a check that runs
+them, not only a syntax check. Kin to the doubled-backslash section above.
+
+## The permission classifier refused a plan fence piped to bash (2026-10-08)
+
+In `roster-ledger`'s fix wave, impl-F3 was refused by the permission
+classifier on `sed -n '518,523p' <plan> | bash` (extracting a plan fence
+and piping it to a shell) and typed the fence's commands out; impl-F1 and
+impl-F2 ran the same spelling. A brief that wants a fence re-run gives the
+commands, not a line range of the plan.

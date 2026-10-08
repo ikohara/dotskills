@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-10-08
 ---
 
 Source: session 2026-09-17
@@ -28,3 +28,5 @@ evidenced against.
 Reported by Hosa `kuchidome-6b [d17de0]` from `C:\Users\0000105523\devel\kuchidome`,
 2026-09-15 (delayed in transit — original addressee no longer live; relayed
 by this repository's own Kanri 2026-09-17).
+
+Resolved 2026-10-08 at roster-ledger's close: not a defect — its figure (eleven findings, nineteen files, one `task.implement`, about 250k tokens, one scoped re-review) joins the fix-wave section of `docs/notes/authoring-a-passage-plan.md` as a second reading of dispatch size.

@@ -124,3 +124,87 @@ instrument does not count by design. So:
   mechanisms that serve its want. A round task's Step 2 carries an absence
   grep over the consistency note, `spawner.js` and `boundary.js` before a
   Reason says a check or signal is missing.
+
+## The pile on 2026-10-07, and the order it moved
+
+Read by Kikaku from `docs/issues/` on `main` after `tanto-feedback`'s close,
+before it placed `roster-ledger` sixteenth:
+
+- **The pile.** 372 open, 25 deferred, 125 resolved — 397 open and deferred
+  against the 312 of 2026-10-03. Of the open: 1 high (issue-f07a), 153
+  medium, 218 low. 138 were created on 2026-10-02 or later, by the five
+  closes since the triage, and none of them was read by the triage.
+- **Carriers.** The triage's `Assigned to` lines still stood on 56
+  (`passage-check-hardening`), 3 (`09c2-upgrade`), and 1
+  (`passage-plan-generation`). Of the 138 post-triage issues, 54 carried no
+  carrier line at all; 19 read `Carrier: Kept.`; 7 named
+  `passage-check-hardening`; 2 named `roster-ledger`; 3 named the hotfix
+  lane; the rest were Kept with a file named. The rule that every close
+  names a carrier is in no skill text (issue-af21).
+- **The pile by title keyword**, first match wins, an upper bound (count /
+  medium / without a carrier / created 10-02 or later): Kanri, ledger,
+  roster, census, handover 122 / 48 / 115 / 49; Keikaku, plan, passage-check
+  78 / 39 / 39 / 20; Jisso, batch, boundary, verdict 55 / 26 / 44 / 21;
+  spawner, launcher, park, wake 42 / 13 / 41 / 25; Sekkei, spec, brief 33 /
+  10 / 32 / 11; shoroku, close, kessai, shoki 17 / 7 / 17 / 6. The
+  Kanri/ledger pile was the largest without a carrier and grew fastest — 49
+  of its 122 in five days.
+- **The liveness instrument**, run by hand —
+  `node scripts/issue-liveness.js --out <dir> --ref main`, 87.6 s: alive 170,
+  partly 155, gone 21, none 51. Of `roster-ledger`'s fourteen issues: alive
+  9, partly 3, gone 1 (issue-b106), none 1. Of `09c2-upgrade`'s three: alive
+  1, partly 1, gone 1 (issue-c3d1). Of the instrument's own `passage-check /
+  plan instrument` cluster, 65 rows: alive 23, partly 26, none 16 — a quarter
+  cite nothing the instrument can check. Both `gone` rows named here read
+  `no commit found` on every item, the case issue-d0d7 warns about.
+- **The finder counter**, `node scripts/issues-by-finder.js`:
+  `run-owned-seats` sekkei 18, kanri 11, jisso 8; `tanto-feedback` jisso 3,
+  sekkei 2, kanri 1; `tanto-issue-triage` kanri 6, sekkei 6, jisso 3.
+  Finders other than Sekkei rose, which was `tanto-feedback`'s return
+  condition; that topic had closed, so the condition is spent and is
+  recorded only.
+- **The `maxBuffer` hotfix was owed that day.** The order of 2026-10-06 had
+  taken it as landed; `passage-check.js` carried no `maxBuffer` on
+  2026-10-07. It landed the same day in the hotfix lane on `main`, before
+  `roster-ledger`'s Sekkei was spawned, and issue-473e is resolved.
+
+Why `roster-ledger` went sixteenth: the reason it waited for
+`run-owned-seats` (the roster's status words and the census's rules were
+about to change) was spent at that topic's merge, and the order's own
+criterion — a chore the human pays by hand in every run goes first — then
+pointed at the roster, whose one high issue (issue-f07a) was a roster write
+that had failed three times and locked the human out of Kanri, and whose
+pile was the largest without a carrier.
+
+**The 21 `gone` rows, hand-closed at `roster-ledger`'s close (2026-10-08).**
+The instrument run again on 2026-10-08 (58.7 s) read alive 169, partly 155,
+gone 21, none 51; the pile on `main` was 371 open (1 high, 152 medium, 218
+low), 25 deferred, 126 resolved, and 55 of the 138 post-triage issues carried
+no `Carrier` or `Assigned to` line by that read. Every one of the 21 `gone`
+rows read `no commit found` on every item — chat lines, harness text,
+another repository's words, generic paths — so each was read against the
+tree and the decisions by hand. Six were closed:
+
+- issue-127d — superseded: every seat is spawned by the run
+  (decision-7a19), and the spawn request carries the family from
+  `sessions.sekkei`.
+- issue-29bf — superseded: `tanto` follows a Kanri handover to the successor
+  with nothing typed, and the spawner refuses a second Kanri.
+- issue-cabf — answered by decision-ca6d: a plan-mandated defect goes to
+  the fix wave.
+- issue-c204 — covered: the dispatcher verifies the file, not the reply, and
+  the apply now runs in shoki's seat with Kanri's landing checks reading the
+  tree.
+- issue-235b — the rule is in `docs/notes/bash-tool-and-script-pitfalls.md`
+  and `docs/notes/authoring-a-passage-plan.md`; the fourteen occurrences are
+  in frozen documents.
+- issue-b4e7 — not a defect: its figure joins the fix-wave section of
+  `docs/notes/authoring-a-passage-plan.md` as a second reading of dispatch
+  size.
+
+Fifteen were kept: issue-b106, issue-264d, issue-42fc, issue-c3d1,
+issue-cafd, issue-f697, issue-85e5, issue-cd67, issue-05ee, issue-abf2,
+issue-aeed (stays deferred), issue-0e74, issue-512e, issue-b7e1, and
+issue-d0d7. The hand-close is one more data point for issue-d0d7: rows whose
+every item reads `no commit found` are read one by one, closed when a design
+or a note now carries the matter, and kept otherwise — six of 21 here.

@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-16
-updated: 2026-09-19
+updated: 2026-10-08
 ---
 
 Source: shoroku tanto-project-config
@@ -33,3 +33,5 @@ file rather than a directory collision.
 
 Related: issue-e2db (the project pass measured end to end — its removal check
 is the mechanism this concerns).
+
+Carrier topic: `09c2-upgrade` (roster-ledger's close, 2026-10-08).

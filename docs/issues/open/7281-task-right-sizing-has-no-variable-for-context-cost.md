@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-09
-updated: 2026-10-03
+updated: 2026-10-08
 ---
 
 Source: shoroku context-cost
@@ -119,3 +119,15 @@ file-count or file-read term, beside the line count and the uncertainty
 hypothesis above, is what the next design weighing task size should carry.
 
 Serves exp-19c1 (tanto-issue-triage, 2026-10-03).
+
+**2026-10-08, `roster-ledger` — a template-plus-tests task is about three
+times a code-only task** (shoroku roster-ledger S-36). Cutting that plan's
+Task 1 (1697 lines, one commit) into two tasks was considered and rejected:
+the roster and archive templates, the schema check, the cell grammar, and the
+one-row model had to land together, because the tests copy the templates and
+17 two-table tests had to be rewritten in the same commit for the suite to
+stay green. The second-largest task was 755 lines (Task 16, after the cold
+read) and the next 631. The first data point for this issue's threshold
+question of that shape: a task whose deliverable is a template and the tests
+that copy it is about three times a code-only task, and cannot be split by
+file.

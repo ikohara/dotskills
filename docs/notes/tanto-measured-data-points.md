@@ -1475,3 +1475,141 @@ uses, 356 s, for 54 carrier lines and two new items, with only Destination
 lines and the two new items changed in a 150 KB file — checked by a
 line-set diff against a copy taken before the dispatch. A data point for the
 recommend kind's model choice.
+
+## roster-ledger: the spec stage (2026-10-07)
+
+From `roster-ledger`'s close. The figures are tokens / tool uses / seconds of
+each dispatch, from the completion notices, and the seats' own observations.
+
+- **Three readers of one draft overlapped on no Blocker.** One spec draft
+  drew 67 findings in one day from three readers — Kanri's spec-check 37 (a
+  default-subagent read of the role file against the draft), the spec review
+  23 (fable), Kikaku 7 (fable, with the human) — and the three overlapped on
+  no Blocker; each read a different pair of documents against each other.
+- **The spec-check's cost.** The default-subagent spec-check of the draft
+  spec against `roles/kanri.md`, two templates, `boundary.js` and the spec
+  cost 161662 subagent tokens, 12 tool uses, 275 s, and produced a 23 KB
+  report with 37 findings; reading it in Kanri's context cost about 8000
+  tokens, which is why the read was delegated at all.
+- **A pointer answer is checked only by a re-read.** The spec's "Answers to
+  the spec inputs" maps each U-finding to a section, and in three cases
+  (U27, U28, the Resuming row's `ack`) the named section asserts a mechanism
+  the file does not have; an answer by section pointer is checked only when
+  the reviewer re-reads the file, which is what the spec-check was meant to
+  spare.
+- **Targeted edits left three stale places.** The spec was revised by about
+  forty-five targeted edits across three commits rather than rewritten, which
+  kept each reviewer's hash referent stable but left three places carrying a
+  form a later edit had rejected (the peer key); a whole re-read of the file
+  before each commit would have caught them, and the Kikaku did instead.
+
+## roster-ledger: the plan stage (2026-10-07)
+
+- **Drafting.** Three `plan.draft` subagents in parallel on opus, batches A,
+  B, and C, cost about 618k, 502k, and 440k subagent tokens in total after
+  their resumes (the last-reported counts of tool uses: A 49, B 52, C 7,
+  after one to two follow-up rounds each), batch B's last turn the longest at
+  22 minutes; the plan reviewer (fable) 431k tokens, 56 tool uses, 19
+  minutes; the brief writer (sonnet) 90k tokens, 13 tool uses, 108 seconds;
+  `boundary --plan` with the whole suite 8 min 25 s on a tree with no batch
+  landed.
+- **Size and the cheap instruments.** The assembled plan is 9823 lines for 18
+  tasks; `frame --stage 1` prints it in about 500 lines and `lint` and
+  `replay` run in under 10 seconds on it.
+- **The cold read of a plan this long.** The `plan.coldread` dispatch on a
+  9418-line plan cost 215072 subagent tokens, 37 tool uses, and 509 s
+  (including one `replay`); its prompt gave the subagent the two frames as
+  files under `.tanto/roster-ledger/coldread-frame-stage{1,2}.txt` (44 KB and
+  105 KB) instead of pasting them. Measured, for the next plan of this size.
+- **The pre-flight scan's cost and yield.** The pre-flight scan on a
+  9822-line plan, three sonnet `default` subagents in parallel, cost
+  336,740 / 295,252 / 297,493 tokens and took 17.5 / 11.4 / 11.4 minutes for
+  107 rows; it found 1 `blocks`, 4 `wrong`, 19 `nit`, and every
+  `blocks`/`wrong` item was real when checked against the tree. Beside "A
+  pre-flight conflict scan reads a plan's headers, not its bodies" above.
+- **Its nits are the likely Importants.** After the batches ran, both `wrong`
+  rows (W1: P11.29 required by O11.6; W2: `usage.js` 503) were real, and two
+  nits became review findings (N2 the duplicated scan as Task 8's Important;
+  N4 the template read at load as Task 11's Minor 3).
+
+## roster-ledger: the batches (2026-10-07, 2026-10-08)
+
+- **The reviewer and the cold read read against different things.** A second
+  reading for "The cold read is the one layer that reads a plan as prose"
+  above. The plan reviewer (applied-tree model: apply every passage in
+  memory, grep the fences' needles) found fence 5's two `--exclude`s
+  unnecessary, which the dry run's replay could not say because the fence
+  carries them; Kanri's cold read then found six things the review did not —
+  the run-state sequencing of a live handover, the order of the Jissos' rows
+  against `record`'s refusal, a state entry with no transcript path, a stop
+  condition no fence backs. The reviewer reads the plan against the spec; the
+  cold read reads it against the running run.
+- **Batch A, per task** (tokens / tool uses / wall clock): implementers
+  114,675 / 29 / 18 min (Task 1), 90,094 / 39 / 17 min, 94,229 / 36 / 18 min,
+  92,308 / 26 / 18 min, 94,516 / 27 / 19 min, and 75,482 / 22 / 1.3 min for
+  the documents-only Task 6; the 17-19 minutes are the six per-file
+  foreground test runs (spawner.test.js alone about 8 minutes), not the code.
+  Spec reviewers 74-111k tokens in 44-150 s; quality reviewers 86-118k tokens
+  in 93-220 s.
+- **Batch B, per task** (tokens / tool uses / seconds): implementers 78,181 /
+  32 / 1002 (Task 7), 71,673 / 24 / 986 (8), 77,354 / 30 / 1026 (9), 73,604 /
+  40 / 1072 (10), 79,672 / 41 / 1215 (11); spec reviewers 73,139-87,202
+  tokens in 33-68 s; quality reviewers 73,552-103,040 tokens in 41-151 s. The
+  16-20 minutes of each implementer are the six per-file suite runs
+  (`spawner.test.js` 491 s); the script tasks cost what batch A's did.
+- **The touched suites in parallel.** The three touched suites in the
+  foreground, run in parallel from one review — `boundary.test.js` 81 tests
+  29 s, `tanto.test.js` 68 tests 313 s, `spawner.test.js` 83 tests 497 s;
+  wall clock about 8.5 min for all three, against the plan's nine for the
+  whole suite in series.
+- **The spec and the quality reviewer dispatched at once.** Both read-only,
+  they bounded each review at the longer of the two, 66-151 s, with no
+  collision on the tree; the cost, a quality run wasted by a spec failure,
+  did not arise in five tasks.
+- **The boundary's cost.** The two `boundary.verify` dispatches of one Kanri
+  tenure cost batch A 110554 subagent tokens, 40 tool uses, 615 s (667 s on
+  its second notice) and batch B 98198 subagent tokens, 25 tool uses, 647 s;
+  each wrote its verdict and rendered the next prompt, and both ran
+  `boundary --plan` with the whole suite.
+
+## roster-ledger: the fix wave (2026-10-08)
+
+The fix wave cost 13 subagent dispatches for five commits — three
+implementers, two resumed for a fix round, eight reviews (three spec, three
+quality, two scoped re-reviews). From the idle notices' timestamps: F2's
+implementer took about 7 minutes and F3's about 3, a fix round 1 to 2
+minutes, and a reviewer 1.5 to 2.5 minutes with the spec and quality reviews
+running in parallel, the 46 KB F1 diff included. Beside "What a three-fix
+wave landing inside mandated spans cost" above.
+
+## roster-ledger: the close (2026-10-08)
+
+- **The shusei batch, from the completion notices** (tokens / tool uses /
+  seconds): the `task.implement` run of all 32 items over 13 files 73080 /
+  11 / 118; the spec review on opus 66947 / 15 / 105; the quality review on
+  opus 88881 / 12 / 108; fix round 1's implementer 81453 / 9 / 66; the
+  scoped re-review on opus 50697 / 3 / 19; the whole suite 513.5 s for 360
+  tests. A mechanical text batch costs about a fifth of the task-sized code
+  batches.
+- **The shusei prompt rendered by a subagent.** The shusei batch prompt, 32
+  items under 13 files with every Old and New text quoted, was rendered by
+  one `default` subagent on sonnet from the template, the fix-wave prompt as
+  its model, and the recommendation: 105258 subagent tokens, 10 tool uses,
+  98 s. The subagent said it had not checked its quotations; a 30-line script
+  then found all 40 Old texts exactly once in `git show HEAD:<path>` and all
+  32 items covered. Rendering by a subagent kept about 30000 tokens of quoted
+  text out of Kanri's context, and the mechanical check cost one tool call.
+- **The shusei boundary, verified against a plan it may turn red.** The
+  `boundary.verify` dispatch for the shusei batch (one task, 13 files, plan
+  passages red by design) took 1255 s, 108079 subagent tokens, and 24 tool
+  uses; its verdict was `pass` with `check: fail`, the fail being the
+  boundary's fence 7 and `verify` on the passages the 32 edits change. A
+  batch that edits files a plan's passages pin reads `check: fail` at its
+  boundary by construction. The brief's missing word for a batch verified
+  against a plan it is permitted to turn red is issue-32f9's, already open.
+- **The landing's checks.** `lint.sh` on shoki's 35 changed paths passed in
+  one run of about a minute; the landing checks (lint, `Source:` on every new
+  and amended issue, the six inbox copies' Triage) cost about 13k tokens of
+  the session's context in four commands, and `usage.js close` printed its
+  two lines (`usage:`, `feedback: own repository`) with nothing to send in
+  the shipping repository.

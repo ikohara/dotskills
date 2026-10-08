@@ -7,7 +7,7 @@ blocks: []
 claimed_by: null
 claimed_at: null
 created: 2026-09-20
-updated: 2026-09-24
+updated: 2026-10-08
 ---
 
 Source: shoroku tanto-diet S-12
@@ -46,3 +46,5 @@ asks for an investigation, not a fix: whether `/effort` has a per-role default
 that differs from `sessions.<role>.effort`, or whether a resumed or fresh
 window's effort resets to something other than the profile the human last
 set.
+
+Carrier topic: `park-in-flight` (roster-ledger's close, 2026-10-08).
